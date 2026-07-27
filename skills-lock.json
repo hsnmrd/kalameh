@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "react-query": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": "skills/react-query/SKILL.md",
+      "computedHash": "b1add43071ea4a75b90c040feee5e6c300e50e7d1d561800254a7b6188ca9dff"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",
