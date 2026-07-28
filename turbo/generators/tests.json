@@ -1,0 +1,153 @@
+[
+  {
+    "name": "feature-basic",
+    "generator": "feature",
+    "args": ["web", "gen-test"],
+    "expected": [],
+    "cleanup": ["apps/web/src/app/(gen-test)"]
+  },
+  {
+    "name": "feature-with-root",
+    "generator": "feature",
+    "args": ["web", "gen-root"],
+    "expected": [],
+    "cleanup": ["apps/web/src/app/(gen-root)"]
+  },
+  {
+    "name": "page-basic",
+    "generator": "page",
+    "args": ["web", "gen-add-page", "register/otp"],
+    "expected": [
+      "apps/web/src/app/(gen-add-page)/register/(root)/layout.tsx",
+      "apps/web/src/app/(gen-add-page)/register/(root)/loading.tsx",
+      "apps/web/src/app/(gen-add-page)/register/otp/page.tsx",
+      "apps/web/src/app/(gen-add-page)/register/otp/layout.tsx",
+      "apps/web/src/app/(gen-add-page)/register/otp/loading.tsx",
+      "apps/web/src/app/(gen-add-page)/register/otp/page.test.tsx"
+    ],
+    "cleanup": ["apps/web/src/app/(gen-add-page)"]
+  },
+  {
+    "name": "modal-basic",
+    "generator": "modal",
+    "args": ["web", "gen-modal", "register/otp", "filter"],
+    "expected": [
+      "apps/web/src/modal/index.tsx",
+      "apps/web/src/modal/index.wrapper.tsx",
+      "apps/web/src/app/(gen-modal)/register/otp/modal/filter.tsx"
+    ],
+    "cleanup": ["apps/web/src/app/(gen-modal)"]
+  },
+  {
+    "name": "directory-basic",
+    "generator": "directory",
+    "args": ["web", "gen-add-dir", "register"],
+    "expected": [
+      "apps/web/src/app/(gen-add-dir)/register/(root)/layout.tsx",
+      "apps/web/src/app/(gen-add-dir)/register/(root)/loading.tsx"
+    ],
+    "cleanup": ["apps/web/src/app/(gen-add-dir)"]
+  },
+  {
+    "name": "component-ui",
+    "generator": "component",
+    "args": ["ui", "web", "gen-comp-ui", "ignore", "UiButton", "true"],
+    "expected": [
+      "packages/ui/src/components/ui-button/index.tsx",
+      "packages/ui/src/components/ui-button/index.test.tsx"
+    ],
+    "cleanup": ["packages/ui/src/components/ui-button"]
+  },
+  {
+    "name": "component-app",
+    "generator": "component",
+    "args": ["app", "web", "ignore", "ignore", "AppButton", "true"],
+    "expected": [
+      "apps/web/src/components/app-button/index.tsx",
+      "apps/web/src/components/app-button/index.test.tsx"
+    ],
+    "cleanup": ["apps/web/src/components/app-button"]
+  },
+  {
+    "name": "component-feature",
+    "generator": "component",
+    "args": [
+      "feature",
+      "web",
+      "gen-comp-feature",
+      "ignore",
+      "FeatureCard",
+      "true"
+    ],
+    "expected": [
+      "apps/web/src/app/(gen-comp-feature)/(common)/components/feature-card/index.tsx",
+      "apps/web/src/app/(gen-comp-feature)/(common)/components/feature-card/index.test.tsx"
+    ],
+    "cleanup": ["apps/web/src/app/(gen-comp-feature)"]
+  },
+  {
+    "name": "component-page",
+    "generator": "component",
+    "args": [
+      "page",
+      "web",
+      "gen-comp-page",
+      "register/otp",
+      "PageWidget",
+      "true"
+    ],
+    "expected": [
+      "apps/web/src/app/(gen-comp-page)/register/otp/components/page-widget/index.tsx",
+      "apps/web/src/app/(gen-comp-page)/register/otp/components/page-widget/index.test.tsx"
+    ],
+    "cleanup": ["apps/web/src/app/(gen-comp-page)"]
+  },
+  {
+    "name": "artifact-feature-hook",
+    "generator": "artifact",
+    "args": [
+      "hooks",
+      "feature",
+      "web",
+      "gen-artifact-feature",
+      "ignore",
+      "use-account-status"
+    ],
+    "expected": [
+      "apps/web/src/app/(gen-artifact-feature)/(common)/hooks/use-account-status.ts"
+    ],
+    "cleanup": ["apps/web/src/app/(gen-artifact-feature)"]
+  },
+  {
+    "name": "artifact-page-helper",
+    "generator": "artifact",
+    "args": [
+      "helper",
+      "page",
+      "web",
+      "gen-artifact-page",
+      "register/otp",
+      "format-payload"
+    ],
+    "expected": [
+      "apps/web/src/app/(gen-artifact-page)/register/otp/helper/format-payload.ts"
+    ],
+    "cleanup": ["apps/web/src/app/(gen-artifact-page)"]
+  },
+  {
+    "name": "artifact-page-mock-data",
+    "generator": "artifact",
+    "args": [
+      "mock-data",
+      "page",
+      "web",
+      "gen-artifact-mock",
+      "register/otp",
+      "otp-state"
+    ],
+    "expected": [
+      "apps/web/src/app/(gen-artifact-mock)/register/otp/mock-data/otp-state.ts"
+    ],
+    "cleanup": ["apps/web/src/app/(gen-artifact-mock)"]
+  }
+]

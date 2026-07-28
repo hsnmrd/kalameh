@@ -1,0 +1,21 @@
+"use client";
+
+import { AlertDialog } from "@repo/ui/kits/alert-dialog";
+import { ModalDefaultProperties } from "@repo/modal-config";
+
+export interface {{pascalCase modalName}}DialogProperties {
+  // write modal properties here
+}
+
+export function {{pascalCase modalName}}Dialog(
+  properties: {{pascalCase modalName}}DialogProperties & ModalDefaultProperties
+) {
+  return (
+    <AlertDialog
+      title=""
+      subtitle=""
+      description=""
+      {...properties}
+    />
+  );
+}

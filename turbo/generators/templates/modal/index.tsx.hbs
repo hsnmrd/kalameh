@@ -1,0 +1,15 @@
+"use client";
+
+import { createModalSystem } from "@repo/modal-config/system"; 
+// PLOP: AUTO IMPORT MODALS
+
+type Registry = {
+  // PLOP: AUTO ADD REGISTER TYPES OF MODAL
+};
+
+export const modal = createModalSystem<Registry>({
+  param: "modal",
+  persistProps: true,
+});
+
+// PLOP: AUTO ADD REGISTERS OF MODAL

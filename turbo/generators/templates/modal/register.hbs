@@ -1,0 +1,9 @@
+modal.register("{{camelCase modalName}}", ({ close }) => {
+  return (
+    <{{pascalCase modalName}}Dialog
+      close={close}
+      open
+      onOpenChange={(o) => !o && close()}
+    />
+  );
+});

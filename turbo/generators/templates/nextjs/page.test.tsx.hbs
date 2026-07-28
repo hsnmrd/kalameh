@@ -1,0 +1,16 @@
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import {{pascalCase feature}}{{pascalCase page}}Page from "./page";
+
+// PLOP: AUTO-IMPORT PAGES HERE
+
+describe("{{pascalCase feature}}{{pascalCase page}}Page", () => {
+  test("renders the page correctly", () => {
+    render(<{{pascalCase feature}}{{pascalCase page}}Page />);
+    const content = screen.getByTestId(
+      "{{dashCase feature}}-{{dashCase page}}-page"
+    );
+    expect(content).toBeInTheDocument();
+  });
+});

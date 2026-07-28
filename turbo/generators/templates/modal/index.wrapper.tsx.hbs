@@ -1,0 +1,17 @@
+"use client";
+
+import { ReactNode } from "react";
+import { modal } from ".";
+
+export const ModalWrapper = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  return (
+    <modal.Provider>
+      {children}
+      <modal.ModalHost />
+    </modal.Provider>
+  );
+};

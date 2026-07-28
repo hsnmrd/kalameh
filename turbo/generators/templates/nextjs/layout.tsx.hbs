@@ -1,0 +1,19 @@
+import type { Metadata } from "next";
+import { ReactNode } from "react";
+
+export const metadata: Metadata = {
+  title: "{{pascalCase feature}}{{pascalCase page}}",
+  description: "Write your page description here.",
+};
+
+interface LayoutProperties {
+  children: ReactNode;
+}
+
+export default function {{pascalCase feature}}{{pascalCase page}}Layout(
+  properties: LayoutProperties
+) {
+  const { children } = properties;
+
+  return <>{children}</>;
+}

@@ -1,0 +1,17 @@
+{{#if useClient}}
+"use client";
+
+{{/if}}
+import { ReactNode } from "react";
+
+interface {{pascalCase componentName}}Props {
+  children?: ReactNode;
+  className?: string;
+}
+
+export function {{pascalCase componentName}}({
+  children,
+  className,
+}: {{pascalCase componentName}}Props) {
+  return <div className={className}>{children}</div>;
+}
