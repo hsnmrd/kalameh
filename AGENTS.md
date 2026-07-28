@@ -12,3 +12,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Use `motion/react` for animating elements in React UI. Prefer its primitives and APIs over ad hoc CSS animation logic for interactive component motion.
 - For web forms, use `react-hook-form` for form state and `zod` for schema validation. Do not build ad hoc form state or validation for non-trivial forms.
 - For server state and REST calls, use TanStack React Query with `micro-rq`. Define REST resources with `micro-rq` and pass generated query/mutation configs to React Query instead of hand-writing fetch hooks or wrapper APIs.
+
+# apps/web design system
+
+- Follow `DESIGN.md` for the full hand-drawn design system. Treat it as the visual source of truth for `apps/web` unless the user explicitly overrides it.
