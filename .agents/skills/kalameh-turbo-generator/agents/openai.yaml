@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kalameh Turbo Generator"
+  short_description: "Use Kalameh app scaffolding generators"
+  default_prompt: "Use $kalameh-turbo-generator to scaffold a feature in apps/web."
