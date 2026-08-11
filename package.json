@@ -7,15 +7,33 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@workspace/config": "workspace:*",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "prettier": "^3.8.3",
+    "eslint": "^9.39.5",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "prisma": "^6.19.3",
     "turbo": "^2.9.18",
     "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css,scss}": [
+      "prettier --write"
+    ],
+    "*.prisma": [
+      "prisma format --schema"
+    ]
   },
   "packageManager": "pnpm@10.22.0",
   "engines": {

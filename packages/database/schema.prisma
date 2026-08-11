@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Institute {
+  id        String  @id @default(uuid())
+  name      String
+  subdomain String  @unique
+  isActive  Boolean @default(true)
+
+  bankCardNumber  String?
+  bankAccountName String?
+  bankShaba       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users        User[]
+  courses      Course[]
+  terms        Term[]
+  classes      Class[]
+  transactions Transaction[]
+}
+
+enum Role {
+  SUPER_ADMIN
+  INSTITUTE_ADMIN
+  CLERK
+  STUDENT
+}
+
+model User {
+  id          String @id @default(uuid())
+  instituteId String
+  role        Role   @default(STUDENT)
+
+  firstName    String
+  lastName     String
+  phone        String
+  password     String // Hashed
+  nationalCode String?
+  isActive     Boolean @default(true)
+
+  currentAllowedCourseId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institute            Institute     @relation(fields: [instituteId], references: [id])
+  currentAllowedCourse Course?       @relation("UserAllowedCourse", fields: [currentAllowedCourseId], references: [id])
+  enrollments          Enrollment[]
+  transactions         Transaction[]
+
+  @@unique([phone, instituteId])
+  @@index([instituteId])
+}
+
+model Term {
+  id          String   @id @default(uuid())
+  instituteId String
+  title       String
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean  @default(true)
+
+  institute Institute @relation(fields: [instituteId], references: [id])
+  classes   Class[]
+
+  @@index([instituteId])
+}
+
+model Course {
+  id          String @id @default(uuid())
+  instituteId String
+  title       String
+  baseFee     Int
+
+  prerequisiteId String?
+  prerequisite   Course?  @relation("Prerequisite", fields: [prerequisiteId], references: [id])
+  nextCourses    Course[] @relation("Prerequisite")
+
+  institute    Institute @relation(fields: [instituteId], references: [id])
+  classes      Class[]
+  allowedUsers User[]    @relation("UserAllowedCourse")
+
+  @@index([instituteId])
+}
+
+model Class {
+  id          String @id @default(uuid())
+  instituteId String
+  termId      String
+  courseId    String
+
+  title       String
+  capacity    Int
+  fee         Int
+  teacherName String?
+  schedule    String?
+
+  institute   Institute    @relation(fields: [instituteId], references: [id])
+  term        Term         @relation(fields: [termId], references: [id])
+  course      Course       @relation(fields: [courseId], references: [id])
+  enrollments Enrollment[]
+
+  @@index([instituteId])
+}
+
+enum EnrollmentStatus {
+  PENDING_PAYMENT
+  PENDING_APPROVAL
+  ENROLLED
+  REJECTED
+  WAITLISTED
+}
+
+model Enrollment {
+  id        String           @id @default(uuid())
+  studentId String
+  classId   String
+  status    EnrollmentStatus @default(PENDING_PAYMENT)
+
+  finalScore Int?
+  isPassed   Boolean?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student User  @relation(fields: [studentId], references: [id])
+  class   Class @relation(fields: [classId], references: [id])
+
+  @@unique([studentId, classId])
+  @@index([classId])
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Transaction {
+  id          String @id @default(uuid())
+  instituteId String
+  studentId   String
+
+  amount          Int
+  trackingCode    String
+  receiptImageUrl String
+
+  status      TransactionStatus @default(PENDING)
+  paymentDate DateTime          @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institute Institute @relation(fields: [instituteId], references: [id])
+  student   User      @relation(fields: [studentId], references: [id])
+
+  @@index([instituteId])
+}
