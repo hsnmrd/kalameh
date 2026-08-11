@@ -1,59 +1,44 @@
-# جزییات محصول - بخش ۳: مدیریت زیرساخت، کاربران و تنظیمات
-**نام فایل:** `03_Product_Details_Admin_and_Users.md`
-**وضعیت:** نهایی (نسخه MVP)
+# سند معماری فنی و زیرساخت پروژه (Master Tech Architecture)
+
+**نام پروژه:** سیستم یکپارچه مدیریت آموزشگاه زبان (SaaS)
+**متدولوژی توسعه:** AI-Driven Development (طراحی شده به عنوان Context برای ابزارهای هوش مصنوعی)
 
 ---
 
-## ۱. هدف این سند
-این سند به تشریح زیرساخت‌های سیستمی شامل پنل ادمین کل (Super Admin) برای مدیریت SaaS، تنظیمات پایه آموزشگاه (به ویژه اطلاعات بانکی)، مدیریت کاربران بدون نیاز به پیامک، و داشبوردهای گزارش‌گیری می‌پردازد.
+## ۱. پشته فناوری (Tech Stack)
+
+- **معماری مخزن:** Turborepo (Monorepo)
+- **بک‌اند:** NestJS (Node.js)
+- **فرانت‌اند (ادمین و PWA):** React / Next.js
+- **سیستم دیزاین و استایل:** Tailwind CSS + shadcn/ui
+- **مدیریت وضعیت و درخواست‌ها:** React Query (از طریق پکیج `micro-rq`)
+- **اعتبارسنجی و Type Safety سراسری:** Zod (Single Source of Truth)
+- **دیتابیس:** PostgreSQL
+- **رابط دیتابیس (ORM):** Prisma
+- **مدیریت کش و قفل‌ها:** Redis
+- **زیرساخت اجرا:** Docker & Docker Compose
 
 ---
 
-## ۲. پنل مدیریت کل (Super Admin / SaaS Manager)
-این پنل صرفاً در اختیار شما (مالک نرم‌افزار) است و برای مدیریت مشتریان (آموزشگاه‌ها) استفاده می‌شود.
-* **ایجاد آموزشگاه جدید (Onboarding):** دریافت نام آموزشگاه، تولید یک شناسه یکتا (`institute_id`)، و ساخت یک حساب کاربری «مدیر کل» (Institute Admin) برای آن آموزشگاه.
-* **مدیریت لایسنس:** امکان تغییر وضعیت آموزشگاه به «فعال» یا «غیرفعال» (تعلیق). در صورت تعلیق، ورود تمام کاربرانِ آن آموزشگاه به سیستم مسدود می‌شود.
-* **داشبورد سیستمی:** مشاهده تعداد کل آموزشگاه‌های فعال و مجموع کاربران ثبت‌شده در کل پلتفرم.
-* **حریم خصوصی:** Super Admin نباید مستقیماً به اطلاعات مالی یا تحصیلیِ داخل یک آموزشگاه دسترسی عملیاتی داشته باشد (مگر از طریق دیتابیس برای پشتیبانی فنی).
+## ۲. ساختار پوشه‌ها (Turborepo Structure)
 
----
+پروژه بر اساس ساختار استاندارد Turborepo به دو بخش `apps` و `packages` تقسیم می‌شود:
 
-## ۳. تنظیمات پایه آموزشگاه (Institute Settings)
-مدیر آموزشگاه با ورود به پنل، باید بتواند اطلاعات زیر را تنظیم کند:
-* **تنظیمات مالی (بسیار مهم):** ثبت «شماره کارت»، «شماره شبا» و «نام صاحب حساب». (این اطلاعات در PWA در زمان ثبت‌نام به زبان‌آموز نمایش داده می‌شود).
-* **اطلاعات عمومی:** ثبت نام آموزشگاه، آپلود لوگو (برای نمایش در هدر PWA) و شماره تماس پشتیبانی آموزشگاه.
-
----
-
-## ۴. مدیریت کاربران و ورود (بدون سیستم پیامک)
-با توجه به عدم وجود سرویس پیامک (SMS OTP) در فاز اول، جریان کاربری به این شکل مدیریت می‌شود:
-
-### الف) ایجاد کاربر (زبان‌آموز)
-* **دستی توسط مدیر:** مدیر در پنل مشخصات زبان‌آموز (نام و موبایل) را وارد می‌کند. سیستم به صورت خودکار یک **رمز عبور پیش‌فرض** (مثلاً کدملی یا یک عدد ثابت مثل `123456`) برای او ست می‌کند. مدیر این رمز را شفاهاً یا روی یک برگه به زبان‌آموز می‌دهد.
-* **تغییر رمز:** زبان‌آموز پس از اولین ورود موفق به PWA با رمز پیش‌فرض، می‌تواند (و بهتر است) از تنظیمات پروفایل، رمز خود را تغییر دهد.
-
-### ب) فراموشی رمز عبور (Password Reset)
-* اگر کاربری رمز خود را فراموش کند، دکمه‌ای به نام "فراموشی رمز" در اپلیکیشن می‌بیند که با کلیک روی آن پیام می‌دهد: *"لطفاً جهت بازنشانی رمز عبور، با پذیرش آموزشگاه تماس بگیرید."*
-* مدیر در پنل خود کاربر را جستجو کرده، دکمه **«بازنشانی رمز»** را می‌زند. سیستم رمز کاربر را به همان رمز پیش‌فرض برمی‌گرداند.
-
-### ج) مدیریت نقش‌ها (Roles)
-* مدیر اصلی می‌تواند کاربران جدیدی با نقش «کارمند/منشی» ایجاد کند تا به پنل مدیریت دسترسی داشته باشند، اما این نقش به بخش «تنظیمات پایه آموزشگاه» دسترسی نخواهد داشت.
-
----
-
-## ۵. داشبورد و گزارش‌ها (MVP Dashboard)
-برای اینکه نرم‌افزار برای مدیر آموزشگاه کاربردی و جذاب باشد، صفحه اول پنل (Dashboard) باید در یک نگاه وضعیت کسب‌وکار را نشان دهد:
-1. **ویجت اعلان‌ها:** تعداد فیش‌های بانکی در انتظار بررسی (با قابلیت کلیک برای هدایت به لیست).
-2. **ویجت مالی:** مجموع درآمد تایید شده (تراکنش‌های موفق) در ماه جاری.
-3. **ویجت آموزشی:** تعداد کل زبان‌آموزان فعال (دارای کلاس) در ترم جاری.
-4. **خروجی اکسل:** مدیر باید بتواند از لیست زبان‌آموزان (کل آموزشگاه یا یک کلاس خاص) خروجی اکسل (Export) بگیرد.
-
----
-
-## ۶. قوانین تجاری و اعتبارسنجی‌ها (Business Rules)
-* **یکتایی حساب کاربری:** ترکیب فیلد `phone_number` (شماره موبایل) و `institute_id` باید یکتا (Unique) باشد. یعنی یک شماره موبایل می‌تواند در سیستم وجود داشته باشد به شرطی که متعلق به دو آموزشگاهِ متفاوت باشد.
-* **حذف فیزیکی ممنوع (Soft Delete):** مدیر نمی‌تواند یک زبان‌آموز یا فیش مالی را کاملاً از دیتابیس پاک کند (به دلیل حفظ یکپارچگی سوابق مالی). سیستم فقط آن‌ها را غیرفعال (Deactivate/Archived) می‌کند.
-
+````text
+/
+├── apps/
+│   ├── api/                # NestJS Backend (RESTful APIs)
+│   ├── admin-panel/        # Next.js App (Desktop Dashboard for Institute Admins)
+│   └── student-pwa/        # Next.js App (Mobile-first PWA for Students)
+│
+├── packages/
+│   ├── database/           # Prisma schema, migrations, and generated PrismaClient
+│   ├── types/              # Zod schemas & TypeScript inferred types (Shared E2E)
+│   ├── ui/                 # Shared UI components (shadcn/ui + Tailwind)
+│   └── config/             # Shared ESLint, Prettier, and tsconfig.json
+│
+├── docker-compose.yml      # Services: PostgreSQL, Redis
+└── package.json            # Root workspace config (pnpm/yarn)
 ۳. قوانین توسعه و کدنویسی (AI Development Guidelines)
 هوش مصنوعی در زمان تولید کد برای این پروژه باید قوانین زیر را رعایت کند:
 
@@ -98,7 +83,7 @@ model Institute {
   name            String
   subdomain       String   @unique
   isActive        Boolean  @default(true)
-  
+
   bankCardNumber  String?
   bankAccountName String?
   bankShaba       String?
@@ -124,7 +109,7 @@ model User {
   id           String    @id @default(uuid())
   instituteId  String
   role         Role      @default(STUDENT)
-  
+
   firstName    String
   lastName     String
   phone        String
@@ -132,7 +117,7 @@ model User {
   nationalCode String?
   isActive     Boolean   @default(true)
 
-  currentAllowedCourseId String? 
+  currentAllowedCourseId String?
 
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -182,7 +167,7 @@ model Class {
   instituteId String
   termId      String
   courseId    String
-  
+
   title       String
   capacity    Int
   fee         Int
@@ -210,7 +195,7 @@ model Enrollment {
   studentId   String
   classId     String
   status      EnrollmentStatus @default(PENDING_PAYMENT)
-  
+
   finalScore  Int?
   isPassed    Boolean?
 
@@ -234,11 +219,11 @@ model Transaction {
   id              String            @id @default(uuid())
   instituteId     String
   studentId       String
-  
+
   amount          Int
   trackingCode    String
   receiptImageUrl String
-  
+
   status          TransactionStatus @default(PENDING)
   paymentDate     DateTime          @default(now())
 
@@ -291,3 +276,4 @@ JSON
   ]
 }
 قانون سخت‌گیرانه: اگر ESLint اروری بدهد که با --fix به صورت خودکار قابل حل نباشد، هوک Husky باید فرآیند کامیت را مسدود (Abort) کند و لاگ ارور را به توسعه‌دهنده نمایش دهد.
+````
