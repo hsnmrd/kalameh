@@ -1,34 +1,40 @@
 services:
-  mongo:
-    image: mongo:7
-    container_name: kalameh-mongo
-    command: ["--replSet", "rs0", "--bind_ip_all"]
+  postgres:
+    image: postgres:16-alpine
+    container_name: kalameh-postgres
+    restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "5432:5432"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: kalameh
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-kalameh}
     volumes:
-      - mongo-data:/data/db
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test:
         [
-          "CMD",
-          "mongosh",
-          "--quiet",
-          "--username",
-          "root",
-          "--password",
-          "password",
-          "--authenticationDatabase",
-          "admin",
-          "--eval",
-          'try { rs.status().ok } catch (_) { rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]}).ok }',
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-kalameh}",
         ]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: kalameh-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  mongo-data:
+  postgres-data:
+  redis-data:
