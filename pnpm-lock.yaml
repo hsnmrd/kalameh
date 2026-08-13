@@ -327,12 +327,21 @@ importers:
   packages/database:
     dependencies:
       '@prisma/client':
-        specifier: ^6.4.1
-        version: 6.19.3(prisma@6.19.3(typescript@7.0.2))(typescript@7.0.2)
+        specifier: ^6.19.3
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
     devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
       prisma:
-        specifier: ^6.4.1
-        version: 6.19.3(typescript@7.0.2)
+        specifier: ^6.19.3
+        version: 6.19.3(typescript@5.9.3)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
 
   packages/eslint-config:
     devDependencies:
@@ -7197,10 +7206,10 @@ snapshots:
     optionalDependencies:
       prisma: 4.16.2
 
-  '@prisma/client@6.19.3(prisma@6.19.3(typescript@7.0.2))(typescript@7.0.2)':
+  '@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)':
     optionalDependencies:
-      prisma: 6.19.3(typescript@7.0.2)
-      typescript: 7.0.2
+      prisma: 6.19.3(typescript@5.9.3)
+      typescript: 5.9.3
 
   '@prisma/config@6.19.3':
     dependencies:
@@ -10658,15 +10667,6 @@ snapshots:
       '@prisma/engines': 6.19.3
     optionalDependencies:
       typescript: 5.9.3
-    transitivePeerDependencies:
-      - magicast
-
-  prisma@6.19.3(typescript@7.0.2):
-    dependencies:
-      '@prisma/config': 6.19.3
-      '@prisma/engines': 6.19.3
-    optionalDependencies:
-      typescript: 7.0.2
     transitivePeerDependencies:
       - magicast
 

@@ -8,6 +8,10 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck",
+    "db:generate": "turbo db:generate",
+    "db:migrate:dev": "pnpm --filter @workspace/database db:migrate:dev",
+    "db:migrate:deploy": "pnpm --filter @workspace/database db:migrate:deploy",
+    "db:migrate:status": "pnpm --filter @workspace/database db:migrate:status",
     "prepare": "husky"
   },
   "devDependencies": {
