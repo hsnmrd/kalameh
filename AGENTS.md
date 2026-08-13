@@ -1,19 +1,15 @@
-<!-- BEGIN:nextjs-agent-rules -->
-
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
-
-# Repository engineering rules
+# Repository Engineering Rules (Global Hub)
 
 - Follow SOLID principles across all apps and packages.
-- Write test files for new behavior. Match test scope to risk: unit tests for focused logic, integration/e2e tests for wiring and user-facing flows.
+- Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
 
-## Database & Migration Rules (Production-Grade)
+## Context Routing
 
-- **Client Generation:** Use `pnpm run db:generate` (`prisma generate`) to create TypeScript client types. This command is non-destructive, does not touch the database, and is safe in both dev and production.
-- **Development Migrations:** Always create version-controlled migration files for schema changes using `pnpm run db:migrate:dev --name <descriptive_name>`.
-- **Production Migrations:** Production environments and CI/CD must ONLY apply migrations using `pnpm run db:migrate:deploy` (`prisma migrate deploy`). Never use `prisma migrate dev` or `prisma db push` in production.
-- **Tenant Isolation (SaaS):** Every tenant-scoped query must enforce `instituteId` in the `where` filter to prevent data leakage across institutes.
-- **Shared Package Import:** Always import database models and the Prisma client from `@workspace/database` (`import { prisma, Role, User } from "@workspace/database"`).
+To reduce token burn and preserve context precision, read the relevant scoped rules before modifying code in any app or package:
+
+- **Database & Migrations (`packages/database`):** Read `packages/database/AGENTS.md`
+- **Backend API (`apps/api`):** Read `apps/api/AGENTS.md`
+- **Admin Dashboard (`apps/admin-panel`):** Read `apps/admin-panel/AGENTS.md`
+- **Student PWA (`apps/student-pwa`):** Read `apps/student-pwa/AGENTS.md`
+- **Shared UI Library (`packages/ui`):** Read `packages/ui/AGENTS.md`
+- **Shared Zod Types (`packages/types`):** Read `packages/types/AGENTS.md`
