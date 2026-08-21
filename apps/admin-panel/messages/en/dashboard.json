@@ -1,0 +1,31 @@
+{
+  "superAdmin": {
+    "title": "Super Admin Dashboard",
+    "subtitle": "System-wide metrics, multi-tenant overview, and institute management",
+    "createInstitute": "Create Institute",
+    "stats": {
+      "totalInstitutes": "Total Institutes",
+      "activeTenants": "Active Tenants",
+      "systemHealth": "System Health",
+      "healthy": "Optimal (100%)",
+      "active": "Active",
+      "total": "Total Across Cloud"
+    },
+    "recentInstitutes": "Recent Institutes",
+    "viewAll": "View All Institutes"
+  },
+  "instituteAdmin": {
+    "title": "Institute Overview",
+    "subtitle": "Active classes, enrolled students, and term capacity overview",
+    "addClass": "New Class",
+    "stats": {
+      "activeClasses": "Active Classes",
+      "totalStudents": "Enrolled Students",
+      "termCapacity": "Term Capacity",
+      "activeTerm": "Fall 2026",
+      "occupancy": "85% Capacity"
+    },
+    "recentClasses": "Active Classes Preview",
+    "viewAll": "View All Classes"
+  }
+}

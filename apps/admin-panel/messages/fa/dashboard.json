@@ -1,0 +1,31 @@
+{
+  "superAdmin": {
+    "title": "پیشخوان مدیر کل",
+    "subtitle": "شاخص‌های سیستمی، نظارت بر سازمان‌ها و مدیریت آموزشگاه‌ها",
+    "createInstitute": "ایجاد آموزشگاه جدید",
+    "stats": {
+      "totalInstitutes": "کل آموزشگاه‌ها",
+      "activeTenants": "مستاجران فعال",
+      "systemHealth": "وضعیت سیستم",
+      "healthy": "عالی (۱۰۰٪)",
+      "active": "فعال",
+      "total": "کل در سراسر سامانه"
+    },
+    "recentInstitutes": "آموزشگاه‌های اخیر",
+    "viewAll": "مشاهده همه آموزشگاه‌ها"
+  },
+  "instituteAdmin": {
+    "title": "پیشخوان آموزشگاه",
+    "subtitle": "نمای کلی کلاس‌های فعال، دانشجویان ثبت‌نامی و ظرفیت ترم جاری",
+    "addClass": "ایجاد کلاس جدید",
+    "stats": {
+      "activeClasses": "کلاس‌های فعال",
+      "totalStudents": "دانشجویان فعال",
+      "termCapacity": "ظرفیت ترم",
+      "activeTerm": "پاییز ۱۴۰۵",
+      "occupancy": "۸۵٪ تکمیل"
+    },
+    "recentClasses": "پیش‌نمایش کلاس‌های فعال",
+    "viewAll": "مشاهده همه کلاس‌ها"
+  }
+}

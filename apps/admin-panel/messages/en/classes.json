@@ -1,0 +1,16 @@
+{
+  "title": "Classes & Courses Management",
+  "subtitle": "Overview of active terms, class capacities, and student allocations",
+  "addClass": "New Class",
+  "termFilter": "Term: Fall 2026",
+  "columns": {
+    "title": "Class Title",
+    "course": "Course",
+    "instructor": "Instructor",
+    "schedule": "Schedule",
+    "capacity": "Capacity",
+    "actions": "Actions"
+  },
+  "edit": "Edit",
+  "students": "Students"
+}

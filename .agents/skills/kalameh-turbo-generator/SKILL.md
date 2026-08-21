@@ -24,6 +24,9 @@ Use the local Turbo generator as the source of truth for app structure. Preserve
 - Feature-shared code goes in `({feature})/(common)`.
 - Pages use nested route segments. When a segment has child segments, its own page/layout/loading artifacts live under `(root)` to avoid colliding with children.
 - Page-scoped code goes beside the page container in `components`, `hooks`, `helper`, `mock-data`, or `modal`.
+- **Directory-Based Components & Single Component Per File:**
+  - All components must be created inside a dedicated directory named after the component with an `index.tsx` entrypoint (e.g. `components/admin-base-layout/index.tsx`, `components/providers/index.tsx`).
+  - **Never create multiple components in a single file.** Every sub-component (e.g. `sidebar-brand`, `nav-list`, `student-toolbar`, `student-bottom-nav`) must be placed in its own dedicated directory with its own `index.tsx`.
 
 ## Generator Map
 

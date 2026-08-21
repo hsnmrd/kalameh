@@ -1,0 +1,25 @@
+{
+  "appName": "Kalameh",
+  "superAdmin": "Super Admin",
+  "instituteAdmin": "Institute Admin",
+  "adminPanel": "Admin Panel",
+  "nav": {
+    "dashboard": "Dashboard Overview",
+    "institutes": "Institutes Management",
+    "classes": "Classes Management",
+    "terms": "Terms & Semesters",
+    "courses": "Courses & Syllabi",
+    "students": "Students & Enrollments",
+    "finance": "Financial & Receipts"
+  },
+  "language": "Language",
+  "logout": "Log Out",
+  "en": "English",
+  "fa": "فارسی",
+  "footer": "Kalameh Language Platform • Admin Panel v1.0",
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "Sorry, the page you are looking for does not exist or has been moved.",
+    "backHome": "Back to Admin Panel"
+  }
+}
