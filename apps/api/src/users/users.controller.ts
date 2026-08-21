@@ -15,7 +15,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import type { Role } from '@workspace/types';
+import { CurrentLocale } from '../i18n';
+import type { JwtPayload, Role, SupportedLocale } from '@workspace/types';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -25,52 +26,63 @@ export class UsersController {
   @Post()
   @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
   async create(
-    @CurrentUser('instituteId') instituteId: string,
+    @CurrentUser() currentUser: JwtPayload,
     @Body() dto: CreateUserDto,
+    @CurrentLocale() locale: SupportedLocale,
   ) {
-    return this.usersService.create(instituteId, dto);
+    return this.usersService.create(currentUser, dto, locale);
   }
 
   @Get()
   @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
   async findAll(
-    @CurrentUser('instituteId') instituteId: string,
+    @CurrentUser() currentUser: JwtPayload,
     @Query('role') role?: string,
     @Query('search') search?: string,
+    @CurrentLocale() locale?: SupportedLocale,
   ) {
     return this.usersService.findAll(
-      instituteId,
+      currentUser,
       role as Role | undefined,
       search,
+      locale,
     );
   }
 
   @Get(':id')
   @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
   async findOne(
-    @CurrentUser('instituteId') instituteId: string,
+    @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,
+    @CurrentLocale() locale: SupportedLocale,
   ) {
-    return this.usersService.findOne(instituteId, id);
+    return this.usersService.findOne(currentUser, id, locale);
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN')
+  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
   async update(
-    @CurrentUser('instituteId') instituteId: string,
+    @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,
     @Body() dto: UpdateUserDto,
+    @CurrentLocale() locale: SupportedLocale,
   ) {
-    return this.usersService.update(instituteId, id, dto);
+    return this.usersService.update(currentUser, id, dto, locale);
   }
 
   @Post(':id/reset-password')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN')
+  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
   async resetPassword(
-    @CurrentUser('instituteId') instituteId: string,
+    @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,
-    @Body('newPassword') newPassword?: string,
+    @Body('newPassword') newPassword: string | undefined,
+    @CurrentLocale() locale: SupportedLocale,
   ) {
-    return this.usersService.resetPassword(instituteId, id, newPassword);
+    return this.usersService.resetPassword(
+      currentUser,
+      id,
+      newPassword,
+      locale,
+    );
   }
 }

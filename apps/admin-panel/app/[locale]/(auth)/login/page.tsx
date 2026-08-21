@@ -4,17 +4,19 @@ import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { PasswordInput } from "@workspace/ui/components/password-input"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/sonner"
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldError,
 } from "@workspace/ui/components/field"
+import { ROLES } from "@workspace/types"
 import { authResource } from "@/lib/api"
 import { useRouter, usePathname, useIsRtl } from "@/i18n/routing"
 import { useLoginSchema, type LoginInput } from "./hooks/use-auth-schemas"
@@ -34,6 +36,7 @@ export default function AdminLoginPage() {
   const pathname = usePathname()
   const isRtl = useIsRtl()
   const loginSchema = useLoginSchema()
+  const queryClient = useQueryClient()
 
   const {
     register,
@@ -48,9 +51,18 @@ export default function AdminLoginPage() {
     },
   })
 
+  const logoutMutation = useMutation(authResource.logout.toMutation())
+
   const loginMutation = useMutation({
     ...authResource.login.toMutation(),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Reject student logins from accessing admin panel
+      if (data.user.role === ROLES.STUDENT) {
+        logoutMutation.mutate()
+        queryClient.clear()
+        toast.error(t("studentNotAllowed"))
+        return
+      }
       router.push("/")
     },
   })

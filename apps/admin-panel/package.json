@@ -14,6 +14,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@tanstack/react-query": "^5.67.1",
+    "@tanstack/react-table": "^8.21.3",
     "@workspace/types": "workspace:*",
     "@workspace/ui": "workspace:*",
     "lucide-react": "^1.31.0",

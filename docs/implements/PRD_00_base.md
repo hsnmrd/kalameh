@@ -73,6 +73,18 @@
 
 - کامپوننت‌های ساختاری فرم (`Field`, `FieldLabel`, `FieldError`, `FieldDescription`) با پشتیبانی از دسترس‌پذیری.
 
+#### [NEW] [`packages/ui/src/components/badge.tsx`](file:///D:/projects/kalameh/packages/ui/src/components/badge.tsx)
+
+- کامپوننت نشان وضعیت و نقش با واریانت‌های `default`, `secondary`, `destructive`, `outline`, `success`, `warning`, `info`.
+
+#### [NEW] [`packages/ui/src/components/dialog.tsx`](file:///D:/projects/kalameh/packages/ui/src/components/dialog.tsx)
+
+- کامپوننت دیالوگ/مدال در دسترس با انیمیشن‌های نرم، پس‌زمینه مات و فوکوس استاندارد بر پایه `@base-ui/react/dialog`.
+
+#### [NEW] [`packages/ui/src/components/select.tsx`](file:///D:/projects/kalameh/packages/ui/src/components/select.tsx)
+
+- کامپوننت انتخابگر منو و آیتم‌ها بر پایه `@base-ui/react/select`.
+
 #### [MODIFY] [`packages/ui/src/components/button.tsx`](file:///D:/projects/kalameh/packages/ui/src/components/button.tsx)
 
 - بهینه‌سازی دکمه برای فرم ورود با سایز `h-14 rounded-2xl`، انیمیشن کلیک `active:scale-[0.98]` و حالت لودینگ اسپینر.
@@ -102,6 +114,7 @@
 #### [NEW] [`apps/api/src/users/`](file:///D:/projects/kalameh/apps/api/src/users/)
 
 - `users.module.ts`, `users.service.ts`, `users.controller.ts`: سرویس و کنترلر کاربران آموزشگاه با اعمال اجباری `where: { instituteId }`.
+- متدهای CRUD: ایجاد کاربر جدید، لیست کاربران با فیلتر نقش و سرچ، ویرایش مشخصات و وضعیت، بازنشانی رمز عبور.
 
 #### [MODIFY] [`apps/api/src/app.module.ts`](file:///D:/projects/kalameh/apps/api/src/app.module.ts)
 
@@ -115,13 +128,34 @@
 
 - افزودن `@hookform/resolvers` و `react-hook-form` و `@workspace/types`.
 
-#### [NEW] [`apps/admin-panel/lib/api-client.ts`](file:///D:/projects/kalameh/apps/admin-panel/lib/api-client.ts)
+#### [NEW] [`apps/admin-panel/lib/api/`](file:///D:/projects/kalameh/apps/admin-panel/lib/api/)
 
-- پیکربندی کلاینت `micro-rq` همراه با `createTokenProvider`.
+- پیکربندی کلاینت `micro-rq` همراه با `client.ts` و ریسورس‌های `auth.resource.ts` و `users.resource.ts`.
 
 #### [NEW] [`apps/admin-panel/app/(auth)/login/page.tsx`](<file:///D:/projects/kalameh/apps/admin-panel/app/(auth)/login/page.tsx>)
 
 - پیاده‌سازی صفحه لاگین با دیزاین Split 50/50 دسکتاپ بر اساس `DESIGN.md`، اعتبارسنجی فرم با Zod و هدایت بر اساس نقش.
+
+#### [NEW] [`apps/admin-panel/app/[locale]/(admin)/users/`](<file:///D:/projects/kalameh/apps/admin-panel/app/[locale]/(admin)/users/>)
+
+- **صفحه مدیریت کاربران (`page.tsx`):**
+  - مدیریت کامل کاربران آموزشگاه (فراگیران، منشی‌ها و مدیران) با TanStack React Query.
+  - فیلتر آنی بر اساس نقش‌ها (زبان‌آموز، منشی، مدیر آموزشگاه).
+  - سرچ زنده بر اساس نام، نام خانوادگی یا شماره تماس.
+- **کامپوننت‌های اختصاصی بر اساس معماری دایرکتوری‌محور:**
+  - `users-header/index.tsx`: سرتیتر، شمارنده کل، و دکمه افزودن کاربر.
+  - `users-filter/index.tsx`: اینپوت جستجو و تب‌های انتخاب نقش.
+  - `users-table/index.tsx`: جدول واکنش‌گرا با حالت خالی و لودینگ اسپینر.
+  - `user-row/index.tsx`: سطر جدول همراه با دکمه‌های عملیاتی (ویرایش، ریست پسورد).
+  - `user-card/index.tsx`: کارت اختصاصی نمایش کاربر در نمایشگرهای موبایل.
+  - `user-role-badge/index.tsx`: برچسب رنگی نقش کاربر.
+  - `user-status-badge/index.tsx`: برچسب وضعیت فعال/غیرفعال.
+  - `create-user-modal/index.tsx`: دیالوگ ایجاد کاربر جدید با `react-hook-form` و اسکیماهای Zod.
+  - `edit-user-modal/index.tsx`: دیالوگ ویرایش مشخصات کاربر و تغییر وضعیت حساب.
+  - `reset-password-modal/index.tsx`: دیالوگ بازنشانی سریع رمز عبور.
+  - `hooks/use-user-schemas/index.ts`: هوک محلی‌سازی خطاهای اعتبارسنجی فرم.
+- **پیام‌های محلی‌سازی (`messages/{fa,en}/users.json`):**
+  - ترجمه کامل عناوین، فیلدها و خطاهای اعتبارسنجی به زبان‌های فارسی و انگلیسی.
 
 #### [NEW] [`apps/admin-panel/app/(institute)/layout.tsx`](<file:///D:/projects/kalameh/apps/admin-panel/app/(institute)/layout.tsx>)
 

@@ -1,0 +1,78 @@
+{
+  "title": "User & Student Management",
+  "subtitle": "View, create, edit, and manage access for students, clerks, and institute admins",
+  "addUser": "Add New User",
+  "searchPlaceholder": "Search by first name, last name, or phone...",
+  "filter": {
+    "all": "All Users",
+    "students": "Students",
+    "clerks": "Clerks",
+    "admins": "Institute Admins"
+  },
+  "roles": {
+    "STUDENT": "Student",
+    "CLERK": "Clerk",
+    "INSTITUTE_ADMIN": "Institute Admin",
+    "SUPER_ADMIN": "Super Admin"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "table": {
+    "name": "Full Name",
+    "phone": "Phone Number",
+    "nationalCode": "National Code",
+    "role": "Role",
+    "status": "Account Status",
+    "createdAt": "Registration Date",
+    "actions": "Actions",
+    "empty": "No users found matching your criteria."
+  },
+  "createModal": {
+    "title": "Add New User",
+    "description": "Enter the details of the new user or student to create their account.",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone Number (Username)",
+    "nationalCode": "National Code (Optional)",
+    "role": "User Role",
+    "password": "Initial Password",
+    "passwordHint": "If left empty, phone number will be set as the default password.",
+    "submit": "Create User",
+    "cancel": "Cancel",
+    "success": "User created successfully."
+  },
+  "editModal": {
+    "title": "Edit User Details",
+    "description": "Update user details and account status.",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone Number",
+    "nationalCode": "National Code",
+    "isActive": "Account Status (Active / Inactive)",
+    "submit": "Save Changes",
+    "cancel": "Cancel",
+    "success": "User updated successfully."
+  },
+  "resetPasswordModal": {
+    "title": "Reset Password",
+    "description": "Enter a new password for {name}. If left blank, it will reset to their phone number.",
+    "newPassword": "New Password (Optional)",
+    "submit": "Reset Password",
+    "cancel": "Cancel",
+    "success": "Password reset successfully."
+  },
+  "actions": {
+    "edit": "Edit Details",
+    "resetPassword": "Reset Password",
+    "activate": "Activate Account",
+    "deactivate": "Deactivate Account"
+  },
+  "validation": {
+    "firstNameMin": "First name must be at least 2 characters",
+    "lastNameMin": "Last name must be at least 2 characters",
+    "phoneRegex": "Phone number must be a valid 11-digit Iranian mobile (09xxxxxxxxx)",
+    "passwordMin": "Password must be at least 6 characters"
+  }
+}

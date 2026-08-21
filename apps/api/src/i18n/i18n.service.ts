@@ -14,6 +14,27 @@ export class I18nService {
     en,
   };
 
+  extractLocale(request?: {
+    headers?: Record<string, string | string[] | undefined>;
+  }): SupportedLocale {
+    if (!request?.headers) {
+      return 'fa';
+    }
+
+    const acceptLanguage =
+      (request.headers['accept-language'] as string) ||
+      (request.headers['x-lang'] as string) ||
+      (request.headers['x-locale'] as string) ||
+      '';
+
+    const normalized = String(acceptLanguage).toLowerCase().trim();
+    if (normalized.startsWith('en')) {
+      return 'en';
+    }
+
+    return 'fa';
+  }
+
   t(
     key: TranslationKey,
     locale?: SupportedLocale,

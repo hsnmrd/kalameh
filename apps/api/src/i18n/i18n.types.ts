@@ -11,6 +11,21 @@ export interface TranslationDictionary {
     passwordChangedSuccess: string;
     logoutSuccess: string;
   };
+  users: {
+    userAlreadyExists: string;
+    instituteAdminAllowedRolesOnly: string;
+    clerkAllowedRolesOnly: string;
+    unauthorizedUserCreation: string;
+    userNotFound: string;
+    cannotAccessSuperAdmin: string;
+    clerkAccessStudentOnly: string;
+    cannotEditSuperAdmin: string;
+    clerkEditStudentOnly: string;
+    phoneAlreadyInUse: string;
+    cannotResetSuperAdminPassword: string;
+    clerkResetStudentPasswordOnly: string;
+    passwordResetSuccess: string;
+  };
   common: {
     internalServerError: string;
     unauthorized: string;

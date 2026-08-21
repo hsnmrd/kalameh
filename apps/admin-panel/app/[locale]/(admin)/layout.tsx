@@ -1,6 +1,5 @@
 import * as React from "react"
 import { NextIntlClientProvider } from "next-intl"
-import { getMessages } from "next-intl/server"
 import { AdminBaseLayout } from "@/components/admin-base-layout"
 
 export default async function AdminLayout({
@@ -11,16 +10,10 @@ export default async function AdminLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const messages = await getMessages({ locale })
-  const adminMessages = {
-    common: messages.common,
-    classes: messages.classes,
-    institutes: messages.institutes,
-    dashboard: messages.dashboard,
-  }
+  const common = (await import(`@/messages/${locale}/common.json`)).default
 
   return (
-    <NextIntlClientProvider messages={adminMessages}>
+    <NextIntlClientProvider locale={locale} messages={{ common }}>
       <AdminBaseLayout>{children}</AdminBaseLayout>
     </NextIntlClientProvider>
   )

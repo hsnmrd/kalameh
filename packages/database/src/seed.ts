@@ -11,7 +11,21 @@ async function main() {
   const defaultPassword = "Password123!"
   const hashedPassword = await bcrypt.hash(defaultPassword, 10)
 
-  // 1. Create or update Default Institute
+  // 1. System Platform Institute for Super Admin
+  const systemInstitute = await prisma.institute.upsert({
+    where: { subdomain: "system" },
+    update: {
+      name: "سامانه مرکزی کلمه (Platform Admin)",
+      isActive: true,
+    },
+    create: {
+      name: "سامانه مرکزی کلمه (Platform Admin)",
+      subdomain: "system",
+      isActive: true,
+    },
+  })
+
+  // 2. Sample Institute (Tehran)
   const institute = await prisma.institute.upsert({
     where: { subdomain: "tehran" },
     update: {
@@ -35,15 +49,37 @@ async function main() {
     `✅ Institute seeded: ${institute.name} (subdomain: ${institute.subdomain})`
   )
 
-  // 2. Sample Users
-  const usersToSeed = [
-    {
+  // 3. Super Admin User
+  await prisma.user.upsert({
+    where: {
+      phone_instituteId: {
+        phone: "09120000001",
+        instituteId: systemInstitute.id,
+      },
+    },
+    update: {
+      firstName: "مدیر",
+      lastName: "کل سامانه",
+      role: Role.SUPER_ADMIN,
+      password: hashedPassword,
+      nationalCode: "0000000001",
+      isActive: true,
+    },
+    create: {
+      instituteId: systemInstitute.id,
       phone: "09120000001",
       firstName: "مدیر",
       lastName: "کل سامانه",
       role: Role.SUPER_ADMIN,
+      password: hashedPassword,
       nationalCode: "0000000001",
+      isActive: true,
     },
+  })
+  console.log(`👤 Super Admin seeded: 09120000001 (SUPER_ADMIN)`)
+
+  // 4. Institute Users (Tehran)
+  const instituteUsers = [
     {
       phone: "09120000002",
       firstName: "مدیر",
@@ -67,7 +103,7 @@ async function main() {
     },
   ]
 
-  for (const user of usersToSeed) {
+  for (const user of instituteUsers) {
     await prisma.user.upsert({
       where: {
         phone_instituteId: {
@@ -99,7 +135,7 @@ async function main() {
     )
   }
 
-  // 3. Sample Term
+  // 5. Sample Term
   const now = new Date()
   const endDate = new Date()
   endDate.setMonth(endDate.getMonth() + 3)
@@ -123,7 +159,7 @@ async function main() {
   })
   console.log(`📅 Term seeded: ${term.title}`)
 
-  // 4. Sample Course
+  // 6. Sample Course
   const course = await prisma.course.upsert({
     where: { id: "00000000-0000-0000-0000-000000000002" },
     update: {
@@ -139,7 +175,7 @@ async function main() {
   })
   console.log(`📚 Course seeded: ${course.title}`)
 
-  // 5. Sample Class
+  // 7. Sample Class
   const sampleClass = await prisma.class.upsert({
     where: { id: "00000000-0000-0000-0000-000000000003" },
     update: {

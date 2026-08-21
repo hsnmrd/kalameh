@@ -1,6 +1,5 @@
 import * as React from "react"
 import { NextIntlClientProvider } from "next-intl"
-import { getMessages } from "next-intl/server"
 
 export default async function AuthLayout({
   children,
@@ -10,14 +9,19 @@ export default async function AuthLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const messages = await getMessages({ locale })
-  const authMessages = {
-    common: messages.common,
-    auth: messages.auth,
-  }
+  const [common, auth] = await Promise.all([
+    import(`@/messages/${locale}/common.json`),
+    import(`@/messages/${locale}/auth.json`),
+  ])
 
   return (
-    <NextIntlClientProvider messages={authMessages}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={{
+        common: common.default,
+        auth: auth.default,
+      }}
+    >
       {children}
     </NextIntlClientProvider>
   )

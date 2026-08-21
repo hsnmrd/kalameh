@@ -46,6 +46,31 @@ export function proxy(request: NextRequest) {
     return response
   }
 
+  // Check if token belongs to a STUDENT
+  let isStudent = false
+  if (accessToken) {
+    try {
+      const parts = accessToken.split(".")
+      if (parts.length === 3 && parts[1]) {
+        const payloadJson = Buffer.from(parts[1], "base64").toString("utf-8")
+        const payload = JSON.parse(payloadJson)
+        if (payload?.role === "STUDENT") {
+          isStudent = true
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Reject and clear token if a student attempts to access admin panel
+  if (isStudent) {
+    const loginUrl = new URL(`/${locale}/login`, request.url)
+    const response = createRedirectResponse(loginUrl)
+    response.cookies.delete("access_token")
+    return response
+  }
+
   // If user is not authenticated and trying to access protected page
   if (!accessToken && !isAuthPage) {
     const loginUrl = new URL(`/${locale}/login`, request.url)

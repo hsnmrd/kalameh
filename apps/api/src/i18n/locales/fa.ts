@@ -14,6 +14,26 @@ export const fa: TranslationDictionary = {
     passwordChangedSuccess: 'رمز عبور با موفقیت به‌روزرسانی شد',
     logoutSuccess: 'با موفقیت خارج شدید',
   },
+  users: {
+    userAlreadyExists:
+      'کاربری با این شماره تماس در این آموزشگاه قبلاً ثبت شده است',
+    instituteAdminAllowedRolesOnly:
+      'مدیر آموزشگاه تنها مجاز به ایجاد کاربران با نقش منشی یا زبان‌آموز است',
+    clerkAllowedRolesOnly: 'منشی آموزشگاه تنها مجاز به ثبت زبان‌آموز جدید است',
+    unauthorizedUserCreation: 'شما مجوز ایجاد کاربر را ندارید',
+    userNotFound: 'کاربر مورد نظر یافت نشد',
+    cannotAccessSuperAdmin: 'دسترسی به اطلاعات این کاربر مجاز نمی‌باشد',
+    clerkAccessStudentOnly: 'منشی تنها به اطلاعات زبان‌آموزان دسترسی دارد',
+    cannotEditSuperAdmin: 'شما اجازه ویرایش اطلاعات ادمین کل را ندارید',
+    clerkEditStudentOnly: 'منشی تنها اجازه ویرایش اطلاعات زبان‌آموزان را دارد',
+    phoneAlreadyInUse:
+      'این شماره تماس به کاربر دیگری در این آموزشگاه اختصاص یافته است',
+    cannotResetSuperAdminPassword:
+      'شما اجازه بازنشانی رمز عبور ادمین کل را ندارید',
+    clerkResetStudentPasswordOnly:
+      'منشی تنها اجازه بازنشانی رمز عبور زبان‌آموزان را دارد',
+    passwordResetSuccess: 'رمز عبور با موفقیت بازنشانی شد',
+  },
   common: {
     internalServerError: 'خطای داخلی سرور رخ داده است',
     unauthorized: 'عدم دسترسی، لطفاً مجدداً وارد شوید',

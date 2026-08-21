@@ -7,22 +7,12 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale = routing.defaultLocale
   }
 
-  const [common, auth, institutes, classes, dashboard] = await Promise.all([
-    import(`../messages/${locale}/common.json`),
-    import(`../messages/${locale}/auth.json`),
-    import(`../messages/${locale}/institutes.json`),
-    import(`../messages/${locale}/classes.json`),
-    import(`../messages/${locale}/dashboard.json`),
-  ])
+  const common = (await import(`../messages/${locale}/common.json`)).default
 
   return {
     locale,
     messages: {
-      common: common.default,
-      auth: auth.default,
-      institutes: institutes.default,
-      classes: classes.default,
-      dashboard: dashboard.default,
+      common,
     },
   }
 })
