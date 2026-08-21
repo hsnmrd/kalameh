@@ -3,27 +3,45 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./client": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
-    "db:generate": "prisma generate --schema ./schema.prisma",
-    "db:migrate:dev": "prisma migrate dev --schema ./schema.prisma",
-    "db:migrate:deploy": "prisma migrate deploy --schema ./schema.prisma",
-    "db:migrate:status": "prisma migrate status --schema ./schema.prisma",
-    "db:studio": "prisma studio --schema ./schema.prisma",
+    "build": "tsc",
+    "db:generate": "dotenv -e ../../.env -e .env -c -- prisma generate --schema ./schema.prisma && tsc",
+    "db:migrate:dev": "dotenv -e ../../.env -e .env -c -- prisma migrate dev --schema ./schema.prisma",
+    "db:migrate:deploy": "dotenv -e ../../.env -e .env -c -- prisma migrate deploy --schema ./schema.prisma",
+    "db:migrate:status": "dotenv -e ../../.env -e .env -c -- prisma migrate status --schema ./schema.prisma",
+    "db:seed": "dotenv -e ../../.env -e .env -c -- prisma db seed --schema ./schema.prisma",
+    "db:studio": "dotenv -e ../../.env -e .env -c -- prisma studio --schema ./schema.prisma",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.3"
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "bcryptjs": "^3.0.2",
+    "pg": "^8.13.3"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
+    "@types/pg": "^8.11.11",
     "@workspace/typescript-config": "workspace:*",
-    "prisma": "^6.19.3",
+    "dotenv": "^16.4.7",
+    "dotenv-cli": "^8.0.0",
+    "prisma": "^7.9.1",
+    "tsx": "^4.19.3",
     "typescript": "^5"
   }
 }
