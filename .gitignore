@@ -20,6 +20,7 @@ out/
 # production
 build
 dist
+packages/database/src/generated/
 
 # turbo
 .turbo

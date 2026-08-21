@@ -1,7 +1,39 @@
 # Repository Engineering Rules (Global Hub)
 
-- Follow SOLID principles across all apps and packages.
-- Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
+- **SOLID & Modular Design:** Follow SOLID principles across all apps and packages.
+- **Testing:** Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
+- **Git Hooks & Quality Gate:** Prettier and ESLint are enforced by Husky (`.husky/pre-commit`) and `lint-staged` on every commit. Never bypass hooks.
+- **Environment Configuration:** All environment variables must be managed centrally in the root `.env` and declared in `turbo.json` under `globalEnv`. Do not create disconnected per-app `.env` files.
+- **API Request Architecture (micro-rq + React Query):**
+  - Always use `micro-rq` endpoint definitions via `.toQuery()` and `.toMutation()` passed directly into TanStack React Query (`useQuery`, `useMutation`).
+  - **NEVER** use the `.fn()` option of `micro-rq` directly inside React components for data fetching or form submissions, as this bypasses React Query's reactive state tracking (loading, error, caching).
+- **Authentication & HttpOnly Cookies:**
+  - Frontends must configure `credentials: "include"` in the `fetcher` of `createMicroApi`.
+  - `apps/api` must issue `httpOnly` secure cookies (`access_token`) on authentication alongside returning user payloads.
+- **Error Handling & Notifications:**
+  - Global API errors in `createMicroApi` (`onError`) must trigger the centralized shadcn `toast.error` notification.
+  - Do not render duplicate inline error banner cards inside pages/forms when toast notifications handle error presentation.
+  - Toast styling must inherit the application's configured typography font variable (`var(--font-sans)`).
+- **Loading UI Standard:**
+  - Always use the centralized shadcn `<Spinner />` component from `@workspace/ui/components/spinner` for loading states.
+  - Do not use raw icons like `Loader2` from `lucide-react` for loading indicators.
+- **Single Card Anti-Pattern:**
+  - Do NOT wrap an entire page inside a `<Card>` component if the whole content of the page is already housed in a single container (such as centered auth forms or fullscreen dashboard layouts).
+- **Page Collocation & Sibling Directory Architecture:**
+  - For named routes (e.g. `/classes`, `/institutes`, `/login`, `/profile`), use the route's own directory (`classes/`, `institutes/`, `login/`, etc.). Do not nest redundant route groups inside named directories.
+  - For index routes (e.g. `/` root dashboard), encapsulate `page.tsx` and its sibling directories within a route group `({page})` (e.g. `(dashboard)`) so the URL remains `/`.
+  - Page-specific artifacts must live as sibling directories directly alongside `page.tsx` (`components/`, `hooks/`, `helper/`, `mock-data/`, `modal/`).
+  - Components shared across multiple pages or layouts belong in the app root `components/` (`apps/{app}/components/`).
+  - Monorepo-wide UI primitives belong in `packages/ui`.
+- **Directory-Based Component Architecture & Single Component Per File:**
+  - All components must be created inside their own dedicated directory with an `index.tsx` file (e.g. `components/admin-base-layout/index.tsx`, `components/providers/index.tsx`).
+  - **Never create multiple components in a single file.** Every sub-component, header, brand, or list component must be extracted into its own dedicated sibling or nested directory with its own `index.tsx` (e.g. `components/admin-base-layout/sidebar-brand/index.tsx`, `components/admin-base-layout/nav-list/index.tsx`).
+- **UI Primitives & Elements Standard (No Raw HTML Controls):**
+  - **NEVER** use simple raw HTML elements (such as `<button>`, `<input>`, `<select>`, `<textarea>`) directly in application pages or components (`apps/*`).
+  - Always import and use centralized, accessible UI primitives from `@workspace/ui/components/*` (`Button`, `Input`, `Field`, `PasswordInput`, etc.).
+  - If a specific UI component or kit (e.g. Select, Dialog, Dropdown, Checkbox) is needed and does not yet exist in `@workspace/ui`, create an implementation plan to scaffold/install it into `packages/ui` first using Base UI / shadcn patterns before using it.
+- **Shared Roles & Permissions:**
+  - Roles and permissions must be defined as `const` in `@workspace/types` (`ROLES`, `PERMISSIONS`, `ROLE_PERMISSIONS`) and shared across all frontend apps and backend services.
 
 ## Context Routing
 

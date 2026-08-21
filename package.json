@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "turbo dev --ui=tui",
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck",
@@ -12,6 +12,7 @@
     "db:migrate:dev": "pnpm --filter @workspace/database db:migrate:dev",
     "db:migrate:deploy": "pnpm --filter @workspace/database db:migrate:deploy",
     "db:migrate:status": "pnpm --filter @workspace/database db:migrate:status",
+    "db:seed": "pnpm --filter @workspace/database db:seed",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -23,8 +24,8 @@
     "lint-staged": "^15.0.0",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.0",
-    "prisma": "^6.19.3",
-    "turbo": "^2.9.18",
+    "prisma": "^7.9.1",
+    "turbo": "^2.10.11",
     "typescript": "^5"
   },
   "lint-staged": {
