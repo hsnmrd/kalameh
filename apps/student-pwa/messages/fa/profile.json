@@ -1,0 +1,14 @@
+{
+  "title": "پروفایل زبان‌آموز",
+  "subtitle": "اطلاعات حساب کاربری و تنظیمات سامانه",
+  "placementLevel": "سطح تعیین‌سطح",
+  "accountRole": "نقش کاربری",
+  "accountStatus": "وضعیت حساب",
+  "active": "فعال",
+  "suspended": "معلق",
+  "verified": "تأیید شده",
+  "accountActions": "عملیات حساب",
+  "changePassword": "تغییر رمز عبور",
+  "languageSetting": "زبان سامانه",
+  "logout": "خروج از حساب کاربری"
+}

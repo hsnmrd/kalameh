@@ -1,0 +1,12 @@
+{
+  "welcomeTitle": "داشبورد",
+  "allowedClasses": "کلاس‌های مجاز",
+  "allowedClassesDesc": "انتخاب کلاس و ثبت فیش واریزی",
+  "flashcards": "فلش‌کارت‌ها",
+  "flashcardsDesc": "تمرین روزانه جعبه لایتنر",
+  "statusPendingApproval": "در انتظار تأیید",
+  "term": "پاییز ۱۴۰۵",
+  "className": "Starter 101 - کلاس A",
+  "receiptStatusDesc": "فیش واریزی شما ارسال شده و در انتظار بررسی و تأیید توسط مدیریت آموزشگاه است.",
+  "viewReceiptDetails": "مشاهده جزئیات فیش واریزی"
+}

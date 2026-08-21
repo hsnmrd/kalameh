@@ -1,0 +1,14 @@
+{
+  "title": "Student Profile",
+  "subtitle": "Your account information and settings",
+  "placementLevel": "Placement Level",
+  "accountRole": "Account Role",
+  "accountStatus": "Account Status",
+  "active": "Active",
+  "suspended": "Suspended",
+  "verified": "Verified",
+  "accountActions": "Account Actions",
+  "changePassword": "Change Password",
+  "languageSetting": "Display Language",
+  "logout": "Log Out of Account"
+}

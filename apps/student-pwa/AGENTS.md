@@ -1,9 +1,39 @@
 # Student PWA Rules (`apps/student-pwa`)
 
 - **Role:** Mobile-first Progressive Web Application (PWA) for students.
-- **Layout Constraint (Critical):** On desktop viewports, lock layout to a maximum width of `480px` (`max-w-[480px] mx-auto min-h-screen`) and center it on screen with touch-optimized margins.
+- **Multi-Language Architecture (`next-intl`):**
+  - Path-based localization (`/[locale]/...`) supporting **English (`/en/...`)** and **Persian (`/fa/...`)**.
+  - Localized direction & typography:
+    - English (`en`): `dir="ltr"`, Font: **Geist** (`--font-sans`).
+    - Persian (`fa`): `dir="rtl"`, Font: **Vazirmatn** (`--font-sans`).
+  - Modular per-page message files in `messages/[locale]/` to optimize client bundle size.
+- **Layout Architecture & Base Layout:**
+  - All student-pwa protected pages must use `StudentBaseLayout` (`components/student-base-layout/index.tsx`).
+  - The layout includes a sticky top Toolbar (Back button on inner pages, centered logo icon linking to `/dashboard`, language switcher, quick actions/logout) and a 5-item responsive Bottom Navigation (`/dashboard`, `/classes`, `/flashcards`, `/enrollments`, `/profile`).
+- **Directory-Based Components & Single Component Per File:**
+  - Every component must live in its own directory with an `index.tsx` entrypoint (e.g. `components/student-base-layout/index.tsx`, `components/providers/index.tsx`).
+  - **Never create multiple components in a single file.** Every sub-component (e.g. `student-toolbar`, `student-bottom-nav`) must be stored in its own dedicated directory with an `index.tsx`.
+- **Layout Constraint (Critical):**
+  - On desktop viewports, lock layout to a maximum width of `480px` (`max-w-[480px] mx-auto min-h-screen`) and center it on screen with touch-optimized margins.
+- **Authentication & Route Guarding:**
+  - All pages require authentication. Unauthenticated requests to protected routes are automatically redirected to `/login` via `proxy.ts`.
+- **Micro-RQ Architecture & Modular Structure:**
+  - Separate API concerns into dedicated files under `lib/api/`:
+    - `lib/api/token-provider.ts`: Token provider configuration.
+    - `lib/api/client.ts`: `createMicroApi` configured with `credentials: "include"` and `onError` toast handler.
+    - `lib/api/resources/*.resource.ts`: Dedicated resource definition files (e.g. `auth.resource.ts`).
+    - `lib/api/index.ts`: Unified barrel exports.
+- **Data Fetching Standard (Micro-RQ + React Query):**
+  - Always use `.toQuery()` and `.toMutation()` with `@tanstack/react-query` (`useQuery`, `useMutation`).
+  - **NEVER** use the `.fn()` option of micro-rq in components or event handlers.
+- **Error Handling & Feedback:**
+  - API errors are caught by `onError` in `client.ts` and shown via shadcn `toast.error` (which uses the Geist font).
+  - Do not render duplicate inline error alert banners inside forms.
+- **Loading UI Standard:**
+  - Use `<Spinner />` from `@workspace/ui/components/spinner` instead of raw `lucide-react` icons.
+- **Single Card Anti-Pattern:**
+  - Do not wrap pages with a `<Card>` component if the page content is already rendered within a single container (like the student login view).
 - **UI Primitives:** Use `@workspace/ui` (shadcn/ui + Tailwind CSS) as the component source.
-- **Data & State Management:** Use `micro-rq` / TanStack React Query for cached REST queries and optimistic mutations.
 - **Validation:** Use `react-hook-form` and shared Zod schemas from `@workspace/types`.
 - **Core Student Flows (V1 Scope):**
   - View allowed courses based on placement level / prerequisite chain.
