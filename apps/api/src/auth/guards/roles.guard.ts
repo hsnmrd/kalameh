@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Role } from '@workspace/types';
+import { Role, ROLES } from '@workspace/types';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
@@ -21,17 +21,21 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest();
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user?: { role: Role } }>();
+    const user = request.user;
     if (!user) {
       throw new ForbiddenException('دسترسی مجاز نیست');
     }
 
     // SUPER_ADMIN has platform-wide superuser privileges
-    if (user.role === 'SUPER_ADMIN') {
+    if (user.role === ROLES.SUPER_ADMIN) {
       return true;
     }
 
-    const hasRole = requiredRoles.includes(user.role);
+    const userRole = user.role;
+    const hasRole = requiredRoles.includes(userRole);
     if (!hasRole) {
       throw new ForbiddenException('شما مجوز دسترسی به این بخش را ندارید');
     }

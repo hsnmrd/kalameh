@@ -4,11 +4,22 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtPayload } from '@workspace/types';
 
+import type { Request } from 'express';
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly prisma: PrismaService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        (req: Request) => {
+          const cookies = req?.cookies as Record<string, string> | undefined;
+          if (cookies) {
+            return cookies.access_token || cookies.accessToken || null;
+          }
+          return null;
+        },
+      ]),
       ignoreExpiration: false,
       secretOrKey:
         process.env.JWT_SECRET || 'kalameh-super-secret-jwt-key-2026',

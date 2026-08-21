@@ -18,6 +18,14 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  private excludePassword<T extends { password?: string }>(
+    user: T,
+  ): Omit<T, 'password'> {
+    const safeUser = { ...user };
+    delete (safeUser as { password?: string }).password;
+    return safeUser;
+  }
+
   async login(
     dto: LoginDto,
     headerInstituteIdentifier?: string,
@@ -89,27 +97,16 @@ export class AuthService {
     };
 
     const accessToken = this.jwtService.sign(payload);
+    const safeUser = this.excludePassword(user);
 
     return {
       accessToken,
-      user: {
-        id: user.id,
-        instituteId: user.instituteId,
-        role: user.role,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phone: user.phone,
-        nationalCode: user.nationalCode,
-        isActive: user.isActive,
-        currentAllowedCourseId: user.currentAllowedCourseId,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
+      user: safeUser,
     };
   }
 
   async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: {
         institute: true,
@@ -117,36 +114,13 @@ export class AuthService {
       },
     });
 
-    if (!user) {
-      throw new NotFoundException('کاربر یافت نشد');
-    }
-
-    return {
-      id: user.id,
-      instituteId: user.instituteId,
-      instituteName: user.institute?.name,
-      subdomain: user.institute?.subdomain,
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.phone,
-      nationalCode: user.nationalCode,
-      isActive: user.isActive,
-      currentAllowedCourseId: user.currentAllowedCourseId,
-      currentAllowedCourseTitle: user.currentAllowedCourse?.title,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return this.excludePassword(user);
   }
 
   async changePassword(userId: string, dto: ChangePasswordDto) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
     });
-
-    if (!user) {
-      throw new NotFoundException('کاربر یافت نشد');
-    }
 
     const isPasswordValid = await bcrypt.compare(
       dto.currentPassword,
