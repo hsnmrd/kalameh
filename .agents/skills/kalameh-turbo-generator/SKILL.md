@@ -7,43 +7,92 @@ description: Use this skill when working in the Kalameh monorepo and the user wa
 
 ## Overview
 
-Use the local Turbo generator as the source of truth for app structure. Preserve its intent: scaffold small Next.js App Router feature groups inside `apps/{app}` without changing route URLs, keep shared artifacts close to their feature/page, and track generator output so the last run can be reversed.
+Use the local Turbo generator as the source of truth for app structure. Preserve its intent: scaffold clean Next.js App Router route groups inside `apps/{app}` without changing route URLs, keep page-scoped artifacts colocated in sibling directories, house shared cross-page components in the app root `components/`, and track generator output so runs can be reversed.
 
-## Before Editing
+## Architecture & File Collocation Rules
 
-- Read `AGENTS.md`, then read the relevant Next.js guide in `node_modules/next/dist/docs/` before changing Next.js app files.
-- Inspect `turbo/generators/config.ts`, `turbo/generators/lib/*`, and `turbo/generators/templates/*` before changing generator behavior.
-- Keep `turbo/generators/config.ts` as the entrypoint. Put reusable mechanics in `turbo/generators/lib`.
-- Do not bypass `withTracking` for file-producing actions. The `reverse` generator depends on `.turbo/gen/last-run.json`.
+### 1. Page-Scoped Collocation & Sibling Directory Structure
 
-## App Structure
+- **Named Routes (e.g. `/classes`, `/institutes`, `/login`, `/profile`, `/enrollments`):**
+  - Use the route segment directory directly (e.g. `app/[locale]/(admin)/classes/`, `app/[locale]/(auth)/login/`).
+  - Do NOT nest redundant route groups inside named directories.
+  - Sibling directories live directly alongside `page.tsx` within that route segment directory:
+    ```text
+    app/[locale]/(admin)/classes/
+    ├── page.tsx
+    ├── layout.tsx (optional)
+    ├── loading.tsx (optional)
+    ├── components/          # Page-specific components only
+    │   └── class-card/
+    │       └── index.tsx
+    ├── hooks/               # Page-specific hooks
+    │   └── use-class-filters.ts
+    ├── helper/              # Page-specific helpers and utilities
+    │   └── formatters.ts
+    ├── mock-data/           # Page-specific mock data
+    │   └── index.ts
+    └── modal/               # Page-specific dialogs and modals
+        └── add-class-modal/
+            └── index.tsx
+    ```
 
-- Target apps come from `apps/*`.
-- The generator uses `apps/{app}/src/app` when it exists; otherwise it uses `apps/{app}/app`. This repo currently supports the legacy app root.
-- Features are route groups: `({feature})`, so the feature name does not appear in the URL.
-- Feature-shared code goes in `({feature})/(common)`.
-- Pages use nested route segments. When a segment has child segments, its own page/layout/loading artifacts live under `(root)` to avoid colliding with children.
-- Page-scoped code goes beside the page container in `components`, `hooks`, `helper`, `mock-data`, or `modal`.
-- **Directory-Based Components & Single Component Per File:**
-  - All components must be created inside a dedicated directory named after the component with an `index.tsx` entrypoint (e.g. `components/admin-base-layout/index.tsx`, `components/providers/index.tsx`).
-  - **Never create multiple components in a single file.** Every sub-component (e.g. `sidebar-brand`, `nav-list`, `student-toolbar`, `student-bottom-nav`) must be placed in its own dedicated directory with its own `index.tsx`.
+- **Index Routes (e.g. `/` root dashboard inside route groups):**
+  - Encapsulate `page.tsx` and its sibling directories inside an App Router grouping folder `({page})` (e.g. `app/[locale]/(admin)/(dashboard)/`):
+    ```text
+    app/[locale]/(admin)/(dashboard)/
+    ├── page.tsx
+    ├── components/
+    │   ├── stat-card/
+    │   │   └── index.tsx
+    │   ├── super-admin-view/
+    │   │   └── index.tsx
+    │   └── institute-admin-view/
+    │       └── index.tsx
+    └── hooks/
+    ```
+
+### 2. App-Level Shared Components
+
+- When a component, layout, provider, or widget is shared across multiple pages within an application, place it in the app's root `components/` directory:
+  ```text
+  apps/{app}/components/
+  ├── admin-base-layout/
+  │   └── index.tsx
+  ├── student-toolbar/
+  │   └── index.tsx
+  └── providers/
+      └── index.tsx
+  ```
+
+### 3. Monorepo-Level Shared UI Primitives
+
+- Universal, accessible design tokens and UI primitives (Base UI / Tailwind v4) belong in `packages/ui/src/components/*` (`Button`, `Input`, `Field`, `Spinner`, `PasswordInput`, etc.).
+
+### 4. Directory-Based Component Architecture & Single Component Per File
+
+- All components must be created inside a dedicated directory named after the component with an `index.tsx` entrypoint (e.g. `components/class-card/index.tsx`).
+- **Never create multiple components in a single file.** Every sub-component, header, list item, or action button wrapper must be extracted into its own dedicated directory with an `index.tsx`.
+
+---
 
 ## Generator Map
 
 - `feature`: creates translation JSON files when `packages/translation/src/type.ts` exposes `locales`.
-- `page`: adds `page.tsx`, `layout.tsx`, `loading.tsx`, and `page.test.tsx`; normalizes parent page artifacts into `(root)` when needed.
+- `page`: adds `page.tsx`, `layout.tsx`, `loading.tsx`, and `page.test.tsx` inside an App Router grouping folder; normalizes parent page artifacts when needed.
 - `directory`: adds a directory-only segment with `(root)/layout.tsx` and `(root)/loading.tsx`.
-- `component`: supports `ui`, `app`, `feature`, and `page` scopes.
-- `artifact`: adds `hooks`, `helper`, or `mock-data` files in feature or page scope.
+- `component`: supports `ui` (monorepo), `app` (app root shared), `feature` (feature common), and `page` (page sibling `components/` directory) scopes.
+- `artifact`: adds `hooks`, `helper`, or `mock-data` files as sibling directories to `page.tsx` or in feature scope.
 - `modal`: adds page/common modal files, updates the modal registry, and wraps root layout children with `ModalWrapper`.
 - `reverse`: reverts the last tracked generator run.
+
+---
 
 ## Working Pattern
 
 1. Prefer running the generator for new app structure instead of hand-creating folders.
 2. If modifying generator behavior, keep prompts and generated paths backward-compatible unless the user explicitly asks for a structural change.
 3. Add templates under `turbo/generators/templates` and keep template paths routed through `templatePath`.
-4. Keep route groups, `(common)`, `(root)`, and page support directory names stable.
+4. Keep route groups `(...)`, `(common)`, and page support sibling directory names (`components`, `hooks`, `helper`, `mock-data`, `modal`) stable.
 5. Validate changes with representative generator runs or TypeScript checks, then reverse or clean up generated test output.
 
 ## Common Commands
