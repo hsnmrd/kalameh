@@ -5,6 +5,7 @@ import { UnauthorizedException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { I18nService } from '../i18n/i18n.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -31,6 +32,7 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
+        I18nService,
         { provide: PrismaService, useValue: prismaService },
         { provide: JwtService, useValue: jwtService },
       ],
@@ -85,7 +87,7 @@ describe('AuthService', () => {
       });
     });
 
-    it('should throw UnauthorizedException on invalid password', async () => {
+    it('should throw localized UnauthorizedException (fa) on invalid password', async () => {
       const hashedPassword = await bcrypt.hash('correct-pwd', 10);
       const mockUser = {
         id: 'user-1',
@@ -99,23 +101,62 @@ describe('AuthService', () => {
       prismaService.user.findMany.mockResolvedValue([mockUser]);
 
       await expect(
-        service.login({
-          phone: '09123456789',
-          password: 'wrong-password',
-        }),
-      ).rejects.toThrow(UnauthorizedException);
+        service.login(
+          {
+            phone: '09123456789',
+            password: 'wrong-password',
+          },
+          undefined,
+          'fa',
+        ),
+      ).rejects.toThrow(
+        new UnauthorizedException('شماره موبایل یا رمز عبور اشتباه است'),
+      );
     });
 
-    it('should throw NotFoundException if specified institute does not exist', async () => {
+    it('should throw localized UnauthorizedException (en) on invalid password', async () => {
+      const hashedPassword = await bcrypt.hash('correct-pwd', 10);
+      const mockUser = {
+        id: 'user-1',
+        instituteId: 'inst-1',
+        phone: '09123456789',
+        password: hashedPassword,
+        isActive: true,
+        institute: { id: 'inst-1', isActive: true },
+      };
+
+      prismaService.user.findMany.mockResolvedValue([mockUser]);
+
+      await expect(
+        service.login(
+          {
+            phone: '09123456789',
+            password: 'wrong-password',
+          },
+          undefined,
+          'en',
+        ),
+      ).rejects.toThrow(
+        new UnauthorizedException('Invalid phone number or password'),
+      );
+    });
+
+    it('should throw localized NotFoundException (en) if specified institute does not exist', async () => {
       prismaService.institute.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.login({
-          phone: '09123456789',
-          password: 'password',
-          subdomain: 'non-existent',
-        }),
-      ).rejects.toThrow(NotFoundException);
+        service.login(
+          {
+            phone: '09123456789',
+            password: 'password',
+            subdomain: 'non-existent',
+          },
+          undefined,
+          'en',
+        ),
+      ).rejects.toThrow(
+        new NotFoundException('Requested institute was not found'),
+      );
     });
   });
 });

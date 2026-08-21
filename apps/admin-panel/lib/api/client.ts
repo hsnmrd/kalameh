@@ -7,8 +7,19 @@ export const api = createMicroApi({
   name: "kalameh-admin",
   baseUrl: API_BASE_URL,
   fetcher: (input, init) => {
+    const locale =
+      typeof document !== "undefined"
+        ? document.documentElement.lang || "fa"
+        : "fa"
+
+    const headers = new Headers(init?.headers)
+    if (!headers.has("Accept-Language")) {
+      headers.set("Accept-Language", locale)
+    }
+
     return fetch(input, {
       ...init,
+      headers,
       credentials: "include",
     })
   },

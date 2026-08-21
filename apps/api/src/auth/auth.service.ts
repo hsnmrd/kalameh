@@ -7,15 +7,17 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
+import { I18nService } from '../i18n/i18n.service';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { AuthResponse, JwtPayload } from '@workspace/types';
+import { AuthResponse, JwtPayload, SupportedLocale } from '@workspace/types';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly i18n: I18nService,
   ) {}
 
   private excludePassword<T extends { password?: string }>(
@@ -29,6 +31,7 @@ export class AuthService {
   async login(
     dto: LoginDto,
     headerInstituteIdentifier?: string,
+    locale: SupportedLocale = 'fa',
   ): Promise<AuthResponse> {
     const subdomain = dto.subdomain || headerInstituteIdentifier;
 
@@ -42,11 +45,15 @@ export class AuthService {
       });
 
       if (!institute) {
-        throw new NotFoundException('آموزشگاه مورد نظر یافت نشد');
+        throw new NotFoundException(
+          this.i18n.t('auth.instituteNotFound', locale),
+        );
       }
 
       if (!institute.isActive) {
-        throw new UnauthorizedException('دسترسی این آموزشگاه مسدود شده است');
+        throw new UnauthorizedException(
+          this.i18n.t('auth.instituteBlocked', locale),
+        );
       }
 
       instituteId = institute.id;
@@ -64,29 +71,37 @@ export class AuthService {
     });
 
     if (users.length === 0) {
-      throw new UnauthorizedException('شماره موبایل یا رمز عبور اشتباه است');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.invalidCredentials', locale),
+      );
     }
 
     // If phone exists in multiple institutes and no institute was specified
     if (users.length > 1 && !instituteId) {
       throw new BadRequestException(
-        'این شماره در چند آموزشگاه ثبت شده است. لطفاً شناسه یا زیردامنه آموزشگاه را وارد کنید',
+        this.i18n.t('auth.multipleInstitutesFound', locale),
       );
     }
 
     const user = users[0];
 
     if (!user.isActive) {
-      throw new UnauthorizedException('حساب کاربری شما غیرفعال شده است');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.userDeactivated', locale),
+      );
     }
 
     if (!user.institute || !user.institute.isActive) {
-      throw new UnauthorizedException('آموزشگاه شما غیرفعال شده است');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.instituteDeactivated', locale),
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('شماره موبایل یا رمز عبور اشتباه است');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.invalidCredentials', locale),
+      );
     }
 
     const payload: JwtPayload = {
@@ -117,7 +132,11 @@ export class AuthService {
     return this.excludePassword(user);
   }
 
-  async changePassword(userId: string, dto: ChangePasswordDto) {
+  async changePassword(
+    userId: string,
+    dto: ChangePasswordDto,
+    locale: SupportedLocale = 'fa',
+  ) {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
     });
@@ -127,7 +146,9 @@ export class AuthService {
       user.password,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('رمز عبور فعلی نادرست است');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.invalidCurrentPassword', locale),
+      );
     }
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
@@ -137,6 +158,8 @@ export class AuthService {
       data: { password: hashedPassword },
     });
 
-    return { message: 'رمز عبور با موفقیت به‌روزرسانی شد' };
+    return {
+      message: this.i18n.t('auth.passwordChangedSuccess', locale),
+    };
   }
 }
