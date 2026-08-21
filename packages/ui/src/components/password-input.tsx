@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
+import { Button } from "@workspace/ui/components/button"
 
 export interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   variant?: "default" | "auth"
@@ -27,10 +28,12 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           ref={ref}
           {...props}
         />
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute top-1/2 right-4 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none"
+          className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-slate-400 hover:bg-transparent hover:text-slate-600 focus-visible:ring-0"
           tabIndex={-1}
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
@@ -39,7 +42,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           ) : (
             <Eye className="size-5" />
           )}
-        </button>
+        </Button>
       </div>
     )
   }
