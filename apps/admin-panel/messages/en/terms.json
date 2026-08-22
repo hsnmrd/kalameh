@@ -1,0 +1,40 @@
+{
+  "title": "Academic Terms Management",
+  "subtitle": "Define, schedule and manage active/archived academic terms of the institute",
+  "addTerm": "Add New Term",
+  "table": {
+    "title": "Term Title",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "status": "Status",
+    "classesCount": "Classes Count",
+    "actions": "Actions",
+    "empty": "No academic terms registered in this institute."
+  },
+  "status": {
+    "active": "Active (Open for enrollment)",
+    "inactive": "Closed"
+  },
+  "createModal": {
+    "title": "Create Academic Term",
+    "description": "Enter the title and scheduling dates for the new term.",
+    "termTitle": "Term Title",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "isActive": "Term is active for enrollment",
+    "submit": "Create Term",
+    "cancel": "Cancel",
+    "success": "Academic term created successfully."
+  },
+  "editModal": {
+    "title": "Edit Academic Term",
+    "description": "Update term information and active schedule.",
+    "termTitle": "Term Title",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "isActive": "Term Active Status",
+    "submit": "Save Changes",
+    "cancel": "Cancel",
+    "success": "Academic term updated successfully."
+  }
+}

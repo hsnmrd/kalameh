@@ -1,10 +1,15 @@
 {
-  "title": "Allowed Classes",
-  "subtitle": "Classes available for your level (Starter 101)",
-  "openForEnrollment": "Open for Enrollment",
-  "capacity": "Capacity: 12/15",
-  "className": "Starter 101 - Group B",
-  "scheduleDays": "Even Days (Mon, Wed, Fri)",
-  "scheduleTime": "17:00 - 18:30",
-  "enrollButton": "Enroll & Reserve Seat"
+  "title": "Eligible Classes",
+  "subtitle": "Active classes available for your current placement level",
+  "allowedLevel": "Your Allowed Level: {level}",
+  "noLevelAssigned": "Entry Level (Foundations)",
+  "empty": "No active classes are currently available for your educational level in the active term.",
+  "teacher": "Teacher / Instructor",
+  "term": "Term",
+  "schedule": "Schedule",
+  "tuition": "Tuition Fee",
+  "toman": "Toman",
+  "capacity": "Capacity: {enrolled} of {capacity}",
+  "full": "Full",
+  "enrollButton": "Select & Enroll in Class"
 }

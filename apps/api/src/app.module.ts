@@ -5,7 +5,10 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { InstitutesModule } from './institutes/institutes.module';
-
+import { TermsModule } from './terms/terms.module';
+import { CoursesModule } from './courses/courses.module';
+import { ClassesModule } from './classes/classes.module';
+import { GradesModule } from './grades/grades.module';
 import { I18nModule } from './i18n/i18n.module';
 
 @Module({
@@ -15,6 +18,10 @@ import { I18nModule } from './i18n/i18n.module';
     AuthModule,
     UsersModule,
     InstitutesModule,
+    TermsModule,
+    CoursesModule,
+    ClassesModule,
+    GradesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,16 +1,50 @@
 {
   "title": "Classes & Courses Management",
-  "subtitle": "Overview of active terms, class capacities, and student allocations",
-  "addClass": "New Class",
-  "termFilter": "Term: Fall 2026",
-  "columns": {
+  "subtitle": "Define classes, schedule timetables, capacity, teachers, and manage final grading",
+  "addClass": "Add New Class",
+  "termFilter": "Filter by Term",
+  "allTerms": "All Terms",
+  "courseFilter": "Filter by Course",
+  "allCourses": "All Courses",
+  "searchPlaceholder": "Search class title or teacher name...",
+  "grades": "Grades",
+  "table": {
     "title": "Class Title",
-    "course": "Course",
+    "course": "Course Level",
+    "term": "Term",
     "instructor": "Instructor",
     "schedule": "Schedule",
-    "capacity": "Capacity",
-    "actions": "Actions"
+    "capacity": "Capacity / Enrolled",
+    "fee": "Tuition Fee",
+    "actions": "Actions",
+    "empty": "No classes found with matching filters."
   },
-  "edit": "Edit",
-  "students": "Students"
+  "createModal": {
+    "title": "Create New Class",
+    "description": "Enter the class details, term, course, capacity, and timetable.",
+    "classTitle": "Class Title (e.g. Group A)",
+    "term": "Term",
+    "course": "Course Level",
+    "capacity": "Class Capacity",
+    "fee": "Tuition Fee",
+    "teacherName": "Teacher Name",
+    "schedule": "Schedule (e.g. Mon, Wed 17:00-18:30)",
+    "submit": "Create Class",
+    "cancel": "Cancel",
+    "success": "Class created successfully."
+  },
+  "editModal": {
+    "title": "Edit Class",
+    "description": "Update class details, instructor, timetable, and capacity.",
+    "classTitle": "Class Title",
+    "term": "Term",
+    "course": "Course Level",
+    "capacity": "Class Capacity",
+    "fee": "Tuition Fee",
+    "teacherName": "Teacher Name",
+    "schedule": "Schedule",
+    "submit": "Save Changes",
+    "cancel": "Cancel",
+    "success": "Class updated successfully."
+  }
 }

@@ -42,6 +42,34 @@ export const en: TranslationDictionary = {
     cannotDeleteWithDependencies:
       'Cannot delete institute with dependent records',
   },
+  terms: {
+    termNotFound: 'Requested term was not found',
+    termAlreadyExists:
+      'A term with this title already exists in this institute',
+    invalidDateRange: 'End date must be after start date',
+  },
+  courses: {
+    courseNotFound: 'Requested course was not found',
+    courseAlreadyExists:
+      'A course with this title already exists in this institute',
+    prerequisiteNotFound: 'Selected prerequisite course was not found',
+    prerequisiteCycleDetected:
+      'Cannot create circular dependency in prerequisite chain',
+  },
+  classes: {
+    classNotFound: 'Requested class was not found',
+    classAlreadyExists:
+      'A class with these specifications already exists in this term',
+    classFull: 'This class has reached its maximum capacity',
+    invalidTermOrCourse: 'Selected term or course is invalid',
+  },
+  grades: {
+    gradesSubmittedSuccess:
+      'Class grades recorded and student progression applied successfully',
+    studentNotEnrolled: 'Student is not enrolled in this class',
+    invalidScoreRange: 'Score must be a number between 0 and 100',
+    studentLevelUpdatedSuccess: 'Student allowed level updated successfully',
+  },
   common: {
     internalServerError: 'Internal server error occurred',
     unauthorized: 'Unauthorized access, please login again',

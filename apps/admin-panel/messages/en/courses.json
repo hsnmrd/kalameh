@@ -1,0 +1,36 @@
+{
+  "title": "Educational Courses & Levels",
+  "subtitle": "Define course levels, base tuition fees and configure prerequisite progression chains",
+  "addCourse": "Add Course Level",
+  "table": {
+    "title": "Course / Level Title",
+    "baseFee": "Base Tuition Fee",
+    "prerequisite": "Prerequisite Level",
+    "noPrerequisite": "Entry Level (No Prerequisite)",
+    "classesCount": "Classes Count",
+    "actions": "Actions",
+    "empty": "No educational courses registered in this institute."
+  },
+  "createModal": {
+    "title": "Create Course Level",
+    "description": "Enter the course details and select its prerequisite level.",
+    "courseTitle": "Course Title (e.g. Top Notch 1A)",
+    "baseFee": "Base Tuition Fee",
+    "prerequisite": "Prerequisite Level",
+    "none": "No Prerequisite (Entry Level)",
+    "submit": "Create Course",
+    "cancel": "Cancel",
+    "success": "Course level created successfully."
+  },
+  "editModal": {
+    "title": "Edit Course Level",
+    "description": "Update course title, tuition fee, and prerequisite.",
+    "courseTitle": "Course Title",
+    "baseFee": "Base Tuition Fee",
+    "prerequisite": "Prerequisite Level",
+    "none": "No Prerequisite (Entry Level)",
+    "submit": "Save Changes",
+    "cancel": "Cancel",
+    "success": "Course level updated successfully."
+  }
+}

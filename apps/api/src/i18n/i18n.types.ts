@@ -31,6 +31,29 @@ export interface TranslationDictionary {
     subdomainAlreadyExists: string;
     cannotDeleteWithDependencies: string;
   };
+  terms: {
+    termNotFound: string;
+    termAlreadyExists: string;
+    invalidDateRange: string;
+  };
+  courses: {
+    courseNotFound: string;
+    courseAlreadyExists: string;
+    prerequisiteNotFound: string;
+    prerequisiteCycleDetected: string;
+  };
+  classes: {
+    classNotFound: string;
+    classAlreadyExists: string;
+    classFull: string;
+    invalidTermOrCourse: string;
+  };
+  grades: {
+    gradesSubmittedSuccess: string;
+    studentNotEnrolled: string;
+    invalidScoreRange: string;
+    studentLevelUpdatedSuccess: string;
+  };
   common: {
     internalServerError: string;
     unauthorized: string;

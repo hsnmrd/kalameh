@@ -1,43 +1,60 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
-import { Plus } from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
-import { ClassCard } from "./components/class-card"
+import { useQuery } from "@tanstack/react-query"
+import type { ClassDto } from "@workspace/types"
+import { classesResource } from "@/lib/api"
+import { ClassesHeader } from "./components/classes-header"
+import { ClassesFilter } from "./components/classes-filter"
+import { ClassesTable } from "./components/classes-table"
+import { CreateClassModal } from "./components/create-class-modal"
+import { EditClassModal } from "./components/edit-class-modal"
 
 export default function ClassesPage() {
-  const t = useTranslations("classes")
+  const [createModalOpen, setCreateModalOpen] = React.useState(false)
+  const [editingClass, setEditingClass] = React.useState<ClassDto | null>(null)
+
+  const [termId, setTermId] = React.useState("")
+  const [courseId, setCourseId] = React.useState("")
+  const [search, setSearch] = React.useState("")
+
+  const { data: classes, isLoading } = useQuery(
+    classesResource.list.toQuery({
+      termId: termId || undefined,
+      courseId: courseId || undefined,
+      search: search || undefined,
+    })
+  )
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
-            {t("title")}
-          </h1>
-          <p className="text-sm text-slate-500">{t("subtitle")}</p>
-        </div>
-        <Button
-          size="auth"
-          className="h-11 cursor-pointer gap-2 rounded-xl px-5"
-        >
-          <Plus className="size-4" />
-          <span>{t("addClass")}</span>
-        </Button>
-      </div>
+      <ClassesHeader onAddClass={() => setCreateModalOpen(true)} />
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <ClassCard
-          courseName="Top Notch 1A"
-          title="Top Notch 1A - Group A"
-          instructor="Instructor Mohammadi"
-          schedule="17:00 - 18:30"
-          enrolledCount={12}
-          capacity={15}
-          termFilter={t("termFilter")}
-        />
-      </div>
+      <ClassesFilter
+        termId={termId}
+        onTermChange={setTermId}
+        courseId={courseId}
+        onCourseChange={setCourseId}
+        search={search}
+        onSearchChange={setSearch}
+      />
+
+      <ClassesTable
+        classes={classes}
+        isLoading={isLoading}
+        onEdit={(cls) => setEditingClass(cls)}
+      />
+
+      <CreateClassModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+      />
+
+      <EditClassModal
+        cls={editingClass}
+        open={Boolean(editingClass)}
+        onClose={() => setEditingClass(null)}
+      />
     </div>
   )
 }

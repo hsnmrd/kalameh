@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Layers,
   BookOpen,
+  Calendar,
   Users,
   CreditCard,
   ShieldAlert,
@@ -29,8 +30,9 @@ export interface AdminBaseLayoutProps {
 
 const INSTITUTE_NAV: NavItem[] = [
   { key: "dashboard", href: "/", icon: LayoutDashboard },
-  { key: "classes", href: "/classes", icon: Layers },
+  { key: "terms", href: "/terms", icon: Calendar },
   { key: "courses", href: "/courses", icon: BookOpen },
+  { key: "classes", href: "/classes", icon: Layers },
   { key: "students", href: "/users", icon: Users },
   { key: "finance", href: "/transactions", icon: CreditCard },
 ]
@@ -42,8 +44,9 @@ const SUPER_ADMIN_GLOBAL_NAV: NavItem[] = [
 
 const SUPER_ADMIN_INSTITUTE_NAV: NavItem[] = [
   { key: "dashboard", href: "/", icon: LayoutDashboard },
-  { key: "classes", href: "/classes", icon: Layers },
+  { key: "terms", href: "/terms", icon: Calendar },
   { key: "courses", href: "/courses", icon: BookOpen },
+  { key: "classes", href: "/classes", icon: Layers },
   { key: "students", href: "/users", icon: Users },
   { key: "finance", href: "/transactions", icon: CreditCard },
   { key: "institutes", href: "/institutes", icon: ShieldAlert },

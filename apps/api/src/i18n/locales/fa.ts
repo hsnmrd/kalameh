@@ -40,6 +40,31 @@ export const fa: TranslationDictionary = {
     cannotDeleteWithDependencies:
       'امکان حذف آموزشگاه دارای اطلاعات وابسته وجود ندارد',
   },
+  terms: {
+    termNotFound: 'ترم تحصیلی مورد نظر یافت نشد',
+    termAlreadyExists: 'ترمی با این عنوان قبلاً در آموزشگاه ثبت شده است',
+    invalidDateRange: 'تاریخ پایان ترم باید پس از تاریخ شروع باشد',
+  },
+  courses: {
+    courseNotFound: 'سطح/دوره آموزشی مورد نظر یافت نشد',
+    courseAlreadyExists: 'سطحی با این عنوان قبلاً در آموزشگاه ثبت شده است',
+    prerequisiteNotFound: 'سطح پیش‌نیاز انتخابی یافت نشد',
+    prerequisiteCycleDetected:
+      'امکان ایجاد حلقه بازگشتی در زنجیره پیش‌نیازها وجود ندارد',
+  },
+  classes: {
+    classNotFound: 'کلاس مورد نظر یافت نشد',
+    classAlreadyExists: 'کلاسی با این مشخصات قبلاً در این ترم ثبت شده است',
+    classFull: 'ظرفیت این کلاس تکمیل شده است',
+    invalidTermOrCourse: 'ترم یا سطح آموزشی انتخابی نامعتبر است',
+  },
+  grades: {
+    gradesSubmittedSuccess:
+      'نمرات کلاس با موفقیت ثبت و وضعیت قبولی زبان‌آموزان اعمال شد',
+    studentNotEnrolled: 'زبان‌آموز در این کلاس ثبت‌نام نکرده است',
+    invalidScoreRange: 'نمره باید عددی بین ۰ تا ۱۰۰ باشد',
+    studentLevelUpdatedSuccess: 'سطح مجاز زبان‌آموز با موفقیت تغییر یافت',
+  },
   common: {
     internalServerError: 'خطای داخلی سرور رخ داده است',
     unauthorized: 'عدم دسترسی، لطفاً مجدداً وارد شوید',

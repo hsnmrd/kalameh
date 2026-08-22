@@ -1,38 +1,44 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { prisma } from '@workspace/database';
+import { prisma, Prisma } from '@workspace/database';
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
-  get institute() {
+  get institute(): typeof prisma.institute {
     return prisma.institute;
   }
 
-  get user() {
+  get user(): typeof prisma.user {
     return prisma.user;
   }
 
-  get course() {
+  get course(): typeof prisma.course {
     return prisma.course;
   }
 
-  get term() {
+  get term(): typeof prisma.term {
     return prisma.term;
   }
 
-  get class() {
+  get class(): typeof prisma.class {
     return prisma.class;
   }
 
-  get enrollment() {
+  get enrollment(): typeof prisma.enrollment {
     return prisma.enrollment;
   }
 
-  get transaction() {
+  get transaction(): typeof prisma.transaction {
     return prisma.transaction;
   }
 
-  get client() {
+  get client(): typeof prisma {
     return prisma;
+  }
+
+  $transaction<T>(
+    fn: (tx: Prisma.TransactionClient) => Promise<T>,
+  ): Promise<T> {
+    return prisma.$transaction(fn);
   }
 
   async onModuleInit() {

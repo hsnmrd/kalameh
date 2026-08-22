@@ -1,0 +1,26 @@
+{
+  "title": "Grade Submission & Student Progression",
+  "subtitle": "Record final exam grades, specify pass/fail outcomes, and trigger automatic level promotions",
+  "backToClasses": "Back to Classes",
+  "classInfo": {
+    "title": "Class Information",
+    "course": "Course Level",
+    "term": "Academic Term",
+    "teacher": "Teacher / Instructor",
+    "studentsCount": "Enrolled Students"
+  },
+  "table": {
+    "student": "Student Name",
+    "phone": "Phone Number",
+    "currentLevel": "Current Level",
+    "score": "Final Score (0 - 100)",
+    "status": "Outcome",
+    "pass": "Pass",
+    "fail": "Fail",
+    "empty": "No students are enrolled in this class."
+  },
+  "submitAll": "Submit & Finalize Grades",
+  "submitting": "Saving grades...",
+  "progressionNotice": "Upon submission, passed students will automatically be promoted to the next prerequisite level.",
+  "success": "Final grades recorded and student promotions applied successfully."
+}
