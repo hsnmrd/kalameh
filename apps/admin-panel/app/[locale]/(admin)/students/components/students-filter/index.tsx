@@ -2,13 +2,17 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Search } from "lucide-react"
 import type { CourseDto } from "@workspace/types"
-import { Input } from "@workspace/ui/components/input"
 import {
   Combobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
+import { AdminFilterBar } from "@/components/admin-filter-bar"
+import { AdminSearchInput } from "@/components/admin-search-input"
+import {
+  AdminFilterTabs,
+  type FilterTabOption,
+} from "@/components/admin-filter-tabs"
 
 export interface StudentsFilterProps {
   searchValue: string
@@ -38,49 +42,44 @@ export function StudentsFilter({
     ]
   }, [courses, t])
 
-  const statusOptions: ComboboxOption[] = React.useMemo(() => {
+  const statusTabs: FilterTabOption[] = React.useMemo(() => {
     return [
-      { value: "ALL", label: t("filter.allStatus") },
-      { value: "ACTIVE", label: t("filter.active") },
-      { value: "INACTIVE", label: t("filter.inactive") },
+      { key: "ALL", label: t("filter.allStatus") },
+      { key: "ACTIVE", label: t("filter.active") },
+      { key: "INACTIVE", label: t("filter.inactive") },
     ]
   }, [t])
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      {/* Search Input */}
-      <div className="relative flex-1">
-        <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground rtl:right-3 rtl:left-auto" />
-        <Input
+    <AdminFilterBar
+      search={
+        <AdminSearchInput
           value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={onSearchChange}
           placeholder={t("searchPlaceholder")}
-          className="pl-9 rtl:pr-9 rtl:pl-3"
         />
-      </div>
+      }
+      filters={
+        <>
+          {/* Course Combobox Filter */}
+          <div className="w-full sm:w-52">
+            <Combobox
+              items={courseOptions}
+              value={selectedCourseId}
+              onValueChange={(val) => onCourseChange(val || "ALL")}
+              placeholder={t("filter.allCourses")}
+              clearable={false}
+            />
+          </div>
 
-      {/* Course Level Filter via Combobox */}
-      <div className="w-full sm:w-56">
-        <Combobox
-          items={courseOptions}
-          value={selectedCourseId}
-          onValueChange={(val) => onCourseChange(val || "ALL")}
-          placeholder={t("filter.allCourses")}
-          clearable={false}
-        />
-      </div>
-
-      {/* Status Filter via Combobox */}
-      <div className="w-full sm:w-44">
-        <Combobox
-          items={statusOptions}
-          value={selectedStatus}
-          onValueChange={(val) => onStatusChange(val || "ALL")}
-          placeholder={t("filter.allStatus")}
-          searchable={false}
-          clearable={false}
-        />
-      </div>
-    </div>
+          {/* Status Segmented Tabs Filter */}
+          <AdminFilterTabs
+            options={statusTabs}
+            value={selectedStatus}
+            onChange={onStatusChange}
+          />
+        </>
+      }
+    />
   )
 }
