@@ -11,7 +11,10 @@ import {
   PopoverTrigger,
   PopoverPopup,
 } from "@workspace/ui/components/popover"
-import { Calendar, type CalendarLocale } from "./calendar"
+import {
+  Calendar,
+  type CalendarLocale,
+} from "@workspace/ui/components/calendar"
 
 export interface DatePickerProps {
   value?: string | Date | null
@@ -131,7 +134,7 @@ export function DatePicker({
           calendarType={calendarType}
           disabled={
             minDate || maxDate
-              ? (date) => {
+              ? (date: Date) => {
                   if (minDate && date < minDate) return true
                   if (maxDate && date > maxDate) return true
                   return false

@@ -10,7 +10,8 @@
     "STUDENT_PWA_PORT",
     "POSTGRES_PORT",
     "REDIS_PORT",
-    "NEXT_PUBLIC_API_URL"
+    "NEXT_PUBLIC_API_URL",
+    "ALLOWED_DEV_ORIGINS"
   ],
   "tasks": {
     "db:generate": {

@@ -17,7 +17,21 @@ export const api = createMicroApi({
       headers.set("Accept-Language", locale)
     }
 
-    return fetch(input, {
+    let url = input
+    if (
+      typeof window !== "undefined" &&
+      typeof url === "string" &&
+      window.location.hostname &&
+      window.location.hostname !== "localhost" &&
+      window.location.hostname !== "127.0.0.1"
+    ) {
+      url = url.replace(
+        /^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/,
+        `$1${window.location.hostname}$3`
+      )
+    }
+
+    return fetch(url, {
       ...init,
       headers,
       credentials: "include",

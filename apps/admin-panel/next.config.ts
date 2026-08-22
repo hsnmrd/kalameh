@@ -1,3 +1,4 @@
+import os from "node:os"
 import path from "node:path"
 import dotenv from "dotenv"
 import type { NextConfig } from "next"
@@ -9,8 +10,23 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") })
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
 
+// Auto-detect all active IPv4 network interface addresses for local network development
+const localIps = Object.values(os.networkInterfaces())
+  .flat()
+  .filter((iface): iface is os.NetworkInterfaceInfo =>
+    Boolean(iface && iface.family === "IPv4" && !iface.internal)
+  )
+  .map((iface) => iface.address)
+
 const nextConfig: NextConfig = {
   transpilePackages: ["@workspace/ui"],
+  allowedDevOrigins: [
+    "localhost",
+    "127.0.0.1",
+    ...localIps,
+    ...localIps.map((ip) => `${ip}:6001`),
+    ...(process.env.ALLOWED_DEV_ORIGINS?.split(",").map((s) => s.trim()) ?? []),
+  ],
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },

@@ -172,7 +172,8 @@ export class StudentsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return students.map(({ _count, password: _password, ...st }) => ({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return students.map(({ _count, password, ...st }) => ({
       ...st,
       enrollmentsCount: _count.enrollments,
     }));
@@ -224,7 +225,8 @@ export class StudentsService {
       );
     }
 
-    const { password: _password, ...rest } = student;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...rest } = student;
     return rest;
   }
 
