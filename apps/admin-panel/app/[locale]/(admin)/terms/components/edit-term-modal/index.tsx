@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -21,6 +21,7 @@ import {
   Combobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
+import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type { TermDto } from "@workspace/types"
 import { termsResource } from "@/lib/api"
@@ -37,6 +38,7 @@ export interface EditTermModalProps {
 
 export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
   const t = useTranslations("terms")
+  const locale = useLocale() as "fa" | "en"
   const queryClient = useQueryClient()
   const updateTermSchema = useUpdateTermSchema()
 
@@ -125,20 +127,36 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
           <div className="grid grid-cols-2 gap-3">
             <Field data-invalid={Boolean(errors.startDate)}>
               <FieldLabel>{t("editModal.startDate")}</FieldLabel>
-              <Input
-                type="date"
-                {...register("startDate")}
-                className="h-10 rounded-xl"
+              <Controller
+                control={control}
+                name="startDate"
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value || undefined}
+                    onChange={(val) => field.onChange(val || "")}
+                    locale={locale}
+                    placeholder={t("editModal.startDate")}
+                    data-invalid={Boolean(errors.startDate)}
+                  />
+                )}
               />
               <FieldError>{errors.startDate?.message}</FieldError>
             </Field>
 
             <Field data-invalid={Boolean(errors.endDate)}>
               <FieldLabel>{t("editModal.endDate")}</FieldLabel>
-              <Input
-                type="date"
-                {...register("endDate")}
-                className="h-10 rounded-xl"
+              <Controller
+                control={control}
+                name="endDate"
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value || undefined}
+                    onChange={(val) => field.onChange(val || "")}
+                    locale={locale}
+                    placeholder={t("editModal.endDate")}
+                    data-invalid={Boolean(errors.endDate)}
+                  />
+                )}
               />
               <FieldError>{errors.endDate?.message}</FieldError>
             </Field>
@@ -155,6 +173,8 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
                   value={String(field.value ?? true)}
                   onValueChange={(val) => field.onChange(val === "true")}
                   placeholder={t("status.active")}
+                  searchable={false}
+                  clearable={false}
                   className="w-full"
                 />
               )}

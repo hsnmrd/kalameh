@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -27,6 +27,7 @@ import {
   Combobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
+import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { coursesResource, studentsResource } from "@/lib/api"
 import {
@@ -46,6 +47,7 @@ export function CreateStudentModal({
   instituteId,
 }: CreateStudentModalProps) {
   const t = useTranslations("students")
+  const locale = useLocale() as "fa" | "en"
   const queryClient = useQueryClient()
   const createStudentSchema = useCreateStudentSchema()
 
@@ -243,10 +245,18 @@ export function CreateStudentModal({
 
               <Field data-invalid={Boolean(errors.birthDate)}>
                 <FieldLabel>{t("createModal.birthDate")}</FieldLabel>
-                <Input
-                  type="date"
-                  {...register("birthDate")}
-                  className="h-10 rounded-xl"
+                <Controller
+                  control={control}
+                  name="birthDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value || undefined}
+                      onChange={(val) => field.onChange(val || "")}
+                      locale={locale}
+                      placeholder={t("createModal.birthDate")}
+                      data-invalid={Boolean(errors.birthDate)}
+                    />
+                  )}
                 />
                 <FieldError>{errors.birthDate?.message}</FieldError>
               </Field>

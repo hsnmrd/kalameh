@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
-import { useForm } from "react-hook-form"
+import { useTranslations, useLocale } from "next-intl"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
@@ -17,6 +17,7 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
+import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { termsResource } from "@/lib/api"
 import {
@@ -31,12 +32,14 @@ export interface CreateTermModalProps {
 
 export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
   const t = useTranslations("terms")
+  const locale = useLocale() as "fa" | "en"
   const queryClient = useQueryClient()
   const createTermSchema = useCreateTermSchema()
 
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
   } = useForm<CreateTermInput>({
@@ -104,20 +107,36 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
           <div className="grid grid-cols-2 gap-3">
             <Field data-invalid={Boolean(errors.startDate)}>
               <FieldLabel>{t("createModal.startDate")}</FieldLabel>
-              <Input
-                type="date"
-                {...register("startDate")}
-                className="h-10 rounded-xl"
+              <Controller
+                control={control}
+                name="startDate"
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value || undefined}
+                    onChange={(val) => field.onChange(val || "")}
+                    locale={locale}
+                    placeholder={t("createModal.startDate")}
+                    data-invalid={Boolean(errors.startDate)}
+                  />
+                )}
               />
               <FieldError>{errors.startDate?.message}</FieldError>
             </Field>
 
             <Field data-invalid={Boolean(errors.endDate)}>
               <FieldLabel>{t("createModal.endDate")}</FieldLabel>
-              <Input
-                type="date"
-                {...register("endDate")}
-                className="h-10 rounded-xl"
+              <Controller
+                control={control}
+                name="endDate"
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value || undefined}
+                    onChange={(val) => field.onChange(val || "")}
+                    locale={locale}
+                    placeholder={t("createModal.endDate")}
+                    data-invalid={Boolean(errors.endDate)}
+                  />
+                )}
               />
               <FieldError>{errors.endDate?.message}</FieldError>
             </Field>
