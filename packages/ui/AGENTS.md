@@ -2,6 +2,8 @@
 
 - **Role:** Centralized, reusable component library based on Tailwind CSS v4, Base UI, and shadcn/ui patterns.
 - **Component Installation & Kits:** When a new UI primitive or kit is needed (e.g. dialog, table, select, dropdown), install/scaffold it from shadcn headless UI (`@base-ui/react` primitives) directly inside `packages/ui`. If it does not exist, discuss before adding custom raw HTML.
+- **Data Table / Data Grid Standard:**
+  - Export and maintain `<DataTable />` (`src/components/data-table.tsx`) built on TanStack Table for consistent tabular data rendering across apps.
 - **Loading UI Standard:**
   - Always export and use the shadcn `<Spinner />` component (`src/components/spinner.tsx`) for all loading states across the monorepo instead of `lucide-react` icons (e.g. `Loader2`).
 - **Toast Notifications Standard:**

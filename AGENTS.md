@@ -29,9 +29,13 @@
   - All components must be created inside their own dedicated directory with an `index.tsx` file (e.g. `components/admin-base-layout/index.tsx`, `components/providers/index.tsx`).
   - **Never create multiple components in a single file.** Every sub-component, header, brand, or list component must be extracted into its own dedicated sibling or nested directory with its own `index.tsx` (e.g. `components/admin-base-layout/sidebar-brand/index.tsx`, `components/admin-base-layout/nav-list/index.tsx`).
 - **UI Primitives & Elements Standard (No Raw HTML Controls):**
-  - **NEVER** use simple raw HTML elements (such as `<button>`, `<input>`, `<select>`, `<textarea>`) directly in application pages or components (`apps/*`).
-  - Always import and use centralized, accessible UI primitives from `@workspace/ui/components/*` (`Button`, `Input`, `Field`, `PasswordInput`, etc.).
+  - **NEVER** use simple raw HTML elements (such as `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`) directly in application pages or components (`apps/*`).
+  - Always import and use centralized, accessible UI primitives from `@workspace/ui/components/*` (`Button`, `Input`, `Field`, `PasswordInput`, `DataTable`, `Table`, etc.).
   - If a specific UI component or kit (e.g. Select, Dialog, Dropdown, Checkbox) is needed and does not yet exist in `@workspace/ui`, create an implementation plan to scaffold/install it into `packages/ui` first using Base UI / shadcn patterns before using it.
+- **Data Table & Data Grid Standard:**
+  - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying tabular data.
+  - Define columns using TanStack Table `ColumnDef` to ensure consistent typography, responsive design, empty states, and accessibility across all dashboards.
+  - Never render raw `<table>` or custom HTML table markups in application pages.
 - **Shared Roles & Permissions:**
   - Roles and permissions must be defined as `const` in `@workspace/types` (`ROLES`, `PERMISSIONS`, `ROLE_PERMISSIONS`) and shared across all frontend apps and backend services.
 - **Automated Database Migrations:**

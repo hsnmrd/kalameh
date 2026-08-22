@@ -45,5 +45,8 @@
   - Use `<Spinner />` from `@workspace/ui/components/spinner` instead of raw `lucide-react` icons.
 - **Single Card Anti-Pattern:**
   - Do not wrap pages with a `<Card>` component if the page content is already rendered within a single container.
+- **Data Tables & Lists Standard:**
+  - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying lists and data grids.
+  - Define columns via TanStack `ColumnDef` and never use raw HTML `<table>` elements in views or components.
 - **Forms & Validation:** Always use `react-hook-form` paired with `@hookform/resolvers/zod` and shared Zod schemas from `@workspace/types`.
 - **File Length:** Keep files under 250 lines. Decompose large tables, dialogs, and forms into dedicated subcomponents.
