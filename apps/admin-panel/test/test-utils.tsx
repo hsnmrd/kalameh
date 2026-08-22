@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import authMessagesFa from "../messages/fa/auth.json"
 import usersMessagesFa from "../messages/fa/users.json"
+import studentsMessagesFa from "../messages/fa/students.json"
 import commonMessagesFa from "../messages/fa/common.json"
 import termsMessagesFa from "../messages/fa/terms.json"
 import coursesMessagesFa from "../messages/fa/courses.json"
@@ -13,6 +14,7 @@ import gradesMessagesFa from "../messages/fa/grades.json"
 const defaultMessages = {
   auth: authMessagesFa,
   users: usersMessagesFa,
+  students: studentsMessagesFa,
   common: commonMessagesFa,
   terms: termsMessagesFa,
   courses: coursesMessagesFa,

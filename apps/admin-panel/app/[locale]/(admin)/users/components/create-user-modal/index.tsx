@@ -54,18 +54,11 @@ export function CreateUserModal({
   const roleOptions: ComboboxOption[] = React.useMemo(() => {
     if (currentUser?.role === ROLES.SUPER_ADMIN) {
       return [
-        { value: ROLES.STUDENT, label: t("roles.STUDENT") },
         { value: ROLES.CLERK, label: t("roles.CLERK") },
         { value: ROLES.INSTITUTE_ADMIN, label: t("roles.INSTITUTE_ADMIN") },
       ]
     }
-    if (currentUser?.role === ROLES.INSTITUTE_ADMIN) {
-      return [
-        { value: ROLES.STUDENT, label: t("roles.STUDENT") },
-        { value: ROLES.CLERK, label: t("roles.CLERK") },
-      ]
-    }
-    return [{ value: ROLES.STUDENT, label: t("roles.STUDENT") }]
+    return [{ value: ROLES.CLERK, label: t("roles.CLERK") }]
   }, [currentUser?.role, t])
 
   const {
@@ -81,7 +74,7 @@ export function CreateUserModal({
       lastName: "",
       phone: "",
       nationalCode: "",
-      role: ROLES.STUDENT,
+      role: ROLES.CLERK,
       password: "",
     },
   })

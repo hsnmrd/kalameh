@@ -1,0 +1,378 @@
+import {
+  Injectable,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
+import { PrismaService } from '../prisma/prisma.service';
+import { I18nService } from '../i18n/i18n.service';
+import { CreateStudentDto } from './dto/create-student.dto';
+import { UpdateStudentDto } from './dto/update-student.dto';
+import { StudentFilterDto } from './dto/student-filter.dto';
+import type { JwtPayload, SupportedLocale } from '@workspace/types';
+
+@Injectable()
+export class StudentsService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly i18n: I18nService,
+  ) {}
+
+  async create(
+    currentUser: JwtPayload,
+    dto: CreateStudentDto,
+    locale: SupportedLocale = 'fa',
+  ) {
+    const targetInstituteId =
+      currentUser.role === 'SUPER_ADMIN' && dto.instituteId
+        ? dto.instituteId
+        : currentUser.instituteId;
+
+    if (
+      currentUser.role !== 'SUPER_ADMIN' &&
+      currentUser.role !== 'INSTITUTE_ADMIN' &&
+      currentUser.role !== 'CLERK'
+    ) {
+      throw new ForbiddenException(
+        this.i18n.t('students.unauthorizedStudentCreation', locale),
+      );
+    }
+
+    const existing = await this.prisma.user.findUnique({
+      where: {
+        phone_instituteId: {
+          phone: dto.phone,
+          instituteId: targetInstituteId,
+        },
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException(
+        this.i18n.t('students.studentAlreadyExists', locale),
+      );
+    }
+
+    const rawPassword = dto.password || dto.phone;
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+    const parsedBirthDate = dto.birthDate ? new Date(dto.birthDate) : null;
+
+    const student = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          instituteId: targetInstituteId,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          phone: dto.phone,
+          password: hashedPassword,
+          role: 'STUDENT',
+          nationalCode: dto.nationalCode,
+          avatarUrl: dto.avatarUrl,
+          currentAllowedCourseId: dto.currentAllowedCourseId,
+        },
+      });
+
+      const profile = await tx.studentProfile.create({
+        data: {
+          userId: user.id,
+          fatherName: dto.fatherName,
+          birthDate: parsedBirthDate,
+          gender: dto.gender,
+          emergencyPhone: dto.emergencyPhone,
+          address: dto.address,
+          notes: dto.notes,
+        },
+      });
+
+      return {
+        ...user,
+        studentProfile: profile,
+      };
+    });
+
+    return {
+      id: student.id,
+      instituteId: student.instituteId,
+      role: student.role,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      phone: student.phone,
+      nationalCode: student.nationalCode,
+      avatarUrl: student.avatarUrl,
+      isActive: student.isActive,
+      currentAllowedCourseId: student.currentAllowedCourseId,
+      studentProfile: student.studentProfile,
+      createdAt: student.createdAt,
+      updatedAt: student.updatedAt,
+    };
+  }
+
+  async findAll(
+    currentUser: JwtPayload,
+    filter?: StudentFilterDto,
+    locale: SupportedLocale = 'fa',
+  ) {
+    const targetInstituteId =
+      currentUser.role === 'SUPER_ADMIN' && filter?.instituteId
+        ? filter.instituteId
+        : currentUser.instituteId;
+
+    if (
+      currentUser.role !== 'SUPER_ADMIN' &&
+      currentUser.role !== 'INSTITUTE_ADMIN' &&
+      currentUser.role !== 'CLERK'
+    ) {
+      throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
+    }
+
+    const search = filter?.search?.trim();
+
+    const students = await this.prisma.user.findMany({
+      where: {
+        instituteId: targetInstituteId,
+        role: 'STUDENT',
+        ...(filter?.courseId
+          ? { currentAllowedCourseId: filter.courseId }
+          : {}),
+        ...(typeof filter?.isActive === 'boolean'
+          ? { isActive: filter.isActive }
+          : {}),
+        ...(search
+          ? {
+              OR: [
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } },
+                { phone: { contains: search } },
+                { nationalCode: { contains: search } },
+                {
+                  studentProfile: {
+                    fatherName: { contains: search, mode: 'insensitive' },
+                  },
+                },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        studentProfile: true,
+        currentAllowedCourse: {
+          select: {
+            id: true,
+            title: true,
+            baseFee: true,
+          },
+        },
+        _count: {
+          select: {
+            enrollments: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return students.map(({ _count, password: _password, ...st }) => ({
+      ...st,
+      enrollmentsCount: _count.enrollments,
+    }));
+  }
+
+  async findOne(
+    currentUser: JwtPayload,
+    id: string,
+    locale: SupportedLocale = 'fa',
+  ) {
+    const targetInstituteId =
+      currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
+
+    const student = await this.prisma.user.findFirst({
+      where: {
+        id,
+        role: 'STUDENT',
+        ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
+      },
+      include: {
+        studentProfile: true,
+        currentAllowedCourse: {
+          select: {
+            id: true,
+            title: true,
+            baseFee: true,
+          },
+        },
+        enrollments: {
+          include: {
+            class: {
+              include: {
+                term: true,
+                course: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+        transactions: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!student) {
+      throw new NotFoundException(
+        this.i18n.t('students.studentNotFound', locale),
+      );
+    }
+
+    const { password: _password, ...rest } = student;
+    return rest;
+  }
+
+  async update(
+    currentUser: JwtPayload,
+    id: string,
+    dto: UpdateStudentDto,
+    locale: SupportedLocale = 'fa',
+  ) {
+    const targetInstituteId =
+      currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
+
+    const existing = await this.prisma.user.findFirst({
+      where: {
+        id,
+        role: 'STUDENT',
+        ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
+      },
+      include: { studentProfile: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(
+        this.i18n.t('students.studentNotFound', locale),
+      );
+    }
+
+    if (dto.phone && dto.phone !== existing.phone) {
+      const phoneInUse = await this.prisma.user.findUnique({
+        where: {
+          phone_instituteId: {
+            phone: dto.phone,
+            instituteId: existing.instituteId,
+          },
+        },
+      });
+
+      if (phoneInUse) {
+        throw new ConflictException(
+          this.i18n.t('students.phoneAlreadyInUse', locale),
+        );
+      }
+    }
+
+    const parsedBirthDate =
+      dto.birthDate !== undefined
+        ? dto.birthDate
+          ? new Date(dto.birthDate)
+          : null
+        : undefined;
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id },
+        data: {
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          phone: dto.phone,
+          nationalCode: dto.nationalCode,
+          avatarUrl: dto.avatarUrl,
+          isActive: dto.isActive,
+          currentAllowedCourseId: dto.currentAllowedCourseId,
+        },
+      });
+
+      const profile = await tx.studentProfile.upsert({
+        where: { userId: id },
+        create: {
+          userId: id,
+          fatherName: dto.fatherName,
+          birthDate: parsedBirthDate,
+          gender: dto.gender,
+          emergencyPhone: dto.emergencyPhone,
+          address: dto.address,
+          notes: dto.notes,
+        },
+        update: {
+          ...(dto.fatherName !== undefined
+            ? { fatherName: dto.fatherName }
+            : {}),
+          ...(parsedBirthDate !== undefined
+            ? { birthDate: parsedBirthDate }
+            : {}),
+          ...(dto.gender !== undefined ? { gender: dto.gender } : {}),
+          ...(dto.emergencyPhone !== undefined
+            ? { emergencyPhone: dto.emergencyPhone }
+            : {}),
+          ...(dto.address !== undefined ? { address: dto.address } : {}),
+          ...(dto.notes !== undefined ? { notes: dto.notes } : {}),
+        },
+      });
+
+      return {
+        ...user,
+        studentProfile: profile,
+      };
+    });
+
+    return {
+      id: updated.id,
+      instituteId: updated.instituteId,
+      role: updated.role,
+      firstName: updated.firstName,
+      lastName: updated.lastName,
+      phone: updated.phone,
+      nationalCode: updated.nationalCode,
+      avatarUrl: updated.avatarUrl,
+      isActive: updated.isActive,
+      currentAllowedCourseId: updated.currentAllowedCourseId,
+      studentProfile: updated.studentProfile,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+    };
+  }
+
+  async resetPassword(
+    currentUser: JwtPayload,
+    id: string,
+    newPassword?: string,
+    locale: SupportedLocale = 'fa',
+  ) {
+    const targetInstituteId =
+      currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
+
+    const student = await this.prisma.user.findFirst({
+      where: {
+        id,
+        role: 'STUDENT',
+        ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
+      },
+    });
+
+    if (!student) {
+      throw new NotFoundException(
+        this.i18n.t('students.studentNotFound', locale),
+      );
+    }
+
+    const rawPassword = newPassword?.trim() || student.phone;
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+    });
+
+    return {
+      message: this.i18n.t('students.passwordResetSuccess', locale),
+    };
+  }
+}

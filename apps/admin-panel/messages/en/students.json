@@ -1,0 +1,103 @@
+{
+  "title": "Students & Learners Management",
+  "subtitle": "View, enroll, edit student personal records, father name, course level, and academic history",
+  "addStudent": "Register New Student",
+  "searchPlaceholder": "Search by name, phone, national ID, or father's name...",
+  "filter": {
+    "allCourses": "All Courses & Levels",
+    "allStatus": "All Statuses",
+    "active": "Active Only",
+    "inactive": "Suspended/Inactive Only"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "table": {
+    "name": "Full Name",
+    "phone": "Phone Number",
+    "fatherName": "Father's Name",
+    "nationalCode": "National ID",
+    "currentLevel": "Allowed Course Level",
+    "noLevel": "Not Assigned (Root Level)",
+    "status": "Status",
+    "enrollmentsCount": "Enrollments",
+    "createdAt": "Registered At",
+    "actions": "Actions",
+    "empty": "No students found matching the criteria."
+  },
+  "createModal": {
+    "title": "Register New Student",
+    "description": "Enter student identity, guardian, and academic placement details.",
+    "identityTab": "Identity",
+    "profileTab": "Profile & Guardian",
+    "academicTab": "Placement",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone Number (Login Username)",
+    "nationalCode": "National ID",
+    "fatherName": "Father's Name",
+    "birthDate": "Date of Birth",
+    "gender": "Gender",
+    "genderMale": "Male",
+    "genderFemale": "Female",
+    "genderSelect": "Select Gender",
+    "emergencyPhone": "Guardian / Emergency Phone",
+    "address": "Home Address",
+    "notes": "Academic Notes",
+    "currentAllowedCourseId": "Initial Course Level",
+    "selectCourse": "Select Course Level (Default: Root Course)",
+    "password": "Initial Password",
+    "passwordHint": "If left empty, phone number will be used as default password.",
+    "submit": "Register Student",
+    "cancel": "Cancel",
+    "success": "Student registered successfully."
+  },
+  "editModal": {
+    "title": "Edit Student Profile",
+    "description": "Update identity, guardian, and placement details.",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone Number",
+    "nationalCode": "National ID",
+    "fatherName": "Father's Name",
+    "birthDate": "Date of Birth",
+    "gender": "Gender",
+    "emergencyPhone": "Guardian / Emergency Phone",
+    "address": "Home Address",
+    "notes": "Notes",
+    "currentAllowedCourseId": "Allowed Course Level",
+    "isActive": "Account Status (Active / Suspended)",
+    "submit": "Save Changes",
+    "cancel": "Cancel",
+    "success": "Student updated successfully."
+  },
+  "profileModal": {
+    "title": "Student Academic Profile",
+    "subtitle": "Comprehensive identity, guardian info, and enrollment records",
+    "personalInfo": "Personal Information",
+    "guardianInfo": "Guardian & Emergency Contact",
+    "academicInfo": "Academic Status",
+    "close": "Close"
+  },
+  "resetPasswordModal": {
+    "title": "Reset Student Password",
+    "description": "Enter a new password for {name}. If left blank, it will reset to their phone number.",
+    "newPassword": "New Password (Optional)",
+    "passwordHint": "Min 6 characters. If empty, phone number will be used.",
+    "submit": "Reset Password",
+    "cancel": "Cancel",
+    "success": "Student password reset successfully."
+  },
+  "actions": {
+    "viewProfile": "View Profile",
+    "edit": "Edit Profile",
+    "resetPassword": "Reset Password"
+  },
+  "validation": {
+    "firstNameMin": "First name must be at least 2 characters.",
+    "lastNameMin": "Last name must be at least 2 characters.",
+    "phoneRegex": "Phone number must be an 11-digit Iranian mobile (e.g. 09121234567).",
+    "passwordMin": "Password must be at least 6 characters."
+  }
+}

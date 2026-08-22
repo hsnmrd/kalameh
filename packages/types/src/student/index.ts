@@ -1,0 +1,4 @@
+export * from "./student-profile.schema.js"
+export * from "./student.schema.js"
+export * from "./create-student.schema.js"
+export * from "./update-student.schema.js"

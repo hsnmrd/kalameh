@@ -131,11 +131,11 @@ describe("UsersTable & UsersFilter Components", () => {
         />
       )
 
-      const studentTab = screen.getByRole("button", {
-        name: /زبان‌آموزان|دانشجو/i,
+      const clerkTab = screen.getByRole("button", {
+        name: /منشی‌ها|منشی|Clerks/i,
       })
-      fireEvent.click(studentTab)
-      expect(handleRoleChange).toHaveBeenCalledWith("STUDENT")
+      fireEvent.click(clerkTab)
+      expect(handleRoleChange).toHaveBeenCalledWith("CLERK")
     })
   })
 })

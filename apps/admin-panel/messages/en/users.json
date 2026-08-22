@@ -1,11 +1,10 @@
 {
-  "title": "User & Student Management",
-  "subtitle": "View, create, edit, and manage access for students, clerks, and institute admins",
-  "addUser": "Add New User",
-  "searchPlaceholder": "Search by first name, last name, or phone...",
+  "title": "Staff & Roles Management",
+  "subtitle": "View, create, edit and manage access permissions for clerks, teachers and institute administrators",
+  "addUser": "Add Staff Member",
+  "searchPlaceholder": "Search by name, phone number or national code...",
   "filter": {
-    "all": "All Users",
-    "students": "Students",
+    "all": "All Staff",
     "clerks": "Clerks",
     "admins": "Institute Admins"
   },
@@ -24,55 +23,54 @@
     "phone": "Phone Number",
     "nationalCode": "National Code",
     "role": "Role",
-    "status": "Account Status",
-    "createdAt": "Registration Date",
+    "status": "Status",
+    "createdAt": "Created At",
     "actions": "Actions",
-    "empty": "No users found matching your criteria."
+    "empty": "No staff found matching the criteria."
   },
   "createModal": {
-    "title": "Add New User",
-    "description": "Enter the details of the new user or student to create their account.",
+    "title": "Add New Staff Member",
+    "description": "Enter the details to create a new admin panel user account.",
     "firstName": "First Name",
     "lastName": "Last Name",
-    "phone": "Phone Number (Username)",
+    "phone": "Phone Number (Login Username)",
     "nationalCode": "National Code (Optional)",
-    "role": "User Role",
+    "role": "Role",
     "password": "Initial Password",
-    "passwordHint": "If left empty, phone number will be set as the default password.",
+    "passwordHint": "If left empty, phone number will be used as default password.",
     "submit": "Create User",
     "cancel": "Cancel",
-    "success": "User created successfully."
+    "success": "Staff member created successfully."
   },
   "editModal": {
-    "title": "Edit User Details",
-    "description": "Update user details and account status.",
+    "title": "Edit Staff Profile",
+    "description": "Update the staff member details and active account status.",
     "firstName": "First Name",
     "lastName": "Last Name",
     "phone": "Phone Number",
     "nationalCode": "National Code",
-    "isActive": "Account Status (Active / Inactive)",
+    "isActive": "Account Status (Active / Suspended)",
     "submit": "Save Changes",
     "cancel": "Cancel",
-    "success": "User updated successfully."
+    "success": "Staff member updated successfully."
   },
   "resetPasswordModal": {
-    "title": "Reset Password",
+    "title": "Reset Staff Password",
     "description": "Enter a new password for {name}. If left blank, it will reset to their phone number.",
     "newPassword": "New Password (Optional)",
+    "passwordHint": "Min 6 characters. If empty, phone number will be used.",
     "submit": "Reset Password",
     "cancel": "Cancel",
     "success": "Password reset successfully."
   },
   "actions": {
-    "edit": "Edit Details",
-    "resetPassword": "Reset Password",
-    "activate": "Activate Account",
-    "deactivate": "Deactivate Account"
+    "edit": "Edit Profile",
+    "resetPassword": "Reset Password"
   },
   "validation": {
-    "firstNameMin": "First name must be at least 2 characters",
-    "lastNameMin": "Last name must be at least 2 characters",
-    "phoneRegex": "Phone number must be a valid 11-digit Iranian mobile (09xxxxxxxxx)",
-    "passwordMin": "Password must be at least 6 characters"
+    "firstNameMin": "First name must be at least 2 characters.",
+    "lastNameMin": "Last name must be at least 2 characters.",
+    "phoneRegex": "Phone number must be an 11-digit Iranian mobile (e.g. 09121234567).",
+    "passwordMin": "Password must be at least 6 characters."
   }
 }

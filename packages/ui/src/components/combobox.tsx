@@ -8,16 +8,19 @@ import { cn } from "@workspace/ui/lib/utils"
 export interface ComboboxOption {
   value: string
   label: string
+  disabled?: boolean
 }
 
 export interface ComboboxProps {
   items: ComboboxOption[]
-  value?: string
+  value?: string | null
   defaultValue?: string
   onValueChange?: (value: string | undefined) => void
   placeholder?: string
   emptyMessage?: string
   disabled?: boolean
+  searchable?: boolean
+  clearable?: boolean
   className?: string
   "data-invalid"?: boolean
 }
@@ -30,16 +33,18 @@ export function Combobox({
   placeholder = "Select an option...",
   emptyMessage = "No items found.",
   disabled = false,
+  searchable = true,
+  clearable = true,
   className,
   "data-invalid": dataInvalid,
 }: ComboboxProps) {
   const selectedItem = React.useMemo(
-    () => items.find((item) => item.value === value),
+    () => items.find((item) => item.value === value) ?? null,
     [items, value]
   )
 
   const defaultSelectedItem = React.useMemo(
-    () => items.find((item) => item.value === defaultValue),
+    () => items.find((item) => item.value === defaultValue) ?? null,
     [items, defaultValue]
   )
 
@@ -58,22 +63,29 @@ export function Combobox({
       <ComboboxPrimitive.InputGroup
         className={cn(
           "relative flex h-10 w-full items-center justify-between rounded-xl border border-border bg-background px-3 text-sm text-foreground shadow-2xs transition-colors focus-within:border-primary disabled:cursor-not-allowed disabled:opacity-50",
+          !searchable && "cursor-pointer",
           dataInvalid && "border-destructive focus-within:border-destructive",
           className
         )}
       >
         <ComboboxPrimitive.Input
           placeholder={placeholder}
-          className="h-full w-full border-0 bg-transparent text-sm text-foreground outline-hidden placeholder:text-muted-foreground"
+          readOnly={!searchable}
+          className={cn(
+            "h-full w-full border-0 bg-transparent text-sm text-foreground outline-hidden placeholder:text-muted-foreground",
+            !searchable && "cursor-pointer select-none"
+          )}
         />
 
         <div className="flex items-center gap-1">
-          <ComboboxPrimitive.Clear
-            className="cursor-pointer rounded-sm p-0.5 text-muted-foreground hover:text-foreground"
-            aria-label="Clear selection"
-          >
-            <X className="size-3.5" />
-          </ComboboxPrimitive.Clear>
+          {clearable && (
+            <ComboboxPrimitive.Clear
+              className="cursor-pointer rounded-sm p-0.5 text-muted-foreground hover:text-foreground"
+              aria-label="Clear selection"
+            >
+              <X className="size-3.5" />
+            </ComboboxPrimitive.Clear>
+          )}
 
           <ComboboxPrimitive.Trigger
             className="cursor-pointer rounded-sm p-0.5 text-muted-foreground hover:text-foreground"
@@ -96,6 +108,7 @@ export function Combobox({
                 <ComboboxPrimitive.Item
                   key={item.value}
                   value={item}
+                  disabled={item.disabled}
                   className="relative flex cursor-pointer items-center rounded-lg py-2 ps-8 pe-2 text-sm outline-hidden select-none hover:bg-muted focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                 >
                   <span className="absolute start-2 flex size-3.5 items-center justify-center">

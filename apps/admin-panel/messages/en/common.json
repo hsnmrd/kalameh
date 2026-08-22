@@ -10,7 +10,8 @@
     "classes": "Classes Management",
     "terms": "Terms & Semesters",
     "courses": "Courses & Syllabi",
-    "students": "Students & Enrollments",
+    "students": "Students & Learners",
+    "staff": "Staff & Users",
     "finance": "Financial & Receipts"
   },
   "language": "Language",

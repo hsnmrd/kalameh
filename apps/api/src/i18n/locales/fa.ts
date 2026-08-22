@@ -34,6 +34,15 @@ export const fa: TranslationDictionary = {
       'منشی تنها اجازه بازنشانی رمز عبور زبان‌آموزان را دارد',
     passwordResetSuccess: 'رمز عبور با موفقیت بازنشانی شد',
   },
+  students: {
+    studentAlreadyExists:
+      'فراگیری با این شماره تماس در این آموزشگاه قبلاً ثبت شده است',
+    studentNotFound: 'فراگیر مورد نظر یافت نشد',
+    unauthorizedStudentCreation: 'شما مجوز ثبت فراگیر جدید را ندارید',
+    phoneAlreadyInUse:
+      'این شماره تماس به کاربر دیگری در این آموزشگاه اختصاص یافته است',
+    passwordResetSuccess: 'رمز عبور فراگیر با موفقیت بازنشانی شد',
+  },
   institutes: {
     instituteNotFound: 'آموزشگاه مورد نظر یافت نشد',
     subdomainAlreadyExists: 'آموزشگاهی با این زیردامنه قبلاً ثبت شده است',

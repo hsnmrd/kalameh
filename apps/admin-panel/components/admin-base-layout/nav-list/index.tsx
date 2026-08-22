@@ -12,6 +12,7 @@ export type NavItemKey =
   | "terms"
   | "courses"
   | "students"
+  | "staff"
   | "finance"
 
 export interface NavItem {

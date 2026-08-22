@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { RoleEnum } from "../roles/index.js"
+import { StudentProfileSchema } from "../student/student-profile.schema.js"
 
 export const AuthUserSchema = z.object({
   id: z.string().uuid(),
@@ -9,8 +10,10 @@ export const AuthUserSchema = z.object({
   lastName: z.string(),
   phone: z.string(),
   nationalCode: z.string().nullable().optional(),
+  avatarUrl: z.string().nullable().optional(),
   isActive: z.boolean(),
   currentAllowedCourseId: z.string().nullable().optional(),
+  studentProfile: StudentProfileSchema.nullable().optional(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
 })

@@ -98,6 +98,7 @@ export {
   SelectValue,
   SelectTrigger,
   SelectPopup,
+  SelectPopup as SelectContent,
   SelectItem,
   SelectLabel,
 }

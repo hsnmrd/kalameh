@@ -35,7 +35,7 @@ describe("CreateUserModal & EditUserModal Components", () => {
       render(<CreateUserModal open={true} onClose={vi.fn()} />)
 
       expect(
-        screen.getByRole("heading", { name: /افزودن کاربر جدید/i })
+        screen.getByRole("heading", { name: /تعریف کاربر|افزودن کاربر/i })
       ).toBeInTheDocument()
       expect(screen.getByText("نام خانوادگی")).toBeInTheDocument()
       expect(screen.getAllByText(/شماره تماس/i).length).toBeGreaterThan(0)
@@ -70,7 +70,9 @@ describe("CreateUserModal & EditUserModal Components", () => {
       render(<EditUserModal user={mockUser} open={true} onClose={vi.fn()} />)
 
       expect(
-        screen.getByRole("heading", { name: /ویرایش اطلاعات کاربر/i })
+        screen.getByRole("heading", {
+          name: /ویرایش اطلاعات پرسنل|ویرایش اطلاعات کاربر/i,
+        })
       ).toBeInTheDocument()
       const phoneInput = document.querySelector(
         'input[name="phone"]'

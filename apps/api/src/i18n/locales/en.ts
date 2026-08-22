@@ -36,6 +36,16 @@ export const en: TranslationDictionary = {
       'Clerks are only permitted to reset Student passwords',
     passwordResetSuccess: 'Password reset successfully',
   },
+  students: {
+    studentAlreadyExists:
+      'A student with this phone number already exists in this institute',
+    studentNotFound: 'Student not found',
+    unauthorizedStudentCreation:
+      'You do not have permission to create student accounts',
+    phoneAlreadyInUse:
+      'This phone number is already assigned to another user in this institute',
+    passwordResetSuccess: 'Student password reset successfully',
+  },
   institutes: {
     instituteNotFound: 'Requested institute was not found',
     subdomainAlreadyExists: 'An institute with this subdomain already exists',

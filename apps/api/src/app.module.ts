@@ -9,6 +9,7 @@ import { TermsModule } from './terms/terms.module';
 import { CoursesModule } from './courses/courses.module';
 import { ClassesModule } from './classes/classes.module';
 import { GradesModule } from './grades/grades.module';
+import { StudentsModule } from './students/students.module';
 import { I18nModule } from './i18n/i18n.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { I18nModule } from './i18n/i18n.module';
     PrismaModule,
     AuthModule,
     UsersModule,
+    StudentsModule,
     InstitutesModule,
     TermsModule,
     CoursesModule,

@@ -26,6 +26,13 @@ export interface TranslationDictionary {
     clerkResetStudentPasswordOnly: string;
     passwordResetSuccess: string;
   };
+  students: {
+    studentAlreadyExists: string;
+    studentNotFound: string;
+    unauthorizedStudentCreation: string;
+    phoneAlreadyInUse: string;
+    passwordResetSuccess: string;
+  };
   institutes: {
     instituteNotFound: string;
     subdomainAlreadyExists: string;

@@ -26,19 +26,14 @@ export function UsersFilter({
   const { data: currentUser } = useQuery(authResource.me.toQuery())
 
   const filterTabs = React.useMemo(() => {
-    const tabs = [
-      { key: "", label: t("filter.all") },
-      { key: ROLES.STUDENT, label: t("filter.students") },
-    ]
+    const tabs = [{ key: "", label: t("filter.all") }]
+
+    tabs.push({ key: ROLES.CLERK, label: t("filter.clerks") })
 
     if (
-      currentUser?.role === ROLES.INSTITUTE_ADMIN ||
-      currentUser?.role === ROLES.SUPER_ADMIN
+      currentUser?.role === ROLES.SUPER_ADMIN ||
+      currentUser?.role === ROLES.INSTITUTE_ADMIN
     ) {
-      tabs.push({ key: ROLES.CLERK, label: t("filter.clerks") })
-    }
-
-    if (currentUser?.role === ROLES.SUPER_ADMIN) {
       tabs.push({ key: ROLES.INSTITUTE_ADMIN, label: t("filter.admins") })
     }
 

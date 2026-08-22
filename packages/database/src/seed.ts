@@ -104,7 +104,7 @@ async function main() {
   ]
 
   for (const user of instituteUsers) {
-    await prisma.user.upsert({
+    const createdUser = await prisma.user.upsert({
       where: {
         phone_instituteId: {
           phone: user.phone,
@@ -130,6 +130,26 @@ async function main() {
         isActive: true,
       },
     })
+
+    if (user.role === Role.STUDENT) {
+      await prisma.studentProfile.upsert({
+        where: { userId: createdUser.id },
+        update: {
+          fatherName: "رضا",
+          emergencyPhone: "09121112233",
+          gender: "MALE",
+          address: "تهران، میدان ونک",
+        },
+        create: {
+          userId: createdUser.id,
+          fatherName: "رضا",
+          emergencyPhone: "09121112233",
+          gender: "MALE",
+          address: "تهران، میدان ونک",
+        },
+      })
+    }
+
     console.log(
       `👤 User seeded: ${user.phone} (${user.role}) - Password: ${defaultPassword}`
     )
