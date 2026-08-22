@@ -17,4 +17,6 @@
   - Enable `credentials: true` in CORS to support cross-origin HttpOnly cookie sharing with frontend apps (`admin-panel` and `student-pwa`).
 - **Class Capacity Locking (Redis):** Temporary 30-minute reservation locks for class registration must be handled via Redis TTL keys (`kalameh:lock:class:{classId}:{studentId}`), never by persisting draft locks in PostgreSQL.
 - **File Uploads:** Store uploaded asset URLs (e.g. payment receipt images) in the database. Do not store binary files directly on the local server disk.
+- **Prisma `*OrThrow` & No Manual Null Checking:** Use Prisma's `findUniqueOrThrow` or `findFirstOrThrow` methods instead of manual `if (!entity) throw new NotFoundException(...)` checks. Let Prisma handle not-found exceptions.
+- **No Large Manual Object Re-Mapping:** Do NOT write large manual object mappings (e.g. manually copying every single field into a returned object). Instead, shape responses using Prisma `select` / `include` or use concise object destructuring and spread patterns (e.g. `const { _count, ...rest } = entity; return { ...rest, classesCount: _count.classes };`).
 - **Testing:** Write unit tests for services/pipes and e2e tests (`test/jest-e2e.json`) for authentication and transaction flows.

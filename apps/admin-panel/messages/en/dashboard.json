@@ -12,11 +12,18 @@
       "total": "Total Across Cloud"
     },
     "recentInstitutes": "Recent Institutes",
+    "recentInstitutesHint": "Click any institute to manage its operations directly",
+    "noInstitutes": "No institutes registered yet.",
+    "enterPanel": "Enter Panel",
     "viewAll": "View All Institutes"
   },
   "instituteAdmin": {
     "title": "Institute Overview",
     "subtitle": "Active classes, enrolled students, and term capacity overview",
+    "instituteSubtitle": "Management and operations dashboard for {name}",
+    "managingBanner": "Currently Managing: {name}",
+    "superAdminBadge": "Super Admin View",
+    "backToOverview": "Back to Platform Overview",
     "addClass": "New Class",
     "stats": {
       "activeClasses": "Active Classes",
@@ -25,6 +32,9 @@
       "activeTerm": "Fall 2026",
       "occupancy": "85% Capacity"
     },
+    "enrolledCount": "{count} Enrolled",
+    "noUsers": "No Users",
+    "activeClassesCount": "{count} Active",
     "recentClasses": "Active Classes Preview",
     "viewAll": "View All Classes"
   }

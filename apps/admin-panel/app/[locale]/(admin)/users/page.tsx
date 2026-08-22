@@ -4,6 +4,7 @@ import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { AuthUser } from "@workspace/types"
 import { usersResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import { UsersHeader } from "./components/users-header"
 import { UsersFilter } from "./components/users-filter"
 import { UsersTable } from "./components/users-table"
@@ -19,11 +20,14 @@ export default function UsersPage() {
   const [resetPasswordUser, setResetPasswordUser] =
     React.useState<AuthUser | null>(null)
 
-  // Fetch users with filters
+  const { activeInstituteId } = useActiveInstitute()
+
+  // Fetch users with filters (and scoped to active institute for Super Admin / Institute Admin)
   const { data: users, isLoading } = useQuery(
     usersResource.list.toQuery({
       role: selectedRole || undefined,
       search: searchValue.trim() || undefined,
+      instituteId: activeInstituteId,
     })
   )
 
@@ -57,6 +61,7 @@ export default function UsersPage() {
       <CreateUserModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
+        instituteId={activeInstituteId}
       />
 
       {/* Edit User Modal */}

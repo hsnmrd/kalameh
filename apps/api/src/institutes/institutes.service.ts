@@ -1,0 +1,171 @@
+import {
+  Injectable,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { I18nService } from '../i18n/i18n.service';
+import { CreateInstituteDto } from './dto/create-institute.dto';
+import { UpdateInstituteDto } from './dto/update-institute.dto';
+import { JwtPayload, SupportedLocale } from '@workspace/types';
+
+@Injectable()
+export class InstitutesService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly i18n: I18nService,
+  ) {}
+
+  async findAll(currentUser: JwtPayload) {
+    if (currentUser.role !== 'SUPER_ADMIN') {
+      const { _count, ...institute } =
+        await this.prisma.institute.findUniqueOrThrow({
+          where: { id: currentUser.instituteId },
+          include: {
+            _count: { select: { classes: true, users: true } },
+          },
+        });
+
+      return [
+        {
+          ...institute,
+          classesCount: _count.classes,
+          usersCount: _count.users,
+        },
+      ];
+    }
+
+    const institutes = await this.prisma.institute.findMany({
+      where: { subdomain: { not: 'system' } },
+      include: {
+        _count: { select: { classes: true, users: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return institutes.map(({ _count, ...inst }) => ({
+      ...inst,
+      classesCount: _count.classes,
+      usersCount: _count.users,
+    }));
+  }
+
+  async findOne(
+    id: string,
+    currentUser: JwtPayload,
+    locale: SupportedLocale = 'fa',
+  ) {
+    if (currentUser.role !== 'SUPER_ADMIN' && currentUser.instituteId !== id) {
+      throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
+    }
+
+    const { _count, ...institute } =
+      await this.prisma.institute.findUniqueOrThrow({
+        where: { id },
+        include: {
+          _count: {
+            select: { classes: true, users: true, courses: true, terms: true },
+          },
+        },
+      });
+
+    return {
+      ...institute,
+      classesCount: _count.classes,
+      usersCount: _count.users,
+      coursesCount: _count.courses,
+      termsCount: _count.terms,
+    };
+  }
+
+  async create(
+    dto: CreateInstituteDto,
+    currentUser: JwtPayload,
+    locale: SupportedLocale = 'fa',
+  ) {
+    if (currentUser.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
+    }
+
+    const existing = await this.prisma.institute.findUnique({
+      where: { subdomain: dto.subdomain },
+    });
+
+    if (existing) {
+      throw new ConflictException(
+        this.i18n.t('institutes.subdomainAlreadyExists', locale),
+      );
+    }
+
+    const institute = await this.prisma.institute.create({
+      data: {
+        name: dto.name,
+        subdomain: dto.subdomain,
+        isActive: dto.isActive ?? true,
+        bankCardNumber: dto.bankCardNumber,
+        bankAccountName: dto.bankAccountName,
+        bankShaba: dto.bankShaba,
+      },
+    });
+
+    return {
+      ...institute,
+      classesCount: 0,
+      usersCount: 0,
+    };
+  }
+
+  async update(
+    id: string,
+    dto: UpdateInstituteDto,
+    currentUser: JwtPayload,
+    locale: SupportedLocale = 'fa',
+  ) {
+    if (currentUser.role !== 'SUPER_ADMIN' && currentUser.instituteId !== id) {
+      throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
+    }
+
+    const institute = await this.prisma.institute.findUniqueOrThrow({
+      where: { id },
+    });
+
+    if (dto.subdomain && dto.subdomain !== institute.subdomain) {
+      const existing = await this.prisma.institute.findUnique({
+        where: { subdomain: dto.subdomain },
+      });
+
+      if (existing) {
+        throw new ConflictException(
+          this.i18n.t('institutes.subdomainAlreadyExists', locale),
+        );
+      }
+    }
+
+    const { _count, ...updated } = await this.prisma.institute.update({
+      where: { id },
+      data: {
+        ...(dto.name ? { name: dto.name } : {}),
+        ...(dto.subdomain ? { subdomain: dto.subdomain } : {}),
+        ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+        ...(dto.bankCardNumber !== undefined
+          ? { bankCardNumber: dto.bankCardNumber }
+          : {}),
+        ...(dto.bankAccountName !== undefined
+          ? { bankAccountName: dto.bankAccountName }
+          : {}),
+        ...(dto.bankShaba !== undefined ? { bankShaba: dto.bankShaba } : {}),
+      },
+      include: {
+        _count: {
+          select: { classes: true, users: true },
+        },
+      },
+    });
+
+    return {
+      ...updated,
+      classesCount: _count.classes,
+      usersCount: _count.users,
+    };
+  }
+}

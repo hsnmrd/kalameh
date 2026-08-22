@@ -26,6 +26,11 @@ export interface TranslationDictionary {
     clerkResetStudentPasswordOnly: string;
     passwordResetSuccess: string;
   };
+  institutes: {
+    instituteNotFound: string;
+    subdomainAlreadyExists: string;
+    cannotDeleteWithDependencies: string;
+  };
   common: {
     internalServerError: string;
     unauthorized: string;

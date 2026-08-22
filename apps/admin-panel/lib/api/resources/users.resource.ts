@@ -6,12 +6,12 @@ import type {
 import { api } from "../client"
 
 export const usersResource = api.resource("users", {
-  list: api.get<AuthUser[], { role?: string; search?: string } | undefined>(
-    "/users",
-    {
-      query: (params) => params || {},
-    }
-  ),
+  list: api.get<
+    AuthUser[],
+    { role?: string; search?: string; instituteId?: string } | undefined
+  >("/users", {
+    query: (params) => params || {},
+  }),
   detail: api.get<AuthUser, string>((id) => `/users/${id}`),
   create: api.post<AuthUser, CreateUserInput>("/users"),
   update: api.patch<AuthUser, { id: string; body: UpdateUserInput }>(

@@ -2,6 +2,11 @@
   "title": "Institutes Management",
   "subtitle": "Super Admin control panel for language institutes and tenants",
   "addInstitute": "Create Institute",
+  "noInstitutes": "No institutes found.",
+  "manageInstitute": "Manage & Enter Institute Panel",
+  "currentlyManaging": "Currently Managing",
+  "classesCount": "Classes",
+  "usersCount": "Users",
   "columns": {
     "name": "Institute Name",
     "subdomain": "Subdomain",
@@ -14,5 +19,14 @@
     "inactive": "Inactive"
   },
   "edit": "Edit",
-  "manage": "Manage"
+  "manage": "Manage",
+  "switcher": {
+    "title": "Select Institute",
+    "description": "Choose an institute to manage its classes, students, and settings",
+    "searchPlaceholder": "Search by institute name or subdomain...",
+    "allInstitutes": "All Institutes",
+    "globalView": "Platform Overview",
+    "classes": "Classes",
+    "noResults": "No institutes matching your search"
+  }
 }

@@ -38,9 +38,14 @@ import {
 export interface CreateUserModalProps {
   open: boolean
   onClose: () => void
+  instituteId?: string
 }
 
-export function CreateUserModal({ open, onClose }: CreateUserModalProps) {
+export function CreateUserModal({
+  open,
+  onClose,
+  instituteId,
+}: CreateUserModalProps) {
   const t = useTranslations("users")
   const queryClient = useQueryClient()
   const createUserSchema = useCreateUserSchema()
@@ -96,6 +101,7 @@ export function CreateUserModal({ open, onClose }: CreateUserModalProps) {
   const onSubmit = (values: CreateUserInput) => {
     createMutation.mutate({
       ...values,
+      instituteId: instituteId || values.instituteId || undefined,
       nationalCode: values.nationalCode || undefined,
       password: values.password || undefined,
     })

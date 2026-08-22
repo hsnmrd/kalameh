@@ -34,6 +34,12 @@ export const fa: TranslationDictionary = {
       'منشی تنها اجازه بازنشانی رمز عبور زبان‌آموزان را دارد',
     passwordResetSuccess: 'رمز عبور با موفقیت بازنشانی شد',
   },
+  institutes: {
+    instituteNotFound: 'آموزشگاه مورد نظر یافت نشد',
+    subdomainAlreadyExists: 'آموزشگاهی با این زیردامنه قبلاً ثبت شده است',
+    cannotDeleteWithDependencies:
+      'امکان حذف آموزشگاه دارای اطلاعات وابسته وجود ندارد',
+  },
   common: {
     internalServerError: 'خطای داخلی سرور رخ داده است',
     unauthorized: 'عدم دسترسی، لطفاً مجدداً وارد شوید',

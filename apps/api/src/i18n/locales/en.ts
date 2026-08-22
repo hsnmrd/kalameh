@@ -36,6 +36,12 @@ export const en: TranslationDictionary = {
       'Clerks are only permitted to reset Student passwords',
     passwordResetSuccess: 'Password reset successfully',
   },
+  institutes: {
+    instituteNotFound: 'Requested institute was not found',
+    subdomainAlreadyExists: 'An institute with this subdomain already exists',
+    cannotDeleteWithDependencies:
+      'Cannot delete institute with dependent records',
+  },
   common: {
     internalServerError: 'Internal server error occurred',
     unauthorized: 'Unauthorized access, please login again',

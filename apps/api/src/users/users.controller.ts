@@ -39,6 +39,7 @@ export class UsersController {
     @CurrentUser() currentUser: JwtPayload,
     @Query('role') role?: string,
     @Query('search') search?: string,
+    @Query('instituteId') instituteId?: string,
     @CurrentLocale() locale?: SupportedLocale,
   ) {
     return this.usersService.findAll(
@@ -46,6 +47,7 @@ export class UsersController {
       role as Role | undefined,
       search,
       locale,
+      instituteId,
     );
   }
 

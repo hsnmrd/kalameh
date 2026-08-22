@@ -15,6 +15,7 @@ import { ROLES, type Role } from "@workspace/types"
 import { authResource } from "@/lib/api"
 import { usePathname, useRouter, useIsRtl } from "@/i18n/routing"
 import { cn } from "@workspace/ui/lib/utils"
+import { useActiveInstitute } from "@/lib/stores"
 import { SidebarBrand } from "./sidebar-brand"
 import { NavList, type NavItem } from "./nav-list"
 import { SidebarFooter } from "./sidebar-footer"
@@ -34,8 +35,17 @@ const INSTITUTE_NAV: NavItem[] = [
   { key: "finance", href: "/transactions", icon: CreditCard },
 ]
 
-const SUPER_ADMIN_NAV: NavItem[] = [
+const SUPER_ADMIN_GLOBAL_NAV: NavItem[] = [
   { key: "dashboard", href: "/", icon: LayoutDashboard },
+  { key: "institutes", href: "/institutes", icon: ShieldAlert },
+]
+
+const SUPER_ADMIN_INSTITUTE_NAV: NavItem[] = [
+  { key: "dashboard", href: "/", icon: LayoutDashboard },
+  { key: "classes", href: "/classes", icon: Layers },
+  { key: "courses", href: "/courses", icon: BookOpen },
+  { key: "students", href: "/users", icon: Users },
+  { key: "finance", href: "/transactions", icon: CreditCard },
   { key: "institutes", href: "/institutes", icon: ShieldAlert },
 ]
 
@@ -47,11 +57,19 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   const queryClient = useQueryClient()
   const isRtl = useIsRtl()
 
+  const { activeInstitute } = useActiveInstitute()
+
   const { data: user } = useQuery(authResource.me.toQuery())
   const effectiveRole = role ?? user?.role ?? ROLES.INSTITUTE_ADMIN
 
-  const navItems =
-    effectiveRole === ROLES.SUPER_ADMIN ? SUPER_ADMIN_NAV : INSTITUTE_NAV
+  const navItems = React.useMemo(() => {
+    if (effectiveRole === ROLES.SUPER_ADMIN) {
+      return activeInstitute
+        ? SUPER_ADMIN_INSTITUTE_NAV
+        : SUPER_ADMIN_GLOBAL_NAV
+    }
+    return INSTITUTE_NAV
+  }, [effectiveRole, activeInstitute])
 
   const logoutMutation = useMutation({
     ...authResource.logout.toMutation(),

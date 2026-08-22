@@ -12,11 +12,18 @@
       "total": "کل در سراسر سامانه"
     },
     "recentInstitutes": "آموزشگاه‌های اخیر",
+    "recentInstitutesHint": "کلیک روی هر آموزشگاه شما را به پنل مدیریتی آن آموزشگاه هدایت می‌کند",
+    "noInstitutes": "آموزشگاهی ثبت نشده است.",
+    "enterPanel": "ورود به پنل",
     "viewAll": "مشاهده همه آموزشگاه‌ها"
   },
   "instituteAdmin": {
     "title": "پیشخوان آموزشگاه",
     "subtitle": "نمای کلی کلاس‌های فعال، دانشجویان ثبت‌نامی و ظرفیت ترم جاری",
+    "instituteSubtitle": "پیشخوان مدیریت و کنترل عملیات {name}",
+    "managingBanner": "در حال مدیریت: {name}",
+    "superAdminBadge": "ادمین کل سامانه",
+    "backToOverview": "بازگشت به نمای کلی سامانه",
     "addClass": "ایجاد کلاس جدید",
     "stats": {
       "activeClasses": "کلاس‌های فعال",
@@ -25,6 +32,9 @@
       "activeTerm": "پاییز ۱۴۰۵",
       "occupancy": "۸۵٪ تکمیل"
     },
+    "enrolledCount": "{count} زبان‌آموز ثبت‌نامی",
+    "noUsers": "بدون زبان‌آموز",
+    "activeClassesCount": "{count} کلاس فعال",
     "recentClasses": "پیش‌نمایش کلاس‌های فعال",
     "viewAll": "مشاهده همه کلاس‌ها"
   }

@@ -99,8 +99,12 @@ export class UsersService {
     role?: Role,
     search?: string,
     locale: SupportedLocale = 'fa',
+    instituteId?: string,
   ) {
-    const targetInstituteId = currentUser.instituteId;
+    const targetInstituteId =
+      currentUser.role === 'SUPER_ADMIN' && instituteId
+        ? instituteId
+        : currentUser.instituteId;
 
     let roleFilter: Role | { not: 'SUPER_ADMIN' } | { in: Role[] } | undefined;
 

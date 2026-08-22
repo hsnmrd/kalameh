@@ -3,6 +3,7 @@
   "superAdmin": "Super Admin",
   "instituteAdmin": "Institute Admin",
   "adminPanel": "Admin Panel",
+  "superAdminMode": "Institute View (Super Admin)",
   "nav": {
     "dashboard": "Dashboard Overview",
     "institutes": "Institutes Management",

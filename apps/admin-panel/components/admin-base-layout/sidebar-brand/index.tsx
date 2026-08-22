@@ -4,6 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Building2, ShieldAlert } from "lucide-react"
 import { ROLES, type Role } from "@workspace/types"
+import { useActiveInstitute } from "@/lib/stores"
 
 export interface SidebarBrandProps {
   role?: Role
@@ -11,10 +12,22 @@ export interface SidebarBrandProps {
 
 export function SidebarBrand({ role }: SidebarBrandProps) {
   const t = useTranslations("common")
+  const { activeInstitute } = useActiveInstitute()
   const isSuperAdmin = role === ROLES.SUPER_ADMIN
-  const Icon = isSuperAdmin ? ShieldAlert : Building2
-  const title = isSuperAdmin ? t("superAdmin") : t("instituteAdmin")
-  const subtitle = isSuperAdmin ? "Super Admin Panel" : t("adminPanel")
+
+  const Icon = isSuperAdmin && !activeInstitute ? ShieldAlert : Building2
+  const title =
+    isSuperAdmin && activeInstitute
+      ? activeInstitute.name
+      : isSuperAdmin
+        ? t("superAdmin")
+        : t("instituteAdmin")
+  const subtitle =
+    isSuperAdmin && activeInstitute
+      ? t("superAdminMode")
+      : isSuperAdmin
+        ? "Super Admin Panel"
+        : t("adminPanel")
 
   return (
     <div className="flex items-center gap-3">

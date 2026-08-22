@@ -6,6 +6,7 @@ import { Building2, ShieldAlert, Menu, Languages } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { ROLES, type Role } from "@workspace/types"
 import { UserBadge } from "./user-badge"
+import { InstituteSwitcher } from "../institute-switcher"
 
 export interface AdminHeaderProps {
   role?: Role
@@ -56,16 +57,23 @@ export function AdminHeader({
           </span>
         </div>
 
-        <div className="hidden lg:flex lg:items-center lg:gap-2">
+        <div className="hidden lg:flex lg:items-center lg:gap-3">
           <span className="text-sm font-semibold text-slate-700">
             {isSuperAdmin
               ? `${t("appName")} • ${t("superAdmin")}`
               : `${t("appName")} • ${t("adminPanel")}`}
           </span>
+          {isSuperAdmin && <InstituteSwitcher />}
         </div>
       </div>
 
       <div className="flex items-center gap-3">
+        {isSuperAdmin && (
+          <div className="lg:hidden">
+            <InstituteSwitcher />
+          </div>
+        )}
+
         <Button
           type="button"
           variant="outline"

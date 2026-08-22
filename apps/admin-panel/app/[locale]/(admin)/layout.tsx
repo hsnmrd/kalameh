@@ -11,9 +11,11 @@ export default async function AdminLayout({
 }) {
   const { locale } = await params
   const common = (await import(`@/messages/${locale}/common.json`)).default
+  const institutes = (await import(`@/messages/${locale}/institutes.json`))
+    .default
 
   return (
-    <NextIntlClientProvider locale={locale} messages={{ common }}>
+    <NextIntlClientProvider locale={locale} messages={{ common, institutes }}>
       <AdminBaseLayout>{children}</AdminBaseLayout>
     </NextIntlClientProvider>
   )

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
+import { useQuery } from "@tanstack/react-query"
 import {
   Layers,
   Plus,
@@ -9,9 +10,14 @@ import {
   Calendar,
   ArrowRight,
   ArrowLeft,
+  Building2,
+  Globe,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { Badge } from "@workspace/ui/components/badge"
 import { Link, useIsRtl } from "@/i18n/routing"
+import { useActiveInstitute } from "@/lib/stores"
+import { authResource, institutesResource } from "@/lib/api"
 import { StatCard } from "../stat-card"
 
 export function InstituteAdminView() {
@@ -19,15 +25,73 @@ export function InstituteAdminView() {
   const isRtl = useIsRtl()
   const ActionArrow = isRtl ? ArrowLeft : ArrowRight
 
+  const { data: user } = useQuery(authResource.me.toQuery())
+  const { activeInstitute, isSuperAdminManaging, clearActiveInstitute } =
+    useActiveInstitute()
+
+  const targetInstituteId = activeInstitute?.id || user?.instituteId
+
+  const { data: instituteDetail } = useQuery({
+    ...institutesResource.detail.toQuery(targetInstituteId!),
+    enabled: Boolean(targetInstituteId),
+  })
+
+  const currentInstitute = instituteDetail ?? activeInstitute
+
+  const classesCount = currentInstitute?.classesCount ?? 0
+  const usersCount = currentInstitute?.usersCount ?? 0
+  const instituteName = currentInstitute?.name ?? t("title")
+
   return (
     <div className="space-y-8">
+      {/* Super Admin Active Institute Banner */}
+      {isSuperAdminManaging && currentInstitute && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 font-bold text-white">
+              <Building2 className="size-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-emerald-950">
+                  {t("managingBanner", { name: currentInstitute.name })}
+                </h2>
+                <Badge variant="success" className="text-[10px]">
+                  {t("superAdminBadge")}
+                </Badge>
+              </div>
+              <p className="font-mono text-xs text-emerald-700">
+                {currentInstitute.subdomain}.kalameh.ir
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={clearActiveInstitute}
+              className="h-9 cursor-pointer gap-1.5 border-emerald-300 bg-white text-xs font-semibold text-emerald-900 hover:bg-emerald-100/50"
+            >
+              <Globe className="size-3.5" />
+              <span>{t("backToOverview")}</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            {t("title")}
+            {instituteName}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">{t("subtitle")}</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {currentInstitute
+              ? t("instituteSubtitle", { name: currentInstitute.name })
+              : t("subtitle")}
+          </p>
         </div>
 
         <Link href="/classes">
@@ -45,24 +109,28 @@ export function InstituteAdminView() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title={t("stats.activeClasses")}
-          value="24"
+          value={classesCount.toString()}
           subtitle="Top Notch, Summit, Family & Friends"
           icon={Layers}
           iconBgClassName="bg-blue-50"
           iconColorClassName="text-blue-600"
-          badgeText="24 Active"
+          badgeText={t("activeClassesCount", { count: classesCount })}
           badgeVariant="info"
         />
 
         <StatCard
           title={t("stats.totalStudents")}
-          value="342"
+          value={usersCount.toString()}
           subtitle="Across all active classes"
           icon={Users}
           iconBgClassName="bg-emerald-50"
           iconColorClassName="text-emerald-600"
-          badgeText="+18 This Week"
-          badgeVariant="success"
+          badgeText={
+            usersCount > 0
+              ? t("enrolledCount", { count: usersCount })
+              : t("noUsers")
+          }
+          badgeVariant={usersCount > 0 ? "success" : "neutral"}
         />
 
         <StatCard

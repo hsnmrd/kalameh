@@ -3,6 +3,7 @@
   "superAdmin": "مدیر ارشد سامانه",
   "instituteAdmin": "مدیر آموزشگاه",
   "adminPanel": "پنل مدیریت",
+  "superAdminMode": "مدیریت آموزشگاه (ادمین کل)",
   "nav": {
     "dashboard": "پیشخوان مدیریت",
     "institutes": "مدیریت آموزشگاه‌ها",
