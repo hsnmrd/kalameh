@@ -4,6 +4,7 @@ import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { CourseDto } from "@workspace/types"
 import { coursesResource } from "@/lib/api"
+import { AdminPageShell } from "@/components/admin-page-shell"
 import { CoursesHeader } from "./components/courses-header"
 import { CoursesTable } from "./components/courses-table"
 import { CreateCourseModal } from "./components/create-course-modal"
@@ -18,25 +19,28 @@ export default function CoursesPage() {
   const { data: courses, isLoading } = useQuery(coursesResource.list.toQuery())
 
   return (
-    <div className="space-y-6">
-      <CoursesHeader onAddCourse={() => setCreateModalOpen(true)} />
+    <AdminPageShell
+      header={<CoursesHeader onAddCourse={() => setCreateModalOpen(true)} />}
+      modals={
+        <>
+          <CreateCourseModal
+            open={createModalOpen}
+            onClose={() => setCreateModalOpen(false)}
+          />
 
+          <EditCourseModal
+            course={editingCourse}
+            open={Boolean(editingCourse)}
+            onClose={() => setEditingCourse(null)}
+          />
+        </>
+      }
+    >
       <CoursesTable
         courses={courses}
         isLoading={isLoading}
         onEdit={(course) => setEditingCourse(course)}
       />
-
-      <CreateCourseModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-      />
-
-      <EditCourseModal
-        course={editingCourse}
-        open={Boolean(editingCourse)}
-        onClose={() => setEditingCourse(null)}
-      />
-    </div>
+    </AdminPageShell>
   )
 }

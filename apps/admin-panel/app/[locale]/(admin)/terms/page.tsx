@@ -4,6 +4,7 @@ import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { TermDto } from "@workspace/types"
 import { termsResource } from "@/lib/api"
+import { AdminPageShell } from "@/components/admin-page-shell"
 import { TermsHeader } from "./components/terms-header"
 import { TermsTable } from "./components/terms-table"
 import { CreateTermModal } from "./components/create-term-modal"
@@ -16,25 +17,28 @@ export default function TermsPage() {
   const { data: terms, isLoading } = useQuery(termsResource.list.toQuery())
 
   return (
-    <div className="space-y-6">
-      <TermsHeader onAddTerm={() => setCreateModalOpen(true)} />
+    <AdminPageShell
+      header={<TermsHeader onAddTerm={() => setCreateModalOpen(true)} />}
+      modals={
+        <>
+          <CreateTermModal
+            open={createModalOpen}
+            onClose={() => setCreateModalOpen(false)}
+          />
 
+          <EditTermModal
+            term={editingTerm}
+            open={Boolean(editingTerm)}
+            onClose={() => setEditingTerm(null)}
+          />
+        </>
+      }
+    >
       <TermsTable
         terms={terms}
         isLoading={isLoading}
         onEdit={(term) => setEditingTerm(term)}
       />
-
-      <CreateTermModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-      />
-
-      <EditTermModal
-        term={editingTerm}
-        open={Boolean(editingTerm)}
-        onClose={() => setEditingTerm(null)}
-      />
-    </div>
+    </AdminPageShell>
   )
 }

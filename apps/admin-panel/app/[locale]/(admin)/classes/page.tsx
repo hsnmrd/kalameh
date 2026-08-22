@@ -4,6 +4,7 @@ import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { ClassDto } from "@workspace/types"
 import { classesResource } from "@/lib/api"
+import { AdminPageShell } from "@/components/admin-page-shell"
 import { ClassesHeader } from "./components/classes-header"
 import { ClassesFilter } from "./components/classes-filter"
 import { ClassesTable } from "./components/classes-table"
@@ -27,34 +28,38 @@ export default function ClassesPage() {
   )
 
   return (
-    <div className="space-y-6">
-      <ClassesHeader onAddClass={() => setCreateModalOpen(true)} />
+    <AdminPageShell
+      header={<ClassesHeader onAddClass={() => setCreateModalOpen(true)} />}
+      filter={
+        <ClassesFilter
+          termId={termId}
+          onTermChange={setTermId}
+          courseId={courseId}
+          onCourseChange={setCourseId}
+          search={search}
+          onSearchChange={setSearch}
+        />
+      }
+      modals={
+        <>
+          <CreateClassModal
+            open={createModalOpen}
+            onClose={() => setCreateModalOpen(false)}
+          />
 
-      <ClassesFilter
-        termId={termId}
-        onTermChange={setTermId}
-        courseId={courseId}
-        onCourseChange={setCourseId}
-        search={search}
-        onSearchChange={setSearch}
-      />
-
+          <EditClassModal
+            cls={editingClass}
+            open={Boolean(editingClass)}
+            onClose={() => setEditingClass(null)}
+          />
+        </>
+      }
+    >
       <ClassesTable
         classes={classes}
         isLoading={isLoading}
         onEdit={(cls) => setEditingClass(cls)}
       />
-
-      <CreateClassModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-      />
-
-      <EditClassModal
-        cls={editingClass}
-        open={Boolean(editingClass)}
-        onClose={() => setEditingClass(null)}
-      />
-    </div>
+    </AdminPageShell>
   )
 }

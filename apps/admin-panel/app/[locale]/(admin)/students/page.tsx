@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import type { StudentDto } from "@workspace/types"
 import { coursesResource, studentsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { AdminPageShell } from "@/components/admin-page-shell"
 import { StudentsHeader } from "./components/students-header"
 import { StudentsFilter } from "./components/students-filter"
 import { StudentsTable } from "./components/students-table"
@@ -55,24 +56,56 @@ export default function StudentsPage() {
   const totalCount = students?.length ?? 0
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <StudentsHeader
-        totalCount={totalCount}
-        onAddStudentClick={() => setCreateModalOpen(true)}
-      />
+    <AdminPageShell
+      header={
+        <StudentsHeader
+          totalCount={totalCount}
+          onAddStudentClick={() => setCreateModalOpen(true)}
+        />
+      }
+      filter={
+        <StudentsFilter
+          searchValue={searchValue}
+          onSearchChange={setSearchValue}
+          selectedCourseId={selectedCourseId}
+          onCourseChange={setSelectedCourseId}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+          courses={courses}
+        />
+      }
+      modals={
+        <>
+          {/* Create Student Modal */}
+          <CreateStudentModal
+            open={createModalOpen}
+            onClose={() => setCreateModalOpen(false)}
+            instituteId={activeInstituteId}
+          />
 
-      {/* Search & Filters */}
-      <StudentsFilter
-        searchValue={searchValue}
-        onSearchChange={setSearchValue}
-        selectedCourseId={selectedCourseId}
-        onCourseChange={setSelectedCourseId}
-        selectedStatus={selectedStatus}
-        onStatusChange={setSelectedStatus}
-        courses={courses}
-      />
+          {/* Edit Student Modal */}
+          <EditStudentModal
+            student={editStudent}
+            open={Boolean(editStudent)}
+            onClose={() => setEditStudent(null)}
+          />
 
+          {/* View Student Dossier / Profile Modal */}
+          <StudentProfileModal
+            student={profileStudent}
+            open={Boolean(profileStudent)}
+            onClose={() => setProfileStudent(null)}
+          />
+
+          {/* Reset Password Modal */}
+          <ResetPasswordModal
+            student={resetPasswordStudent}
+            open={Boolean(resetPasswordStudent)}
+            onClose={() => setResetPasswordStudent(null)}
+          />
+        </>
+      }
+    >
       {/* Students Data Table / Mobile Cards */}
       <StudentsTable
         students={students}
@@ -81,34 +114,6 @@ export default function StudentsPage() {
         onEdit={(student) => setEditStudent(student)}
         onResetPassword={(student) => setResetPasswordStudent(student)}
       />
-
-      {/* Create Student Modal */}
-      <CreateStudentModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        instituteId={activeInstituteId}
-      />
-
-      {/* Edit Student Modal */}
-      <EditStudentModal
-        student={editStudent}
-        open={Boolean(editStudent)}
-        onClose={() => setEditStudent(null)}
-      />
-
-      {/* View Student Dossier / Profile Modal */}
-      <StudentProfileModal
-        student={profileStudent}
-        open={Boolean(profileStudent)}
-        onClose={() => setProfileStudent(null)}
-      />
-
-      {/* Reset Password Modal */}
-      <ResetPasswordModal
-        student={resetPasswordStudent}
-        open={Boolean(resetPasswordStudent)}
-        onClose={() => setResetPasswordStudent(null)}
-      />
-    </div>
+    </AdminPageShell>
   )
 }
