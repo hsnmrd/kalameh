@@ -36,6 +36,9 @@
   - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying tabular data.
   - Define columns using TanStack Table `ColumnDef` to ensure consistent typography, responsive design, empty states, and accessibility across all dashboards.
   - Never render raw `<table>` or custom HTML table markups in application pages.
+- **Price & Currency Standard:**
+  - Always use `<Price amount={value} />` from `@workspace/ui/components/price` (or `formatCurrency` from `@workspace/ui/lib/utils`) to format prices.
+  - Do NOT implement ad-hoc `formatCurrency` functions in components or pages. The centralized helper handles 3-digit comma separation and localized currency units (`تومان` / `Toman`).
 - **Shared Roles & Permissions:**
   - Roles and permissions must be defined as `const` in `@workspace/types` (`ROLES`, `PERMISSIONS`, `ROLE_PERMISSIONS`) and shared across all frontend apps and backend services.
 - **Automated Database Migrations:**

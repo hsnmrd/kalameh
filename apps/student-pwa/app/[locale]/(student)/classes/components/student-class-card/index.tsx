@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl"
 import { User, Clock, CheckCircle2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { Price } from "@workspace/ui/components/price"
 import type { ClassDto } from "@workspace/types"
 
 export interface StudentClassCardProps {
@@ -18,12 +19,6 @@ export function StudentClassCard({ cls, onEnroll }: StudentClassCardProps) {
 
   const enrolled = cls.enrolledCount ?? 0
   const isFull = enrolled >= cls.capacity
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en-US").format(
-      amount
-    )
-  }
 
   return (
     <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs">
@@ -72,9 +67,11 @@ export function StudentClassCard({ cls, onEnroll }: StudentClassCardProps) {
           <span className="block text-[11px] text-slate-400">
             {t("tuition")}
           </span>
-          <span className="font-mono text-sm font-bold text-slate-900">
-            {formatCurrency(cls.fee)} {t("toman")}
-          </span>
+          <Price
+            amount={cls.fee}
+            locale={locale}
+            className="text-sm font-bold text-slate-900"
+          />
         </div>
 
         <Button

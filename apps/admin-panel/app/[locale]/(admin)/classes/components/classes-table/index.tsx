@@ -9,6 +9,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Badge } from "@workspace/ui/components/badge"
 import { DataTable } from "@workspace/ui/components/data-table"
+import { Price } from "@workspace/ui/components/price"
 import type { ClassDto } from "@workspace/types"
 
 export interface ClassesTableProps {
@@ -24,12 +25,6 @@ export function ClassesTable({
 }: ClassesTableProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en-US").format(
-      amount
-    )
-  }
 
   const columns = React.useMemo<ColumnDef<ClassDto>[]>(
     () => [
@@ -111,9 +106,11 @@ export function ClassesTable({
         accessorKey: "fee",
         header: t("table.fee"),
         cell: ({ row }) => (
-          <span className="font-mono text-sm text-slate-700">
-            {formatCurrency(row.original.fee)}
-          </span>
+          <Price
+            amount={row.original.fee}
+            locale={locale}
+            className="text-sm text-slate-700"
+          />
         ),
       },
       {

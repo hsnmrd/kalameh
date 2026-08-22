@@ -7,6 +7,7 @@ import { BookOpen, Edit2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
+import { Price } from "@workspace/ui/components/price"
 import type { CourseDto } from "@workspace/types"
 import { CoursePrerequisiteBadge } from "../course-prerequisite-badge"
 
@@ -23,12 +24,6 @@ export function CoursesTable({
 }: CoursesTableProps) {
   const t = useTranslations("courses")
   const locale = useLocale()
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en-US").format(
-      amount
-    )
-  }
 
   const columns = React.useMemo<ColumnDef<CourseDto>[]>(
     () => [
@@ -50,9 +45,11 @@ export function CoursesTable({
         accessorKey: "baseFee",
         header: t("table.baseFee"),
         cell: ({ row }) => (
-          <span className="font-mono text-sm text-slate-700">
-            {formatCurrency(row.original.baseFee)}
-          </span>
+          <Price
+            amount={row.original.baseFee}
+            locale={locale}
+            className="text-sm text-slate-700"
+          />
         ),
       },
       {
