@@ -7,6 +7,8 @@ import {
   Body,
   Query,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -73,6 +75,7 @@ export class UsersController {
   }
 
   @Post(':id/reset-password')
+  @HttpCode(HttpStatus.OK)
   @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
   async resetPassword(
     @CurrentUser() currentUser: JwtPayload,

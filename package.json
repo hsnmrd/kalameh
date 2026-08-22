@@ -8,6 +8,7 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck",
+    "test": "turbo test",
     "db:generate": "turbo db:generate",
     "db:migrate:dev": "pnpm --filter @workspace/database db:migrate:dev",
     "db:migrate:deploy": "pnpm --filter @workspace/database db:migrate:deploy",
@@ -16,17 +17,22 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@vitejs/plugin-react": "^6.1.0",
     "@workspace/config": "workspace:*",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "eslint": "^9.39.5",
     "husky": "^9.0.0",
+    "jsdom": "^30.0.1",
     "lint-staged": "^15.0.0",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "prisma": "^7.9.1",
     "turbo": "^2.10.11",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
