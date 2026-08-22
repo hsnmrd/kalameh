@@ -71,6 +71,9 @@ model Term {
   institute Institute @relation(fields: [instituteId], references: [id])
   classes   Class[]
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
   @@index([instituteId])
 }
 
@@ -87,6 +90,9 @@ model Course {
   institute    Institute @relation(fields: [instituteId], references: [id])
   classes      Class[]
   allowedUsers User[]    @relation("UserAllowedCourse")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
 }
@@ -107,6 +113,9 @@ model Class {
   term        Term         @relation(fields: [termId], references: [id])
   course      Course       @relation(fields: [courseId], references: [id])
   enrollments Enrollment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
 }
