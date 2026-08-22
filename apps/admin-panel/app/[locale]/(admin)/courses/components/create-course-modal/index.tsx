@@ -38,19 +38,17 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
   const queryClient = useQueryClient()
   const createCourseSchema = useCreateCourseSchema()
 
-  const { data: existingCourses } = useQuery(coursesResource.list.toQuery())
-
-  const prerequisiteOptions: ComboboxOption[] = React.useMemo(() => {
-    const list: ComboboxOption[] = [
+  const {
+    data: prerequisiteOptions = [
       { value: "none", label: t("createModal.none") },
-    ]
-    if (existingCourses) {
-      existingCourses.forEach((c) => {
-        list.push({ value: c.id, label: c.title })
-      })
-    }
-    return list
-  }, [existingCourses, t])
+    ],
+  } = useQuery({
+    ...coursesResource.list.toQuery(),
+    select: (courses) => [
+      { value: "none", label: t("createModal.none") },
+      ...courses.map((c) => ({ value: c.id, label: c.title })),
+    ],
+  })
 
   const {
     register,

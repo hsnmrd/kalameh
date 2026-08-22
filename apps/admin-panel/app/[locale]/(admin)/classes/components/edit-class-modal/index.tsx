@@ -40,16 +40,15 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
   const queryClient = useQueryClient()
   const updateClassSchema = useUpdateClassSchema()
 
-  const { data: terms } = useQuery(termsResource.list.toQuery())
-  const { data: courses } = useQuery(coursesResource.list.toQuery())
+  const { data: termOptions = [] } = useQuery({
+    ...termsResource.list.toQuery(),
+    select: (terms) => terms.map((tm) => ({ value: tm.id, label: tm.title })),
+  })
 
-  const termOptions: ComboboxOption[] = React.useMemo(() => {
-    return terms?.map((tm) => ({ value: tm.id, label: tm.title })) || []
-  }, [terms])
-
-  const courseOptions: ComboboxOption[] = React.useMemo(() => {
-    return courses?.map((c) => ({ value: c.id, label: c.title })) || []
-  }, [courses])
+  const { data: courseOptions = [] } = useQuery({
+    ...coursesResource.list.toQuery(),
+    select: (courses) => courses.map((c) => ({ value: c.id, label: c.title })),
+  })
 
   const {
     register,

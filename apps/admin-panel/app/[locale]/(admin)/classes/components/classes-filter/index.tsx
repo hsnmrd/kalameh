@@ -30,28 +30,23 @@ export function ClassesFilter({
 }: ClassesFilterProps) {
   const t = useTranslations("classes")
 
-  const { data: terms } = useQuery(termsResource.list.toQuery())
-  const { data: courses } = useQuery(coursesResource.list.toQuery())
+  const { data: termOptions = [{ value: "all", label: t("allTerms") }] } =
+    useQuery({
+      ...termsResource.list.toQuery(),
+      select: (terms) => [
+        { value: "all", label: t("allTerms") },
+        ...terms.map((term) => ({ value: term.id, label: term.title })),
+      ],
+    })
 
-  const termOptions: ComboboxOption[] = React.useMemo(() => {
-    const list: ComboboxOption[] = [{ value: "all", label: t("allTerms") }]
-    if (terms) {
-      terms.forEach((term) => {
-        list.push({ value: term.id, label: term.title })
-      })
-    }
-    return list
-  }, [terms, t])
-
-  const courseOptions: ComboboxOption[] = React.useMemo(() => {
-    const list: ComboboxOption[] = [{ value: "all", label: t("allCourses") }]
-    if (courses) {
-      courses.forEach((course) => {
-        list.push({ value: course.id, label: course.title })
-      })
-    }
-    return list
-  }, [courses, t])
+  const { data: courseOptions = [{ value: "all", label: t("allCourses") }] } =
+    useQuery({
+      ...coursesResource.list.toQuery(),
+      select: (courses) => [
+        { value: "all", label: t("allCourses") },
+        ...courses.map((course) => ({ value: course.id, label: course.title })),
+      ],
+    })
 
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

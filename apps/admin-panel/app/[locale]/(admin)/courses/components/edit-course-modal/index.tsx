@@ -44,22 +44,20 @@ export function EditCourseModal({
   const queryClient = useQueryClient()
   const updateCourseSchema = useUpdateCourseSchema()
 
-  const { data: existingCourses } = useQuery(coursesResource.list.toQuery())
-
   // Exclude current course from its own prerequisite options
-  const prerequisiteOptions: ComboboxOption[] = React.useMemo(() => {
-    const list: ComboboxOption[] = [
+  const {
+    data: prerequisiteOptions = [
       { value: "none", label: t("createModal.none") },
-    ]
-    if (existingCourses && course) {
-      existingCourses
-        .filter((c) => c.id !== course.id)
-        .forEach((c) => {
-          list.push({ value: c.id, label: c.title })
-        })
-    }
-    return list
-  }, [existingCourses, course, t])
+    ],
+  } = useQuery({
+    ...coursesResource.list.toQuery(),
+    select: (courses) => [
+      { value: "none", label: t("createModal.none") },
+      ...courses
+        .filter((c) => c.id !== course?.id)
+        .map((c) => ({ value: c.id, label: c.title })),
+    ],
+  })
 
   const {
     register,
