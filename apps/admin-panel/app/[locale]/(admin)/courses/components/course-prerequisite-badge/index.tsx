@@ -18,7 +18,7 @@ export function CoursePrerequisiteBadge({
     return (
       <Badge
         variant="outline"
-        className="border-indigo-200 bg-indigo-50 font-medium text-indigo-700"
+        className="border-sky-500/20 bg-sky-500/10 font-medium text-sky-600"
       >
         <GitCommit className="me-1 size-3.5" />
         <span>{prerequisite.title}</span>
@@ -29,7 +29,7 @@ export function CoursePrerequisiteBadge({
   return (
     <Badge
       variant="outline"
-      className="border-emerald-200 bg-emerald-50 font-medium text-emerald-700"
+      className="border-emerald-500/20 bg-emerald-500/10 font-medium text-emerald-600"
     >
       <Sparkles className="me-1 size-3.5 text-emerald-600" />
       <span>{t("noPrerequisite")}</span>

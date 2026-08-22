@@ -46,21 +46,21 @@ export function InstituteAdminView() {
     <div className="space-y-8">
       {/* Super Admin Active Institute Banner */}
       {isSuperAdminManaging && currentInstitute && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-foreground shadow-xs sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 font-bold text-white">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 font-bold text-white shadow-xs">
               <Building2 className="size-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-emerald-950">
+                <h2 className="text-sm font-bold text-foreground">
                   {t("managingBanner", { name: currentInstitute.name })}
                 </h2>
                 <Badge variant="success" className="text-[10px]">
                   {t("superAdminBadge")}
                 </Badge>
               </div>
-              <p className="font-mono text-xs text-emerald-700">
+              <p className="font-mono text-xs text-muted-foreground">
                 {currentInstitute.subdomain}.kalameh.ir
               </p>
             </div>
@@ -72,7 +72,7 @@ export function InstituteAdminView() {
               variant="outline"
               size="sm"
               onClick={clearActiveInstitute}
-              className="h-9 cursor-pointer gap-1.5 border-emerald-500/30 bg-background text-xs font-semibold text-emerald-600 hover:bg-emerald-500/10"
+              className="h-9 cursor-pointer gap-1.5 border-emerald-500/30 bg-background text-xs font-semibold text-emerald-600 hover:bg-emerald-500/20"
             >
               <Globe className="size-3.5" />
               <span>{t("backToOverview")}</span>

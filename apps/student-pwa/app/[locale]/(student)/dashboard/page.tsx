@@ -18,8 +18,8 @@ export default function StudentDashboardPage() {
           title={t("allowedClasses")}
           description={t("allowedClassesDesc")}
           icon={Layers}
-          iconBgClassName="bg-blue-50"
-          iconColorClassName="text-blue-600"
+          iconBgClassName="bg-sky-500/10"
+          iconColorClassName="text-sky-600"
         />
 
         <QuickActionCard
@@ -27,7 +27,7 @@ export default function StudentDashboardPage() {
           title={t("flashcards")}
           description={t("flashcardsDesc")}
           icon={Sparkles}
-          iconBgClassName="bg-emerald-50"
+          iconBgClassName="bg-emerald-500/10"
           iconColorClassName="text-emerald-600"
         />
       </div>
