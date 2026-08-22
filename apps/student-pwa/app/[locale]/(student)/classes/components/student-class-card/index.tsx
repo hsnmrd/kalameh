@@ -21,17 +21,17 @@ export function StudentClassCard({ cls, onEnroll }: StudentClassCardProps) {
   const isFull = enrolled >= cls.capacity
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs">
+    <div className="space-y-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xs">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-slate-500">
+        <span className="text-xs font-medium text-muted-foreground">
           {cls.term?.title}
         </span>
         <Badge
           variant="outline"
           className={
             isFull
-              ? "border-rose-200 bg-rose-50 text-rose-700"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              ? "border-rose-500/20 bg-rose-500/10 text-rose-600"
+              : "border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
           }
         >
           {isFull ? (
@@ -45,39 +45,39 @@ export function StudentClassCard({ cls, onEnroll }: StudentClassCardProps) {
       </div>
 
       <div>
-        <h2 className="text-base font-bold text-slate-900">{cls.title}</h2>
+        <h2 className="text-base font-bold text-foreground">{cls.title}</h2>
         {cls.teacherName && (
-          <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
-            <User className="size-3.5 text-slate-400" />
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-foreground/80">
+            <User className="size-3.5 text-muted-foreground" />
             <span>
               {t("teacher")}: {cls.teacherName}
             </span>
           </p>
         )}
         {cls.schedule && (
-          <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
-            <Clock className="size-3.5 text-slate-400" />
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-foreground/80">
+            <Clock className="size-3.5 text-muted-foreground" />
             <span>{cls.schedule}</span>
           </p>
         )}
       </div>
 
-      <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+      <div className="flex items-center justify-between border-t border-border/60 pt-3">
         <div>
-          <span className="block text-[11px] text-slate-400">
+          <span className="block text-[11px] text-muted-foreground">
             {t("tuition")}
           </span>
           <Price
             amount={cls.fee}
             locale={locale}
-            className="text-sm font-bold text-slate-900"
+            className="text-sm font-bold text-foreground"
           />
         </div>
 
         <Button
           onClick={() => onEnroll?.(cls)}
           disabled={isFull}
-          className="h-10 cursor-pointer rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 disabled:opacity-50"
+          className="h-10 cursor-pointer rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-2xs hover:bg-primary/90 disabled:opacity-50"
         >
           <CheckCircle2 className="me-1.5 size-4" />
           <span>{t("enrollButton")}</span>

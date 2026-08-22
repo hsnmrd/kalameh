@@ -6,6 +6,9 @@
   - Export and maintain `<DataTable />` (`src/components/data-table.tsx`) built on TanStack Table for consistent tabular data rendering across apps.
 - **Price & Currency Formatting Standard:**
   - Export and maintain `<Price />` and `formatCurrency` (`src/components/price.tsx`, `src/lib/utils.ts`) for centralized 3-digit comma separation and localized currency units (`تومان` / `Toman`).
+- **Theme & Dark Mode Standard (Semantic CSS Variables Only):**
+  - Export and maintain `<ThemeProvider />` and `<ThemeToggle />` (`src/components/theme-provider.tsx`, `src/components/theme-toggle.tsx`).
+  - **NEVER use `dark:` Tailwind class variants.** All theme adaptations must be driven 100% through semantic CSS variables (`bg-background`, `text-foreground`, `bg-card`, `border-border`, `bg-muted`, etc.) configured in `src/styles/globals.css`.
 - **Loading UI Standard:**
   - Always export and use the shadcn `<Spinner />` component (`src/components/spinner.tsx`) for all loading states across the monorepo instead of `lucide-react` icons (e.g. `Loader2`).
 - **Toast Notifications Standard:**

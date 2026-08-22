@@ -19,17 +19,17 @@ export function GradesHeader() {
             <Button
               variant="ghost"
               size="sm"
-              className="gap-1.5 p-0 text-xs font-medium text-slate-500 hover:text-slate-900"
+              className="gap-1.5 p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
             >
               <ArrowIcon className="size-3.5" />
               <span>{t("backToClasses")}</span>
             </Button>
           </Link>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           {t("title")}
         </h1>
-        <p className="mt-1 text-sm text-slate-500">{t("subtitle")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
     </div>
   )

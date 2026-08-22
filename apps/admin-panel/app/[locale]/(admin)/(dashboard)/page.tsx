@@ -16,7 +16,7 @@ export default function AdminDashboardPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Spinner className="size-8 text-slate-700" />
+        <Spinner className="size-8 text-foreground" />
       </div>
     )
   }

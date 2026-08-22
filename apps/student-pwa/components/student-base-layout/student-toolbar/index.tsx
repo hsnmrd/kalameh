@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { Link, useRouter, useIsRtl } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 
 export interface StudentToolbarProps {
   isHomePage: boolean
@@ -33,7 +34,7 @@ export function StudentToolbar({
   const BackIcon = isRtl ? ArrowRight : ArrowLeft
 
   return (
-    <header className="relative sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 backdrop-blur-md">
+    <header className="relative sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border/80 bg-card/95 px-4 backdrop-blur-md">
       {/* Left Action (Back Button on Inner Pages / Language Toggle) */}
       <div className="z-10 flex min-w-9 items-center gap-1.5">
         {!isHomePage ? (
@@ -42,7 +43,7 @@ export function StudentToolbar({
             variant="ghost"
             size="icon"
             onClick={() => router.back()}
-            className="size-9 cursor-pointer rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:scale-95"
+            className="size-9 cursor-pointer rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
             aria-label={t("back")}
             title={t("back")}
           >
@@ -54,7 +55,7 @@ export function StudentToolbar({
             variant="outline"
             size="sm"
             onClick={onSwitchLanguage}
-            className="h-8 cursor-pointer gap-1 border-slate-200 bg-slate-50 px-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 active:scale-95"
+            className="h-8 cursor-pointer gap-1 border-border bg-background px-2 text-xs font-semibold text-foreground hover:bg-muted active:scale-95"
             title={t("language")}
             aria-label={t("language")}
           >
@@ -71,24 +72,26 @@ export function StudentToolbar({
           className="pointer-events-auto flex items-center gap-2 transition-opacity hover:opacity-80 active:scale-95"
           aria-label={t("appName")}
         >
-          <div className="flex size-8 items-center justify-center rounded-xl bg-black text-white shadow-xs">
+          <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
             <BookOpen className="size-4" />
           </div>
-          <span className="text-base font-bold tracking-tight text-slate-900">
+          <span className="text-base font-bold tracking-tight text-foreground">
             {t("appName")}
           </span>
         </Link>
       </div>
 
-      {/* Right Action (Logout & Language Switcher on inner pages) */}
+      {/* Right Action (Theme Toggle, Logout & Language Switcher) */}
       <div className="z-10 flex min-w-9 items-center justify-end gap-1.5">
+        <ThemeToggle />
+
         {!isHomePage && (
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={onSwitchLanguage}
-            className="h-8 cursor-pointer gap-1 border-slate-200 bg-slate-50 px-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 active:scale-95"
+            className="h-8 cursor-pointer gap-1 border-border bg-background px-2 text-xs font-semibold text-foreground hover:bg-muted active:scale-95"
             title={t("language")}
             aria-label={t("language")}
           >
@@ -103,7 +106,7 @@ export function StudentToolbar({
           size="icon"
           onClick={onLogout}
           disabled={isLogoutPending}
-          className="size-9 cursor-pointer rounded-xl text-slate-400 hover:bg-slate-100 hover:text-destructive active:scale-95"
+          className="size-9 cursor-pointer rounded-xl text-muted-foreground hover:bg-muted hover:text-destructive active:scale-95"
           aria-label={t("logout")}
           title={t("logout")}
         >

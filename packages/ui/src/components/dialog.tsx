@@ -36,7 +36,7 @@ function DialogPopup({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <DialogPrimitive.Popup
           className={cn(
-            "relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl transition-all duration-150 focus:outline-hidden data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
+            "relative w-full max-w-lg rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xl transition-all duration-150 focus:outline-hidden data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
             className
           )}
           {...props}
@@ -82,7 +82,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       className={cn(
-        "text-lg leading-none font-semibold tracking-tight text-slate-900",
+        "text-lg leading-none font-semibold tracking-tight text-foreground",
         className
       )}
       {...props}
@@ -96,7 +96,7 @@ function DialogDescription({
 }: DialogPrimitive.Description.Props) {
   return (
     <DialogPrimitive.Description
-      className={cn("text-sm text-slate-500", className)}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   )
@@ -109,7 +109,7 @@ function DialogCloseButton({
   return (
     <DialogPrimitive.Close
       className={cn(
-        "absolute end-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:ring-2 focus:ring-slate-400 focus:outline-hidden",
+        "absolute end-4 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-ring focus:outline-hidden",
         className
       )}
       {...props}

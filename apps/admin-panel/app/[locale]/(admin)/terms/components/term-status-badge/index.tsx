@@ -15,7 +15,7 @@ export function TermStatusBadge({ isActive }: TermStatusBadgeProps) {
     return (
       <Badge
         variant="outline"
-        className="border-emerald-200 bg-emerald-50 text-emerald-700"
+        className="border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
       >
         <span className="me-1.5 size-1.5 rounded-full bg-emerald-500" />
         {t("active")}
@@ -26,9 +26,9 @@ export function TermStatusBadge({ isActive }: TermStatusBadgeProps) {
   return (
     <Badge
       variant="outline"
-      className="border-slate-200 bg-slate-50 text-slate-600"
+      className="border-border bg-muted text-muted-foreground"
     >
-      <span className="me-1.5 size-1.5 rounded-full bg-slate-400" />
+      <span className="me-1.5 size-1.5 rounded-full bg-muted-foreground" />
       {t("inactive")}
     </Badge>
   )

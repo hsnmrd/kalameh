@@ -18,9 +18,9 @@ export function ProfileLanguageCard({
   const t = useTranslations("profile")
 
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-        <Languages className="size-4 text-slate-600" />
+    <div className="space-y-3 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+        <Languages className="size-4 text-muted-foreground" />
         <span>{t("languageSetting")}</span>
       </h3>
 
@@ -32,8 +32,8 @@ export function ProfileLanguageCard({
           className={cn(
             "h-10 cursor-pointer rounded-xl text-xs font-semibold",
             locale === "en"
-              ? "bg-slate-900 text-white shadow-xs"
-              : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "border-border bg-background text-foreground hover:bg-muted"
           )}
         >
           <span>English (LTR)</span>
@@ -45,8 +45,8 @@ export function ProfileLanguageCard({
           className={cn(
             "h-10 cursor-pointer rounded-xl text-xs font-semibold",
             locale === "fa"
-              ? "bg-slate-900 text-white shadow-xs"
-              : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "border-border bg-background text-foreground hover:bg-muted"
           )}
         >
           <span>فارسی (RTL)</span>

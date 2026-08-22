@@ -32,10 +32,10 @@ export function CoursesTable({
         header: t("table.title"),
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
               <BookOpen className="size-4" />
             </div>
-            <span className="text-sm font-semibold text-slate-900">
+            <span className="text-sm font-semibold text-foreground">
               {row.original.title}
             </span>
           </div>
@@ -48,7 +48,7 @@ export function CoursesTable({
           <Price
             amount={row.original.baseFee}
             locale={locale}
-            className="text-sm text-slate-700"
+            className="text-sm text-foreground"
           />
         ),
       },
@@ -63,7 +63,7 @@ export function CoursesTable({
         accessorKey: "classesCount",
         header: t("table.classesCount"),
         cell: ({ row }) => (
-          <span className="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+          <span className="inline-flex items-center rounded-lg bg-muted px-2.5 py-1 text-xs font-semibold text-foreground">
             {row.original.classesCount ?? 0}
           </span>
         ),
@@ -77,7 +77,7 @@ export function CoursesTable({
               variant="ghost"
               size="sm"
               onClick={() => onEdit(row.original)}
-              className="size-8 p-0 text-slate-600 hover:text-slate-900"
+              className="size-8 p-0 text-muted-foreground hover:text-foreground"
               aria-label={t("table.actions")}
             >
               <Edit2 className="size-4" />
@@ -86,31 +86,29 @@ export function CoursesTable({
         ),
       },
     ],
-    [t, locale]
+    [t, locale, onEdit]
   )
 
   if (isLoading) {
     return (
-      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white">
-        <Spinner className="size-8 text-slate-600" />
+      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
+        <Spinner className="size-8 text-foreground" />
       </div>
     )
   }
 
   if (!courses || courses.length === 0) {
     return (
-      <div className="flex h-64 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-        <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+      <div className="flex h-64 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+        <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <BookOpen className="size-6" />
         </div>
-        <p className="text-sm font-medium text-slate-700">{t("table.empty")}</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          {t("table.empty")}
+        </p>
       </div>
     )
   }
 
-  return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xs">
-      <DataTable columns={columns} data={courses} />
-    </div>
-  )
+  return <DataTable columns={columns} data={courses} />
 }

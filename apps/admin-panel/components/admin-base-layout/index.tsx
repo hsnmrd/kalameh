@@ -101,16 +101,18 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="flex min-h-screen bg-background font-sans text-foreground">
       {/* Desktop Static Sidebar */}
       <aside
         className={cn(
-          "sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between bg-white p-6 lg:flex xl:w-72",
-          isRtl ? "border-l border-slate-200" : "border-r border-slate-200"
+          "sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between bg-sidebar p-6 text-sidebar-foreground lg:flex xl:w-72",
+          isRtl
+            ? "border-l border-sidebar-border"
+            : "border-r border-sidebar-border"
         )}
       >
         <div className="space-y-6">
-          <div className="border-b border-slate-100 pb-4">
+          <div className="border-b border-sidebar-border/60 pb-4">
             <SidebarBrand role={effectiveRole} />
           </div>
           <NavList items={navItems} pathname={pathname} />

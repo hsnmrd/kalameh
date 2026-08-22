@@ -18,15 +18,17 @@ export default function StudentClassesPage() {
       <StudentLevelHeader allowedCourseTitle={data?.allowedCourseTitle} />
 
       {isLoading ? (
-        <div className="flex h-56 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white">
-          <Spinner className="size-8 text-slate-600" />
+        <div className="flex h-56 w-full items-center justify-center rounded-2xl border border-border bg-card">
+          <Spinner className="size-8 text-foreground" />
         </div>
       ) : !data?.classes || data.classes.length === 0 ? (
-        <div className="flex h-56 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
-          <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+        <div className="flex h-56 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-6 text-center">
+          <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Layers className="size-6" />
           </div>
-          <p className="text-xs font-medium text-slate-700">{t("empty")}</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            {t("empty")}
+          </p>
         </div>
       ) : (
         <div className="space-y-4">

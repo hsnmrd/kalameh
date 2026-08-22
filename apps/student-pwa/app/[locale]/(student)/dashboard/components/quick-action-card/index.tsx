@@ -18,13 +18,13 @@ export function QuickActionCard({
   title,
   description,
   icon: Icon,
-  iconBgClassName = "bg-blue-50",
-  iconColorClassName = "text-blue-600",
+  iconBgClassName = "bg-muted",
+  iconColorClassName = "text-foreground",
 }: QuickActionCardProps) {
   return (
     <Link
       href={href}
-      className="group block space-y-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm active:scale-[0.98]"
+      className="group block space-y-2 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs transition-all hover:border-border/80 hover:shadow-sm active:scale-[0.98]"
     >
       <div
         className={cn(
@@ -35,8 +35,8 @@ export function QuickActionCard({
       >
         <Icon className="size-4" />
       </div>
-      <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-      <p className="text-xs text-slate-500">{description}</p>
+      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+      <p className="text-xs text-muted-foreground">{description}</p>
     </Link>
   )
 }

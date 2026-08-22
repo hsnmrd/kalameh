@@ -15,7 +15,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           variant === "default" &&
             "h-9 rounded-md border-input focus-visible:ring-1 focus-visible:ring-ring",
           variant === "auth" &&
-            "h-14 rounded-2xl border-slate-200 px-4 text-[15px] text-slate-900 placeholder:text-slate-400 focus:border-2 focus:border-black focus:ring-0",
+            "h-14 rounded-2xl border-border bg-background px-4 text-[15px] text-foreground placeholder:text-muted-foreground focus:border-2 focus:border-ring focus:ring-0",
           className
         )}
         ref={ref}

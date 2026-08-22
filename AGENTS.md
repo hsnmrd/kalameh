@@ -39,6 +39,9 @@
 - **Price & Currency Standard:**
   - Always use `<Price amount={value} />` from `@workspace/ui/components/price` (or `formatCurrency` from `@workspace/ui/lib/utils`) to format prices.
   - Do NOT implement ad-hoc `formatCurrency` functions in components or pages. The centralized helper handles 3-digit comma separation and localized currency units (`تومان` / `Toman`).
+- **Theme & Dark Mode Standard (Semantic CSS Variables Only):**
+  - All apps must wrap their provider tree with `<ThemeProvider />` from `@workspace/ui/components/theme-provider` and provide `<ThemeToggle />` from `@workspace/ui/components/theme-toggle` in headers/navigation.
+  - **NEVER use `dark:` Tailwind class variants.** All theme adaptations must be driven 100% through semantic CSS variables (`bg-background`, `text-foreground`, `bg-card`, `border-border`, `bg-muted`, etc.) configured in `globals.css`.
 - **Shared Roles & Permissions:**
   - Roles and permissions must be defined as `const` in `@workspace/types` (`ROLES`, `PERMISSIONS`, `ROLE_PERMISSIONS`) and shared across all frontend apps and backend services.
 - **Automated Database Migrations:**

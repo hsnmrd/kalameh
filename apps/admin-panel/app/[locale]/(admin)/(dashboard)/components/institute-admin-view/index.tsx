@@ -72,7 +72,7 @@ export function InstituteAdminView() {
               variant="outline"
               size="sm"
               onClick={clearActiveInstitute}
-              className="h-9 cursor-pointer gap-1.5 border-emerald-300 bg-white text-xs font-semibold text-emerald-900 hover:bg-emerald-100/50"
+              className="h-9 cursor-pointer gap-1.5 border-emerald-500/30 bg-background text-xs font-semibold text-emerald-600 hover:bg-emerald-500/10"
             >
               <Globe className="size-3.5" />
               <span>{t("backToOverview")}</span>
@@ -84,10 +84,10 @@ export function InstituteAdminView() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {instituteName}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             {currentInstitute
               ? t("instituteSubtitle", { name: currentInstitute.name })
               : t("subtitle")}
@@ -97,7 +97,7 @@ export function InstituteAdminView() {
         <Link href="/classes">
           <Button
             size="auth"
-            className="h-11 cursor-pointer gap-2 rounded-xl bg-slate-900 px-5 text-white hover:bg-slate-800"
+            className="h-11 cursor-pointer gap-2 rounded-xl bg-primary px-5 text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="size-4" />
             <span>{t("addClass")}</span>
@@ -112,8 +112,8 @@ export function InstituteAdminView() {
           value={classesCount.toString()}
           subtitle="Top Notch, Summit, Family & Friends"
           icon={Layers}
-          iconBgClassName="bg-blue-50"
-          iconColorClassName="text-blue-600"
+          iconBgClassName="bg-sky-500/10"
+          iconColorClassName="text-sky-500"
           badgeText={t("activeClassesCount", { count: classesCount })}
           badgeVariant="info"
         />
@@ -123,8 +123,8 @@ export function InstituteAdminView() {
           value={usersCount.toString()}
           subtitle="Across all active classes"
           icon={Users}
-          iconBgClassName="bg-emerald-50"
-          iconColorClassName="text-emerald-600"
+          iconBgClassName="bg-emerald-500/10"
+          iconColorClassName="text-emerald-500"
           badgeText={
             usersCount > 0
               ? t("enrolledCount", { count: usersCount })
@@ -138,53 +138,53 @@ export function InstituteAdminView() {
           value={t("stats.occupancy")}
           subtitle={t("stats.activeTerm")}
           icon={Calendar}
-          iconBgClassName="bg-amber-50"
-          iconColorClassName="text-amber-600"
+          iconBgClassName="bg-amber-500/10"
+          iconColorClassName="text-amber-500"
           badgeText={t("stats.activeTerm")}
           badgeVariant="neutral"
         />
       </div>
 
       {/* Quick Classes Overview Card */}
-      <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+      <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-slate-900">
+          <h2 className="text-base font-semibold text-foreground">
             {t("recentClasses")}
           </h2>
           <Link
             href="/classes"
-            className="flex items-center gap-1 text-xs font-semibold text-slate-600 transition-colors hover:text-black"
+            className="flex items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
           >
             <span>{t("viewAll")}</span>
             <ActionArrow className="size-3.5" />
           </Link>
         </div>
 
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-border/60">
           <div className="flex items-center justify-between py-3 text-sm">
             <div>
-              <p className="font-semibold text-slate-900">
+              <p className="font-semibold text-foreground">
                 Top Notch 1A - Group A
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Instructor Mohammadi • 17:00 - 18:30
               </p>
             </div>
-            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
               12 / 15 Enrolled
             </span>
           </div>
 
           <div className="flex items-center justify-between py-3 text-sm">
             <div>
-              <p className="font-semibold text-slate-900">
+              <p className="font-semibold text-foreground">
                 Summit 2B - Weekend Intensive
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Instructor Rezaei • Thu & Fri 09:00 - 12:00
               </p>
             </div>
-            <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+            <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-0.5 text-xs font-semibold text-sky-600">
               18 / 20 Enrolled
             </span>
           </div>

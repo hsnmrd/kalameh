@@ -52,13 +52,13 @@ export function ClassesFilter({
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       {/* Search Input */}
       <div className="relative w-full md:w-80">
-        <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+        <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="h-10 rounded-xl border-slate-200 bg-white ps-9 text-sm"
+          className="h-10 rounded-xl border-border bg-background ps-9 text-sm text-foreground"
         />
       </div>
 

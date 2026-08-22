@@ -135,9 +135,11 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
             <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="h-10 rounded-xl bg-slate-900 px-5 text-white hover:bg-slate-800"
+              className="h-10 rounded-xl bg-primary px-5 text-primary-foreground hover:bg-primary/90"
             >
-              {createMutation.isPending && <Spinner className="me-2 size-4" />}
+              {createMutation.isPending && (
+                <Spinner className="me-2 size-4 text-primary-foreground" />
+              )}
               {t("createModal.submit")}
             </Button>
           </div>

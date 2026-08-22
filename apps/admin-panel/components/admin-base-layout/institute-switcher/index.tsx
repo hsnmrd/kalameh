@@ -80,9 +80,9 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
             variant="outline"
             size="sm"
             className={cn(
-              "h-9 max-w-[220px] cursor-pointer items-center justify-between gap-2 rounded-xl border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 transition-all hover:border-slate-300 hover:bg-slate-100 sm:max-w-[280px]",
+              "h-9 max-w-[220px] cursor-pointer items-center justify-between gap-2 rounded-xl border-border bg-background px-3 text-xs font-semibold text-foreground transition-all hover:bg-muted sm:max-w-[280px]",
               activeInstitute &&
-                "border-emerald-200 bg-emerald-50/70 text-emerald-900",
+                "border-emerald-500/30 bg-emerald-500/10 text-emerald-600",
               className
             )}
           >
@@ -90,7 +90,7 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
               {activeInstitute ? (
                 <Building2 className="size-3.5 shrink-0 text-emerald-600" />
               ) : (
-                <Globe className="size-3.5 shrink-0 text-slate-500" />
+                <Globe className="size-3.5 shrink-0 text-muted-foreground" />
               )}
               <span className="truncate">
                 {activeInstitute ? activeInstitute.name : t("allInstitutes")}
@@ -110,18 +110,18 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
           <DialogCloseButton />
 
           <div className="relative mt-4">
-            <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="h-11 ps-9 text-sm"
+              className="h-11 border-border bg-background ps-9 text-sm text-foreground"
             />
           </div>
         </div>
 
         {/* Global Overview Option */}
-        <div className="border-t border-slate-100 px-3 py-2">
+        <div className="border-t border-border/60 px-3 py-2">
           <Button
             type="button"
             variant="ghost"
@@ -129,31 +129,35 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
             className={cn(
               "h-11 w-full cursor-pointer justify-between rounded-xl px-3 text-start text-sm transition-colors",
               !activeInstitute
-                ? "bg-slate-100 font-semibold text-slate-900"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                ? "bg-muted font-semibold text-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             <div className="flex items-center gap-2.5">
-              <div className="flex size-7 items-center justify-center rounded-lg bg-slate-200 text-slate-700">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-muted text-foreground">
                 <Globe className="size-4" />
               </div>
               <div>
-                <p className="text-xs font-semibold">{t("allInstitutes")}</p>
-                <p className="text-[11px] text-slate-400">{t("globalView")}</p>
+                <p className="text-xs font-semibold text-foreground">
+                  {t("allInstitutes")}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {t("globalView")}
+                </p>
               </div>
             </div>
-            {!activeInstitute && <Check className="size-4 text-slate-900" />}
+            {!activeInstitute && <Check className="size-4 text-foreground" />}
           </Button>
         </div>
 
         {/* Institutes List */}
-        <div className="max-h-64 overflow-y-auto border-t border-slate-100 px-3 py-2">
+        <div className="max-h-64 overflow-y-auto border-t border-border/60 px-3 py-2">
           {isLoadingInstitutes ? (
             <div className="flex h-24 items-center justify-center">
-              <Spinner className="size-6 text-slate-600" />
+              <Spinner className="size-6 text-foreground" />
             </div>
           ) : filteredInstitutes.length === 0 ? (
-            <div className="py-6 text-center text-xs text-slate-500">
+            <div className="py-6 text-center text-xs text-muted-foreground">
               {t("noResults")}
             </div>
           ) : (
@@ -169,8 +173,8 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
                     className={cn(
                       "h-auto w-full cursor-pointer justify-between rounded-xl p-2.5 text-start transition-colors",
                       isSelected
-                        ? "bg-emerald-50 font-semibold text-emerald-950"
-                        : "text-slate-800 hover:bg-slate-50"
+                        ? "bg-emerald-500/10 font-semibold text-emerald-600"
+                        : "text-foreground hover:bg-muted"
                     )}
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
@@ -179,16 +183,16 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
                           "flex size-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
                           isSelected
                             ? "bg-emerald-600 text-white"
-                            : "bg-slate-100 text-slate-700"
+                            : "bg-muted text-foreground"
                         )}
                       >
                         {inst.name.slice(0, 2)}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-semibold">
+                        <p className="truncate text-xs font-semibold text-foreground">
                           {inst.name}
                         </p>
-                        <p className="truncate font-mono text-[10px] text-slate-400">
+                        <p className="truncate font-mono text-[10px] text-muted-foreground">
                           {inst.subdomain}.kalameh.ir
                         </p>
                       </div>
@@ -204,7 +208,7 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
                       {isSelected ? (
                         <Check className="size-4 shrink-0 text-emerald-600" />
                       ) : (
-                        <ActionArrow className="size-3 shrink-0 text-slate-400" />
+                        <ActionArrow className="size-3 shrink-0 text-muted-foreground" />
                       )}
                     </div>
                   </Button>

@@ -19,14 +19,14 @@ export default function InstitutesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <h1 className="text-2xl font-semibold text-foreground">
             {t("title")}
           </h1>
-          <p className="text-sm text-slate-500">{t("subtitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button
           size="auth"
-          className="h-11 cursor-pointer gap-2 rounded-xl bg-slate-900 px-5 text-white hover:bg-slate-800"
+          className="h-11 cursor-pointer gap-2 rounded-xl bg-primary px-5 text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="size-4" />
           <span>{t("addInstitute")}</span>
@@ -35,11 +35,11 @@ export default function InstitutesPage() {
 
       {isLoading ? (
         <div className="flex min-h-[300px] items-center justify-center">
-          <Spinner className="size-8 text-slate-700" />
+          <Spinner className="size-8 text-foreground" />
         </div>
       ) : institutes.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 p-12 text-center">
-          <p className="text-sm text-slate-500">{t("noInstitutes")}</p>
+        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
+          <p className="text-sm text-muted-foreground">{t("noInstitutes")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

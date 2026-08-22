@@ -13,7 +13,7 @@ export function SidebarFooter({ onLogout }: SidebarFooterProps) {
   const t = useTranslations("common")
 
   return (
-    <div className="border-t border-slate-100 pt-4">
+    <div className="border-t border-sidebar-border/60 pt-4">
       <Button
         type="button"
         variant="ghost"

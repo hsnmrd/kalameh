@@ -40,27 +40,27 @@ export function MobileDrawer({
 
       <aside
         className={cn(
-          "fixed inset-y-0 z-50 flex w-72 flex-col justify-between bg-white p-6 shadow-2xl transition-transform duration-300 ease-in-out lg:hidden",
+          "fixed inset-y-0 z-50 flex w-72 flex-col justify-between bg-sidebar p-6 text-sidebar-foreground shadow-2xl transition-transform duration-300 ease-in-out lg:hidden",
           isRtl
             ? cn(
-                "right-0 border-l border-slate-200",
+                "right-0 border-l border-sidebar-border",
                 open ? "translate-x-0" : "translate-x-full"
               )
             : cn(
-                "left-0 border-r border-slate-200",
+                "left-0 border-r border-sidebar-border",
                 open ? "translate-x-0" : "-translate-x-full"
               )
         )}
       >
         <div>
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center justify-between border-b border-sidebar-border/60 pb-4">
             <SidebarBrand role={role} />
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="cursor-pointer text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+              className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
               aria-label="Close menu"
             >
               <X className="size-5" />

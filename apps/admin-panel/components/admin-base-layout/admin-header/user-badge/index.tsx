@@ -30,15 +30,15 @@ export function UserBadge({ user }: UserBadgeProps) {
     user?.role === ROLES.SUPER_ADMIN ? t("superAdmin") : t("instituteAdmin")
 
   return (
-    <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-slate-50/80 px-2.5 py-1.5 text-slate-900 shadow-2xs">
-      <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-xs font-bold text-white shadow-xs">
+    <div className="flex items-center gap-2.5 rounded-xl border border-border bg-muted/60 px-2.5 py-1.5 text-foreground shadow-2xs">
+      <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground shadow-xs">
         {initial}
       </div>
       <div className="hidden text-start sm:block">
-        <p className="max-w-[140px] truncate text-xs leading-tight font-semibold text-slate-900">
+        <p className="max-w-[140px] truncate text-xs leading-tight font-semibold text-foreground">
           {fullName}
         </p>
-        <p className="mt-0.5 text-[10px] font-medium text-slate-500">
+        <p className="mt-0.5 text-[10px] font-medium text-muted-foreground">
           {roleLabel}
         </p>
       </div>

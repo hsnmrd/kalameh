@@ -219,10 +219,10 @@ export function CreateUserModal({
             <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="h-10 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
+              className="h-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {createMutation.isPending && (
-                <Spinner className="me-2 size-4 text-white" />
+                <Spinner className="me-2 size-4 text-primary-foreground" />
               )}
               <span>{t("createModal.submit")}</span>
             </Button>

@@ -31,7 +31,7 @@ export function FieldLabel({
   return (
     <label
       className={cn(
-        "ml-0.5 text-sm leading-none font-medium text-slate-700 peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+        "ml-0.5 text-sm leading-none font-medium text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
         className
       )}
       {...props}
@@ -60,6 +60,9 @@ export function FieldDescription({
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("text-[13px] text-slate-500", className)} {...props} />
+    <p
+      className={cn("text-[13px] text-muted-foreground", className)}
+      {...props}
+    />
   )
 }

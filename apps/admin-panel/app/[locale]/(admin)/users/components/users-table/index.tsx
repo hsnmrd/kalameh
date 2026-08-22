@@ -38,10 +38,10 @@ export function UsersTable({
           const initials = `${user.firstName[0] || ""}${user.lastName[0] || ""}`
           return (
             <div className="flex items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-700">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground">
                 {initials}
               </div>
-              <span className="text-sm font-medium text-slate-900">
+              <span className="text-sm font-medium text-foreground">
                 {user.firstName} {user.lastName}
               </span>
             </div>
@@ -52,7 +52,7 @@ export function UsersTable({
         accessorKey: "phone",
         header: t("table.phone"),
         cell: ({ row }) => (
-          <span className="font-mono text-sm text-slate-600">
+          <span className="font-mono text-sm text-foreground/80">
             {row.original.phone}
           </span>
         ),
@@ -61,7 +61,7 @@ export function UsersTable({
         accessorKey: "nationalCode",
         header: t("table.nationalCode"),
         cell: ({ row }) => (
-          <span className="font-mono text-sm text-slate-500">
+          <span className="font-mono text-sm text-muted-foreground">
             {row.original.nationalCode || "—"}
           </span>
         ),
@@ -83,7 +83,7 @@ export function UsersTable({
           try {
             const date = new Date(row.original.createdAt)
             return (
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-muted-foreground">
                 {new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-US", {
                   year: "numeric",
                   month: "short",
@@ -93,7 +93,7 @@ export function UsersTable({
             )
           } catch {
             return (
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-muted-foreground">
                 {String(row.original.createdAt)}
               </span>
             )
@@ -112,7 +112,7 @@ export function UsersTable({
                 size="icon-sm"
                 onClick={() => onEdit(user)}
                 title={t("actions.edit")}
-                className="cursor-pointer text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 <Edit2 className="size-3.5" />
               </Button>
@@ -122,7 +122,7 @@ export function UsersTable({
                 size="icon-sm"
                 onClick={() => onResetPassword(user)}
                 title={t("actions.resetPassword")}
-                className="cursor-pointer text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 <KeyRound className="size-3.5" />
               </Button>
@@ -136,19 +136,21 @@ export function UsersTable({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[350px] items-center justify-center rounded-2xl border border-slate-200 bg-white">
-        <Spinner className="size-8 text-slate-700" />
+      <div className="flex min-h-[350px] items-center justify-center rounded-2xl border border-border bg-card">
+        <Spinner className="size-8 text-foreground" />
       </div>
     )
   }
 
   if (!users || users.length === 0) {
     return (
-      <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center">
-        <div className="flex size-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+      <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+        <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <Users className="size-6" />
         </div>
-        <p className="text-sm font-medium text-slate-600">{t("table.empty")}</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          {t("table.empty")}
+        </p>
       </div>
     )
   }

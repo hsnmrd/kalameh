@@ -27,6 +27,7 @@ import {
   ShieldCheck,
   Languages,
 } from "lucide-react"
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 
 export default function AdminLoginPage() {
   const t = useTranslations("auth")
@@ -51,24 +52,21 @@ export default function AdminLoginPage() {
     },
   })
 
-  const logoutMutation = useMutation(authResource.logout.toMutation())
-
   const loginMutation = useMutation({
     ...authResource.login.toMutation(),
     onSuccess: (data) => {
-      // Reject student logins from accessing admin panel
-      if (data.user.role === ROLES.STUDENT) {
-        logoutMutation.mutate()
-        queryClient.clear()
-        toast.error(t("studentNotAllowed"))
-        return
-      }
+      queryClient.setQueryData(authResource.me.toQuery().queryKey, data.user)
+      toast.success(tCommon("success"))
       router.push("/")
     },
   })
 
-  const onSubmit = (data: LoginInput) => {
-    loginMutation.mutate(data)
+  const onSubmit = (formData: LoginInput) => {
+    loginMutation.mutate({
+      phone: formData.phone,
+      password: formData.password,
+      subdomain: formData.subdomain || undefined,
+    })
   }
 
   const handleSwitchLanguage = () => {
@@ -79,42 +77,45 @@ export default function AdminLoginPage() {
   const SubmitArrow = isRtl ? ArrowLeft : ArrowRight
 
   return (
-    <main className="grid min-h-screen w-full grid-cols-1 bg-white font-sans text-slate-900 antialiased lg:grid-cols-2">
+    <main className="grid min-h-screen w-full grid-cols-1 bg-background font-sans text-foreground antialiased lg:grid-cols-2">
       {/* Branding Panel (Desktop Only) */}
-      <aside className="relative hidden flex-col justify-between overflow-hidden bg-slate-900 p-12 text-white lg:flex xl:p-16">
+      <aside className="relative hidden flex-col justify-between overflow-hidden border-e border-sidebar-border bg-sidebar p-12 text-sidebar-foreground lg:flex xl:p-16">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-white text-slate-900 shadow-md">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md">
               <GraduationCap className="size-6" />
             </div>
-            <span className="text-xl font-semibold tracking-tight">
+            <span className="text-xl font-semibold tracking-tight text-foreground">
               {tCommon("appName")}
             </span>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleSwitchLanguage}
-            className="h-8 cursor-pointer gap-1.5 border-slate-700 bg-slate-800 px-3 text-xs font-semibold text-slate-300 hover:bg-slate-700 active:scale-95"
-          >
-            <Languages className="size-3.5" />
-            <span>{locale === "en" ? "فارسی" : "English"}</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSwitchLanguage}
+              className="h-8 cursor-pointer gap-1.5 border-border bg-background px-3 text-xs font-semibold text-foreground hover:bg-muted active:scale-95"
+            >
+              <Languages className="size-3.5" />
+              <span>{locale === "en" ? "فارسی" : "English"}</span>
+            </Button>
+          </div>
         </div>
 
         <div className="max-w-md space-y-6">
-          <h1 className="text-3xl leading-tight font-semibold xl:text-4xl">
+          <h1 className="text-3xl leading-tight font-semibold text-foreground xl:text-4xl">
             {t("brandingTitle")}
           </h1>
-          <p className="text-base leading-relaxed text-slate-400">
+          <p className="text-base leading-relaxed text-muted-foreground">
             {t("brandingDesc")}
           </p>
         </div>
 
-        <div className="flex items-center gap-3 border-t border-slate-800 pt-6 text-sm text-slate-400">
-          <ShieldCheck className="size-5 text-emerald-400" />
+        <div className="flex items-center gap-3 border-t border-sidebar-border/60 pt-6 text-sm text-muted-foreground">
+          <ShieldCheck className="size-5 text-emerald-500" />
           <span>{t("securityNotice")}</span>
         </div>
       </aside>
@@ -124,31 +125,38 @@ export default function AdminLoginPage() {
         {/* Mobile Header */}
         <header className="flex items-center justify-between pt-4 pb-8 lg:hidden">
           <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-black text-white">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <GraduationCap className="size-5" />
             </div>
-            <span className="text-lg font-semibold">{tCommon("appName")}</span>
+            <span className="text-lg font-semibold text-foreground">
+              {tCommon("appName")}
+            </span>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleSwitchLanguage}
-            className="h-8 cursor-pointer gap-1 border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 active:scale-95"
-          >
-            <Languages className="size-3.5" />
-            <span>{locale === "en" ? "FA" : "EN"}</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSwitchLanguage}
+              className="h-8 cursor-pointer gap-1 border-border bg-background px-2.5 text-xs font-semibold text-foreground hover:bg-muted active:scale-95"
+            >
+              <Languages className="size-3.5" />
+              <span>{locale === "en" ? "FA" : "EN"}</span>
+            </Button>
+          </div>
         </header>
 
         {/* Form Container */}
         <div className="mx-auto my-auto w-full max-w-md space-y-8">
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               {t("loginTitle")}
             </h2>
-            <p className="text-[15px] text-slate-500">{t("loginDesc")}</p>
+            <p className="text-[15px] text-muted-foreground">
+              {t("loginDesc")}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -200,10 +208,10 @@ export default function AdminLoginPage() {
               type="submit"
               size="auth"
               disabled={loginMutation.isPending}
-              className="w-full cursor-pointer bg-black text-white transition-all hover:bg-slate-800"
+              className="w-full cursor-pointer bg-primary text-primary-foreground transition-all hover:bg-primary/90"
             >
               {loginMutation.isPending ? (
-                <Spinner className="size-5" />
+                <Spinner className="size-5 text-primary-foreground" />
               ) : (
                 <>
                   <span>{t("signInButton")}</span>
@@ -215,7 +223,7 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Footer */}
-        <footer className="pt-8 text-center text-[13px] text-slate-400">
+        <footer className="pt-8 text-center text-[13px] text-muted-foreground">
           {tCommon("footer")}
         </footer>
       </section>

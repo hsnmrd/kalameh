@@ -31,12 +31,12 @@ export function SidebarBrand({ role }: SidebarBrandProps) {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
         <Icon className="size-5" />
       </div>
       <div className="min-w-0">
-        <h2 className="truncate text-sm font-bold text-slate-900">{title}</h2>
-        <p className="truncate text-xs text-slate-500">{subtitle}</p>
+        <h2 className="truncate text-sm font-bold text-foreground">{title}</h2>
+        <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
       </div>
     </div>
   )

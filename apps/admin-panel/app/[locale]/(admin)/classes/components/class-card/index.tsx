@@ -23,21 +23,21 @@ export function ClassCard({
   termFilter,
 }: ClassCardProps) {
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+    <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
       <div className="flex items-center justify-between">
-        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+        <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600">
           {courseName}
         </span>
-        <span className="text-xs text-slate-400">{termFilter}</span>
+        <span className="text-xs text-muted-foreground">{termFilter}</span>
       </div>
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-        <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
           <GraduationCap className="size-4" />
           <span>{instructor}</span>
         </p>
       </div>
-      <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
+      <div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
         <div className="flex items-center gap-1">
           <Calendar className="size-3.5" />
           <span>{schedule}</span>

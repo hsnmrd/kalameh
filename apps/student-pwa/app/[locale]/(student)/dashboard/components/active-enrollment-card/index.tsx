@@ -25,24 +25,24 @@ export function ActiveEnrollmentCard({
   const DetailArrow = isRtl ? ArrowLeft : ArrowRight
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+    <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
       <div className="flex items-center justify-between">
-        <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+        <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-600">
           {statusText}
         </span>
-        <span className="text-xs text-slate-400">{termText}</span>
+        <span className="text-xs text-muted-foreground">{termText}</span>
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-slate-900">
+        <h3 className="text-lg font-semibold text-foreground">
           {classNameTitle}
         </h3>
-        <p className="mt-1 text-sm text-slate-500">{description}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
 
       <Link
         href={actionHref}
-        className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-medium text-slate-600 hover:text-black"
+        className="flex items-center justify-between border-t border-border/60 pt-3 text-xs font-medium text-muted-foreground hover:text-foreground"
       >
         <span>{t("viewReceiptDetails")}</span>
         <DetailArrow className="size-3.5" />

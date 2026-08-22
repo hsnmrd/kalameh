@@ -45,8 +45,8 @@ export function NavList({ items, pathname, onItemClick }: NavListProps) {
             className={cn(
               "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors",
               isActive
-                ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             <Icon className="size-4 shrink-0" />

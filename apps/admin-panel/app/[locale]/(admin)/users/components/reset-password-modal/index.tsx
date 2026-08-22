@@ -95,10 +95,10 @@ export function ResetPasswordModal({
             <Button
               type="submit"
               disabled={resetPasswordMutation.isPending}
-              className="h-10 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
+              className="h-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {resetPasswordMutation.isPending && (
-                <Spinner className="me-2 size-4 text-white" />
+                <Spinner className="me-2 size-4 text-primary-foreground" />
               )}
               <span>{t("resetPasswordModal.submit")}</span>
             </Button>

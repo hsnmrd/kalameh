@@ -49,18 +49,18 @@ export function UsersFilter({
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       {/* Search Input */}
       <div className="relative w-full md:w-80">
-        <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+        <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="search"
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="h-10 rounded-xl border-slate-200 bg-white ps-9 text-sm"
+          className="h-10 rounded-xl border-border bg-card ps-9 text-sm text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
       {/* Role Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100/80 p-1">
+      <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-muted/60 p-1">
         {filterTabs.map((tab) => {
           const isSelected = selectedRole === tab.key
           return (
@@ -71,8 +71,8 @@ export function UsersFilter({
               onClick={() => onRoleChange(tab.key)}
               className={
                 isSelected
-                  ? "rounded-lg bg-white font-medium text-slate-900 shadow-2xs hover:bg-white"
-                  : "rounded-lg text-slate-600 hover:text-slate-900"
+                  ? "rounded-lg bg-card font-medium text-foreground shadow-2xs hover:bg-card"
+                  : "rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
               }
             >
               {tab.label}

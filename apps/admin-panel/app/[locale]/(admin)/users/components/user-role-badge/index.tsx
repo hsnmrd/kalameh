@@ -15,16 +15,15 @@ export function UserRoleBadge({ role }: UserRoleBadgeProps) {
   switch (role) {
     case ROLES.SUPER_ADMIN:
       return (
-        <Badge variant="default" className="bg-purple-900 text-purple-100">
+        <Badge
+          variant="outline"
+          className="border-purple-500/30 bg-purple-500/10 text-purple-600"
+        >
           {t("SUPER_ADMIN")}
         </Badge>
       )
     case ROLES.INSTITUTE_ADMIN:
-      return (
-        <Badge variant="default" className="bg-slate-900 text-white">
-          {t("INSTITUTE_ADMIN")}
-        </Badge>
-      )
+      return <Badge variant="default">{t("INSTITUTE_ADMIN")}</Badge>
     case ROLES.CLERK:
       return <Badge variant="info">{t("CLERK")}</Badge>
     case ROLES.STUDENT:

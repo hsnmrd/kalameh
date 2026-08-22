@@ -33,15 +33,15 @@ export function ClassesTable({
         header: t("table.title"),
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
               <Layers className="size-4" />
             </div>
             <div>
-              <span className="block text-sm font-semibold text-slate-900">
+              <span className="block text-sm font-semibold text-foreground">
                 {row.original.title}
               </span>
               {row.original.schedule && (
-                <span className="block text-xs text-slate-500">
+                <span className="block text-xs text-muted-foreground">
                   {row.original.schedule}
                 </span>
               )}
@@ -53,7 +53,7 @@ export function ClassesTable({
         accessorKey: "course",
         header: t("table.course"),
         cell: ({ row }) => (
-          <span className="text-sm font-medium text-slate-800">
+          <span className="text-sm font-medium text-foreground/90">
             {row.original.course?.title || "-"}
           </span>
         ),
@@ -62,7 +62,7 @@ export function ClassesTable({
         accessorKey: "term",
         header: t("table.term"),
         cell: ({ row }) => (
-          <span className="text-sm text-slate-600">
+          <span className="text-sm text-foreground/80">
             {row.original.term?.title || "-"}
           </span>
         ),
@@ -71,7 +71,7 @@ export function ClassesTable({
         accessorKey: "teacherName",
         header: t("table.instructor"),
         cell: ({ row }) => (
-          <span className="text-sm text-slate-700">
+          <span className="text-sm text-foreground/80">
             {row.original.teacherName || "-"}
           </span>
         ),
@@ -90,8 +90,8 @@ export function ClassesTable({
                 variant="outline"
                 className={
                   isFull
-                    ? "border-rose-200 bg-rose-50 text-rose-700"
-                    : "border-slate-200 bg-slate-50 text-slate-700"
+                    ? "border-rose-500/20 bg-rose-500/10 text-rose-600"
+                    : "border-border bg-muted text-muted-foreground"
                 }
               >
                 <span className="font-mono">
@@ -109,7 +109,7 @@ export function ClassesTable({
           <Price
             amount={row.original.fee}
             locale={locale}
-            className="text-sm text-slate-700"
+            className="text-sm text-foreground"
           />
         ),
       },
@@ -122,7 +122,7 @@ export function ClassesTable({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 gap-1.5 rounded-lg px-2.5 text-xs text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
+                className="h-8 gap-1.5 rounded-lg px-2.5 text-xs text-primary hover:bg-muted"
               >
                 <GraduationCap className="size-3.5" />
                 <span>{t("grades")}</span>
@@ -133,7 +133,7 @@ export function ClassesTable({
               variant="ghost"
               size="sm"
               onClick={() => onEdit(row.original)}
-              className="size-8 p-0 text-slate-600 hover:text-slate-900"
+              className="size-8 p-0 text-muted-foreground hover:text-foreground"
               aria-label={t("table.actions")}
             >
               <Edit2 className="size-4" />
@@ -142,31 +142,29 @@ export function ClassesTable({
         ),
       },
     ],
-    [t, locale]
+    [t, locale, onEdit]
   )
 
   if (isLoading) {
     return (
-      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white">
-        <Spinner className="size-8 text-slate-600" />
+      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
+        <Spinner className="size-8 text-foreground" />
       </div>
     )
   }
 
   if (!classes || classes.length === 0) {
     return (
-      <div className="flex h-64 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-        <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+      <div className="flex h-64 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+        <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <Layers className="size-6" />
         </div>
-        <p className="text-sm font-medium text-slate-700">{t("table.empty")}</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          {t("table.empty")}
+        </p>
       </div>
     )
   }
 
-  return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xs">
-      <DataTable columns={columns} data={classes} />
-    </div>
-  )
+  return <DataTable columns={columns} data={classes} />
 }

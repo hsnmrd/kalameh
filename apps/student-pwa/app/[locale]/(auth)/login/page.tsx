@@ -4,11 +4,13 @@ import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "@workspace/ui/components/sonner"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { PasswordInput } from "@workspace/ui/components/password-input"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import {
   Field,
   FieldGroup,
@@ -17,7 +19,10 @@ import {
 } from "@workspace/ui/components/field"
 import { authResource } from "@/lib/api"
 import { useRouter, usePathname, Link, useIsRtl } from "@/i18n/routing"
-import { useLoginSchema, type LoginInput } from "./hooks/use-auth-schemas"
+import {
+  useLoginSchema,
+  type LoginInput as LoginSchemaInput,
+} from "./hooks/use-auth-schemas"
 import { ArrowRight, ArrowLeft, BookOpen, Languages } from "lucide-react"
 
 export default function StudentLoginPage() {
@@ -27,13 +32,14 @@ export default function StudentLoginPage() {
   const router = useRouter()
   const pathname = usePathname()
   const isRtl = useIsRtl()
+  const queryClient = useQueryClient()
   const loginSchema = useLoginSchema()
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginInput>({
+  } = useForm<LoginSchemaInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       phone: "",
@@ -44,13 +50,19 @@ export default function StudentLoginPage() {
 
   const loginMutation = useMutation({
     ...authResource.login.toMutation(),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(authResource.me.toQuery().queryKey, data.user)
+      toast.success(tCommon("success"))
       router.push("/dashboard")
     },
   })
 
-  const onSubmit = (data: LoginInput) => {
-    loginMutation.mutate(data)
+  const onSubmit = (formData: LoginSchemaInput) => {
+    loginMutation.mutate({
+      phone: formData.phone,
+      password: formData.password,
+      subdomain: formData.subdomain || undefined,
+    })
   }
 
   const handleSwitchLanguage = () => {
@@ -61,11 +73,11 @@ export default function StudentLoginPage() {
   const SubmitArrow = isRtl ? ArrowLeft : ArrowRight
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="min-h-screen bg-background font-sans text-foreground">
       {/* Centered Mobile Container */}
-      <div className="relative mx-auto flex min-h-screen w-full max-w-[480px] flex-col bg-slate-50 shadow-xs">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-[480px] flex-col bg-background shadow-xs">
         {/* Top Toolbar */}
-        <header className="relative sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 backdrop-blur-md">
+        <header className="relative sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border/80 bg-card/95 px-4 backdrop-blur-md">
           {/* Left Action (Language Switcher) */}
           <div className="z-10 flex min-w-9 items-center gap-1.5">
             <Button
@@ -73,7 +85,7 @@ export default function StudentLoginPage() {
               variant="outline"
               size="sm"
               onClick={handleSwitchLanguage}
-              className="h-8 cursor-pointer gap-1 border-slate-200 bg-slate-50 px-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 active:scale-95"
+              className="h-8 cursor-pointer gap-1 border-border bg-background px-2 text-xs font-semibold text-foreground hover:bg-muted active:scale-95"
               title={tCommon("language")}
               aria-label={tCommon("language")}
             >
@@ -89,28 +101,32 @@ export default function StudentLoginPage() {
               className="pointer-events-auto flex items-center gap-2 transition-opacity hover:opacity-80 active:scale-95"
               aria-label={tCommon("appName")}
             >
-              <div className="flex size-8 items-center justify-center rounded-xl bg-black text-white shadow-xs">
+              <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
                 <BookOpen className="size-4" />
               </div>
-              <span className="text-base font-bold tracking-tight text-slate-900">
+              <span className="text-base font-bold tracking-tight text-foreground">
                 {tCommon("appName")}
               </span>
             </Link>
           </div>
 
-          {/* Right Action Spacer */}
-          <div className="z-10 flex min-w-9 items-center justify-end" />
+          {/* Right Action (Theme Toggle) */}
+          <div className="z-10 flex min-w-9 items-center justify-end">
+            <ThemeToggle />
+          </div>
         </header>
 
         {/* Main Area */}
         <main className="flex-1 space-y-6 px-4 py-6">
           {/* Login Form Card */}
-          <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
+          <div className="space-y-6 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs sm:p-8">
             <div className="space-y-2">
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                 {t("title")}
               </h1>
-              <p className="text-[15px] text-slate-500">{t("description")}</p>
+              <p className="text-[15px] text-muted-foreground">
+                {t("description")}
+              </p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -170,10 +186,10 @@ export default function StudentLoginPage() {
                 type="submit"
                 size="auth"
                 disabled={loginMutation.isPending}
-                className="mt-2 w-full cursor-pointer bg-black text-white transition-all hover:bg-slate-800"
+                className="mt-2 w-full cursor-pointer bg-primary text-primary-foreground transition-all hover:bg-primary/90"
               >
                 {loginMutation.isPending ? (
-                  <Spinner className="size-5" />
+                  <Spinner className="size-5 text-primary-foreground" />
                 ) : (
                   <>
                     <span>{t("signInButton")}</span>
@@ -185,7 +201,7 @@ export default function StudentLoginPage() {
           </div>
 
           {/* Footer */}
-          <footer className="pt-2 text-center text-xs text-slate-400">
+          <footer className="pt-2 text-center text-xs text-muted-foreground">
             {tCommon("footer")}
           </footer>
         </main>

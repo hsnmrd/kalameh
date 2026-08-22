@@ -32,7 +32,7 @@ export function StudentBottomNav({ pathname }: StudentBottomNavProps) {
 
   return (
     <nav
-      className="fixed right-0 bottom-0 left-0 z-30 mx-auto w-full max-w-[480px] border-t border-slate-200/80 bg-white/95 px-2 py-1.5 backdrop-blur-md"
+      className="fixed right-0 bottom-0 left-0 z-30 mx-auto w-full max-w-[480px] border-t border-border/80 bg-card/95 px-2 py-1.5 backdrop-blur-md"
       aria-label={t("appName")}
     >
       <div className="grid grid-cols-5 items-center">
@@ -50,8 +50,8 @@ export function StudentBottomNav({ pathname }: StudentBottomNavProps) {
               className={cn(
                 "flex min-h-[48px] flex-col items-center justify-center gap-1 rounded-xl py-1 text-center transition-all active:scale-95",
                 isActive
-                  ? "font-semibold text-black"
-                  : "text-slate-400 hover:text-slate-600"
+                  ? "font-semibold text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               )}
               aria-current={isActive ? "page" : undefined}
             >

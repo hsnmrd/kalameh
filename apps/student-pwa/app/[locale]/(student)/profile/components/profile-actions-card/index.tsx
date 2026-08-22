@@ -19,8 +19,8 @@ export function ProfileActionsCard({
   const t = useTranslations("profile")
 
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-      <h3 className="text-sm font-semibold text-slate-900">
+    <div className="space-y-3 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
+      <h3 className="text-sm font-semibold text-foreground">
         {t("accountActions")}
       </h3>
 
@@ -28,7 +28,7 @@ export function ProfileActionsCard({
         type="button"
         variant="outline"
         onClick={onChangePassword}
-        className="w-full cursor-pointer justify-start gap-2 border-slate-200 text-slate-700 hover:bg-slate-50"
+        className="w-full cursor-pointer justify-start gap-2 border-border text-foreground hover:bg-muted"
       >
         <Lock className="size-4" />
         <span>{t("changePassword")}</span>

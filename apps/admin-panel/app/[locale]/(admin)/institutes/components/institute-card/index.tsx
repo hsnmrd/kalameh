@@ -38,10 +38,10 @@ export function InstituteCard({ institute }: InstituteCardProps) {
   return (
     <div
       className={cn(
-        "flex flex-col justify-between space-y-4 rounded-2xl border bg-white p-6 shadow-xs transition-all",
+        "flex flex-col justify-between space-y-4 rounded-2xl border bg-card p-6 text-card-foreground shadow-xs transition-all",
         isSelected
           ? "border-emerald-500 shadow-md ring-2 ring-emerald-500/20"
-          : "border-slate-200 hover:border-slate-300"
+          : "border-border hover:border-border/80"
       )}
     >
       <div className="space-y-4">
@@ -53,16 +53,16 @@ export function InstituteCard({ institute }: InstituteCardProps) {
                 "flex size-11 items-center justify-center rounded-xl text-sm font-bold",
                 isSelected
                   ? "bg-emerald-600 text-white"
-                  : "bg-slate-100 text-slate-700"
+                  : "bg-muted text-foreground"
               )}
             >
               <Building2 className="size-5" />
             </div>
             <div>
-              <h2 className="line-clamp-1 text-base font-bold text-slate-900">
+              <h2 className="line-clamp-1 text-base font-bold text-foreground">
                 {institute.name}
               </h2>
-              <span className="font-mono text-xs text-slate-400">
+              <span className="font-mono text-xs text-muted-foreground">
                 {institute.subdomain}.kalameh.ir
               </span>
             </div>
@@ -77,24 +77,30 @@ export function InstituteCard({ institute }: InstituteCardProps) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3 text-xs">
-          <div className="flex items-center gap-2 text-slate-600">
-            <Layers className="size-4 text-blue-500" />
+        <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/50 p-3 text-xs">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Layers className="size-4 text-sky-500" />
             <span>
-              <strong>{institute.classesCount}</strong> {t("classesCount")}
+              <strong className="text-foreground">
+                {institute.classesCount}
+              </strong>{" "}
+              {t("classesCount")}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-slate-600">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Users className="size-4 text-emerald-500" />
             <span>
-              <strong>{institute.usersCount}</strong> {t("usersCount")}
+              <strong className="text-foreground">
+                {institute.usersCount}
+              </strong>{" "}
+              {t("usersCount")}
             </span>
           </div>
         </div>
       </div>
 
       {/* Action Footer */}
-      <div className="border-t border-slate-100 pt-4">
+      <div className="border-t border-border/60 pt-4">
         <Button
           type="button"
           variant={isSelected ? "secondary" : "default"}
@@ -102,8 +108,8 @@ export function InstituteCard({ institute }: InstituteCardProps) {
           className={cn(
             "h-10 w-full cursor-pointer justify-center gap-2 rounded-xl text-xs font-semibold",
             isSelected
-              ? "border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-              : "bg-slate-900 text-white hover:bg-slate-800"
+              ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+              : "bg-primary text-primary-foreground hover:bg-primary/90"
           )}
         >
           {isSelected ? (

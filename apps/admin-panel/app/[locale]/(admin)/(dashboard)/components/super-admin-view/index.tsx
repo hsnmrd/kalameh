@@ -35,16 +35,16 @@ export function SuperAdminView() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {t("title")}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">{t("subtitle")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
 
         <Link href="/institutes">
           <Button
             size="auth"
-            className="h-11 cursor-pointer gap-2 rounded-xl bg-slate-900 px-5 text-white hover:bg-slate-800"
+            className="h-11 cursor-pointer gap-2 rounded-xl bg-primary px-5 text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="size-4" />
             <span>{t("createInstitute")}</span>
@@ -59,8 +59,8 @@ export function SuperAdminView() {
           value={totalInstitutes.toString()}
           subtitle={t("stats.total")}
           icon={Building2}
-          iconBgClassName="bg-blue-50"
-          iconColorClassName="text-blue-600"
+          iconBgClassName="bg-sky-500/10"
+          iconColorClassName="text-sky-500"
           badgeText={`${totalInstitutes} Institutes`}
           badgeVariant="info"
         />
@@ -74,8 +74,8 @@ export function SuperAdminView() {
               : "100% Active"
           }
           icon={ShieldCheck}
-          iconBgClassName="bg-emerald-50"
-          iconColorClassName="text-emerald-600"
+          iconBgClassName="bg-emerald-500/10"
+          iconColorClassName="text-emerald-500"
           badgeText={t("stats.active")}
           badgeVariant="success"
         />
@@ -85,27 +85,27 @@ export function SuperAdminView() {
           value="99.99%"
           subtitle="All microservices operational"
           icon={Activity}
-          iconBgClassName="bg-purple-50"
-          iconColorClassName="text-purple-600"
+          iconBgClassName="bg-purple-500/10"
+          iconColorClassName="text-purple-500"
           badgeText={t("stats.healthy")}
           badgeVariant="success"
         />
       </div>
 
       {/* Institutes Quick Access Card */}
-      <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+      <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">
+            <h2 className="text-base font-semibold text-foreground">
               {t("recentInstitutes")}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               {t("recentInstitutesHint")}
             </p>
           </div>
           <Link
             href="/institutes"
-            className="flex items-center gap-1 text-xs font-semibold text-slate-600 transition-colors hover:text-black"
+            className="flex items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
           >
             <span>{t("viewAll")}</span>
             <ActionArrow className="size-3.5" />
@@ -114,30 +114,30 @@ export function SuperAdminView() {
 
         {isLoadingInstitutes ? (
           <div className="flex h-32 items-center justify-center">
-            <Spinner className="size-6 text-slate-700" />
+            <Spinner className="size-6 text-foreground" />
           </div>
         ) : institutes.length === 0 ? (
-          <div className="py-8 text-center text-sm text-slate-500">
+          <div className="py-8 text-center text-sm text-muted-foreground">
             {t("noInstitutes")}
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-border/60">
             {institutes.slice(0, 5).map((inst) => (
               <button
                 key={inst.id}
                 type="button"
                 onClick={() => selectInstitute(inst)}
-                className="-mx-2 flex w-full cursor-pointer items-center justify-between rounded-xl px-2 py-3.5 text-start transition-colors hover:bg-slate-50/80"
+                className="-mx-2 flex w-full cursor-pointer items-center justify-between rounded-xl px-2 py-3.5 text-start transition-colors hover:bg-muted/50"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-slate-100 font-bold text-slate-800">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-muted font-bold text-foreground">
                     {inst.name.slice(0, 2)}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-sm font-semibold text-foreground">
                       {inst.name}
                     </p>
-                    <p className="font-mono text-xs text-slate-400">
+                    <p className="font-mono text-xs text-muted-foreground">
                       {inst.subdomain}.kalameh.ir
                     </p>
                   </div>
@@ -147,17 +147,13 @@ export function SuperAdminView() {
                   <span
                     className={
                       inst.isActive
-                        ? "rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700"
-                        : "rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600"
+                        ? "rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600"
+                        : "rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-600"
                     }
                   >
-                    {inst.isActive ? "Active" : "Inactive"} •{" "}
-                    {inst.classesCount} Classes
+                    {inst.isActive ? t("stats.active") : t("stats.inactive")}
                   </span>
-                  <div className="flex items-center gap-1 text-xs font-semibold text-slate-700">
-                    <span>{t("enterPanel")}</span>
-                    <ChevronIcon className="size-4 text-slate-400" />
-                  </div>
+                  <ActionArrow className="size-4 text-muted-foreground" />
                 </div>
               </button>
             ))}

@@ -66,7 +66,10 @@ export function Price({
     isNaN(Number(amount))
   ) {
     return (
-      <span className={cn("font-mono text-slate-400", className)} {...props}>
+      <span
+        className={cn("font-mono text-muted-foreground", className)}
+        {...props}
+      >
         -
       </span>
     )
@@ -86,7 +89,7 @@ export function Price({
       {showUnit && (
         <span
           className={cn(
-            "font-sans text-xs font-normal text-slate-500 opacity-85",
+            "font-sans text-xs font-normal text-muted-foreground opacity-85",
             unitClassName
           )}
         >

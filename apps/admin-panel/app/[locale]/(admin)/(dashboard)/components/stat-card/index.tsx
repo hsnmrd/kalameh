@@ -19,13 +19,13 @@ export function StatCard({
   value,
   subtitle,
   icon: Icon,
-  iconBgClassName = "bg-slate-100",
-  iconColorClassName = "text-slate-700",
+  iconBgClassName = "bg-muted",
+  iconColorClassName = "text-foreground",
   badgeText,
   badgeVariant = "neutral",
 }: StatCardProps) {
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-slate-300">
+    <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs transition-all hover:border-border/80">
       <div className="flex items-center justify-between">
         <div
           className={cn(
@@ -41,11 +41,11 @@ export function StatCard({
             className={cn(
               "rounded-full px-2.5 py-0.5 text-xs font-semibold",
               badgeVariant === "success" &&
-                "border border-emerald-200 bg-emerald-50 text-emerald-700",
+                "border border-emerald-500/20 bg-emerald-500/10 text-emerald-600",
               badgeVariant === "neutral" &&
-                "border border-slate-200 bg-slate-50 text-slate-600",
+                "border border-border bg-muted text-muted-foreground",
               badgeVariant === "info" &&
-                "border border-blue-200 bg-blue-50 text-blue-700"
+                "border border-sky-500/20 bg-sky-500/10 text-sky-600"
             )}
           >
             {badgeText}
@@ -54,11 +54,13 @@ export function StatCard({
       </div>
 
       <div>
-        <p className="text-xs font-medium text-slate-500">{title}</p>
-        <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+        <p className="text-xs font-medium text-muted-foreground">{title}</p>
+        <p className="mt-1 text-2xl font-bold tracking-tight text-foreground">
           {value}
         </p>
-        {subtitle && <p className="mt-1 text-xs text-slate-400">{subtitle}</p>}
+        {subtitle && (
+          <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
+        )}
       </div>
     </div>
   )
