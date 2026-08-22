@@ -4,6 +4,7 @@
 - **Client Generation:** Run `pnpm run db:generate` (`prisma generate`) to update Prisma Client types in `src/generated/client`. Safe in both dev and production.
 - **Dev Migrations:** Always create version-controlled migrations for schema changes:
   `pnpm run db:migrate:dev --name <descriptive_name>`
+  - When modifying `schema.prisma`, AI agents must immediately execute this command with a meaningful name and run `pnpm run db:generate`. Never leave schema edits unmigrated.
 - **Production Migrations:** Production and CI/CD environments must ONLY run:
   `pnpm run db:migrate:deploy`
   _(Never use `db push` or `migrate dev` in production)_.

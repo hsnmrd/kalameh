@@ -34,6 +34,8 @@
   - If a specific UI component or kit (e.g. Select, Dialog, Dropdown, Checkbox) is needed and does not yet exist in `@workspace/ui`, create an implementation plan to scaffold/install it into `packages/ui` first using Base UI / shadcn patterns before using it.
 - **Shared Roles & Permissions:**
   - Roles and permissions must be defined as `const` in `@workspace/types` (`ROLES`, `PERMISSIONS`, `ROLE_PERMISSIONS`) and shared across all frontend apps and backend services.
+- **Automated Database Migrations:**
+  - Whenever modifying `packages/database/schema.prisma` or altering database models, the agent MUST automatically create and execute the development migration via `pnpm run db:migrate:dev --name <descriptive_snake_case_name>` and regenerate Prisma Client types (`pnpm run db:generate`) without requiring manual prompting from the user.
 
 ## Context Routing
 
