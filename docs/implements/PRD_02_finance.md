@@ -1,6 +1,7 @@
-# سند پیاده‌سازی و اجرای PRD_01_finance: ثبت‌نام و امور مالی (Registration & Finance)
+# سند پیاده‌سازی و اجرای PRD_02_finance: ثبت‌نام و امور مالی (Registration & Finance)
 
-**مرجع نیازمندی‌ها:** [`docs/PRD_01_finance.md`](../PRD_01_finance.md) | [`docs/PRD_base.md`](../PRD_base.md) | [`docs/TECH_base.md`](../TECH_base.md)  
+**مرجع نیازمندی‌ها:** [`docs/PRD_02_finance.md`](../PRD_02_finance.md) | [`docs/PRD_base.md`](../PRD_base.md) | [`docs/TECH_base.md`](../TECH_base.md)  
+**پیش‌نیاز:** [`docs/implements/PRD_01_education_classes.md`](PRD_01_education_classes.md) (ساختار آموزشی و کلاس‌ها)  
 **مرجع دیزاین سیستم:** [`DESIGN.md`](../../DESIGN.md)  
 **وضعیت:** در حال آماده‌سازی و توسعه (In Progress)
 
