@@ -21,7 +21,7 @@ import {
   Combobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
-import { DatePicker } from "@workspace/ui/components/date-picker"
+import { DateInput } from "@workspace/ui/components/date-input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type { StudentDto } from "@workspace/types"
 import { coursesResource, studentsResource } from "@/lib/api"
@@ -240,11 +240,13 @@ export function EditStudentModal({
                 control={control}
                 name="birthDate"
                 render={({ field }) => (
-                  <DatePicker
+                  <DateInput
                     value={field.value || undefined}
                     onChange={(val) => field.onChange(val || "")}
                     locale={locale}
-                    placeholder={t("editModal.birthDate")}
+                    placeholderYear={locale === "fa" ? "۱۳۸۰" : "YYYY"}
+                    placeholderMonth={locale === "fa" ? "ماه" : "MM"}
+                    placeholderDay={locale === "fa" ? "روز" : "DD"}
                     data-invalid={Boolean(errors.birthDate)}
                   />
                 )}

@@ -33,9 +33,9 @@ export function StudentsHeader({
 
       <Button
         onClick={onAddStudentClick}
-        className="flex items-center gap-2 shadow-xs"
+        className="h-10 cursor-pointer gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90"
       >
-        <UserPlus className="size-4" />
+        <Plus className="size-4" />
         <span>{t("addStudent")}</span>
       </Button>
     </div>
