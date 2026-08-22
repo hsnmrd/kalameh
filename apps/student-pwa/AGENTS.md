@@ -7,6 +7,7 @@
     - English (`en`): `dir="ltr"`, Font: **Geist** (`--font-sans`).
     - Persian (`fa`): `dir="rtl"`, Font: **Vazirmatn** (`--font-sans`).
   - Modular per-page message files in `messages/[locale]/` to optimize client bundle size.
+  - **Every layout that renders `<NextIntlClientProvider>` must include `common` messages** in its `messages` object alongside feature-specific message namespaces.
 - **Layout Architecture & Base Layout:**
   - All student-pwa protected pages must use `StudentBaseLayout` (`components/student-base-layout/index.tsx`).
   - The layout includes a sticky top Toolbar (Back button on inner pages, centered logo icon linking to `/dashboard`, language switcher, quick actions/logout) and a 5-item responsive Bottom Navigation (`/dashboard`, `/classes`, `/flashcards`, `/enrollments`, `/profile`).

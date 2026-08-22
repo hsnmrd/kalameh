@@ -7,6 +7,7 @@
     - Persian (`fa`): `dir="rtl"`, Font: **Vazirmatn** (`--font-sans`).
     - English (`en`): `dir="ltr"`, Font: **Geist** (`--font-sans`).
   - Modular per-page message files in `messages/[locale]/` to optimize client bundle size.
+  - **Every layout that renders `<NextIntlClientProvider>` must include `common` messages** in its `messages` object alongside feature-specific message namespaces.
 - **Layout Architecture & Navigation:**
   - All admin-panel protected pages must use `AdminBaseLayout` (`components/admin-base-layout/index.tsx`).
   - The layout includes a static desktop sidebar (positioned dynamically on the right in RTL and left in LTR) with a language switcher, branding, and quick logout.

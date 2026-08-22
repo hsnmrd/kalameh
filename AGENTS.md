@@ -44,6 +44,8 @@
   - **NEVER use `dark:` Tailwind class variants.** All theme adaptations must be driven 100% through semantic CSS variables (`bg-background`, `text-foreground`, `bg-card`, `border-border`, `bg-muted`, etc.) configured in `globals.css`.
 - **Shared Roles & Permissions:**
   - Roles and permissions must be defined as `const` in `@workspace/types` (`ROLES`, `PERMISSIONS`, `ROLE_PERMISSIONS`) and shared across all frontend apps and backend services.
+- **NextIntl Client Messages Standard:**
+  - Every layout that mounts a `<NextIntlClientProvider>` MUST include `common` messages in its messages dictionary alongside any feature-specific message namespaces (e.g. `messages={{ common: common.default, feature: feature.default }}`).
 - **Automated Database Migrations:**
   - Whenever modifying `packages/database/schema.prisma` or altering database models, the agent MUST automatically create and execute the development migration via `pnpm run db:migrate:dev --name <descriptive_snake_case_name>` and regenerate Prisma Client types (`pnpm run db:generate`) without requiring manual prompting from the user.
 

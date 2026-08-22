@@ -9,11 +9,19 @@ export default async function InstitutesLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const institutes = (await import(`@/messages/${locale}/institutes.json`))
-    .default
+  const [common, institutes] = await Promise.all([
+    import(`@/messages/${locale}/common.json`),
+    import(`@/messages/${locale}/institutes.json`),
+  ])
 
   return (
-    <NextIntlClientProvider locale={locale} messages={{ institutes }}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={{
+        common: common.default,
+        institutes: institutes.default,
+      }}
+    >
       {children}
     </NextIntlClientProvider>
   )

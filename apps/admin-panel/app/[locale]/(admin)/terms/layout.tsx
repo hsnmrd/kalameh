@@ -9,10 +9,19 @@ export default async function TermsLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const terms = (await import(`@/messages/${locale}/terms.json`)).default
+  const [common, terms] = await Promise.all([
+    import(`@/messages/${locale}/common.json`),
+    import(`@/messages/${locale}/terms.json`),
+  ])
 
   return (
-    <NextIntlClientProvider locale={locale} messages={{ terms }}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={{
+        common: common.default,
+        terms: terms.default,
+      }}
+    >
       {children}
     </NextIntlClientProvider>
   )

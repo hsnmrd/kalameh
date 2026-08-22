@@ -9,7 +9,8 @@ export default async function ClassesLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const [classes, grades] = await Promise.all([
+  const [common, classes, grades] = await Promise.all([
+    import(`@/messages/${locale}/common.json`),
     import(`@/messages/${locale}/classes.json`),
     import(`@/messages/${locale}/grades.json`),
   ])
@@ -18,6 +19,7 @@ export default async function ClassesLayout({
     <NextIntlClientProvider
       locale={locale}
       messages={{
+        common: common.default,
         classes: classes.default,
         grades: grades.default,
       }}

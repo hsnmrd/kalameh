@@ -9,11 +9,19 @@ export default async function DashboardLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const dashboard = (await import(`@/messages/${locale}/dashboard.json`))
-    .default
+  const [common, dashboard] = await Promise.all([
+    import(`@/messages/${locale}/common.json`),
+    import(`@/messages/${locale}/dashboard.json`),
+  ])
 
   return (
-    <NextIntlClientProvider locale={locale} messages={{ dashboard }}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={{
+        common: common.default,
+        dashboard: dashboard.default,
+      }}
+    >
       {children}
     </NextIntlClientProvider>
   )

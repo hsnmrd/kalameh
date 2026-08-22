@@ -52,7 +52,7 @@ export default function StudentLoginPage() {
     ...authResource.login.toMutation(),
     onSuccess: (data) => {
       queryClient.setQueryData(authResource.me.toQuery().queryKey, data.user)
-      toast.success(tCommon("success"))
+      toast.success(t("loginSuccess"))
       router.push("/dashboard")
     },
   })
