@@ -2,7 +2,6 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
-  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -38,17 +37,11 @@ export class AuthService {
     let instituteId: string | undefined;
 
     if (subdomain) {
-      const institute = await this.prisma.institute.findFirst({
+      const institute = await this.prisma.institute.findFirstOrThrow({
         where: {
           OR: [{ subdomain: subdomain }, { id: subdomain }],
         },
       });
-
-      if (!institute) {
-        throw new NotFoundException(
-          this.i18n.t('auth.instituteNotFound', locale),
-        );
-      }
 
       if (!institute.isActive) {
         throw new UnauthorizedException(

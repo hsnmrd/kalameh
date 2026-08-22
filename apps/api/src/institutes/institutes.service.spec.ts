@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  ConflictException,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { InstitutesService } from './institutes.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -33,6 +29,7 @@ describe('InstitutesService', () => {
       institute: {
         findMany: jest.fn(),
         findUnique: jest.fn(),
+        findUniqueOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
       },
@@ -70,7 +67,7 @@ describe('InstitutesService', () => {
         },
       ]);
 
-      const result = await service.findAll(mockSuperAdmin, 'en');
+      const result = await service.findAll(mockSuperAdmin);
       expect(result).toHaveLength(1);
       expect(result[0].classesCount).toBe(5);
       expect(result[0].usersCount).toBe(20);
@@ -82,7 +79,7 @@ describe('InstitutesService', () => {
     });
 
     it('should return only own institute for INSTITUTE_ADMIN', async () => {
-      prismaService.institute.findUnique.mockResolvedValue({
+      prismaService.institute.findUniqueOrThrow.mockResolvedValue({
         id: 'inst-tehran',
         name: 'Tehran Institute',
         subdomain: 'tehran',
@@ -95,7 +92,7 @@ describe('InstitutesService', () => {
         _count: { classes: 5, users: 20 },
       });
 
-      const result = await service.findAll(mockInstituteAdmin, 'en');
+      const result = await service.findAll(mockInstituteAdmin);
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('inst-tehran');
     });
@@ -103,7 +100,7 @@ describe('InstitutesService', () => {
 
   describe('findOne', () => {
     it('should return institute details for SUPER_ADMIN', async () => {
-      prismaService.institute.findUnique.mockResolvedValue({
+      prismaService.institute.findUniqueOrThrow.mockResolvedValue({
         id: 'inst-1',
         name: 'Tehran Institute',
         subdomain: 'tehran',
@@ -121,12 +118,14 @@ describe('InstitutesService', () => {
       expect(result.coursesCount).toBe(3);
     });
 
-    it('should throw NotFoundException if institute does not exist', async () => {
-      prismaService.institute.findUnique.mockResolvedValue(null);
+    it('should bubble up error when institute is not found via findUniqueOrThrow', async () => {
+      prismaService.institute.findUniqueOrThrow.mockRejectedValue(
+        new Error('Record not found'),
+      );
 
       await expect(
         service.findOne('inst-none', mockSuperAdmin, 'en'),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow('Record not found');
     });
   });
 

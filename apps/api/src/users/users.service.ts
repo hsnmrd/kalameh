@@ -1,7 +1,6 @@
 import {
   Injectable,
   ConflictException,
-  NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
@@ -164,7 +163,7 @@ export class UsersService {
     id: string,
     locale: SupportedLocale = 'fa',
   ) {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
         ...(currentUser.role === 'SUPER_ADMIN'
@@ -192,10 +191,6 @@ export class UsersService {
         updatedAt: true,
       },
     });
-
-    if (!user) {
-      throw new NotFoundException(this.i18n.t('users.userNotFound', locale));
-    }
 
     // RBAC check on target user
     if (currentUser.role !== 'SUPER_ADMIN' && user.role === 'SUPER_ADMIN') {

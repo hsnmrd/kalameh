@@ -24,11 +24,8 @@ export class InstitutesController {
 
   @Get()
   @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN')
-  async findAll(
-    @CurrentUser() currentUser: JwtPayload,
-    @CurrentLocale() locale: SupportedLocale,
-  ) {
-    return this.institutesService.findAll(currentUser, locale);
+  async findAll(@CurrentUser() currentUser: JwtPayload) {
+    return this.institutesService.findAll(currentUser);
   }
 
   @Get(':id')

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -16,6 +16,7 @@ describe('AuthService', () => {
     prismaService = {
       institute: {
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
       },
       user: {
         findMany: jest.fn(),
@@ -67,7 +68,7 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       };
 
-      prismaService.institute.findFirst.mockResolvedValue(mockInstitute);
+      prismaService.institute.findFirstOrThrow.mockResolvedValue(mockInstitute);
       prismaService.user.findMany.mockResolvedValue([mockUser]);
 
       const result = await service.login({
@@ -141,8 +142,10 @@ describe('AuthService', () => {
       );
     });
 
-    it('should throw localized NotFoundException (en) if specified institute does not exist', async () => {
-      prismaService.institute.findFirst.mockResolvedValue(null);
+    it('should bubble up error when institute does not exist via findFirstOrThrow', async () => {
+      prismaService.institute.findFirstOrThrow.mockRejectedValue(
+        new Error('Record not found'),
+      );
 
       await expect(
         service.login(
@@ -154,9 +157,7 @@ describe('AuthService', () => {
           undefined,
           'en',
         ),
-      ).rejects.toThrow(
-        new NotFoundException('Requested institute was not found'),
-      );
+      ).rejects.toThrow('Record not found');
     });
   });
 });
