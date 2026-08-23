@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { cn, toPersianDigits, formatCurrency } from "@workspace/ui/lib/utils"
+import { cn, formatCurrency } from "@workspace/ui/lib/utils"
 
 export interface PriceProps extends React.HTMLAttributes<HTMLSpanElement> {
   amount: number | string | null | undefined
@@ -46,17 +46,12 @@ export function Price({
 
   const num = Number(amount)
   const isFa = currentLocale.toLowerCase().startsWith("fa")
-  const enFormatted = num.toLocaleString("en-US")
-  const formattedNumber = isFa ? toPersianDigits(enFormatted) : enFormatted
+  const formattedNumber = num.toLocaleString("en-US")
   const currencyUnit = unit ?? (isFa ? "تومان" : "Toman")
 
   return (
     <span
-      className={cn(
-        "inline-flex items-baseline gap-1",
-        isFa ? "font-sans" : "font-mono",
-        className
-      )}
+      className={cn("inline-flex items-baseline gap-1 font-mono", className)}
       {...props}
     >
       <span>{formattedNumber}</span>
