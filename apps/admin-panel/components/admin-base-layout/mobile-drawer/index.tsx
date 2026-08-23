@@ -6,7 +6,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { Button } from "@workspace/ui/components/button"
 import type { Role } from "@workspace/types"
 import { SidebarBrand } from "../sidebar-brand"
-import { NavList, type NavItem } from "../nav-list"
+import { NavList, type NavItem, type NavSection } from "../nav-list"
 import { SidebarFooter } from "../sidebar-footer"
 
 export interface MobileDrawerProps {
@@ -14,7 +14,8 @@ export interface MobileDrawerProps {
   onClose: () => void
   isRtl: boolean
   role?: Role
-  navItems: NavItem[]
+  sections?: NavSection[]
+  navItems?: NavItem[]
   pathname: string
   onLogout: () => void
 }
@@ -24,6 +25,7 @@ export function MobileDrawer({
   onClose,
   isRtl,
   role,
+  sections,
   navItems,
   pathname,
   onLogout,
@@ -68,6 +70,7 @@ export function MobileDrawer({
           </div>
           <div className="mt-6">
             <NavList
+              sections={sections}
               items={navItems}
               pathname={pathname}
               onItemClick={onClose}

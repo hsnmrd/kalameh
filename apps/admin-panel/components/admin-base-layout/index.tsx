@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import {
   LayoutDashboard,
   Layers,
@@ -20,7 +20,7 @@ import { usePathname, useRouter, useIsRtl } from "@/i18n/routing"
 import { cn } from "@workspace/ui/lib/utils"
 import { useActiveInstitute } from "@/lib/stores"
 import { SidebarBrand } from "./sidebar-brand"
-import { NavList, type NavItem } from "./nav-list"
+import { NavList, type NavItem, type NavSection } from "./nav-list"
 import { SidebarFooter } from "./sidebar-footer"
 import { MobileDrawer } from "./mobile-drawer"
 import { AdminHeader } from "./admin-header"
@@ -30,8 +30,12 @@ export interface AdminBaseLayoutProps {
   role?: Role
 }
 
-const INSTITUTE_NAV: NavItem[] = [
+const SUPER_ADMIN_PLATFORM_NAV: NavItem[] = [
   { key: "dashboard", href: "/", icon: LayoutDashboard },
+  { key: "institutes", href: "/institutes", icon: ShieldAlert },
+]
+
+const INSTITUTE_NAV_ITEMS: NavItem[] = [
   { key: "branches", href: "/branches", icon: Building2 },
   { key: "terms", href: "/terms", icon: Calendar },
   { key: "courses", href: "/courses", icon: BookOpen },
@@ -41,25 +45,14 @@ const INSTITUTE_NAV: NavItem[] = [
   { key: "finance", href: "/transactions", icon: CreditCard },
 ]
 
-const SUPER_ADMIN_GLOBAL_NAV: NavItem[] = [
+const INSTITUTE_ADMIN_NAV: NavItem[] = [
   { key: "dashboard", href: "/", icon: LayoutDashboard },
-  { key: "institutes", href: "/institutes", icon: ShieldAlert },
-]
-
-const SUPER_ADMIN_INSTITUTE_NAV: NavItem[] = [
-  { key: "dashboard", href: "/", icon: LayoutDashboard },
-  { key: "branches", href: "/branches", icon: Building2 },
-  { key: "terms", href: "/terms", icon: Calendar },
-  { key: "courses", href: "/courses", icon: BookOpen },
-  { key: "classes", href: "/classes", icon: Layers },
-  { key: "students", href: "/students", icon: GraduationCap },
-  { key: "staff", href: "/users", icon: Users },
-  { key: "finance", href: "/transactions", icon: CreditCard },
-  { key: "institutes", href: "/institutes", icon: ShieldAlert },
+  ...INSTITUTE_NAV_ITEMS,
 ]
 
 export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   const [drawerOpen, setDrawerOpen] = React.useState(false)
+  const t = useTranslations("common.nav")
   const locale = useLocale()
   const pathname = usePathname()
   const router = useRouter()
@@ -71,14 +64,40 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   const { data: user } = useQuery(authResource.me.toQuery())
   const effectiveRole = role ?? user?.role ?? ROLES.INSTITUTE_ADMIN
 
-  const navItems = React.useMemo(() => {
+  const navSections = React.useMemo<NavSection[]>(() => {
     if (effectiveRole === ROLES.SUPER_ADMIN) {
-      return activeInstitute
-        ? SUPER_ADMIN_INSTITUTE_NAV
-        : SUPER_ADMIN_GLOBAL_NAV
+      if (activeInstitute) {
+        return [
+          {
+            id: "super-admin-platform",
+            title: t("superAdminSection"),
+            items: SUPER_ADMIN_PLATFORM_NAV,
+          },
+          {
+            id: `institute-${activeInstitute.id}`,
+            title: activeInstitute.name,
+            badge: activeInstitute.subdomain,
+            items: INSTITUTE_NAV_ITEMS,
+          },
+        ]
+      }
+
+      return [
+        {
+          id: "super-admin-platform",
+          title: t("superAdminSection"),
+          items: SUPER_ADMIN_PLATFORM_NAV,
+        },
+      ]
     }
-    return INSTITUTE_NAV
-  }, [effectiveRole, activeInstitute])
+
+    return [
+      {
+        id: "institute-nav",
+        items: INSTITUTE_ADMIN_NAV,
+      },
+    ]
+  }, [effectiveRole, activeInstitute, t])
 
   const logoutMutation = useMutation({
     ...authResource.logout.toMutation(),
@@ -121,7 +140,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
           <div className="border-b border-sidebar-border/60 pb-4">
             <SidebarBrand role={effectiveRole} />
           </div>
-          <NavList items={navItems} pathname={pathname} />
+          <NavList sections={navSections} pathname={pathname} />
         </div>
         <SidebarFooter onLogout={handleLogout} />
       </aside>
@@ -132,7 +151,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
         onClose={() => setDrawerOpen(false)}
         isRtl={isRtl}
         role={effectiveRole}
-        navItems={navItems}
+        sections={navSections}
         pathname={pathname}
         onLogout={handleLogout}
       />

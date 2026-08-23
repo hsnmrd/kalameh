@@ -13,7 +13,9 @@
     "courses": "Courses & Syllabi",
     "students": "Students & Learners",
     "staff": "Staff & Users",
-    "finance": "Financial & Receipts"
+    "finance": "Financial & Receipts",
+    "superAdminSection": "Platform Management",
+    "instituteSection": "Institute Management"
   },
   "language": "Language",
   "logout": "Log Out",

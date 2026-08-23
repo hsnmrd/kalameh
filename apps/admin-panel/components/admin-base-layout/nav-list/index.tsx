@@ -22,40 +22,81 @@ export interface NavItem {
   icon: React.ComponentType<{ className?: string }>
 }
 
-export interface NavListProps {
+export interface NavSection {
+  id: string
+  title?: string
+  badge?: string
   items: NavItem[]
+}
+
+export interface NavListProps {
+  sections?: NavSection[]
+  items?: NavItem[]
   pathname: string
   onItemClick?: () => void
 }
 
-export function NavList({ items, pathname, onItemClick }: NavListProps) {
+export function NavList({
+  sections,
+  items,
+  pathname,
+  onItemClick,
+}: NavListProps) {
   const t = useTranslations("common.nav")
 
+  const effectiveSections: NavSection[] = React.useMemo(() => {
+    if (sections && sections.length > 0) return sections
+    if (items && items.length > 0) return [{ id: "default", items }]
+    return []
+  }, [sections, items])
+
   return (
-    <nav className="space-y-1.5">
-      {items.map((item) => {
-        const Icon = item.icon
-        const isActive =
-          item.href === "/"
-            ? pathname === "/" || pathname === ""
-            : pathname.startsWith(item.href)
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onItemClick}
-            className={cn(
-              "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors",
-              isActive
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            <Icon className="size-4 shrink-0" />
-            <span>{t(item.key)}</span>
-          </Link>
-        )
-      })}
+    <nav className="space-y-5">
+      {effectiveSections.map((section, sectionIdx) => (
+        <div
+          key={section.id}
+          className={cn(
+            "space-y-1.5",
+            sectionIdx > 0 && "border-t border-sidebar-border/50 pt-4"
+          )}
+        >
+          {section.title && (
+            <div className="flex items-center justify-between px-3 pb-1 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+              <span className="truncate">{section.title}</span>
+              {section.badge && (
+                <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-600">
+                  {section.badge}
+                </span>
+              )}
+            </div>
+          )}
+          <div className="space-y-1">
+            {section.items.map((item) => {
+              const Icon = item.icon
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/" || pathname === ""
+                  : pathname.startsWith(item.href)
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onItemClick}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <Icon className="size-4 shrink-0" />
+                  <span>{t(item.key)}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
   )
 }
