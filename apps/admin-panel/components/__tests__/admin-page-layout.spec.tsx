@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "../../test/test-utils"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import { AdminPageHeader } from "../admin-page-header"
 import { AdminPageShell } from "../admin-page-shell"
 import { Users } from "lucide-react"
@@ -27,7 +28,7 @@ describe("AdminPageHeader & AdminPageShell Components", () => {
       expect(
         screen.getByText("لیست تمامی کارمندان و منشی‌ها")
       ).toBeInTheDocument()
-      expect(screen.getByText("12")).toBeInTheDocument()
+      expect(screen.getByText(formatNumber(12, "fa"))).toBeInTheDocument()
 
       const actionButton = screen.getByRole("button", { name: /افزودن کاربر/i })
       expect(actionButton).toBeInTheDocument()

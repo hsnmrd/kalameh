@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen } from "../../../../../test/test-utils"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import { ClassesTable } from "../components/classes-table"
 import type { ClassDto } from "@workspace/types"
 
@@ -48,7 +49,9 @@ describe("ClassesTable Component", () => {
     )
     expect(screen.getByText("گروه A")).toBeInTheDocument()
     expect(screen.getByText("دکتر احمدی")).toBeInTheDocument()
-    expect(screen.getByText("8 / 15")).toBeInTheDocument()
+    expect(
+      screen.getByText(`${formatNumber(8, "fa")} / ${formatNumber(15, "fa")}`)
+    ).toBeInTheDocument()
   })
 
   it("should have link to grades page", () => {

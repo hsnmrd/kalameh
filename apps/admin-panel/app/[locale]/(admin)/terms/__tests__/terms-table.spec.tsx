@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "../../../../../test/test-utils"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import { TermsTable } from "../components/terms-table"
 import type { TermDto } from "@workspace/types"
 
@@ -33,7 +34,7 @@ describe("TermsTable Component", () => {
   it("should render term row with title and class count", () => {
     render(<TermsTable terms={mockTerms} isLoading={false} onEdit={vi.fn()} />)
     expect(screen.getByText("پاییز ۱۴۰۵")).toBeInTheDocument()
-    expect(screen.getByText("4")).toBeInTheDocument()
+    expect(screen.getByText(formatNumber(4, "fa"))).toBeInTheDocument()
   })
 
   it("should trigger onEdit when edit button is clicked", () => {

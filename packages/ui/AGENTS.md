@@ -6,6 +6,9 @@
   - Export and maintain `<DataTable />` (`src/components/data-table.tsx`) built on TanStack Table for consistent tabular data rendering across apps.
 - **Price & Currency Formatting Standard:**
   - Export and maintain `<Price />` and `formatCurrency` (`src/components/price.tsx`, `src/lib/utils.ts`) for centralized 3-digit comma separation and localized currency units (`تومان` / `Toman`).
+  - **Always use `num.toLocaleString("en-US")` for formatting price numbers even when the active locale is `fa`.**
+- **General Number Formatting Standard:**
+  - `formatNumber` (`src/lib/utils.ts`) dynamically applies active locale (`fa-IR` vs `en-US`) for count badges, pagination, and statistical totals.
 - **Theme & Dark Mode Standard (Semantic CSS Variables Only):**
   - Export and maintain `<ThemeProvider />` and `<ThemeToggle />` (`src/components/theme-provider.tsx`, `src/components/theme-toggle.tsx`).
   - **NEVER use `dark:` Tailwind class variants.** All theme adaptations must be driven 100% through semantic CSS variables (`bg-background`, `text-foreground`, `bg-card`, `border-border`, `bg-muted`, etc.) configured in `src/styles/globals.css`.

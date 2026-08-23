@@ -39,7 +39,10 @@
   - Never render raw `<table>` or custom HTML table markups in application pages.
 - **Price & Currency Standard:**
   - Always use `<Price amount={value} />` from `@workspace/ui/components/price` (or `formatCurrency` from `@workspace/ui/lib/utils`) to format prices.
+  - **Always format price numbers with `toLocaleString("en-US")` (English digits e.g. `1,500,000 تومان`) even when the active locale is `fa`.**
   - Do NOT implement ad-hoc `formatCurrency` functions in components or pages. The centralized helper handles 3-digit comma separation and localized currency units (`تومان` / `Toman`).
+- **General Number Formatting Standard:**
+  - Use `formatNumber` from `@workspace/ui/lib/utils` for counts, indexes, and statistical numbers, which formats digits dynamically based on the active locale (`fa-IR` vs `en-US`).
 - **Theme & Dark Mode Standard (Semantic CSS Variables Only):**
   - All apps must wrap their provider tree with `<ThemeProvider />` from `@workspace/ui/components/theme-provider` and provide `<ThemeToggle />` from `@workspace/ui/components/theme-toggle` in headers/navigation.
   - **NEVER use `dark:` Tailwind class variants.** All theme adaptations must be driven 100% through semantic CSS variables (`bg-background`, `text-foreground`, `bg-card`, `border-border`, `bg-muted`, etc.) configured in `globals.css`.

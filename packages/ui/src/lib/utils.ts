@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function formatNumber(
   value: number | string | null | undefined,
-  _locale = "fa"
+  locale?: string
 ): string {
   if (
     value === null ||
@@ -21,8 +21,18 @@ export function formatNumber(
     return "-"
   }
 
+  const currentLocale =
+    locale ??
+    (typeof document !== "undefined" && document.documentElement.lang
+      ? document.documentElement.lang
+      : "fa")
+
+  const normalizedLocale = currentLocale.toLowerCase().startsWith("fa")
+    ? "fa-IR"
+    : "en-US"
+
   const num = Number(value)
-  return num.toLocaleString("en-US")
+  return num.toLocaleString(normalizedLocale)
 }
 
 /**
@@ -30,7 +40,7 @@ export function formatNumber(
  */
 export function formatCurrency(
   amount: number | string | null | undefined,
-  locale = "fa",
+  locale?: string,
   showUnit = true,
   unit?: string
 ): string {
@@ -43,8 +53,14 @@ export function formatCurrency(
     return "-"
   }
 
+  const currentLocale =
+    locale ??
+    (typeof document !== "undefined" && document.documentElement.lang
+      ? document.documentElement.lang
+      : "fa")
+
+  const isFa = currentLocale.toLowerCase().startsWith("fa")
   const num = Number(amount)
-  const isFa = locale.toLowerCase().startsWith("fa")
   const formattedNumber = num.toLocaleString("en-US")
 
   if (!showUnit) {

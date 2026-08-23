@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "../../../../../test/test-utils"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import { BranchesTable } from "../components/branches-table"
 import type { BranchWithStats } from "@workspace/types"
 
@@ -42,8 +43,8 @@ describe("BranchesTable Component", () => {
     expect(screen.getByText("شعبه مرکزی")).toBeInTheDocument()
     expect(screen.getByText("تهران، خیابان آزادی")).toBeInTheDocument()
     expect(screen.getByText("02166001122")).toBeInTheDocument()
-    expect(screen.getByText("6")).toBeInTheDocument()
-    expect(screen.getByText("25")).toBeInTheDocument()
+    expect(screen.getByText(formatNumber(6, "fa"))).toBeInTheDocument()
+    expect(screen.getByText(formatNumber(25, "fa"))).toBeInTheDocument()
   })
 
   it("should trigger onEdit when edit button is clicked", () => {
