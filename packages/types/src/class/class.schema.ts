@@ -5,11 +5,19 @@ export const ClassSchema = z.object({
   instituteId: z.string().uuid(),
   termId: z.string().uuid(),
   courseId: z.string().uuid(),
+  branchId: z.string().uuid().nullable().optional(),
   title: z.string(),
   capacity: z.number(),
   fee: z.number(),
   teacherName: z.string().nullable().optional(),
   schedule: z.string().nullable().optional(),
+  branch: z
+    .object({
+      id: z.string().uuid(),
+      name: z.string(),
+    })
+    .nullable()
+    .optional(),
   term: z
     .object({
       id: z.string().uuid(),

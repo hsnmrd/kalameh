@@ -49,6 +49,10 @@ export const fa: TranslationDictionary = {
     cannotDeleteWithDependencies:
       'امکان حذف آموزشگاه دارای اطلاعات وابسته وجود ندارد',
   },
+  branches: {
+    branchNotFound: 'شعبه مورد نظر یافت نشد',
+    branchAlreadyExists: 'شعبه‌ای با این نام قبلاً در آموزشگاه ثبت شده است',
+  },
   terms: {
     termNotFound: 'ترم تحصیلی مورد نظر یافت نشد',
     termAlreadyExists: 'ترمی با این عنوان قبلاً در آموزشگاه ثبت شده است',

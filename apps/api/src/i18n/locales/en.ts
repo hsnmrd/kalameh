@@ -52,6 +52,11 @@ export const en: TranslationDictionary = {
     cannotDeleteWithDependencies:
       'Cannot delete institute with dependent records',
   },
+  branches: {
+    branchNotFound: 'Requested branch was not found',
+    branchAlreadyExists:
+      'A branch with this name already exists in this institute',
+  },
   terms: {
     termNotFound: 'Requested term was not found',
     termAlreadyExists:

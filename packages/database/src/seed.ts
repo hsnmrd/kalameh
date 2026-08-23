@@ -49,6 +49,44 @@ async function main() {
     `✅ Institute seeded: ${institute.name} (subdomain: ${institute.subdomain})`
   )
 
+  // 2.1. Sample Branches (Tehran)
+  const centralBranch = await prisma.branch.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000010" },
+    update: {
+      name: "شعبه مرکزی (آزادی)",
+      address: "تهران، خیابان آزادی، پلاک ۱۲",
+      phones: ["02166001122"],
+      isActive: true,
+    },
+    create: {
+      id: "00000000-0000-0000-0000-000000000010",
+      instituteId: institute.id,
+      name: "شعبه مرکزی (آزادی)",
+      address: "تهران، خیابان آزادی، پلاک ۱۲",
+      phones: ["02166001122"],
+      isActive: true,
+    },
+  })
+
+  const westBranch = await prisma.branch.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000011" },
+    update: {
+      name: "شعبه سعادت‌آباد",
+      address: "تهران، سعادت‌آباد، میدان کاج، نبش کوچه ششم",
+      phones: ["02122003344"],
+      isActive: true,
+    },
+    create: {
+      id: "00000000-0000-0000-0000-000000000011",
+      instituteId: institute.id,
+      name: "شعبه سعادت‌آباد",
+      address: "تهران، سعادت‌آباد، میدان کاج، نبش کوچه ششم",
+      phones: ["02122003344"],
+      isActive: true,
+    },
+  })
+  console.log(`🏢 Branches seeded: ${centralBranch.name}, ${westBranch.name}`)
+
   // 3. Super Admin User
   await prisma.user.upsert({
     where: {
@@ -200,6 +238,7 @@ async function main() {
     where: { id: "00000000-0000-0000-0000-000000000003" },
     update: {
       title: "کلاس Starter 101 - کد A",
+      branchId: centralBranch.id,
       capacity: 20,
       fee: 1500000,
       teacherName: "استاد سهرابی",
@@ -208,6 +247,7 @@ async function main() {
     create: {
       id: "00000000-0000-0000-0000-000000000003",
       instituteId: institute.id,
+      branchId: centralBranch.id,
       termId: term.id,
       courseId: course.id,
       title: "کلاس Starter 101 - کد A",

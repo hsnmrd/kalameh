@@ -43,6 +43,9 @@ describe('ClassesService', () => {
         findFirst: jest.fn(),
         findUnique: jest.fn(),
       },
+      branch: {
+        findFirst: jest.fn(),
+      },
     };
 
     i18nService = {
@@ -119,6 +122,25 @@ describe('ClassesService', () => {
       const result = await service.create(dto, mockAdmin);
       expect(result.id).toBe('new-class-id');
       expect(result.teacherName).toBe('Dr. Ahmadi');
+    });
+
+    it('should throw BadRequestException if Branch does not exist', async () => {
+      const dto = {
+        title: 'Class 101',
+        termId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a01',
+        courseId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02',
+        branchId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a03',
+        capacity: 15,
+        fee: 1500000,
+      };
+
+      prismaService.term.findFirst.mockResolvedValue({ id: dto.termId });
+      prismaService.course.findFirst.mockResolvedValue({ id: dto.courseId });
+      prismaService.branch.findFirst.mockResolvedValue(null);
+
+      await expect(service.create(dto, mockAdmin)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

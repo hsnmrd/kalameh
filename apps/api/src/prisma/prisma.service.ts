@@ -7,6 +7,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return prisma.institute;
   }
 
+  get branch(): typeof prisma.branch {
+    return prisma.branch;
+  }
+
   get user(): typeof prisma.user {
     return prisma.user;
   }

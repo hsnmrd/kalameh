@@ -13,6 +13,7 @@ export const createUpdateClassSchema = (msg?: {
       .optional(),
     termId: z.string().uuid().optional(),
     courseId: z.string().uuid().optional(),
+    branchId: z.string().uuid().optional().nullable(),
     capacity: z
       .number()
       .int()

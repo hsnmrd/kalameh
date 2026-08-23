@@ -25,7 +25,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err: any, user: any, info: any, context: ExecutionContext) {
+  handleRequest<TUser = any>(
+    err: any,
+    user: any,
+    info: any,
+    context: ExecutionContext,
+  ): TUser {
     if (err || !user) {
       const response = context.switchToHttp().getResponse<Response>();
       if (response && typeof response.clearCookie === 'function') {
@@ -38,6 +43,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       }
       throw err || new UnauthorizedException('احراز هویت انجام نشد');
     }
-    return user;
+    return user as TUser;
   }
 }

@@ -28,6 +28,7 @@ export class ClassesService {
         instituteId,
         ...(filter?.termId ? { termId: filter.termId } : {}),
         ...(filter?.courseId ? { courseId: filter.courseId } : {}),
+        ...(filter?.branchId ? { branchId: filter.branchId } : {}),
         ...(filter?.search
           ? {
               OR: [
@@ -40,6 +41,12 @@ export class ClassesService {
           : {}),
       },
       include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         term: {
           select: {
             id: true,
@@ -168,6 +175,12 @@ export class ClassesService {
         ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
       },
       include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         term: {
           select: {
             id: true,
@@ -242,11 +255,27 @@ export class ClassesService {
       );
     }
 
+    // Verify Branch exists and belongs to institute if provided
+    if (dto.branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: {
+          id: dto.branchId,
+          instituteId,
+        },
+      });
+      if (!branch) {
+        throw new BadRequestException(
+          this.i18n.t('branches.branchNotFound', locale),
+        );
+      }
+    }
+
     const created = await this.prisma.class.create({
       data: {
         instituteId,
         termId: dto.termId,
         courseId: dto.courseId,
+        branchId: dto.branchId || null,
         title: dto.title,
         capacity: dto.capacity,
         fee: dto.fee,
@@ -254,6 +283,12 @@ export class ClassesService {
         schedule: dto.schedule || null,
       },
       include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         term: {
           select: {
             id: true,
@@ -281,11 +316,13 @@ export class ClassesService {
       instituteId: created.instituteId,
       termId: created.termId,
       courseId: created.courseId,
+      branchId: created.branchId,
       title: created.title,
       capacity: created.capacity,
       fee: created.fee,
       teacherName: created.teacherName,
       schedule: created.schedule,
+      branch: created.branch,
       term: created.term,
       course: created.course,
       enrolledCount: 0,
@@ -324,12 +361,26 @@ export class ClassesService {
       }
     }
 
+    if (dto.branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: { id: dto.branchId, instituteId: existing.instituteId },
+      });
+      if (!branch) {
+        throw new BadRequestException(
+          this.i18n.t('branches.branchNotFound', locale),
+        );
+      }
+    }
+
     const updated = await this.prisma.class.update({
       where: { id },
       data: {
         ...(dto.title ? { title: dto.title } : {}),
         ...(dto.termId ? { termId: dto.termId } : {}),
         ...(dto.courseId ? { courseId: dto.courseId } : {}),
+        ...(dto.branchId !== undefined
+          ? { branchId: dto.branchId || null }
+          : {}),
         ...(dto.capacity !== undefined ? { capacity: dto.capacity } : {}),
         ...(dto.fee !== undefined ? { fee: dto.fee } : {}),
         ...(dto.teacherName !== undefined
@@ -338,6 +389,12 @@ export class ClassesService {
         ...(dto.schedule !== undefined ? { schedule: dto.schedule } : {}),
       },
       include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         term: {
           select: {
             id: true,

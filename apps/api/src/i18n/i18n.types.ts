@@ -38,6 +38,10 @@ export interface TranslationDictionary {
     subdomainAlreadyExists: string;
     cannotDeleteWithDependencies: string;
   };
+  branches: {
+    branchNotFound: string;
+    branchAlreadyExists: string;
+  };
   terms: {
     termNotFound: string;
     termAlreadyExists: string;
