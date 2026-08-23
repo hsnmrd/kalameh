@@ -98,7 +98,7 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
             <FieldLabel>{t("createModal.termTitle")}</FieldLabel>
             <Input
               {...register("title")}
-              placeholder="پاییز ۱۴۰۵"
+              placeholder={t("createModal.titlePlaceholder")}
               className="h-10 rounded-xl"
             />
             <FieldError>{errors.title?.message}</FieldError>

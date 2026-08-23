@@ -124,7 +124,7 @@ export function CreateUserModal({
               <Input
                 {...register("firstName")}
                 className="h-10 rounded-xl"
-                placeholder="علی"
+                placeholder={t("createModal.firstNamePlaceholder")}
               />
               <FieldError>{errors.firstName?.message}</FieldError>
             </Field>
@@ -134,7 +134,7 @@ export function CreateUserModal({
               <Input
                 {...register("lastName")}
                 className="h-10 rounded-xl"
-                placeholder="محمدی"
+                placeholder={t("createModal.lastNamePlaceholder")}
               />
               <FieldError>{errors.lastName?.message}</FieldError>
             </Field>
@@ -148,7 +148,7 @@ export function CreateUserModal({
               dir="ltr"
               {...register("phone")}
               className="h-10 rounded-xl text-start font-mono"
-              placeholder="09123456789"
+              placeholder={t("createModal.phonePlaceholder")}
             />
             <FieldError>{errors.phone?.message}</FieldError>
           </Field>
@@ -161,7 +161,7 @@ export function CreateUserModal({
               dir="ltr"
               {...register("nationalCode")}
               className="h-10 rounded-xl text-start font-mono"
-              placeholder="0012345678"
+              placeholder={t("createModal.nationalCodePlaceholder")}
             />
             <FieldError>{errors.nationalCode?.message}</FieldError>
           </Field>
@@ -193,7 +193,7 @@ export function CreateUserModal({
             <PasswordInput
               {...register("password")}
               className="h-10 rounded-xl"
-              placeholder="••••••••"
+              placeholder={t("createModal.passwordPlaceholder")}
             />
             <FieldDescription>{t("createModal.passwordHint")}</FieldDescription>
             <FieldError>{errors.password?.message}</FieldError>

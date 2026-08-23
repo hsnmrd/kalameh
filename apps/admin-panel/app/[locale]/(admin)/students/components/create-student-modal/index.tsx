@@ -155,7 +155,7 @@ export function CreateStudentModal({
                 <Input
                   {...register("firstName")}
                   className="h-10 rounded-xl"
-                  placeholder="علی"
+                  placeholder={t("createModal.firstNamePlaceholder")}
                 />
                 <FieldError>{errors.firstName?.message}</FieldError>
               </Field>
@@ -165,7 +165,7 @@ export function CreateStudentModal({
                 <Input
                   {...register("lastName")}
                   className="h-10 rounded-xl"
-                  placeholder="رضایی"
+                  placeholder={t("createModal.lastNamePlaceholder")}
                 />
                 <FieldError>{errors.lastName?.message}</FieldError>
               </Field>
@@ -177,7 +177,7 @@ export function CreateStudentModal({
                   dir="ltr"
                   {...register("phone")}
                   className="h-10 rounded-xl text-start font-mono"
-                  placeholder="09123456789"
+                  placeholder={t("createModal.phonePlaceholder")}
                 />
                 <FieldError>{errors.phone?.message}</FieldError>
               </Field>
@@ -189,7 +189,7 @@ export function CreateStudentModal({
                   dir="ltr"
                   {...register("nationalCode")}
                   className="h-10 rounded-xl text-start font-mono"
-                  placeholder="0012345678"
+                  placeholder={t("createModal.nationalCodePlaceholder")}
                 />
                 <FieldError>{errors.nationalCode?.message}</FieldError>
               </Field>
@@ -207,7 +207,7 @@ export function CreateStudentModal({
                 <Input
                   {...register("fatherName")}
                   className="h-10 rounded-xl"
-                  placeholder="رضا"
+                  placeholder={t("createModal.fatherNamePlaceholder")}
                 />
                 <FieldError>{errors.fatherName?.message}</FieldError>
               </Field>
@@ -219,7 +219,7 @@ export function CreateStudentModal({
                   dir="ltr"
                   {...register("emergencyPhone")}
                   className="h-10 rounded-xl text-start font-mono"
-                  placeholder="09121112233"
+                  placeholder={t("createModal.emergencyPhonePlaceholder")}
                 />
                 <FieldError>{errors.emergencyPhone?.message}</FieldError>
               </Field>
@@ -233,10 +233,11 @@ export function CreateStudentModal({
                     <Combobox
                       items={genderOptions}
                       value={field.value || undefined}
-                      onValueChange={(val) => field.onChange(val || "")}
+                      onValueChange={(val) =>
+                        field.onChange(val as string | undefined)
+                      }
                       placeholder={t("createModal.genderSelect")}
-                      searchable={false}
-                      data-invalid={Boolean(errors.gender)}
+                      clearable={true}
                     />
                   )}
                 />
@@ -269,7 +270,7 @@ export function CreateStudentModal({
                   <Input
                     {...register("address")}
                     className="h-10 rounded-xl"
-                    placeholder="تهران، خیابان ولیعصر..."
+                    placeholder={t("createModal.addressPlaceholder")}
                   />
                   <FieldError>{errors.address?.message}</FieldError>
                 </Field>
@@ -313,7 +314,7 @@ export function CreateStudentModal({
                 <PasswordInput
                   {...register("password")}
                   className="h-10 rounded-xl"
-                  placeholder="••••••••"
+                  placeholder={t("createModal.passwordPlaceholder")}
                 />
                 <FieldDescription>
                   {t("createModal.passwordHint")}

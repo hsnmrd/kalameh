@@ -14,6 +14,7 @@
     "phone": "Phone Number",
     "currentLevel": "Current Level",
     "score": "Final Score (0 - 100)",
+    "scorePlaceholder": "0-100",
     "status": "Outcome",
     "pass": "Pass",
     "fail": "Fail",

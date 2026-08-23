@@ -79,7 +79,7 @@ export function ResetPasswordModal({
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="h-10 rounded-xl"
-              placeholder="••••••••"
+              placeholder={t("resetPasswordModal.passwordPlaceholder")}
             />
           </Field>
 

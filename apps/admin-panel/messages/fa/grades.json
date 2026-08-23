@@ -14,6 +14,7 @@
     "phone": "شماره تماس",
     "currentLevel": "سطح فعلی",
     "score": "نمره نهایی (۰ تا ۱۰۰)",
+    "scorePlaceholder": "۰-۱۰۰",
     "status": "وضعیت قبولی",
     "pass": "قبول (Pass)",
     "fail": "مردود (Fail)",

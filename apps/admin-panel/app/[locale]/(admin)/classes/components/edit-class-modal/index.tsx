@@ -131,7 +131,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
             <FieldLabel>{t("editModal.classTitle")}</FieldLabel>
             <Input
               {...register("title")}
-              placeholder="گروه A"
+              placeholder={t("editModal.titlePlaceholder")}
               className="h-10 rounded-xl"
             />
             <FieldError>{errors.title?.message}</FieldError>

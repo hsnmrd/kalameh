@@ -176,7 +176,7 @@ export function EditBranchModal({
                 <div key={index} className="flex items-center gap-2">
                   <Input
                     {...register(`phones.${index}` as const)}
-                    placeholder="02188888888"
+                    placeholder={t("editModal.phonePlaceholder")}
                     dir="ltr"
                     className="text-start font-mono"
                   />

@@ -155,7 +155,7 @@ export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
                 <div key={index} className="flex items-center gap-2">
                   <Input
                     {...register(`phones.${index}` as const)}
-                    placeholder="02188888888"
+                    placeholder={t("createModal.phonePlaceholder")}
                     dir="ltr"
                     className="text-start font-mono"
                   />

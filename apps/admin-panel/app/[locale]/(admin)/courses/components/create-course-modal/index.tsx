@@ -116,7 +116,7 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
             <FieldLabel>{t("createModal.courseTitle")}</FieldLabel>
             <Input
               {...register("title")}
-              placeholder="Top Notch 1A"
+              placeholder={t("createModal.titlePlaceholder")}
               className="h-10 rounded-xl"
             />
             <FieldError>{errors.title?.message}</FieldError>

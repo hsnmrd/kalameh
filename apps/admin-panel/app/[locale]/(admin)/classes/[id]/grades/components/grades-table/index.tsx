@@ -126,7 +126,7 @@ export function GradesTable({
                 max={100}
                 value={score ?? ""}
                 onChange={(e) => handleScoreChange(r.studentId, e.target.value)}
-                placeholder="0-100"
+                placeholder={t("table.scorePlaceholder")}
                 className="h-9 w-24 rounded-xl text-center font-mono text-sm"
               />
             </div>

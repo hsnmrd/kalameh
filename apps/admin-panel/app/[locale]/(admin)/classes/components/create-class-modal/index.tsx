@@ -144,7 +144,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
             <FieldLabel>{t("createModal.classTitle")}</FieldLabel>
             <Input
               {...register("title")}
-              placeholder="گروه A"
+              placeholder={t("createModal.titlePlaceholder")}
               className="h-10 rounded-xl"
             />
             <FieldError>{errors.title?.message}</FieldError>
@@ -234,7 +234,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
               <FieldLabel>{t("createModal.teacherName")}</FieldLabel>
               <Input
                 {...register("teacherName")}
-                placeholder="دکتر محمدی"
+                placeholder={t("createModal.teacherNamePlaceholder")}
                 className="h-10 rounded-xl"
               />
               <FieldError>{errors.teacherName?.message}</FieldError>
@@ -244,7 +244,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
               <FieldLabel>{t("createModal.schedule")}</FieldLabel>
               <Input
                 {...register("schedule")}
-                placeholder="زوج ۱۷:۰۰ تا ۱۸:۳۰"
+                placeholder={t("createModal.schedulePlaceholder")}
                 className="h-10 rounded-xl"
               />
               <FieldError>{errors.schedule?.message}</FieldError>
