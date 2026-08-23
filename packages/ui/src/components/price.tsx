@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { cn } from "@workspace/ui/lib/utils"
+import { cn, toPersianDigits, formatCurrency } from "@workspace/ui/lib/utils"
 
 export interface PriceProps extends React.HTMLAttributes<HTMLSpanElement> {
   amount: number | string | null | undefined
@@ -11,35 +11,7 @@ export interface PriceProps extends React.HTMLAttributes<HTMLSpanElement> {
   unitClassName?: string
 }
 
-/**
- * Format a number as currency separated with commas and appended with Toman (تومان / Toman).
- */
-export function formatCurrency(
-  amount: number | string | null | undefined,
-  locale = "fa",
-  showUnit = true,
-  unit?: string
-): string {
-  if (
-    amount === null ||
-    amount === undefined ||
-    amount === "" ||
-    isNaN(Number(amount))
-  ) {
-    return "-"
-  }
-
-  const num = Number(amount)
-  const isFa = locale.toLowerCase().startsWith("fa")
-  const formattedNumber = num.toLocaleString()
-
-  if (!showUnit) {
-    return formattedNumber
-  }
-
-  const currencyUnit = unit ?? (isFa ? "تومان" : "Toman")
-  return `${formattedNumber} ${currencyUnit}`
-}
+export { formatCurrency }
 
 /**
  * Accessible, standardized price / currency presentation component.
@@ -66,10 +38,7 @@ export function Price({
     isNaN(Number(amount))
   ) {
     return (
-      <span
-        className={cn("font-mono text-muted-foreground", className)}
-        {...props}
-      >
+      <span className={cn("text-muted-foreground", className)} {...props}>
         -
       </span>
     )
@@ -77,12 +46,17 @@ export function Price({
 
   const num = Number(amount)
   const isFa = currentLocale.toLowerCase().startsWith("fa")
-  const formattedNumber = num.toLocaleString()
+  const enFormatted = num.toLocaleString("en-US")
+  const formattedNumber = isFa ? toPersianDigits(enFormatted) : enFormatted
   const currencyUnit = unit ?? (isFa ? "تومان" : "Toman")
 
   return (
     <span
-      className={cn("inline-flex items-baseline gap-1 font-mono", className)}
+      className={cn(
+        "inline-flex items-baseline gap-1",
+        isFa ? "font-sans" : "font-mono",
+        className
+      )}
       {...props}
     >
       <span>{formattedNumber}</span>

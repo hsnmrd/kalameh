@@ -10,6 +10,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Badge } from "@workspace/ui/components/badge"
 import { DataTable } from "@workspace/ui/components/data-table"
 import { Price } from "@workspace/ui/components/price"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import type { ClassDto } from "@workspace/types"
 
 export interface ClassesTableProps {
@@ -94,8 +95,10 @@ export function ClassesTable({
                     : "border-border bg-muted text-muted-foreground"
                 }
               >
-                <span className="font-mono">
-                  {enrolled} / {cap}
+                <span
+                  className={cn(locale === "fa" ? "font-sans" : "font-mono")}
+                >
+                  {formatNumber(enrolled, locale)} / {formatNumber(cap, locale)}
                 </span>
               </Badge>
             </div>

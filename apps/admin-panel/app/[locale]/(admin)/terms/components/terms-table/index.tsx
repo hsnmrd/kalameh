@@ -7,6 +7,7 @@ import { Calendar, Edit2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import type { TermDto } from "@workspace/types"
 import { TermStatusBadge } from "../term-status-badge"
 
@@ -23,11 +24,14 @@ export function TermsTable({ terms, isLoading, onEdit }: TermsTableProps) {
   const formatDate = (dateVal: string | Date) => {
     try {
       const d = new Date(dateVal)
-      return new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }).format(d)
+      return new Intl.DateTimeFormat(
+        locale === "fa" ? "fa-IR-u-ca-persian" : "en-US",
+        {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }
+      ).format(d)
     } catch {
       return String(dateVal)
     }
@@ -72,7 +76,7 @@ export function TermsTable({ terms, isLoading, onEdit }: TermsTableProps) {
         header: t("table.classesCount"),
         cell: ({ row }) => (
           <span className="inline-flex items-center rounded-lg bg-muted px-2.5 py-1 text-xs font-semibold text-foreground">
-            {row.original.classesCount ?? 0}
+            {formatNumber(row.original.classesCount ?? 0, locale)}
           </span>
         ),
       },

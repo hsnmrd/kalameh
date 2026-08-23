@@ -1,13 +1,14 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
 import { Users, CheckCircle2, XCircle, Info } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
+import { cn, toPersianDigits } from "@workspace/ui/lib/utils"
 import type {
   ClassGradeRecordDto,
   SingleStudentGradeInput,
@@ -27,6 +28,7 @@ export function GradesTable({
   onSubmit,
 }: GradesTableProps) {
   const t = useTranslations("grades")
+  const locale = useLocale()
 
   const [gradeOverrides, setGradeOverrides] = React.useState<
     Record<string, { finalScore?: number; isPassed?: boolean }>
@@ -100,8 +102,15 @@ export function GradesTable({
         accessorKey: "phone",
         header: t("table.phone"),
         cell: ({ row }) => (
-          <span className="font-mono text-foreground/80">
-            {row.original.student.phone}
+          <span
+            className={cn(
+              "text-foreground/80",
+              locale === "fa" ? "font-sans" : "font-mono"
+            )}
+          >
+            {locale === "fa"
+              ? toPersianDigits(row.original.student.phone)
+              : row.original.student.phone}
           </span>
         ),
       },

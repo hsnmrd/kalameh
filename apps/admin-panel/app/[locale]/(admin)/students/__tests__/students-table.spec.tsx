@@ -93,7 +93,9 @@ describe("StudentsTable & StudentsFilter Components", () => {
       )
 
       expect(screen.getAllByText("Ali Rezaei").length).toBeGreaterThan(0)
-      expect(screen.getAllByText("09121111111").length).toBeGreaterThan(0)
+      expect(
+        screen.getAllByText(/09121111111|۰۹۱۲۱۱۱۱۱۱۱/).length
+      ).toBeGreaterThan(0)
       expect(screen.getAllByText("Reza").length).toBeGreaterThan(0)
       expect(screen.getAllByText("Sara Ahmadi").length).toBeGreaterThan(0)
     })

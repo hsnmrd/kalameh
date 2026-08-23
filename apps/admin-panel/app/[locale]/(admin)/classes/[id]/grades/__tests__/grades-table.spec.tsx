@@ -44,7 +44,7 @@ describe("GradesTable Component", () => {
     )
 
     expect(screen.getByText("Ali Rezaei")).toBeInTheDocument()
-    expect(screen.getByText("09121111111")).toBeInTheDocument()
+    expect(screen.getByText(/09121111111|۰۹۱۲۱۱۱۱۱۱۱/)).toBeInTheDocument()
     expect(screen.getByDisplayValue("85")).toBeInTheDocument()
   })
 

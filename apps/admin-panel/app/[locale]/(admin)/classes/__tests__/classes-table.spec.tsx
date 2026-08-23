@@ -48,7 +48,7 @@ describe("ClassesTable Component", () => {
     )
     expect(screen.getByText("گروه A")).toBeInTheDocument()
     expect(screen.getByText("دکتر احمدی")).toBeInTheDocument()
-    expect(screen.getByText("8 / 15")).toBeInTheDocument()
+    expect(screen.getByText(/8 \/ 15|۸ \/ ۱۵/)).toBeInTheDocument()
   })
 
   it("should have link to grades page", () => {

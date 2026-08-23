@@ -8,6 +8,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
+import { cn, toPersianDigits } from "@workspace/ui/lib/utils"
 import type { StudentDto } from "@workspace/types"
 import { StudentStatusBadge } from "../student-status-badge"
 import { StudentCard } from "../student-card"
@@ -56,8 +57,15 @@ export function StudentsTable({
                 <span className="text-sm font-medium text-foreground">
                   {fullName}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  {student.phone}
+                <span
+                  className={cn(
+                    "text-xs text-muted-foreground",
+                    locale === "fa" ? "font-sans" : "font-mono"
+                  )}
+                >
+                  {locale === "fa"
+                    ? toPersianDigits(student.phone)
+                    : student.phone}
                 </span>
               </div>
             </div>
@@ -77,8 +85,17 @@ export function StudentsTable({
         accessorKey: "nationalCode",
         header: t("table.nationalCode"),
         cell: ({ row }) => (
-          <span className="font-mono text-sm text-muted-foreground">
-            {row.original.nationalCode || "—"}
+          <span
+            className={cn(
+              "text-sm text-muted-foreground",
+              locale === "fa" ? "font-sans" : "font-mono"
+            )}
+          >
+            {row.original.nationalCode
+              ? locale === "fa"
+                ? toPersianDigits(row.original.nationalCode)
+                : row.original.nationalCode
+              : "—"}
           </span>
         ),
       },
@@ -117,11 +134,14 @@ export function StudentsTable({
             const date = new Date(row.original.createdAt)
             return (
               <span className="text-xs text-muted-foreground">
-                {new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                }).format(date)}
+                {new Intl.DateTimeFormat(
+                  locale === "fa" ? "fa-IR-u-ca-persian" : "en-US",
+                  {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  }
+                ).format(date)}
               </span>
             )
           } catch {

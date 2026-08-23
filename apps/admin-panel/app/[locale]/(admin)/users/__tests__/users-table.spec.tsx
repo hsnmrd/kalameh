@@ -71,9 +71,13 @@ describe("UsersTable & UsersFilter Components", () => {
       )
 
       expect(screen.getAllByText(/Ali Rezaei/i).length).toBeGreaterThan(0)
-      expect(screen.getAllByText("09121111111").length).toBeGreaterThan(0)
+      expect(
+        screen.getAllByText(/09121111111|۰۹۱۲۱۱۱۱۱۱۱/).length
+      ).toBeGreaterThan(0)
       expect(screen.getAllByText(/Sara Ahmadi/i).length).toBeGreaterThan(0)
-      expect(screen.getAllByText("09122222222").length).toBeGreaterThan(0)
+      expect(
+        screen.getAllByText(/09122222222|۰۹۱۲۲۲۲۲۲۲۲/).length
+      ).toBeGreaterThan(0)
     })
 
     it("should trigger onEdit and onResetPassword callbacks when action buttons are clicked", () => {

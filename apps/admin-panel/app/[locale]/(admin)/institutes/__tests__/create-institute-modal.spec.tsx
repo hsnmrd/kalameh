@@ -83,7 +83,7 @@ describe("CreateInstituteModal Component", () => {
     fireEvent.click(addPhoneBtn)
 
     await waitFor(() => {
-      const phoneInputs = screen.getAllByPlaceholderText(/02188776655/i)
+      const phoneInputs = screen.getAllByPlaceholderText(/۰۲۱-۸۸۷۷۶۶۵۵/i)
       expect(phoneInputs.length).toBe(2)
     })
   })

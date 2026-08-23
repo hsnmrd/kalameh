@@ -8,6 +8,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
 import { Price } from "@workspace/ui/components/price"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import type { CourseDto } from "@workspace/types"
 import { CoursePrerequisiteBadge } from "../course-prerequisite-badge"
 
@@ -64,7 +65,7 @@ export function CoursesTable({
         header: t("table.classesCount"),
         cell: ({ row }) => (
           <span className="inline-flex items-center rounded-lg bg-muted px-2.5 py-1 text-xs font-semibold text-foreground">
-            {row.original.classesCount ?? 0}
+            {formatNumber(row.original.classesCount ?? 0, locale)}
           </span>
         ),
       },

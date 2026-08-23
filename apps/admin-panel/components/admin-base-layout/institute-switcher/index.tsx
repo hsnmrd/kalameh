@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import {
   Building2,
   ChevronsUpDown,
@@ -24,7 +24,7 @@ import {
   DialogCloseButton,
 } from "@workspace/ui/components/dialog"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { cn } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { useActiveInstitute } from "@/lib/stores"
 import { useRouter, useIsRtl } from "@/i18n/routing"
 
@@ -34,6 +34,7 @@ export interface InstituteSwitcherProps {
 
 export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
   const t = useTranslations("institutes")
+  const locale = useLocale()
   const isRtl = useIsRtl()
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
@@ -205,7 +206,8 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
                         variant={isSelected ? "success" : "secondary"}
                         className="px-1.5 py-0 text-[10px]"
                       >
-                        {inst.classesCount} {t("switcher.classes")}
+                        {formatNumber(inst.classesCount, locale)}{" "}
+                        {t("switcher.classes")}
                       </Badge>
                       {isSelected ? (
                         <Check className="size-4 shrink-0 text-emerald-600" />

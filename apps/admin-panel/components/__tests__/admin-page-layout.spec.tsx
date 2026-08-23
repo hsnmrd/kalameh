@@ -27,7 +27,7 @@ describe("AdminPageHeader & AdminPageShell Components", () => {
       expect(
         screen.getByText("لیست تمامی کارمندان و منشی‌ها")
       ).toBeInTheDocument()
-      expect(screen.getByText("12")).toBeInTheDocument()
+      expect(screen.getByText(/12|۱۲/)).toBeInTheDocument()
 
       const actionButton = screen.getByRole("button", { name: /افزودن کاربر/i })
       expect(actionButton).toBeInTheDocument()

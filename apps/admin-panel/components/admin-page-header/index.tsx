@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { useLocale } from "next-intl"
 import { Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
-import { cn } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 
 export interface AdminPageHeaderAction {
   label: string
@@ -35,6 +36,7 @@ export function AdminPageHeader({
   children,
   className,
 }: AdminPageHeaderProps) {
+  const locale = useLocale()
   const ActionIcon = action?.icon || Plus
 
   return (
@@ -52,10 +54,13 @@ export function AdminPageHeader({
           {typeof count === "number" && (
             <Badge
               variant="secondary"
-              className="inline-flex items-center gap-1 font-semibold"
+              className={cn(
+                "inline-flex items-center gap-1 font-semibold",
+                locale === "fa" ? "font-sans" : "font-mono"
+              )}
             >
               {CountIcon && <CountIcon className="size-3" />}
-              <span>{count}</span>
+              <span>{formatNumber(count, locale)}</span>
             </Badge>
           )}
         </div>
