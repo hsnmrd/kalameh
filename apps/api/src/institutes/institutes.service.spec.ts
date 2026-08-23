@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { InstitutesService } from './institutes.service';
@@ -155,6 +155,45 @@ describe('InstitutesService', () => {
       expect(result.subdomain).toBe('shiraz');
     });
 
+    it('should save logoUrl with uploaded file filename when creating institute', async () => {
+      prismaService.institute.findUnique.mockResolvedValue(null);
+      prismaService.institute.create.mockResolvedValue({
+        id: 'inst-new',
+        name: 'Shiraz Institute',
+        subdomain: 'shiraz',
+        logoUrl: '/uploads/institutes/logo-123.png',
+        isActive: true,
+        bankCardNumber: null,
+        bankAccountName: null,
+        bankShaba: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const mockFile = {
+        filename: 'logo-123.png',
+        originalname: 'logo.png',
+        mimetype: 'image/png',
+        size: 1024,
+      } as any;
+
+      const result = await service.create(
+        { name: 'Shiraz Institute', subdomain: 'shiraz', isActive: true },
+        mockFile,
+        mockSuperAdmin,
+        'en',
+      );
+
+      expect(result.id).toBe('inst-new');
+      expect(prismaService.institute.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            logoUrl: '/uploads/institutes/logo-123.png',
+          }),
+        }),
+      );
+    });
+
     it('should throw ConflictException if subdomain already exists', async () => {
       prismaService.institute.findUnique.mockResolvedValue({
         id: 'inst-existing',
@@ -174,6 +213,61 @@ describe('InstitutesService', () => {
       await expect(
         service.create(
           { name: 'Tehran Institute', subdomain: 'tehran', isActive: true },
+          undefined,
+          mockInstituteAdmin,
+          'en',
+        ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('update', () => {
+    it('should update institute with new uploaded logo file', async () => {
+      prismaService.institute.findUniqueOrThrow.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Tehran Institute',
+        subdomain: 'tehran',
+      });
+      prismaService.institute.update.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Tehran Institute Updated',
+        subdomain: 'tehran',
+        logoUrl: '/uploads/institutes/updated-logo.png',
+        _count: { classes: 5, users: 20 },
+      });
+
+      const mockFile = {
+        filename: 'updated-logo.png',
+        originalname: 'logo.png',
+        mimetype: 'image/png',
+        size: 2048,
+      } as any;
+
+      const result = await service.update(
+        'inst-tehran',
+        { name: 'Tehran Institute Updated' },
+        mockFile,
+        mockInstituteAdmin,
+        'en',
+      );
+
+      expect(result.id).toBe('inst-tehran');
+      expect(prismaService.institute.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'inst-tehran' },
+          data: expect.objectContaining({
+            name: 'Tehran Institute Updated',
+            logoUrl: '/uploads/institutes/updated-logo.png',
+          }),
+        }),
+      );
+    });
+
+    it('should throw ForbiddenException if institute admin tries to update different institute', async () => {
+      await expect(
+        service.update(
+          'inst-other',
+          { name: 'Other' },
           undefined,
           mockInstituteAdmin,
           'en',

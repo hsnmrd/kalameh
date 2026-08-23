@@ -1,6 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { randomUUID } from 'node:crypto';
 import {
   Injectable,
   ConflictException,
@@ -10,7 +7,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { CreateInstituteDto } from './dto/create-institute.dto';
 import { UpdateInstituteDto } from './dto/update-institute.dto';
-import { UploadedFileType } from '../common/types/uploaded-file.type';
 import { JwtPayload, SupportedLocale } from '@workspace/types';
 
 @Injectable()
@@ -19,16 +15,6 @@ export class InstitutesService {
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
   ) {}
-
-  private async saveLogoFile(file: UploadedFileType): Promise<string> {
-    const uploadDir = path.resolve(process.cwd(), 'uploads/institutes');
-    await fs.promises.mkdir(uploadDir, { recursive: true });
-    const ext = path.extname(file.originalname) || '.png';
-    const filename = `${randomUUID()}${ext}`;
-    const filePath = path.join(uploadDir, filename);
-    await fs.promises.writeFile(filePath, file.buffer);
-    return `/uploads/institutes/${filename}`;
-  }
 
   async findAll(currentUser: JwtPayload) {
     if (currentUser.role !== 'SUPER_ADMIN') {
@@ -94,7 +80,7 @@ export class InstitutesService {
 
   async create(
     dto: CreateInstituteDto,
-    file: UploadedFileType | undefined,
+    file: Express.Multer.File | undefined,
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ) {
@@ -113,8 +99,8 @@ export class InstitutesService {
     }
 
     let logoUrl = dto.logoUrl || null;
-    if (file) {
-      logoUrl = await this.saveLogoFile(file);
+    if (file?.filename) {
+      logoUrl = `/uploads/institutes/${file.filename}`;
     }
 
     const institute = await this.prisma.institute.create({
@@ -142,7 +128,7 @@ export class InstitutesService {
   async update(
     id: string,
     dto: UpdateInstituteDto,
-    file: UploadedFileType | undefined,
+    file: Express.Multer.File | undefined,
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ) {
@@ -167,8 +153,8 @@ export class InstitutesService {
     }
 
     let logoUrl = dto.logoUrl;
-    if (file) {
-      logoUrl = await this.saveLogoFile(file);
+    if (file?.filename) {
+      logoUrl = `/uploads/institutes/${file.filename}`;
     }
 
     const { _count, ...updated } = await this.prisma.institute.update({

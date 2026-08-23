@@ -18,7 +18,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CurrentLocale } from '../i18n';
-import { UploadedFileType } from '../common/types/uploaded-file.type';
+import { instituteLogoMulterOptions } from '../common/upload/multer.util';
 import type { JwtPayload, SupportedLocale } from '@workspace/types';
 
 @Controller('institutes')
@@ -44,10 +44,10 @@ export class InstitutesController {
 
   @Post()
   @Roles('SUPER_ADMIN')
-  @UseInterceptors(FileInterceptor('logo'))
+  @UseInterceptors(FileInterceptor('logo', instituteLogoMulterOptions))
   async create(
     @Body() dto: CreateInstituteDto,
-    @UploadedFile() file: UploadedFileType | undefined,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentUser() currentUser: JwtPayload,
     @CurrentLocale() locale: SupportedLocale,
   ) {
@@ -56,11 +56,11 @@ export class InstitutesController {
 
   @Patch(':id')
   @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN')
-  @UseInterceptors(FileInterceptor('logo'))
+  @UseInterceptors(FileInterceptor('logo', instituteLogoMulterOptions))
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateInstituteDto,
-    @UploadedFile() file: UploadedFileType | undefined,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentUser() currentUser: JwtPayload,
     @CurrentLocale() locale: SupportedLocale,
   ) {
