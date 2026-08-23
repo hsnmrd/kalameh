@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
 import { GraduationCap, Edit2, KeyRound, Eye } from "lucide-react"
@@ -8,7 +9,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
-import { cn } from "@workspace/ui/lib/utils"
+import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
 import type { StudentDto } from "@workspace/types"
 import { StudentStatusBadge } from "../student-status-badge"
 import { StudentCard } from "../student-card"
@@ -44,10 +45,13 @@ export function StudentsTable({
             <div className="flex items-center gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                 {student.avatarUrl ? (
-                  <img
-                    src={student.avatarUrl}
+                  <Image
+                    src={getAssetUrl(student.avatarUrl)}
                     alt={fullName}
+                    width={36}
+                    height={36}
                     className="size-9 rounded-full object-cover"
+                    unoptimized
                   />
                 ) : (
                   <span>{initials}</span>

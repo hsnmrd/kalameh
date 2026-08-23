@@ -71,6 +71,7 @@ export function CreateInstituteModal({
     watch,
     setValue,
     getValues,
+    trigger,
     formState: { errors },
   } = useForm<CreateInstituteInput>({
     resolver: zodResolver(createInstituteSchema),
@@ -136,7 +137,28 @@ export function CreateInstituteModal({
     },
   })
 
+  const handleNextStep = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+
+    if (activeTab === "general") {
+      const isValid = await trigger(["name", "subdomain", "primaryColor"])
+      if (isValid) {
+        setActiveTab("contact")
+      }
+    } else if (activeTab === "contact") {
+      setActiveTab("banking")
+    }
+  }
+
   const onSubmit = (values: CreateInstituteInput) => {
+    // Guard: Prevent submission if not on the final tab
+    if (activeTab !== "banking") {
+      return
+    }
+
     createMutation.mutate({
       ...values,
       phones: values.phones ? values.phones.filter(Boolean) : [],
@@ -214,7 +236,21 @@ export function CreateInstituteModal({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 px-6 pb-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              const target = e.target as HTMLElement
+              if (target.tagName !== "TEXTAREA") {
+                e.preventDefault()
+                if (activeTab !== "banking") {
+                  void handleNextStep()
+                }
+              }
+            }
+          }}
+          className="space-y-5 px-6 pb-6"
+        >
           {/* TAB 1: General & Branding */}
           <div className={cn("space-y-4", activeTab !== "general" && "hidden")}>
             <Field data-invalid={Boolean(errors.name)}>
@@ -442,18 +478,16 @@ export function CreateInstituteModal({
 
               {activeTab !== "banking" ? (
                 <Button
+                  key="btn-next-step"
                   type="button"
-                  onClick={() =>
-                    setActiveTab(
-                      activeTab === "general" ? "contact" : "banking"
-                    )
-                  }
+                  onClick={handleNextStep}
                   className="h-10 rounded-xl bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                 >
                   {t("createModal.next")}
                 </Button>
               ) : (
                 <Button
+                  key="btn-submit-form"
                   type="submit"
                   disabled={createMutation.isPending}
                   className="h-10 rounded-xl bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"

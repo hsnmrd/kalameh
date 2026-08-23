@@ -5,6 +5,7 @@ import { useLocale } from "next-intl"
 import {
   LayoutDashboard,
   Layers,
+  Building2,
   BookOpen,
   Calendar,
   Users,
@@ -31,6 +32,7 @@ export interface AdminBaseLayoutProps {
 
 const INSTITUTE_NAV: NavItem[] = [
   { key: "dashboard", href: "/", icon: LayoutDashboard },
+  { key: "branches", href: "/branches", icon: Building2 },
   { key: "terms", href: "/terms", icon: Calendar },
   { key: "courses", href: "/courses", icon: BookOpen },
   { key: "classes", href: "/classes", icon: Layers },
@@ -46,6 +48,7 @@ const SUPER_ADMIN_GLOBAL_NAV: NavItem[] = [
 
 const SUPER_ADMIN_INSTITUTE_NAV: NavItem[] = [
   { key: "dashboard", href: "/", icon: LayoutDashboard },
+  { key: "branches", href: "/branches", icon: Building2 },
   { key: "terms", href: "/terms", icon: Calendar },
   { key: "courses", href: "/courses", icon: BookOpen },
   { key: "classes", href: "/classes", icon: Layers },

@@ -22,7 +22,12 @@ import {
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { classesResource, termsResource, coursesResource } from "@/lib/api"
+import {
+  classesResource,
+  termsResource,
+  coursesResource,
+  branchesResource,
+} from "@/lib/api"
 import {
   useCreateClassSchema,
   type CreateClassInput,
@@ -51,6 +56,11 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
     select: (list) => list.map((c) => ({ value: c.id, label: c.title })),
   })
 
+  const { data: branchOptions = [] } = useQuery({
+    ...branchesResource.list.toQuery(),
+    select: (list) => list.map((b) => ({ value: b.id, label: b.name })),
+  })
+
   const {
     register,
     handleSubmit,
@@ -65,6 +75,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
       title: "",
       termId: "",
       courseId: "",
+      branchId: null,
       capacity: 15,
       fee: 1500000,
       teacherName: "",
@@ -89,6 +100,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
         title: "",
         termId: terms?.[0]?.id || "",
         courseId: courses?.[0]?.id || "",
+        branchId: null,
         capacity: 15,
         fee: courses?.[0]?.baseFee || 1500000,
         teacherName: "",
@@ -175,6 +187,25 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
               <FieldError>{errors.courseId?.message}</FieldError>
             </Field>
           </div>
+
+          {/* Branch (Optional) */}
+          <Field data-invalid={Boolean(errors.branchId)}>
+            <FieldLabel>{t("createModal.branch")}</FieldLabel>
+            <Controller
+              control={control}
+              name="branchId"
+              render={({ field }) => (
+                <Combobox
+                  items={branchOptions}
+                  value={field.value || ""}
+                  onValueChange={(val) => field.onChange(val || null)}
+                  placeholder={t("createModal.branchPlaceholder")}
+                  className="w-full"
+                />
+              )}
+            />
+            <FieldError>{errors.branchId?.message}</FieldError>
+          </Field>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field data-invalid={Boolean(errors.capacity)}>

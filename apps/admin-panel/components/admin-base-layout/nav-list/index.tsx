@@ -9,6 +9,7 @@ export type NavItemKey =
   | "dashboard"
   | "institutes"
   | "classes"
+  | "branches"
   | "terms"
   | "courses"
   | "students"

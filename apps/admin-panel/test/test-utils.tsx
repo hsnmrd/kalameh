@@ -11,6 +11,7 @@ import coursesMessagesFa from "../messages/fa/courses.json"
 import classesMessagesFa from "../messages/fa/classes.json"
 import gradesMessagesFa from "../messages/fa/grades.json"
 import institutesMessagesFa from "../messages/fa/institutes.json"
+import branchesMessagesFa from "../messages/fa/branches.json"
 
 const defaultMessages = {
   auth: authMessagesFa,
@@ -18,6 +19,7 @@ const defaultMessages = {
   students: studentsMessagesFa,
   common: commonMessagesFa,
   terms: termsMessagesFa,
+  branches: branchesMessagesFa,
   courses: coursesMessagesFa,
   classes: classesMessagesFa,
   grades: gradesMessagesFa,

@@ -18,7 +18,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import type { InstituteWithStats } from "@workspace/types"
 import { useActiveInstitute } from "@/lib/stores"
 import { useRouter, useIsRtl } from "@/i18n/routing"
-import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
 
 export interface InstituteCardProps {
   institute: InstituteWithStats
@@ -74,7 +74,7 @@ export function InstituteCard({ institute }: InstituteCardProps) {
             >
               {institute.logoUrl ? (
                 <Image
-                  src={institute.logoUrl}
+                  src={getAssetUrl(institute.logoUrl)}
                   alt={institute.name}
                   width={48}
                   height={48}

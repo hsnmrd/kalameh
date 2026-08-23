@@ -17,13 +17,15 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
-import {
-  Combobox,
-  type ComboboxOption,
-} from "@workspace/ui/components/combobox"
+import { Combobox } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type { ClassDto } from "@workspace/types"
-import { classesResource, termsResource, coursesResource } from "@/lib/api"
+import {
+  classesResource,
+  termsResource,
+  coursesResource,
+  branchesResource,
+} from "@/lib/api"
 import {
   useUpdateClassSchema,
   type UpdateClassInput,
@@ -50,6 +52,11 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
     select: (courses) => courses.map((c) => ({ value: c.id, label: c.title })),
   })
 
+  const { data: branchOptions = [] } = useQuery({
+    ...branchesResource.list.toQuery(),
+    select: (branches) => branches.map((b) => ({ value: b.id, label: b.name })),
+  })
+
   const {
     register,
     handleSubmit,
@@ -62,6 +69,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
       title: "",
       termId: "",
       courseId: "",
+      branchId: null,
       capacity: 15,
       fee: 0,
       teacherName: "",
@@ -75,6 +83,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
         title: cls.title,
         termId: cls.termId,
         courseId: cls.courseId,
+        branchId: cls.branchId || null,
         capacity: cls.capacity,
         fee: cls.fee,
         teacherName: cls.teacherName || "",
@@ -120,13 +129,17 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Field data-invalid={Boolean(errors.title)}>
             <FieldLabel>{t("editModal.classTitle")}</FieldLabel>
-            <Input {...register("title")} className="h-10 rounded-xl" />
+            <Input
+              {...register("title")}
+              placeholder="گروه A"
+              className="h-10 rounded-xl"
+            />
             <FieldError>{errors.title?.message}</FieldError>
           </Field>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field data-invalid={Boolean(errors.termId)}>
-              <FieldLabel>{t("createModal.term")}</FieldLabel>
+              <FieldLabel>{t("editModal.term")}</FieldLabel>
               <Controller
                 control={control}
                 name="termId"
@@ -135,7 +148,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
                     items={termOptions}
                     value={field.value || ""}
                     onValueChange={(val) => field.onChange(val || "")}
-                    placeholder={t("createModal.term")}
+                    placeholder={t("editModal.term")}
                     className="w-full"
                   />
                 )}
@@ -144,7 +157,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
             </Field>
 
             <Field data-invalid={Boolean(errors.courseId)}>
-              <FieldLabel>{t("createModal.course")}</FieldLabel>
+              <FieldLabel>{t("editModal.course")}</FieldLabel>
               <Controller
                 control={control}
                 name="courseId"
@@ -153,7 +166,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
                     items={courseOptions}
                     value={field.value || ""}
                     onValueChange={(val) => field.onChange(val || "")}
-                    placeholder={t("createModal.course")}
+                    placeholder={t("editModal.course")}
                     className="w-full"
                   />
                 )}
@@ -161,6 +174,25 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
               <FieldError>{errors.courseId?.message}</FieldError>
             </Field>
           </div>
+
+          {/* Branch (Optional) */}
+          <Field data-invalid={Boolean(errors.branchId)}>
+            <FieldLabel>{t("editModal.branch")}</FieldLabel>
+            <Controller
+              control={control}
+              name="branchId"
+              render={({ field }) => (
+                <Combobox
+                  items={branchOptions}
+                  value={field.value || ""}
+                  onValueChange={(val) => field.onChange(val || null)}
+                  placeholder={t("editModal.branchPlaceholder")}
+                  className="w-full"
+                />
+              )}
+            />
+            <FieldError>{errors.branchId?.message}</FieldError>
+          </Field>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field data-invalid={Boolean(errors.capacity)}>

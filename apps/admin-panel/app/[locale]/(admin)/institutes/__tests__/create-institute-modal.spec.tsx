@@ -88,6 +88,28 @@ describe("CreateInstituteModal Component", () => {
     })
   })
 
+  it("should step from contact tab to banking tab when clicking next button without submitting", async () => {
+    render(<CreateInstituteModal open={true} onClose={vi.fn()} />)
+
+    // Switch to contact tab
+    const contactTabBtn = screen.getByRole("button", {
+      name: /اطلاعات تماس و نشانی/i,
+    })
+    fireEvent.click(contactTabBtn)
+
+    expect(screen.getByText(/نشانی آموزشگاه/i)).toBeInTheDocument()
+
+    // Click Next button on contact tab
+    const nextBtn = screen.getByRole("button", { name: /مرحله بعد/i })
+    fireEvent.click(nextBtn)
+
+    // Should now be on Banking tab
+    await waitFor(() => {
+      expect(screen.getByText(/نام صاحب حساب/i)).toBeInTheDocument()
+      expect(screen.getByText(/شماره شبا/i)).toBeInTheDocument()
+    })
+  })
+
   it("should call onClose when cancel button is clicked", () => {
     const handleClose = vi.fn()
     render(<CreateInstituteModal open={true} onClose={handleClose} />)

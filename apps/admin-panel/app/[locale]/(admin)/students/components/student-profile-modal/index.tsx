@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { useTranslations, useLocale } from "next-intl"
 import {
   Dialog,
@@ -22,6 +23,7 @@ import {
   HeartHandshake,
 } from "lucide-react"
 import type { StudentDto } from "@workspace/types"
+import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { StudentStatusBadge } from "../student-status-badge"
 
 export interface StudentProfileModalProps {
@@ -74,10 +76,13 @@ export function StudentProfileModal({
           <div className="flex items-center gap-4 rounded-2xl bg-muted/40 p-4">
             <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground shadow-xs">
               {student.avatarUrl ? (
-                <img
-                  src={student.avatarUrl}
+                <Image
+                  src={getAssetUrl(student.avatarUrl)}
                   alt={fullName}
+                  width={64}
+                  height={64}
                   className="size-16 rounded-2xl object-cover"
+                  unoptimized
                 />
               ) : (
                 <span>{initial}</span>

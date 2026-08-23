@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { Upload, X, Image as ImageIcon, AlertCircle } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
@@ -143,11 +144,13 @@ export function Attachment({
         <div className="relative flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-3 shadow-2xs transition-all">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/60">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={previewSrc}
                 alt={displayName || "Attachment preview"}
+                width={48}
+                height={48}
                 className="size-full object-contain p-1"
+                unoptimized
               />
             </div>
             <div className="min-w-0 flex-1">

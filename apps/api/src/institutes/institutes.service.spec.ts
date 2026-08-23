@@ -33,6 +33,9 @@ describe('InstitutesService', () => {
         create: jest.fn(),
         update: jest.fn(),
       },
+      branch: {
+        create: jest.fn(),
+      },
     };
 
     const module: TestingModule = await Test.createTestingModule({

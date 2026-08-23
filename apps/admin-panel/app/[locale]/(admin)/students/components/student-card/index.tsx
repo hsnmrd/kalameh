@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { useTranslations } from "next-intl"
 import {
   Eye,
@@ -14,6 +15,7 @@ import {
 import type { StudentDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { StudentStatusBadge } from "../student-status-badge"
 
 export interface StudentCardProps {
@@ -39,10 +41,13 @@ export function StudentCard({
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
             {student.avatarUrl ? (
-              <img
-                src={student.avatarUrl}
+              <Image
+                src={getAssetUrl(student.avatarUrl)}
                 alt={fullName}
+                width={40}
+                height={40}
                 className="size-10 rounded-full object-cover"
+                unoptimized
               />
             ) : (
               <span>{initial}</span>

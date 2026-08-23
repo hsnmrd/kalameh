@@ -69,6 +69,17 @@ export function ClassesTable({
         ),
       },
       {
+        accessorKey: "branch",
+        header: t("table.branch"),
+        cell: ({ row }) => (
+          <span className="text-sm text-foreground/80">
+            {row.original.branch?.name || (
+              <span className="text-muted-foreground">—</span>
+            )}
+          </span>
+        ),
+      },
+      {
         accessorKey: "teacherName",
         header: t("table.instructor"),
         cell: ({ row }) => (

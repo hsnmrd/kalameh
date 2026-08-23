@@ -32,6 +32,8 @@
   - Do not render duplicate inline error alert banners inside forms.
 - **Loading UI Standard:**
   - Use `<Spinner />` from `@workspace/ui/components/spinner` instead of raw `lucide-react` icons.
+- **Image Standard (Next.js Image Only):**
+  - **NEVER use raw `<img>` tags.** Always import and use Next.js `<Image />` from `next/image` (with `unoptimized` for uploaded/external assets wrapped in `getAssetUrl`).
 - **Single Card Anti-Pattern:**
   - Do not wrap pages with a `<Card>` component if the page content is already rendered within a single container (like the student login view).
 - **UI Primitives:** Use `@workspace/ui` (shadcn/ui + Tailwind CSS) as the component source.

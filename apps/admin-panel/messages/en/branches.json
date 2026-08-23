@@ -1,0 +1,47 @@
+{
+  "title": "Branches Management",
+  "subtitle": "Define branches, manage contact details, addresses, and active branch statuses",
+  "addBranch": "Add Branch",
+  "table": {
+    "name": "Branch Name",
+    "address": "Address",
+    "phones": "Contact Numbers",
+    "status": "Status",
+    "classesCount": "Classes",
+    "usersCount": "Users",
+    "actions": "Actions",
+    "empty": "No branches found for this institute."
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "createModal": {
+    "title": "Add New Branch",
+    "description": "Enter the name, address, and phone numbers for the new branch.",
+    "branchName": "Branch Name",
+    "branchNamePlaceholder": "e.g. Central Branch, West Branch",
+    "address": "Physical Address",
+    "addressPlaceholder": "Enter branch address...",
+    "phones": "Contact Numbers",
+    "addPhone": "Add Phone Number",
+    "isActive": "Branch is active",
+    "submit": "Create Branch",
+    "cancel": "Cancel",
+    "success": "Branch created successfully."
+  },
+  "editModal": {
+    "title": "Edit Branch",
+    "description": "Update branch details, address, and status.",
+    "branchName": "Branch Name",
+    "branchNamePlaceholder": "Branch name",
+    "address": "Physical Address",
+    "addressPlaceholder": "Enter branch address...",
+    "phones": "Contact Numbers",
+    "addPhone": "Add Phone Number",
+    "isActive": "Branch is active",
+    "submit": "Save Changes",
+    "cancel": "Cancel",
+    "success": "Branch updated successfully."
+  }
+}

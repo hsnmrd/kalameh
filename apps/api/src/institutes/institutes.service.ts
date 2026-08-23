@@ -118,6 +118,17 @@ export class InstitutesService {
       },
     });
 
+    // Automatically create a default Central Branch for the new institute
+    await this.prisma.branch.create({
+      data: {
+        instituteId: institute.id,
+        name: locale === 'fa' ? 'شعبه مرکزی' : 'Central Branch',
+        address: dto.address || null,
+        phones: dto.phones ? dto.phones.filter(Boolean) : [],
+        isActive: true,
+      },
+    });
+
     return {
       ...institute,
       classesCount: 0,
