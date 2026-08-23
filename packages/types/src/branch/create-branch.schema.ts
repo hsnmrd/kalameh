@@ -14,6 +14,7 @@ export const createCreateBranchSchema = (msg?: { nameMin?: string }) =>
         return []
       }, z.array(z.string().trim()))
       .optional(),
+    instituteId: z.string().uuid().optional(),
     isActive: z
       .preprocess((val) => {
         if (val === "true" || val === true) return true

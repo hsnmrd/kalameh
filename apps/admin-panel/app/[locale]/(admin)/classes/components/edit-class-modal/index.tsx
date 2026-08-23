@@ -26,6 +26,7 @@ import {
   coursesResource,
   branchesResource,
 } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import {
   useUpdateClassSchema,
   type UpdateClassInput,
@@ -40,20 +41,25 @@ export interface EditClassModalProps {
 export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
   const t = useTranslations("classes")
   const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
   const updateClassSchema = useUpdateClassSchema()
 
+  const queryParams = activeInstituteId
+    ? { instituteId: activeInstituteId }
+    : undefined
+
   const { data: termOptions = [] } = useQuery({
-    ...termsResource.list.toQuery(),
+    ...termsResource.list.toQuery(queryParams),
     select: (terms) => terms.map((tm) => ({ value: tm.id, label: tm.title })),
   })
 
   const { data: courseOptions = [] } = useQuery({
-    ...coursesResource.list.toQuery(),
+    ...coursesResource.list.toQuery(queryParams),
     select: (courses) => courses.map((c) => ({ value: c.id, label: c.title })),
   })
 
   const { data: branchOptions = [] } = useQuery({
-    ...branchesResource.list.toQuery(),
+    ...branchesResource.list.toQuery(queryParams),
     select: (branches) => branches.map((b) => ({ value: b.id, label: b.name })),
   })
 

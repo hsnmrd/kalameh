@@ -32,6 +32,9 @@ describe('BranchesService', () => {
         create: jest.fn(),
         update: jest.fn(),
       },
+      institute: {
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -85,6 +88,40 @@ describe('BranchesService', () => {
         include: { _count: { select: { classes: true, users: true } } },
         orderBy: { createdAt: 'desc' },
       });
+    });
+
+    it('should auto-create Central Branch if institute has zero branches', async () => {
+      prismaService.branch.findMany.mockResolvedValue([]);
+      prismaService.institute.findUnique.mockResolvedValue({
+        id: 'inst-1',
+        name: 'Kalameh Tehran',
+        subdomain: 'tehran',
+        address: 'Azadi St',
+        phones: ['02166001122'],
+      });
+      prismaService.branch.create.mockResolvedValue({
+        id: 'branch-auto',
+        instituteId: 'inst-1',
+        name: 'شعبه مرکزی',
+        address: 'Azadi St',
+        phones: ['02166001122'],
+        isActive: true,
+        _count: { classes: 0, users: 0 },
+      });
+
+      const result = await service.findAll(mockAdminUser);
+      expect(prismaService.branch.create).toHaveBeenCalledWith({
+        data: {
+          instituteId: 'inst-1',
+          name: 'شعبه مرکزی',
+          address: 'Azadi St',
+          phones: ['02166001122'],
+          isActive: true,
+        },
+        include: { _count: { select: { classes: true, users: true } } },
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('شعبه مرکزی');
     });
   });
 

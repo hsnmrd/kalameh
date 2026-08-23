@@ -28,6 +28,7 @@ import {
   coursesResource,
   branchesResource,
 } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import {
   useCreateClassSchema,
   type CreateClassInput,
@@ -41,23 +42,28 @@ export interface CreateClassModalProps {
 export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
   const t = useTranslations("classes")
   const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
   const createClassSchema = useCreateClassSchema()
 
-  const { data: terms } = useQuery(termsResource.list.toQuery())
-  const { data: courses } = useQuery(coursesResource.list.toQuery())
+  const queryParams = activeInstituteId
+    ? { instituteId: activeInstituteId }
+    : undefined
+
+  const { data: terms } = useQuery(termsResource.list.toQuery(queryParams))
+  const { data: courses } = useQuery(coursesResource.list.toQuery(queryParams))
 
   const { data: termOptions = [] } = useQuery({
-    ...termsResource.list.toQuery(),
+    ...termsResource.list.toQuery(queryParams),
     select: (list) => list.map((tm) => ({ value: tm.id, label: tm.title })),
   })
 
   const { data: courseOptions = [] } = useQuery({
-    ...coursesResource.list.toQuery(),
+    ...coursesResource.list.toQuery(queryParams),
     select: (list) => list.map((c) => ({ value: c.id, label: c.title })),
   })
 
   const { data: branchOptions = [] } = useQuery({
-    ...branchesResource.list.toQuery(),
+    ...branchesResource.list.toQuery(queryParams),
     select: (list) => list.map((b) => ({ value: b.id, label: b.name })),
   })
 

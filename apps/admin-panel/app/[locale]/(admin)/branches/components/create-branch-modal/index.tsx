@@ -20,6 +20,7 @@ import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { branchesResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import {
   useCreateBranchSchema,
   type CreateBranchInput,
@@ -33,6 +34,7 @@ export interface CreateBranchModalProps {
 export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
   const t = useTranslations("branches")
   const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
   const createBranchSchema = useCreateBranchSchema()
 
   const {
@@ -78,7 +80,7 @@ export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
     onSuccess: () => {
       toast.success(t("createModal.success"))
       queryClient.invalidateQueries({
-        queryKey: branchesResource.list.toQuery().queryKey,
+        queryKey: branchesResource.list.baseKey(),
       })
       reset()
       onClose()
@@ -94,6 +96,7 @@ export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
       ...values,
       address: values.address?.trim() || null,
       phones: cleanedPhones,
+      instituteId: activeInstituteId || undefined,
     })
   }
 

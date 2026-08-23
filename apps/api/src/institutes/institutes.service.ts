@@ -197,6 +197,23 @@ export class InstitutesService {
       },
     });
 
+    if (dto.address !== undefined || dto.phones !== undefined) {
+      await this.prisma.branch.updateMany({
+        where: {
+          instituteId: id,
+          name: { in: ['شعبه مرکزی', 'Central Branch'] },
+        },
+        data: {
+          ...(dto.address !== undefined
+            ? { address: dto.address || null }
+            : {}),
+          ...(dto.phones !== undefined
+            ? { phones: dto.phones.filter(Boolean) }
+            : {}),
+        },
+      });
+    }
+
     return {
       ...updated,
       classesCount: _count.classes,

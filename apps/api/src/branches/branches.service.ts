@@ -24,18 +24,45 @@ export class BranchesService {
     currentUser: JwtPayload,
     targetInstituteId?: string,
   ): Promise<BranchWithStats[]> {
-    const instituteId =
-      currentUser.role === 'SUPER_ADMIN' && targetInstituteId
-        ? targetInstituteId
-        : currentUser.instituteId;
+    const isSuperAdmin = currentUser.role === 'SUPER_ADMIN';
+    const instituteId = isSuperAdmin
+      ? targetInstituteId
+      : currentUser.instituteId;
 
-    const branches = await this.prisma.branch.findMany({
-      where: { instituteId },
+    let branches = await this.prisma.branch.findMany({
+      where: instituteId
+        ? { instituteId }
+        : isSuperAdmin
+          ? { institute: { subdomain: { not: 'system' } } }
+          : { instituteId: currentUser.instituteId },
       include: {
         _count: { select: { classes: true, users: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    // If querying a specific institute and no branches exist yet, auto-create Central Branch from institute info
+    if (instituteId && branches.length === 0) {
+      const institute = await this.prisma.institute.findUnique({
+        where: { id: instituteId },
+      });
+
+      if (institute && institute.subdomain !== 'system') {
+        const centralBranch = await this.prisma.branch.create({
+          data: {
+            instituteId: institute.id,
+            name: 'شعبه مرکزی',
+            address: institute.address || null,
+            phones: institute.phones || [],
+            isActive: true,
+          },
+          include: {
+            _count: { select: { classes: true, users: true } },
+          },
+        });
+        branches = [centralBranch];
+      }
+    }
 
     return branches.map(({ _count, ...branch }) => ({
       ...branch,
@@ -80,7 +107,10 @@ export class BranchesService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<BranchWithStats> {
-    const instituteId = currentUser.instituteId;
+    const instituteId =
+      currentUser.role === 'SUPER_ADMIN' && dto.instituteId
+        ? dto.instituteId
+        : currentUser.instituteId;
 
     const existing = await this.prisma.branch.findFirst({
       where: {

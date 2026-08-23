@@ -4,6 +4,7 @@ import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { BranchWithStats } from "@workspace/types"
 import { branchesResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { BranchesHeader } from "./components/branches-header"
 import { BranchesTable } from "./components/branches-table"
@@ -15,9 +16,12 @@ export default function BranchesPage() {
   const [editingBranch, setEditingBranch] =
     React.useState<BranchWithStats | null>(null)
 
-  const { data: branches, isLoading } = useQuery(
-    branchesResource.list.toQuery()
-  )
+  const { activeInstituteId } = useActiveInstitute()
+
+  const { data: branches, isLoading } = useQuery({
+    ...branchesResource.list.toQuery({ instituteId: activeInstituteId }),
+    enabled: !!activeInstituteId,
+  })
 
   return (
     <AdminPageShell

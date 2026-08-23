@@ -96,7 +96,7 @@ export function EditBranchModal({
     onSuccess: () => {
       toast.success(t("editModal.success"))
       queryClient.invalidateQueries({
-        queryKey: branchesResource.list.toQuery().queryKey,
+        queryKey: branchesResource.list.baseKey(),
       })
       onClose()
     },
