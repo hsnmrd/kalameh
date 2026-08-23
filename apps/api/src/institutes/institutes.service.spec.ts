@@ -19,7 +19,7 @@ describe('InstitutesService', () => {
 
   const mockInstituteAdmin: JwtPayload = {
     sub: 'user-inst-admin',
-    role: 'INSTITUTE_ADMIN',
+    role: 'ADMIN',
     instituteId: 'inst-tehran',
     phone: '09120000002',
   };
@@ -81,7 +81,7 @@ describe('InstitutesService', () => {
       });
     });
 
-    it('should return only own institute for INSTITUTE_ADMIN', async () => {
+    it('should return only own institute for ADMIN', async () => {
       prismaService.institute.findUniqueOrThrow.mockResolvedValue({
         id: 'inst-tehran',
         name: 'Tehran Institute',

@@ -14,6 +14,7 @@ export type NavItemKey =
   | "courses"
   | "students"
   | "staff"
+  | "rolePermissions"
   | "finance"
 
 export interface NavItem {

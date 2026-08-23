@@ -13,7 +13,7 @@ describe('GradesService', () => {
   const mockAdmin: JwtPayload = {
     sub: 'admin-id',
     phone: '09121111111',
-    role: 'INSTITUTE_ADMIN',
+    role: 'ADMIN',
     instituteId: 'inst-1',
   };
 

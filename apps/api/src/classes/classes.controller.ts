@@ -13,19 +13,23 @@ import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { ClassFilterDto } from './dto/class-filter.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CurrentLocale } from '../i18n';
-import type { JwtPayload, SupportedLocale } from '@workspace/types';
+import {
+  PERMISSIONS,
+  type JwtPayload,
+  type SupportedLocale,
+} from '@workspace/types';
 
 @Controller('classes')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
 
   @Get()
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK', 'STUDENT')
+  @RequirePermissions(PERMISSIONS.VIEW_CLASSES)
   async findAll(
     @CurrentUser() currentUser: JwtPayload,
     @Query() filter: ClassFilterDto,
@@ -34,13 +38,13 @@ export class ClassesController {
   }
 
   @Get('available')
-  @Roles('STUDENT', 'INSTITUTE_ADMIN', 'CLERK', 'SUPER_ADMIN')
+  @RequirePermissions(PERMISSIONS.VIEW_CLASSES)
   async findAvailableForStudent(@CurrentUser() currentUser: JwtPayload) {
     return this.classesService.findAvailableForStudent(currentUser);
   }
 
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK', 'STUDENT')
+  @RequirePermissions(PERMISSIONS.VIEW_CLASSES)
   async findOne(
     @Param('id') id: string,
     @CurrentUser() currentUser: JwtPayload,
@@ -50,7 +54,7 @@ export class ClassesController {
   }
 
   @Post()
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN')
+  @RequirePermissions(PERMISSIONS.MANAGE_CLASSES)
   async create(
     @Body() dto: CreateClassDto,
     @CurrentUser() currentUser: JwtPayload,
@@ -60,7 +64,7 @@ export class ClassesController {
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN')
+  @RequirePermissions(PERMISSIONS.MANAGE_CLASSES)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateClassDto,

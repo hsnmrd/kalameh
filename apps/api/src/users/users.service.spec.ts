@@ -22,7 +22,7 @@ describe('UsersService', () => {
   const mockInstituteAdmin: JwtPayload = {
     sub: 'admin-id',
     phone: '09121111111',
-    role: 'INSTITUTE_ADMIN',
+    role: 'ADMIN',
     instituteId: 'inst-1',
   };
 
@@ -73,7 +73,7 @@ describe('UsersService', () => {
   });
 
   describe('create', () => {
-    it('should successfully create a student by INSTITUTE_ADMIN', async () => {
+    it('should successfully create a student by ADMIN', async () => {
       const dto = {
         firstName: 'Ali',
         lastName: 'Rezaei',
@@ -107,12 +107,12 @@ describe('UsersService', () => {
       expect(result.instituteId).toBe('inst-1');
     });
 
-    it('should allow SUPER_ADMIN to create an INSTITUTE_ADMIN in target institute', async () => {
+    it('should allow SUPER_ADMIN to create an ADMIN in target institute', async () => {
       const dto = {
         firstName: 'New',
         lastName: 'Manager',
         phone: '09121234567',
-        role: 'INSTITUTE_ADMIN' as const,
+        role: 'ADMIN' as const,
         instituteId: 'target-inst-id',
       };
 
@@ -124,10 +124,10 @@ describe('UsersService', () => {
 
       const result = await service.create(mockSuperAdmin, dto);
       expect(result.instituteId).toBe('target-inst-id');
-      expect(result.role).toBe('INSTITUTE_ADMIN');
+      expect(result.role).toBe('ADMIN');
     });
 
-    it('should throw ForbiddenException if INSTITUTE_ADMIN tries to create SUPER_ADMIN', async () => {
+    it('should throw ForbiddenException if ADMIN tries to create SUPER_ADMIN', async () => {
       const dto = {
         firstName: 'Bad',
         lastName: 'Admin',
@@ -242,7 +242,7 @@ describe('UsersService', () => {
     });
 
     it('should return empty list if CLERK requests non-student role', async () => {
-      const result = await service.findAll(mockClerk, 'INSTITUTE_ADMIN');
+      const result = await service.findAll(mockClerk, 'ADMIN');
       expect(result).toEqual([]);
       expect(prismaService.user.findMany).not.toHaveBeenCalled();
     });
@@ -364,7 +364,7 @@ describe('UsersService', () => {
       const targetAdmin = {
         id: 'admin-2',
         instituteId: 'inst-1',
-        role: 'INSTITUTE_ADMIN',
+        role: 'ADMIN',
       };
       prismaService.user.findFirstOrThrow.mockResolvedValue(targetAdmin);
 

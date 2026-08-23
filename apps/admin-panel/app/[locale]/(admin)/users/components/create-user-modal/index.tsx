@@ -55,7 +55,7 @@ export function CreateUserModal({
     if (currentUser?.role === ROLES.SUPER_ADMIN) {
       return [
         { value: ROLES.CLERK, label: t("roles.CLERK") },
-        { value: ROLES.INSTITUTE_ADMIN, label: t("roles.INSTITUTE_ADMIN") },
+        { value: ROLES.ADMIN, label: t("roles.ADMIN") },
       ]
     }
     return [{ value: ROLES.CLERK, label: t("roles.CLERK") }]

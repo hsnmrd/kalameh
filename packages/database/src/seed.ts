@@ -122,7 +122,7 @@ async function main() {
       phone: "09120000002",
       firstName: "مدیر",
       lastName: "آموزشگاه",
-      role: Role.INSTITUTE_ADMIN,
+      role: Role.ADMIN,
       nationalCode: "0000000002",
     },
     {

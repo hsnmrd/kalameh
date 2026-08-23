@@ -2,7 +2,13 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { JwtPayload } from '@workspace/types';
+import {
+  JwtPayload,
+  DEFAULT_ROLE_PERMISSIONS,
+  ROLES,
+  type Permission,
+  type Role,
+} from '@workspace/types';
 
 import type { Request } from 'express';
 
@@ -46,11 +52,44 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('آموزشگاه مربوطه غیرفعال شده است');
     }
 
+    // Resolve effective permissions
+    const permissions = await this.resolvePermissions(
+      user.role,
+      user.instituteId,
+    );
+
     return {
       sub: user.id,
       phone: user.phone,
       role: user.role,
       instituteId: user.instituteId,
+      permissions,
     };
+  }
+
+  private async resolvePermissions(
+    role: Role,
+    instituteId: string,
+  ): Promise<string[]> {
+    // SUPER_ADMIN always has all permissions
+    if (role === ROLES.SUPER_ADMIN) {
+      return [];
+    }
+
+    if (this.prisma.rolePermission) {
+      const override = await this.prisma.rolePermission.findUnique({
+        where: {
+          instituteId_role: { instituteId, role },
+        },
+      });
+
+      if (override) {
+        return override.permissions;
+      }
+    }
+
+    return [
+      ...((DEFAULT_ROLE_PERMISSIONS[role] as readonly Permission[]) || []),
+    ];
   }
 }

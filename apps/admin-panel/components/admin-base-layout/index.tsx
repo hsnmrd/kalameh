@@ -12,6 +12,7 @@ import {
   GraduationCap,
   CreditCard,
   ShieldAlert,
+  ShieldCheck,
 } from "lucide-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ROLES, type Role } from "@workspace/types"
@@ -42,10 +43,11 @@ const INSTITUTE_NAV_ITEMS: NavItem[] = [
   { key: "classes", href: "/classes", icon: Layers },
   { key: "students", href: "/students", icon: GraduationCap },
   { key: "staff", href: "/users", icon: Users },
+  { key: "rolePermissions", href: "/role-permissions", icon: ShieldCheck },
   { key: "finance", href: "/transactions", icon: CreditCard },
 ]
 
-const INSTITUTE_ADMIN_NAV: NavItem[] = [
+const ADMIN_NAV: NavItem[] = [
   { key: "dashboard", href: "/", icon: LayoutDashboard },
   ...INSTITUTE_NAV_ITEMS,
 ]
@@ -62,7 +64,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   const { activeInstitute } = useActiveInstitute()
 
   const { data: user } = useQuery(authResource.me.toQuery())
-  const effectiveRole = role ?? user?.role ?? ROLES.INSTITUTE_ADMIN
+  const effectiveRole = role ?? user?.role ?? ROLES.ADMIN
 
   const navSections = React.useMemo<NavSection[]>(() => {
     if (effectiveRole === ROLES.SUPER_ADMIN) {
@@ -94,7 +96,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
     return [
       {
         id: "institute-nav",
-        items: INSTITUTE_ADMIN_NAV,
+        items: ADMIN_NAV,
       },
     ]
   }, [effectiveRole, activeInstitute, t])

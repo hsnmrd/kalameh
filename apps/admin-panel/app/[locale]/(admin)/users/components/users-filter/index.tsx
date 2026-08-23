@@ -35,9 +35,9 @@ export function UsersFilter({
 
     if (
       currentUser?.role === ROLES.SUPER_ADMIN ||
-      currentUser?.role === ROLES.INSTITUTE_ADMIN
+      currentUser?.role === ROLES.ADMIN
     ) {
-      tabs.push({ key: ROLES.INSTITUTE_ADMIN, label: t("filter.admins") })
+      tabs.push({ key: ROLES.ADMIN, label: t("filter.admins") })
     }
 
     return tabs

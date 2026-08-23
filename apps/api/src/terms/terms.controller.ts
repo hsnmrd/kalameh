@@ -12,19 +12,23 @@ import { TermsService } from './terms.service';
 import { CreateTermDto } from './dto/create-term.dto';
 import { UpdateTermDto } from './dto/update-term.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CurrentLocale } from '../i18n';
-import type { JwtPayload, SupportedLocale } from '@workspace/types';
+import {
+  PERMISSIONS,
+  type JwtPayload,
+  type SupportedLocale,
+} from '@workspace/types';
 
 @Controller('terms')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class TermsController {
   constructor(private readonly termsService: TermsService) {}
 
   @Get()
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK', 'STUDENT')
+  @RequirePermissions(PERMISSIONS.VIEW_TERMS)
   async findAll(
     @CurrentUser() currentUser: JwtPayload,
     @Query('instituteId') targetInstituteId?: string,
@@ -33,7 +37,7 @@ export class TermsController {
   }
 
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK', 'STUDENT')
+  @RequirePermissions(PERMISSIONS.VIEW_TERMS)
   async findOne(
     @Param('id') id: string,
     @CurrentUser() currentUser: JwtPayload,
@@ -43,7 +47,7 @@ export class TermsController {
   }
 
   @Post()
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN')
+  @RequirePermissions(PERMISSIONS.MANAGE_TERMS)
   async create(
     @Body() dto: CreateTermDto,
     @CurrentUser() currentUser: JwtPayload,
@@ -53,7 +57,7 @@ export class TermsController {
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN')
+  @RequirePermissions(PERMISSIONS.MANAGE_TERMS)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateTermDto,

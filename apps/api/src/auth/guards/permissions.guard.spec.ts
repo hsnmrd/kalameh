@@ -44,7 +44,7 @@ describe('PermissionsGuard', () => {
       .spyOn(reflector, 'getAllAndOverride')
       .mockReturnValue([PERMISSIONS.MANAGE_USERS]);
     const context = createMockExecutionContext({
-      role: ROLES.INSTITUTE_ADMIN,
+      role: ROLES.ADMIN,
     });
 
     expect(guard.canActivate(context)).toBe(true);
@@ -66,7 +66,7 @@ describe('PermissionsGuard', () => {
       .spyOn(reflector, 'getAllAndOverride')
       .mockReturnValue([PERMISSIONS.MANAGE_INSTITUTES]);
     const context = createMockExecutionContext({
-      role: ROLES.INSTITUTE_ADMIN, // INSTITUTE_ADMIN cannot manage institutes
+      role: ROLES.ADMIN, // ADMIN cannot manage institutes
     });
 
     expect(() => guard.canActivate(context)).toThrow(ForbiddenException);

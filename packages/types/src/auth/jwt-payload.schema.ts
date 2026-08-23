@@ -6,6 +6,7 @@ export const JwtPayloadSchema = z.object({
   phone: z.string(),
   role: RoleEnum,
   instituteId: z.string().uuid(),
+  permissions: z.array(z.string()).optional(),
   iat: z.number().optional(),
   exp: z.number().optional(),
 })

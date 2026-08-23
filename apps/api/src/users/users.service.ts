@@ -27,9 +27,9 @@ export class UsersService {
         ? dto.instituteId
         : currentUser.instituteId;
 
-    // RBAC: Non-super-admins cannot create SUPER_ADMIN or INSTITUTE_ADMIN accounts
-    if (currentUser.role === 'INSTITUTE_ADMIN') {
-      if (dto.role === 'SUPER_ADMIN' || dto.role === 'INSTITUTE_ADMIN') {
+    // RBAC: Non-super-admins cannot create SUPER_ADMIN or ADMIN accounts
+    if (currentUser.role === 'ADMIN') {
+      if (dto.role === 'SUPER_ADMIN' || dto.role === 'ADMIN') {
         throw new ForbiddenException(
           this.i18n.t('users.instituteAdminAllowedRolesOnly', locale),
         );
@@ -109,7 +109,7 @@ export class UsersService {
 
     if (currentUser.role === 'SUPER_ADMIN') {
       roleFilter = role;
-    } else if (currentUser.role === 'INSTITUTE_ADMIN') {
+    } else if (currentUser.role === 'ADMIN') {
       // Institute Admin can never view SUPER_ADMIN accounts
       if (role === 'SUPER_ADMIN') {
         return [];

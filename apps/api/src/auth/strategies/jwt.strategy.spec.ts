@@ -13,6 +13,9 @@ describe('JwtStrategy', () => {
         findUnique: jest.fn(),
         findUniqueOrThrow: jest.fn(),
       },
+      rolePermission: {
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
     };
     strategy = new JwtStrategy(prismaService);
   });
@@ -46,6 +49,7 @@ describe('JwtStrategy', () => {
       phone: '09123456789',
       role: 'STUDENT',
       instituteId: 'inst-1',
+      permissions: expect.any(Array),
     });
   });
 

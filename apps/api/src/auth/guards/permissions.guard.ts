@@ -5,7 +5,12 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Role, Permission, ROLES, hasPermission } from '@workspace/types';
+import {
+  Role,
+  Permission,
+  ROLES,
+  DEFAULT_ROLE_PERMISSIONS,
+} from '@workspace/types';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 import { I18nService } from '../../i18n/i18n.service';
 
@@ -27,7 +32,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<{
-      user?: { role: Role };
+      user?: { role: Role; permissions?: string[] };
       headers?: Record<string, string | string[] | undefined>;
     }>();
     const locale = this.i18n.extractLocale(request);
@@ -42,9 +47,14 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    const userRole = user.role;
+    // Use JWT-embedded permissions if available, otherwise fall back to static defaults
+    const userPermissions: readonly string[] =
+      user.permissions && user.permissions.length > 0
+        ? user.permissions
+        : DEFAULT_ROLE_PERMISSIONS[user.role] || [];
+
     const hasAllRequired = requiredPermissions.every((permission) =>
-      hasPermission(userRole, permission),
+      userPermissions.includes(permission),
     );
 
     if (!hasAllRequired) {

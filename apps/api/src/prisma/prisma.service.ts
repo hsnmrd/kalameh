@@ -35,6 +35,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return prisma.transaction;
   }
 
+  get rolePermission(): typeof prisma.rolePermission {
+    return prisma.rolePermission;
+  }
+
   get client(): typeof prisma {
     return prisma;
   }

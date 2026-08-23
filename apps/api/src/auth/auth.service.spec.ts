@@ -24,6 +24,9 @@ describe('AuthService', () => {
         findUniqueOrThrow: jest.fn(),
         update: jest.fn(),
       },
+      rolePermission: {
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
     };
 
     jwtService = {
@@ -85,6 +88,7 @@ describe('AuthService', () => {
         phone: '09123456789',
         role: 'STUDENT',
         instituteId: 'inst-1',
+        permissions: expect.any(Array),
       });
     });
 

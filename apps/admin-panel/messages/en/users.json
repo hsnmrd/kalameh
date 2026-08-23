@@ -10,8 +10,13 @@
   },
   "roles": {
     "STUDENT": "Student",
+    "SUPER_STUDENT": "Super Student",
     "CLERK": "Clerk",
-    "INSTITUTE_ADMIN": "Institute Admin",
+    "SUPER_CLERK": "Super Clerk",
+    "TEACHER": "Teacher",
+    "SUPERVISOR": "Supervisor",
+    "ASSISTANT": "Assistant",
+    "ADMIN": "Institute Admin",
     "SUPER_ADMIN": "Super Admin"
   },
   "status": {

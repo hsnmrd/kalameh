@@ -25,12 +25,13 @@ model Institute {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  branches     Branch[]
-  users        User[]
-  courses      Course[]
-  terms        Term[]
-  classes      Class[]
-  transactions Transaction[]
+  branches        Branch[]
+  users           User[]
+  courses         Course[]
+  terms           Term[]
+  classes         Class[]
+  transactions    Transaction[]
+  rolePermissions RolePermission[]
 }
 
 model Branch {
@@ -54,8 +55,13 @@ model Branch {
 
 enum Role {
   SUPER_ADMIN
-  INSTITUTE_ADMIN
+  ADMIN
+  ASSISTANT
+  SUPERVISOR
+  SUPER_CLERK
   CLERK
+  TEACHER
+  SUPER_STUDENT
   STUDENT
 }
 
@@ -220,5 +226,20 @@ model Transaction {
   institute Institute @relation(fields: [instituteId], references: [id])
   student   User      @relation(fields: [studentId], references: [id])
 
+  @@index([instituteId])
+}
+
+model RolePermission {
+  id          String   @id @default(uuid())
+  instituteId String
+  role        Role
+  permissions String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+
+  @@unique([instituteId, role])
   @@index([instituteId])
 }

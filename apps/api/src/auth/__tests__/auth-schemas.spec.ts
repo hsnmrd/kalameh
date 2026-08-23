@@ -203,7 +203,7 @@ describe('Auth & User Zod Schemas (@workspace/types)', () => {
       const payload = {
         sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
         phone: '09123456789',
-        role: 'INSTITUTE_ADMIN' as const,
+        role: 'ADMIN' as const,
         instituteId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
       };
       const result = JwtPayloadSchema.safeParse(payload);
@@ -233,30 +233,27 @@ describe('Auth & User Zod Schemas (@workspace/types)', () => {
       ).toBe(true);
     });
 
-    it('INSTITUTE_ADMIN should have expected permissions', () => {
-      expect(
-        hasPermission(ROLES.INSTITUTE_ADMIN, PERMISSIONS.MANAGE_USERS),
-      ).toBe(true);
-      expect(
-        hasPermission(ROLES.INSTITUTE_ADMIN, PERMISSIONS.MANAGE_CLASSES),
-      ).toBe(true);
-      expect(
-        hasPermission(ROLES.INSTITUTE_ADMIN, PERMISSIONS.MANAGE_INSTITUTES),
-      ).toBe(false);
+    it('ADMIN should have expected permissions', () => {
+      expect(hasPermission(ROLES.ADMIN, PERMISSIONS.MANAGE_USERS)).toBe(true);
+      expect(hasPermission(ROLES.ADMIN, PERMISSIONS.MANAGE_CLASSES)).toBe(true);
+      expect(hasPermission(ROLES.ADMIN, PERMISSIONS.MANAGE_INSTITUTES)).toBe(
+        false,
+      );
     });
 
     it('CLERK should have limited permissions', () => {
       expect(hasPermission(ROLES.CLERK, PERMISSIONS.VIEW_USERS)).toBe(true);
-      expect(hasPermission(ROLES.CLERK, PERMISSIONS.MANAGE_USERS)).toBe(true);
+      expect(hasPermission(ROLES.CLERK, PERMISSIONS.MANAGE_STUDENTS)).toBe(
+        true,
+      );
+      expect(hasPermission(ROLES.CLERK, PERMISSIONS.MANAGE_USERS)).toBe(false);
       expect(hasPermission(ROLES.CLERK, PERMISSIONS.MANAGE_INSTITUTES)).toBe(
         false,
       );
     });
 
     it('STUDENT should have view and enroll permissions only', () => {
-      expect(hasPermission(ROLES.STUDENT, PERMISSIONS.ENROLL_COURSE)).toBe(
-        true,
-      );
+      expect(hasPermission(ROLES.STUDENT, PERMISSIONS.ENROLL_SELF)).toBe(true);
       expect(hasPermission(ROLES.STUDENT, PERMISSIONS.VIEW_CLASSES)).toBe(true);
       expect(hasPermission(ROLES.STUDENT, PERMISSIONS.MANAGE_USERS)).toBe(
         false,

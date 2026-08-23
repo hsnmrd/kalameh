@@ -12,6 +12,7 @@ import { ClassesModule } from './classes/classes.module';
 import { GradesModule } from './grades/grades.module';
 import { StudentsModule } from './students/students.module';
 import { I18nModule } from './i18n/i18n.module';
+import { RolePermissionsModule } from './role-permissions/role-permissions.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { I18nModule } from './i18n/i18n.module';
     CoursesModule,
     ClassesModule,
     GradesModule,
+    RolePermissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

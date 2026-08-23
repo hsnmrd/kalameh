@@ -12,7 +12,7 @@ describe('BranchesService', () => {
 
   const mockAdminUser: JwtPayload = {
     sub: 'user-admin',
-    role: 'INSTITUTE_ADMIN',
+    role: 'ADMIN',
     instituteId: 'inst-1',
     phone: '09120000001',
   };

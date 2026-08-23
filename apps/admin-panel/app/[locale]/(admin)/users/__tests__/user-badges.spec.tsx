@@ -11,8 +11,8 @@ describe("User Badges", () => {
       expect(screen.getByText(/ادمین کل|مدیر کل/i)).toBeInTheDocument()
     })
 
-    it("should render correct badge for INSTITUTE_ADMIN", () => {
-      render(<UserRoleBadge role={ROLES.INSTITUTE_ADMIN} />)
+    it("should render correct badge for ADMIN", () => {
+      render(<UserRoleBadge role={ROLES.ADMIN} />)
       expect(screen.getByText(/مدیر آموزشگاه/i)).toBeInTheDocument()
     })
 

@@ -14,19 +14,24 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CurrentLocale } from '../i18n';
-import type { JwtPayload, Role, SupportedLocale } from '@workspace/types';
+import {
+  PERMISSIONS,
+  type JwtPayload,
+  type Role,
+  type SupportedLocale,
+} from '@workspace/types';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.MANAGE_USERS)
   async create(
     @CurrentUser() currentUser: JwtPayload,
     @Body() dto: CreateUserDto,
@@ -36,7 +41,7 @@ export class UsersController {
   }
 
   @Get()
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.VIEW_USERS)
   async findAll(
     @CurrentUser() currentUser: JwtPayload,
     @Query('role') role?: string,
@@ -54,7 +59,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.VIEW_USERS)
   async findOne(
     @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,
@@ -64,7 +69,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.MANAGE_USERS)
   async update(
     @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,
@@ -76,7 +81,7 @@ export class UsersController {
 
   @Post(':id/reset-password')
   @HttpCode(HttpStatus.OK)
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.MANAGE_USERS)
   async resetPassword(
     @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,

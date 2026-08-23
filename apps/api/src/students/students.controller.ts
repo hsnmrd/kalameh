@@ -14,19 +14,23 @@ import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CurrentLocale } from '../i18n';
-import type { JwtPayload, SupportedLocale } from '@workspace/types';
+import {
+  PERMISSIONS,
+  type JwtPayload,
+  type SupportedLocale,
+} from '@workspace/types';
 
 @Controller('students')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Post()
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
   async create(
     @CurrentUser() currentUser: JwtPayload,
     @Body() dto: CreateStudentDto,
@@ -36,7 +40,7 @@ export class StudentsController {
   }
 
   @Get()
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.VIEW_STUDENTS)
   async findAll(
     @CurrentUser() currentUser: JwtPayload,
     @Query('search') search?: string,
@@ -61,7 +65,7 @@ export class StudentsController {
   }
 
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.VIEW_STUDENTS)
   async findOne(
     @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,
@@ -71,7 +75,7 @@ export class StudentsController {
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
   async update(
     @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,
@@ -83,7 +87,7 @@ export class StudentsController {
 
   @Post(':id/reset-password')
   @HttpCode(HttpStatus.OK)
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
   async resetPassword(
     @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,

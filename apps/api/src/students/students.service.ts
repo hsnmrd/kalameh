@@ -29,11 +29,7 @@ export class StudentsService {
         ? dto.instituteId
         : currentUser.instituteId;
 
-    if (
-      currentUser.role !== 'SUPER_ADMIN' &&
-      currentUser.role !== 'INSTITUTE_ADMIN' &&
-      currentUser.role !== 'CLERK'
-    ) {
+    if (currentUser.role === 'STUDENT') {
       throw new ForbiddenException(
         this.i18n.t('students.unauthorizedStudentCreation', locale),
       );
@@ -118,11 +114,7 @@ export class StudentsService {
         ? filter.instituteId
         : currentUser.instituteId;
 
-    if (
-      currentUser.role !== 'SUPER_ADMIN' &&
-      currentUser.role !== 'INSTITUTE_ADMIN' &&
-      currentUser.role !== 'CLERK'
-    ) {
+    if (currentUser.role === 'STUDENT') {
       throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
     }
 

@@ -10,8 +10,13 @@
   },
   "roles": {
     "STUDENT": "زبان‌آموز",
+    "SUPER_STUDENT": "زبان‌آموز ارشد",
     "CLERK": "منشی",
-    "INSTITUTE_ADMIN": "مدیر آموزشگاه",
+    "SUPER_CLERK": "منشی ارشد",
+    "TEACHER": "مدرس",
+    "SUPERVISOR": "سوپروایزر",
+    "ASSISTANT": "دستیار",
+    "ADMIN": "مدیر آموزشگاه",
     "SUPER_ADMIN": "ادمین کل"
   },
   "status": {

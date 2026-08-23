@@ -9,7 +9,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { AuthResponse, JwtPayload, SupportedLocale } from '@workspace/types';
+import {
+  AuthResponse,
+  JwtPayload,
+  SupportedLocale,
+  ROLES,
+  DEFAULT_ROLE_PERMISSIONS,
+  type Permission,
+  type Role,
+} from '@workspace/types';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +33,31 @@ export class AuthService {
     const safeUser = { ...user };
     delete (safeUser as { password?: string }).password;
     return safeUser;
+  }
+
+  private async resolvePermissions(
+    role: Role,
+    instituteId: string,
+  ): Promise<string[]> {
+    if (role === ROLES.SUPER_ADMIN) {
+      return [];
+    }
+
+    if (this.prisma.rolePermission) {
+      const override = await this.prisma.rolePermission.findUnique({
+        where: {
+          instituteId_role: { instituteId, role },
+        },
+      });
+
+      if (override) {
+        return override.permissions;
+      }
+    }
+
+    return [
+      ...((DEFAULT_ROLE_PERMISSIONS[role] as readonly Permission[]) || []),
+    ];
   }
 
   async login(
@@ -97,11 +130,18 @@ export class AuthService {
       );
     }
 
+    // Resolve effective permissions for this user's role + institute
+    const permissions = await this.resolvePermissions(
+      user.role,
+      user.instituteId,
+    );
+
     const payload: JwtPayload = {
       sub: user.id,
       phone: user.phone,
       role: user.role,
       instituteId: user.instituteId,
+      permissions,
     };
 
     const accessToken = this.jwtService.sign(payload);

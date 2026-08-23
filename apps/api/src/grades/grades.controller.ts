@@ -11,19 +11,23 @@ import { GradesService } from './grades.service';
 import { SubmitFinalGradesDto } from './dto/submit-grades.dto';
 import { SetStudentLevelDto } from './dto/set-student-level.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CurrentLocale } from '../i18n';
-import type { JwtPayload, SupportedLocale } from '@workspace/types';
+import {
+  PERMISSIONS,
+  type JwtPayload,
+  type SupportedLocale,
+} from '@workspace/types';
 
 @Controller('grades')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class GradesController {
   constructor(private readonly gradesService: GradesService) {}
 
   @Get('classes/:classId')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.VIEW_GRADES)
   async getClassStudents(
     @Param('classId') classId: string,
     @CurrentUser() currentUser: JwtPayload,
@@ -37,7 +41,7 @@ export class GradesController {
   }
 
   @Post('classes/:classId')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.MANAGE_GRADES)
   async submitClassGrades(
     @Param('classId') classId: string,
     @Body() dto: SubmitFinalGradesDto,
@@ -53,7 +57,7 @@ export class GradesController {
   }
 
   @Patch('students/:studentId/level')
-  @Roles('SUPER_ADMIN', 'INSTITUTE_ADMIN', 'CLERK')
+  @RequirePermissions(PERMISSIONS.MANAGE_GRADES)
   async setStudentLevel(
     @Param('studentId') studentId: string,
     @Body() dto: SetStudentLevelDto,
