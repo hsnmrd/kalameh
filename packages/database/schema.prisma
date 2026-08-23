@@ -13,6 +13,11 @@ model Institute {
   subdomain String  @unique
   isActive  Boolean @default(true)
 
+  logoUrl      String?
+  primaryColor String?
+  address      String?
+  phones       String[] @default([])
+
   bankCardNumber  String?
   bankAccountName String?
   bankShaba       String?

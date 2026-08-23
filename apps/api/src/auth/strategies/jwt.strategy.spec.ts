@@ -10,6 +10,7 @@ describe('JwtStrategy', () => {
   beforeEach(() => {
     prismaService = {
       user: {
+        findUnique: jest.fn(),
         findUniqueOrThrow: jest.fn(),
       },
     };
@@ -29,7 +30,7 @@ describe('JwtStrategy', () => {
       },
     };
 
-    prismaService.user.findUniqueOrThrow.mockResolvedValue(mockUser);
+    prismaService.user.findUnique.mockResolvedValue(mockUser);
 
     const payload: JwtPayload = {
       sub: 'user-1',
@@ -72,7 +73,7 @@ describe('JwtStrategy', () => {
       },
     };
 
-    prismaService.user.findUniqueOrThrow.mockResolvedValue(mockUser);
+    prismaService.user.findUnique.mockResolvedValue(mockUser);
 
     const payload: JwtPayload = {
       sub: 'user-1',
@@ -99,7 +100,7 @@ describe('JwtStrategy', () => {
       },
     };
 
-    prismaService.user.findUniqueOrThrow.mockResolvedValue(mockUser);
+    prismaService.user.findUnique.mockResolvedValue(mockUser);
 
     const payload: JwtPayload = {
       sub: 'user-1',

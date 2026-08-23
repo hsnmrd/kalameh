@@ -102,9 +102,13 @@ export class InstitutesService {
         name: dto.name,
         subdomain: dto.subdomain,
         isActive: dto.isActive ?? true,
-        bankCardNumber: dto.bankCardNumber,
-        bankAccountName: dto.bankAccountName,
-        bankShaba: dto.bankShaba,
+        logoUrl: dto.logoUrl || null,
+        primaryColor: dto.primaryColor || null,
+        address: dto.address || null,
+        phones: dto.phones ? dto.phones.filter(Boolean) : [],
+        bankCardNumber: dto.bankCardNumber || null,
+        bankAccountName: dto.bankAccountName || null,
+        bankShaba: dto.bankShaba || null,
       },
     });
 
@@ -147,6 +151,14 @@ export class InstitutesService {
         ...(dto.name ? { name: dto.name } : {}),
         ...(dto.subdomain ? { subdomain: dto.subdomain } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+        ...(dto.logoUrl !== undefined ? { logoUrl: dto.logoUrl } : {}),
+        ...(dto.primaryColor !== undefined
+          ? { primaryColor: dto.primaryColor }
+          : {}),
+        ...(dto.address !== undefined ? { address: dto.address } : {}),
+        ...(dto.phones !== undefined
+          ? { phones: dto.phones.filter(Boolean) }
+          : {}),
         ...(dto.bankCardNumber !== undefined
           ? { bankCardNumber: dto.bankCardNumber }
           : {}),

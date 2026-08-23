@@ -10,6 +10,7 @@ import termsMessagesFa from "../messages/fa/terms.json"
 import coursesMessagesFa from "../messages/fa/courses.json"
 import classesMessagesFa from "../messages/fa/classes.json"
 import gradesMessagesFa from "../messages/fa/grades.json"
+import institutesMessagesFa from "../messages/fa/institutes.json"
 
 const defaultMessages = {
   auth: authMessagesFa,
@@ -20,6 +21,7 @@ const defaultMessages = {
   courses: coursesMessagesFa,
   classes: classesMessagesFa,
   grades: gradesMessagesFa,
+  institutes: institutesMessagesFa,
 }
 
 interface AllTheProvidersProps {

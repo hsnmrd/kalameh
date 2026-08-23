@@ -9,9 +9,12 @@ import { institutesResource } from "@/lib/api"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { AdminPageHeader } from "@/components/admin-page-header"
 import { InstituteCard } from "./components/institute-card"
+import { CreateInstituteModal } from "./components/create-institute-modal"
 
 export default function InstitutesPage() {
   const t = useTranslations("institutes")
+  const [isCreateOpen, setIsCreateOpen] = React.useState(false)
+
   const { data: institutes = [], isLoading } = useQuery(
     institutesResource.list.toQuery()
   )
@@ -26,7 +29,7 @@ export default function InstitutesPage() {
           countIcon={Building2}
           action={{
             label: t("addInstitute"),
-            onClick: () => {},
+            onClick: () => setIsCreateOpen(true),
           }}
         />
       }
@@ -46,6 +49,11 @@ export default function InstitutesPage() {
           ))}
         </div>
       )}
+
+      <CreateInstituteModal
+        open={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+      />
     </AdminPageShell>
   )
 }

@@ -33,7 +33,7 @@ export interface InstituteSwitcherProps {
 }
 
 export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
-  const t = useTranslations("institutes.switcher")
+  const t = useTranslations("institutes")
   const isRtl = useIsRtl()
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
@@ -93,7 +93,9 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
                 <Globe className="size-3.5 shrink-0 text-muted-foreground" />
               )}
               <span className="truncate">
-                {activeInstitute ? activeInstitute.name : t("allInstitutes")}
+                {activeInstitute
+                  ? activeInstitute.name
+                  : t("switcher.allInstitutes")}
               </span>
             </div>
             <ChevronsUpDown className="size-3.5 shrink-0 opacity-50" />
@@ -104,8 +106,8 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
       <DialogPopup className="max-w-md p-0">
         <div className="p-6 pb-3">
           <DialogHeader>
-            <DialogTitle>{t("title")}</DialogTitle>
-            <DialogDescription>{t("description")}</DialogDescription>
+            <DialogTitle>{t("switcher.title")}</DialogTitle>
+            <DialogDescription>{t("switcher.description")}</DialogDescription>
           </DialogHeader>
           <DialogCloseButton />
 
@@ -114,7 +116,7 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("searchPlaceholder")}
+              placeholder={t("switcher.searchPlaceholder")}
               className="h-11 border-border bg-background ps-9 text-sm text-foreground"
             />
           </div>
@@ -139,10 +141,10 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
               </div>
               <div>
                 <p className="text-xs font-semibold text-foreground">
-                  {t("allInstitutes")}
+                  {t("switcher.allInstitutes")}
                 </p>
                 <p className="text-[11px] text-muted-foreground">
-                  {t("globalView")}
+                  {t("switcher.globalView")}
                 </p>
               </div>
             </div>
@@ -158,7 +160,7 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
             </div>
           ) : filteredInstitutes.length === 0 ? (
             <div className="py-6 text-center text-xs text-muted-foreground">
-              {t("noResults")}
+              {t("switcher.noResults")}
             </div>
           ) : (
             <div className="space-y-1">
@@ -203,7 +205,7 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
                         variant={isSelected ? "success" : "secondary"}
                         className="px-1.5 py-0 text-[10px]"
                       >
-                        {inst.classesCount} {t("classes")}
+                        {inst.classesCount} {t("switcher.classes")}
                       </Badge>
                       {isSelected ? (
                         <Check className="size-4 shrink-0 text-emerald-600" />

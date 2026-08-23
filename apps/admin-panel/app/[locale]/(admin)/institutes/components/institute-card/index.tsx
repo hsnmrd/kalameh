@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import Image from "next/image"
+import { useTranslations, useLocale } from "next-intl"
 import {
   Building2,
   ArrowRight,
@@ -9,13 +10,15 @@ import {
   Check,
   Layers,
   Users,
+  Phone,
+  MapPin,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import type { InstituteWithStats } from "@workspace/types"
 import { useActiveInstitute } from "@/lib/stores"
 import { useRouter, useIsRtl } from "@/i18n/routing"
-import { cn } from "@workspace/ui/lib/utils"
+import { cn, formatNumber, toPersianDigits } from "@workspace/ui/lib/utils"
 
 export interface InstituteCardProps {
   institute: InstituteWithStats
@@ -23,6 +26,7 @@ export interface InstituteCardProps {
 
 export function InstituteCard({ institute }: InstituteCardProps) {
   const t = useTranslations("institutes")
+  const locale = useLocale()
   const isRtl = useIsRtl()
   const router = useRouter()
   const { activeInstitute, selectInstitute } = useActiveInstitute()
@@ -35,6 +39,9 @@ export function InstituteCard({ institute }: InstituteCardProps) {
     router.push("/")
   }
 
+  const brandColor = institute.primaryColor || null
+  const hasPhones = institute.phones && institute.phones.length > 0
+
   return (
     <div
       className={cn(
@@ -45,24 +52,48 @@ export function InstituteCard({ institute }: InstituteCardProps) {
       )}
     >
       <div className="space-y-4">
-        {/* Header with Name and Subdomain */}
+        {/* Header with Logo / Icon, Name, and Subdomain */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "flex size-11 items-center justify-center rounded-xl text-sm font-bold",
+                "relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-bold shadow-2xs",
                 isSelected
                   ? "bg-emerald-600 text-white"
                   : "bg-muted text-foreground"
               )}
+              style={
+                brandColor && !isSelected
+                  ? {
+                      backgroundColor: `${brandColor}15`,
+                      color: brandColor,
+                      borderColor: `${brandColor}40`,
+                    }
+                  : undefined
+              }
             >
-              <Building2 className="size-5" />
+              {institute.logoUrl ? (
+                <Image
+                  src={institute.logoUrl}
+                  alt={institute.name}
+                  width={48}
+                  height={48}
+                  className="size-full object-contain p-1"
+                  unoptimized
+                />
+              ) : (
+                <Building2 className="size-6" />
+              )}
             </div>
-            <div>
+
+            <div className="min-w-0">
               <h2 className="line-clamp-1 text-base font-bold text-foreground">
                 {institute.name}
               </h2>
-              <span className="font-mono text-xs text-muted-foreground">
+              <span
+                className="font-mono text-xs text-muted-foreground"
+                dir="ltr"
+              >
                 {institute.subdomain}.kalameh.ir
               </span>
             </div>
@@ -70,7 +101,7 @@ export function InstituteCard({ institute }: InstituteCardProps) {
 
           <Badge
             variant={institute.isActive ? "success" : "secondary"}
-            className="text-[11px]"
+            className="shrink-0 text-[11px]"
           >
             {institute.isActive ? t("status.active") : t("status.inactive")}
           </Badge>
@@ -82,7 +113,7 @@ export function InstituteCard({ institute }: InstituteCardProps) {
             <Layers className="size-4 text-sky-500" />
             <span>
               <strong className="text-foreground">
-                {institute.classesCount}
+                {formatNumber(institute.classesCount, locale)}
               </strong>{" "}
               {t("classesCount")}
             </span>
@@ -91,12 +122,44 @@ export function InstituteCard({ institute }: InstituteCardProps) {
             <Users className="size-4 text-emerald-500" />
             <span>
               <strong className="text-foreground">
-                {institute.usersCount}
+                {formatNumber(institute.usersCount, locale)}
               </strong>{" "}
               {t("usersCount")}
             </span>
           </div>
         </div>
+
+        {/* Contact Snippet (Phones & Address) */}
+        {(hasPhones || institute.address) && (
+          <div className="space-y-1.5 border-t border-border/40 pt-3 text-xs text-muted-foreground">
+            {hasPhones && (
+              <div
+                className="flex items-center gap-2"
+                dir={locale === "fa" ? "rtl" : "ltr"}
+              >
+                <Phone className="size-3.5 shrink-0 text-muted-foreground/70" />
+                <span
+                  className={cn(
+                    "truncate text-[11px]",
+                    locale === "fa" ? "font-sans" : "font-mono"
+                  )}
+                >
+                  {institute.phones
+                    .map((p) => (locale === "fa" ? toPersianDigits(p) : p))
+                    .join(" • ")}
+                </span>
+              </div>
+            )}
+            {institute.address && (
+              <div className="flex items-center gap-2">
+                <MapPin className="size-3.5 shrink-0 text-muted-foreground/70" />
+                <span className="line-clamp-1 text-[11px]">
+                  {institute.address}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Action Footer */}
