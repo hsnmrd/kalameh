@@ -8,6 +8,7 @@ import {
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { termsResource, coursesResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { AdminSearchInput } from "@/components/admin-search-input"
 
@@ -29,10 +30,16 @@ export function ClassesFilter({
   onSearchChange,
 }: ClassesFilterProps) {
   const t = useTranslations("classes")
+  const { activeInstituteId } = useActiveInstitute()
+
+  const queryParams = activeInstituteId
+    ? { instituteId: activeInstituteId }
+    : undefined
 
   const { data: termOptions = [{ value: "all", label: t("allTerms") }] } =
     useQuery({
-      ...termsResource.list.toQuery(),
+      ...termsResource.list.toQuery(queryParams),
+      enabled: !!activeInstituteId,
       select: (terms) => [
         { value: "all", label: t("allTerms") },
         ...terms.map((term) => ({ value: term.id, label: term.title })),
@@ -41,7 +48,8 @@ export function ClassesFilter({
 
   const { data: courseOptions = [{ value: "all", label: t("allCourses") }] } =
     useQuery({
-      ...coursesResource.list.toQuery(),
+      ...coursesResource.list.toQuery(queryParams),
+      enabled: !!activeInstituteId,
       select: (courses) => [
         { value: "all", label: t("allCourses") },
         ...courses.map((course) => ({ value: course.id, label: course.title })),

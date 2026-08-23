@@ -24,13 +24,14 @@ export default function UsersPage() {
   const { activeInstituteId } = useActiveInstitute()
 
   // Fetch users with filters (and scoped to active institute for Super Admin / Institute Admin)
-  const { data: users, isLoading } = useQuery(
-    usersResource.list.toQuery({
+  const { data: users, isLoading } = useQuery({
+    ...usersResource.list.toQuery({
       role: selectedRole || undefined,
       search: searchValue.trim() || undefined,
       instituteId: activeInstituteId,
-    })
-  )
+    }),
+    enabled: !!activeInstituteId,
+  })
 
   const totalCount = users?.length ?? 0
 

@@ -23,6 +23,7 @@ import {
 } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { coursesResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import {
   useCreateCourseSchema,
   type CreateCourseInput,
@@ -36,14 +37,20 @@ export interface CreateCourseModalProps {
 export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
   const t = useTranslations("courses")
   const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
   const createCourseSchema = useCreateCourseSchema()
+
+  const queryParams = activeInstituteId
+    ? { instituteId: activeInstituteId }
+    : undefined
 
   const {
     data: prerequisiteOptions = [
       { value: "none", label: t("createModal.none") },
     ],
   } = useQuery({
-    ...coursesResource.list.toQuery(),
+    ...coursesResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
     select: (courses) => [
       { value: "none", label: t("createModal.none") },
       ...courses.map((c) => ({ value: c.id, label: c.title })),

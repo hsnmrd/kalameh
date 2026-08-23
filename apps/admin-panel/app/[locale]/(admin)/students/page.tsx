@@ -30,11 +30,12 @@ export default function StudentsPage() {
   const { activeInstituteId } = useActiveInstitute()
 
   // Fetch list of courses for course filter & modal selection
-  const { data: courses = [] } = useQuery(
-    coursesResource.list.toQuery(
+  const { data: courses = [] } = useQuery({
+    ...coursesResource.list.toQuery(
       activeInstituteId ? { instituteId: activeInstituteId } : undefined
-    )
-  )
+    ),
+    enabled: !!activeInstituteId,
+  })
 
   // Query students
   const isActiveFilter =
@@ -44,14 +45,15 @@ export default function StudentsPage() {
         ? false
         : undefined
 
-  const { data: students, isLoading } = useQuery(
-    studentsResource.list.toQuery({
+  const { data: students, isLoading } = useQuery({
+    ...studentsResource.list.toQuery({
       search: searchValue.trim() || undefined,
       courseId: selectedCourseId !== "ALL" ? selectedCourseId : undefined,
       isActive: isActiveFilter,
       instituteId: activeInstituteId,
-    })
-  )
+    }),
+    enabled: !!activeInstituteId,
+  })
 
   const totalCount = students?.length ?? 0
 

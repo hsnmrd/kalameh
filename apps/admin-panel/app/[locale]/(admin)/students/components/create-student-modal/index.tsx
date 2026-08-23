@@ -52,9 +52,10 @@ export function CreateStudentModal({
   const createStudentSchema = useCreateStudentSchema()
 
   // Fetch courses to let admin choose allowed course
-  const { data: courses = [] } = useQuery(
-    coursesResource.list.toQuery(instituteId ? { instituteId } : undefined)
-  )
+  const { data: courses = [] } = useQuery({
+    ...coursesResource.list.toQuery(instituteId ? { instituteId } : undefined),
+    enabled: open && !!instituteId,
+  })
 
   const genderOptions: ComboboxOption[] = React.useMemo(
     () => [

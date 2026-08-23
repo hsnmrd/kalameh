@@ -18,10 +18,14 @@ export default function ClassGradesPage() {
   const classId = params.id as string
   const queryClient = useQueryClient()
 
-  const { data: cls } = useQuery(classesResource.detail.toQuery(classId))
-  const { data: records, isLoading } = useQuery(
-    gradesResource.getClassGrades.toQuery(classId)
-  )
+  const { data: cls } = useQuery({
+    ...classesResource.detail.toQuery(classId),
+    enabled: !!classId,
+  })
+  const { data: records, isLoading } = useQuery({
+    ...gradesResource.getClassGrades.toQuery(classId),
+    enabled: !!classId,
+  })
 
   const submitMutation = useMutation({
     ...gradesResource.submitClassGrades.toMutation(),

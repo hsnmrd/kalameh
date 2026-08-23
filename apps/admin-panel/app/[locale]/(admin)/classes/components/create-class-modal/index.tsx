@@ -49,21 +49,30 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
     ? { instituteId: activeInstituteId }
     : undefined
 
-  const { data: terms } = useQuery(termsResource.list.toQuery(queryParams))
-  const { data: courses } = useQuery(coursesResource.list.toQuery(queryParams))
+  const { data: terms } = useQuery({
+    ...termsResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
+  })
+  const { data: courses } = useQuery({
+    ...coursesResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
+  })
 
   const { data: termOptions = [] } = useQuery({
     ...termsResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
     select: (list) => list.map((tm) => ({ value: tm.id, label: tm.title })),
   })
 
   const { data: courseOptions = [] } = useQuery({
     ...coursesResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
     select: (list) => list.map((c) => ({ value: c.id, label: c.title })),
   })
 
   const { data: branchOptions = [] } = useQuery({
     ...branchesResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
     select: (list) => list.map((b) => ({ value: b.id, label: b.name })),
   })
 

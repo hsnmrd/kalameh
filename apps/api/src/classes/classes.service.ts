@@ -21,7 +21,10 @@ export class ClassesService {
     currentUser: JwtPayload,
     filter?: ClassFilterDto,
   ): Promise<ClassDto[]> {
-    const instituteId = currentUser.instituteId;
+    const instituteId =
+      currentUser.role === 'SUPER_ADMIN' && filter?.instituteId
+        ? filter.instituteId
+        : currentUser.instituteId;
 
     const classes = await this.prisma.class.findMany({
       where: {

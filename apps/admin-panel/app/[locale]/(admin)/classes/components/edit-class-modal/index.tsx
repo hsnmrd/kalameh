@@ -50,16 +50,19 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
 
   const { data: termOptions = [] } = useQuery({
     ...termsResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
     select: (terms) => terms.map((tm) => ({ value: tm.id, label: tm.title })),
   })
 
   const { data: courseOptions = [] } = useQuery({
     ...coursesResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
     select: (courses) => courses.map((c) => ({ value: c.id, label: c.title })),
   })
 
   const { data: branchOptions = [] } = useQuery({
     ...branchesResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
     select: (branches) => branches.map((b) => ({ value: b.id, label: b.name })),
   })
 

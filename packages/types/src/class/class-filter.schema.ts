@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 export const ClassFilterSchema = z.object({
+  instituteId: z.string().uuid().optional(),
   termId: z.string().uuid().optional(),
   courseId: z.string().uuid().optional(),
   branchId: z.string().uuid().optional(),

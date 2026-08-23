@@ -4,6 +4,7 @@ import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { CourseDto } from "@workspace/types"
 import { coursesResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { CoursesHeader } from "./components/courses-header"
 import { CoursesTable } from "./components/courses-table"
@@ -16,7 +17,12 @@ export default function CoursesPage() {
     null
   )
 
-  const { data: courses, isLoading } = useQuery(coursesResource.list.toQuery())
+  const { activeInstituteId } = useActiveInstitute()
+
+  const { data: courses, isLoading } = useQuery({
+    ...coursesResource.list.toQuery({ instituteId: activeInstituteId }),
+    enabled: !!activeInstituteId,
+  })
 
   return (
     <AdminPageShell

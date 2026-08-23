@@ -24,6 +24,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import type { CourseDto } from "@workspace/types"
 import { coursesResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import {
   useUpdateCourseSchema,
   type UpdateCourseInput,
@@ -42,7 +43,12 @@ export function EditCourseModal({
 }: EditCourseModalProps) {
   const t = useTranslations("courses")
   const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
   const updateCourseSchema = useUpdateCourseSchema()
+
+  const queryParams = activeInstituteId
+    ? { instituteId: activeInstituteId }
+    : undefined
 
   // Exclude current course from its own prerequisite options
   const {
@@ -50,7 +56,8 @@ export function EditCourseModal({
       { value: "none", label: t("createModal.none") },
     ],
   } = useQuery({
-    ...coursesResource.list.toQuery(),
+    ...coursesResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
     select: (courses) => [
       { value: "none", label: t("createModal.none") },
       ...courses

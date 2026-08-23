@@ -46,11 +46,12 @@ export function EditStudentModal({
   const queryClient = useQueryClient()
   const updateStudentSchema = useUpdateStudentSchema()
 
-  const { data: courses = [] } = useQuery(
-    coursesResource.list.toQuery(
+  const { data: courses = [] } = useQuery({
+    ...coursesResource.list.toQuery(
       student?.instituteId ? { instituteId: student.instituteId } : undefined
-    )
-  )
+    ),
+    enabled: open && !!student?.instituteId,
+  })
 
   const genderOptions: ComboboxOption[] = React.useMemo(
     () => [
