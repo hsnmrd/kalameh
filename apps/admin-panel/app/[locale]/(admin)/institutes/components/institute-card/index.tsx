@@ -18,7 +18,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import type { InstituteWithStats } from "@workspace/types"
 import { useActiveInstitute } from "@/lib/stores"
 import { useRouter, useIsRtl } from "@/i18n/routing"
-import { cn, formatNumber, toPersianDigits } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 
 export interface InstituteCardProps {
   institute: InstituteWithStats
@@ -138,15 +138,8 @@ export function InstituteCard({ institute }: InstituteCardProps) {
                 dir={locale === "fa" ? "rtl" : "ltr"}
               >
                 <Phone className="size-3.5 shrink-0 text-muted-foreground/70" />
-                <span
-                  className={cn(
-                    "truncate text-[11px]",
-                    locale === "fa" ? "font-sans" : "font-mono"
-                  )}
-                >
-                  {institute.phones
-                    .map((p) => (locale === "fa" ? toPersianDigits(p) : p))
-                    .join(" • ")}
+                <span className="truncate font-mono text-[11px]">
+                  {institute.phones.join(" • ")}
                 </span>
               </div>
             )}

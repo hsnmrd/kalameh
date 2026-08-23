@@ -33,7 +33,7 @@ describe("TermsTable Component", () => {
   it("should render term row with title and class count", () => {
     render(<TermsTable terms={mockTerms} isLoading={false} onEdit={vi.fn()} />)
     expect(screen.getByText("پاییز ۱۴۰۵")).toBeInTheDocument()
-    expect(screen.getByText(/^4$|^۴$/)).toBeInTheDocument()
+    expect(screen.getByText("4")).toBeInTheDocument()
   })
 
   it("should trigger onEdit when edit button is clicked", () => {

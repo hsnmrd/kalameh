@@ -8,7 +8,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
-import { cn, toPersianDigits } from "@workspace/ui/lib/utils"
+import { cn } from "@workspace/ui/lib/utils"
 import type {
   ClassGradeRecordDto,
   SingleStudentGradeInput,
@@ -102,15 +102,8 @@ export function GradesTable({
         accessorKey: "phone",
         header: t("table.phone"),
         cell: ({ row }) => (
-          <span
-            className={cn(
-              "text-foreground/80",
-              locale === "fa" ? "font-sans" : "font-mono"
-            )}
-          >
-            {locale === "fa"
-              ? toPersianDigits(row.original.student.phone)
-              : row.original.student.phone}
+          <span className="font-mono text-foreground/80">
+            {row.original.student.phone}
           </span>
         ),
       },

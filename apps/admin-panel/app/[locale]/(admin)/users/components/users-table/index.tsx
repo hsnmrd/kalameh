@@ -7,7 +7,7 @@ import { Users, Edit2, KeyRound } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
-import { cn, toPersianDigits } from "@workspace/ui/lib/utils"
+import { cn } from "@workspace/ui/lib/utils"
 import type { AuthUser } from "@workspace/types"
 import { UserRoleBadge } from "../user-role-badge"
 import { UserStatusBadge } from "../user-status-badge"
@@ -53,15 +53,8 @@ export function UsersTable({
         accessorKey: "phone",
         header: t("table.phone"),
         cell: ({ row }) => (
-          <span
-            className={cn(
-              "text-sm text-foreground/80",
-              locale === "fa" ? "font-sans" : "font-mono"
-            )}
-          >
-            {locale === "fa"
-              ? toPersianDigits(row.original.phone)
-              : row.original.phone}
+          <span className="font-mono text-sm text-foreground/80">
+            {row.original.phone}
           </span>
         ),
       },
@@ -69,17 +62,8 @@ export function UsersTable({
         accessorKey: "nationalCode",
         header: t("table.nationalCode"),
         cell: ({ row }) => (
-          <span
-            className={cn(
-              "text-sm text-muted-foreground",
-              locale === "fa" ? "font-sans" : "font-mono"
-            )}
-          >
-            {row.original.nationalCode
-              ? locale === "fa"
-                ? toPersianDigits(row.original.nationalCode)
-                : row.original.nationalCode
-              : "—"}
+          <span className="font-mono text-sm text-muted-foreground">
+            {row.original.nationalCode || "—"}
           </span>
         ),
       },

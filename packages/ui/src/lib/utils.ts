@@ -5,27 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-const PERSIAN_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"]
-
 /**
- * Converts ASCII digits (0-9) to Persian digits (۰-۹).
- */
-export function toPersianDigits(
-  value: number | string | null | undefined
-): string {
-  if (value === null || value === undefined) return ""
-  return String(value).replace(
-    /\d/g,
-    (d) => PERSIAN_DIGITS[parseInt(d, 10)] ?? d
-  )
-}
-
-/**
- * Format a number according to locale (with digit localization and comma thousand grouping).
+ * Format a number according to locale (with comma thousand grouping).
  */
 export function formatNumber(
   value: number | string | null | undefined,
-  locale = "fa"
+  _locale = "fa"
 ): string {
   if (
     value === null ||
@@ -37,9 +22,7 @@ export function formatNumber(
   }
 
   const num = Number(value)
-  const isFa = locale.toLowerCase().startsWith("fa")
-  const enFormatted = num.toLocaleString("en-US")
-  return isFa ? toPersianDigits(enFormatted) : enFormatted
+  return num.toLocaleString("en-US")
 }
 
 /**
@@ -62,8 +45,7 @@ export function formatCurrency(
 
   const num = Number(amount)
   const isFa = locale.toLowerCase().startsWith("fa")
-  const enFormatted = num.toLocaleString("en-US")
-  const formattedNumber = isFa ? toPersianDigits(enFormatted) : enFormatted
+  const formattedNumber = num.toLocaleString("en-US")
 
   if (!showUnit) {
     return formattedNumber

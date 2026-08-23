@@ -95,9 +95,7 @@ export function ClassesTable({
                     : "border-border bg-muted text-muted-foreground"
                 }
               >
-                <span
-                  className={cn(locale === "fa" ? "font-sans" : "font-mono")}
-                >
+                <span className="font-sans">
                   {formatNumber(enrolled, locale)} / {formatNumber(cap, locale)}
                 </span>
               </Badge>
