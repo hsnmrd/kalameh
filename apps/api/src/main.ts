@@ -1,5 +1,6 @@
 import path from 'node:path';
 import dotenv from 'dotenv';
+import express from 'express';
 
 // Load centralized root .env
 dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
@@ -14,6 +15,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
+  app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
+
   app.enableCors({
     origin: (
       origin: string | undefined,

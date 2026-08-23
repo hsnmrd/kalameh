@@ -146,6 +146,7 @@ describe('InstitutesService', () => {
 
       const result = await service.create(
         { name: 'Shiraz Institute', subdomain: 'shiraz', isActive: true },
+        undefined,
         mockSuperAdmin,
         'en',
       );
@@ -162,6 +163,7 @@ describe('InstitutesService', () => {
       await expect(
         service.create(
           { name: 'Tehran Institute', subdomain: 'tehran', isActive: true },
+          undefined,
           mockSuperAdmin,
           'en',
         ),
@@ -172,6 +174,7 @@ describe('InstitutesService', () => {
       await expect(
         service.create(
           { name: 'Tehran Institute', subdomain: 'tehran', isActive: true },
+          undefined,
           mockInstituteAdmin,
           'en',
         ),

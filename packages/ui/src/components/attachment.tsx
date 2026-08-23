@@ -6,8 +6,8 @@ import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 
 export interface AttachmentProps {
-  value?: string | null
-  onChange?: (dataUrl: string | null, file?: File | null) => void
+  value?: File | string | null
+  onChange?: (file: File | null) => void
   accept?: string
   maxSizeMb?: number
   disabled?: boolean
@@ -33,6 +33,37 @@ export function Attachment({
   const [error, setError] = React.useState<string | null>(null)
   const [fileName, setFileName] = React.useState<string | null>(null)
 
+  const previewSrc = React.useMemo(() => {
+    if (!value) return null
+    if (typeof value === "string") return value
+    if (typeof window !== "undefined" && value instanceof File) {
+      return URL.createObjectURL(value)
+    }
+    return null
+  }, [value])
+
+  React.useEffect(() => {
+    return () => {
+      if (
+        previewSrc &&
+        typeof value !== "string" &&
+        typeof window !== "undefined"
+      ) {
+        URL.revokeObjectURL(previewSrc)
+      }
+    }
+  }, [previewSrc, value])
+
+  const displayName = React.useMemo(() => {
+    if (fileName) return fileName
+    if (typeof value === "object" && value instanceof File) return value.name
+    if (typeof value === "string") {
+      const parts = value.split("/")
+      return parts[parts.length - 1] || "Image"
+    }
+    return "Image"
+  }, [fileName, value])
+
   const processFile = (file: File) => {
     setError(null)
     const maxSizeBytes = maxSizeMb * 1024 * 1024
@@ -43,15 +74,7 @@ export function Attachment({
     }
 
     setFileName(file.name)
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = reader.result as string
-      onChange?.(result, file)
-    }
-    reader.onerror = () => {
-      setError("Failed to read file")
-    }
-    reader.readAsDataURL(file)
+    onChange?.(file)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,7 +117,7 @@ export function Attachment({
     if (inputRef.current) {
       inputRef.current.value = ""
     }
-    onChange?.(null, null)
+    onChange?.(null)
   }
 
   const triggerSelect = () => {
@@ -116,20 +139,20 @@ export function Attachment({
         tabIndex={-1}
       />
 
-      {value ? (
+      {previewSrc ? (
         <div className="relative flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-3 shadow-2xs transition-all">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/60">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={value}
-                alt={fileName || "Attachment preview"}
+                src={previewSrc}
+                alt={displayName || "Attachment preview"}
                 className="size-full object-contain p-1"
               />
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-foreground">
-                {fileName || "Logo / Image"}
+                {displayName}
               </p>
               <p className="truncate text-[11px] text-muted-foreground">
                 {description}
@@ -180,26 +203,23 @@ export function Attachment({
             "group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden",
             isDragging
               ? "border-primary bg-primary/5"
-              : "border-border bg-muted/30 hover:border-border/80 hover:bg-muted/50",
-            disabled && "cursor-not-allowed opacity-50",
-            error && "border-destructive bg-destructive/5"
+              : "border-border bg-muted/20 hover:border-primary/50 hover:bg-muted/40",
+            disabled && "cursor-not-allowed opacity-60"
           )}
         >
-          <div className="flex size-10 items-center justify-center rounded-xl bg-background text-muted-foreground shadow-2xs transition-transform group-hover:scale-105">
-            <ImageIcon className="size-5 text-foreground/70" />
+          <div className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-transform group-hover:scale-105">
+            <ImageIcon className="size-5" />
           </div>
-          <p className="mt-2 text-xs font-medium text-foreground">
-            {placeholder}
-          </p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
-            {description}
-          </p>
+          <div className="mt-2 space-y-0.5">
+            <p className="text-xs font-medium text-foreground">{placeholder}</p>
+            <p className="text-[11px] text-muted-foreground">{description}</p>
+          </div>
         </div>
       )}
 
       {error && (
         <div className="flex items-center gap-1.5 text-xs text-destructive">
-          <AlertCircle className="size-3.5" />
+          <AlertCircle className="size-3.5 shrink-0" />
           <span>{error}</span>
         </div>
       )}

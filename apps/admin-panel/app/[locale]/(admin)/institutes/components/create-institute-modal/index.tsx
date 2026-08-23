@@ -78,6 +78,7 @@ export function CreateInstituteModal({
       name: "",
       subdomain: "",
       isActive: true,
+      logo: null,
       logoUrl: null,
       primaryColor: "#10b981",
       address: "",
@@ -111,6 +112,7 @@ export function CreateInstituteModal({
         name: "",
         subdomain: "",
         isActive: true,
+        logo: null,
         logoUrl: null,
         primaryColor: "#10b981",
         address: "",
@@ -245,11 +247,11 @@ export function CreateInstituteModal({
               <FieldLabel>{t("createModal.logo")}</FieldLabel>
               <Controller
                 control={control}
-                name="logoUrl"
+                name="logo"
                 render={({ field }) => (
                   <Attachment
                     value={field.value}
-                    onChange={(dataUrl) => field.onChange(dataUrl)}
+                    onChange={(file) => field.onChange(file)}
                     placeholder={t("createModal.logoPlaceholder")}
                     description={t("createModal.logoDescription")}
                     removeLabel={t("createModal.removePhone")}

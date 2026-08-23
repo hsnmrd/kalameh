@@ -47,7 +47,14 @@ export const createCreateInstituteSchema = (msg?: {
                 "Subdomain must contain only lowercase letters, numbers, and dashes",
             }
       ),
-    isActive: z.boolean().default(true),
+    isActive: z
+      .preprocess((val) => {
+        if (val === "true" || val === true) return true
+        if (val === "false" || val === false) return false
+        return val
+      }, z.boolean())
+      .default(true),
+    logo: z.any().optional().nullable(),
     logoUrl: z.string().trim().optional().nullable(),
     primaryColor: z
       .string()
@@ -62,7 +69,13 @@ export const createCreateInstituteSchema = (msg?: {
       .optional()
       .nullable(),
     address: z.string().trim().optional().nullable(),
-    phones: z.array(z.string().trim()).optional(),
+    phones: z
+      .preprocess((val) => {
+        if (typeof val === "string") return val ? [val] : []
+        if (Array.isArray(val)) return val.filter(Boolean)
+        return []
+      }, z.array(z.string().trim()))
+      .optional(),
     bankCardNumber: z.string().trim().optional().nullable(),
     bankAccountName: z.string().trim().optional().nullable(),
     bankShaba: z.string().trim().optional().nullable(),
@@ -97,7 +110,14 @@ export const createUpdateInstituteSchema = (msg?: {
             }
       )
       .optional(),
-    isActive: z.boolean().optional(),
+    isActive: z
+      .preprocess((val) => {
+        if (val === "true" || val === true) return true
+        if (val === "false" || val === false) return false
+        return val
+      }, z.boolean())
+      .optional(),
+    logo: z.any().optional().nullable(),
     logoUrl: z.string().trim().optional().nullable(),
     primaryColor: z
       .string()
@@ -112,7 +132,13 @@ export const createUpdateInstituteSchema = (msg?: {
       .optional()
       .nullable(),
     address: z.string().trim().optional().nullable(),
-    phones: z.array(z.string().trim()).optional(),
+    phones: z
+      .preprocess((val) => {
+        if (typeof val === "string") return val ? [val] : []
+        if (Array.isArray(val)) return val.filter(Boolean)
+        return []
+      }, z.array(z.string().trim()))
+      .optional(),
     bankCardNumber: z.string().trim().optional().nullable(),
     bankAccountName: z.string().trim().optional().nullable(),
     bankShaba: z.string().trim().optional().nullable(),
