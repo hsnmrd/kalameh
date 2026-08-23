@@ -61,11 +61,10 @@ export const api = createMicroApi({
         typeof message === "string" ? message : JSON.stringify(message)
       )
 
-      if (
-        error.status === 401 &&
-        !window.location.pathname.startsWith("/login")
-      ) {
-        window.location.href = "/login"
+      const isLoginPage = window.location.pathname.includes("/login")
+      if (error.status === 401 && !isLoginPage) {
+        const locale = window.location.pathname.match(/^\/(en|fa)/)?.[1] || "fa"
+        window.location.href = `/${locale}/login`
       }
     } else {
       const err = error as Error

@@ -31,14 +31,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('شناسه توکن نامعتبر است');
     }
 
-    const user = await this.prisma.user.findUniqueOrThrow({
+    const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       include: {
         institute: true,
       },
     });
 
-    if (!user.isActive) {
+    if (!user || !user.isActive) {
       throw new UnauthorizedException('حساب کاربری یافت نشد یا غیرفعال است');
     }
 
