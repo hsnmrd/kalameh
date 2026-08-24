@@ -11,7 +11,8 @@ import { Badge } from "@workspace/ui/components/badge"
 import { DataTable } from "@workspace/ui/components/data-table"
 import { Price } from "@workspace/ui/components/price"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
-import type { ClassDto } from "@workspace/types"
+import { PERMISSIONS, type ClassDto } from "@workspace/types"
+import { PermissionGuard } from "@/components/permission-guard"
 
 export interface ClassesTableProps {
   classes: ClassDto[] | undefined
@@ -130,26 +131,36 @@ export function ClassesTable({
         header: t("table.actions"),
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
-            <Link href={`/classes/${row.original.id}/grades`}>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1.5 rounded-lg px-2.5 text-xs text-primary hover:bg-muted"
-              >
-                <GraduationCap className="size-3.5" />
-                <span>{t("grades")}</span>
-              </Button>
-            </Link>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(row.original)}
-              className="size-8 p-0 text-muted-foreground hover:text-foreground"
-              aria-label={t("table.actions")}
+            <PermissionGuard
+              permission={[PERMISSIONS.VIEW_GRADES, PERMISSIONS.MANAGE_GRADES]}
+              mode="disable"
             >
-              <Edit2 className="size-4" />
-            </Button>
+              <Link href={`/classes/${row.original.id}/grades`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 rounded-lg px-2.5 text-xs text-primary hover:bg-muted"
+                >
+                  <GraduationCap className="size-3.5" />
+                  <span>{t("grades")}</span>
+                </Button>
+              </Link>
+            </PermissionGuard>
+
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSES}
+              mode="disable"
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(row.original)}
+                className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                aria-label={t("table.actions")}
+              >
+                <Edit2 className="size-4" />
+              </Button>
+            </PermissionGuard>
           </div>
         ),
       },

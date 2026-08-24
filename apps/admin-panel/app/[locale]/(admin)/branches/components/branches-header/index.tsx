@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
+import { PERMISSIONS } from "@workspace/types"
 import { AdminPageHeader } from "@/components/admin-page-header"
 
 export interface BranchesHeaderProps {
@@ -18,6 +19,7 @@ export function BranchesHeader({ onAddBranch }: BranchesHeaderProps) {
       action={{
         label: t("addBranch"),
         onClick: onAddBranch,
+        permission: PERMISSIONS.MANAGE_BRANCHES,
       }}
     />
   )

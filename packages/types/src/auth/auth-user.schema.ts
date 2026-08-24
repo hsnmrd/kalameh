@@ -14,6 +14,7 @@ export const AuthUserSchema = z.object({
   isActive: z.boolean(),
   currentAllowedCourseId: z.string().nullable().optional(),
   studentProfile: StudentProfileSchema.nullable().optional(),
+  permissions: z.array(z.string()).optional(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
 })

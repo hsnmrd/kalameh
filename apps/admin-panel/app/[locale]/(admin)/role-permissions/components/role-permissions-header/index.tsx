@@ -3,9 +3,11 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { RotateCcw, Save } from "lucide-react"
+import { PERMISSIONS } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageHeader } from "@/components/admin-page-header"
+import { PermissionGuard } from "@/components/permission-guard"
 
 export interface RolePermissionsHeaderProps {
   onSave: () => void
@@ -30,32 +32,42 @@ export function RolePermissionsHeader({
       subtitle={t("description")}
       actions={
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={onReset}
-            disabled={isResetting || isSaving}
-            className="cursor-pointer gap-2 rounded-xl"
+          <PermissionGuard
+            permission={PERMISSIONS.MANAGE_ROLE_PERMISSIONS}
+            mode="disable"
           >
-            {isResetting ? (
-              <Spinner className="size-4" />
-            ) : (
-              <RotateCcw className="size-4" />
-            )}
-            <span>{isResetting ? t("resetting") : t("resetToDefaults")}</span>
-          </Button>
+            <Button
+              variant="outline"
+              onClick={onReset}
+              disabled={isResetting || isSaving}
+              className="cursor-pointer gap-2 rounded-xl"
+            >
+              {isResetting ? (
+                <Spinner className="size-4" />
+              ) : (
+                <RotateCcw className="size-4" />
+              )}
+              <span>{isResetting ? t("resetting") : t("resetToDefaults")}</span>
+            </Button>
+          </PermissionGuard>
 
-          <Button
-            onClick={onSave}
-            disabled={isSaving || isResetting || !hasChanges}
-            className="cursor-pointer gap-2 rounded-xl bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+          <PermissionGuard
+            permission={PERMISSIONS.MANAGE_ROLE_PERMISSIONS}
+            mode="disable"
           >
-            {isSaving ? (
-              <Spinner className="size-4" />
-            ) : (
-              <Save className="size-4" />
-            )}
-            <span>{isSaving ? t("saving") : t("saveChanges")}</span>
-          </Button>
+            <Button
+              onClick={onSave}
+              disabled={isSaving || isResetting || !hasChanges}
+              className="cursor-pointer gap-2 rounded-xl bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+            >
+              {isSaving ? (
+                <Spinner className="size-4" />
+              ) : (
+                <Save className="size-4" />
+              )}
+              <span>{isSaving ? t("saving") : t("saveChanges")}</span>
+            </Button>
+          </PermissionGuard>
         </div>
       }
     />

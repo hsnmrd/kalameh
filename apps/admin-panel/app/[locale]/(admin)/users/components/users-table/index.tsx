@@ -8,7 +8,8 @@ import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
 import { cn } from "@workspace/ui/lib/utils"
-import type { AuthUser } from "@workspace/types"
+import { PERMISSIONS, type AuthUser } from "@workspace/types"
+import { PermissionGuard } from "@/components/permission-guard"
 import { UserRoleBadge } from "../user-role-badge"
 import { UserStatusBadge } from "../user-status-badge"
 import { UserCard } from "../user-card"
@@ -111,25 +112,35 @@ export function UsersTable({
           const user = row.original
           return (
             <div className="flex items-center justify-end gap-1.5">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onEdit(user)}
-                title={t("actions.edit")}
-                className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_USERS}
+                mode="disable"
               >
-                <Edit2 className="size-3.5" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onEdit(user)}
+                  title={t("actions.edit")}
+                  className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <Edit2 className="size-3.5" />
+                </Button>
+              </PermissionGuard>
 
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onResetPassword(user)}
-                title={t("actions.resetPassword")}
-                className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_USERS}
+                mode="disable"
               >
-                <KeyRound className="size-3.5" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onResetPassword(user)}
+                  title={t("actions.resetPassword")}
+                  className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <KeyRound className="size-3.5" />
+                </Button>
+              </PermissionGuard>
             </div>
           )
         },

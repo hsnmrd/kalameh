@@ -15,7 +15,7 @@ import {
   ShieldCheck,
 } from "lucide-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ROLES, type Role } from "@workspace/types"
+import { ROLES, PERMISSIONS, type Role } from "@workspace/types"
 import { authResource } from "@/lib/api"
 import { usePathname, useRouter, useIsRtl } from "@/i18n/routing"
 import { cn } from "@workspace/ui/lib/utils"
@@ -32,23 +32,78 @@ export interface AdminBaseLayoutProps {
 }
 
 const SUPER_ADMIN_PLATFORM_NAV: NavItem[] = [
-  { key: "dashboard", href: "/", icon: LayoutDashboard },
-  { key: "institutes", href: "/institutes", icon: ShieldAlert },
+  {
+    key: "dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+    permission: PERMISSIONS.VIEW_DASHBOARD,
+  },
+  {
+    key: "institutes",
+    href: "/institutes",
+    icon: ShieldAlert,
+    permission: PERMISSIONS.VIEW_INSTITUTES,
+  },
 ]
 
 const INSTITUTE_NAV_ITEMS: NavItem[] = [
-  { key: "branches", href: "/branches", icon: Building2 },
-  { key: "terms", href: "/terms", icon: Calendar },
-  { key: "courses", href: "/courses", icon: BookOpen },
-  { key: "classes", href: "/classes", icon: Layers },
-  { key: "students", href: "/students", icon: GraduationCap },
-  { key: "staff", href: "/users", icon: Users },
-  { key: "rolePermissions", href: "/role-permissions", icon: ShieldCheck },
-  { key: "finance", href: "/transactions", icon: CreditCard },
+  {
+    key: "branches",
+    href: "/branches",
+    icon: Building2,
+    permission: PERMISSIONS.VIEW_BRANCHES,
+  },
+  {
+    key: "terms",
+    href: "/terms",
+    icon: Calendar,
+    permission: PERMISSIONS.VIEW_TERMS,
+  },
+  {
+    key: "courses",
+    href: "/courses",
+    icon: BookOpen,
+    permission: PERMISSIONS.VIEW_COURSES,
+  },
+  {
+    key: "classes",
+    href: "/classes",
+    icon: Layers,
+    permission: PERMISSIONS.VIEW_CLASSES,
+  },
+  {
+    key: "students",
+    href: "/students",
+    icon: GraduationCap,
+    permission: PERMISSIONS.VIEW_STUDENTS,
+  },
+  {
+    key: "staff",
+    href: "/users",
+    icon: Users,
+    permission: PERMISSIONS.VIEW_USERS,
+  },
+  {
+    key: "rolePermissions",
+    href: "/role-permissions",
+    icon: ShieldCheck,
+    permission: PERMISSIONS.VIEW_ROLE_PERMISSIONS,
+  },
+  {
+    key: "finance",
+    href: "/transactions",
+    icon: CreditCard,
+    permission: PERMISSIONS.VIEW_TRANSACTIONS,
+  },
 ]
 
 const ADMIN_NAV: NavItem[] = [
-  { key: "dashboard", href: "/", icon: LayoutDashboard },
+  {
+    key: "dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+    permission: PERMISSIONS.VIEW_DASHBOARD,
+  },
   ...INSTITUTE_NAV_ITEMS,
 ]
 

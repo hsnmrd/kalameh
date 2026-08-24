@@ -2,8 +2,10 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
+import type { Permission } from "@workspace/types"
 import { Link } from "@/i18n/routing"
 import { cn } from "@workspace/ui/lib/utils"
+import { usePermissions } from "@/lib/hooks"
 
 export type NavItemKey =
   | "dashboard"
@@ -21,6 +23,7 @@ export interface NavItem {
   key: NavItemKey
   href: string
   icon: React.ComponentType<{ className?: string }>
+  permission?: Permission | readonly Permission[]
 }
 
 export interface NavSection {
@@ -44,12 +47,25 @@ export function NavList({
   onItemClick,
 }: NavListProps) {
   const t = useTranslations("common.nav")
+  const { hasPermission } = usePermissions()
 
   const effectiveSections: NavSection[] = React.useMemo(() => {
-    if (sections && sections.length > 0) return sections
-    if (items && items.length > 0) return [{ id: "default", items }]
-    return []
-  }, [sections, items])
+    const rawSections =
+      sections && sections.length > 0
+        ? sections
+        : items && items.length > 0
+          ? [{ id: "default", items }]
+          : []
+
+    return rawSections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) =>
+          item.permission ? hasPermission(item.permission) : true
+        ),
+      }))
+      .filter((section) => section.items.length > 0)
+  }, [sections, items, hasPermission])
 
   return (
     <nav className="space-y-5">

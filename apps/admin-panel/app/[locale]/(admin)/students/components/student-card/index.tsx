@@ -12,10 +12,11 @@ import {
   GraduationCap,
   ShieldAlert,
 } from "lucide-react"
-import type { StudentDto } from "@workspace/types"
+import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
+import { PermissionGuard } from "@/components/permission-guard"
 import { StudentStatusBadge } from "../student-status-badge"
 
 export interface StudentCardProps {
@@ -94,33 +95,51 @@ export function StudentCard({
       </div>
 
       <div className="flex items-center justify-end gap-2 border-t border-border/60 pt-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onViewProfile(student)}
-          className="flex-1 gap-1 text-xs"
+        <PermissionGuard
+          permission={PERMISSIONS.VIEW_STUDENTS}
+          mode="disable"
+          className="flex-1"
         >
-          <Eye className="size-3.5" />
-          <span>{t("actions.viewProfile")}</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEdit(student)}
-          className="gap-1 text-xs"
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewProfile(student)}
+            className="w-full gap-1 text-xs"
+          >
+            <Eye className="size-3.5" />
+            <span>{t("actions.viewProfile")}</span>
+          </Button>
+        </PermissionGuard>
+
+        <PermissionGuard
+          permission={PERMISSIONS.MANAGE_STUDENTS}
+          mode="disable"
         >
-          <Edit className="size-3.5" />
-          <span>{t("actions.edit")}</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onResetPassword(student)}
-          className="text-xs"
-          title={t("actions.resetPassword")}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(student)}
+            className="gap-1 text-xs"
+          >
+            <Edit className="size-3.5" />
+            <span>{t("actions.edit")}</span>
+          </Button>
+        </PermissionGuard>
+
+        <PermissionGuard
+          permission={PERMISSIONS.MANAGE_STUDENTS}
+          mode="disable"
         >
-          <KeyRound className="size-3.5" />
-        </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onResetPassword(student)}
+            className="text-xs"
+            title={t("actions.resetPassword")}
+          >
+            <KeyRound className="size-3.5" />
+          </Button>
+        </PermissionGuard>
       </div>
     </div>
   )

@@ -3,12 +3,13 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ROLES, type Role } from "@workspace/types"
+import { PERMISSIONS, ROLES, type Role } from "@workspace/types"
 import { rolePermissionsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageShell } from "@/components/admin-page-shell"
+import { PermissionGuard } from "@/components/permission-guard"
 import { RolePermissionsHeader } from "./components/role-permissions-header"
 import { RolePermissionsEditor } from "./components/role-permissions-editor"
 
@@ -136,33 +137,41 @@ export default function RolePermissionsPage() {
   }
 
   return (
-    <AdminPageShell
-      header={
-        <RolePermissionsHeader
-          onSave={handleSave}
-          onReset={handleReset}
-          isSaving={updateMutation.isPending}
-          isResetting={resetMutation.isPending}
-          hasChanges={hasChanges}
-        />
-      }
+    <PermissionGuard
+      permission={[
+        PERMISSIONS.VIEW_ROLE_PERMISSIONS,
+        PERMISSIONS.MANAGE_ROLE_PERMISSIONS,
+      ]}
+      mode="forbidden"
     >
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center">
-          <Spinner className="size-8 text-primary" />
-        </div>
-      ) : (
-        <RolePermissionsEditor
-          selectedRole={selectedRole}
-          onSelectRole={setSelectedRole}
-          rolePermissionsList={rolePermissionsList}
-          currentRoleData={currentRoleData}
-          selectedPermissions={selectedPermissions}
-          onTogglePermission={handleTogglePermission}
-          onToggleAllInModule={handleToggleAllInModule}
-          disabled={updateMutation.isPending || resetMutation.isPending}
-        />
-      )}
-    </AdminPageShell>
+      <AdminPageShell
+        header={
+          <RolePermissionsHeader
+            onSave={handleSave}
+            onReset={handleReset}
+            isSaving={updateMutation.isPending}
+            isResetting={resetMutation.isPending}
+            hasChanges={hasChanges}
+          />
+        }
+      >
+        {isLoading ? (
+          <div className="flex h-64 items-center justify-center">
+            <Spinner className="size-8 text-primary" />
+          </div>
+        ) : (
+          <RolePermissionsEditor
+            selectedRole={selectedRole}
+            onSelectRole={setSelectedRole}
+            rolePermissionsList={rolePermissionsList}
+            currentRoleData={currentRoleData}
+            selectedPermissions={selectedPermissions}
+            onTogglePermission={handleTogglePermission}
+            onToggleAllInModule={handleToggleAllInModule}
+            disabled={updateMutation.isPending || resetMutation.isPending}
+          />
+        )}
+      </AdminPageShell>
+    </PermissionGuard>
   )
 }

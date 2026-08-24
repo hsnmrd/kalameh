@@ -25,9 +25,16 @@
   "footer": "Kalameh Language Platform • Admin Panel v1.0",
   "success": "Operation completed successfully",
   "error": "An error occurred",
+  "noPermission": "You do not have permission to perform this action",
   "notFound": {
     "title": "Page Not Found",
     "description": "Sorry, the page you are looking for does not exist or has been moved.",
     "backHome": "Back to Admin Panel"
+  },
+  "forbidden": {
+    "badge": "403 FORBIDDEN",
+    "title": "Access Denied",
+    "description": "You do not have permission to view or access this section. Please contact your administrator if you believe this is an error.",
+    "backHome": "Back to Dashboard"
   }
 }

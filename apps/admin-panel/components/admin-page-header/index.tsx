@@ -3,9 +3,11 @@
 import * as React from "react"
 import { useLocale } from "next-intl"
 import { Plus } from "lucide-react"
+import type { Permission } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { PermissionGuard, type PermissionGuardMode } from "../permission-guard"
 
 export interface AdminPageHeaderAction {
   label: string
@@ -13,6 +15,8 @@ export interface AdminPageHeaderAction {
   icon?: React.ComponentType<{ className?: string }>
   disabled?: boolean
   className?: string
+  permission?: Permission | readonly Permission[]
+  permissionMode?: PermissionGuardMode
 }
 
 export interface AdminPageHeaderProps {
@@ -38,6 +42,37 @@ export function AdminPageHeader({
 }: AdminPageHeaderProps) {
   const locale = useLocale()
   const ActionIcon = action?.icon || Plus
+
+  const renderActionButton = () => {
+    if (!action) return null
+
+    const button = (
+      <Button
+        onClick={action.onClick}
+        disabled={action.disabled}
+        className={cn(
+          "h-10 cursor-pointer gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90",
+          action.className
+        )}
+      >
+        <ActionIcon className="size-4" />
+        <span>{action.label}</span>
+      </Button>
+    )
+
+    if (action.permission) {
+      return (
+        <PermissionGuard
+          permission={action.permission}
+          mode={action.permissionMode ?? "disable"}
+        >
+          {button}
+        </PermissionGuard>
+      )
+    }
+
+    return button
+  }
 
   return (
     <div
@@ -70,19 +105,7 @@ export function AdminPageHeader({
       </div>
 
       <div className="flex items-center gap-2.5">
-        {action && (
-          <Button
-            onClick={action.onClick}
-            disabled={action.disabled}
-            className={cn(
-              "h-10 cursor-pointer gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90",
-              action.className
-            )}
-          >
-            <ActionIcon className="size-4" />
-            <span>{action.label}</span>
-          </Button>
-        )}
+        {renderActionButton()}
         {actions}
         {children}
       </div>

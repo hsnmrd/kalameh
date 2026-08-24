@@ -9,10 +9,12 @@ import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
 import { cn } from "@workspace/ui/lib/utils"
-import type {
-  ClassGradeRecordDto,
-  SingleStudentGradeInput,
+import {
+  PERMISSIONS,
+  type ClassGradeRecordDto,
+  type SingleStudentGradeInput,
 } from "@workspace/types"
+import { PermissionGuard } from "@/components/permission-guard"
 
 export interface GradesTableProps {
   records: ClassGradeRecordDto[] | undefined
@@ -219,20 +221,22 @@ export function GradesTable({
           <span>{t("progressionNotice")}</span>
         </div>
 
-        <Button
-          onClick={handleSubmitAll}
-          disabled={isSubmitting}
-          className="h-11 cursor-pointer gap-2 rounded-xl bg-primary px-6 font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
-        >
-          {isSubmitting ? (
-            <>
-              <Spinner className="size-4 text-primary-foreground" />
-              <span>{t("submitting")}</span>
-            </>
-          ) : (
-            <span>{t("submitAll")}</span>
-          )}
-        </Button>
+        <PermissionGuard permission={PERMISSIONS.MANAGE_GRADES} mode="disable">
+          <Button
+            onClick={handleSubmitAll}
+            disabled={isSubmitting}
+            className="h-11 cursor-pointer gap-2 rounded-xl bg-primary px-6 font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
+          >
+            {isSubmitting ? (
+              <>
+                <Spinner className="size-4 text-primary-foreground" />
+                <span>{t("submitting")}</span>
+              </>
+            ) : (
+              <span>{t("submitAll")}</span>
+            )}
+          </Button>
+        </PermissionGuard>
       </div>
     </div>
   )

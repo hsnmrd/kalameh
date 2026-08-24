@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
+import { PERMISSIONS } from "@workspace/types"
 import { AdminPageHeader } from "@/components/admin-page-header"
 
 export interface CoursesHeaderProps {
@@ -18,6 +19,7 @@ export function CoursesHeader({ onAddCourse }: CoursesHeaderProps) {
       action={{
         label: t("addCourse"),
         onClick: onAddCourse,
+        permission: PERMISSIONS.MANAGE_COURSES,
       }}
     />
   )

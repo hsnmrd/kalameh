@@ -149,7 +149,10 @@ export class AuthService {
 
     return {
       accessToken,
-      user: safeUser,
+      user: {
+        ...safeUser,
+        permissions,
+      },
     };
   }
 
@@ -162,7 +165,15 @@ export class AuthService {
       },
     });
 
-    return this.excludePassword(user);
+    const permissions = await this.resolvePermissions(
+      user.role,
+      user.instituteId,
+    );
+
+    return {
+      ...this.excludePassword(user),
+      permissions,
+    };
   }
 
   async changePassword(

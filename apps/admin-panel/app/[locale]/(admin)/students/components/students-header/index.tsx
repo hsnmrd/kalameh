@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { GraduationCap } from "lucide-react"
+import { PERMISSIONS } from "@workspace/types"
 import { AdminPageHeader } from "@/components/admin-page-header"
 
 export interface StudentsHeaderProps {
@@ -25,6 +26,7 @@ export function StudentsHeader({
       action={{
         label: t("addStudent"),
         onClick: onAddStudentClick,
+        permission: PERMISSIONS.MANAGE_STUDENTS,
       }}
     />
   )

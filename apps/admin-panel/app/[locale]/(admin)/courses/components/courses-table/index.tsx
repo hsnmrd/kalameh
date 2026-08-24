@@ -9,7 +9,8 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
 import { Price } from "@workspace/ui/components/price"
 import { formatNumber } from "@workspace/ui/lib/utils"
-import type { CourseDto } from "@workspace/types"
+import { PERMISSIONS, type CourseDto } from "@workspace/types"
+import { PermissionGuard } from "@/components/permission-guard"
 import { CoursePrerequisiteBadge } from "../course-prerequisite-badge"
 
 export interface CoursesTableProps {
@@ -74,15 +75,20 @@ export function CoursesTable({
         header: t("table.actions"),
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(row.original)}
-              className="size-8 p-0 text-muted-foreground hover:text-foreground"
-              aria-label={t("table.actions")}
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_COURSES}
+              mode="disable"
             >
-              <Edit2 className="size-4" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(row.original)}
+                className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                aria-label={t("table.actions")}
+              >
+                <Edit2 className="size-4" />
+              </Button>
+            </PermissionGuard>
           </div>
         ),
       },

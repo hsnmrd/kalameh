@@ -2,10 +2,11 @@
 
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
-import type { BranchWithStats } from "@workspace/types"
+import { PERMISSIONS, type BranchWithStats } from "@workspace/types"
 import { branchesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { AdminPageShell } from "@/components/admin-page-shell"
+import { PermissionGuard } from "@/components/permission-guard"
 import { BranchesHeader } from "./components/branches-header"
 import { BranchesTable } from "./components/branches-table"
 import { CreateBranchModal } from "./components/create-branch-modal"
@@ -24,28 +25,30 @@ export default function BranchesPage() {
   })
 
   return (
-    <AdminPageShell
-      header={<BranchesHeader onAddBranch={() => setCreateModalOpen(true)} />}
-      modals={
-        <>
-          <CreateBranchModal
-            open={createModalOpen}
-            onClose={() => setCreateModalOpen(false)}
-          />
+    <PermissionGuard permission={PERMISSIONS.VIEW_BRANCHES} mode="forbidden">
+      <AdminPageShell
+        header={<BranchesHeader onAddBranch={() => setCreateModalOpen(true)} />}
+        modals={
+          <>
+            <CreateBranchModal
+              open={createModalOpen}
+              onClose={() => setCreateModalOpen(false)}
+            />
 
-          <EditBranchModal
-            branch={editingBranch}
-            open={Boolean(editingBranch)}
-            onClose={() => setEditingBranch(null)}
-          />
-        </>
-      }
-    >
-      <BranchesTable
-        branches={branches}
-        isLoading={isLoading}
-        onEdit={(branch) => setEditingBranch(branch)}
-      />
-    </AdminPageShell>
+            <EditBranchModal
+              branch={editingBranch}
+              open={Boolean(editingBranch)}
+              onClose={() => setEditingBranch(null)}
+            />
+          </>
+        }
+      >
+        <BranchesTable
+          branches={branches}
+          isLoading={isLoading}
+          onEdit={(branch) => setEditingBranch(branch)}
+        />
+      </AdminPageShell>
+    </PermissionGuard>
   )
 }

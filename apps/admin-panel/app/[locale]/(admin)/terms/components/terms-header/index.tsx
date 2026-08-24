@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
+import { PERMISSIONS } from "@workspace/types"
 import { AdminPageHeader } from "@/components/admin-page-header"
 
 export interface TermsHeaderProps {
@@ -18,6 +19,7 @@ export function TermsHeader({ onAddTerm }: TermsHeaderProps) {
       action={{
         label: t("addTerm"),
         onClick: onAddTerm,
+        permission: PERMISSIONS.MANAGE_TERMS,
       }}
     />
   )

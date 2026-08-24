@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Users } from "lucide-react"
+import { PERMISSIONS } from "@workspace/types"
 import { AdminPageHeader } from "@/components/admin-page-header"
 
 export interface UsersHeaderProps {
@@ -22,6 +23,7 @@ export function UsersHeader({ totalCount, onAddUserClick }: UsersHeaderProps) {
       action={{
         label: t("addUser"),
         onClick: onAddUserClick,
+        permission: PERMISSIONS.MANAGE_USERS,
       }}
     />
   )

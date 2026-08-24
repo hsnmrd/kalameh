@@ -11,6 +11,8 @@ import coursesMessagesFa from "../messages/fa/courses.json"
 import classesMessagesFa from "../messages/fa/classes.json"
 import gradesMessagesFa from "../messages/fa/grades.json"
 import institutesMessagesFa from "../messages/fa/institutes.json"
+import { ROLES, type AuthUser } from "@workspace/types"
+import { authResource } from "../lib/api"
 import branchesMessagesFa from "../messages/fa/branches.json"
 
 const defaultMessages = {
@@ -26,6 +28,18 @@ const defaultMessages = {
   institutes: institutesMessagesFa,
 }
 
+export const defaultTestUser: AuthUser = {
+  id: "00000000-0000-0000-0000-000000000000",
+  instituteId: "11111111-1111-1111-1111-111111111111",
+  role: ROLES.SUPER_ADMIN,
+  firstName: "Super",
+  lastName: "Admin",
+  phone: "09120000000",
+  isActive: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+}
+
 interface AllTheProvidersProps {
   children: React.ReactNode
   locale?: string
@@ -33,7 +47,7 @@ interface AllTheProvidersProps {
 }
 
 export function createTestQueryClient() {
-  return new QueryClient({
+  const client = new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
@@ -43,6 +57,8 @@ export function createTestQueryClient() {
       },
     },
   })
+  client.setQueryData(authResource.me.toQuery().queryKey, defaultTestUser)
+  return client
 }
 
 export function AllTheProviders({

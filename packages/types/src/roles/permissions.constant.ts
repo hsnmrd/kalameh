@@ -337,20 +337,42 @@ export type RolePermissions = typeof DEFAULT_ROLE_PERMISSIONS
 
 /**
  * Check if a permission is present.
- * Accepts either a role (uses DEFAULT_ROLE_PERMISSIONS) or an explicit permissions array.
+ * Accepts a role, an explicit permissions array, or a user object { role, permissions }.
  */
 export function hasPermission(
-  roleOrPermissions: Role | readonly string[],
-  permission: Permission
+  roleOrPermissions:
+    | Role
+    | readonly string[]
+    | { role: Role; permissions?: readonly string[] | null },
+  permission: Permission | readonly Permission[],
+  requireAll = false
 ): boolean {
-  if (Array.isArray(roleOrPermissions)) {
-    return (roleOrPermissions as readonly string[]).includes(permission)
+  let role: Role | undefined
+  let permissions: readonly string[] | undefined
+
+  if (typeof roleOrPermissions === "string") {
+    role = roleOrPermissions as Role
+  } else if (Array.isArray(roleOrPermissions)) {
+    permissions = roleOrPermissions
+  } else if (
+    roleOrPermissions &&
+    typeof roleOrPermissions === "object" &&
+    "role" in roleOrPermissions
+  ) {
+    role = roleOrPermissions.role
+    permissions = roleOrPermissions.permissions ?? undefined
   }
 
-  const role = roleOrPermissions as Role
   if (role === ROLES.SUPER_ADMIN) return true
 
-  const allowed =
-    (DEFAULT_ROLE_PERMISSIONS[role] as readonly Permission[]) || []
-  return allowed.includes(permission)
+  const effectivePermissions: readonly string[] =
+    permissions ??
+    (role ? (DEFAULT_ROLE_PERMISSIONS[role] as readonly string[]) || [] : [])
+
+  const required = Array.isArray(permission) ? permission : [permission]
+  if (required.length === 0) return true
+
+  return requireAll
+    ? required.every((p) => effectivePermissions.includes(p))
+    : required.some((p) => effectivePermissions.includes(p))
 }

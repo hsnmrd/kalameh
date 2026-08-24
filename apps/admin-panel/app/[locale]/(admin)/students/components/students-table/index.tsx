@@ -10,7 +10,8 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
 import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
-import type { StudentDto } from "@workspace/types"
+import { PERMISSIONS, type StudentDto } from "@workspace/types"
+import { PermissionGuard } from "@/components/permission-guard"
 import { StudentStatusBadge } from "../student-status-badge"
 import { StudentCard } from "../student-card"
 
@@ -148,35 +149,50 @@ export function StudentsTable({
           const student = row.original
           return (
             <div className="flex items-center justify-end gap-1.5">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onViewProfile(student)}
-                title={t("actions.viewProfile")}
-                className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+              <PermissionGuard
+                permission={PERMISSIONS.VIEW_STUDENTS}
+                mode="disable"
               >
-                <Eye className="size-3.5" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onViewProfile(student)}
+                  title={t("actions.viewProfile")}
+                  className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <Eye className="size-3.5" />
+                </Button>
+              </PermissionGuard>
 
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onEdit(student)}
-                title={t("actions.edit")}
-                className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_STUDENTS}
+                mode="disable"
               >
-                <Edit2 className="size-3.5" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onEdit(student)}
+                  title={t("actions.edit")}
+                  className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <Edit2 className="size-3.5" />
+                </Button>
+              </PermissionGuard>
 
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onResetPassword(student)}
-                title={t("actions.resetPassword")}
-                className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_STUDENTS}
+                mode="disable"
               >
-                <KeyRound className="size-3.5" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onResetPassword(student)}
+                  title={t("actions.resetPassword")}
+                  className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <KeyRound className="size-3.5" />
+                </Button>
+              </PermissionGuard>
             </div>
           )
         },

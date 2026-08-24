@@ -4,7 +4,8 @@ import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { Edit2, KeyRound } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import type { AuthUser } from "@workspace/types"
+import { PERMISSIONS, type AuthUser } from "@workspace/types"
+import { PermissionGuard } from "@/components/permission-guard"
 import { UserRoleBadge } from "../user-role-badge"
 import { UserStatusBadge } from "../user-status-badge"
 
@@ -65,25 +66,29 @@ export function UserCard({ user, onEdit, onResetPassword }: UserCardProps) {
       )}
 
       <div className="flex items-center justify-end gap-2 border-t border-border/60 pt-2.5">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEdit(user)}
-          className="gap-1.5 rounded-lg text-xs"
-        >
-          <Edit2 className="size-3" />
-          <span>{t("actions.edit")}</span>
-        </Button>
+        <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="disable">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(user)}
+            className="gap-1.5 rounded-lg text-xs"
+          >
+            <Edit2 className="size-3" />
+            <span>{t("actions.edit")}</span>
+          </Button>
+        </PermissionGuard>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onResetPassword(user)}
-          className="gap-1.5 rounded-lg text-xs"
-        >
-          <KeyRound className="size-3" />
-          <span>{t("actions.resetPassword")}</span>
-        </Button>
+        <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="disable">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onResetPassword(user)}
+            className="gap-1.5 rounded-lg text-xs"
+          >
+            <KeyRound className="size-3" />
+            <span>{t("actions.resetPassword")}</span>
+          </Button>
+        </PermissionGuard>
       </div>
     </div>
   )
