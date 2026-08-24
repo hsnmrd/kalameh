@@ -36,56 +36,52 @@ export function proxy(request: NextRequest) {
   const isAuthPage = pathWithoutLocale.startsWith("/login")
   const accessToken = request.cookies.get("access_token")?.value
 
-  const createRedirectResponse = (url: URL) => {
+  const createRedirectResponse = (url: URL, clearToken = false) => {
     const response = NextResponse.redirect(url)
     response.cookies.set("NEXT_LOCALE", locale, {
       path: "/",
       maxAge: 60 * 60 * 24 * 365,
       sameSite: "lax",
     })
+    if (clearToken) {
+      response.cookies.delete("access_token")
+    }
     return response
   }
 
-  // Check if token belongs to a STUDENT
-  let isStudent = false
+  // Parse JWT token payload safely
+  let isTokenValid = false
   if (accessToken) {
     try {
       const parts = accessToken.split(".")
       if (parts.length === 3 && parts[1]) {
         const payloadJson = Buffer.from(parts[1], "base64").toString("utf-8")
         const payload = JSON.parse(payloadJson)
-        if (payload?.role === "STUDENT") {
-          isStudent = true
-        }
+        const isExpired = payload?.exp && payload.exp * 1000 <= Date.now()
+        isTokenValid = !isExpired
       }
     } catch {
-      // ignore
+      isTokenValid = false
     }
   }
 
-  // Reject and clear token if a student attempts to access admin panel
-  if (isStudent) {
-    const loginUrl = new URL(`/${locale}/login`, request.url)
-    const response = createRedirectResponse(loginUrl)
-    response.cookies.delete("access_token")
-    return response
+  // Reject and clear token if an expired token attempts to access protected page
+  if (accessToken && !isTokenValid) {
+    if (!isAuthPage) {
+      const loginUrl = new URL(`/${locale}/login`, request.url)
+      return createRedirectResponse(loginUrl, true)
+    }
   }
 
   // If user is not authenticated and trying to access protected page
-  if (!accessToken && !isAuthPage) {
+  if (!isTokenValid && !isAuthPage) {
     const loginUrl = new URL(`/${locale}/login`, request.url)
     return createRedirectResponse(loginUrl)
   }
 
-  // If user is authenticated and trying to access login page
-  if (accessToken && isAuthPage) {
-    const defaultUrl = new URL(`/${locale}`, request.url)
-    return createRedirectResponse(defaultUrl)
-  }
-
-  // If visiting root "/"
-  if (pathname === "/") {
-    const defaultUrl = new URL(`/${locale}`, request.url)
+  // If user is authenticated and trying to access login page or root "/"
+  if (isTokenValid && (isAuthPage || pathWithoutLocale === "/")) {
+    const defaultUrl = new URL(`/${locale}/dashboard`, request.url)
     return createRedirectResponse(defaultUrl)
   }
 

@@ -164,12 +164,14 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
     },
   })
 
+  const logoutMutate = logoutMutation.mutate
+
   // Block student from accessing admin layout
   React.useEffect(() => {
-    if (user && user.role === ROLES.STUDENT) {
-      logoutMutation.mutate()
+    if (user?.role === ROLES.STUDENT) {
+      logoutMutate()
     }
-  }, [user, logoutMutation])
+  }, [user?.role, logoutMutate])
 
   const handleSwitchLanguage = () => {
     const nextLocale = locale === "en" ? "fa" : "en"

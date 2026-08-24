@@ -8,7 +8,7 @@ import createNextIntlPlugin from "next-intl/plugin"
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") })
 dotenv.config({ path: path.resolve(process.cwd(), ".env") })
 
-const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts")
 
 // Auto-detect all active IPv4 network interface addresses for local network development
 const localIps = Object.values(os.networkInterfaces())
