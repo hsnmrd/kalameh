@@ -52,14 +52,20 @@ export function CreateUserModal({
   const { data: currentUser } = useQuery(authResource.me.toQuery())
 
   const roleOptions: ComboboxOption[] = React.useMemo(() => {
-    if (currentUser?.role === ROLES.SUPER_ADMIN) {
-      return [
-        { value: ROLES.CLERK, label: t("roles.CLERK") },
-        { value: ROLES.ADMIN, label: t("roles.ADMIN") },
-      ]
-    }
-    return [{ value: ROLES.CLERK, label: t("roles.CLERK") }]
-  }, [currentUser?.role, t])
+    const staffRoles: Role[] = [
+      ROLES.ADMIN,
+      ROLES.ASSISTANT,
+      ROLES.SUPERVISOR,
+      ROLES.SUPER_CLERK,
+      ROLES.CLERK,
+      ROLES.TEACHER,
+    ]
+
+    return staffRoles.map((r) => ({
+      value: r,
+      label: t(`roles.${r}`),
+    }))
+  }, [t])
 
   const {
     register,

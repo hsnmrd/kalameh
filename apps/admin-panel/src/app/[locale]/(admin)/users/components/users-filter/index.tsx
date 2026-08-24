@@ -29,19 +29,16 @@ export function UsersFilter({
   const { data: currentUser } = useQuery(authResource.me.toQuery())
 
   const filterTabs: FilterTabOption[] = React.useMemo(() => {
-    const tabs = [{ key: "", label: t("filter.all") }]
-
-    tabs.push({ key: ROLES.CLERK, label: t("filter.clerks") })
-
-    if (
-      currentUser?.role === ROLES.SUPER_ADMIN ||
-      currentUser?.role === ROLES.ADMIN
-    ) {
-      tabs.push({ key: ROLES.ADMIN, label: t("filter.admins") })
-    }
-
-    return tabs
-  }, [currentUser?.role, t])
+    return [
+      { key: "", label: t("filter.all") },
+      { key: ROLES.ADMIN, label: t("roles.ADMIN") },
+      { key: ROLES.SUPERVISOR, label: t("roles.SUPERVISOR") },
+      { key: ROLES.ASSISTANT, label: t("roles.ASSISTANT") },
+      { key: ROLES.SUPER_CLERK, label: t("roles.SUPER_CLERK") },
+      { key: ROLES.CLERK, label: t("roles.CLERK") },
+      { key: ROLES.TEACHER, label: t("roles.TEACHER") },
+    ]
+  }, [t])
 
   return (
     <AdminFilterBar

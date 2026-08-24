@@ -132,7 +132,7 @@ describe("UsersTable & UsersFilter Components", () => {
       )
 
       const clerkTab = screen.getByRole("button", {
-        name: /منشی‌ها|منشی|Clerks/i,
+        name: /^منشی$|^منشی‌ها$|^Clerk$/i,
       })
       fireEvent.click(clerkTab)
       expect(handleRoleChange).toHaveBeenCalledWith("CLERK")

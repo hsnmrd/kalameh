@@ -27,9 +27,9 @@ export class UsersService {
         ? dto.instituteId
         : currentUser.instituteId;
 
-    // RBAC: Non-super-admins cannot create SUPER_ADMIN or ADMIN accounts
+    // RBAC: Non-super-admins cannot create SUPER_ADMIN accounts
     if (currentUser.role === 'ADMIN') {
-      if (dto.role === 'SUPER_ADMIN' || dto.role === 'ADMIN') {
+      if (dto.role === 'SUPER_ADMIN') {
         throw new ForbiddenException(
           this.i18n.t('users.instituteAdminAllowedRolesOnly', locale),
         );
@@ -233,6 +233,13 @@ export class UsersService {
       );
     }
 
+    // RBAC: Non-super-admins cannot promote/change user to SUPER_ADMIN
+    if (currentUser.role !== 'SUPER_ADMIN' && dto.role === 'SUPER_ADMIN') {
+      throw new ForbiddenException(
+        this.i18n.t('users.cannotEditSuperAdmin', locale),
+      );
+    }
+
     if (dto.phone) {
       const existingPhone = await this.prisma.user.findFirst({
         where: {
@@ -255,6 +262,7 @@ export class UsersService {
         ...(dto.firstName ? { firstName: dto.firstName } : {}),
         ...(dto.lastName ? { lastName: dto.lastName } : {}),
         ...(dto.phone ? { phone: dto.phone } : {}),
+        ...(dto.role ? { role: dto.role } : {}),
         ...(dto.nationalCode !== undefined
           ? { nationalCode: dto.nationalCode }
           : {}),

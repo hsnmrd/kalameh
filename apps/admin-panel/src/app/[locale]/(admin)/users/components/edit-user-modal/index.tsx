@@ -22,7 +22,7 @@ import {
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
-import type { AuthUser } from "@workspace/types"
+import { ROLES, type AuthUser, type Role } from "@workspace/types"
 import { usersResource } from "@/lib/api"
 import {
   useUpdateUserSchema,
@@ -48,6 +48,22 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
     [t]
   )
 
+  const roleOptions: ComboboxOption[] = React.useMemo(() => {
+    const staffRoles: Role[] = [
+      ROLES.ADMIN,
+      ROLES.ASSISTANT,
+      ROLES.SUPERVISOR,
+      ROLES.SUPER_CLERK,
+      ROLES.CLERK,
+      ROLES.TEACHER,
+    ]
+
+    return staffRoles.map((r) => ({
+      value: r,
+      label: t(`roles.${r}`),
+    }))
+  }, [t])
+
   const {
     register,
     handleSubmit,
@@ -61,6 +77,7 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
       lastName: "",
       phone: "",
       nationalCode: "",
+      role: ROLES.CLERK,
       isActive: true,
     },
   })
@@ -72,6 +89,7 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
         lastName: user.lastName,
         phone: user.phone,
         nationalCode: user.nationalCode || "",
+        role: user.role,
         isActive: user.isActive,
       })
     }
@@ -152,6 +170,27 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
               className="h-10 rounded-xl text-start font-mono"
             />
             <FieldError>{errors.nationalCode?.message}</FieldError>
+          </Field>
+
+          {/* Role Selection via Combobox */}
+          <Field data-invalid={Boolean(errors.role)}>
+            <FieldLabel>{t("createModal.role")}</FieldLabel>
+            <Controller
+              control={control}
+              name="role"
+              render={({ field }) => (
+                <Combobox
+                  items={roleOptions}
+                  value={field.value}
+                  onValueChange={(val) =>
+                    field.onChange((val as Role) || ROLES.CLERK)
+                  }
+                  placeholder={t("createModal.role")}
+                  data-invalid={Boolean(errors.role)}
+                />
+              )}
+            />
+            <FieldError>{errors.role?.message}</FieldError>
           </Field>
 
           {/* Account Status via Combobox */}

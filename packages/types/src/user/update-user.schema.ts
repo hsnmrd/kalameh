@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { RoleEnum } from "../roles/index.js"
 import { PhoneRegex } from "../common/index.js"
 
 export const createUpdateUserSchema = (msg?: {
@@ -25,6 +26,7 @@ export const createUpdateUserSchema = (msg?: {
         msg?.phoneRegex ? { message: msg.phoneRegex } : undefined
       )
       .optional(),
+    role: RoleEnum.optional(),
     nationalCode: z.string().trim().optional().nullable(),
     isActive: z.boolean().optional(),
     currentAllowedCourseId: z.string().uuid().optional().nullable(),
