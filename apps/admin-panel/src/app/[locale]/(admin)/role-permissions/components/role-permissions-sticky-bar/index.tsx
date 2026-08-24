@@ -29,32 +29,8 @@ export function RolePermissionsStickyBar({
   const t = useTranslations("rolePermissions")
 
   return (
-    <div className="sticky bottom-4 z-30 mt-8">
-      <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-border/80 bg-background/95 p-3 shadow-xl backdrop-blur-md sm:flex-row">
-        <div className="flex items-center gap-3">
-          {hasChanges ? (
-            <Badge
-              variant="default"
-              className="gap-1.5 bg-amber-500/15 text-amber-600 hover:bg-amber-500/20"
-            >
-              <span className="size-2 animate-pulse rounded-full bg-amber-500" />
-              <span>{t("unsavedChanges")}</span>
-            </Badge>
-          ) : (
-            <Badge
-              variant="secondary"
-              className="gap-1.5 text-muted-foreground"
-            >
-              <CheckCircle2 className="size-3.5 text-emerald-500" />
-              <span>{t("allSaved")}</span>
-            </Badge>
-          )}
-
-          <span className="text-xs text-muted-foreground">
-            {selectedPermissionsCount} {t("selectedCount")}
-          </span>
-        </div>
-
+    <div className="sticky bottom-0 z-30 mt-8">
+      <div className="flex flex-col items-center justify-between gap-3 border border-border/80 bg-background/95 p-3 shadow-xl backdrop-blur-md sm:flex-row">
         <div className="flex w-full items-center justify-end gap-2.5 sm:w-auto">
           <PermissionGuard
             permission={PERMISSIONS.MANAGE_ROLE_PERMISSIONS}
