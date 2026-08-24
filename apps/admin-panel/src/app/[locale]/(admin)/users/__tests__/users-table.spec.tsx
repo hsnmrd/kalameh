@@ -120,22 +120,19 @@ describe("UsersTable & UsersFilter Components", () => {
       expect(handleSearchChange).toHaveBeenCalledWith("Ali")
     })
 
-    it("should trigger onRoleChange when role tab is clicked", () => {
-      const handleRoleChange = vi.fn()
+    it("should render role combobox with all options", () => {
       render(
         <UsersFilter
           searchValue=""
           onSearchChange={vi.fn()}
           selectedRole=""
-          onRoleChange={handleRoleChange}
+          onRoleChange={vi.fn()}
         />
       )
 
-      const clerkTab = screen.getByRole("button", {
-        name: /^منشی$|^منشی‌ها$|^Clerk$/i,
-      })
-      fireEvent.click(clerkTab)
-      expect(handleRoleChange).toHaveBeenCalledWith("CLERK")
+      const combobox = screen.getByRole("combobox")
+      expect(combobox).toBeInTheDocument()
+      expect(combobox).toHaveValue("همه پرسنل")
     })
   })
 })
