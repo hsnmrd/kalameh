@@ -12,6 +12,11 @@
   "resetSuccess": "Role permissions reset to defaults",
   "isCustomized": "Customized for this institute",
   "isDefault": "System Default",
+  "customizedBadge": "Custom",
+  "defaultBadge": "Default",
+  "unsavedChanges": "Unsaved Changes",
+  "allSaved": "All changes saved",
+  "selectedCount": "active permissions",
   "selectAll": "Select All",
   "deselectAll": "Deselect All",
   "roles": {

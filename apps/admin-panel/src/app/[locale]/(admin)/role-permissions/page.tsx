@@ -12,6 +12,7 @@ import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { RolePermissionsHeader } from "./components/role-permissions-header"
 import { RolePermissionsEditor } from "./components/role-permissions-editor"
+import { RolePermissionsStickyBar } from "./components/role-permissions-sticky-bar"
 
 export default function RolePermissionsPage() {
   const t = useTranslations("rolePermissions")
@@ -144,32 +145,33 @@ export default function RolePermissionsPage() {
       ]}
       mode="forbidden"
     >
-      <AdminPageShell
-        header={
-          <RolePermissionsHeader
-            onSave={handleSave}
-            onReset={handleReset}
-            isSaving={updateMutation.isPending}
-            isResetting={resetMutation.isPending}
-            hasChanges={hasChanges}
-          />
-        }
-      >
+      <AdminPageShell header={<RolePermissionsHeader />}>
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
             <Spinner className="size-8 text-primary" />
           </div>
         ) : (
-          <RolePermissionsEditor
-            selectedRole={selectedRole}
-            onSelectRole={setSelectedRole}
-            rolePermissionsList={rolePermissionsList}
-            currentRoleData={currentRoleData}
-            selectedPermissions={selectedPermissions}
-            onTogglePermission={handleTogglePermission}
-            onToggleAllInModule={handleToggleAllInModule}
-            disabled={updateMutation.isPending || resetMutation.isPending}
-          />
+          <>
+            <RolePermissionsEditor
+              selectedRole={selectedRole}
+              onSelectRole={setSelectedRole}
+              rolePermissionsList={rolePermissionsList}
+              currentRoleData={currentRoleData}
+              selectedPermissions={selectedPermissions}
+              onTogglePermission={handleTogglePermission}
+              onToggleAllInModule={handleToggleAllInModule}
+              disabled={updateMutation.isPending || resetMutation.isPending}
+            />
+
+            <RolePermissionsStickyBar
+              onSave={handleSave}
+              onReset={handleReset}
+              isSaving={updateMutation.isPending}
+              isResetting={resetMutation.isPending}
+              hasChanges={hasChanges}
+              selectedPermissionsCount={selectedPermissions.size}
+            />
+          </>
         )}
       </AdminPageShell>
     </PermissionGuard>

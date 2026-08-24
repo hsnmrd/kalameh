@@ -3,7 +3,18 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import {
+  Award,
+  BookOpen,
+  Briefcase,
+  GraduationCap,
+  Headphones,
+  Shield,
+  User,
+  UserCog,
+} from "lucide-react"
+import {
   CONFIGURABLE_ROLES,
+  ROLES,
   type Role,
   type RolePermissionResponse,
 } from "@workspace/types"
@@ -14,6 +25,18 @@ export interface RoleSelectorProps {
   selectedRole: Role
   onSelectRole: (role: Role) => void
   rolePermissionsList?: RolePermissionResponse[]
+}
+
+const ROLE_ICONS: Record<Role, React.ComponentType<{ className?: string }>> = {
+  [ROLES.SUPER_ADMIN]: Shield,
+  [ROLES.ADMIN]: Shield,
+  [ROLES.ASSISTANT]: UserCog,
+  [ROLES.SUPERVISOR]: BookOpen,
+  [ROLES.SUPER_CLERK]: Briefcase,
+  [ROLES.CLERK]: Headphones,
+  [ROLES.TEACHER]: GraduationCap,
+  [ROLES.SUPER_STUDENT]: Award,
+  [ROLES.STUDENT]: User,
 }
 
 export function RoleSelector({
@@ -32,33 +55,73 @@ export function RoleSelector({
   }, [rolePermissionsList])
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-border pb-4">
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
       {CONFIGURABLE_ROLES.map((role) => {
         const isSelected = selectedRole === role
         const isOverridden = overriddenMap.get(role) ?? false
+        const Icon = ROLE_ICONS[role] || User
 
         return (
           <Button
             key={role}
-            variant={isSelected ? "default" : "secondary"}
+            variant="outline"
             onClick={() => onSelectRole(role)}
             className={cn(
-              "cursor-pointer gap-2 rounded-xl text-sm font-medium transition-all",
+              "group relative flex h-auto cursor-pointer flex-col items-start gap-2.5 rounded-2xl border p-3 text-start transition-all",
               isSelected
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
+                ? "border-primary bg-primary/5 shadow-xs ring-1 ring-primary hover:bg-primary/10"
+                : "border-border/70 bg-card hover:border-border hover:bg-muted/40"
             )}
           >
-            <span>{t(`roles.${role}` as any)}</span>
-            {isOverridden && (
-              <span
+            <div className="flex w-full items-center justify-between">
+              <div
                 className={cn(
-                  "size-2 rounded-full",
-                  isSelected ? "bg-primary-foreground" : "bg-amber-500"
+                  "flex size-8 items-center justify-center rounded-xl transition-colors",
+                  isSelected
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground group-hover:text-foreground"
                 )}
-                title={t("isCustomized")}
-              />
-            )}
+              >
+                <Icon className="size-4" />
+              </div>
+
+              {isOverridden ? (
+                <span
+                  className={cn(
+                    "flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                    isSelected
+                      ? "bg-primary/20 font-semibold text-primary"
+                      : "bg-amber-500/15 text-amber-600"
+                  )}
+                  title={t("isCustomized")}
+                >
+                  <span
+                    className={cn(
+                      "size-1.5 rounded-full",
+                      isSelected ? "bg-primary" : "bg-amber-500"
+                    )}
+                  />
+                  <span>{t("customizedBadge")}</span>
+                </span>
+              ) : (
+                <span className="text-[10px] text-muted-foreground/60">
+                  {t("defaultBadge")}
+                </span>
+              )}
+            </div>
+
+            <div className="w-full">
+              <div
+                className={cn(
+                  "truncate text-xs font-semibold",
+                  isSelected
+                    ? "font-bold text-foreground"
+                    : "text-foreground/80"
+                )}
+              >
+                {t(`roles.${role}` as any)}
+              </div>
+            </div>
           </Button>
         )
       })}

@@ -12,6 +12,11 @@
   "resetSuccess": "دسترسی‌های نقش به حالت پیش‌فرض بازگردانده شد",
   "isCustomized": "سفارشی‌شده در این آموزشگاه",
   "isDefault": "پیش‌فرض سامانه",
+  "customizedBadge": "سفارشی",
+  "defaultBadge": "پیش‌فرض",
+  "unsavedChanges": "تغییرات ذخیره‌نشده",
+  "allSaved": "تمام تغییرات ذخیره شده‌اند",
+  "selectedCount": "دسترسی فعال",
   "selectAll": "انتخاب همه",
   "deselectAll": "لغو همه",
   "roles": {

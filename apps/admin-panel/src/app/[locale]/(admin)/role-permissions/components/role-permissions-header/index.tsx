@@ -2,74 +2,10 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { RotateCcw, Save } from "lucide-react"
-import { PERMISSIONS } from "@workspace/types"
-import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageHeader } from "@/components/admin-page-header"
-import { PermissionGuard } from "@/components/permission-guard"
 
-export interface RolePermissionsHeaderProps {
-  onSave: () => void
-  onReset: () => void
-  isSaving: boolean
-  isResetting: boolean
-  hasChanges: boolean
-}
-
-export function RolePermissionsHeader({
-  onSave,
-  onReset,
-  isSaving,
-  isResetting,
-  hasChanges,
-}: RolePermissionsHeaderProps) {
+export function RolePermissionsHeader() {
   const t = useTranslations("rolePermissions")
 
-  return (
-    <AdminPageHeader
-      title={t("title")}
-      subtitle={t("description")}
-      actions={
-        <div className="flex items-center gap-2">
-          <PermissionGuard
-            permission={PERMISSIONS.MANAGE_ROLE_PERMISSIONS}
-            mode="disable"
-          >
-            <Button
-              variant="outline"
-              onClick={onReset}
-              disabled={isResetting || isSaving}
-              className="cursor-pointer gap-2 rounded-xl"
-            >
-              {isResetting ? (
-                <Spinner className="size-4" />
-              ) : (
-                <RotateCcw className="size-4" />
-              )}
-              <span>{isResetting ? t("resetting") : t("resetToDefaults")}</span>
-            </Button>
-          </PermissionGuard>
-
-          <PermissionGuard
-            permission={PERMISSIONS.MANAGE_ROLE_PERMISSIONS}
-            mode="disable"
-          >
-            <Button
-              onClick={onSave}
-              disabled={isSaving || isResetting || !hasChanges}
-              className="cursor-pointer gap-2 rounded-xl bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
-            >
-              {isSaving ? (
-                <Spinner className="size-4" />
-              ) : (
-                <Save className="size-4" />
-              )}
-              <span>{isSaving ? t("saving") : t("saveChanges")}</span>
-            </Button>
-          </PermissionGuard>
-        </div>
-      }
-    />
-  )
+  return <AdminPageHeader title={t("title")} subtitle={t("description")} />
 }
