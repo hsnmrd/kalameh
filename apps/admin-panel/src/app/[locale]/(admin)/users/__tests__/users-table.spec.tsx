@@ -132,7 +132,7 @@ describe("UsersTable & UsersFilter Components", () => {
 
       const combobox = screen.getByRole("combobox")
       expect(combobox).toBeInTheDocument()
-      expect(combobox).toHaveValue("همه پرسنل")
+      expect(combobox).toHaveTextContent("همه پرسنل")
     })
   })
 })

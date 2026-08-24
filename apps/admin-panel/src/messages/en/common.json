@@ -36,5 +36,10 @@
     "title": "Access Denied",
     "description": "You do not have permission to view or access this section. Please contact your administrator if you believe this is an error.",
     "backHome": "Back to Dashboard"
+  },
+  "combobox": {
+    "placeholder": "Select an option...",
+    "searchPlaceholder": "Search...",
+    "emptyMessage": "No items found."
   }
 }
