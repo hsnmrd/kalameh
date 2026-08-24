@@ -1,4 +1,5 @@
-import { Geist, Geist_Mono, Vazirmatn } from "next/font/google"
+import localFont from "next/font/local"
+import { Geist, Geist_Mono } from "next/font/google"
 import { notFound } from "next/navigation"
 import {
   routing,
@@ -12,8 +13,29 @@ import "@workspace/ui/globals.css"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
-const vazirmatn = Vazirmatn({
-  subsets: ["arabic", "latin"],
+const yekanBakh = localFont({
+  src: [
+    {
+      path: "../../fonts/YekanBakhFaNum-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../fonts/YekanBakhFaNum-SemiBold.ttf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../../fonts/YekanBakhFaNum-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../fonts/YekanBakhFaNum-ExtraBold.ttf",
+      weight: "800",
+      style: "normal",
+    },
+  ],
   variable: "--font-sans",
   display: "swap",
 })
@@ -37,7 +59,7 @@ export default async function LocaleLayout({
 
   const isRtl = isRtlLocale(locale)
   const dir = getLocaleDirection(locale)
-  const fontVariable = isRtl ? vazirmatn.variable : geist.variable
+  const fontVariable = isRtl ? yekanBakh.variable : geist.variable
 
   return (
     <html
