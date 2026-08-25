@@ -62,12 +62,12 @@ describe("User Modals", () => {
       )
 
       expect(
-        screen.getByText(/حذف حساب کاربری پرسنل|حذف کاربر/i)
+        screen.getByRole("heading", { name: /حذف حساب کاربری پرسنل|delete/i })
       ).toBeInTheDocument()
       expect(screen.getByText(/Ali Rezaei/i)).toBeInTheDocument()
       expect(screen.getByText("09123456789")).toBeInTheDocument()
       expect(
-        screen.getByRole("button", { name: /حذف کاربر|حذف/i })
+        screen.getByRole("button", { name: /حذف کاربر|delete/i })
       ).toBeInTheDocument()
     })
 
