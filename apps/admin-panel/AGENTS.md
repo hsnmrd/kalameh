@@ -48,6 +48,8 @@
   - **NEVER use raw `<img>` tags.** Always import and use Next.js `<Image />` from `next/image` (with `unoptimized` for uploaded/external assets wrapped in `getAssetUrl`).
 - **Single Card Anti-Pattern:**
   - Do not wrap pages with a `<Card>` component if the page content is already rendered within a single container.
+- **Card Action Architecture (Context Menu & Action Menu Standard):**
+  - When a card (such as InstituteCard, StudentCard, ClassCard) has multiple actions (e.g. edit, delete, open/manage, ban/block), utilize the shadcn / Base UI `<ContextMenu />` and/or action menus to maintain clean and decluttered card layouts.
 - **Data Tables & Lists Standard:**
   - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying lists and data grids.
   - Define columns via TanStack `ColumnDef` and never use raw HTML `<table>` elements in views or components.

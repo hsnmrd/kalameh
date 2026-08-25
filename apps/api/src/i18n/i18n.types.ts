@@ -37,6 +37,8 @@ export interface TranslationDictionary {
     instituteNotFound: string;
     subdomainAlreadyExists: string;
     cannotDeleteWithDependencies: string;
+    cannotDeleteSystemInstitute: string;
+    instituteDeletedSuccess: string;
   };
   branches: {
     branchNotFound: string;

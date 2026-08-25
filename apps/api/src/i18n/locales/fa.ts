@@ -48,6 +48,8 @@ export const fa: TranslationDictionary = {
     subdomainAlreadyExists: 'آموزشگاهی با این زیردامنه قبلاً ثبت شده است',
     cannotDeleteWithDependencies:
       'امکان حذف آموزشگاه دارای اطلاعات وابسته وجود ندارد',
+    cannotDeleteSystemInstitute: 'امکان حذف آموزشگاه اصلی سامانه وجود ندارد',
+    instituteDeletedSuccess: 'آموزشگاه با موفقیت حذف گردید',
   },
   branches: {
     branchNotFound: 'شعبه مورد نظر یافت نشد',

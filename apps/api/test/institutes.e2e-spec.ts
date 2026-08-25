@@ -150,7 +150,7 @@ describe('InstitutesController (e2e)', () => {
         isActive: true,
       };
 
-      prismaService.institute.findUniqueOrThrow.mockResolvedValue(existing);
+      prismaService.institute.findFirstOrThrow.mockResolvedValue(existing);
       prismaService.institute.findUnique.mockResolvedValue(null);
       prismaService.institute.update.mockResolvedValue({
         ...existing,
@@ -165,6 +165,31 @@ describe('InstitutesController (e2e)', () => {
         .expect(200);
 
       expect(res.body.isActive).toBe(false);
+    });
+  });
+
+  describe('DELETE /institutes/:id', () => {
+    it('should soft delete institute for SUPER_ADMIN', async () => {
+      const existing = {
+        id: 'inst-to-delete',
+        name: 'Delete Me',
+        subdomain: 'delete-me',
+        isActive: true,
+      };
+
+      prismaService.institute.findFirstOrThrow.mockResolvedValue(existing);
+      prismaService.institute.update.mockResolvedValue({
+        ...existing,
+        deletedAt: new Date(),
+        isActive: false,
+      });
+
+      const res = await request(app.getHttpAdapter().getInstance())
+        .delete('/institutes/inst-to-delete')
+        .set('Authorization', `Bearer ${superAdminToken}`)
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
     });
   });
 });

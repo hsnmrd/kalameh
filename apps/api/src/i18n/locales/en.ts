@@ -51,6 +51,8 @@ export const en: TranslationDictionary = {
     subdomainAlreadyExists: 'An institute with this subdomain already exists',
     cannotDeleteWithDependencies:
       'Cannot delete institute with dependent records',
+    cannotDeleteSystemInstitute: 'Cannot delete the system institute',
+    instituteDeletedSuccess: 'Institute deleted successfully',
   },
   branches: {
     branchNotFound: 'Requested branch was not found',

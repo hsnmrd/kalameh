@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -69,5 +70,15 @@ export class InstitutesController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.institutesService.update(id, dto, file, currentUser, locale);
+  }
+
+  @Delete(':id')
+  @RequirePermissions(PERMISSIONS.MANAGE_INSTITUTES)
+  async delete(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.institutesService.delete(id, currentUser, locale);
   }
 }

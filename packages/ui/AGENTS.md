@@ -1,7 +1,9 @@
 # Shared UI Library Rules (`packages/ui`)
 
 - **Role:** Centralized, reusable component library based on Tailwind CSS v4, Base UI, and shadcn/ui patterns.
-- **Component Installation & Kits:** When a new UI primitive or kit is needed (e.g. dialog, table, select, dropdown), install/scaffold it from shadcn headless UI (`@base-ui/react` primitives) directly inside `packages/ui`. If it does not exist, discuss before adding custom raw HTML.
+- **Component Installation & Kits:** When a new UI primitive or kit is needed (e.g. dialog, table, select, dropdown, context-menu), install/scaffold it from shadcn headless UI (`@base-ui/react` primitives) directly inside `packages/ui`. If it does not exist, discuss before adding custom raw HTML.
+- **Context Menu Standard:**
+  - Support and export `<ContextMenu />` (`src/components/context-menu.tsx`) based on Base UI primitives for multi-action card workflows (e.g. edit, delete, manage, ban/block).
 - **Data Table / Data Grid Standard:**
   - Export and maintain `<DataTable />` (`src/components/data-table.tsx`) built on TanStack Table for consistent tabular data rendering across apps.
 - **Price & Currency Formatting Standard:**

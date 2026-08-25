@@ -73,6 +73,7 @@ export class AuthService {
       const institute = await this.prisma.institute.findFirstOrThrow({
         where: {
           OR: [{ subdomain: subdomain }, { id: subdomain }],
+          deletedAt: null,
         },
       });
 
@@ -117,7 +118,11 @@ export class AuthService {
       );
     }
 
-    if (!user.institute || !user.institute.isActive) {
+    if (
+      !user.institute ||
+      !user.institute.isActive ||
+      user.institute.deletedAt
+    ) {
       throw new UnauthorizedException(
         this.i18n.t('auth.instituteDeactivated', locale),
       );

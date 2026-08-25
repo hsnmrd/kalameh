@@ -8,10 +8,11 @@ datasource db {
 }
 
 model Institute {
-  id        String  @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
-  subdomain String  @unique
-  isActive  Boolean @default(true)
+  subdomain String    @unique
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
 
   logoUrl      String?
   primaryColor String?

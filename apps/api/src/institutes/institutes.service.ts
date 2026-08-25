@@ -19,8 +19,8 @@ export class InstitutesService {
   async findAll(currentUser: JwtPayload) {
     if (currentUser.role !== 'SUPER_ADMIN') {
       const { _count, ...institute } =
-        await this.prisma.institute.findUniqueOrThrow({
-          where: { id: currentUser.instituteId },
+        await this.prisma.institute.findFirstOrThrow({
+          where: { id: currentUser.instituteId, deletedAt: null },
           include: {
             _count: { select: { classes: true, users: true } },
           },
@@ -36,7 +36,7 @@ export class InstitutesService {
     }
 
     const institutes = await this.prisma.institute.findMany({
-      where: { subdomain: { not: 'system' } },
+      where: { subdomain: { not: 'system' }, deletedAt: null },
       include: {
         _count: { select: { classes: true, users: true } },
       },
@@ -60,8 +60,8 @@ export class InstitutesService {
     }
 
     const { _count, ...institute } =
-      await this.prisma.institute.findUniqueOrThrow({
-        where: { id },
+      await this.prisma.institute.findFirstOrThrow({
+        where: { id, deletedAt: null },
         include: {
           _count: {
             select: { classes: true, users: true, courses: true, terms: true },
@@ -147,9 +147,15 @@ export class InstitutesService {
       throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
     }
 
-    const institute = await this.prisma.institute.findUniqueOrThrow({
-      where: { id },
+    const institute = await this.prisma.institute.findFirstOrThrow({
+      where: { id, deletedAt: null },
     });
+
+    if (institute.subdomain === 'system' && dto.isActive === false) {
+      throw new ConflictException(
+        this.i18n.t('institutes.cannotDeleteSystemInstitute', locale),
+      );
+    }
 
     if (dto.subdomain && dto.subdomain !== institute.subdomain) {
       const existing = await this.prisma.institute.findUnique({
@@ -218,6 +224,39 @@ export class InstitutesService {
       ...updated,
       classesCount: _count.classes,
       usersCount: _count.users,
+    };
+  }
+
+  async delete(
+    id: string,
+    currentUser: JwtPayload,
+    locale: SupportedLocale = 'fa',
+  ) {
+    if (currentUser.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
+    }
+
+    const institute = await this.prisma.institute.findFirstOrThrow({
+      where: { id, deletedAt: null },
+    });
+
+    if (institute.subdomain === 'system') {
+      throw new ConflictException(
+        this.i18n.t('institutes.cannotDeleteSystemInstitute', locale),
+      );
+    }
+
+    await this.prisma.institute.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        isActive: false,
+      },
+    });
+
+    return {
+      success: true,
+      message: this.i18n.t('institutes.instituteDeletedSuccess', locale),
     };
   }
 }

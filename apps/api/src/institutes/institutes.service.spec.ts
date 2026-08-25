@@ -30,6 +30,7 @@ describe('InstitutesService', () => {
         findMany: jest.fn(),
         findUnique: jest.fn(),
         findUniqueOrThrow: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
       },
@@ -75,14 +76,14 @@ describe('InstitutesService', () => {
       expect(result[0].classesCount).toBe(5);
       expect(result[0].usersCount).toBe(20);
       expect(prismaService.institute.findMany).toHaveBeenCalledWith({
-        where: { subdomain: { not: 'system' } },
+        where: { subdomain: { not: 'system' }, deletedAt: null },
         include: { _count: { select: { classes: true, users: true } } },
         orderBy: { createdAt: 'desc' },
       });
     });
 
     it('should return only own institute for ADMIN', async () => {
-      prismaService.institute.findUniqueOrThrow.mockResolvedValue({
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
         id: 'inst-tehran',
         name: 'Tehran Institute',
         subdomain: 'tehran',
@@ -103,7 +104,7 @@ describe('InstitutesService', () => {
 
   describe('findOne', () => {
     it('should return institute details for SUPER_ADMIN', async () => {
-      prismaService.institute.findUniqueOrThrow.mockResolvedValue({
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
         id: 'inst-1',
         name: 'Tehran Institute',
         subdomain: 'tehran',
@@ -121,8 +122,8 @@ describe('InstitutesService', () => {
       expect(result.coursesCount).toBe(3);
     });
 
-    it('should bubble up error when institute is not found via findUniqueOrThrow', async () => {
-      prismaService.institute.findUniqueOrThrow.mockRejectedValue(
+    it('should bubble up error when institute is not found via findFirstOrThrow', async () => {
+      prismaService.institute.findFirstOrThrow.mockRejectedValue(
         new Error('Record not found'),
       );
 
@@ -226,7 +227,7 @@ describe('InstitutesService', () => {
 
   describe('update', () => {
     it('should update institute with new uploaded logo file', async () => {
-      prismaService.institute.findUniqueOrThrow.mockResolvedValue({
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
         id: 'inst-tehran',
         name: 'Tehran Institute',
         subdomain: 'tehran',
@@ -275,6 +276,48 @@ describe('InstitutesService', () => {
           mockInstituteAdmin,
           'en',
         ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('delete', () => {
+    it('should allow SUPER_ADMIN to soft delete an institute', async () => {
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Tehran Institute',
+        subdomain: 'tehran',
+      });
+      prismaService.institute.update.mockResolvedValue({
+        id: 'inst-tehran',
+        deletedAt: new Date(),
+        isActive: false,
+      });
+
+      const result = await service.delete('inst-tehran', mockSuperAdmin, 'en');
+      expect(result.success).toBe(true);
+      expect(prismaService.institute.update).toHaveBeenCalledWith({
+        where: { id: 'inst-tehran' },
+        data: expect.objectContaining({
+          isActive: false,
+        }),
+      });
+    });
+
+    it('should throw ConflictException if trying to delete system institute', async () => {
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
+        id: 'inst-system',
+        name: 'System Institute',
+        subdomain: 'system',
+      });
+
+      await expect(
+        service.delete('inst-system', mockSuperAdmin, 'en'),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw ForbiddenException if non-SUPER_ADMIN tries to delete institute', async () => {
+      await expect(
+        service.delete('inst-tehran', mockInstituteAdmin, 'en'),
       ).rejects.toThrow(ForbiddenException);
     });
   });

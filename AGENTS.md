@@ -19,6 +19,8 @@
   - Do not use raw icons like `Loader2` from `lucide-react` for loading indicators.
 - **Single Card Anti-Pattern:**
   - Do NOT wrap an entire page inside a `<Card>` component if the whole content of the page is already housed in a single container (such as centered auth forms or fullscreen dashboard layouts).
+- **Card Action Architecture (Context Menu & Dropdown Standard):**
+  - When a card, tile, or grid item has multiple actions (e.g. edit, delete/soft-delete, open/manage, ban/block, duplicate), use the shadcn / Base UI `<ContextMenu />` (and/or an accessible action dropdown menu) to keep card interfaces clean, uncluttered, and ergonomic.
 - **Page Collocation & Sibling Directory Architecture:**
   - For named routes (e.g. `/classes`, `/institutes`, `/login`, `/profile`), use the route's own directory (`classes/`, `institutes/`, `login/`, etc.). Do not nest redundant route groups inside named directories.
   - For index routes (e.g. `/` root dashboard), encapsulate `page.tsx` and its sibling directories within a route group `({page})` (e.g. `(dashboard)`) so the URL remains `/`.

@@ -12,6 +12,7 @@ export const InstituteSchema = z.object({
   bankCardNumber: z.string().nullable().optional(),
   bankAccountName: z.string().nullable().optional(),
   bankShaba: z.string().nullable().optional(),
+  deletedAt: z.date().or(z.string()).nullable().optional(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
 })

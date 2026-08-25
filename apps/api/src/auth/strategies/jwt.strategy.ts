@@ -48,7 +48,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('حساب کاربری یافت نشد یا غیرفعال است');
     }
 
-    if (!user.institute || !user.institute.isActive) {
+    if (
+      !user.institute ||
+      !user.institute.isActive ||
+      user.institute.deletedAt
+    ) {
       throw new UnauthorizedException('آموزشگاه مربوطه غیرفعال شده است');
     }
 

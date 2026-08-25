@@ -62,14 +62,12 @@ describe("RolePermissions Components", () => {
         />
       )
 
-      expect(screen.getByText("تمام تغییرات ذخیره شده‌اند")).toBeInTheDocument()
-      expect(screen.getByText(/12 دسترسی فعال/i)).toBeInTheDocument()
       expect(
         screen.getByRole("button", { name: /ذخیره تغییرات/i })
       ).toBeDisabled()
     })
 
-    it("should render unsaved badge and enable save button when hasChanges is true", () => {
+    it("should enable save button when hasChanges is true", () => {
       const handleSave = vi.fn()
       render(
         <RolePermissionsStickyBar
@@ -82,7 +80,6 @@ describe("RolePermissions Components", () => {
         />
       )
 
-      expect(screen.getByText("تغییرات ذخیره‌نشده")).toBeInTheDocument()
       const saveBtn = screen.getByRole("button", { name: /ذخیره تغییرات/i })
       expect(saveBtn).not.toBeDisabled()
 

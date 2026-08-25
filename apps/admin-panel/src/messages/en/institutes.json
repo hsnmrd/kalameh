@@ -16,9 +16,13 @@
   },
   "status": {
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "blocked": "Suspended / Blocked"
   },
   "edit": "Edit",
+  "delete": "Delete Institute",
+  "block": "Suspend Access",
+  "unblock": "Unsuspend & Activate",
   "manage": "Manage",
   "switcher": {
     "title": "Select Institute",
@@ -66,6 +70,30 @@
     "submit": "Create Institute",
     "submitting": "Creating Institute...",
     "success": "New institute created successfully."
+  },
+  "editModal": {
+    "title": "Edit Institute Details",
+    "description": "Modify institute branding, operational status, and contact information.",
+    "submit": "Save Changes",
+    "submitting": "Saving Changes...",
+    "success": "Institute details updated successfully.",
+    "statusLabel": "Institute Operational Status",
+    "statusActiveHint": "When inactive or suspended, users belonging to this institute will not be able to log in."
+  },
+  "deleteModal": {
+    "title": "Delete Institute",
+    "description": "Are you sure you want to delete this institute? It will be deactivated and archived from the active list, while historical records remain intact in the database.",
+    "instituteName": "Institute Name:",
+    "subdomain": "Subdomain:",
+    "confirm": "Delete and Archive Institute",
+    "deleting": "Deleting...",
+    "cancel": "Cancel",
+    "success": "Institute deleted successfully."
+  },
+  "blockToggle": {
+    "blockTitle": "Suspend Institute",
+    "blockSuccess": "Institute has been suspended and deactivated.",
+    "unblockSuccess": "Institute has been activated successfully."
   },
   "validation": {
     "nameMin": "Institute name must be at least 2 characters.",

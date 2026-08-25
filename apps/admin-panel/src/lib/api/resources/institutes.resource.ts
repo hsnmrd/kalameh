@@ -18,4 +18,7 @@ export const institutesResource = api.resource("institutes", {
     body: ({ body }) => body,
     bodyType: "form-data",
   }),
+  delete: api.delete<{ success: boolean; message?: string }, string>(
+    (id) => `/institutes/${id}`
+  ),
 })

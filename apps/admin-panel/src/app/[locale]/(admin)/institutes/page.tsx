@@ -5,15 +5,22 @@ import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import { Building2 } from "lucide-react"
 import { Spinner } from "@workspace/ui/components/spinner"
+import type { InstituteWithStats } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { AdminPageHeader } from "@/components/admin-page-header"
 import { InstituteCard } from "./components/institute-card"
 import { CreateInstituteModal } from "./components/create-institute-modal"
+import { EditInstituteModal } from "./components/edit-institute-modal"
+import { DeleteInstituteModal } from "./components/delete-institute-modal"
 
 export default function InstitutesPage() {
   const t = useTranslations("institutes")
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
+  const [editingInstitute, setEditingInstitute] =
+    React.useState<InstituteWithStats | null>(null)
+  const [deletingInstitute, setDeletingInstitute] =
+    React.useState<InstituteWithStats | null>(null)
 
   const { data: institutes = [], isLoading } = useQuery(
     institutesResource.list.toQuery()
@@ -45,7 +52,12 @@ export default function InstitutesPage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {institutes.map((institute) => (
-            <InstituteCard key={institute.id} institute={institute} />
+            <InstituteCard
+              key={institute.id}
+              institute={institute}
+              onEdit={(inst) => setEditingInstitute(inst)}
+              onDelete={(inst) => setDeletingInstitute(inst)}
+            />
           ))}
         </div>
       )}
@@ -53,6 +65,18 @@ export default function InstitutesPage() {
       <CreateInstituteModal
         open={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
+      />
+
+      <EditInstituteModal
+        open={Boolean(editingInstitute)}
+        institute={editingInstitute}
+        onClose={() => setEditingInstitute(null)}
+      />
+
+      <DeleteInstituteModal
+        open={Boolean(deletingInstitute)}
+        institute={deletingInstitute}
+        onClose={() => setDeletingInstitute(null)}
       />
     </AdminPageShell>
   )
