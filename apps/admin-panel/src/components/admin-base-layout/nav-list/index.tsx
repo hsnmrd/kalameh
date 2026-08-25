@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
+import { Lock } from "lucide-react"
 import type { Permission, AppModule } from "@workspace/types"
 import { ROLES } from "@workspace/types"
 import { Link } from "@/i18n/routing"
@@ -77,12 +78,12 @@ export function NavList({
         ...section,
         items: section.items.filter((item) => {
           const permOk = item.permission ? hasPermission(item.permission) : true
-          const moduleOk = hasModuleAccess(item.module)
-          return permOk && moduleOk
+          // Keep all permitted items visible in navigation so locked modules can be discovered with a lock icon
+          return permOk
         }),
       }))
       .filter((section) => section.items.length > 0)
-  }, [sections, items, hasPermission, hasModuleAccess])
+  }, [sections, items, hasPermission])
 
   return (
     <nav className="space-y-5">
@@ -107,24 +108,39 @@ export function NavList({
           <div className="space-y-1">
             {section.items.map((item) => {
               const Icon = item.icon
+              const isLocked = !hasModuleAccess(item.module)
               const isActive =
                 item.href === "/"
                   ? pathname === "/" || pathname === ""
                   : pathname.startsWith(item.href)
+
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={onItemClick}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors",
+                    "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-xs"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? "bg-primary/10 font-semibold text-primary"
+                      : isLocked
+                        ? "text-muted-foreground/80 hover:bg-muted hover:text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
                   <Icon className="size-4 shrink-0" />
-                  <span>{t(item.key)}</span>
+                  <span className="truncate">{t(item.key)}</span>
+                  {isLocked && (
+                    <Lock
+                      aria-label="Locked Module"
+                      className={cn(
+                        "ms-auto size-3.5 shrink-0 transition-colors",
+                        isActive
+                          ? "text-primary opacity-80"
+                          : "text-muted-foreground opacity-70 group-hover:text-foreground group-hover:opacity-100"
+                      )}
+                    />
+                  )}
                 </Link>
               )
             })}

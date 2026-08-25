@@ -7,7 +7,9 @@ import {
   ShieldAlert,
   CreditCard,
 } from "lucide-react"
-import { APP_MODULES } from "@workspace/types"
+import { APP_MODULES, ROLES } from "@workspace/types"
+import * as hooks from "@/lib/hooks"
+import * as stores from "@/lib/stores"
 
 vi.mock("@/i18n/routing", () => ({
   Link: ({
@@ -70,6 +72,53 @@ describe("NavList Component", () => {
     render(<NavList sections={mockSections} pathname="/branches" />)
 
     const activeLink = screen.getByRole("link", { name: /شعب/i })
-    expect(activeLink.className).toContain("bg-primary")
+    expect(activeLink.className).toContain("bg-primary/10")
+    expect(activeLink.className).toContain("text-primary")
+  })
+
+  it("should render lock icon on modules not enabled for the active institute", () => {
+    vi.spyOn(hooks, "usePermissions").mockReturnValue({
+      user: {
+        id: "1",
+        role: ROLES.INSTITUTE_ADMIN,
+        instituteId: "inst-1",
+        firstName: "Inst",
+        lastName: "Admin",
+        phone: "09121111111",
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      hasPermission: () => true,
+      hasAnyPermission: () => true,
+      hasAllPermissions: () => true,
+      isSuperAdmin: false,
+      isInstituteAdmin: true,
+      isClerk: false,
+      isTeacher: false,
+    } as any)
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstitute: {
+        id: "inst-1",
+        name: "Test Institute",
+        subdomain: "test",
+        phones: [],
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      activeInstituteId: "inst-1",
+      selectInstitute: vi.fn(),
+      clearActiveInstitute: vi.fn(),
+      setActiveInstitute: vi.fn(),
+    } as any)
+
+    render(<NavList sections={mockSections} pathname="/transactions" />)
+
+    // Verify item is active and lock icon has text-primary
+    const lockIcon = screen.getByLabelText("Locked Module")
+    expect(lockIcon).toBeInTheDocument()
+    expect(lockIcon).toHaveClass("text-primary")
   })
 })
