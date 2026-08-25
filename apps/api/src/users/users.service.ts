@@ -338,6 +338,24 @@ export class UsersService {
     return this.excelService.generateUserTemplate(locale);
   }
 
+  async exportToExcel(
+    currentUser: JwtPayload,
+    role?: Role,
+    search?: string,
+    locale: SupportedLocale = 'fa',
+    instituteId?: string,
+  ): Promise<Buffer> {
+    const users = await this.findAll(
+      currentUser,
+      role,
+      search,
+      locale,
+      instituteId,
+    );
+
+    return this.excelService.exportUsers(users, locale);
+  }
+
   async importFromExcel(
     currentUser: JwtPayload,
     fileBuffer: Buffer,

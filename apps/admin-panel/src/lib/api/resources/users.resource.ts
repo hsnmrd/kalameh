@@ -27,7 +27,14 @@ export const usersResource = api.resource("users", {
   >(({ id }) => `/users/${id}/reset-password`, {
     body: ({ newPassword }) => ({ newPassword }),
   }),
-  importExcel: api.post<ExcelImportResult, FormData>("/users/import-excel", {
-    body: (formData) => formData,
+  importExcel: api.post<
+    ExcelImportResult,
+    { formData: FormData; instituteId?: string } | FormData
+  >("/users/import-excel", {
+    query: (params) => {
+      if (params instanceof FormData) return {}
+      return params?.instituteId ? { instituteId: params.instituteId } : {}
+    },
+    body: (params) => (params instanceof FormData ? params : params.formData),
   }),
 })

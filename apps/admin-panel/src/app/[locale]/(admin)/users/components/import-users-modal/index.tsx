@@ -135,10 +135,15 @@ export function ImportUsersModal({
       formData.append("instituteId", instituteId)
     }
 
-    importMutation.mutate(formData)
+    importMutation.mutate({ formData, instituteId })
   }
 
   const handleClose = () => {
+    if (importResult?.importedCount && importResult.importedCount > 0) {
+      queryClient.invalidateQueries({
+        queryKey: usersResource.list.baseKey(),
+      })
+    }
     setSelectedFile(null)
     setImportResult(null)
     if (fileInputRef.current) {

@@ -60,4 +60,29 @@ describe('ExcelService', () => {
     expect(rows[0].branchName).toBe('شعبه شرق');
     expect(rows[0].password).toBe('pass123');
   });
+
+  it('should generate a valid XLSX export buffer for users list', () => {
+    const mockUsers = [
+      {
+        firstName: 'مهدی',
+        lastName: 'کرمی',
+        phone: '09124445566',
+        nationalCode: '0019998877',
+        role: 'TEACHER' as const,
+        isActive: true,
+        createdAt: new Date(),
+      },
+    ];
+
+    const buffer = service.exportUsers(mockUsers, 'fa');
+    expect(buffer).toBeInstanceOf(Buffer);
+    expect(buffer[0]).toBe(0x50);
+    expect(buffer[1]).toBe(0x4b);
+
+    const parsed = service.parseUserRows(buffer, 'fa');
+    expect(parsed.length).toBe(1);
+    expect(parsed[0].firstName).toBe('مهدی');
+    expect(parsed[0].lastName).toBe('کرمی');
+    expect(parsed[0].phone).toBe('09124445566');
+  });
 });

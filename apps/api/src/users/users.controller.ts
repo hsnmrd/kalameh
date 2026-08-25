@@ -58,6 +58,34 @@ export class UsersController {
     return res.send(buffer);
   }
 
+  @Get('export-excel')
+  @RequirePermissions(PERMISSIONS.VIEW_USERS)
+  async exportExcel(
+    @CurrentUser() currentUser: JwtPayload,
+    @Res() res: Response,
+    @Query('role') role?: string,
+    @Query('search') search?: string,
+    @Query('instituteId') instituteId?: string,
+    @CurrentLocale() locale?: SupportedLocale,
+  ) {
+    const buffer = await this.usersService.exportToExcel(
+      currentUser,
+      role as Role | undefined,
+      search,
+      locale,
+      instituteId,
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="users-list.xlsx"',
+    );
+    return res.send(buffer);
+  }
+
   @Post('import-excel')
   @UseInterceptors(FileInterceptor('file'))
   @RequirePermissions(PERMISSIONS.MANAGE_USERS)
@@ -65,8 +93,10 @@ export class UsersController {
     @CurrentUser() currentUser: JwtPayload,
     @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentLocale() locale: SupportedLocale,
-    @Query('instituteId') instituteId?: string,
+    @Query('instituteId') queryInstituteId?: string,
+    @Body('instituteId') bodyInstituteId?: string,
   ) {
+    const instituteId = queryInstituteId || bodyInstituteId;
     if (!file || !file.buffer) {
       throw new BadRequestException(
         locale === 'fa'
