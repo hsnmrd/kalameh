@@ -13,11 +13,13 @@ import { GradesModule } from './grades/grades.module';
 import { StudentsModule } from './students/students.module';
 import { I18nModule } from './i18n/i18n.module';
 import { RolePermissionsModule } from './role-permissions/role-permissions.module';
+import { ExcelModule } from './common/excel/excel.module';
 
 @Module({
   imports: [
     I18nModule,
     PrismaModule,
+    ExcelModule,
     AuthModule,
     UsersModule,
     StudentsModule,

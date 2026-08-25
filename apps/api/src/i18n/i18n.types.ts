@@ -25,6 +25,7 @@ export interface TranslationDictionary {
     cannotResetSuperAdminPassword: string;
     clerkResetStudentPasswordOnly: string;
     passwordResetSuccess: string;
+    emptyImportFile: string;
   };
   students: {
     studentAlreadyExists: string;

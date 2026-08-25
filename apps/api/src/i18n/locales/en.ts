@@ -35,6 +35,8 @@ export const en: TranslationDictionary = {
     clerkResetStudentPasswordOnly:
       'Clerks are only permitted to reset Student passwords',
     passwordResetSuccess: 'Password reset successfully',
+    emptyImportFile:
+      'The uploaded spreadsheet is empty or has invalid structure',
   },
   students: {
     studentAlreadyExists:

@@ -5,12 +5,14 @@ import * as bcrypt from 'bcryptjs';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
+import { ExcelService } from '../common/excel/excel.service';
 import { JwtPayload } from '@workspace/types';
 
 describe('UsersService', () => {
   let service: UsersService;
   let prismaService: any;
   let i18nService: any;
+  let excelService: any;
 
   const mockSuperAdmin: JwtPayload = {
     sub: 'super-admin-id',
@@ -46,9 +48,15 @@ describe('UsersService', () => {
         findUnique: jest.fn(),
         findFirst: jest.fn(),
         findFirstOrThrow: jest.fn(),
-        findMany: jest.fn(),
+        findMany: jest.fn().mockResolvedValue([]),
         create: jest.fn(),
+        createMany: jest.fn().mockResolvedValue({ count: 1 }),
         update: jest.fn(),
+      },
+      branch: {
+        findMany: jest
+          .fn()
+          .mockResolvedValue([{ id: 'branch-1', name: 'شعبه مرکزی' }]),
       },
     };
 
@@ -57,11 +65,19 @@ describe('UsersService', () => {
       extractLocale: jest.fn().mockReturnValue('fa'),
     };
 
+    excelService = {
+      generateUserTemplate: jest
+        .fn()
+        .mockReturnValue(Buffer.from('mock-xlsx-template')),
+      parseUserRows: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
         { provide: PrismaService, useValue: prismaService },
         { provide: I18nService, useValue: i18nService },
+        { provide: ExcelService, useValue: excelService },
       ],
     }).compile();
 
@@ -370,6 +386,93 @@ describe('UsersService', () => {
 
       await expect(
         service.resetPassword(mockClerk, 'admin-2', 'password'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('generateExcelTemplate', () => {
+    it('should delegate to excelService.generateUserTemplate', () => {
+      const result = service.generateExcelTemplate('fa');
+      expect(excelService.generateUserTemplate).toHaveBeenCalledWith('fa');
+      expect(result).toEqual(Buffer.from('mock-xlsx-template'));
+    });
+  });
+
+  describe('importFromExcel', () => {
+    it('should successfully parse and import valid user rows', async () => {
+      const mockRows = [
+        {
+          firstName: 'سارا',
+          lastName: 'کریمی',
+          phone: '09121112233',
+          nationalCode: '0012345678',
+          role: 'TEACHER',
+          branchName: 'شعبه مرکزی',
+        },
+      ];
+      excelService.parseUserRows.mockReturnValue(mockRows);
+      prismaService.user.findMany.mockResolvedValue([]); // No existing phones
+
+      const result = await service.importFromExcel(
+        mockInstituteAdmin,
+        Buffer.from('fake-buffer'),
+        'fa',
+      );
+
+      expect(result.totalRows).toBe(1);
+      expect(result.importedCount).toBe(1);
+      expect(result.failedCount).toBe(0);
+      expect(result.errors).toHaveLength(0);
+
+      expect(prismaService.user.createMany).toHaveBeenCalledWith({
+        data: [
+          expect.objectContaining({
+            instituteId: 'inst-1',
+            branchId: 'branch-1',
+            firstName: 'سارا',
+            lastName: 'کریمی',
+            phone: '09121112233',
+            role: 'TEACHER',
+          }),
+        ],
+      });
+    });
+
+    it('should report row-level errors for invalid phones and duplicate entries', async () => {
+      const mockRows = [
+        {
+          firstName: 'نام نامعتبر',
+          lastName: 'تست',
+          phone: '12345', // Invalid phone
+          role: 'TEACHER',
+        },
+        {
+          firstName: 'کاربر',
+          lastName: 'موجود',
+          phone: '09129999999',
+          role: 'TEACHER',
+        },
+      ];
+      excelService.parseUserRows.mockReturnValue(mockRows);
+      prismaService.user.findMany.mockResolvedValue([{ phone: '09129999999' }]); // Existing phone
+
+      const result = await service.importFromExcel(
+        mockInstituteAdmin,
+        Buffer.from('fake-buffer'),
+        'fa',
+      );
+
+      expect(result.totalRows).toBe(2);
+      expect(result.importedCount).toBe(0);
+      expect(result.failedCount).toBe(2);
+      expect(result.errors).toHaveLength(2);
+      expect(result.errors[0].row).toBe(2);
+      expect(result.errors[1].row).toBe(3);
+    });
+
+    it('should throw ForbiddenException if CLERK attempts to bulk import users', async () => {
+      await expect(
+        service.importFromExcel(mockClerk, Buffer.from('fake-buffer'), 'fa'),
       ).rejects.toThrow(ForbiddenException);
     });
   });

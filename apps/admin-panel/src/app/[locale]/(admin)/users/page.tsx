@@ -16,11 +16,13 @@ import { UsersTable } from "./components/users-table"
 import { CreateUserModal } from "./components/create-user-modal"
 import { EditUserModal } from "./components/edit-user-modal"
 import { ResetPasswordModal } from "./components/reset-password-modal"
+import { ImportUsersModal } from "./components/import-users-modal"
 
 export default function UsersPage() {
   const [searchValue, setSearchValue] = React.useState("")
   const [selectedRole, setSelectedRole] = React.useState("")
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
+  const [importModalOpen, setImportModalOpen] = React.useState(false)
   const [editUser, setEditUser] = React.useState<AuthUser | null>(null)
   const [resetPasswordUser, setResetPasswordUser] =
     React.useState<AuthUser | null>(null)
@@ -53,6 +55,7 @@ export default function UsersPage() {
             <UsersHeader
               totalCount={totalCount}
               onAddUserClick={() => setCreateModalOpen(true)}
+              onImportClick={() => setImportModalOpen(true)}
             />
           }
           filter={
@@ -69,6 +72,13 @@ export default function UsersPage() {
               <CreateUserModal
                 open={createModalOpen}
                 onClose={() => setCreateModalOpen(false)}
+                instituteId={activeInstituteId}
+              />
+
+              {/* Import Users from Excel Modal */}
+              <ImportUsersModal
+                open={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
                 instituteId={activeInstituteId}
               />
 

@@ -6,15 +6,24 @@ import {
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
+import { ExcelService } from '../common/excel/excel.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Role, JwtPayload, SupportedLocale } from '@workspace/types';
+import {
+  Role,
+  JwtPayload,
+  SupportedLocale,
+  UserImportRowSchema,
+  type ExcelImportResult,
+  type ExcelImportError,
+} from '@workspace/types';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly excelService: ExcelService,
   ) {}
 
   async create(
@@ -323,5 +332,166 @@ export class UsersService {
     });
 
     return { message: this.i18n.t('users.passwordResetSuccess', locale) };
+  }
+
+  generateExcelTemplate(locale: SupportedLocale = 'fa'): Buffer {
+    return this.excelService.generateUserTemplate(locale);
+  }
+
+  async importFromExcel(
+    currentUser: JwtPayload,
+    fileBuffer: Buffer,
+    locale: SupportedLocale = 'fa',
+    instituteId?: string,
+  ): Promise<ExcelImportResult> {
+    const targetInstituteId =
+      currentUser.role === 'SUPER_ADMIN' && instituteId
+        ? instituteId
+        : currentUser.instituteId;
+
+    if (!targetInstituteId) {
+      throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
+    }
+
+    if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'ADMIN') {
+      throw new ForbiddenException(
+        this.i18n.t('users.unauthorizedUserCreation', locale),
+      );
+    }
+
+    const rawRows = this.excelService.parseUserRows(fileBuffer, locale);
+    if (rawRows.length === 0) {
+      return {
+        totalRows: 0,
+        importedCount: 0,
+        failedCount: 0,
+        errors: [
+          {
+            row: 1,
+            message:
+              this.i18n.t('users.emptyImportFile', locale) ||
+              'فایل اکسل خالی است یا ساختار نامعتبر دارد',
+          },
+        ],
+      };
+    }
+
+    // Preload existing branches for this institute
+    const branches = await this.prisma.branch.findMany({
+      where: { instituteId: targetInstituteId },
+      select: { id: true, name: true },
+    });
+
+    const branchMap = new Map<string, string>();
+    branches.forEach((b) => branchMap.set(b.name.trim().toLowerCase(), b.id));
+
+    // Preload existing phone numbers for this institute
+    const existingUsers = await this.prisma.user.findMany({
+      where: { instituteId: targetInstituteId },
+      select: { phone: true },
+    });
+    const existingPhones = new Set(existingUsers.map((u) => u.phone));
+
+    const seenPhonesInBatch = new Set<string>();
+    const validRowsToInsert: Array<{
+      instituteId: string;
+      branchId?: string;
+      firstName: string;
+      lastName: string;
+      phone: string;
+      nationalCode?: string;
+      role: Role;
+      password: string;
+    }> = [];
+
+    const errors: ExcelImportError[] = [];
+
+    for (let i = 0; i < rawRows.length; i++) {
+      const rowNumber = i + 2; // 1-indexed (Row 1 is headers)
+      const raw = rawRows[i];
+
+      const parseResult = UserImportRowSchema.safeParse(raw);
+      if (!parseResult.success) {
+        const errorMsg = parseResult.error.errors
+          .map((e) => e.message)
+          .join('، ');
+        errors.push({
+          row: rowNumber,
+          phone: raw.phone || undefined,
+          message: errorMsg,
+        });
+        continue;
+      }
+
+      const row = parseResult.data;
+
+      // Check RBAC role restrictions
+      if (currentUser.role !== 'SUPER_ADMIN' && row.role === 'SUPER_ADMIN') {
+        errors.push({
+          row: rowNumber,
+          phone: row.phone,
+          message: this.i18n.t('users.instituteAdminAllowedRolesOnly', locale),
+        });
+        continue;
+      }
+
+      // Check batch duplicates
+      if (seenPhonesInBatch.has(row.phone)) {
+        errors.push({
+          row: rowNumber,
+          phone: row.phone,
+          message: `شماره موبایل ${row.phone} در این فایل تکراری است`,
+        });
+        continue;
+      }
+
+      // Check database duplicates
+      if (existingPhones.has(row.phone)) {
+        errors.push({
+          row: rowNumber,
+          phone: row.phone,
+          message: this.i18n.t('users.userAlreadyExists', locale),
+        });
+        continue;
+      }
+
+      seenPhonesInBatch.add(row.phone);
+
+      // Resolve branch if provided
+      let branchId: string | undefined = undefined;
+      if (row.branchName) {
+        const matchedId = branchMap.get(row.branchName.trim().toLowerCase());
+        if (matchedId) {
+          branchId = matchedId;
+        }
+      }
+
+      const rawPassword = row.password || row.phone;
+      const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+      validRowsToInsert.push({
+        instituteId: targetInstituteId,
+        branchId,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        phone: row.phone,
+        nationalCode: row.nationalCode || undefined,
+        role: row.role as Role,
+        password: hashedPassword,
+      });
+    }
+
+    if (validRowsToInsert.length > 0) {
+      await this.prisma.user.createMany({
+        data: validRowsToInsert,
+      });
+    }
+
+    return {
+      totalRows: rawRows.length,
+      importedCount: validRowsToInsert.length,
+      failedCount: errors.length,
+      errors,
+    };
   }
 }

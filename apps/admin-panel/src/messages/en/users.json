@@ -87,5 +87,25 @@
     "lastNameMin": "Last name must be at least 2 characters.",
     "phoneRegex": "Phone number must be an 11-digit Iranian mobile (e.g. 09121234567).",
     "passwordMin": "Password must be at least 6 characters."
+  },
+  "importModal": {
+    "trigger": "Import from Excel",
+    "title": "Bulk Import Staff from Excel",
+    "description": "Import staff members in bulk using an Excel or CSV spreadsheet.",
+    "downloadTemplate": "Download Template (.xlsx)",
+    "dragDropText": "Drag and drop your spreadsheet (.xlsx or .csv) here or click to browse",
+    "uploadHint": "Supported formats: XLSX and CSV",
+    "selectedFile": "Selected file:",
+    "submit": "Process & Import Staff",
+    "uploading": "Processing and importing staff members...",
+    "cancel": "Cancel",
+    "resultTitle": "Excel Import Results",
+    "totalRows": "Total Rows: {count}",
+    "importedRows": "Successfully Imported: {count}",
+    "failedRows": "Errors: {count}",
+    "errorListTitle": "Row Error Details:",
+    "rowNumber": "Row {row}",
+    "successMessage": "{count} staff members were imported successfully.",
+    "close": "Confirm & Close"
   }
 }

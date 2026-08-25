@@ -2,6 +2,7 @@ import type {
   AuthUser,
   CreateUserInput,
   UpdateUserInput,
+  ExcelImportResult,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -25,5 +26,8 @@ export const usersResource = api.resource("users", {
     { id: string; newPassword?: string }
   >(({ id }) => `/users/${id}/reset-password`, {
     body: ({ newPassword }) => ({ newPassword }),
+  }),
+  importExcel: api.post<ExcelImportResult, FormData>("/users/import-excel", {
+    body: (formData) => formData,
   }),
 })

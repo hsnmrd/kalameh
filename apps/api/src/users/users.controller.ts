@@ -7,9 +7,15 @@ import {
   Body,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  Res,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -33,6 +39,48 @@ import {
 @RequireModules(APP_MODULES.USERS_STAFF)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get('excel-template')
+  @RequirePermissions(PERMISSIONS.MANAGE_USERS)
+  async getExcelTemplate(
+    @CurrentLocale() locale: SupportedLocale,
+    @Res() res: Response,
+  ) {
+    const buffer = this.usersService.generateExcelTemplate(locale);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="users-import-template.xlsx"',
+    );
+    return res.send(buffer);
+  }
+
+  @Post('import-excel')
+  @UseInterceptors(FileInterceptor('file'))
+  @RequirePermissions(PERMISSIONS.MANAGE_USERS)
+  async importExcel(
+    @CurrentUser() currentUser: JwtPayload,
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @CurrentLocale() locale: SupportedLocale,
+    @Query('instituteId') instituteId?: string,
+  ) {
+    if (!file || !file.buffer) {
+      throw new BadRequestException(
+        locale === 'fa'
+          ? 'لطفاً فایل اکسل معتبر را انتخاب کنید'
+          : 'Please select a valid Excel file',
+      );
+    }
+    return this.usersService.importFromExcel(
+      currentUser,
+      file.buffer,
+      locale,
+      instituteId,
+    );
+  }
 
   @Post()
   @RequirePermissions(PERMISSIONS.MANAGE_USERS)

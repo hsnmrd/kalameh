@@ -33,6 +33,7 @@ export const fa: TranslationDictionary = {
     clerkResetStudentPasswordOnly:
       'منشی تنها اجازه بازنشانی رمز عبور زبان‌آموزان را دارد',
     passwordResetSuccess: 'رمز عبور با موفقیت بازنشانی شد',
+    emptyImportFile: 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد',
   },
   students: {
     studentAlreadyExists:
