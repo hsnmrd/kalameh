@@ -3,13 +3,15 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { PERMISSIONS, ROLES, type Role } from "@workspace/types"
+import { PERMISSIONS, ROLES, APP_MODULES, type Role } from "@workspace/types"
 import { rolePermissionsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { usePermissions } from "@/lib/hooks"
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
+import { ModuleGuard } from "@/components/module-guard"
 import { RolePermissionsHeader } from "./components/role-permissions-header"
 import { RolePermissionsEditor } from "./components/role-permissions-editor"
 import { RolePermissionsStickyBar } from "./components/role-permissions-sticky-bar"
@@ -17,7 +19,13 @@ import { RolePermissionsStickyBar } from "./components/role-permissions-sticky-b
 export default function RolePermissionsPage() {
   const t = useTranslations("rolePermissions")
   const queryClient = useQueryClient()
-  const { activeInstituteId } = useActiveInstitute()
+  const { activeInstitute, activeInstituteId } = useActiveInstitute()
+  const { user } = usePermissions()
+
+  const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
+  const hasModule =
+    isSuperAdmin ||
+    activeInstitute?.enabledModules?.includes(APP_MODULES.USERS_STAFF)
 
   const [selectedRole, setSelectedRole] = React.useState<Role>(ROLES.CLERK)
   const [selectedPermissions, setSelectedPermissions] = React.useState<
@@ -32,7 +40,7 @@ export default function RolePermissionsPage() {
     ...rolePermissionsResource.list.toQuery({
       instituteId: activeInstituteId,
     }),
-    enabled: !!activeInstituteId,
+    enabled: Boolean(activeInstituteId && hasModule),
   })
 
   // Find the currently selected role's record
@@ -138,42 +146,44 @@ export default function RolePermissionsPage() {
   }
 
   return (
-    <PermissionGuard
-      permission={[
-        PERMISSIONS.VIEW_ROLE_PERMISSIONS,
-        PERMISSIONS.MANAGE_ROLE_PERMISSIONS,
-      ]}
-      mode="forbidden"
-    >
-      <AdminPageShell header={<RolePermissionsHeader />}>
-        {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <Spinner className="size-8 text-primary" />
-          </div>
-        ) : (
-          <>
-            <RolePermissionsEditor
-              selectedRole={selectedRole}
-              onSelectRole={setSelectedRole}
-              rolePermissionsList={rolePermissionsList}
-              currentRoleData={currentRoleData}
-              selectedPermissions={selectedPermissions}
-              onTogglePermission={handleTogglePermission}
-              onToggleAllInModule={handleToggleAllInModule}
-              disabled={updateMutation.isPending || resetMutation.isPending}
-            />
+    <ModuleGuard module={APP_MODULES.USERS_STAFF}>
+      <PermissionGuard
+        permission={[
+          PERMISSIONS.VIEW_ROLE_PERMISSIONS,
+          PERMISSIONS.MANAGE_ROLE_PERMISSIONS,
+        ]}
+        mode="forbidden"
+      >
+        <AdminPageShell header={<RolePermissionsHeader />}>
+          {isLoading ? (
+            <div className="flex h-64 items-center justify-center">
+              <Spinner className="size-8 text-primary" />
+            </div>
+          ) : (
+            <>
+              <RolePermissionsEditor
+                selectedRole={selectedRole}
+                onSelectRole={setSelectedRole}
+                rolePermissionsList={rolePermissionsList}
+                currentRoleData={currentRoleData}
+                selectedPermissions={selectedPermissions}
+                onTogglePermission={handleTogglePermission}
+                onToggleAllInModule={handleToggleAllInModule}
+                disabled={updateMutation.isPending || resetMutation.isPending}
+              />
 
-            <RolePermissionsStickyBar
-              onSave={handleSave}
-              onReset={handleReset}
-              isSaving={updateMutation.isPending}
-              isResetting={resetMutation.isPending}
-              hasChanges={hasChanges}
-              selectedPermissionsCount={selectedPermissions.size}
-            />
-          </>
-        )}
-      </AdminPageShell>
-    </PermissionGuard>
+              <RolePermissionsStickyBar
+                onSave={handleSave}
+                onReset={handleReset}
+                isSaving={updateMutation.isPending}
+                isResetting={resetMutation.isPending}
+                hasChanges={hasChanges}
+                selectedPermissionsCount={selectedPermissions.size}
+              />
+            </>
+          )}
+        </AdminPageShell>
+      </PermissionGuard>
+    </ModuleGuard>
   )
 }

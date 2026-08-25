@@ -57,7 +57,7 @@ export function ModulesSelector({
   value = [],
   onChange,
 }: ModulesSelectorProps) {
-  const t = useTranslations("institutes.modules")
+  const t = useTranslations("common.modules")
 
   const handleToggle = (module: AppModule) => {
     if (value.includes(module)) {

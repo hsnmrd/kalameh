@@ -33,7 +33,7 @@ export function ModuleGuard({
   className,
   children,
 }: ModuleGuardProps) {
-  const t = useTranslations("institutes.modules")
+  const t = useTranslations("common.modules")
   const { user } = usePermissions()
   const { activeInstitute } = useActiveInstitute()
 
@@ -57,6 +57,14 @@ export function ModuleGuard({
   }
 
   if (mode === "upgrade") {
+    const singleModule = modulesToCheck.length === 1 ? modulesToCheck[0] : null
+    const displayTitle =
+      upgradeTitle ||
+      (singleModule ? t(`items.${singleModule}.name`) : t("title"))
+    const displayDescription =
+      upgradeDescription ||
+      (singleModule ? t(`items.${singleModule}.description`) : t("description"))
+
     return (
       <div
         className={cn(
@@ -69,11 +77,11 @@ export function ModuleGuard({
         </div>
 
         <h3 className="mt-4 text-base font-bold text-foreground">
-          {upgradeTitle || t("title")}
+          {displayTitle}
         </h3>
 
         <p className="mt-2 max-w-md text-xs leading-relaxed text-muted-foreground">
-          {upgradeDescription || t("description")}
+          {displayDescription}
         </p>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

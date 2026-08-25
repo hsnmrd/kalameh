@@ -3,11 +3,13 @@
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { StudentDto } from "@workspace/types"
-import { PERMISSIONS } from "@workspace/types"
+import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { coursesResource, studentsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { usePermissions } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
+import { ModuleGuard } from "@/components/module-guard"
 import { StudentsHeader } from "./components/students-header"
 import { StudentsFilter } from "./components/students-filter"
 import { StudentsTable } from "./components/students-table"
@@ -29,14 +31,20 @@ export default function StudentsPage() {
   const [resetPasswordStudent, setResetPasswordStudent] =
     React.useState<StudentDto | null>(null)
 
-  const { activeInstituteId } = useActiveInstitute()
+  const { activeInstitute, activeInstituteId } = useActiveInstitute()
+  const { user } = usePermissions()
+
+  const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
+  const hasModule =
+    isSuperAdmin ||
+    activeInstitute?.enabledModules?.includes(APP_MODULES.STUDENTS)
 
   // Fetch list of courses for course filter & modal selection
   const { data: courses = [] } = useQuery({
     ...coursesResource.list.toQuery(
       activeInstituteId ? { instituteId: activeInstituteId } : undefined
     ),
-    enabled: !!activeInstituteId,
+    enabled: Boolean(activeInstituteId && hasModule),
   })
 
   // Query students
@@ -54,72 +62,74 @@ export default function StudentsPage() {
       isActive: isActiveFilter,
       instituteId: activeInstituteId,
     }),
-    enabled: !!activeInstituteId,
+    enabled: Boolean(activeInstituteId && hasModule),
   })
 
   const totalCount = students?.length ?? 0
 
   return (
-    <PermissionGuard permission={PERMISSIONS.VIEW_STUDENTS} mode="forbidden">
-      <AdminPageShell
-        header={
-          <StudentsHeader
-            totalCount={totalCount}
-            onAddStudentClick={() => setCreateModalOpen(true)}
+    <ModuleGuard module={APP_MODULES.STUDENTS}>
+      <PermissionGuard permission={PERMISSIONS.VIEW_STUDENTS} mode="forbidden">
+        <AdminPageShell
+          header={
+            <StudentsHeader
+              totalCount={totalCount}
+              onAddStudentClick={() => setCreateModalOpen(true)}
+            />
+          }
+          filter={
+            <StudentsFilter
+              searchValue={searchValue}
+              onSearchChange={setSearchValue}
+              selectedCourseId={selectedCourseId}
+              onCourseChange={setSelectedCourseId}
+              selectedStatus={selectedStatus}
+              onStatusChange={setSelectedStatus}
+              courses={courses}
+            />
+          }
+          modals={
+            <>
+              {/* Create Student Modal */}
+              <CreateStudentModal
+                open={createModalOpen}
+                onClose={() => setCreateModalOpen(false)}
+                instituteId={activeInstituteId}
+              />
+
+              {/* Edit Student Modal */}
+              <EditStudentModal
+                student={editStudent}
+                open={Boolean(editStudent)}
+                onClose={() => setEditStudent(null)}
+              />
+
+              {/* View Student Dossier / Profile Modal */}
+              <StudentProfileModal
+                student={profileStudent}
+                open={Boolean(profileStudent)}
+                onClose={() => setProfileStudent(null)}
+              />
+
+              {/* Reset Password Modal */}
+              <ResetPasswordModal
+                student={resetPasswordStudent}
+                open={Boolean(resetPasswordStudent)}
+                onClose={() => setResetPasswordStudent(null)}
+              />
+            </>
+          }
+        >
+          {/* Students Data Table / Mobile Cards */}
+          <StudentsTable
+            students={students}
+            isLoading={isLoading}
+            onViewProfile={(student) => setProfileStudent(student)}
+            onEdit={(student) => setEditStudent(student)}
+            onResetPassword={(student) => setResetPasswordStudent(student)}
           />
-        }
-        filter={
-          <StudentsFilter
-            searchValue={searchValue}
-            onSearchChange={setSearchValue}
-            selectedCourseId={selectedCourseId}
-            onCourseChange={setSelectedCourseId}
-            selectedStatus={selectedStatus}
-            onStatusChange={setSelectedStatus}
-            courses={courses}
-          />
-        }
-        modals={
-          <>
-            {/* Create Student Modal */}
-            <CreateStudentModal
-              open={createModalOpen}
-              onClose={() => setCreateModalOpen(false)}
-              instituteId={activeInstituteId}
-            />
-
-            {/* Edit Student Modal */}
-            <EditStudentModal
-              student={editStudent}
-              open={Boolean(editStudent)}
-              onClose={() => setEditStudent(null)}
-            />
-
-            {/* View Student Dossier / Profile Modal */}
-            <StudentProfileModal
-              student={profileStudent}
-              open={Boolean(profileStudent)}
-              onClose={() => setProfileStudent(null)}
-            />
-
-            {/* Reset Password Modal */}
-            <ResetPasswordModal
-              student={resetPasswordStudent}
-              open={Boolean(resetPasswordStudent)}
-              onClose={() => setResetPasswordStudent(null)}
-            />
-          </>
-        }
-      >
-        {/* Students Data Table / Mobile Cards */}
-        <StudentsTable
-          students={students}
-          isLoading={isLoading}
-          onViewProfile={(student) => setProfileStudent(student)}
-          onEdit={(student) => setEditStudent(student)}
-          onResetPassword={(student) => setResetPasswordStudent(student)}
-        />
-      </AdminPageShell>
-    </PermissionGuard>
+        </AdminPageShell>
+      </PermissionGuard>
+    </ModuleGuard>
   )
 }

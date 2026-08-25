@@ -41,5 +41,50 @@
     "placeholder": "Select an option...",
     "searchPlaceholder": "Search...",
     "emptyMessage": "No items found."
+  },
+  "modules": {
+    "title": "Purchased & Active Modules",
+    "description": "Select which functional modules are active for this institute.",
+    "inactiveToast": "This module is not active for your institute subscription plan.",
+    "contactSalesCta": "Contact Sales & Support",
+    "contactSalesToast": "Please contact Kalameh sales and support to activate this module.",
+    "presetsTitle": "Plan Presets:",
+    "presetStarter": "Starter",
+    "presetPro": "Pro",
+    "presetEnterprise": "Enterprise (All)",
+    "items": {
+      "USERS_STAFF": {
+        "name": "Users & Staff",
+        "description": "User roles, clerk permissions, and staff accounts"
+      },
+      "STUDENTS": {
+        "name": "Students Dossier",
+        "description": "Student enrollments, academic profiles, and learner records"
+      },
+      "CLASSES_COURSES": {
+        "name": "Courses & Classes",
+        "description": "Educational courses, academic terms, branches, and class schedules"
+      },
+      "GRADES_ASSESSMENTS": {
+        "name": "Grades & Assessments",
+        "description": "Grade recording, level placements, and academic transcripts"
+      },
+      "FINANCE": {
+        "name": "Finance & Accounting",
+        "description": "Tuitions, transactions, invoices, and accounting reports"
+      },
+      "ATTENDANCE": {
+        "name": "Attendance Tracking",
+        "description": "Session tracking, roll-calls, and student absence monitoring"
+      },
+      "SMS_NOTIFICATIONS": {
+        "name": "SMS Notifications",
+        "description": "Automated SMS alerts, reminders, and broadcast notifications"
+      },
+      "ONLINE_ROOMS": {
+        "name": "Online Classrooms",
+        "description": "Virtual classrooms, webinars, and live session rooms"
+      }
+    }
   }
 }
