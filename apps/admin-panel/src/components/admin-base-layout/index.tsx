@@ -2,118 +2,27 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import {
-  LayoutDashboard,
-  Layers,
-  Building2,
-  BookOpen,
-  Calendar,
-  Users,
-  GraduationCap,
-  CreditCard,
-  ShieldAlert,
-  ShieldCheck,
-} from "lucide-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ROLES, PERMISSIONS, APP_MODULES, type Role } from "@workspace/types"
+import { ROLES, type Role } from "@workspace/types"
 import { authResource } from "@/lib/api"
 import { usePathname, useRouter, useIsRtl } from "@/i18n/routing"
 import { cn } from "@workspace/ui/lib/utils"
 import { useActiveInstitute } from "@/lib/stores"
 import { SidebarBrand } from "./sidebar-brand"
-import { NavList, type NavItem, type NavSection } from "./nav-list"
+import { NavList, type NavSection } from "./nav-list"
 import { SidebarFooter } from "./sidebar-footer"
 import { MobileDrawer } from "./mobile-drawer"
 import { AdminHeader } from "./admin-header"
+import {
+  SUPER_ADMIN_PLATFORM_NAV,
+  INSTITUTE_NAV_ITEMS,
+  ADMIN_NAV,
+} from "@/data"
 
 export interface AdminBaseLayoutProps {
   children: React.ReactNode
   role?: Role
 }
-
-const SUPER_ADMIN_PLATFORM_NAV: NavItem[] = [
-  {
-    key: "dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-    permission: PERMISSIONS.VIEW_DASHBOARD,
-  },
-  {
-    key: "institutes",
-    href: "/institutes",
-    icon: ShieldAlert,
-    permission: PERMISSIONS.VIEW_INSTITUTES,
-  },
-]
-
-const INSTITUTE_NAV_ITEMS: NavItem[] = [
-  {
-    key: "branches",
-    href: "/branches",
-    icon: Building2,
-    permission: PERMISSIONS.VIEW_BRANCHES,
-    module: APP_MODULES.CLASSES_COURSES,
-  },
-  {
-    key: "terms",
-    href: "/terms",
-    icon: Calendar,
-    permission: PERMISSIONS.VIEW_TERMS,
-    module: APP_MODULES.CLASSES_COURSES,
-  },
-  {
-    key: "courses",
-    href: "/courses",
-    icon: BookOpen,
-    permission: PERMISSIONS.VIEW_COURSES,
-    module: APP_MODULES.CLASSES_COURSES,
-  },
-  {
-    key: "classes",
-    href: "/classes",
-    icon: Layers,
-    permission: PERMISSIONS.VIEW_CLASSES,
-    module: APP_MODULES.CLASSES_COURSES,
-  },
-  {
-    key: "students",
-    href: "/students",
-    icon: GraduationCap,
-    permission: PERMISSIONS.VIEW_STUDENTS,
-    module: APP_MODULES.STUDENTS,
-  },
-  {
-    key: "staff",
-    href: "/users",
-    icon: Users,
-    permission: PERMISSIONS.VIEW_USERS,
-    module: APP_MODULES.USERS_STAFF,
-  },
-  {
-    key: "rolePermissions",
-    href: "/role-permissions",
-    icon: ShieldCheck,
-    permission: PERMISSIONS.VIEW_ROLE_PERMISSIONS,
-    module: APP_MODULES.USERS_STAFF,
-  },
-  {
-    key: "finance",
-    href: "/transactions",
-    icon: CreditCard,
-    permission: PERMISSIONS.VIEW_TRANSACTIONS,
-    module: APP_MODULES.FINANCE,
-  },
-]
-
-const ADMIN_NAV: NavItem[] = [
-  {
-    key: "dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-    permission: PERMISSIONS.VIEW_DASHBOARD,
-  },
-  ...INSTITUTE_NAV_ITEMS,
-]
 
 export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   const [drawerOpen, setDrawerOpen] = React.useState(false)
