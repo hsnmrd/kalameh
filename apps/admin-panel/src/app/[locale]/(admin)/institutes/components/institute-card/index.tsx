@@ -13,11 +13,11 @@ import {
   Users,
   Phone,
   MapPin,
-  ExternalLink,
   Edit2,
   Trash2,
   Ban,
   ShieldCheck,
+  MoreVertical,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -28,6 +28,13 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
 } from "@workspace/ui/components/context-menu"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@workspace/ui/components/dropdown-menu"
 import { toast } from "@workspace/ui/components/sonner"
 import type { InstituteWithStats } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
@@ -105,9 +112,9 @@ export function InstituteCard({
         )}
       >
         <div className="space-y-4">
-          {/* Header with Logo / Icon, Name, and Subdomain */}
+          {/* Header with Logo / Icon, Name, Subdomain, Status, and Action Menu */}
           <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <div
                 className={cn(
                   "relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-bold shadow-2xs",
@@ -152,22 +159,62 @@ export function InstituteCard({
               </div>
             </div>
 
-            <Badge
-              variant={institute.isActive ? "success" : "destructive"}
-              className={cn(
-                "shrink-0 text-[11px]",
-                !institute.isActive &&
-                  "border border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/15"
-              )}
-            >
-              {institute.isActive ? t("status.active") : t("status.blocked")}
-            </Badge>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <Badge
+                variant={institute.isActive ? "success" : "destructive"}
+                className={cn(
+                  "shrink-0 text-[11px]",
+                  !institute.isActive &&
+                    "border border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/15"
+                )}
+              >
+                {institute.isActive ? t("status.active") : t("status.blocked")}
+              </Badge>
+
+              {/* Three-dot Action Dropdown Trigger */}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="flex size-7.5 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-hidden"
+                  aria-label={t("actions")}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical className="size-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEdit?.(institute)}>
+                    <Edit2 className="size-4" />
+                    <span>{t("edit")}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleToggleBlock()}>
+                    {institute.isActive ? (
+                      <>
+                        <Ban className="size-4" />
+                        <span>{t("block")}</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="size-4" />
+                        <span>{t("unblock")}</span>
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => onDelete?.(institute)}
+                  >
+                    <Trash2 className="size-4" />
+                    <span>{t("delete")}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/50 p-3 text-xs">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Layers className="size-4 text-sky-500" />
+              <Layers className="size-4 text-muted-foreground" />
               <span>
                 <strong className="text-foreground">
                   {formatNumber(institute.classesCount, locale)}
@@ -176,7 +223,7 @@ export function InstituteCard({
               </span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Users className="size-4 text-emerald-500" />
+              <Users className="size-4 text-muted-foreground" />
               <span>
                 <strong className="text-foreground">
                   {formatNumber(institute.usersCount, locale)}
@@ -194,7 +241,7 @@ export function InstituteCard({
                   className="flex items-center gap-2"
                   dir={locale === "fa" ? "rtl" : "ltr"}
                 >
-                  <Phone className="size-3.5 shrink-0 text-muted-foreground/70" />
+                  <Phone className="size-3.5 shrink-0 text-muted-foreground" />
                   <span className="truncate font-mono text-[11px]">
                     {institute.phones.join(" • ")}
                   </span>
@@ -202,7 +249,7 @@ export function InstituteCard({
               )}
               {institute.address && (
                 <div className="flex items-center gap-2">
-                  <MapPin className="size-3.5 shrink-0 text-muted-foreground/70" />
+                  <MapPin className="size-3.5 shrink-0 text-muted-foreground" />
                   <span className="line-clamp-1 text-[11px]">
                     {institute.address}
                   </span>
@@ -242,10 +289,6 @@ export function InstituteCard({
 
       {/* Context Menu for rich right-click / contextual actions */}
       <ContextMenuContent>
-        <ContextMenuItem onClick={handleManage}>
-          <ExternalLink className="size-4" />
-          <span>{t("manageInstitute")}</span>
-        </ContextMenuItem>
         <ContextMenuItem onClick={() => onEdit?.(institute)}>
           <Edit2 className="size-4" />
           <span>{t("edit")}</span>
@@ -253,12 +296,12 @@ export function InstituteCard({
         <ContextMenuItem onClick={() => handleToggleBlock()}>
           {institute.isActive ? (
             <>
-              <Ban className="size-4 text-amber-500" />
+              <Ban className="size-4" />
               <span>{t("block")}</span>
             </>
           ) : (
             <>
-              <ShieldCheck className="size-4 text-emerald-500" />
+              <ShieldCheck className="size-4" />
               <span>{t("unblock")}</span>
             </>
           )}

@@ -49,7 +49,10 @@
 - **Single Card Anti-Pattern:**
   - Do not wrap pages with a `<Card>` component if the page content is already rendered within a single container.
 - **Card Action Architecture (Context Menu & Action Menu Standard):**
-  - When a card (such as InstituteCard, StudentCard, ClassCard) has multiple actions (e.g. edit, delete, open/manage, ban/block), utilize the shadcn / Base UI `<ContextMenu />` and/or action menus to maintain clean and decluttered card layouts.
+  - When a card (such as InstituteCard, StudentCard, ClassCard) has multiple actions (e.g. edit, delete, ban/block), utilize the shadcn / Base UI `<ContextMenu />` and/or action menus to maintain clean and decluttered card layouts.
+  - **Do NOT duplicate actions in the context menu / dropdown menu that already exist as primary interactive buttons on the card itself** (such as the main open/manage card button).
+- **Icon Color Consistency Standard:**
+  - Icons must always match and inherit the exact semantic text color of their accompanying sibling label/text (`text-muted-foreground`, `text-foreground`, `text-destructive`). Never apply mismatched colored accent classes to icons next to neutral text.
 - **Data Tables & Lists Standard:**
   - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying lists and data grids.
   - Define columns via TanStack `ColumnDef` and never use raw HTML `<table>` elements in views or components.

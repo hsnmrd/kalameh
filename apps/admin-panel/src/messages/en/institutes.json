@@ -24,6 +24,7 @@
   "block": "Suspend Access",
   "unblock": "Unsuspend & Activate",
   "manage": "Manage",
+  "actions": "Institute Actions",
   "switcher": {
     "title": "Select Institute",
     "description": "Choose an institute to manage its classes, students, and settings",

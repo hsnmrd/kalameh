@@ -113,10 +113,13 @@ describe("InstituteCard Component", () => {
     expect(screen.getByText("مسدود شده")).toBeInTheDocument()
   })
 
-  it("should display institute name and contact details correctly", () => {
+  it("should display institute name, contact details, and actions trigger button", () => {
     render(<InstituteCard institute={mockInstitute} />)
     expect(screen.getByText("آموزشگاه تهران")).toBeInTheDocument()
     expect(screen.getByText("تهران، خیابان آزادی")).toBeInTheDocument()
     expect(screen.getByText("02166554433")).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: /عملیات آموزشگاه/i })
+    ).toBeInTheDocument()
   })
 })
