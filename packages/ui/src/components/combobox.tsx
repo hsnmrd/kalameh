@@ -136,3 +136,161 @@ export function Combobox({
     </ComboboxPrimitive.Root>
   )
 }
+
+// ─── ResponsiveCombobox ───────────────────────────────────────────────────────
+// On desktop (≥ lg): renders standard Combobox dropdown.
+// On mobile (< lg):  renders a trigger button that opens a bottom-sheet Drawer
+//                    with a search input and scrollable option list.
+
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "./drawer"
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(false)
+  React.useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)")
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener("change", handler)
+    return () => mq.removeEventListener("change", handler)
+  }, [])
+  return isMobile
+}
+
+export interface ResponsiveComboboxProps extends ComboboxProps {
+  /** Label shown in the Drawer header on mobile */
+  drawerTitle?: string
+}
+
+export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
+  const { drawerTitle, ...comboboxProps } = props
+  const isMobile = useIsMobile()
+  const [drawerOpen, setDrawerOpen] = React.useState(false)
+  const [search, setSearch] = React.useState("")
+
+  const isFa = (props.locale ?? "fa").startsWith("fa")
+  const resolvedPlaceholder =
+    props.placeholder ?? (isFa ? "انتخاب کنید..." : "Select an option...")
+
+  if (!isMobile) {
+    return <Combobox {...comboboxProps} />
+  }
+
+  const selectedItem = comboboxProps.items.find(
+    (item) => item.value === comboboxProps.value
+  )
+
+  const filtered = search.trim()
+    ? comboboxProps.items.filter((item) =>
+        item.label.toLowerCase().includes(search.trim().toLowerCase())
+      )
+    : comboboxProps.items
+
+  const handleSelect = (item: ComboboxOption) => {
+    comboboxProps.onValueChange?.(item.value)
+    setDrawerOpen(false)
+    setSearch("")
+  }
+
+  const handleClear = () => {
+    comboboxProps.onValueChange?.(undefined)
+    setDrawerOpen(false)
+    setSearch("")
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setDrawerOpen(true)}
+        disabled={comboboxProps.disabled}
+        data-invalid={comboboxProps["data-invalid"]}
+        className={cn(
+          "relative flex h-10 w-full cursor-pointer items-center justify-between rounded-xl border border-border bg-background px-3 text-sm text-foreground shadow-2xs transition-colors hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-50 data-[invalid=true]:border-destructive",
+          comboboxProps.className
+        )}
+      >
+        <span className="truncate text-start">
+          {selectedItem ? (
+            selectedItem.label
+          ) : (
+            <span className="text-muted-foreground">{resolvedPlaceholder}</span>
+          )}
+        </span>
+        <ChevronDown className="size-4 text-muted-foreground" />
+      </button>
+
+      <Drawer
+        open={drawerOpen}
+        onOpenChange={(o) => {
+          setDrawerOpen(o)
+          if (!o) setSearch("")
+        }}
+      >
+        <DrawerContent>
+          {drawerTitle && (
+            <DrawerHeader>
+              <DrawerTitle>{drawerTitle}</DrawerTitle>
+            </DrawerHeader>
+          )}
+
+          {comboboxProps.searchable !== false && (
+            <div className="flex items-center border-b border-border px-4 py-2">
+              <Search className="me-2 size-4 shrink-0 text-muted-foreground" />
+              <input
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={
+                  props.searchPlaceholder ?? (isFa ? "جستجو..." : "Search...")
+                }
+                className="h-8 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              />
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto py-1">
+            {comboboxProps.clearable !== false && selectedItem && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted"
+              >
+                <X className="size-4" />
+                <span>{isFa ? "پاک کردن" : "Clear"}</span>
+              </button>
+            )}
+            {filtered.length === 0 ? (
+              <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+                {props.emptyMessage ??
+                  (isFa ? "موردی یافت نشد." : "No items found.")}
+              </p>
+            ) : (
+              filtered.map((item) => {
+                const isSelected = item.value === comboboxProps.value
+                return (
+                  <button
+                    key={item.value}
+                    type="button"
+                    disabled={item.disabled}
+                    onClick={() => handleSelect(item)}
+                    className={cn(
+                      "flex w-full items-center gap-2 px-4 py-3 text-sm disabled:opacity-50",
+                      isSelected
+                        ? "bg-muted font-semibold text-foreground"
+                        : "text-foreground hover:bg-muted/60"
+                    )}
+                  >
+                    <span className="flex size-4 shrink-0 items-center justify-center">
+                      {isSelected && <Check className="size-4" />}
+                    </span>
+                    {item.label}
+                  </button>
+                )
+              })
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </>
+  )
+}

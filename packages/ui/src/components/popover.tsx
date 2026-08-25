@@ -48,3 +48,67 @@ export {
   PopoverPopup,
   PopoverPopup as PopoverContent,
 }
+
+// ─── ResponsivePopover ────────────────────────────────────────────────────────
+// On desktop: renders a standard Popover anchored to the trigger.
+// On mobile:  renders a bottom-sheet Drawer opened by the trigger.
+
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "./drawer"
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(false)
+  React.useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)")
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener("change", handler)
+    return () => mq.removeEventListener("change", handler)
+  }, [])
+  return isMobile
+}
+
+export interface ResponsivePopoverProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  trigger?: React.ReactNode
+  /** Title shown in the Drawer header on mobile */
+  drawerTitle?: string
+  children: React.ReactNode
+  className?: string
+}
+
+export function ResponsivePopover({
+  open,
+  onOpenChange,
+  trigger,
+  drawerTitle,
+  children,
+  className,
+}: ResponsivePopoverProps) {
+  const isMobile = useIsMobile()
+
+  if (isMobile) {
+    return (
+      <>
+        {trigger}
+        <Drawer open={open} onOpenChange={onOpenChange}>
+          <DrawerContent className={className}>
+            {drawerTitle && (
+              <DrawerHeader>
+                <DrawerTitle>{drawerTitle}</DrawerTitle>
+              </DrawerHeader>
+            )}
+            <div className="pb-safe-or-4 overflow-y-auto">{children}</div>
+          </DrawerContent>
+        </Drawer>
+      </>
+    )
+  }
+
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      {trigger && <PopoverTrigger render={<span />}>{trigger}</PopoverTrigger>}
+      <PopoverPopup className={className}>{children}</PopoverPopup>
+    </Popover>
+  )
+}

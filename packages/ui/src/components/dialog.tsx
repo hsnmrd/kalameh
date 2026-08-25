@@ -120,6 +120,160 @@ function DialogCloseButton({
   )
 }
 
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerFooter,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerCloseButton,
+} from "./drawer"
+
+// ─── useIsMobile ─────────────────────────────────────────────────────────────
+// Returns true when window width is below the lg breakpoint (1024px).
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(false)
+  React.useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)")
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener("change", handler)
+    return () => mq.removeEventListener("change", handler)
+  }, [])
+  return isMobile
+}
+
+// ─── ResponsiveDialog ─────────────────────────────────────────────────────────
+// On mobile (< lg): renders a bottom-sheet Drawer.
+// On desktop (≥ lg): renders the standard centered Dialog.
+//
+// Usage mirrors Dialog:
+//   <ResponsiveDialog open={open} onOpenChange={setOpen}>
+//     <ResponsiveDialogContent>
+//       <ResponsiveDialogHeader>
+//         <ResponsiveDialogTitle>…</ResponsiveDialogTitle>
+//       </ResponsiveDialogHeader>
+//       …
+//       <ResponsiveDialogFooter>…</ResponsiveDialogFooter>
+//     </ResponsiveDialogContent>
+//   </ResponsiveDialog>
+
+interface ResponsiveDialogContextValue {
+  isMobile: boolean
+}
+const ResponsiveDialogContext =
+  React.createContext<ResponsiveDialogContextValue>({ isMobile: false })
+
+interface ResponsiveDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  children: React.ReactNode
+}
+
+function ResponsiveDialog({
+  open,
+  onOpenChange,
+  children,
+}: ResponsiveDialogProps) {
+  const isMobile = useIsMobile()
+
+  if (isMobile) {
+    return (
+      <ResponsiveDialogContext.Provider value={{ isMobile: true }}>
+        <Drawer open={open} onOpenChange={onOpenChange}>
+          {children}
+        </Drawer>
+      </ResponsiveDialogContext.Provider>
+    )
+  }
+
+  return (
+    <ResponsiveDialogContext.Provider value={{ isMobile: false }}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        {children}
+      </Dialog>
+    </ResponsiveDialogContext.Provider>
+  )
+}
+
+function ResponsiveDialogContent({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  const { isMobile } = React.useContext(ResponsiveDialogContext)
+
+  if (isMobile) {
+    return (
+      <DrawerContent className={cn("px-0", className)} {...props}>
+        <div className="overflow-y-auto">{children}</div>
+      </DrawerContent>
+    )
+  }
+
+  return (
+    <DialogPopup className={className} {...props}>
+      {children}
+    </DialogPopup>
+  )
+}
+
+function ResponsiveDialogHeader({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  const { isMobile } = React.useContext(ResponsiveDialogContext)
+  if (isMobile) {
+    return <DrawerHeader className={cn("px-4 pt-2", className)} {...props} />
+  }
+  return <DialogHeader className={className} {...props} />
+}
+
+function ResponsiveDialogFooter({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  const { isMobile } = React.useContext(ResponsiveDialogContext)
+  if (isMobile) {
+    return <DrawerFooter className={className} {...props} />
+  }
+  return <DialogFooter className={className} {...props} />
+}
+
+function ResponsiveDialogTitle({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+  const { isMobile } = React.useContext(ResponsiveDialogContext)
+  if (isMobile) {
+    return <DrawerTitle className={className} {...props} />
+  }
+  return <DialogTitle className={className} {...props} />
+}
+
+function ResponsiveDialogDescription({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  const { isMobile } = React.useContext(ResponsiveDialogContext)
+  if (isMobile) {
+    return <DrawerDescription className={className} {...props} />
+  }
+  return <DialogDescription className={className} {...props} />
+}
+
+function ResponsiveDialogCloseButton({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLButtonElement>) {
+  const { isMobile } = React.useContext(ResponsiveDialogContext)
+  if (isMobile) {
+    return <DrawerCloseButton className={className} {...(props as object)} />
+  }
+  return <DialogCloseButton className={className} {...(props as object)} />
+}
+
 export {
   Dialog,
   DialogTrigger,
@@ -132,4 +286,12 @@ export {
   DialogDescription,
   DialogClose,
   DialogCloseButton,
+  // Responsive variants
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogFooter,
+  ResponsiveDialogTitle,
+  ResponsiveDialogDescription,
+  ResponsiveDialogCloseButton,
 }

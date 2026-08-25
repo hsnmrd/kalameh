@@ -8,6 +8,8 @@ export interface AdminPageShellProps {
   filter?: React.ReactNode
   children: React.ReactNode
   modals?: React.ReactNode
+  /** Floating action button — rendered after modals (fixed position, mobile-only) */
+  fab?: React.ReactNode
   className?: string
 }
 
@@ -16,6 +18,7 @@ export function AdminPageShell({
   filter,
   children,
   modals,
+  fab,
   className,
 }: AdminPageShellProps) {
   return (
@@ -24,6 +27,7 @@ export function AdminPageShell({
       {filter}
       {children}
       {modals}
+      {fab}
     </div>
   )
 }

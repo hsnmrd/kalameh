@@ -8,12 +8,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, Trash2 } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogDescription,
+  ResponsiveDialogCloseButton,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -126,15 +126,20 @@ export function EditBranchModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogPopup className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t("editModal.title")}</DialogTitle>
-          <DialogDescription>{t("editModal.description")}</DialogDescription>
-          <DialogCloseButton />
-        </DialogHeader>
+    <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
+      <ResponsiveDialogContent className="max-w-lg">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>{t("editModal.title")}</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            {t("editModal.description")}
+          </ResponsiveDialogDescription>
+          <ResponsiveDialogCloseButton />
+        </ResponsiveDialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4 px-6 pt-2 pb-6"
+        >
           {/* Branch Name */}
           <Field>
             <FieldLabel>{t("editModal.branchName")}</FieldLabel>
@@ -235,7 +240,7 @@ export function EditBranchModal({
             </Button>
           </div>
         </form>
-      </DialogPopup>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   )
 }

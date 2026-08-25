@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale } from "next-intl"
-import { Plus } from "lucide-react"
+import { Plus, SlidersHorizontal } from "lucide-react"
 import type { Permission } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -104,11 +104,48 @@ export function AdminPageHeader({
         )}
       </div>
 
-      <div className="flex items-center gap-2.5">
+      {/* Desktop action buttons — hidden on mobile (FAB handles mobile) */}
+      <div className="hidden items-center gap-2.5 lg:flex">
         {renderActionButton()}
         {actions}
         {children}
       </div>
     </div>
+  )
+}
+
+/**
+ * AdminPageHeaderFilterButton — a compact filter icon button shown next
+ * to the search input on mobile. Renders nothing on desktop (lg+).
+ * Passes the click through to open a Drawer filter sheet.
+ */
+export interface AdminPageHeaderFilterButtonProps {
+  onClick: () => void
+  active?: boolean
+  "aria-label": string
+  className?: string
+}
+
+export function AdminPageHeaderFilterButton({
+  onClick,
+  active,
+  "aria-label": ariaLabel,
+  className,
+}: AdminPageHeaderFilterButtonProps) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={cn(
+        "h-10 w-10 shrink-0 rounded-xl border-border lg:hidden",
+        active && "border-primary text-primary",
+        className
+      )}
+    >
+      <SlidersHorizontal className="size-4" />
+    </Button>
   )
 }

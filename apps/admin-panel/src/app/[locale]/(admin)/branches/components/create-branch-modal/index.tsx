@@ -8,12 +8,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, Trash2 } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogDescription,
+  ResponsiveDialogCloseButton,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -108,15 +108,22 @@ export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogPopup className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t("createModal.title")}</DialogTitle>
-          <DialogDescription>{t("createModal.description")}</DialogDescription>
-          <DialogCloseButton />
-        </DialogHeader>
+    <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
+      <ResponsiveDialogContent className="max-w-lg">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>
+            {t("createModal.title")}
+          </ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            {t("createModal.description")}
+          </ResponsiveDialogDescription>
+          <ResponsiveDialogCloseButton />
+        </ResponsiveDialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4 px-6 pt-2 pb-6"
+        >
           {/* Branch Name */}
           <Field>
             <FieldLabel>{t("createModal.branchName")}</FieldLabel>
@@ -220,7 +227,7 @@ export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
             </Button>
           </div>
         </form>
-      </DialogPopup>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   )
 }

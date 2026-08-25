@@ -54,7 +54,52 @@
 - **Icon Color Consistency Standard:**
   - Icons must always match and inherit the exact semantic text color of their accompanying sibling label/text (`text-muted-foreground`, `text-foreground`, `text-destructive`). Never apply mismatched colored accent classes to icons next to neutral text.
 - **Data Tables & Lists Standard:**
-  - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying lists and data grids.
+  - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying lists and data grids **on desktop (lg+)**.
   - Define columns via TanStack `ColumnDef` and never use raw HTML `<table>` elements in views or components.
+  - **On mobile (< lg): use `<MobileList />` from `@workspace/ui/components/mobile-list` instead of `DataTable`.** See Mobile UX Standard below.
 - **Forms & Validation:** Always use `react-hook-form` paired with `@hookform/resolvers/zod` and shared Zod schemas from `@workspace/types`.
 - **File Length:** Keep files under 250 lines. Decompose large tables, dialogs, and forms into dedicated subcomponents.
+
+## Mobile UX Standard
+
+All admin-panel list pages and overlays must follow these mobile-specific rules for screens **< `lg` (1024px)**:
+
+### 1. Mobile List View (no DataTable on mobile)
+
+- Each list page must have **two sibling components**: `*-table/` (desktop) and `*-list/` (mobile).
+- Page layout: `<div className="hidden lg:block"><XTable /></div>` + `<div className="lg:hidden"><XList /></div>`.
+- Mobile list uses `MobileList`, `MobileListItem`, `MobileListItemIcon`, `MobileListItemContent`, `MobileListItemTrailing` from `@workspace/ui/components/mobile-list`.
+- Items are separated by thin dividers, minimal height (~60px), no inline action buttons.
+- **Click** on item → navigate to detail or open edit modal.
+- **Long-press / right-click** → use `ContextMenu` from `@workspace/ui/components/context-menu` to show Edit, Delete, etc.
+
+### 2. FAB (Floating Action Button) replaces header Create button on mobile
+
+- `AdminPageHeader` action button is hidden on mobile (`hidden lg:flex`).
+- Every list page must render a `FABSingle` or `FABMenuTrigger` from `@workspace/ui/components/fab` in the `fab` prop of `AdminPageShell`.
+- Single-action pages → `FABSingle` with `+` icon.
+- Multi-action pages (e.g. Users with Create + Import + Export) → `FABMenuTrigger` that opens a `Drawer` (bottom sheet) with action buttons.
+- Wrap FAB in `<PermissionGuard mode="hide">` when the action requires a permission.
+
+### 3. Popover → Bottom-sheet Drawer on mobile
+
+- Use `ResponsivePopover` from `@workspace/ui/components/popover` instead of raw `Popover`.
+- On mobile it renders a `Drawer` bottom sheet; on desktop it renders the standard popover.
+
+### 4. Combobox → Bottom-sheet Drawer on mobile
+
+- Use `ResponsiveCombobox` from `@workspace/ui/components/combobox` instead of `Combobox` in any filter or form.
+- On mobile it renders a `Drawer` with search + option list; on desktop it renders the standard Base UI combobox dropdown.
+- Always pass a `drawerTitle` prop to name the option list in the Drawer.
+
+### 5. Modal → Bottom-sheet Drawer on mobile
+
+- Use `ResponsiveDialog`, `ResponsiveDialogContent`, `ResponsiveDialogHeader`, `ResponsiveDialogFooter`, `ResponsiveDialogTitle`, `ResponsiveDialogDescription`, `ResponsiveDialogCloseButton` from `@workspace/ui/components/dialog` instead of `Dialog`/`DialogPopup`.
+- On mobile it slides up as a Drawer; on desktop it renders the standard centered dialog.
+- Form content must include `px-6 pb-6` padding when inside a `ResponsiveDialogContent`.
+
+### 6. Filters → Bottom-sheet Drawer on mobile
+
+- `AdminFilterBar` automatically handles this: filters are hidden on mobile and accessible via a `SlidersHorizontal` icon button next to the search input.
+- The filter drawer title can be customized via `filterDrawerTitle` prop.
+- Always pass `filterButtonAriaLabel` translated with `useTranslations`.
