@@ -108,6 +108,9 @@ export class InstitutesService {
         name: dto.name,
         subdomain: dto.subdomain,
         isActive: dto.isActive ?? true,
+        ...(dto.enabledModules && dto.enabledModules.length > 0
+          ? { enabledModules: dto.enabledModules }
+          : {}),
         logoUrl,
         primaryColor: dto.primaryColor || null,
         address: dto.address || null,
@@ -180,6 +183,9 @@ export class InstitutesService {
         ...(dto.name ? { name: dto.name } : {}),
         ...(dto.subdomain ? { subdomain: dto.subdomain } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+        ...(dto.enabledModules !== undefined
+          ? { enabledModules: dto.enabledModules }
+          : {}),
         ...(logoUrl !== undefined ? { logoUrl } : {}),
         ...(dto.primaryColor !== undefined
           ? { primaryColor: dto.primaryColor }

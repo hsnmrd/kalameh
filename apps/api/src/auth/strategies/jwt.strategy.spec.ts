@@ -49,6 +49,7 @@ describe('JwtStrategy', () => {
       phone: '09123456789',
       role: 'STUDENT',
       instituteId: 'inst-1',
+      enabledModules: [],
       permissions: expect.any(Array),
     });
   });

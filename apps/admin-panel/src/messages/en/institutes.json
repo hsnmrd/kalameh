@@ -36,8 +36,9 @@
   },
   "createModal": {
     "title": "Create New Institute",
-    "description": "Enter institute details, subdomain, visual branding, and contact info.",
+    "description": "Enter institute details, subdomain, visual branding, modules, and contact info.",
     "sectionGeneral": "General & Branding",
+    "sectionModules": "Modules & Plan",
     "sectionContact": "Contact & Location",
     "sectionBanking": "Banking Details (Optional)",
     "name": "Institute Name",
@@ -95,6 +96,51 @@
     "blockTitle": "Suspend Institute",
     "blockSuccess": "Institute has been suspended and deactivated.",
     "unblockSuccess": "Institute has been activated successfully."
+  },
+  "modules": {
+    "title": "Purchased & Active Modules",
+    "description": "Select which functional modules are active for this institute.",
+    "inactiveToast": "This module is not active for your institute subscription plan.",
+    "contactSalesCta": "Contact Sales & Support",
+    "contactSalesToast": "Please contact Kalameh sales and support to activate this module.",
+    "presetsTitle": "Plan Presets:",
+    "presetStarter": "Starter",
+    "presetPro": "Pro",
+    "presetEnterprise": "Enterprise (All)",
+    "items": {
+      "USERS_STAFF": {
+        "name": "Users & Staff",
+        "description": "User roles, clerk permissions, and staff accounts"
+      },
+      "STUDENTS": {
+        "name": "Student Profiles",
+        "description": "Student registration, dossier, and academic records"
+      },
+      "CLASSES_COURSES": {
+        "name": "Classes & Courses",
+        "description": "Course catalog, academic terms, branches, and class schedules"
+      },
+      "GRADES_ASSESSMENTS": {
+        "name": "Grades & Evaluation",
+        "description": "Grade submission, leveling, and student report cards"
+      },
+      "FINANCE": {
+        "name": "Finance & Accounting",
+        "description": "Tuitions, payment tracking, invoices, and revenue reports"
+      },
+      "ATTENDANCE": {
+        "name": "Attendance Tracking",
+        "description": "Session attendance logs, student check-ins, and absence tracking"
+      },
+      "SMS_NOTIFICATIONS": {
+        "name": "SMS Gateway",
+        "description": "Automated SMS alerts for attendance, registration, and reminders"
+      },
+      "ONLINE_ROOMS": {
+        "name": "Online Classrooms",
+        "description": "Virtual classrooms, live video lectures, and webinars"
+      }
+    }
   },
   "validation": {
     "nameMin": "Institute name must be at least 2 characters.",

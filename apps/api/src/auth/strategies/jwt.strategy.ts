@@ -67,6 +67,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       phone: user.phone,
       role: user.role,
       instituteId: user.instituteId,
+      enabledModules: user.institute.enabledModules || [],
       permissions,
     };
   }

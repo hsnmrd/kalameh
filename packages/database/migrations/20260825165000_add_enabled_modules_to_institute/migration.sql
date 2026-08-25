@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Institute" ADD COLUMN "enabledModules" TEXT[] DEFAULT ARRAY['USERS_STAFF', 'STUDENTS', 'CLASSES_COURSES']::TEXT[];

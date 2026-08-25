@@ -39,6 +39,7 @@ export interface TranslationDictionary {
     cannotDeleteWithDependencies: string;
     cannotDeleteSystemInstitute: string;
     instituteDeletedSuccess: string;
+    moduleNotActive: string;
   };
   branches: {
     branchNotFound: string;

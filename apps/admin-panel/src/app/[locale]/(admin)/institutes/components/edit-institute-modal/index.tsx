@@ -13,6 +13,7 @@ import {
   Plus,
   Trash2,
   Check,
+  Package,
 } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
@@ -29,6 +30,7 @@ import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Attachment } from "@workspace/ui/components/attachment"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { DEFAULT_ENABLED_MODULES } from "@workspace/types"
 import { cn } from "@workspace/ui/lib/utils"
 import type { InstituteWithStats } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
@@ -37,6 +39,7 @@ import {
   useUpdateInstituteSchema,
   type UpdateInstituteInput,
 } from "../../hooks/use-institute-schemas"
+import { ModulesSelector } from "../modules-selector"
 
 export interface EditInstituteModalProps {
   open: boolean
@@ -66,7 +69,7 @@ export function EditInstituteModal({
   const { activeInstitute, setActiveInstitute } = useActiveInstitute()
 
   const [activeTab, setActiveTab] = React.useState<
-    "general" | "contact" | "banking"
+    "general" | "modules" | "contact" | "banking"
   >("general")
 
   const {
@@ -84,6 +87,7 @@ export function EditInstituteModal({
       name: "",
       subdomain: "",
       isActive: true,
+      enabledModules: [...DEFAULT_ENABLED_MODULES],
       logo: null,
       logoUrl: null,
       primaryColor: "#10b981",
@@ -101,6 +105,9 @@ export function EditInstituteModal({
         name: institute.name,
         subdomain: institute.subdomain,
         isActive: institute.isActive,
+        enabledModules: institute.enabledModules || [
+          ...DEFAULT_ENABLED_MODULES,
+        ],
         logo: null,
         logoUrl: institute.logoUrl || null,
         primaryColor: institute.primaryColor || "#10b981",
@@ -160,7 +167,7 @@ export function EditInstituteModal({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogPopup className="max-h-[90vh] max-w-2xl overflow-y-auto p-0">
+      <DialogPopup className="max-h-[90vh] max-w-2xl overflow-x-hidden overflow-y-auto p-0">
         <DialogCloseButton />
         <div className="p-6 pb-4">
           <DialogHeader className="text-start">
@@ -168,21 +175,40 @@ export function EditInstituteModal({
             <DialogDescription>{t("editModal.description")}</DialogDescription>
           </DialogHeader>
 
-          <div className="mt-6 flex items-center gap-2 rounded-xl bg-muted/60 p-1">
+          <div className="mt-6 grid grid-cols-2 gap-1.5 rounded-xl bg-muted/60 p-1 sm:grid-cols-4">
             <Button
               type="button"
               variant={activeTab === "general" ? "default" : "ghost"}
               size="sm"
               onClick={() => setActiveTab("general")}
               className={cn(
-                "flex-1 cursor-pointer rounded-lg text-xs font-semibold",
+                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
                 activeTab === "general"
                   ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Building2 className="me-1.5 size-3.5" />
-              {t("createModal.sectionGeneral")}
+              <Building2 className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {t("createModal.sectionGeneral")}
+              </span>
+            </Button>
+            <Button
+              type="button"
+              variant={activeTab === "modules" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("modules")}
+              className={cn(
+                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
+                activeTab === "modules"
+                  ? "bg-background text-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Package className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {t("createModal.sectionModules")}
+              </span>
             </Button>
             <Button
               type="button"
@@ -190,14 +216,16 @@ export function EditInstituteModal({
               size="sm"
               onClick={() => setActiveTab("contact")}
               className={cn(
-                "flex-1 cursor-pointer rounded-lg text-xs font-semibold",
+                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
                 activeTab === "contact"
                   ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Phone className="me-1.5 size-3.5" />
-              {t("createModal.sectionContact")}
+              <Phone className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {t("createModal.sectionContact")}
+              </span>
             </Button>
             <Button
               type="button"
@@ -205,14 +233,16 @@ export function EditInstituteModal({
               size="sm"
               onClick={() => setActiveTab("banking")}
               className={cn(
-                "flex-1 cursor-pointer rounded-lg text-xs font-semibold",
+                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
                 activeTab === "banking"
                   ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <CreditCard className="me-1.5 size-3.5" />
-              {t("createModal.sectionBanking")}
+              <CreditCard className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {t("createModal.sectionBanking")}
+              </span>
             </Button>
           </div>
         </div>
@@ -333,6 +363,20 @@ export function EditInstituteModal({
               </div>
               <FieldError>{errors.primaryColor?.message}</FieldError>
             </Field>
+          </div>
+
+          {/* TAB 2: Modules & Subscription Plan */}
+          <div className={cn("space-y-4", activeTab !== "modules" && "hidden")}>
+            <Controller
+              control={control}
+              name="enabledModules"
+              render={({ field }) => (
+                <ModulesSelector
+                  value={field.value || []}
+                  onChange={(mods) => field.onChange(mods)}
+                />
+              )}
+            />
           </div>
 
           <div className={cn("space-y-4", activeTab !== "contact" && "hidden")}>

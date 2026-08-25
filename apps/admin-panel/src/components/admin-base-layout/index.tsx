@@ -15,7 +15,7 @@ import {
   ShieldCheck,
 } from "lucide-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ROLES, PERMISSIONS, type Role } from "@workspace/types"
+import { ROLES, PERMISSIONS, APP_MODULES, type Role } from "@workspace/types"
 import { authResource } from "@/lib/api"
 import { usePathname, useRouter, useIsRtl } from "@/i18n/routing"
 import { cn } from "@workspace/ui/lib/utils"
@@ -52,48 +52,56 @@ const INSTITUTE_NAV_ITEMS: NavItem[] = [
     href: "/branches",
     icon: Building2,
     permission: PERMISSIONS.VIEW_BRANCHES,
+    module: APP_MODULES.CLASSES_COURSES,
   },
   {
     key: "terms",
     href: "/terms",
     icon: Calendar,
     permission: PERMISSIONS.VIEW_TERMS,
+    module: APP_MODULES.CLASSES_COURSES,
   },
   {
     key: "courses",
     href: "/courses",
     icon: BookOpen,
     permission: PERMISSIONS.VIEW_COURSES,
+    module: APP_MODULES.CLASSES_COURSES,
   },
   {
     key: "classes",
     href: "/classes",
     icon: Layers,
     permission: PERMISSIONS.VIEW_CLASSES,
+    module: APP_MODULES.CLASSES_COURSES,
   },
   {
     key: "students",
     href: "/students",
     icon: GraduationCap,
     permission: PERMISSIONS.VIEW_STUDENTS,
+    module: APP_MODULES.STUDENTS,
   },
   {
     key: "staff",
     href: "/users",
     icon: Users,
     permission: PERMISSIONS.VIEW_USERS,
+    module: APP_MODULES.USERS_STAFF,
   },
   {
     key: "rolePermissions",
     href: "/role-permissions",
     icon: ShieldCheck,
     permission: PERMISSIONS.VIEW_ROLE_PERMISSIONS,
+    module: APP_MODULES.USERS_STAFF,
   },
   {
     key: "finance",
     href: "/transactions",
     icon: CreditCard,
     permission: PERMISSIONS.VIEW_TRANSACTIONS,
+    module: APP_MODULES.FINANCE,
   },
 ]
 

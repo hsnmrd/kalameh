@@ -53,6 +53,8 @@ export const en: TranslationDictionary = {
       'Cannot delete institute with dependent records',
     cannotDeleteSystemInstitute: 'Cannot delete the system institute',
     instituteDeletedSuccess: 'Institute deleted successfully',
+    moduleNotActive:
+      'This module is not active for your institute subscription plan',
   },
   branches: {
     branchNotFound: 'Requested branch was not found',

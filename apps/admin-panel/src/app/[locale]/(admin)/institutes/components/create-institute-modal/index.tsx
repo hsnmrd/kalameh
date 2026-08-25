@@ -13,6 +13,7 @@ import {
   Plus,
   Trash2,
   Check,
+  Package,
 } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
@@ -28,12 +29,14 @@ import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { Attachment } from "@workspace/ui/components/attachment"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { DEFAULT_ENABLED_MODULES } from "@workspace/types"
 import { cn } from "@workspace/ui/lib/utils"
 import { institutesResource } from "@/lib/api"
 import {
   useCreateInstituteSchema,
   type CreateInstituteInput,
 } from "../../hooks/use-institute-schemas"
+import { ModulesSelector } from "../modules-selector"
 
 export interface CreateInstituteModalProps {
   open: boolean
@@ -60,7 +63,7 @@ export function CreateInstituteModal({
   const createInstituteSchema = useCreateInstituteSchema()
 
   const [activeTab, setActiveTab] = React.useState<
-    "general" | "contact" | "banking"
+    "general" | "modules" | "contact" | "banking"
   >("general")
 
   const {
@@ -79,6 +82,7 @@ export function CreateInstituteModal({
       name: "",
       subdomain: "",
       isActive: true,
+      enabledModules: [...DEFAULT_ENABLED_MODULES],
       logo: null,
       logoUrl: null,
       primaryColor: "#10b981",
@@ -113,6 +117,7 @@ export function CreateInstituteModal({
         name: "",
         subdomain: "",
         isActive: true,
+        enabledModules: [...DEFAULT_ENABLED_MODULES],
         logo: null,
         logoUrl: null,
         primaryColor: "#10b981",
@@ -146,8 +151,10 @@ export function CreateInstituteModal({
     if (activeTab === "general") {
       const isValid = await trigger(["name", "subdomain", "primaryColor"])
       if (isValid) {
-        setActiveTab("contact")
+        setActiveTab("modules")
       }
+    } else if (activeTab === "modules") {
+      setActiveTab("contact")
     } else if (activeTab === "contact") {
       setActiveTab("banking")
     }
@@ -173,7 +180,7 @@ export function CreateInstituteModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogPopup className="max-h-[90vh] max-w-2xl overflow-y-auto p-0">
+      <DialogPopup className="max-h-[90vh] max-w-2xl overflow-x-hidden overflow-y-auto p-0">
         <DialogCloseButton />
 
         <div className="p-6 pb-4">
@@ -185,21 +192,41 @@ export function CreateInstituteModal({
           </DialogHeader>
 
           {/* Step Navigation Tabs */}
-          <div className="mt-6 flex items-center gap-2 rounded-xl bg-muted/60 p-1">
+          <div className="mt-6 grid grid-cols-2 gap-1.5 rounded-xl bg-muted/60 p-1 sm:grid-cols-4">
             <Button
               type="button"
               variant={activeTab === "general" ? "default" : "ghost"}
               size="sm"
               onClick={() => setActiveTab("general")}
               className={cn(
-                "flex-1 cursor-pointer rounded-lg text-xs font-semibold transition-all",
+                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
                 activeTab === "general"
                   ? "bg-background text-foreground shadow-2xs"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Building2 className="me-1.5 size-3.5" />
-              {t("createModal.sectionGeneral")}
+              <Building2 className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {t("createModal.sectionGeneral")}
+              </span>
+            </Button>
+
+            <Button
+              type="button"
+              variant={activeTab === "modules" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("modules")}
+              className={cn(
+                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
+                activeTab === "modules"
+                  ? "bg-background text-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Package className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {t("createModal.sectionModules")}
+              </span>
             </Button>
 
             <Button
@@ -208,14 +235,16 @@ export function CreateInstituteModal({
               size="sm"
               onClick={() => setActiveTab("contact")}
               className={cn(
-                "flex-1 cursor-pointer rounded-lg text-xs font-semibold transition-all",
+                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
                 activeTab === "contact"
                   ? "bg-background text-foreground shadow-2xs"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Phone className="me-1.5 size-3.5" />
-              {t("createModal.sectionContact")}
+              <Phone className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {t("createModal.sectionContact")}
+              </span>
             </Button>
 
             <Button
@@ -224,14 +253,16 @@ export function CreateInstituteModal({
               size="sm"
               onClick={() => setActiveTab("banking")}
               className={cn(
-                "flex-1 cursor-pointer rounded-lg text-xs font-semibold transition-all",
+                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
                 activeTab === "banking"
                   ? "bg-background text-foreground shadow-2xs"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <CreditCard className="me-1.5 size-3.5" />
-              {t("createModal.sectionBanking")}
+              <CreditCard className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {t("createModal.sectionBanking")}
+              </span>
             </Button>
           </div>
         </div>
@@ -351,7 +382,21 @@ export function CreateInstituteModal({
             </Field>
           </div>
 
-          {/* TAB 2: Contact & Location */}
+          {/* TAB 2: Modules & Subscription Plan */}
+          <div className={cn("space-y-4", activeTab !== "modules" && "hidden")}>
+            <Controller
+              control={control}
+              name="enabledModules"
+              render={({ field }) => (
+                <ModulesSelector
+                  value={field.value || []}
+                  onChange={(mods) => field.onChange(mods)}
+                />
+              )}
+            />
+          </div>
+
+          {/* TAB 3: Contact & Location */}
           <div className={cn("space-y-4", activeTab !== "contact" && "hidden")}>
             {/* Dynamic Phone Numbers */}
             <Field>
@@ -456,7 +501,11 @@ export function CreateInstituteModal({
                   variant="ghost"
                   onClick={() =>
                     setActiveTab(
-                      activeTab === "banking" ? "contact" : "general"
+                      activeTab === "banking"
+                        ? "contact"
+                        : activeTab === "contact"
+                          ? "modules"
+                          : "general"
                     )
                   }
                   className="h-10 rounded-xl px-4 text-xs font-semibold text-muted-foreground"

@@ -2,10 +2,12 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import type { Permission } from "@workspace/types"
+import type { Permission, AppModule } from "@workspace/types"
+import { ROLES } from "@workspace/types"
 import { Link } from "@/i18n/routing"
 import { cn } from "@workspace/ui/lib/utils"
 import { usePermissions } from "@/lib/hooks"
+import { useActiveInstitute } from "@/lib/stores"
 
 export type NavItemKey =
   | "dashboard"
@@ -24,6 +26,7 @@ export interface NavItem {
   href: string
   icon: React.ComponentType<{ className?: string }>
   permission?: Permission | readonly Permission[]
+  module?: AppModule
 }
 
 export interface NavSection {
@@ -47,7 +50,19 @@ export function NavList({
   onItemClick,
 }: NavListProps) {
   const t = useTranslations("common.nav")
-  const { hasPermission } = usePermissions()
+  const { hasPermission, user } = usePermissions()
+  const { activeInstitute } = useActiveInstitute()
+
+  const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
+  const enabledModules = activeInstitute?.enabledModules || []
+
+  const hasModuleAccess = React.useCallback(
+    (module?: AppModule) => {
+      if (!module || isSuperAdmin) return true
+      return enabledModules.includes(module)
+    },
+    [isSuperAdmin, enabledModules]
+  )
 
   const effectiveSections: NavSection[] = React.useMemo(() => {
     const rawSections =
@@ -60,12 +75,14 @@ export function NavList({
     return rawSections
       .map((section) => ({
         ...section,
-        items: section.items.filter((item) =>
-          item.permission ? hasPermission(item.permission) : true
-        ),
+        items: section.items.filter((item) => {
+          const permOk = item.permission ? hasPermission(item.permission) : true
+          const moduleOk = hasModuleAccess(item.module)
+          return permOk && moduleOk
+        }),
       }))
       .filter((section) => section.items.length > 0)
-  }, [sections, items, hasPermission])
+  }, [sections, items, hasPermission, hasModuleAccess])
 
   return (
     <nav className="space-y-5">

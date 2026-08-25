@@ -1,10 +1,41 @@
 import { z } from "zod"
 
+export const APP_MODULES = {
+  USERS_STAFF: "USERS_STAFF",
+  STUDENTS: "STUDENTS",
+  CLASSES_COURSES: "CLASSES_COURSES",
+  GRADES_ASSESSMENTS: "GRADES_ASSESSMENTS",
+  FINANCE: "FINANCE",
+  ATTENDANCE: "ATTENDANCE",
+  SMS_NOTIFICATIONS: "SMS_NOTIFICATIONS",
+  ONLINE_ROOMS: "ONLINE_ROOMS",
+} as const
+
+export type AppModule = (typeof APP_MODULES)[keyof typeof APP_MODULES]
+
+export const ALL_APP_MODULES: readonly AppModule[] = [
+  APP_MODULES.USERS_STAFF,
+  APP_MODULES.STUDENTS,
+  APP_MODULES.CLASSES_COURSES,
+  APP_MODULES.GRADES_ASSESSMENTS,
+  APP_MODULES.FINANCE,
+  APP_MODULES.ATTENDANCE,
+  APP_MODULES.SMS_NOTIFICATIONS,
+  APP_MODULES.ONLINE_ROOMS,
+]
+
+export const DEFAULT_ENABLED_MODULES: readonly AppModule[] = [
+  APP_MODULES.USERS_STAFF,
+  APP_MODULES.STUDENTS,
+  APP_MODULES.CLASSES_COURSES,
+]
+
 export const InstituteSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   subdomain: z.string(),
   isActive: z.boolean(),
+  enabledModules: z.array(z.string()).default([...DEFAULT_ENABLED_MODULES]),
   logoUrl: z.string().nullable().optional(),
   primaryColor: z.string().nullable().optional(),
   address: z.string().nullable().optional(),
@@ -55,6 +86,20 @@ export const createCreateInstituteSchema = (msg?: {
         return val
       }, z.boolean())
       .default(true),
+    enabledModules: z
+      .preprocess((val) => {
+        if (Array.isArray(val)) return val.filter(Boolean)
+        if (typeof val === "string") {
+          try {
+            const parsed = JSON.parse(val)
+            if (Array.isArray(parsed)) return parsed
+          } catch {
+            return [val]
+          }
+        }
+        return val
+      }, z.array(z.string()))
+      .optional(),
     logo: z.any().optional().nullable(),
     logoUrl: z.string().trim().optional().nullable(),
     primaryColor: z
@@ -117,6 +162,20 @@ export const createUpdateInstituteSchema = (msg?: {
         if (val === "false" || val === false) return false
         return val
       }, z.boolean())
+      .optional(),
+    enabledModules: z
+      .preprocess((val) => {
+        if (Array.isArray(val)) return val.filter(Boolean)
+        if (typeof val === "string") {
+          try {
+            const parsed = JSON.parse(val)
+            if (Array.isArray(parsed)) return parsed
+          } catch {
+            return [val]
+          }
+        }
+        return val
+      }, z.array(z.string()))
       .optional(),
     logo: z.any().optional().nullable(),
     logoUrl: z.string().trim().optional().nullable(),

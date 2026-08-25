@@ -1,7 +1,13 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen } from "../../../../test/test-utils"
 import { NavList, type NavSection } from "../index"
-import { LayoutDashboard, Building2, ShieldAlert } from "lucide-react"
+import {
+  LayoutDashboard,
+  Building2,
+  ShieldAlert,
+  CreditCard,
+} from "lucide-react"
+import { APP_MODULES } from "@workspace/types"
 
 vi.mock("@/i18n/routing", () => ({
   Link: ({
@@ -35,7 +41,20 @@ describe("NavList Component", () => {
       id: "institute-1",
       title: "آموزشگاه کلمه تهران",
       badge: "tehran",
-      items: [{ key: "branches", href: "/branches", icon: Building2 }],
+      items: [
+        {
+          key: "branches",
+          href: "/branches",
+          icon: Building2,
+          module: APP_MODULES.CLASSES_COURSES,
+        },
+        {
+          key: "finance",
+          href: "/transactions",
+          icon: CreditCard,
+          module: APP_MODULES.FINANCE,
+        },
+      ],
     },
   ]
 
