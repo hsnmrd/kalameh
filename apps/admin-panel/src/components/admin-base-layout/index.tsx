@@ -209,7 +209,11 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
           </div>
           <NavList sections={navSections} pathname={pathname} />
         </div>
-        <SidebarFooter onLogout={handleLogout} />
+        <SidebarFooter
+          onLogout={handleLogout}
+          onSwitchLanguage={handleSwitchLanguage}
+          locale={locale}
+        />
       </aside>
 
       {/* Mobile Drawer */}
@@ -221,6 +225,8 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
         sections={navSections}
         pathname={pathname}
         onLogout={handleLogout}
+        onSwitchLanguage={handleSwitchLanguage}
+        locale={locale}
       />
 
       {/* Main Content Container */}
@@ -230,6 +236,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
           user={user}
           onToggleDrawer={() => setDrawerOpen(true)}
           onSwitchLanguage={handleSwitchLanguage}
+          onLogout={handleLogout}
           locale={locale}
         />
 

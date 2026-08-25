@@ -20,6 +20,15 @@
   },
   "language": "Language",
   "logout": "Log Out",
+  "userProfile": {
+    "title": "User Information",
+    "phone": "Phone Number",
+    "role": "Role",
+    "institute": "Institute",
+    "status": "Account Status",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
   "en": "English",
   "fa": "فارسی",
   "footer": "Kalameh Language Platform • Admin Panel v1.0",

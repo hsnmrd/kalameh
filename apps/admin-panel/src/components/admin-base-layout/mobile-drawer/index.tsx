@@ -18,6 +18,8 @@ export interface MobileDrawerProps {
   navItems?: NavItem[]
   pathname: string
   onLogout: () => void
+  onSwitchLanguage?: () => void
+  locale?: string
 }
 
 export function MobileDrawer({
@@ -29,6 +31,8 @@ export function MobileDrawer({
   navItems,
   pathname,
   onLogout,
+  onSwitchLanguage,
+  locale,
 }: MobileDrawerProps) {
   return (
     <>
@@ -77,7 +81,11 @@ export function MobileDrawer({
             />
           </div>
         </div>
-        <SidebarFooter onLogout={onLogout} />
+        <SidebarFooter
+          onLogout={onLogout}
+          onSwitchLanguage={onSwitchLanguage}
+          locale={locale}
+        />
       </aside>
     </>
   )
