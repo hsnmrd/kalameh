@@ -13,6 +13,7 @@ import {
   ChevronLeft,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Link, useIsRtl } from "@/i18n/routing"
 import { useActiveInstitute } from "@/lib/stores"
@@ -123,17 +124,18 @@ export function SuperAdminView() {
         ) : (
           <div className="divide-y divide-border/60">
             {institutes.slice(0, 5).map((inst) => (
-              <button
+              <Button
                 key={inst.id}
                 type="button"
+                variant="ghost"
                 onClick={() => selectInstitute(inst)}
-                className="-mx-2 flex w-full cursor-pointer items-center justify-between rounded-xl px-2 py-3.5 text-start transition-colors hover:bg-muted/50"
+                className="h-auto w-full cursor-pointer items-center justify-between rounded-xl px-2 py-3.5 text-start font-normal text-foreground hover:bg-muted/50"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-muted font-bold text-foreground">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted font-bold text-foreground">
                     {inst.name.slice(0, 2)}
                   </div>
-                  <div>
+                  <div className="text-start">
                     <p className="text-sm font-semibold text-foreground">
                       {inst.name}
                     </p>
@@ -144,18 +146,15 @@ export function SuperAdminView() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span
-                    className={
-                      inst.isActive
-                        ? "rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600"
-                        : "rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-600"
-                    }
+                  <Badge
+                    variant={inst.isActive ? "success" : "destructive"}
+                    className="px-2.5 py-0.5 text-xs font-semibold"
                   >
                     {inst.isActive ? t("stats.active") : t("stats.inactive")}
-                  </span>
+                  </Badge>
                   <ActionArrow className="size-4 text-muted-foreground" />
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
         )}

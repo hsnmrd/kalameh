@@ -120,14 +120,15 @@ export function ModulesSelector({
           const Icon = MODULE_ICONS[moduleKey] || Package
 
           return (
-            <button
+            <Button
               key={moduleKey}
               type="button"
+              variant="ghost"
               onClick={() => handleToggle(moduleKey)}
               className={cn(
-                "group relative flex cursor-pointer items-start gap-3 rounded-xl border p-3 text-start transition-all",
+                "group relative flex h-auto cursor-pointer items-start gap-3 rounded-xl border p-3 text-start font-normal transition-all",
                 isSelected
-                  ? "border-emerald-500/60 bg-emerald-500/5 shadow-2xs"
+                  ? "border-emerald-500/60 bg-emerald-500/5 shadow-2xs hover:bg-emerald-500/10"
                   : "border-border/80 bg-card hover:border-border hover:bg-muted/30"
               )}
             >
@@ -143,23 +144,21 @@ export function ModulesSelector({
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-1">
-                  <h4 className="line-clamp-1 text-xs font-bold text-foreground">
+                <div className="flex items-center justify-between gap-1.5">
+                  <p className="text-xs font-semibold text-foreground">
                     {t(`items.${moduleKey}.name`)}
-                  </h4>
-
+                  </p>
                   {isSelected && (
-                    <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
-                      <Check className="size-2.5" />
-                    </span>
+                    <div className="flex size-4 items-center justify-center rounded-full bg-emerald-500 text-white">
+                      <Check className="size-3" />
+                    </div>
                   )}
                 </div>
-
-                <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
+                <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
                   {t(`items.${moduleKey}.description`)}
                 </p>
               </div>
-            </button>
+            </Button>
           )
         })}
       </div>
