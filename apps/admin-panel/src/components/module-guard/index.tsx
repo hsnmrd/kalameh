@@ -5,6 +5,14 @@ import { useTranslations } from "next-intl"
 import { Lock, PhoneCall } from "lucide-react"
 import { type AppModule, ROLES } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@workspace/ui/components/empty"
 import { toast } from "@workspace/ui/components/sonner"
 import { cn } from "@workspace/ui/lib/utils"
 import { usePermissions } from "@/lib/hooks"
@@ -66,25 +74,16 @@ export function ModuleGuard({
       (singleModule ? t(`items.${singleModule}.description`) : t("description"))
 
     return (
-      <div
-        className={cn(
-          "flex min-h-[360px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center text-card-foreground shadow-2xs",
-          className
-        )}
-      >
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Lock className="size-7" />
-        </div>
+      <Empty className={className}>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Lock className="size-7" />
+          </EmptyMedia>
+          <EmptyTitle>{displayTitle}</EmptyTitle>
+          <EmptyDescription>{displayDescription}</EmptyDescription>
+        </EmptyHeader>
 
-        <h3 className="mt-4 text-base font-bold text-foreground">
-          {displayTitle}
-        </h3>
-
-        <p className="mt-2 max-w-md text-xs leading-relaxed text-muted-foreground">
-          {displayDescription}
-        </p>
-
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <EmptyContent>
           <Button
             type="button"
             variant="outline"
@@ -94,8 +93,8 @@ export function ModuleGuard({
             <PhoneCall className="size-3.5 text-muted-foreground" />
             <span>{t("contactSalesCta")}</span>
           </Button>
-        </div>
-      </div>
+        </EmptyContent>
+      </Empty>
     )
   }
 

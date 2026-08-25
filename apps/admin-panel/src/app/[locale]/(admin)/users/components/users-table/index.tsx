@@ -7,7 +7,15 @@ import { Users, Edit2, KeyRound } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
-import { cn } from "@workspace/ui/lib/utils"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@workspace/ui/components/empty"
+import Image from "next/image"
+import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type AuthUser } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { UserRoleBadge } from "../user-role-badge"
@@ -33,40 +41,39 @@ export function UsersTable({
   const columns = React.useMemo<ColumnDef<AuthUser>[]>(
     () => [
       {
-        accessorKey: "name",
+        accessorKey: "fullName",
         header: t("table.name"),
         cell: ({ row }) => {
           const user = row.original
           const initials = `${user.firstName[0] || ""}${user.lastName[0] || ""}`
+          const fullName = `${user.firstName} ${user.lastName}`
           return (
             <div className="flex items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground">
-                {initials}
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                {user.avatarUrl ? (
+                  <Image
+                    src={getAssetUrl(user.avatarUrl)}
+                    alt={fullName}
+                    width={36}
+                    height={36}
+                    className="size-9 rounded-full object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <span>{initials}</span>
+                )}
               </div>
-              <span className="text-sm font-medium text-foreground">
-                {user.firstName} {user.lastName}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-foreground">
+                  {fullName}
+                </span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {user.phone}
+                </span>
+              </div>
             </div>
           )
         },
-      },
-      {
-        accessorKey: "phone",
-        header: t("table.phone"),
-        cell: ({ row }) => (
-          <span className="font-mono text-sm text-foreground/80">
-            {row.original.phone}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "nationalCode",
-        header: t("table.nationalCode"),
-        cell: ({ row }) => (
-          <span className="font-mono text-sm text-muted-foreground">
-            {row.original.nationalCode || "—"}
-          </span>
-        ),
       },
       {
         accessorKey: "role",
@@ -74,7 +81,7 @@ export function UsersTable({
         cell: ({ row }) => <UserRoleBadge role={row.original.role} />,
       },
       {
-        accessorKey: "isActive",
+        accessorKey: "status",
         header: t("table.status"),
         cell: ({ row }) => <UserStatusBadge isActive={row.original.isActive} />,
       },
@@ -159,14 +166,15 @@ export function UsersTable({
 
   if (!users || users.length === 0) {
     return (
-      <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-        <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <Users className="size-6" />
-        </div>
-        <p className="text-sm font-medium text-muted-foreground">
-          {t("table.empty")}
-        </p>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="default">
+            <Users className="size-6" />
+          </EmptyMedia>
+          <EmptyTitle>{t("title")}</EmptyTitle>
+          <EmptyDescription>{t("table.empty")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     )
   }
 

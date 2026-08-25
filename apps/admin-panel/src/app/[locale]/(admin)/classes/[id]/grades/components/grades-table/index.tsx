@@ -3,11 +3,18 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Users, CheckCircle2, XCircle, Info } from "lucide-react"
+import { Users, CheckCircle2, XCircle, Info, GraduationCap } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@workspace/ui/components/empty"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   PERMISSIONS,
@@ -199,14 +206,15 @@ export function GradesTable({
 
   if (!records || records.length === 0) {
     return (
-      <div className="flex h-64 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-        <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <Users className="size-6" />
-        </div>
-        <p className="text-sm font-medium text-muted-foreground">
-          {t("table.empty")}
-        </p>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="default">
+            <Users className="size-6" />
+          </EmptyMedia>
+          <EmptyTitle>{t("title")}</EmptyTitle>
+          <EmptyDescription>{t("table.empty")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     )
   }
 

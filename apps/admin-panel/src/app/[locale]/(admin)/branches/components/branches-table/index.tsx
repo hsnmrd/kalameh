@@ -7,6 +7,13 @@ import { Building2, Edit2, MapPin, Phone } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@workspace/ui/components/empty"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type BranchWithStats } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -140,14 +147,15 @@ export function BranchesTable({
 
   if (!branches || branches.length === 0) {
     return (
-      <div className="flex h-64 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-        <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <Building2 className="size-6" />
-        </div>
-        <p className="text-sm font-medium text-muted-foreground">
-          {t("table.empty")}
-        </p>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="default">
+            <Building2 className="size-6" />
+          </EmptyMedia>
+          <EmptyTitle>{t("title")}</EmptyTitle>
+          <EmptyDescription>{t("table.empty")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     )
   }
 

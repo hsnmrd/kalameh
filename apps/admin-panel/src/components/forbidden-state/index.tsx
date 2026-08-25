@@ -5,6 +5,15 @@ import { useTranslations } from "next-intl"
 import { ShieldAlert } from "lucide-react"
 import { Link } from "@/i18n/routing"
 import { buttonVariants } from "@workspace/ui/components/button"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@workspace/ui/components/empty"
+import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 
 export interface ForbiddenStateProps {
@@ -25,36 +34,36 @@ export function ForbiddenState({
   return (
     <div
       className={cn(
-        "flex min-h-[50vh] flex-col items-center justify-center p-4 text-foreground",
+        "flex min-h-[50vh] items-center justify-center p-4",
         className
       )}
     >
-      <div className="w-full max-w-md space-y-6 text-center">
-        <div className="mx-auto flex size-20 items-center justify-center rounded-2xl border border-destructive/20 bg-destructive/10 text-destructive shadow-xs">
-          <ShieldAlert className="size-10 stroke-[1.5]" />
-        </div>
-
-        <div className="space-y-2">
-          <span className="inline-block rounded-full bg-destructive/10 px-3 py-1 font-mono text-xs font-bold tracking-wider text-destructive">
+      <Empty className="w-full max-w-md">
+        <EmptyHeader>
+          <EmptyMedia variant="destructive">
+            <ShieldAlert className="size-8 stroke-[1.5]" />
+          </EmptyMedia>
+          <Badge variant="destructive" className="font-mono">
             {t("badge")}
-          </span>
-          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
+          </Badge>
+          <EmptyTitle className="text-xl sm:text-2xl">
             {title || t("title")}
-          </h1>
-          <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground">
-            {description || t("description")}
-          </p>
-        </div>
+          </EmptyTitle>
+          <EmptyDescription>{description || t("description")}</EmptyDescription>
+        </EmptyHeader>
 
-        <div className="pt-2">
+        <EmptyContent>
           <Link
             href={backUrl}
-            className={cn(buttonVariants({ size: "lg" }), "rounded-xl px-6")}
+            className={cn(
+              buttonVariants({ size: "default" }),
+              "rounded-xl px-6"
+            )}
           >
             <span>{t("backHome")}</span>
           </Link>
-        </div>
-      </div>
+        </EmptyContent>
+      </Empty>
     </div>
   )
 }

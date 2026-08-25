@@ -10,6 +10,11 @@ import {
 } from "@tanstack/react-table"
 
 import {
+  Empty,
+  EmptyHeader,
+  EmptyDescription,
+} from "@workspace/ui/components/empty"
+import {
   Table,
   TableBody,
   TableCell,
@@ -74,9 +79,19 @@ export function DataTable<TData, TValue>({
             <TableRow>
               <TableCell
                 colSpan={columns.length}
-                className="h-24 text-center text-muted-foreground"
+                className="h-32 text-center text-muted-foreground"
               >
-                {emptyMessage}
+                {typeof emptyMessage === "string" ? (
+                  <Empty variant="ghost" className="min-h-[140px] p-2">
+                    <EmptyHeader>
+                      <EmptyDescription className="text-xs text-muted-foreground">
+                        {emptyMessage}
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : (
+                  emptyMessage
+                )}
               </TableCell>
             </TableRow>
           )}

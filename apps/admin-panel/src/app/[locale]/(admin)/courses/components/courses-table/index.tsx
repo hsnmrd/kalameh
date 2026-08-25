@@ -7,6 +7,13 @@ import { BookOpen, Edit2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@workspace/ui/components/empty"
 import { Price } from "@workspace/ui/components/price"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type CourseDto } from "@workspace/types"
@@ -106,14 +113,15 @@ export function CoursesTable({
 
   if (!courses || courses.length === 0) {
     return (
-      <div className="flex h-64 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-        <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <BookOpen className="size-6" />
-        </div>
-        <p className="text-sm font-medium text-muted-foreground">
-          {t("table.empty")}
-        </p>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="default">
+            <BookOpen className="size-6" />
+          </EmptyMedia>
+          <EmptyTitle>{t("title")}</EmptyTitle>
+          <EmptyDescription>{t("table.empty")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     )
   }
 

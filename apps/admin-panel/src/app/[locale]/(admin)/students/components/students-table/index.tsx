@@ -9,6 +9,13 @@ import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@workspace/ui/components/empty"
 import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -171,11 +178,11 @@ export function StudentsTable({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  onClick={() => onEdit(student)}
-                  title={t("actions.edit")}
+                  onClick={() => onResetPassword(student)}
+                  title={t("actions.resetPassword")}
                   className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
-                  <Edit2 className="size-3.5" />
+                  <KeyRound className="size-3.5" />
                 </Button>
               </PermissionGuard>
 
@@ -186,11 +193,11 @@ export function StudentsTable({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  onClick={() => onResetPassword(student)}
-                  title={t("actions.resetPassword")}
+                  onClick={() => onEdit(student)}
+                  title={t("actions.edit")}
                   className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
-                  <KeyRound className="size-3.5" />
+                  <Edit2 className="size-3.5" />
                 </Button>
               </PermissionGuard>
             </div>
@@ -211,14 +218,15 @@ export function StudentsTable({
 
   if (!students || students.length === 0) {
     return (
-      <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-        <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <GraduationCap className="size-6" />
-        </div>
-        <p className="text-sm font-medium text-muted-foreground">
-          {t("table.empty")}
-        </p>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="default">
+            <GraduationCap className="size-6" />
+          </EmptyMedia>
+          <EmptyTitle>{t("title")}</EmptyTitle>
+          <EmptyDescription>{t("table.empty")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     )
   }
 

@@ -5,6 +5,15 @@ import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import { Building2 } from "lucide-react"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { Button } from "@workspace/ui/components/button"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@workspace/ui/components/empty"
 import type { InstituteWithStats } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
 import { AdminPageShell } from "@/components/admin-page-shell"
@@ -46,9 +55,23 @@ export default function InstitutesPage() {
           <Spinner className="size-8 text-foreground" />
         </div>
       ) : institutes.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
-          <p className="text-sm text-muted-foreground">{t("noInstitutes")}</p>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="default">
+              <Building2 className="size-6" />
+            </EmptyMedia>
+            <EmptyTitle>{t("title")}</EmptyTitle>
+            <EmptyDescription>{t("noInstitutes")}</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button
+              onClick={() => setIsCreateOpen(true)}
+              className="cursor-pointer rounded-xl"
+            >
+              <span>{t("addInstitute")}</span>
+            </Button>
+          </EmptyContent>
+        </Empty>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {institutes.map((institute) => (
