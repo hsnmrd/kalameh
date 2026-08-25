@@ -1,7 +1,7 @@
 import { createMicroApi, MicroApiError } from "micro-rq"
 import { toast } from "@workspace/ui/components/sonner"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL!
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api-proxy"
 
 export const api = createMicroApi({
   name: "kalameh-student",
@@ -21,6 +21,7 @@ export const api = createMicroApi({
     if (
       typeof window !== "undefined" &&
       typeof url === "string" &&
+      url.startsWith("http") &&
       window.location.hostname &&
       window.location.hostname !== "localhost" &&
       window.location.hostname !== "127.0.0.1"

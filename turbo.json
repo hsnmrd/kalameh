@@ -6,6 +6,7 @@
     "REDIS_URL",
     "JWT_SECRET",
     "PORT",
+    "INTERNAL_API_URL",
     "ADMIN_PANEL_PORT",
     "STUDENT_PWA_PORT",
     "POSTGRES_PORT",

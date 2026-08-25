@@ -30,6 +30,19 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
+  async rewrites() {
+    const backendUrl = process.env.INTERNAL_API_URL || "http://localhost:8000"
+    return [
+      {
+        source: "/api-proxy/:path*",
+        destination: `${backendUrl}/:path*`,
+      },
+      {
+        source: "/uploads/:path*",
+        destination: `${backendUrl}/uploads/:path*`,
+      },
+    ]
+  },
 }
 
 export default withNextIntl(nextConfig)

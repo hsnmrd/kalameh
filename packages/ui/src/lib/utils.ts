@@ -88,6 +88,12 @@ export function getAssetUrl(
     return path
   }
 
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`
+
+  if (fallbackBaseUrl.startsWith("/")) {
+    return normalizedPath
+  }
+
   let baseUrl = fallbackBaseUrl.replace(/\/+$/, "")
   if (
     typeof window !== "undefined" &&
@@ -101,6 +107,5 @@ export function getAssetUrl(
     )
   }
 
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`
   return `${baseUrl}${normalizedPath}`
 }
