@@ -19,6 +19,7 @@ import { CreateUserModal } from "./components/create-user-modal"
 import { EditUserModal } from "./components/edit-user-modal"
 import { ResetPasswordModal } from "./components/reset-password-modal"
 import { ImportUsersModal } from "./components/import-users-modal"
+import { DeleteUserModal } from "./components/delete-user-modal"
 
 export default function UsersPage() {
   const t = useTranslations("users")
@@ -29,6 +30,7 @@ export default function UsersPage() {
   const [importModalOpen, setImportModalOpen] = React.useState(false)
   const [isExporting, setIsExporting] = React.useState(false)
   const [editUser, setEditUser] = React.useState<AuthUser | null>(null)
+  const [deleteUser, setDeleteUser] = React.useState<AuthUser | null>(null)
   const [resetPasswordUser, setResetPasswordUser] =
     React.useState<AuthUser | null>(null)
 
@@ -139,6 +141,13 @@ export default function UsersPage() {
                 open={Boolean(resetPasswordUser)}
                 onClose={() => setResetPasswordUser(null)}
               />
+
+              {/* Delete User Modal */}
+              <DeleteUserModal
+                user={deleteUser}
+                open={Boolean(deleteUser)}
+                onClose={() => setDeleteUser(null)}
+              />
             </>
           }
         >
@@ -148,6 +157,7 @@ export default function UsersPage() {
             isLoading={isLoading}
             onEdit={(user) => setEditUser(user)}
             onResetPassword={(user) => setResetPasswordUser(user)}
+            onDelete={(user) => setDeleteUser(user)}
           />
         </AdminPageShell>
       </PermissionGuard>

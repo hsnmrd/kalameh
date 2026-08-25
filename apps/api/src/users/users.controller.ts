@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   Query,
@@ -176,5 +177,15 @@ export class UsersController {
       newPassword,
       locale,
     );
+  }
+
+  @Delete(':id')
+  @RequirePermissions(PERMISSIONS.DELETE_USERS)
+  async delete(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('id') id: string,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.usersService.delete(currentUser, id, locale);
   }
 }

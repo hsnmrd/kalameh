@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Edit2, KeyRound } from "lucide-react"
+import { Edit2, KeyRound, Trash2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { PERMISSIONS, type AuthUser } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -13,9 +13,15 @@ export interface UserCardProps {
   user: AuthUser
   onEdit: (user: AuthUser) => void
   onResetPassword: (user: AuthUser) => void
+  onDelete: (user: AuthUser) => void
 }
 
-export function UserCard({ user, onEdit, onResetPassword }: UserCardProps) {
+export function UserCard({
+  user,
+  onEdit,
+  onResetPassword,
+  onDelete,
+}: UserCardProps) {
   const t = useTranslations("users")
   const locale = useLocale()
 
@@ -87,6 +93,18 @@ export function UserCard({ user, onEdit, onResetPassword }: UserCardProps) {
           >
             <KeyRound className="size-3" />
             <span>{t("actions.resetPassword")}</span>
+          </Button>
+        </PermissionGuard>
+
+        <PermissionGuard permission={PERMISSIONS.DELETE_USERS} mode="disable">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onDelete(user)}
+            className="gap-1.5 rounded-lg text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 className="size-3" />
+            <span>{t("actions.delete")}</span>
           </Button>
         </PermissionGuard>
       </div>

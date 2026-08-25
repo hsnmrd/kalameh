@@ -80,7 +80,19 @@
   },
   "actions": {
     "edit": "Edit Profile",
-    "resetPassword": "Reset Password"
+    "resetPassword": "Reset Password",
+    "delete": "Delete Account"
+  },
+  "deleteModal": {
+    "title": "Delete Staff Member",
+    "description": "Are you sure you want to permanently delete this staff member? This action cannot be undone.",
+    "userName": "Full Name",
+    "phone": "Phone Number",
+    "role": "Role",
+    "cancel": "Cancel",
+    "confirm": "Delete User",
+    "deleting": "Deleting...",
+    "success": "User deleted successfully."
   },
   "validation": {
     "firstNameMin": "First name must be at least 2 characters.",

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "../../../../../test/test-utils"
 import { ResetPasswordModal } from "../components/reset-password-modal"
+import { DeleteUserModal } from "../components/delete-user-modal"
 import type { AuthUser } from "@workspace/types"
 
 // Mock sonner toast
@@ -44,6 +45,36 @@ describe("User Modals", () => {
       const handleClose = vi.fn()
       render(
         <ResetPasswordModal user={mockUser} open={true} onClose={handleClose} />
+      )
+
+      const cancelBtn = screen.getByRole("button", { name: /انصراف|لغو/i })
+      fireEvent.click(cancelBtn)
+
+      expect(handleClose).toHaveBeenCalled()
+    })
+  })
+
+  describe("DeleteUserModal", () => {
+    it("should render dialog with user name and delete confirmation button", () => {
+      const handleClose = vi.fn()
+      render(
+        <DeleteUserModal user={mockUser} open={true} onClose={handleClose} />
+      )
+
+      expect(
+        screen.getByText(/حذف حساب کاربری پرسنل|حذف کاربر/i)
+      ).toBeInTheDocument()
+      expect(screen.getByText(/Ali Rezaei/i)).toBeInTheDocument()
+      expect(screen.getByText("09123456789")).toBeInTheDocument()
+      expect(
+        screen.getByRole("button", { name: /حذف کاربر|حذف/i })
+      ).toBeInTheDocument()
+    })
+
+    it("should call onClose when cancel button is clicked in delete modal", () => {
+      const handleClose = vi.fn()
+      render(
+        <DeleteUserModal user={mockUser} open={true} onClose={handleClose} />
       )
 
       const cancelBtn = screen.getByRole("button", { name: /انصراف|لغو/i })

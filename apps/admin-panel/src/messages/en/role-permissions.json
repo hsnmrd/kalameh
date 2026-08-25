@@ -59,6 +59,7 @@
     "classes:view": "View classes and rosters",
     "users:manage": "Create and manage staff accounts",
     "users:view": "View staff list",
+    "users:delete": "Delete staff accounts",
     "students:manage": "Register and manage student profiles",
     "students:view": "View student profiles",
     "enrollments:manage": "Approve and manage class enrollments",

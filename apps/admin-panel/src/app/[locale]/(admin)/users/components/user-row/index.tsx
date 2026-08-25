@@ -2,9 +2,10 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Edit2, KeyRound } from "lucide-react"
+import { Edit2, KeyRound, Trash2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import type { AuthUser } from "@workspace/types"
+import { PERMISSIONS, type AuthUser } from "@workspace/types"
+import { PermissionGuard } from "@/components/permission-guard"
 import { UserRoleBadge } from "../user-role-badge"
 import { UserStatusBadge } from "../user-status-badge"
 
@@ -12,9 +13,15 @@ export interface UserRowProps {
   user: AuthUser
   onEdit: (user: AuthUser) => void
   onResetPassword: (user: AuthUser) => void
+  onDelete: (user: AuthUser) => void
 }
 
-export function UserRow({ user, onEdit, onResetPassword }: UserRowProps) {
+export function UserRow({
+  user,
+  onEdit,
+  onResetPassword,
+  onDelete,
+}: UserRowProps) {
   const t = useTranslations("users")
   const locale = useLocale()
 
@@ -76,25 +83,41 @@ export function UserRow({ user, onEdit, onResetPassword }: UserRowProps) {
       {/* Actions */}
       <td className="px-4 py-3.5 text-end">
         <div className="flex items-center justify-end gap-1.5">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onEdit(user)}
-            title={t("actions.edit")}
-            className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <Edit2 className="size-3.5" />
-          </Button>
+          <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="disable">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => onEdit(user)}
+              title={t("actions.edit")}
+              className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Edit2 className="size-3.5" />
+            </Button>
+          </PermissionGuard>
 
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onResetPassword(user)}
-            title={t("actions.resetPassword")}
-            className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <KeyRound className="size-3.5" />
-          </Button>
+          <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="disable">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => onResetPassword(user)}
+              title={t("actions.resetPassword")}
+              className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <KeyRound className="size-3.5" />
+            </Button>
+          </PermissionGuard>
+
+          <PermissionGuard permission={PERMISSIONS.DELETE_USERS} mode="disable">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => onDelete(user)}
+              title={t("actions.delete")}
+              className="cursor-pointer text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </PermissionGuard>
         </div>
       </td>
     </tr>

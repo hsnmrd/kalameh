@@ -37,4 +37,5 @@ export const usersResource = api.resource("users", {
     },
     body: (params) => (params instanceof FormData ? params : params.formData),
   }),
+  delete: api.delete<{ message: string }, string>((id) => `/users/${id}`),
 })

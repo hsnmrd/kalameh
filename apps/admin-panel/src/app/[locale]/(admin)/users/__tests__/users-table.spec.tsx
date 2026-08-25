@@ -76,9 +76,10 @@ describe("UsersTable & UsersFilter Components", () => {
       expect(screen.getAllByText("09122222222").length).toBeGreaterThan(0)
     })
 
-    it("should trigger onEdit and onResetPassword callbacks when action buttons are clicked", () => {
+    it("should trigger onEdit, onResetPassword, and onDelete callbacks when action buttons are clicked", () => {
       const handleEdit = vi.fn()
       const handleResetPassword = vi.fn()
+      const handleDelete = vi.fn()
 
       render(
         <UsersTable
@@ -86,6 +87,7 @@ describe("UsersTable & UsersFilter Components", () => {
           isLoading={false}
           onEdit={handleEdit}
           onResetPassword={handleResetPassword}
+          onDelete={handleDelete}
         />
       )
 
@@ -100,6 +102,12 @@ describe("UsersTable & UsersFilter Components", () => {
       })
       fireEvent.click(resetButtons[0]!)
       expect(handleResetPassword).toHaveBeenCalledWith(mockUsers[0])
+
+      const deleteButtons = screen.getAllByRole("button", {
+        name: /حذف کاربر|حذف/i,
+      })
+      fireEvent.click(deleteButtons[0]!)
+      expect(handleDelete).toHaveBeenCalledWith(mockUsers[0])
     })
   })
 

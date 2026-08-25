@@ -34,6 +34,11 @@ export const fa: TranslationDictionary = {
       'منشی تنها اجازه بازنشانی رمز عبور زبان‌آموزان را دارد',
     passwordResetSuccess: 'رمز عبور با موفقیت بازنشانی شد',
     emptyImportFile: 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد',
+    cannotDeleteSelf: 'امکان حذف حساب کاربری خودتان وجود ندارد',
+    cannotDeleteSuperAdmin: 'امکان حذف مدیر کل سامانه وجود ندارد',
+    cannotDeleteWithDependencies:
+      'امکان حذف کاربر به دلیل وجود سوابق وابسته (ثبت‌نام در کلاس‌ها یا تراکنش‌های مالی) وجود ندارد. در صورت نیاز حساب کاربر را غیرفعال کنید',
+    userDeletedSuccess: 'کاربر با موفقیت حذف شد',
   },
   students: {
     studentAlreadyExists:

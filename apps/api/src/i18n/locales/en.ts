@@ -37,6 +37,11 @@ export const en: TranslationDictionary = {
     passwordResetSuccess: 'Password reset successfully',
     emptyImportFile:
       'The uploaded spreadsheet is empty or has invalid structure',
+    cannotDeleteSelf: 'You cannot delete your own account',
+    cannotDeleteSuperAdmin: 'You cannot delete the Super Admin account',
+    cannotDeleteWithDependencies:
+      'Cannot delete user due to existing related records (class enrollments or transactions). You can deactivate the account instead',
+    userDeletedSuccess: 'User deleted successfully',
   },
   students: {
     studentAlreadyExists:

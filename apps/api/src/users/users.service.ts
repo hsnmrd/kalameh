@@ -2,6 +2,8 @@ import {
   Injectable,
   ConflictException,
   ForbiddenException,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
@@ -332,6 +334,57 @@ export class UsersService {
     });
 
     return { message: this.i18n.t('users.passwordResetSuccess', locale) };
+  }
+
+  async delete(
+    currentUser: JwtPayload,
+    id: string,
+    locale: SupportedLocale = 'fa',
+  ): Promise<{ message: string }> {
+    const targetUser = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundException(this.i18n.t('users.userNotFound', locale));
+    }
+
+    if (currentUser.sub === targetUser.id) {
+      throw new BadRequestException(
+        this.i18n.t('users.cannotDeleteSelf', locale),
+      );
+    }
+
+    if (
+      currentUser.role !== 'SUPER_ADMIN' &&
+      targetUser.instituteId !== currentUser.instituteId
+    ) {
+      throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
+    }
+
+    if (targetUser.role === 'SUPER_ADMIN') {
+      throw new ForbiddenException(
+        this.i18n.t('users.cannotDeleteSuperAdmin', locale),
+      );
+    }
+
+    // Check for dependent records that would break referential integrity
+    const [enrollmentsCount, transactionsCount] = await Promise.all([
+      this.prisma.enrollment.count({ where: { studentId: id } }),
+      this.prisma.transaction.count({ where: { studentId: id } }),
+    ]);
+
+    if (enrollmentsCount > 0 || transactionsCount > 0) {
+      throw new BadRequestException(
+        this.i18n.t('users.cannotDeleteWithDependencies', locale),
+      );
+    }
+
+    await this.prisma.user.delete({
+      where: { id },
+    });
+
+    return { message: this.i18n.t('users.userDeletedSuccess', locale) };
   }
 
   generateExcelTemplate(locale: SupportedLocale = 'fa'): Buffer {

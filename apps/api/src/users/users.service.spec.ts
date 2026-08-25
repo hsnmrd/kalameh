@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -52,11 +57,18 @@ describe('UsersService', () => {
         create: jest.fn(),
         createMany: jest.fn().mockResolvedValue({ count: 1 }),
         update: jest.fn(),
+        delete: jest.fn(),
       },
       branch: {
         findMany: jest
           .fn()
           .mockResolvedValue([{ id: 'branch-1', name: 'شعبه مرکزی' }]),
+      },
+      enrollment: {
+        count: jest.fn().mockResolvedValue(0),
+      },
+      transaction: {
+        count: jest.fn().mockResolvedValue(0),
       },
     };
 
@@ -474,6 +486,63 @@ describe('UsersService', () => {
       await expect(
         service.importFromExcel(mockClerk, Buffer.from('fake-buffer'), 'fa'),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('delete', () => {
+    it('should delete a user successfully by ADMIN', async () => {
+      prismaService.user.findUnique.mockResolvedValue({
+        id: 'user-to-delete',
+        instituteId: 'inst-1',
+        role: 'TEACHER',
+      });
+      prismaService.enrollment.count.mockResolvedValue(0);
+      prismaService.transaction.count.mockResolvedValue(0);
+      prismaService.user.delete.mockResolvedValue({ id: 'user-to-delete' });
+
+      const result = await service.delete(mockInstituteAdmin, 'user-to-delete');
+      expect(result.message).toBeDefined();
+      expect(prismaService.user.delete).toHaveBeenCalledWith({
+        where: { id: 'user-to-delete' },
+      });
+    });
+
+    it('should throw BadRequestException if user tries to delete their own account', async () => {
+      prismaService.user.findUnique.mockResolvedValue({
+        id: 'admin-id',
+        instituteId: 'inst-1',
+        role: 'ADMIN',
+      });
+
+      await expect(
+        service.delete(mockInstituteAdmin, 'admin-id'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw ForbiddenException if trying to delete SUPER_ADMIN', async () => {
+      prismaService.user.findUnique.mockResolvedValue({
+        id: 'super-admin-id',
+        instituteId: 'inst-1',
+        role: 'SUPER_ADMIN',
+      });
+
+      await expect(
+        service.delete(mockInstituteAdmin, 'super-admin-id'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw BadRequestException if user has dependent enrollments or transactions', async () => {
+      prismaService.user.findUnique.mockResolvedValue({
+        id: 'student-with-data',
+        instituteId: 'inst-1',
+        role: 'STUDENT',
+      });
+      prismaService.enrollment.count.mockResolvedValue(2);
+      prismaService.transaction.count.mockResolvedValue(0);
+
+      await expect(
+        service.delete(mockInstituteAdmin, 'student-with-data'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Users, Edit2, KeyRound } from "lucide-react"
+import { Users, Edit2, KeyRound, Trash2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
@@ -27,6 +27,7 @@ export interface UsersTableProps {
   isLoading: boolean
   onEdit: (user: AuthUser) => void
   onResetPassword: (user: AuthUser) => void
+  onDelete: (user: AuthUser) => void
 }
 
 export function UsersTable({
@@ -34,6 +35,7 @@ export function UsersTable({
   isLoading,
   onEdit,
   onResetPassword,
+  onDelete,
 }: UsersTableProps) {
   const t = useTranslations("users")
   const locale = useLocale()
@@ -148,12 +150,27 @@ export function UsersTable({
                   <KeyRound className="size-3.5" />
                 </Button>
               </PermissionGuard>
+
+              <PermissionGuard
+                permission={PERMISSIONS.DELETE_USERS}
+                mode="disable"
+              >
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onDelete(user)}
+                  title={t("actions.delete")}
+                  className="cursor-pointer text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </PermissionGuard>
             </div>
           )
         },
       },
     ],
-    [locale, onEdit, onResetPassword, t]
+    [locale, onEdit, onResetPassword, onDelete, t]
   )
 
   if (isLoading) {
@@ -197,6 +214,7 @@ export function UsersTable({
             user={user}
             onEdit={onEdit}
             onResetPassword={onResetPassword}
+            onDelete={onDelete}
           />
         ))}
       </div>

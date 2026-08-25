@@ -26,6 +26,10 @@ export interface TranslationDictionary {
     clerkResetStudentPasswordOnly: string;
     passwordResetSuccess: string;
     emptyImportFile: string;
+    cannotDeleteSelf: string;
+    cannotDeleteSuperAdmin: string;
+    cannotDeleteWithDependencies: string;
+    userDeletedSuccess: string;
   };
   students: {
     studentAlreadyExists: string;
