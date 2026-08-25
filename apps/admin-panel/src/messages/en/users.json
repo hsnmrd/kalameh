@@ -1,8 +1,13 @@
 {
-  "title": "Staff & Roles Management",
-  "subtitle": "View, create, edit and manage access permissions for clerks, teachers and institute administrators",
-  "addUser": "Add Staff Member",
-  "searchPlaceholder": "Search by name, phone number or national code...",
+  "title": "Staff & Permission Management",
+  "subtitle": "View, create, edit and manage permissions for administrators, clerks, and institute staff",
+  "addUser": "Add New Staff Member",
+  "header": {
+    "create": "Add User",
+    "import": "Import from Excel",
+    "export": "Export to Excel"
+  },
+  "searchPlaceholder": "Search",
   "filter": {
     "all": "All Staff",
     "clerks": "Clerks",

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { SlidersHorizontal } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -8,6 +9,7 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
+  DrawerFooter,
 } from "@workspace/ui/components/drawer"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -27,11 +29,15 @@ export function AdminFilterBar({
   filters,
   children,
   className,
-  filterDrawerTitle = "فیلترها",
-  filterButtonAriaLabel = "فیلتر",
+  filterDrawerTitle,
+  filterButtonAriaLabel,
 }: AdminFilterBarProps) {
+  const t = useTranslations("common.filter")
   const [drawerOpen, setDrawerOpen] = React.useState(false)
   const hasFilters = Boolean(filters || children)
+
+  const resolvedDrawerTitle = filterDrawerTitle || t("title")
+  const resolvedButtonAriaLabel = filterButtonAriaLabel || t("button")
 
   return (
     <>
@@ -42,8 +48,8 @@ export function AdminFilterBar({
         )}
       >
         {/* Search + mobile filter icon row */}
-        <div className="flex items-center gap-2">
-          {search && <div className="flex-1">{search}</div>}
+        <div className="flex w-full min-w-0 items-center gap-2">
+          {search && <div className="min-w-0 flex-1">{search}</div>}
 
           {/* Mobile filter icon button — hidden on desktop */}
           {hasFilters && (
@@ -52,10 +58,10 @@ export function AdminFilterBar({
               variant="outline"
               size="icon"
               onClick={() => setDrawerOpen(true)}
-              aria-label={filterButtonAriaLabel}
-              className="h-10 w-10 shrink-0 rounded-xl border-border lg:hidden"
+              aria-label={resolvedButtonAriaLabel}
+              className="size-14 min-w-14 shrink-0 rounded-2xl border-border lg:hidden"
             >
-              <SlidersHorizontal className="size-4 text-muted-foreground" />
+              <SlidersHorizontal className="size-5 text-muted-foreground" />
             </Button>
           )}
         </div>
@@ -74,12 +80,21 @@ export function AdminFilterBar({
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>{filterDrawerTitle}</DrawerTitle>
+              <DrawerTitle>{resolvedDrawerTitle}</DrawerTitle>
             </DrawerHeader>
-            <div className="pb-safe-or-6 flex flex-col gap-4 overflow-y-auto px-4 pt-2">
+            <div className="flex flex-col gap-4 overflow-y-auto px-4 pt-2">
               {filters}
               {children}
             </div>
+            <DrawerFooter className="pb-safe-or-6 pt-3">
+              <Button
+                type="button"
+                className="h-11 w-full rounded-xl bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+                onClick={() => setDrawerOpen(false)}
+              >
+                {t("show")}
+              </Button>
+            </DrawerFooter>
           </DrawerContent>
         </Drawer>
       )}

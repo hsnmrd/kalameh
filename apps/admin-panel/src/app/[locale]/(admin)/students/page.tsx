@@ -1,9 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import type { StudentDto } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
+import { FABSingle } from "@workspace/ui/components/fab"
 import { coursesResource, studentsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions } from "@/lib/hooks"
@@ -13,12 +15,14 @@ import { ModuleGuard } from "@/components/module-guard"
 import { StudentsHeader } from "./components/students-header"
 import { StudentsFilter } from "./components/students-filter"
 import { StudentsTable } from "./components/students-table"
+import { StudentsList } from "./components/students-list"
 import { CreateStudentModal } from "./components/create-student-modal"
 import { EditStudentModal } from "./components/edit-student-modal"
 import { StudentProfileModal } from "./components/student-profile-modal"
 import { ResetPasswordModal } from "./components/reset-password-modal"
 
 export default function StudentsPage() {
+  const t = useTranslations("students")
   const [searchValue, setSearchValue] = React.useState("")
   const [selectedCourseId, setSelectedCourseId] = React.useState("ALL")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
@@ -119,15 +123,39 @@ export default function StudentsPage() {
               />
             </>
           }
+          fab={
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_STUDENTS}
+              mode="hide"
+            >
+              <FABSingle
+                onClick={() => setCreateModalOpen(true)}
+                aria-label={t("addStudent")}
+              />
+            </PermissionGuard>
+          }
         >
-          {/* Students Data Table / Mobile Cards */}
-          <StudentsTable
-            students={students}
-            isLoading={isLoading}
-            onViewProfile={(student) => setProfileStudent(student)}
-            onEdit={(student) => setEditStudent(student)}
-            onResetPassword={(student) => setResetPasswordStudent(student)}
-          />
+          {/* Desktop Table View */}
+          <div className="hidden lg:block">
+            <StudentsTable
+              students={students}
+              isLoading={isLoading}
+              onViewProfile={(student) => setProfileStudent(student)}
+              onEdit={(student) => setEditStudent(student)}
+              onResetPassword={(student) => setResetPasswordStudent(student)}
+            />
+          </div>
+
+          {/* Mobile Flat List View */}
+          <div className="lg:hidden">
+            <StudentsList
+              students={students}
+              isLoading={isLoading}
+              onViewProfile={(student) => setProfileStudent(student)}
+              onEdit={(student) => setEditStudent(student)}
+              onResetPassword={(student) => setResetPasswordStudent(student)}
+            />
+          </div>
         </AdminPageShell>
       </PermissionGuard>
     </ModuleGuard>

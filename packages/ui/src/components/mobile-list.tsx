@@ -15,7 +15,7 @@ export function MobileList({ children, className }: MobileListProps) {
     <div
       role="list"
       className={cn(
-        "overflow-hidden rounded-2xl border border-border bg-card",
+        "-mx-4 flex w-[calc(100%+2rem)] flex-col select-none [-webkit-touch-callout:none] sm:mx-0 sm:w-full",
         className
       )}
     >
@@ -47,13 +47,17 @@ export function MobileListItem({
         role="listitem"
         onClick={onClick}
         className={cn(
-          "flex min-h-[60px] cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40 active:bg-muted/60",
+          "flex min-h-[64px] w-full cursor-pointer touch-manipulation items-center gap-3.5 px-4 py-3 transition-colors select-none [-webkit-touch-callout:none] hover:bg-muted/30 active:bg-muted/50",
           className
         )}
       >
         {children}
       </div>
-      {!isLast && <div className="h-px bg-border" aria-hidden />}
+      {!isLast && (
+        <div className="w-full" aria-hidden>
+          <div className="ms-[4.5rem] h-px bg-border/60" />
+        </div>
+      )}
     </>
   )
 }
@@ -72,7 +76,7 @@ export function MobileListItemIcon({
   return (
     <div
       className={cn(
-        "flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground",
+        "flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-muted-foreground",
         className
       )}
     >
@@ -95,12 +99,12 @@ export function MobileListItemContent({
   className,
 }: MobileListItemContentProps) {
   return (
-    <div className={cn("min-w-0 flex-1 space-y-0.5", className)}>
-      <div className="truncate text-sm font-semibold text-foreground">
+    <div className={cn("min-w-0 flex-1 space-y-1", className)}>
+      <div className="truncate text-[15px] font-medium tracking-tight text-foreground">
         {primary}
       </div>
       {secondary && (
-        <div className="truncate text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
           {secondary}
         </div>
       )}
@@ -120,7 +124,7 @@ export function MobileListItemTrailing({
   className,
 }: MobileListItemTrailingProps) {
   return (
-    <div className={cn("flex shrink-0 items-center gap-1.5", className)}>
+    <div className={cn("flex shrink-0 items-center gap-2", className)}>
       {children}
     </div>
   )

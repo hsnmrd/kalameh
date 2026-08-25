@@ -102,7 +102,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   }
 
   return (
-    <div className="flex min-h-screen bg-background font-sans text-foreground">
+    <div className="flex min-h-[100dvh] bg-background font-sans text-foreground">
       {/* Desktop Static Sidebar */}
       <aside
         className={cn(
@@ -112,17 +112,21 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
             : "border-r border-sidebar-border"
         )}
       >
-        <div className="space-y-6">
-          <div className="border-b border-sidebar-border/60 pb-4">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="shrink-0 border-b border-sidebar-border/60 pb-4">
             <SidebarBrand role={effectiveRole} />
           </div>
-          <NavList sections={navSections} pathname={pathname} />
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-6">
+            <NavList sections={navSections} pathname={pathname} />
+          </div>
         </div>
-        <SidebarFooter
-          onLogout={handleLogout}
-          onSwitchLanguage={handleSwitchLanguage}
-          locale={locale}
-        />
+        <div className="shrink-0">
+          <SidebarFooter
+            onLogout={handleLogout}
+            onSwitchLanguage={handleSwitchLanguage}
+            locale={locale}
+          />
+        </div>
       </aside>
 
       {/* Mobile Drawer */}

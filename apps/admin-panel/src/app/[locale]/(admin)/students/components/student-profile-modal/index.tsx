@@ -4,19 +4,18 @@ import * as React from "react"
 import Image from "next/image"
 import { useTranslations, useLocale } from "next-intl"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogDescription,
+  ResponsiveDialogCloseButton,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   User,
   Phone,
-  Calendar,
   Home,
   FileText,
   GraduationCap,
@@ -63,50 +62,56 @@ export function StudentProfileModal({
   ).format(new Date(student.createdAt))
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogPopup className="max-h-[90vh] max-w-xl overflow-y-auto">
-        <DialogCloseButton />
-        <DialogHeader className="mb-4 text-start">
-          <DialogTitle>{t("profileModal.title")}</DialogTitle>
-          <DialogDescription>{t("profileModal.subtitle")}</DialogDescription>
-        </DialogHeader>
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={(isOpen) => !isOpen && onClose()}
+    >
+      <ResponsiveDialogContent className="max-h-[90vh] max-w-xl overflow-y-auto">
+        <ResponsiveDialogCloseButton />
+        <ResponsiveDialogHeader className="mb-2 text-start">
+          <ResponsiveDialogTitle className="flex items-center gap-2">
+            <User className="size-5 text-primary" />
+            <span>{t("profileModal.title")}</span>
+          </ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            {t("profileModal.description")}
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
 
-        <div className="space-y-6">
-          {/* Header Card */}
-          <div className="flex items-center gap-4 rounded-2xl bg-muted/40 p-4">
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground shadow-xs">
+        <div className="space-y-4 px-6 pt-2 pb-6">
+          {/* Header Card with Avatar */}
+          <div className="flex items-center gap-4 rounded-xl border border-border/80 bg-muted/20 p-4">
+            <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
               {student.avatarUrl ? (
                 <Image
                   src={getAssetUrl(student.avatarUrl)}
                   alt={fullName}
-                  width={64}
-                  height={64}
-                  className="size-16 rounded-2xl object-cover"
+                  width={56}
+                  height={56}
+                  className="size-14 rounded-full object-cover"
                   unoptimized
                 />
               ) : (
                 <span>{initial}</span>
               )}
             </div>
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-foreground">
-                  {fullName}
-                </h3>
-                <StudentStatusBadge isActive={student.isActive} />
-              </div>
-              <p className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
-                <Phone className="size-3.5" />
-                <span>{student.phone}</span>
+            <div className="flex-1">
+              <h3 className="text-base font-bold text-foreground">
+                {fullName}
+              </h3>
+              <p className="flex items-center gap-1.5 pt-0.5 text-xs text-muted-foreground">
+                <Phone className="size-3" />
+                <span className="font-mono">{student.phone}</span>
               </p>
             </div>
+            <StudentStatusBadge isActive={student.isActive} />
           </div>
 
-          {/* Personal Info Grid */}
-          <div className="space-y-3">
-            <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
-              <User className="size-4 text-primary" />
-              <span>{t("profileModal.personalInfo")}</span>
+          {/* Identity & Personal Info */}
+          <div className="space-y-2">
+            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <FileText className="size-4 text-primary" />
+              <span>{t("profileModal.identityInfo")}</span>
             </h4>
             <div className="grid grid-cols-2 gap-3 rounded-xl border border-border/80 p-3 text-sm">
               <div>
@@ -148,35 +153,35 @@ export function StudentProfileModal({
             </div>
           </div>
 
-          {/* Guardian & Emergency */}
-          <div className="space-y-3">
-            <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
-              <HeartHandshake className="size-4 text-primary" />
-              <span>{t("profileModal.guardianInfo")}</span>
+          {/* Contact & Address */}
+          <div className="space-y-2">
+            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <Home className="size-4 text-primary" />
+              <span>{t("profileModal.contactInfo")}</span>
             </h4>
-            <div className="space-y-2 rounded-xl border border-border/80 p-3 text-sm">
-              <div className="flex items-center justify-between">
+            <div className="grid grid-cols-1 gap-3 rounded-xl border border-border/80 p-3 text-sm sm:grid-cols-2">
+              <div>
                 <span className="text-xs text-muted-foreground">
-                  {t("createModal.emergencyPhone")}:
+                  {t("createModal.emergencyPhone")}:{" "}
                 </span>
-                <span className="font-mono font-medium text-foreground">
+                <p className="font-mono font-medium text-foreground">
                   {student.studentProfile?.emergencyPhone || "—"}
-                </span>
+                </p>
               </div>
-              {student.studentProfile?.address && (
-                <div className="flex items-start gap-2 border-t border-border/60 pt-2 text-xs">
-                  <Home className="size-3.5 shrink-0 text-muted-foreground" />
-                  <span className="text-foreground">
-                    {student.studentProfile.address}
-                  </span>
-                </div>
-              )}
+              <div>
+                <span className="text-xs text-muted-foreground">
+                  {t("createModal.address")}:{" "}
+                </span>
+                <p className="font-medium text-foreground">
+                  {student.studentProfile?.address || "—"}
+                </p>
+              </div>
             </div>
           </div>
 
           {/* Academic Info */}
-          <div className="space-y-3">
-            <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+          <div className="space-y-2">
+            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
               <GraduationCap className="size-4 text-primary" />
               <span>{t("profileModal.academicInfo")}</span>
             </h4>
@@ -223,7 +228,7 @@ export function StudentProfileModal({
             </Button>
           </div>
         </div>
-      </DialogPopup>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   )
 }

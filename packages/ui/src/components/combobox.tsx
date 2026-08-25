@@ -69,6 +69,8 @@ export function Combobox({
     onValueChange?.(item?.value)
   }
 
+  const isSearchable = searchable !== undefined ? searchable : items.length > 6
+
   return (
     <ComboboxPrimitive.Root
       items={items}
@@ -79,7 +81,7 @@ export function Combobox({
     >
       <ComboboxPrimitive.Trigger
         className={cn(
-          "relative flex h-10 w-full cursor-pointer items-center justify-between rounded-xl border border-border bg-background px-3 text-sm text-foreground shadow-2xs transition-colors hover:bg-muted/30 focus-visible:border-primary focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+          "relative flex h-14 w-full cursor-pointer items-center justify-between rounded-2xl border border-border bg-background px-4 text-base text-foreground shadow-2xs transition-colors hover:bg-muted/30 focus-visible:border-2 focus-visible:border-ring focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
           dataInvalid && "border-destructive focus-visible:border-destructive",
           className
         )}
@@ -99,12 +101,12 @@ export function Combobox({
           className="z-50 outline-hidden"
         >
           <ComboboxPrimitive.Popup className="max-h-64 w-[var(--anchor-width)] min-w-[12rem] overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-lg data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
-            {searchable && (
+            {isSearchable && (
               <div className="flex items-center border-b border-border px-3 py-2">
                 <Search className="me-2 size-4 shrink-0 text-muted-foreground" />
                 <ComboboxPrimitive.Input
                   placeholder={resolvedSearchPlaceholder}
-                  className="h-7 w-full bg-transparent text-sm text-foreground outline-hidden placeholder:text-muted-foreground"
+                  className="h-8 w-full bg-transparent text-base text-foreground outline-hidden placeholder:text-muted-foreground sm:text-sm"
                 />
               </div>
             )}
@@ -197,6 +199,11 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
     setSearch("")
   }
 
+  const isSearchable =
+    comboboxProps.searchable !== undefined
+      ? comboboxProps.searchable
+      : comboboxProps.items.length > 6
+
   return (
     <>
       <button
@@ -205,7 +212,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
         disabled={comboboxProps.disabled}
         data-invalid={comboboxProps["data-invalid"]}
         className={cn(
-          "relative flex h-10 w-full cursor-pointer items-center justify-between rounded-xl border border-border bg-background px-3 text-sm text-foreground shadow-2xs transition-colors hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-50 data-[invalid=true]:border-destructive",
+          "relative flex h-14 w-full cursor-pointer items-center justify-between rounded-2xl border border-border bg-background px-4 text-base text-foreground shadow-2xs transition-colors hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-50 data-[invalid=true]:border-destructive",
           comboboxProps.className
         )}
       >
@@ -233,7 +240,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
             </DrawerHeader>
           )}
 
-          {comboboxProps.searchable !== false && (
+          {isSearchable && (
             <div className="flex items-center border-b border-border px-4 py-2">
               <Search className="me-2 size-4 shrink-0 text-muted-foreground" />
               <input
@@ -243,7 +250,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
                 placeholder={
                   props.searchPlaceholder ?? (isFa ? "جستجو..." : "Search...")
                 }
-                className="h-8 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                className="h-9 w-full bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
               />
             </div>
           )}

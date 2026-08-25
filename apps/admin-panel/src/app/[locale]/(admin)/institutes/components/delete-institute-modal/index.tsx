@@ -6,12 +6,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { AlertTriangle } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogDescription,
+  ResponsiveDialogCloseButton,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -54,9 +54,12 @@ export function DeleteInstituteModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogPopup className="max-w-md p-6">
-        <DialogCloseButton />
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={(isOpen) => !isOpen && onClose()}
+    >
+      <ResponsiveDialogContent className="max-w-md p-6">
+        <ResponsiveDialogCloseButton />
 
         <div className="flex items-start gap-4">
           <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
@@ -64,12 +67,14 @@ export function DeleteInstituteModal({
           </div>
 
           <div className="space-y-1">
-            <DialogHeader className="text-start">
-              <DialogTitle>{t("deleteModal.title")}</DialogTitle>
-              <DialogDescription className="text-xs leading-relaxed">
+            <ResponsiveDialogHeader className="text-start">
+              <ResponsiveDialogTitle>
+                {t("deleteModal.title")}
+              </ResponsiveDialogTitle>
+              <ResponsiveDialogDescription className="text-xs leading-relaxed">
                 {t("deleteModal.description")}
-              </DialogDescription>
-            </DialogHeader>
+              </ResponsiveDialogDescription>
+            </ResponsiveDialogHeader>
           </div>
         </div>
 
@@ -120,7 +125,7 @@ export function DeleteInstituteModal({
             )}
           </Button>
         </div>
-      </DialogPopup>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   )
 }

@@ -7,14 +7,12 @@ import { Users } from "lucide-react"
 
 describe("AdminPageHeader & AdminPageShell Components", () => {
   describe("AdminPageHeader", () => {
-    it("should render title, subtitle, count badge, and action button", () => {
+    it("should render title, subtitle, and action button", () => {
       const handleAction = vi.fn()
       render(
         <AdminPageHeader
           title="مدیریت پرسنل"
           subtitle="لیست تمامی کارمندان و منشی‌ها"
-          count={12}
-          countIcon={Users}
           action={{
             label: "افزودن کاربر",
             onClick: handleAction,
@@ -28,7 +26,6 @@ describe("AdminPageHeader & AdminPageShell Components", () => {
       expect(
         screen.getByText("لیست تمامی کارمندان و منشی‌ها")
       ).toBeInTheDocument()
-      expect(screen.getByText(formatNumber(12, "fa"))).toBeInTheDocument()
 
       const actionButton = screen.getByRole("button", { name: /افزودن کاربر/i })
       expect(actionButton).toBeInTheDocument()

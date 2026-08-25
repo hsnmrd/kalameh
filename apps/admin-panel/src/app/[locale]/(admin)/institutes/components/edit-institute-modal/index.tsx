@@ -17,12 +17,13 @@ import {
 } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogDescription,
+  FormDialogCloseButton,
+  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -166,299 +167,311 @@ export function EditInstituteModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogPopup className="max-h-[90vh] max-w-2xl overflow-x-hidden overflow-y-auto p-0">
-        <DialogCloseButton />
-        <div className="p-6 pb-4">
-          <DialogHeader className="text-start">
-            <DialogTitle>{t("editModal.title")}</DialogTitle>
-            <DialogDescription>{t("editModal.description")}</DialogDescription>
-          </DialogHeader>
-
-          <div className="mt-6 grid grid-cols-2 gap-1.5 rounded-xl bg-muted/60 p-1 sm:grid-cols-4">
-            <Button
-              type="button"
-              variant={activeTab === "general" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTab("general")}
-              className={cn(
-                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
-                activeTab === "general"
-                  ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Building2 className="size-3.5 shrink-0" />
-              <span className="truncate">
-                {t("createModal.sectionGeneral")}
-              </span>
-            </Button>
-            <Button
-              type="button"
-              variant={activeTab === "modules" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTab("modules")}
-              className={cn(
-                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
-                activeTab === "modules"
-                  ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Package className="size-3.5 shrink-0" />
-              <span className="truncate">
-                {t("createModal.sectionModules")}
-              </span>
-            </Button>
-            <Button
-              type="button"
-              variant={activeTab === "contact" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTab("contact")}
-              className={cn(
-                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
-                activeTab === "contact"
-                  ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Phone className="size-3.5 shrink-0" />
-              <span className="truncate">
-                {t("createModal.sectionContact")}
-              </span>
-            </Button>
-            <Button
-              type="button"
-              variant={activeTab === "banking" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTab("banking")}
-              className={cn(
-                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
-                activeTab === "banking"
-                  ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <CreditCard className="size-3.5 shrink-0" />
-              <span className="truncate">
-                {t("createModal.sectionBanking")}
-              </span>
-            </Button>
+    <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <FormDialogContent className="max-w-2xl">
+        <FormDialogHeader>
+          <div className="space-y-1">
+            <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
+            <FormDialogDescription>
+              {t("editModal.description")}
+            </FormDialogDescription>
           </div>
-        </div>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 px-6 pb-6">
-          <div className={cn("space-y-4", activeTab !== "general" && "hidden")}>
-            <Field data-invalid={Boolean(errors.name)}>
-              <FieldLabel>{t("createModal.name")}</FieldLabel>
-              <Input {...register("name")} className="h-10 rounded-xl" />
-              <FieldError>{errors.name?.message}</FieldError>
-            </Field>
-
-            <Field data-invalid={Boolean(errors.subdomain)}>
-              <FieldLabel>{t("createModal.subdomain")}</FieldLabel>
-              <div className="relative flex items-center" dir="ltr">
-                <Input
-                  {...register("subdomain")}
-                  className="h-10 rounded-xl pe-28 font-mono text-sm"
-                />
-                <span className="pointer-events-none absolute end-3 font-mono text-xs text-muted-foreground">
-                  {t("createModal.subdomainSuffix")}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
+        >
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+            <div className="grid grid-cols-2 gap-1.5 rounded-xl bg-muted/60 p-1 sm:grid-cols-4">
+              <Button
+                type="button"
+                variant={activeTab === "general" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("general")}
+                className={cn(
+                  "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
+                  activeTab === "general"
+                    ? "bg-background text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Building2 className="size-3.5 shrink-0" />
+                <span className="truncate">
+                  {t("createModal.sectionGeneral")}
                 </span>
-              </div>
-              <FieldError>{errors.subdomain?.message}</FieldError>
-            </Field>
+              </Button>
+              <Button
+                type="button"
+                variant={activeTab === "modules" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("modules")}
+                className={cn(
+                  "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
+                  activeTab === "modules"
+                    ? "bg-background text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Package className="size-3.5 shrink-0" />
+                <span className="truncate">
+                  {t("createModal.sectionModules")}
+                </span>
+              </Button>
+              <Button
+                type="button"
+                variant={activeTab === "contact" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("contact")}
+                className={cn(
+                  "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
+                  activeTab === "contact"
+                    ? "bg-background text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Phone className="size-3.5 shrink-0" />
+                <span className="truncate">
+                  {t("createModal.sectionContact")}
+                </span>
+              </Button>
+              <Button
+                type="button"
+                variant={activeTab === "banking" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("banking")}
+                className={cn(
+                  "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all",
+                  activeTab === "banking"
+                    ? "bg-background text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <CreditCard className="size-3.5 shrink-0" />
+                <span className="truncate">
+                  {t("createModal.sectionBanking")}
+                </span>
+              </Button>
+            </div>
 
-            {/* Operational Status / Ban toggle */}
-            <Field className="rounded-xl border border-border/80 bg-muted/40 p-3.5">
-              <div className="flex items-center gap-3">
+            <div
+              className={cn("space-y-4", activeTab !== "general" && "hidden")}
+            >
+              <Field data-invalid={Boolean(errors.name)}>
+                <FieldLabel>{t("createModal.name")}</FieldLabel>
+                <Input {...register("name")} />
+                <FieldError>{errors.name?.message}</FieldError>
+              </Field>
+
+              <Field data-invalid={Boolean(errors.subdomain)}>
+                <FieldLabel>{t("createModal.subdomain")}</FieldLabel>
+                <div className="relative flex items-center" dir="ltr">
+                  <Input
+                    {...register("subdomain")}
+                    className="pe-28 font-mono"
+                  />
+                  <span className="pointer-events-none absolute end-3 font-mono text-xs text-muted-foreground">
+                    {t("createModal.subdomainSuffix")}
+                  </span>
+                </div>
+                <FieldError>{errors.subdomain?.message}</FieldError>
+              </Field>
+
+              {/* Operational Status / Ban toggle */}
+              <Field className="rounded-xl border border-border/80 bg-muted/40 p-3.5">
+                <div className="flex items-center gap-3">
+                  <Controller
+                    control={control}
+                    name="isActive"
+                    render={({ field }) => (
+                      <Checkbox
+                        id="edit-institute-isActive"
+                        checked={Boolean(field.value)}
+                        onCheckedChange={(checked) =>
+                          field.onChange(Boolean(checked))
+                        }
+                      />
+                    )}
+                  />
+                  <label
+                    htmlFor="edit-institute-isActive"
+                    className="cursor-pointer text-xs font-medium text-foreground select-none"
+                  >
+                    {t("createModal.statusActive")}
+                  </label>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {t("editModal.statusActiveHint")}
+                </p>
+              </Field>
+
+              <Field>
+                <FieldLabel>{t("createModal.logo")}</FieldLabel>
                 <Controller
                   control={control}
-                  name="isActive"
+                  name="logo"
                   render={({ field }) => (
-                    <Checkbox
-                      id="edit-institute-isActive"
-                      checked={Boolean(field.value)}
-                      onCheckedChange={(checked) =>
-                        field.onChange(Boolean(checked))
-                      }
+                    <Attachment
+                      value={field.value}
+                      onChange={(file) => field.onChange(file)}
+                      placeholder={t("createModal.logoPlaceholder")}
+                      description={t("createModal.logoDescription")}
+                      removeLabel={t("createModal.removePhone")}
                     />
                   )}
                 />
-                <label
-                  htmlFor="edit-institute-isActive"
-                  className="cursor-pointer text-xs font-medium text-foreground select-none"
-                >
-                  {t("createModal.statusActive")}
-                </label>
-              </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {t("editModal.statusActiveHint")}
-              </p>
-            </Field>
+              </Field>
 
-            <Field>
-              <FieldLabel>{t("createModal.logo")}</FieldLabel>
+              <Field data-invalid={Boolean(errors.primaryColor)}>
+                <div className="flex items-center justify-between">
+                  <FieldLabel className="flex items-center gap-1.5">
+                    <Palette className="size-4 text-muted-foreground" />
+                    <span>{t("createModal.primaryColor")}</span>
+                  </FieldLabel>
+                  <div
+                    className="size-5 rounded-full border border-border shadow-2xs"
+                    style={{ backgroundColor: selectedColor }}
+                  />
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {BRAND_COLOR_PRESETS.map((preset) => {
+                    const isPicked =
+                      selectedColor.toLowerCase() === preset.value.toLowerCase()
+                    return (
+                      <Button
+                        key={preset.value}
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setValue("primaryColor", preset.value)}
+                        className={cn(
+                          "relative size-8 cursor-pointer rounded-full p-0 transition-transform hover:scale-110",
+                          isPicked && "ring-2 ring-foreground ring-offset-2"
+                        )}
+                        style={{ backgroundColor: preset.value }}
+                        aria-label={preset.name}
+                      >
+                        {isPicked && (
+                          <Check className="size-4 text-white drop-shadow-xs" />
+                        )}
+                      </Button>
+                    )
+                  })}
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {t("createModal.primaryColorCustom")}:
+                  </span>
+                  <Input
+                    {...register("primaryColor")}
+                    placeholder="#10b981"
+                    className="h-8 max-w-[120px] rounded-lg font-mono text-xs"
+                    dir="ltr"
+                  />
+                </div>
+                <FieldError>{errors.primaryColor?.message}</FieldError>
+              </Field>
+            </div>
+
+            {/* TAB 2: Modules & Subscription Plan */}
+            <div
+              className={cn("space-y-4", activeTab !== "modules" && "hidden")}
+            >
               <Controller
                 control={control}
-                name="logo"
+                name="enabledModules"
                 render={({ field }) => (
-                  <Attachment
-                    value={field.value}
-                    onChange={(file) => field.onChange(file)}
-                    placeholder={t("createModal.logoPlaceholder")}
-                    description={t("createModal.logoDescription")}
-                    removeLabel={t("createModal.removePhone")}
+                  <ModulesSelector
+                    value={field.value || []}
+                    onChange={(mods) => field.onChange(mods)}
                   />
                 )}
               />
-            </Field>
+            </div>
 
-            <Field data-invalid={Boolean(errors.primaryColor)}>
-              <div className="flex items-center justify-between">
-                <FieldLabel className="flex items-center gap-1.5">
-                  <Palette className="size-4 text-muted-foreground" />
-                  <span>{t("createModal.primaryColor")}</span>
-                </FieldLabel>
-                <div
-                  className="size-5 rounded-full border border-border shadow-2xs"
-                  style={{ backgroundColor: selectedColor }}
-                />
-              </div>
+            <div
+              className={cn("space-y-4", activeTab !== "contact" && "hidden")}
+            >
+              <Field>
+                <div className="flex items-center justify-between">
+                  <FieldLabel className="flex items-center gap-1.5">
+                    <Phone className="size-4 text-muted-foreground" />
+                    <span>{t("createModal.phones")}</span>
+                  </FieldLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddPhone}
+                    className="h-7 cursor-pointer rounded-lg px-2.5 text-xs text-foreground"
+                  >
+                    <Plus className="me-1 size-3" />
+                    {t("createModal.addPhone")}
+                  </Button>
+                </div>
+                <div className="mt-2 space-y-2">
+                  {phones.map((_, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        {...register(`phones.${index}` as const)}
+                        placeholder={t("createModal.phonePlaceholder")}
+                        className="h-10 flex-1 rounded-xl font-mono text-sm"
+                        dir="ltr"
+                      />
+                      {phones.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemovePhone(index)}
+                          className="size-9 shrink-0 cursor-pointer rounded-lg p-0 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Field>
 
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {BRAND_COLOR_PRESETS.map((preset) => {
-                  const isPicked =
-                    selectedColor.toLowerCase() === preset.value.toLowerCase()
-                  return (
-                    <Button
-                      key={preset.value}
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setValue("primaryColor", preset.value)}
-                      className={cn(
-                        "relative size-8 cursor-pointer rounded-full p-0 transition-transform hover:scale-110",
-                        isPicked && "ring-2 ring-foreground ring-offset-2"
-                      )}
-                      style={{ backgroundColor: preset.value }}
-                      aria-label={preset.name}
-                    >
-                      {isPicked && (
-                        <Check className="size-4 text-white drop-shadow-xs" />
-                      )}
-                    </Button>
-                  )
-                })}
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {t("createModal.primaryColorCustom")}:
-                </span>
+              <Field data-invalid={Boolean(errors.address)}>
+                <FieldLabel>{t("createModal.address")}</FieldLabel>
+                <Input {...register("address")} />
+                <FieldError>{errors.address?.message}</FieldError>
+              </Field>
+            </div>
+
+            <div
+              className={cn("space-y-4", activeTab !== "banking" && "hidden")}
+            >
+              <Field data-invalid={Boolean(errors.bankAccountName)}>
+                <FieldLabel>{t("createModal.bankAccountName")}</FieldLabel>
+                <Input {...register("bankAccountName")} />
+                <FieldError>{errors.bankAccountName?.message}</FieldError>
+              </Field>
+              <Field data-invalid={Boolean(errors.bankCardNumber)}>
+                <FieldLabel>{t("createModal.bankCardNumber")}</FieldLabel>
                 <Input
-                  {...register("primaryColor")}
-                  placeholder="#10b981"
-                  className="h-8 max-w-[120px] rounded-lg font-mono text-xs"
+                  {...register("bankCardNumber")}
+                  className="font-mono"
                   dir="ltr"
                 />
-              </div>
-              <FieldError>{errors.primaryColor?.message}</FieldError>
-            </Field>
-          </div>
-
-          {/* TAB 2: Modules & Subscription Plan */}
-          <div className={cn("space-y-4", activeTab !== "modules" && "hidden")}>
-            <Controller
-              control={control}
-              name="enabledModules"
-              render={({ field }) => (
-                <ModulesSelector
-                  value={field.value || []}
-                  onChange={(mods) => field.onChange(mods)}
+                <FieldError>{errors.bankCardNumber?.message}</FieldError>
+              </Field>
+              <Field data-invalid={Boolean(errors.bankShaba)}>
+                <FieldLabel>{t("createModal.bankShaba")}</FieldLabel>
+                <Input
+                  {...register("bankShaba")}
+                  className="font-mono"
+                  dir="ltr"
                 />
-              )}
-            />
+                <FieldError>{errors.bankShaba?.message}</FieldError>
+              </Field>
+            </div>
           </div>
 
-          <div className={cn("space-y-4", activeTab !== "contact" && "hidden")}>
-            <Field>
-              <div className="flex items-center justify-between">
-                <FieldLabel className="flex items-center gap-1.5">
-                  <Phone className="size-4 text-muted-foreground" />
-                  <span>{t("createModal.phones")}</span>
-                </FieldLabel>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddPhone}
-                  className="h-7 cursor-pointer rounded-lg px-2.5 text-xs text-foreground"
-                >
-                  <Plus className="me-1 size-3" />
-                  {t("createModal.addPhone")}
-                </Button>
-              </div>
-              <div className="mt-2 space-y-2">
-                {phones.map((_, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Input
-                      {...register(`phones.${index}` as const)}
-                      placeholder={t("createModal.phonePlaceholder")}
-                      className="h-10 flex-1 rounded-xl font-mono text-sm"
-                      dir="ltr"
-                    />
-                    {phones.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemovePhone(index)}
-                        className="size-9 shrink-0 cursor-pointer rounded-lg p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </Field>
-
-            <Field data-invalid={Boolean(errors.address)}>
-              <FieldLabel>{t("createModal.address")}</FieldLabel>
-              <Input {...register("address")} className="h-10 rounded-xl" />
-              <FieldError>{errors.address?.message}</FieldError>
-            </Field>
-          </div>
-
-          <div className={cn("space-y-4", activeTab !== "banking" && "hidden")}>
-            <Field data-invalid={Boolean(errors.bankAccountName)}>
-              <FieldLabel>{t("createModal.bankAccountName")}</FieldLabel>
-              <Input
-                {...register("bankAccountName")}
-                className="h-10 rounded-xl"
-              />
-              <FieldError>{errors.bankAccountName?.message}</FieldError>
-            </Field>
-            <Field data-invalid={Boolean(errors.bankCardNumber)}>
-              <FieldLabel>{t("createModal.bankCardNumber")}</FieldLabel>
-              <Input
-                {...register("bankCardNumber")}
-                className="h-10 rounded-xl font-mono text-sm"
-                dir="ltr"
-              />
-              <FieldError>{errors.bankCardNumber?.message}</FieldError>
-            </Field>
-            <Field data-invalid={Boolean(errors.bankShaba)}>
-              <FieldLabel>{t("createModal.bankShaba")}</FieldLabel>
-              <Input
-                {...register("bankShaba")}
-                className="h-10 rounded-xl font-mono text-sm"
-                dir="ltr"
-              />
-              <FieldError>{errors.bankShaba?.message}</FieldError>
-            </Field>
-          </div>
-
-          <div className="mt-8 flex items-center justify-between border-t border-border/60 pt-4">
+          <FormDialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -481,9 +494,9 @@ export function EditInstituteModal({
                 t("editModal.submit")
               )}
             </Button>
-          </div>
+          </FormDialogFooter>
         </form>
-      </DialogPopup>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

@@ -26,7 +26,7 @@ export function AdminFilterTabs<T extends string = string>({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-1 rounded-xl border border-border bg-muted/50 p-1 shadow-2xs",
+        "flex h-14 flex-wrap items-center gap-1.5 rounded-2xl border border-border bg-muted/50 p-1.5 shadow-2xs",
         className
       )}
     >
@@ -40,7 +40,7 @@ export function AdminFilterTabs<T extends string = string>({
             size="sm"
             onClick={() => onChange(option.key)}
             className={cn(
-              "h-8 cursor-pointer rounded-lg px-3 text-xs font-medium transition-all",
+              "h-full cursor-pointer rounded-xl px-3.5 text-sm font-medium transition-all",
               isSelected
                 ? "bg-card text-foreground shadow-xs hover:bg-card"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"

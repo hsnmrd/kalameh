@@ -4,7 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { ROLES } from "@workspace/types"
 import {
-  Combobox,
+  ResponsiveCombobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
@@ -48,13 +48,14 @@ export function UsersFilter({
       }
       filters={
         <div className="w-full sm:w-56">
-          <Combobox
+          <ResponsiveCombobox
             items={roleOptions}
             value={selectedRole || "ALL"}
             onValueChange={(val) =>
               onRoleChange(val === "ALL" || !val ? "" : val)
             }
             placeholder={t("filter.all")}
+            drawerTitle={t("filter.all")}
             clearable={false}
           />
         </div>

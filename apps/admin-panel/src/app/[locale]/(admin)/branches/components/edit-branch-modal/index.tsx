@@ -8,12 +8,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, Trash2 } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogDescription,
-  ResponsiveDialogCloseButton,
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogDescription,
+  FormDialogCloseButton,
+  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -126,104 +127,108 @@ export function EditBranchModal({
   }
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
-      <ResponsiveDialogContent className="max-w-lg">
-        <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>{t("editModal.title")}</ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
-            {t("editModal.description")}
-          </ResponsiveDialogDescription>
-          <ResponsiveDialogCloseButton />
-        </ResponsiveDialogHeader>
+    <FormDialog open={open} onOpenChange={handleOpenChange}>
+      <FormDialogContent className="max-w-lg">
+        <FormDialogHeader>
+          <div className="space-y-1">
+            <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
+            <FormDialogDescription>
+              {t("editModal.description")}
+            </FormDialogDescription>
+          </div>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4 px-6 pt-2 pb-6"
+          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
         >
-          {/* Branch Name */}
-          <Field>
-            <FieldLabel>{t("editModal.branchName")}</FieldLabel>
-            <Input
-              {...register("name")}
-              placeholder={t("editModal.branchNamePlaceholder")}
-            />
-            <FieldError>{errors.name?.message}</FieldError>
-          </Field>
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+            {/* Branch Name */}
+            <Field>
+              <FieldLabel>{t("editModal.branchName")}</FieldLabel>
+              <Input
+                {...register("name")}
+                placeholder={t("editModal.branchNamePlaceholder")}
+              />
+              <FieldError>{errors.name?.message}</FieldError>
+            </Field>
 
-          {/* Address */}
-          <Field>
-            <FieldLabel>{t("editModal.address")}</FieldLabel>
-            <Input
-              {...register("address")}
-              placeholder={t("editModal.addressPlaceholder")}
-            />
-            <FieldError>{errors.address?.message}</FieldError>
-          </Field>
+            {/* Address */}
+            <Field>
+              <FieldLabel>{t("editModal.address")}</FieldLabel>
+              <Input
+                {...register("address")}
+                placeholder={t("editModal.addressPlaceholder")}
+              />
+              <FieldError>{errors.address?.message}</FieldError>
+            </Field>
 
-          {/* Phones */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <FieldLabel>{t("editModal.phones")}</FieldLabel>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleAddPhone}
-                className="h-8 gap-1 px-2 text-xs text-primary"
-              >
-                <Plus className="size-3.5" />
-                {t("editModal.addPhone")}
-              </Button>
-            </div>
-
+            {/* Phones */}
             <div className="space-y-2">
-              {phones.map((_, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input
-                    {...register(`phones.${index}` as const)}
-                    placeholder={t("editModal.phonePlaceholder")}
-                    dir="ltr"
-                    className="text-start font-mono"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemovePhone(index)}
-                    className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
+              <div className="flex items-center justify-between">
+                <FieldLabel>{t("editModal.phones")}</FieldLabel>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAddPhone}
+                  className="h-8 gap-1 px-2 text-xs text-primary"
+                >
+                  <Plus className="size-3.5" />
+                  {t("editModal.addPhone")}
+                </Button>
+              </div>
 
-          {/* Active Switch / Checkbox */}
-          <div className="flex items-center gap-2 pt-1">
-            <Controller
-              control={control}
-              name="isActive"
-              render={({ field }) => (
-                <input
-                  type="checkbox"
-                  id="edit-branch-active"
-                  checked={field.value ?? true}
-                  onChange={(e) => field.onChange(e.target.checked)}
-                  className="size-4 rounded border-border text-primary focus:ring-primary"
-                />
-              )}
-            />
-            <label
-              htmlFor="edit-branch-active"
-              className="cursor-pointer text-sm font-medium text-foreground"
-            >
-              {t("editModal.isActive")}
-            </label>
+              <div className="space-y-2">
+                {phones.map((_, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      {...register(`phones.${index}` as const)}
+                      placeholder={t("editModal.phonePlaceholder")}
+                      dir="ltr"
+                      className="text-start font-mono"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemovePhone(index)}
+                      className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Active Switch / Checkbox */}
+            <div className="flex items-center gap-2 pt-1">
+              <Controller
+                control={control}
+                name="isActive"
+                render={({ field }) => (
+                  <input
+                    type="checkbox"
+                    id="edit-branch-active"
+                    checked={field.value ?? true}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    className="size-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                )}
+              />
+              <label
+                htmlFor="edit-branch-active"
+                className="cursor-pointer text-sm font-medium text-foreground"
+              >
+                {t("editModal.isActive")}
+              </label>
+            </div>
           </div>
 
           {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+          <FormDialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -238,9 +243,9 @@ export function EditBranchModal({
               ) : null}
               {t("editModal.submit")}
             </Button>
-          </div>
+          </FormDialogFooter>
         </form>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

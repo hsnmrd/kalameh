@@ -196,28 +196,6 @@ export function UsersTable({
   }
 
   return (
-    <>
-      {/* Desktop Table View using shadcn DataTable */}
-      <div className="hidden md:block">
-        <DataTable
-          columns={columns}
-          data={users}
-          emptyMessage={t("table.empty")}
-        />
-      </div>
-
-      {/* Mobile Cards View */}
-      <div className="grid grid-cols-1 gap-3 md:hidden">
-        {users.map((user) => (
-          <UserCard
-            key={user.id}
-            user={user}
-            onEdit={onEdit}
-            onResetPassword={onResetPassword}
-            onDelete={onDelete}
-          />
-        ))}
-      </div>
-    </>
+    <DataTable columns={columns} data={users} emptyMessage={t("table.empty")} />
   )
 }

@@ -139,9 +139,7 @@ describe("StudentsTable & StudentsFilter Components", () => {
         />
       )
 
-      const searchInput = screen.getByPlaceholderText(
-        /جستجو با نام|Search by name/i
-      )
+      const searchInput = screen.getByPlaceholderText(/جستجو|Search/i)
       fireEvent.change(searchInput, { target: { value: "Ali" } })
       expect(onSearchChangeMock).toHaveBeenCalledWith("Ali")
     })

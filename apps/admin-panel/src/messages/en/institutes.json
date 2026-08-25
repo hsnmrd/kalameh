@@ -28,7 +28,7 @@
   "switcher": {
     "title": "Select Institute",
     "description": "Choose an institute to manage its classes, students, and settings",
-    "searchPlaceholder": "Search by institute name or subdomain...",
+    "searchPlaceholder": "Search",
     "allInstitutes": "All Institutes",
     "globalView": "Platform Overview",
     "classes": "Classes",

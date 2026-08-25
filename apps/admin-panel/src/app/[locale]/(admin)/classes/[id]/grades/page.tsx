@@ -20,6 +20,7 @@ import { ModuleGuard } from "@/components/module-guard"
 import { GradesHeader } from "./components/grades-header"
 import { ClassInfoCard } from "./components/class-info-card"
 import { GradesTable } from "./components/grades-table"
+import { GradesList } from "./components/grades-list"
 
 export default function ClassGradesPage() {
   const t = useTranslations("grades")
@@ -73,12 +74,25 @@ export default function ClassGradesPage() {
             <ClassInfoCard cls={cls} studentsCount={records?.length ?? 0} />
           }
         >
-          <GradesTable
-            records={records}
-            isLoading={isLoading}
-            isSubmitting={submitMutation.isPending}
-            onSubmit={handleSubmit}
-          />
+          {/* Desktop: DataTable */}
+          <div className="hidden lg:block">
+            <GradesTable
+              records={records}
+              isLoading={isLoading}
+              isSubmitting={submitMutation.isPending}
+              onSubmit={handleSubmit}
+            />
+          </div>
+
+          {/* Mobile: flat list */}
+          <div className="lg:hidden">
+            <GradesList
+              records={records}
+              isLoading={isLoading}
+              isSubmitting={submitMutation.isPending}
+              onSubmit={handleSubmit}
+            />
+          </div>
         </AdminPageShell>
       </PermissionGuard>
     </ModuleGuard>

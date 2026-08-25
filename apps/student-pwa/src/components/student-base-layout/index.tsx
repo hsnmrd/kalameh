@@ -35,9 +35,9 @@ export function StudentBaseLayout({ children }: StudentBaseLayoutProps) {
   const handleLogout = () => logoutMutation.mutate()
 
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground">
+    <div className="min-h-[100dvh] bg-background font-sans text-foreground">
       {/* Centered Mobile Container */}
-      <div className="relative mx-auto flex min-h-screen w-full max-w-[480px] flex-col bg-background shadow-xs">
+      <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-[480px] flex-col bg-background shadow-xs">
         {/* Top Toolbar */}
         <StudentToolbar
           isHomePage={isHomePage}

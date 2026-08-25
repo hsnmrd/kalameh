@@ -6,7 +6,22 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 
 const ContextMenu = ContextMenuPrimitive.Root
-const ContextMenuTrigger = ContextMenuPrimitive.Trigger
+
+function ContextMenuTrigger({
+  className,
+  ...props
+}: ContextMenuPrimitive.Trigger.Props) {
+  return (
+    <ContextMenuPrimitive.Trigger
+      className={cn(
+        "touch-manipulation select-none [-webkit-touch-callout:none]",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 const ContextMenuGroup = ContextMenuPrimitive.Group
 const ContextMenuPortal = ContextMenuPrimitive.Portal
 const ContextMenuSubmenu = ContextMenuPrimitive.SubmenuRoot

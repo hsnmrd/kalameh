@@ -13,12 +13,13 @@ import {
 } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogDescription,
+  FormDialogCloseButton,
+  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -153,146 +154,154 @@ export function ImportUsersModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-      <DialogPopup className="max-w-lg">
-        <DialogCloseButton />
-        <DialogHeader className="mb-4 text-start">
-          <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
-        </DialogHeader>
-
-        {/* Download Template Banner */}
-        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <FileSpreadsheet className="size-5 text-primary" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground">
-                {t("downloadTemplate")}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {t("uploadHint")}
-              </span>
-            </div>
+    <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+      <FormDialogContent className="max-w-lg">
+        <FormDialogHeader>
+          <div className="space-y-1">
+            <FormDialogTitle>{t("title")}</FormDialogTitle>
+            <FormDialogDescription>{t("description")}</FormDialogDescription>
           </div>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleDownloadTemplate}
-            disabled={isDownloadingTemplate}
-            className="cursor-pointer gap-1.5 rounded-xl text-xs font-medium"
-          >
-            {isDownloadingTemplate ? (
-              <Spinner className="size-3.5" />
-            ) : (
-              <Download className="size-3.5 text-foreground" />
-            )}
-            <span>{t("downloadTemplate")}</span>
-          </Button>
-        </div>
+        <form
+          onSubmit={handleSubmit}
+          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
+        >
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+            {/* Download Template Banner */}
+            <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <FileSpreadsheet className="size-5 text-primary" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-foreground">
+                    {t("downloadTemplate")}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("uploadHint")}
+                  </span>
+                </div>
+              </div>
 
-        {/* Import Results if any failed */}
-        {importResult && importResult.failedCount > 0 && (
-          <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="size-4 text-destructive" />
-                <span className="text-sm font-semibold text-destructive">
-                  {t("resultTitle")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-medium">
-                <span className="text-emerald-600">
-                  {t("importedRows", { count: importResult.importedCount })}
-                </span>
-                <span className="text-destructive">
-                  {t("failedRows", { count: importResult.failedCount })}
-                </span>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadTemplate}
+                disabled={isDownloadingTemplate}
+                className="cursor-pointer gap-1.5 rounded-xl text-xs font-medium"
+              >
+                {isDownloadingTemplate ? (
+                  <Spinner className="size-3.5" />
+                ) : (
+                  <Download className="size-3.5 text-foreground" />
+                )}
+                <span>{t("downloadTemplate")}</span>
+              </Button>
             </div>
 
-            <div className="max-h-40 overflow-y-auto rounded-xl border border-border bg-card p-3">
-              <span className="mb-2 block text-xs font-semibold text-foreground">
-                {t("errorListTitle")}
-              </span>
-              <ul className="flex flex-col gap-1.5 text-xs text-destructive">
-                {importResult.errors.map((err, idx) => (
-                  <li key={idx} className="flex items-start gap-1.5">
-                    <span className="font-mono font-semibold">
-                      {t("rowNumber", { row: err.row })}:
+            {/* Import Results if any failed */}
+            {importResult && importResult.failedCount > 0 && (
+              <div className="flex flex-col gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="size-4 text-destructive" />
+                    <span className="text-sm font-semibold text-destructive">
+                      {t("resultTitle")}
                     </span>
-                    <span className="text-foreground/90">{err.message}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs font-medium">
+                    <span className="text-emerald-600">
+                      {t("importedRows", { count: importResult.importedCount })}
+                    </span>
+                    <span className="text-destructive">
+                      {t("failedRows", { count: importResult.failedCount })}
+                    </span>
+                  </div>
+                </div>
 
-        {/* Upload Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={cn(
-              "flex min-h-[160px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 text-center transition-colors",
-              isDragging
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50 hover:bg-muted/30",
-              selectedFile && "border-emerald-500/50 bg-emerald-500/5"
+                <div className="max-h-40 overflow-y-auto rounded-xl border border-border bg-card p-3">
+                  <span className="mb-2 block text-xs font-semibold text-foreground">
+                    {t("errorListTitle")}
+                  </span>
+                  <ul className="flex flex-col gap-1.5 text-xs text-destructive">
+                    {importResult.errors.map((err, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="font-mono font-semibold">
+                          {t("rowNumber", { row: err.row })}:
+                        </span>
+                        <span className="text-foreground/90">
+                          {err.message}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             )}
-          >
+
+            {/* Dropzone */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
             <div
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
               className={cn(
-                "flex size-12 items-center justify-center rounded-2xl",
-                selectedFile
-                  ? "bg-emerald-500/10 text-emerald-600"
-                  : "bg-muted text-muted-foreground"
+                "flex min-h-[160px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 text-center transition-colors",
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50 hover:bg-muted/30",
+                selectedFile && "border-emerald-500/50 bg-emerald-500/5"
               )}
             >
+              <div
+                className={cn(
+                  "flex size-12 items-center justify-center rounded-2xl",
+                  selectedFile
+                    ? "bg-emerald-500/10 text-emerald-600"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {selectedFile ? (
+                  <CheckCircle2 className="size-6 text-emerald-600" />
+                ) : (
+                  <UploadCloud className="size-6 text-muted-foreground" />
+                )}
+              </div>
+
               {selectedFile ? (
-                <CheckCircle2 className="size-6 text-emerald-600" />
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-sm font-semibold text-foreground">
+                    {selectedFile.name}
+                  </span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {(selectedFile.size / 1024).toFixed(1)} KB
+                  </span>
+                </div>
               ) : (
-                <UploadCloud className="size-6 text-muted-foreground" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-foreground">
+                    {t("dragDropText")}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("uploadHint")}
+                  </span>
+                </div>
               )}
             </div>
-
-            {selectedFile ? (
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-sm font-semibold text-foreground">
-                  {selectedFile.name}
-                </span>
-                <span className="font-mono text-xs text-muted-foreground">
-                  {(selectedFile.size / 1024).toFixed(1)} KB
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-foreground">
-                  {t("dragDropText")}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {t("uploadHint")}
-                </span>
-              </div>
-            )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <FormDialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -311,9 +320,9 @@ export function ImportUsersModal({
               )}
               <span>{t("submit")}</span>
             </Button>
-          </div>
+          </FormDialogFooter>
         </form>
-      </DialogPopup>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

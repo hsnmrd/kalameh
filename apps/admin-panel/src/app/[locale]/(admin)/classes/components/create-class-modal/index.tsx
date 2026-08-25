@@ -7,18 +7,19 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogDescription,
+  FormDialogCloseButton,
+  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import {
-  Combobox,
+  ResponsiveCombobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -146,127 +147,139 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogPopup className="max-w-lg">
-        <DialogCloseButton />
-        <DialogHeader className="mb-4 text-start">
-          <DialogTitle>{t("createModal.title")}</DialogTitle>
-          <DialogDescription>{t("createModal.description")}</DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Field data-invalid={Boolean(errors.title)}>
-            <FieldLabel>{t("createModal.classTitle")}</FieldLabel>
-            <Input
-              {...register("title")}
-              placeholder={t("createModal.titlePlaceholder")}
-              className="h-10 rounded-xl"
-            />
-            <FieldError>{errors.title?.message}</FieldError>
-          </Field>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field data-invalid={Boolean(errors.termId)}>
-              <FieldLabel>{t("createModal.term")}</FieldLabel>
-              <Controller
-                control={control}
-                name="termId"
-                render={({ field }) => (
-                  <Combobox
-                    items={termOptions}
-                    value={field.value}
-                    onValueChange={(val) => field.onChange(val || "")}
-                    placeholder={t("createModal.term")}
-                    className="w-full"
-                  />
-                )}
-              />
-              <FieldError>{errors.termId?.message}</FieldError>
-            </Field>
-
-            <Field data-invalid={Boolean(errors.courseId)}>
-              <FieldLabel>{t("createModal.course")}</FieldLabel>
-              <Controller
-                control={control}
-                name="courseId"
-                render={({ field }) => (
-                  <Combobox
-                    items={courseOptions}
-                    value={field.value}
-                    onValueChange={(val) => field.onChange(val || "")}
-                    placeholder={t("createModal.course")}
-                    className="w-full"
-                  />
-                )}
-              />
-              <FieldError>{errors.courseId?.message}</FieldError>
-            </Field>
+    <FormDialog open={open} onOpenChange={handleOpenChange}>
+      <FormDialogContent className="max-w-lg">
+        <FormDialogHeader>
+          <div className="space-y-1">
+            <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>
+            <FormDialogDescription>
+              {t("createModal.description")}
+            </FormDialogDescription>
           </div>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-          {/* Branch (Optional) */}
-          <Field data-invalid={Boolean(errors.branchId)}>
-            <FieldLabel>{t("createModal.branch")}</FieldLabel>
-            <Controller
-              control={control}
-              name="branchId"
-              render={({ field }) => (
-                <Combobox
-                  items={branchOptions}
-                  value={field.value || ""}
-                  onValueChange={(val) => field.onChange(val || null)}
-                  placeholder={t("createModal.branchPlaceholder")}
-                  className="w-full"
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
+        >
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+            {/* Title */}
+            <Field data-invalid={Boolean(errors.title)}>
+              <FieldLabel>{t("createModal.classTitle")}</FieldLabel>
+              <Input
+                {...register("title")}
+                placeholder={t("createModal.titlePlaceholder")}
+              />
+              <FieldError>{errors.title?.message}</FieldError>
+            </Field>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {/* Term */}
+              <Field data-invalid={Boolean(errors.termId)}>
+                <FieldLabel>{t("createModal.term")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="termId"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={termOptions}
+                      value={field.value}
+                      onValueChange={(val) => field.onChange(val || "")}
+                      placeholder={t("createModal.term")}
+                      drawerTitle={t("createModal.term")}
+                      className="w-full"
+                    />
+                  )}
                 />
-              )}
-            />
-            <FieldError>{errors.branchId?.message}</FieldError>
-          </Field>
+                <FieldError>{errors.termId?.message}</FieldError>
+              </Field>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field data-invalid={Boolean(errors.capacity)}>
-              <FieldLabel>{t("createModal.capacity")}</FieldLabel>
-              <Input
-                type="number"
-                {...register("capacity", { valueAsNumber: true })}
-                className="h-10 rounded-xl font-mono"
+              {/* Course */}
+              <Field data-invalid={Boolean(errors.courseId)}>
+                <FieldLabel>{t("createModal.course")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="courseId"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={courseOptions}
+                      value={field.value}
+                      onValueChange={(val) => field.onChange(val || "")}
+                      placeholder={t("createModal.course")}
+                      drawerTitle={t("createModal.course")}
+                      className="w-full"
+                    />
+                  )}
+                />
+                <FieldError>{errors.courseId?.message}</FieldError>
+              </Field>
+            </div>
+
+            {/* Branch (Optional) */}
+            <Field data-invalid={Boolean(errors.branchId)}>
+              <FieldLabel>{t("createModal.branch")}</FieldLabel>
+              <Controller
+                control={control}
+                name="branchId"
+                render={({ field }) => (
+                  <ResponsiveCombobox
+                    items={branchOptions}
+                    value={field.value || ""}
+                    onValueChange={(val) => field.onChange(val || null)}
+                    placeholder={t("createModal.branchPlaceholder")}
+                    drawerTitle={t("createModal.branch")}
+                    className="w-full"
+                  />
+                )}
               />
-              <FieldError>{errors.capacity?.message}</FieldError>
+              <FieldError>{errors.branchId?.message}</FieldError>
             </Field>
 
-            <Field data-invalid={Boolean(errors.fee)}>
-              <FieldLabel>{t("createModal.fee")}</FieldLabel>
-              <Input
-                type="number"
-                {...register("fee", { valueAsNumber: true })}
-                className="h-10 rounded-xl font-mono"
-              />
-              <FieldError>{errors.fee?.message}</FieldError>
-            </Field>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field data-invalid={Boolean(errors.capacity)}>
+                <FieldLabel>{t("createModal.capacity")}</FieldLabel>
+                <Input
+                  type="number"
+                  {...register("capacity", { valueAsNumber: true })}
+                  className="font-mono"
+                />
+                <FieldError>{errors.capacity?.message}</FieldError>
+              </Field>
+
+              <Field data-invalid={Boolean(errors.fee)}>
+                <FieldLabel>{t("createModal.fee")}</FieldLabel>
+                <Input
+                  type="number"
+                  {...register("fee", { valueAsNumber: true })}
+                  className="font-mono"
+                />
+                <FieldError>{errors.fee?.message}</FieldError>
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field data-invalid={Boolean(errors.teacherName)}>
+                <FieldLabel>{t("createModal.teacherName")}</FieldLabel>
+                <Input
+                  {...register("teacherName")}
+                  placeholder={t("createModal.teacherNamePlaceholder")}
+                />
+                <FieldError>{errors.teacherName?.message}</FieldError>
+              </Field>
+
+              <Field data-invalid={Boolean(errors.schedule)}>
+                <FieldLabel>{t("createModal.schedule")}</FieldLabel>
+                <Input
+                  {...register("schedule")}
+                  placeholder={t("createModal.schedulePlaceholder")}
+                />
+                <FieldError>{errors.schedule?.message}</FieldError>
+              </Field>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field data-invalid={Boolean(errors.teacherName)}>
-              <FieldLabel>{t("createModal.teacherName")}</FieldLabel>
-              <Input
-                {...register("teacherName")}
-                placeholder={t("createModal.teacherNamePlaceholder")}
-                className="h-10 rounded-xl"
-              />
-              <FieldError>{errors.teacherName?.message}</FieldError>
-            </Field>
-
-            <Field data-invalid={Boolean(errors.schedule)}>
-              <FieldLabel>{t("createModal.schedule")}</FieldLabel>
-              <Input
-                {...register("schedule")}
-                placeholder={t("createModal.schedulePlaceholder")}
-                className="h-10 rounded-xl"
-              />
-              <FieldError>{errors.schedule?.message}</FieldError>
-            </Field>
-          </div>
-
-          <div className="mt-6 flex items-center justify-end gap-3 pt-2">
+          <FormDialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -285,9 +298,9 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
               )}
               {t("createModal.submit")}
             </Button>
-          </div>
+          </FormDialogFooter>
         </form>
-      </DialogPopup>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

@@ -4,7 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import {
-  Combobox,
+  ResponsiveCombobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { termsResource, coursesResource } from "@/lib/api"
@@ -68,25 +68,27 @@ export function ClassesFilter({
       filters={
         <>
           <div className="w-full sm:w-48">
-            <Combobox
+            <ResponsiveCombobox
               items={termOptions}
               value={termId || "all"}
               onValueChange={(val) =>
                 onTermChange(val === "all" || !val ? "" : val)
               }
               placeholder={t("termFilter")}
+              drawerTitle={t("termFilter")}
               clearable={false}
             />
           </div>
 
           <div className="w-full sm:w-48">
-            <Combobox
+            <ResponsiveCombobox
               items={courseOptions}
               value={courseId || "all"}
               onValueChange={(val) =>
                 onCourseChange(val === "all" || !val ? "" : val)
               }
               placeholder={t("courseFilter")}
+              drawerTitle={t("courseFilter")}
               clearable={false}
             />
           </div>

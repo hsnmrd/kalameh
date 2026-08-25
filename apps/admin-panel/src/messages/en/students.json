@@ -2,7 +2,7 @@
   "title": "Students & Learners Management",
   "subtitle": "View, enroll, edit student personal records, father name, course level, and academic history",
   "addStudent": "Register New Student",
-  "searchPlaceholder": "Search by name, phone, national ID, or father's name...",
+  "searchPlaceholder": "Search",
   "filter": {
     "allCourses": "All Courses & Levels",
     "allStatus": "All Statuses",
@@ -53,6 +53,7 @@
     "addressPlaceholder": "Enter home address...",
     "notes": "Academic Notes",
     "currentAllowedCourseId": "Initial Course Level",
+    "currentLevel": "Initial Course Level",
     "selectCourse": "Select Course Level (Default: Root Course)",
     "password": "Initial Password",
     "passwordPlaceholder": "••••••••",

@@ -26,6 +26,7 @@ export interface AdminPageHeaderProps {
   countIcon?: React.ComponentType<{ className?: string }>
   action?: AdminPageHeaderAction
   actions?: React.ReactNode
+  mobileActions?: React.ReactNode
   children?: React.ReactNode
   className?: string
 }
@@ -37,6 +38,7 @@ export function AdminPageHeader({
   countIcon: CountIcon,
   action,
   actions,
+  mobileActions,
   children,
   className,
 }: AdminPageHeaderProps) {
@@ -81,26 +83,23 @@ export function AdminPageHeader({
         className
       )}
     >
-      <div className="space-y-1">
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+      <div className="flex items-start justify-between gap-3 sm:items-center">
+        <div className="space-y-0.5 sm:space-y-1">
+          <h1 className="text-lg font-bold tracking-tight text-foreground sm:text-xl lg:text-2xl">
             {title}
           </h1>
-          {typeof count === "number" && (
-            <Badge
-              variant="secondary"
-              className={cn(
-                "inline-flex items-center gap-1 font-semibold",
-                locale === "fa" ? "font-sans" : "font-mono"
-              )}
-            >
-              {CountIcon && <CountIcon className="size-3" />}
-              <span>{formatNumber(count, locale)}</span>
-            </Badge>
+          {subtitle && (
+            <p className="hidden text-sm text-muted-foreground sm:block">
+              {subtitle}
+            </p>
           )}
         </div>
-        {subtitle && (
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
+
+        {/* Mobile actions at end of title row (e.g. three-dot icon button) */}
+        {mobileActions && (
+          <div className="flex shrink-0 items-center lg:hidden">
+            {mobileActions}
+          </div>
         )}
       </div>
 

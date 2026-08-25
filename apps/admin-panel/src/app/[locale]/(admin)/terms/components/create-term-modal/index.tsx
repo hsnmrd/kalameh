@@ -7,12 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogDescription,
+  FormDialogCloseButton,
+  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -85,64 +86,72 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogPopup className="max-w-md">
-        <DialogCloseButton />
-        <DialogHeader className="mb-4 text-start">
-          <DialogTitle>{t("createModal.title")}</DialogTitle>
-          <DialogDescription>{t("createModal.description")}</DialogDescription>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={handleOpenChange}>
+      <FormDialogContent className="max-w-md">
+        <FormDialogHeader>
+          <div className="space-y-1">
+            <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>
+            <FormDialogDescription>
+              {t("createModal.description")}
+            </FormDialogDescription>
+          </div>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Field data-invalid={Boolean(errors.title)}>
-            <FieldLabel>{t("createModal.termTitle")}</FieldLabel>
-            <Input
-              {...register("title")}
-              placeholder={t("createModal.titlePlaceholder")}
-              className="h-10 rounded-xl"
-            />
-            <FieldError>{errors.title?.message}</FieldError>
-          </Field>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field data-invalid={Boolean(errors.startDate)}>
-              <FieldLabel>{t("createModal.startDate")}</FieldLabel>
-              <Controller
-                control={control}
-                name="startDate"
-                render={({ field }) => (
-                  <DatePicker
-                    value={field.value || undefined}
-                    onChange={(val) => field.onChange(val || "")}
-                    locale={locale}
-                    placeholder={t("createModal.startDate")}
-                    data-invalid={Boolean(errors.startDate)}
-                  />
-                )}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
+        >
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+            <Field data-invalid={Boolean(errors.title)}>
+              <FieldLabel>{t("createModal.termTitle")}</FieldLabel>
+              <Input
+                {...register("title")}
+                placeholder={t("createModal.titlePlaceholder")}
               />
-              <FieldError>{errors.startDate?.message}</FieldError>
+              <FieldError>{errors.title?.message}</FieldError>
             </Field>
 
-            <Field data-invalid={Boolean(errors.endDate)}>
-              <FieldLabel>{t("createModal.endDate")}</FieldLabel>
-              <Controller
-                control={control}
-                name="endDate"
-                render={({ field }) => (
-                  <DatePicker
-                    value={field.value || undefined}
-                    onChange={(val) => field.onChange(val || "")}
-                    locale={locale}
-                    placeholder={t("createModal.endDate")}
-                    data-invalid={Boolean(errors.endDate)}
-                  />
-                )}
-              />
-              <FieldError>{errors.endDate?.message}</FieldError>
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field data-invalid={Boolean(errors.startDate)}>
+                <FieldLabel>{t("createModal.startDate")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value || undefined}
+                      onChange={(val) => field.onChange(val || "")}
+                      locale={locale}
+                      placeholder={t("createModal.startDate")}
+                      data-invalid={Boolean(errors.startDate)}
+                    />
+                  )}
+                />
+                <FieldError>{errors.startDate?.message}</FieldError>
+              </Field>
+
+              <Field data-invalid={Boolean(errors.endDate)}>
+                <FieldLabel>{t("createModal.endDate")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value || undefined}
+                      onChange={(val) => field.onChange(val || "")}
+                      locale={locale}
+                      placeholder={t("createModal.endDate")}
+                      data-invalid={Boolean(errors.endDate)}
+                    />
+                  )}
+                />
+                <FieldError>{errors.endDate?.message}</FieldError>
+              </Field>
+            </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-end gap-3 pt-2">
+          <FormDialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -161,9 +170,9 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
               )}
               {t("createModal.submit")}
             </Button>
-          </div>
+          </FormDialogFooter>
         </form>
-      </DialogPopup>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

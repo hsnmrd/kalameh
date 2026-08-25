@@ -4,7 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import type { CourseDto } from "@workspace/types"
 import {
-  Combobox,
+  ResponsiveCombobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
@@ -63,11 +63,12 @@ export function StudentsFilter({
         <>
           {/* Course Combobox Filter */}
           <div className="w-full sm:w-52">
-            <Combobox
+            <ResponsiveCombobox
               items={courseOptions}
               value={selectedCourseId}
               onValueChange={(val) => onCourseChange(val || "ALL")}
               placeholder={t("filter.allCourses")}
+              drawerTitle={t("filter.allCourses")}
               clearable={false}
             />
           </div>

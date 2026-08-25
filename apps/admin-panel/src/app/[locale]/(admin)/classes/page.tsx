@@ -1,9 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import type { ClassDto } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
+import { FABSingle } from "@workspace/ui/components/fab"
 import { classesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions } from "@/lib/hooks"
@@ -13,10 +15,12 @@ import { ModuleGuard } from "@/components/module-guard"
 import { ClassesHeader } from "./components/classes-header"
 import { ClassesFilter } from "./components/classes-filter"
 import { ClassesTable } from "./components/classes-table"
+import { ClassesList } from "./components/classes-list"
 import { CreateClassModal } from "./components/create-class-modal"
 import { EditClassModal } from "./components/edit-class-modal"
 
 export default function ClassesPage() {
+  const t = useTranslations("classes")
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [editingClass, setEditingClass] = React.useState<ClassDto | null>(null)
 
@@ -71,12 +75,35 @@ export default function ClassesPage() {
               />
             </>
           }
+          fab={
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSES}
+              mode="hide"
+            >
+              <FABSingle
+                onClick={() => setCreateModalOpen(true)}
+                aria-label={t("addClass")}
+              />
+            </PermissionGuard>
+          }
         >
-          <ClassesTable
-            classes={classes}
-            isLoading={isLoading}
-            onEdit={(cls) => setEditingClass(cls)}
-          />
+          {/* Desktop: DataTable */}
+          <div className="hidden lg:block">
+            <ClassesTable
+              classes={classes}
+              isLoading={isLoading}
+              onEdit={(cls) => setEditingClass(cls)}
+            />
+          </div>
+
+          {/* Mobile: flat divider list */}
+          <div className="lg:hidden">
+            <ClassesList
+              classes={classes}
+              isLoading={isLoading}
+              onEdit={(cls) => setEditingClass(cls)}
+            />
+          </div>
         </AdminPageShell>
       </PermissionGuard>
     </ModuleGuard>

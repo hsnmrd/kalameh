@@ -10,7 +10,7 @@ export interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputE
 }
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, variant = "auth", ...props }, ref) => {
+  ({ className, variant = "default", ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false)
 
     return (
@@ -18,11 +18,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
         <input
           type={showPassword ? "text" : "password"}
           className={cn(
-            "flex w-full border bg-transparent px-3 py-1 text-base shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-            variant === "default" &&
-              "h-9 rounded-md border-input pr-10 focus-visible:ring-1 focus-visible:ring-ring",
-            variant === "auth" &&
-              "h-14 rounded-2xl border-border bg-background pr-12 pl-4 text-[15px] text-foreground placeholder:text-muted-foreground focus:border-2 focus:border-ring focus:ring-0",
+            "flex h-14 w-full rounded-2xl border border-border bg-background ps-4 pe-12 text-base text-foreground shadow-2xs transition-colors placeholder:font-sans placeholder:text-muted-foreground focus:border-2 focus:border-ring focus:ring-0 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
           ref={ref}
@@ -33,7 +29,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           variant="ghost"
           size="icon-sm"
           onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-muted-foreground hover:bg-transparent hover:text-foreground focus-visible:ring-0"
+          className="absolute end-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:bg-transparent hover:text-foreground focus-visible:ring-0"
           tabIndex={-1}
           aria-label={showPassword ? "Hide password" : "Show password"}
         >

@@ -19,7 +19,13 @@
     "instituteSection": "Institute Management"
   },
   "language": "Language",
-  "logout": "Log Out",
+  "logout": "Sign Out",
+  "filter": {
+    "title": "Filters",
+    "button": "Filter",
+    "show": "Show",
+    "clear": "Clear filters"
+  },
   "userProfile": {
     "title": "User Information",
     "phone": "Phone Number",
@@ -48,7 +54,7 @@
   },
   "combobox": {
     "placeholder": "Select an option...",
-    "searchPlaceholder": "Search...",
+    "searchPlaceholder": "Search",
     "emptyMessage": "No items found."
   },
   "modules": {

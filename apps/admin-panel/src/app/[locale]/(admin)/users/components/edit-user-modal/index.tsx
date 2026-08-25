@@ -7,18 +7,19 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogDescription,
+  FormDialogCloseButton,
+  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import {
-  Combobox,
+  ResponsiveCombobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -124,94 +125,106 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogPopup className="max-w-md">
-        <DialogCloseButton />
-        <DialogHeader className="mb-4 text-start">
-          <DialogTitle>{t("editModal.title")}</DialogTitle>
-          <DialogDescription>{t("editModal.description")}</DialogDescription>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={handleOpenChange}>
+      <FormDialogContent className="max-w-md">
+        <FormDialogHeader>
+          <div className="space-y-1">
+            <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
+            <FormDialogDescription>
+              {t("editModal.description")}
+            </FormDialogDescription>
+          </div>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* First & Last Name */}
-          <div className="grid grid-cols-2 gap-3">
-            <Field data-invalid={Boolean(errors.firstName)}>
-              <FieldLabel>{t("editModal.firstName")}</FieldLabel>
-              <Input {...register("firstName")} className="h-10 rounded-xl" />
-              <FieldError>{errors.firstName?.message}</FieldError>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
+        >
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+            {/* First & Last Name */}
+            <div className="grid grid-cols-2 gap-3">
+              <Field data-invalid={Boolean(errors.firstName)}>
+                <FieldLabel>{t("editModal.firstName")}</FieldLabel>
+                <Input {...register("firstName")} />
+                <FieldError>{errors.firstName?.message}</FieldError>
+              </Field>
+
+              <Field data-invalid={Boolean(errors.lastName)}>
+                <FieldLabel>{t("editModal.lastName")}</FieldLabel>
+                <Input {...register("lastName")} />
+                <FieldError>{errors.lastName?.message}</FieldError>
+              </Field>
+            </div>
+
+            {/* Phone Number */}
+            <Field data-invalid={Boolean(errors.phone)}>
+              <FieldLabel>{t("editModal.phone")}</FieldLabel>
+              <Input
+                type="tel"
+                dir="ltr"
+                {...register("phone")}
+                className="text-start font-mono"
+              />
+              <FieldError>{errors.phone?.message}</FieldError>
             </Field>
 
-            <Field data-invalid={Boolean(errors.lastName)}>
-              <FieldLabel>{t("editModal.lastName")}</FieldLabel>
-              <Input {...register("lastName")} className="h-10 rounded-xl" />
-              <FieldError>{errors.lastName?.message}</FieldError>
+            {/* National Code */}
+            <Field data-invalid={Boolean(errors.nationalCode)}>
+              <FieldLabel>{t("editModal.nationalCode")}</FieldLabel>
+              <Input
+                type="text"
+                dir="ltr"
+                {...register("nationalCode")}
+                className="text-start font-mono"
+              />
+              <FieldError>{errors.nationalCode?.message}</FieldError>
+            </Field>
+
+            {/* Role Selection via ResponsiveCombobox */}
+            <Field data-invalid={Boolean(errors.role)}>
+              <FieldLabel>{t("createModal.role")}</FieldLabel>
+              <Controller
+                control={control}
+                name="role"
+                render={({ field }) => (
+                  <ResponsiveCombobox
+                    items={roleOptions}
+                    value={field.value}
+                    onValueChange={(val) =>
+                      field.onChange((val as Role) || ROLES.CLERK)
+                    }
+                    placeholder={t("createModal.role")}
+                    drawerTitle={t("createModal.role")}
+                    data-invalid={Boolean(errors.role)}
+                  />
+                )}
+              />
+              <FieldError>{errors.role?.message}</FieldError>
+            </Field>
+
+            {/* Account Status via ResponsiveCombobox */}
+            <Field>
+              <FieldLabel>{t("editModal.isActive")}</FieldLabel>
+              <Controller
+                control={control}
+                name="isActive"
+                render={({ field }) => (
+                  <ResponsiveCombobox
+                    items={statusOptions}
+                    value={field.value ? "true" : "false"}
+                    onValueChange={(val) => field.onChange(val === "true")}
+                    placeholder={t("editModal.isActive")}
+                    drawerTitle={t("editModal.isActive")}
+                    searchable={false}
+                  />
+                )}
+              />
             </Field>
           </div>
 
-          {/* Phone Number */}
-          <Field data-invalid={Boolean(errors.phone)}>
-            <FieldLabel>{t("editModal.phone")}</FieldLabel>
-            <Input
-              type="tel"
-              dir="ltr"
-              {...register("phone")}
-              className="h-10 rounded-xl text-start font-mono"
-            />
-            <FieldError>{errors.phone?.message}</FieldError>
-          </Field>
-
-          {/* National Code */}
-          <Field data-invalid={Boolean(errors.nationalCode)}>
-            <FieldLabel>{t("editModal.nationalCode")}</FieldLabel>
-            <Input
-              type="text"
-              dir="ltr"
-              {...register("nationalCode")}
-              className="h-10 rounded-xl text-start font-mono"
-            />
-            <FieldError>{errors.nationalCode?.message}</FieldError>
-          </Field>
-
-          {/* Role Selection via Combobox */}
-          <Field data-invalid={Boolean(errors.role)}>
-            <FieldLabel>{t("createModal.role")}</FieldLabel>
-            <Controller
-              control={control}
-              name="role"
-              render={({ field }) => (
-                <Combobox
-                  items={roleOptions}
-                  value={field.value}
-                  onValueChange={(val) =>
-                    field.onChange((val as Role) || ROLES.CLERK)
-                  }
-                  placeholder={t("createModal.role")}
-                  data-invalid={Boolean(errors.role)}
-                />
-              )}
-            />
-            <FieldError>{errors.role?.message}</FieldError>
-          </Field>
-
-          {/* Account Status via Combobox */}
-          <Field>
-            <FieldLabel>{t("editModal.isActive")}</FieldLabel>
-            <Controller
-              control={control}
-              name="isActive"
-              render={({ field }) => (
-                <Combobox
-                  items={statusOptions}
-                  value={field.value ? "true" : "false"}
-                  onValueChange={(val) => field.onChange(val === "true")}
-                  placeholder={t("editModal.isActive")}
-                />
-              )}
-            />
-          </Field>
-
           {/* Actions */}
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <FormDialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -230,9 +243,9 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
               )}
               <span>{t("editModal.submit")}</span>
             </Button>
-          </div>
+          </FormDialogFooter>
         </form>
-      </DialogPopup>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

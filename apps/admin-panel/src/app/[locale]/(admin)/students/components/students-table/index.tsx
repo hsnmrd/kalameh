@@ -231,28 +231,10 @@ export function StudentsTable({
   }
 
   return (
-    <>
-      {/* Desktop Table View using shadcn DataTable */}
-      <div className="hidden md:block">
-        <DataTable
-          columns={columns}
-          data={students}
-          emptyMessage={t("table.empty")}
-        />
-      </div>
-
-      {/* Mobile Cards View */}
-      <div className="grid grid-cols-1 gap-3 md:hidden">
-        {students.map((student) => (
-          <StudentCard
-            key={student.id}
-            student={student}
-            onViewProfile={onViewProfile}
-            onEdit={onEdit}
-            onResetPassword={onResetPassword}
-          />
-        ))}
-      </div>
-    </>
+    <DataTable
+      columns={columns}
+      data={students}
+      emptyMessage={t("table.empty")}
+    />
   )
 }

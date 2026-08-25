@@ -5,12 +5,13 @@ import { useTranslations } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogDescription,
+  FormDialogCloseButton,
+  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { PasswordInput } from "@workspace/ui/components/password-input"
@@ -70,31 +71,37 @@ export function ResetPasswordModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogPopup className="max-w-md">
-        <DialogCloseButton />
-        <DialogHeader className="mb-4 text-start">
-          <DialogTitle>{t("resetPasswordModal.title")}</DialogTitle>
-          <DialogDescription>
-            {t("resetPasswordModal.description", { name: fullName })}
-          </DialogDescription>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={handleOpenChange}>
+      <FormDialogContent className="max-w-md">
+        <FormDialogHeader>
+          <div className="space-y-1">
+            <FormDialogTitle>{t("resetPasswordModal.title")}</FormDialogTitle>
+            <FormDialogDescription>
+              {t("resetPasswordModal.description", { name: fullName })}
+            </FormDialogDescription>
+          </div>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Field>
-            <FieldLabel>{t("resetPasswordModal.newPassword")}</FieldLabel>
-            <PasswordInput
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="h-10 rounded-xl"
-              placeholder={t("resetPasswordModal.passwordPlaceholder")}
-            />
-            <FieldDescription>
-              {t("resetPasswordModal.passwordHint")}
-            </FieldDescription>
-          </Field>
+        <form
+          onSubmit={handleSubmit}
+          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
+        >
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+            <Field>
+              <FieldLabel>{t("resetPasswordModal.newPassword")}</FieldLabel>
+              <PasswordInput
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder={t("resetPasswordModal.passwordPlaceholder")}
+              />
+              <FieldDescription>
+                {t("resetPasswordModal.passwordHint")}
+              </FieldDescription>
+            </Field>
+          </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <FormDialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -113,9 +120,9 @@ export function ResetPasswordModal({
               )}
               <span>{t("resetPasswordModal.submit")}</span>
             </Button>
-          </div>
+          </FormDialogFooter>
         </form>
-      </DialogPopup>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

@@ -3,7 +3,17 @@
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslations, useLocale } from "next-intl"
+import { UserPlus, FileSpreadsheet, Download } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
+import { Button } from "@workspace/ui/components/button"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@workspace/ui/components/drawer"
+import { FABSingle } from "@workspace/ui/components/fab"
+import { Spinner } from "@workspace/ui/components/spinner"
 import type { AuthUser } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { usersResource } from "@/lib/api"
@@ -15,6 +25,7 @@ import { ModuleGuard } from "@/components/module-guard"
 import { UsersHeader } from "./components/users-header"
 import { UsersFilter } from "./components/users-filter"
 import { UsersTable } from "./components/users-table"
+import { UsersList } from "./components/users-list"
 import { CreateUserModal } from "./components/create-user-modal"
 import { EditUserModal } from "./components/edit-user-modal"
 import { ResetPasswordModal } from "./components/reset-password-modal"
@@ -29,6 +40,7 @@ export default function UsersPage() {
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [importModalOpen, setImportModalOpen] = React.useState(false)
   const [isExporting, setIsExporting] = React.useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
   const [editUser, setEditUser] = React.useState<AuthUser | null>(null)
   const [deleteUser, setDeleteUser] = React.useState<AuthUser | null>(null)
   const [resetPasswordUser, setResetPasswordUser] =
@@ -102,6 +114,7 @@ export default function UsersPage() {
               onImportClick={() => setImportModalOpen(true)}
               onExportClick={handleExport}
               isExporting={isExporting}
+              onMobileMenuClick={() => setMobileMenuOpen(true)}
             />
           }
           filter={
@@ -148,17 +161,84 @@ export default function UsersPage() {
                 open={Boolean(deleteUser)}
                 onClose={() => setDeleteUser(null)}
               />
+
+              {/* Mobile Actions Drawer (from header three-dot button) */}
+              <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <DrawerContent>
+                  <DrawerHeader>
+                    <DrawerTitle>{t("title")}</DrawerTitle>
+                  </DrawerHeader>
+                  <div className="pb-safe-or-6 flex flex-col gap-2 px-4 pt-2">
+                    <PermissionGuard
+                      permission={PERMISSIONS.MANAGE_USERS}
+                      mode="hide"
+                    >
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          setMobileMenuOpen(false)
+                          setImportModalOpen(true)
+                        }}
+                        className="h-12 w-full justify-start gap-3 rounded-xl px-4 text-base font-medium"
+                      >
+                        <FileSpreadsheet className="size-5 text-emerald-600" />
+                        <span>{t("importModal.trigger")}</span>
+                      </Button>
+                    </PermissionGuard>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        handleExport()
+                      }}
+                      disabled={isExporting}
+                      className="h-12 w-full justify-start gap-3 rounded-xl px-4 text-base font-medium"
+                    >
+                      {isExporting ? (
+                        <Spinner className="size-5 text-primary" />
+                      ) : (
+                        <Download className="size-5 text-sky-600" />
+                      )}
+                      <span>{t("export.trigger")}</span>
+                    </Button>
+                  </div>
+                </DrawerContent>
+              </Drawer>
             </>
           }
+          fab={
+            <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="hide">
+              <FABSingle
+                onClick={() => setCreateModalOpen(true)}
+                aria-label={t("addUser")}
+              />
+            </PermissionGuard>
+          }
         >
-          {/* Users Data Table / Mobile Cards */}
-          <UsersTable
-            users={users}
-            isLoading={isLoading}
-            onEdit={(user) => setEditUser(user)}
-            onResetPassword={(user) => setResetPasswordUser(user)}
-            onDelete={(user) => setDeleteUser(user)}
-          />
+          {/* Desktop Table View */}
+          <div className="hidden lg:block">
+            <UsersTable
+              users={users}
+              isLoading={isLoading}
+              onEdit={(user) => setEditUser(user)}
+              onResetPassword={(user) => setResetPasswordUser(user)}
+              onDelete={(user) => setDeleteUser(user)}
+            />
+          </div>
+
+          {/* Mobile Flat List View */}
+          <div className="lg:hidden">
+            <UsersList
+              users={users}
+              isLoading={isLoading}
+              onEdit={(user) => setEditUser(user)}
+              onResetPassword={(user) => setResetPasswordUser(user)}
+              onDelete={(user) => setDeleteUser(user)}
+            />
+          </div>
         </AdminPageShell>
       </PermissionGuard>
     </ModuleGuard>

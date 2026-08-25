@@ -7,18 +7,19 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import {
-  Dialog,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogDescription,
+  FormDialogCloseButton,
+  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import {
-  Combobox,
+  ResponsiveCombobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -123,51 +124,61 @@ export function EditCourseModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogPopup className="max-w-md">
-        <DialogCloseButton />
-        <DialogHeader className="mb-4 text-start">
-          <DialogTitle>{t("editModal.title")}</DialogTitle>
-          <DialogDescription>{t("editModal.description")}</DialogDescription>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={handleOpenChange}>
+      <FormDialogContent className="max-w-md">
+        <FormDialogHeader>
+          <div className="space-y-1">
+            <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
+            <FormDialogDescription>
+              {t("editModal.description")}
+            </FormDialogDescription>
+          </div>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Field data-invalid={Boolean(errors.title)}>
-            <FieldLabel>{t("editModal.courseTitle")}</FieldLabel>
-            <Input {...register("title")} className="h-10 rounded-xl" />
-            <FieldError>{errors.title?.message}</FieldError>
-          </Field>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
+        >
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+            <Field data-invalid={Boolean(errors.title)}>
+              <FieldLabel>{t("editModal.courseTitle")}</FieldLabel>
+              <Input {...register("title")} />
+              <FieldError>{errors.title?.message}</FieldError>
+            </Field>
 
-          <Field data-invalid={Boolean(errors.baseFee)}>
-            <FieldLabel>{t("editModal.baseFee")}</FieldLabel>
-            <Input
-              type="number"
-              {...register("baseFee", { valueAsNumber: true })}
-              className="h-10 rounded-xl font-mono"
-            />
-            <FieldError>{errors.baseFee?.message}</FieldError>
-          </Field>
+            <Field data-invalid={Boolean(errors.baseFee)}>
+              <FieldLabel>{t("editModal.baseFee")}</FieldLabel>
+              <Input
+                type="number"
+                {...register("baseFee", { valueAsNumber: true })}
+                className="font-mono"
+              />
+              <FieldError>{errors.baseFee?.message}</FieldError>
+            </Field>
 
-          <Field>
-            <FieldLabel>{t("editModal.prerequisite")}</FieldLabel>
-            <Controller
-              control={control}
-              name="prerequisiteId"
-              render={({ field }) => (
-                <Combobox
-                  items={prerequisiteOptions}
-                  value={field.value || "none"}
-                  onValueChange={(val) =>
-                    field.onChange(val === "none" ? null : val)
-                  }
-                  placeholder={t("createModal.none")}
-                  className="w-full"
-                />
-              )}
-            />
-          </Field>
+            <Field>
+              <FieldLabel>{t("editModal.prerequisite")}</FieldLabel>
+              <Controller
+                control={control}
+                name="prerequisiteId"
+                render={({ field }) => (
+                  <ResponsiveCombobox
+                    items={prerequisiteOptions}
+                    value={field.value || "none"}
+                    onValueChange={(val) =>
+                      field.onChange(val === "none" ? null : val)
+                    }
+                    placeholder={t("createModal.none")}
+                    drawerTitle={t("editModal.prerequisite")}
+                    className="w-full"
+                  />
+                )}
+              />
+            </Field>
+          </div>
 
-          <div className="mt-6 flex items-center justify-end gap-3 pt-2">
+          <FormDialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -186,9 +197,9 @@ export function EditCourseModal({
               )}
               {t("editModal.submit")}
             </Button>
-          </div>
+          </FormDialogFooter>
         </form>
-      </DialogPopup>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

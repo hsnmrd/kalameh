@@ -274,6 +274,122 @@ function ResponsiveDialogCloseButton({
   return <DialogCloseButton className={className} {...(props as object)} />
 }
 
+// ─── FormDialog (Fullscreen on mobile, centered modal on desktop) ───────────────
+// For modals containing forms (inputs, validation, selects, keyboard interaction).
+// Renders as a full-screen modal on mobile viewports and a centered dialog on desktop,
+// preventing virtual keyboard clipping and drawer scrolling issues.
+
+function FormDialog({
+  open,
+  onOpenChange,
+  children,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  children: React.ReactNode
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {children}
+    </Dialog>
+  )
+}
+
+function FormDialogContent({
+  className,
+  children,
+  ...props
+}: DialogPrimitive.Popup.Props) {
+  return (
+    <DialogPortal>
+      <DialogBackdrop />
+      <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-4">
+        <DialogPrimitive.Popup
+          className={cn(
+            "fixed inset-0 z-50 flex h-[100dvh] max-h-[100dvh] min-h-0 w-full flex-col overflow-hidden bg-background p-0 text-foreground outline-hidden transition-all duration-150 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0 sm:relative sm:inset-auto sm:h-auto sm:max-h-[90dvh] sm:w-full sm:max-w-lg sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-6 sm:text-card-foreground sm:shadow-xl",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </DialogPrimitive.Popup>
+      </div>
+    </DialogPortal>
+  )
+}
+
+function FormDialogHeader({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "flex shrink-0 items-center justify-between border-b border-border/80 px-4 py-3 sm:border-0 sm:p-0 sm:pb-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function FormDialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
+  return (
+    <DialogPrimitive.Title
+      className={cn(
+        "text-base font-semibold tracking-tight text-foreground sm:text-lg",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function FormDialogDescription({
+  className,
+  ...props
+}: DialogPrimitive.Description.Props) {
+  return (
+    <DialogPrimitive.Description
+      className={cn("text-xs text-muted-foreground sm:text-sm", className)}
+      {...props}
+    />
+  )
+}
+
+function FormDialogCloseButton({
+  className,
+  ...props
+}: DialogPrimitive.Close.Props) {
+  return (
+    <DialogPrimitive.Close
+      className={cn(
+        "cursor-pointer rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-hidden sm:absolute sm:end-4 sm:top-4",
+        className
+      )}
+      {...props}
+    >
+      <X className="size-5 sm:size-4" />
+      <span className="sr-only">Close</span>
+    </DialogPrimitive.Close>
+  )
+}
+
+function FormDialogFooter({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "flex shrink-0 items-center justify-end gap-2 border-t border-border/80 bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:border-0 sm:bg-transparent sm:p-0 sm:pt-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 export {
   Dialog,
   DialogTrigger,
@@ -286,7 +402,7 @@ export {
   DialogDescription,
   DialogClose,
   DialogCloseButton,
-  // Responsive variants
+  // Responsive variants (for non-form / drawer dialogs)
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogHeader,
@@ -294,4 +410,12 @@ export {
   ResponsiveDialogTitle,
   ResponsiveDialogDescription,
   ResponsiveDialogCloseButton,
+  // Form dialog variants (fullscreen on mobile, centered modal on desktop)
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogFooter,
+  FormDialogTitle,
+  FormDialogDescription,
+  FormDialogCloseButton,
 }

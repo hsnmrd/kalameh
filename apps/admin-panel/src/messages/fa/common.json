@@ -20,6 +20,12 @@
   },
   "language": "زبان",
   "logout": "خروج از حساب",
+  "filter": {
+    "title": "فیلترها",
+    "button": "فیلتر",
+    "show": "نمایش",
+    "clear": "پاک‌کردن فیلترها"
+  },
   "userProfile": {
     "title": "اطلاعات کاربری",
     "phone": "شماره تماس",
@@ -48,7 +54,7 @@
   },
   "combobox": {
     "placeholder": "انتخاب کنید...",
-    "searchPlaceholder": "جستجو...",
+    "searchPlaceholder": "جستجو",
     "emptyMessage": "موردی یافت نشد."
   },
   "modules": {
