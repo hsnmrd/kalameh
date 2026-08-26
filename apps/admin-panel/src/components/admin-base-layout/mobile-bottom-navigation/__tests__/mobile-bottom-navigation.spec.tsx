@@ -62,6 +62,7 @@ describe("MobileBottomNavigation", () => {
     fireEvent.click(screen.getByRole("button", { name: "منو" }))
 
     expect(await screen.findByText("سایر بخش‌ها")).toBeInTheDocument()
+    expect(screen.getByRole("dialog")).toHaveClass("h-[90dvh]", "max-h-[90dvh]")
     expect(screen.getByRole("link", { name: "شعب آموزشگاه" })).toBeVisible()
     expect(
       screen.getByRole("link", { name: "برنامه‌های آموزشی" })

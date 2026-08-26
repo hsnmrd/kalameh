@@ -176,7 +176,7 @@ export function MobileBottomNavigation({
       </nav>
 
       <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerContent className="lg:hidden">
+        <DrawerContent className="h-[90dvh] max-h-[90dvh] lg:hidden">
           <DrawerHeader className="border-b border-border px-5 pb-4">
             <DrawerTitle>{t("nav.moreTitle")}</DrawerTitle>
           </DrawerHeader>
