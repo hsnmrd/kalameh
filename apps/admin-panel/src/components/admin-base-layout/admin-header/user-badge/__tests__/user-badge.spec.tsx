@@ -57,7 +57,7 @@ describe("UserBadge", () => {
     expect(
       await screen.findByRole("heading", { name: "اطلاعات کاربری" })
     ).toBeInTheDocument()
-    expect(screen.getAllByText("علی رضایی")).toHaveLength(2)
+    expect(screen.getByText("علی رضایی")).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "خروج از حساب" }))
     expect(onLogout).toHaveBeenCalledOnce()
@@ -97,14 +97,15 @@ describe("UserBadge", () => {
       />
     )
 
-    // Header trigger shows active institute name
-    expect(screen.getByText("آموزشگاه کلمه تهران")).toBeInTheDocument()
-    expect(screen.getByText("tehran.kalameh.ir")).toBeInTheDocument()
+    // Header trigger shows active institute initial ("آم")
+    expect(screen.getByText("آم")).toBeInTheDocument()
 
     // Open popover
     fireEvent.click(screen.getByRole("button", { name: "اطلاعات کاربری" }))
 
     // Active Institute details & actions are shown
+    expect(screen.getByText("آموزشگاه کلمه تهران")).toBeInTheDocument()
+    expect(screen.getByText("tehran.kalameh.ir")).toBeInTheDocument()
     expect(screen.getByText("در حال مدیریت آموزشگاه")).toBeInTheDocument()
     expect(
       screen.getByRole("button", { name: "تغییر آموزشگاه" })

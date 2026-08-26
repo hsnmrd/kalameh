@@ -6,12 +6,13 @@ import { useTranslations } from "next-intl"
 import { Building2, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { getAssetUrl } from "@workspace/ui/lib/utils"
+import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
 
 export interface ActiveInstituteCardProps {
   name: string
   subdomain: string
   logoUrl?: string | null
+  primaryColor?: string | null
   onChangeInstitute: () => void
   onCloseInstitute: () => void
 }
@@ -20,6 +21,7 @@ export function ActiveInstituteCard({
   name,
   subdomain,
   logoUrl,
+  primaryColor,
   onChangeInstitute,
   onCloseInstitute,
 }: ActiveInstituteCardProps) {
@@ -29,14 +31,24 @@ export function ActiveInstituteCard({
   return (
     <div className="flex flex-col gap-2.5 rounded-xl border border-border/80 bg-muted/40 p-3">
       <div className="flex items-center gap-2.5">
-        <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-emerald-600 text-xs font-bold text-white shadow-xs">
+        <div
+          className={cn(
+            "relative flex aspect-square size-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold shadow-xs",
+            !primaryColor && "bg-emerald-600 text-white"
+          )}
+          style={
+            primaryColor
+              ? { backgroundColor: primaryColor, color: "#ffffff" }
+              : undefined
+          }
+        >
           {logoUrl ? (
             <Image
               src={getAssetUrl(logoUrl)}
               alt={name}
               fill
               unoptimized
-              className="object-cover"
+              className="size-full object-cover"
             />
           ) : (
             <span>{initial}</span>

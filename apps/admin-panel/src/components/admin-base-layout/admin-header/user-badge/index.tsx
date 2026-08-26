@@ -90,6 +90,7 @@ export function UserBadge({ user, role, onLogout }: UserBadgeProps) {
             activeInstituteName={activeInstitute?.name}
             activeInstituteSubdomain={activeInstitute?.subdomain}
             activeInstituteLogoUrl={activeInstitute?.logoUrl}
+            activeInstitutePrimaryColor={activeInstitute?.primaryColor}
             userAvatarUrl={user?.avatarUrl}
             fullName={fullName}
             userInitial={userInitial}
@@ -104,6 +105,7 @@ export function UserBadge({ user, role, onLogout }: UserBadgeProps) {
               name={activeInstitute.name}
               subdomain={activeInstitute.subdomain}
               logoUrl={activeInstitute.logoUrl}
+              primaryColor={activeInstitute.primaryColor}
               onChangeInstitute={handleChangeInstitute}
               onCloseInstitute={handleCloseInstitute}
             />
