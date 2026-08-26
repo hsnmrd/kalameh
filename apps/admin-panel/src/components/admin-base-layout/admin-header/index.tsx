@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Menu, Languages } from "lucide-react"
+import { Languages } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { ROLES, type Role, type AuthUser } from "@workspace/types"
@@ -19,7 +19,6 @@ export interface AdminHeaderProps {
     avatarUrl?: string | null
     isActive?: boolean
   }
-  onToggleDrawer: () => void
   onSwitchLanguage: () => void
   onLogout?: () => void
   locale: string
@@ -28,7 +27,6 @@ export interface AdminHeaderProps {
 export function AdminHeader({
   role,
   user,
-  onToggleDrawer,
   onSwitchLanguage,
   onLogout,
   locale,
@@ -38,19 +36,13 @@ export function AdminHeader({
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/95 px-4 backdrop-blur-md sm:px-6 lg:px-8">
-      {/* Left / Start Section */}
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleDrawer}
-          className="cursor-pointer text-muted-foreground hover:text-foreground lg:hidden"
-          aria-label="Toggle menu"
-        >
-          <Menu className="size-5" />
-        </Button>
+        {!isSuperAdmin && (
+          <span className="text-sm font-bold text-foreground lg:hidden">
+            {t("appName")}
+          </span>
+        )}
 
-        {/* Desktop Title & Platform Switcher */}
         <div className="hidden lg:flex lg:items-center lg:gap-3">
           <span className="text-sm font-semibold text-foreground">
             {isSuperAdmin

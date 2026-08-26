@@ -11,7 +11,7 @@ import { useActiveInstitute } from "@/lib/stores"
 import { SidebarBrand } from "./sidebar-brand"
 import { NavList, type NavSection } from "./nav-list"
 import { SidebarFooter } from "./sidebar-footer"
-import { MobileDrawer } from "./mobile-drawer"
+import { MobileBottomNavigation } from "./mobile-bottom-navigation"
 import { AdminHeader } from "./admin-header"
 import {
   SUPER_ADMIN_PLATFORM_NAV,
@@ -25,7 +25,6 @@ export interface AdminBaseLayoutProps {
 }
 
 export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
-  const [drawerOpen, setDrawerOpen] = React.useState(false)
   const t = useTranslations("common.nav")
   const locale = useLocale()
   const pathname = usePathname()
@@ -129,12 +128,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
         </div>
       </aside>
 
-      {/* Mobile Drawer */}
-      <MobileDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        isRtl={isRtl}
-        role={effectiveRole}
+      <MobileBottomNavigation
         sections={navSections}
         pathname={pathname}
         onLogout={handleLogout}
@@ -147,13 +141,12 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
         <AdminHeader
           role={effectiveRole}
           user={user}
-          onToggleDrawer={() => setDrawerOpen(true)}
           onSwitchLanguage={handleSwitchLanguage}
           onLogout={handleLogout}
           locale={locale}
         />
 
-        <main className="mx-auto w-full max-w-7xl flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-6 lg:p-8">
           {children}
         </main>
       </div>

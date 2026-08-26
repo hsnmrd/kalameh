@@ -16,7 +16,17 @@
     "rolePermissions": "نقش‌ها و دسترسی‌ها",
     "finance": "امور مالی و فیش‌ها",
     "superAdminSection": "مدیریت کل سامانه",
-    "instituteSection": "مدیریت آموزشگاه"
+    "instituteSection": "مدیریت آموزشگاه",
+    "menu": "منو",
+    "moreTitle": "سایر بخش‌ها",
+    "mobileNavigation": "ناوبری موبایل",
+    "noMoreLinks": "همه بخش‌های در دسترس در نوار پایین قرار دارند.",
+    "locked": "ماژول غیرفعال"
+  },
+  "theme": {
+    "light": "روشن",
+    "dark": "تیره",
+    "system": "سیستم"
   },
   "language": "زبان",
   "logout": "خروج از حساب",

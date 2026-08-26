@@ -16,7 +16,17 @@
     "rolePermissions": "Roles & Permissions",
     "finance": "Financial & Receipts",
     "superAdminSection": "Platform Management",
-    "instituteSection": "Institute Management"
+    "instituteSection": "Institute Management",
+    "menu": "Menu",
+    "moreTitle": "More sections",
+    "mobileNavigation": "Mobile navigation",
+    "noMoreLinks": "All available sections are already in the navigation bar.",
+    "locked": "Locked module"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   },
   "language": "Language",
   "logout": "Sign Out",
