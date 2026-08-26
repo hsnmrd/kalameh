@@ -26,7 +26,7 @@ export function UsersHeaderActions({
   onExportClick,
   isExporting,
 }: UsersHeaderActionsProps) {
-  const t = useTranslations("users")
+  const t = useTranslations("common")
   const hasExtraActions = Boolean(onImportClick || onExportClick)
 
   if (!hasExtraActions) return null

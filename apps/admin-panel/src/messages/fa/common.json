@@ -63,6 +63,12 @@
     "managingInstitute": "در حال مدیریت آموزشگاه",
     "superAdminAccount": "حساب مدیر ارشد"
   },
+  "importModal": {
+    "trigger": "ورود از اکسل"
+  },
+  "export": {
+    "trigger": "خروجی اکسل"
+  },
   "en": "English",
   "fa": "فارسی",
   "footer": "سامانه آموزش زبان کلمه • نگارش ۱.۰",

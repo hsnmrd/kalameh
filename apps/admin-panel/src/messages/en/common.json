@@ -63,6 +63,12 @@
     "managingInstitute": "Managing Institute",
     "superAdminAccount": "Super Admin Account"
   },
+  "importModal": {
+    "trigger": "Import from Excel"
+  },
+  "export": {
+    "trigger": "Export to Excel"
+  },
   "en": "English",
   "fa": "فارسی",
   "footer": "Kalameh Language Platform • Admin Panel v1.0",
