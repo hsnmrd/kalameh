@@ -39,7 +39,7 @@ function DrawerContent({
       <DrawerOverlay />
       <DrawerPrimitive.Content
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col rounded-t-2xl border border-border bg-card focus:outline-hidden",
+          "fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[90dvh] w-full flex-col rounded-t-2xl border border-border bg-card focus:outline-hidden",
           className
         )}
         {...props}

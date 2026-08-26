@@ -65,10 +65,7 @@ export const UserBadgeTrigger = React.forwardRef<
     >
       <div
         className={cn(
-          "relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg text-xs font-bold shadow-xs",
-          hasActiveInstitute
-            ? "bg-emerald-600 text-white"
-            : "bg-primary text-primary-foreground"
+          "relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg text-xs font-bold shadow-xs"
         )}
       >
         {hasActiveInstitute ? (
