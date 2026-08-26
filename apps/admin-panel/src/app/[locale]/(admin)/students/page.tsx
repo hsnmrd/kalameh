@@ -12,7 +12,6 @@ import { usePermissions } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
-import { StudentsHeader } from "./components/students-header"
 import { StudentsFilter } from "./components/students-filter"
 import { StudentsTable } from "./components/students-table"
 import { StudentsList } from "./components/students-list"
@@ -75,12 +74,6 @@ export default function StudentsPage() {
     <ModuleGuard module={APP_MODULES.STUDENTS}>
       <PermissionGuard permission={PERMISSIONS.VIEW_STUDENTS} mode="forbidden">
         <AdminPageShell
-          header={
-            <StudentsHeader
-              totalCount={totalCount}
-              onAddStudentClick={() => setCreateModalOpen(true)}
-            />
-          }
           filter={
             <StudentsFilter
               searchValue={searchValue}

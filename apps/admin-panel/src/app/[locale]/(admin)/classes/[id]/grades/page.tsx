@@ -11,19 +11,23 @@ import {
   ROLES,
   type SingleStudentGradeInput,
 } from "@workspace/types"
+import { ArrowRight, ArrowLeft } from "lucide-react"
 import { gradesResource, classesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions } from "@/lib/hooks"
+import { Link, useIsRtl } from "@/i18n/routing"
+import { Button } from "@workspace/ui/components/button"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
-import { GradesHeader } from "./components/grades-header"
 import { ClassInfoCard } from "./components/class-info-card"
 import { GradesTable } from "./components/grades-table"
 import { GradesList } from "./components/grades-list"
 
 export default function ClassGradesPage() {
   const t = useTranslations("grades")
+  const isRtl = useIsRtl()
+  const ArrowIcon = isRtl ? ArrowRight : ArrowLeft
   const params = useParams()
   const classId = params.id as string
   const queryClient = useQueryClient()
@@ -69,9 +73,20 @@ export default function ClassGradesPage() {
         mode="forbidden"
       >
         <AdminPageShell
-          header={<GradesHeader />}
           filter={
-            <ClassInfoCard cls={cls} studentsCount={records?.length ?? 0} />
+            <div className="space-y-4">
+              <Link href="/classes">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowIcon className="size-3.5" />
+                  <span>{t("backToClasses")}</span>
+                </Button>
+              </Link>
+              <ClassInfoCard cls={cls} studentsCount={records?.length ?? 0} />
+            </div>
           }
         >
           {/* Desktop: DataTable */}

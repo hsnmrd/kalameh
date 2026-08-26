@@ -12,7 +12,6 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
-import { RolePermissionsHeader } from "./components/role-permissions-header"
 import { RolePermissionsEditor } from "./components/role-permissions-editor"
 import { RolePermissionsStickyBar } from "./components/role-permissions-sticky-bar"
 
@@ -154,7 +153,7 @@ export default function RolePermissionsPage() {
         ]}
         mode="forbidden"
       >
-        <AdminPageShell header={<RolePermissionsHeader />}>
+        <AdminPageShell>
           {isLoading ? (
             <div className="flex h-64 items-center justify-center">
               <Spinner className="size-8 text-primary" />

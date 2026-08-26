@@ -12,7 +12,6 @@ import { usePermissions } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
-import { TermsHeader } from "./components/terms-header"
 import { TermsTable } from "./components/terms-table"
 import { TermsList } from "./components/terms-list"
 import { CreateTermModal } from "./components/create-term-modal"
@@ -40,7 +39,6 @@ export default function TermsPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_TERMS} mode="forbidden">
         <AdminPageShell
-          header={<TermsHeader onAddTerm={() => setCreateModalOpen(true)} />}
           modals={
             <>
               <CreateTermModal

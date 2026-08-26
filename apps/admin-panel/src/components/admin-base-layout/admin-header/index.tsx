@@ -5,7 +5,10 @@ import { useTranslations } from "next-intl"
 import { Languages } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
-import { ROLES, type Role, type AuthUser } from "@workspace/types"
+import { type Role, type AuthUser } from "@workspace/types"
+import { cn } from "@workspace/ui/lib/utils"
+import { usePathname } from "@/i18n/routing"
+import { useHeaderActions } from "../header-actions-context"
 import { UserBadge } from "./user-badge"
 
 export interface AdminHeaderProps {
@@ -23,6 +26,43 @@ export interface AdminHeaderProps {
   locale: string
 }
 
+function getPageTitle(pathname: string, t: (key: string) => string): string {
+  if (!pathname || pathname === "/" || pathname === "/dashboard") {
+    return t("nav.dashboard")
+  }
+  if (pathname.startsWith("/institutes")) {
+    return t("nav.institutes")
+  }
+  if (pathname.includes("/grades")) {
+    return t("modules.items.GRADES_ASSESSMENTS.name")
+  }
+  if (pathname.startsWith("/classes")) {
+    return t("nav.classes")
+  }
+  if (pathname.startsWith("/branches")) {
+    return t("nav.branches")
+  }
+  if (pathname.startsWith("/terms")) {
+    return t("nav.terms")
+  }
+  if (pathname.startsWith("/courses")) {
+    return t("nav.courses")
+  }
+  if (pathname.startsWith("/students")) {
+    return t("nav.students")
+  }
+  if (pathname.startsWith("/users")) {
+    return t("nav.staff")
+  }
+  if (pathname.startsWith("/role-permissions")) {
+    return t("nav.rolePermissions")
+  }
+  if (pathname.startsWith("/transactions")) {
+    return t("nav.finance")
+  }
+  return t("nav.dashboard")
+}
+
 export function AdminHeader({
   role,
   user,
@@ -31,22 +71,36 @@ export function AdminHeader({
   locale,
 }: AdminHeaderProps) {
   const t = useTranslations("common")
-  const isSuperAdmin = role === ROLES.SUPER_ADMIN
+  const pathname = usePathname()
+  const pageTitle = getPageTitle(pathname, t)
+  const { headerActions } = useHeaderActions()
+
+  const [isScrolled, setIsScrolled] = React.useState(false)
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+
+    handleScroll()
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/95 px-4 backdrop-blur-md sm:px-6 lg:px-8">
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-bold text-foreground lg:hidden">
-          {t("appName")}
-        </span>
-
-        <div className="hidden lg:flex lg:items-center lg:gap-3">
-          <span className="text-sm font-semibold text-foreground">
-            {isSuperAdmin
-              ? `${t("appName")} • ${t("superAdmin")}`
-              : `${t("appName")} • ${t("adminPanel")}`}
-          </span>
-        </div>
+    <header
+      className={cn(
+        "sticky top-0 z-30 flex h-16 items-center justify-between px-4 transition-all duration-200 sm:px-6 lg:px-8",
+        isScrolled
+          ? "border-b border-border bg-card/85 shadow-xs backdrop-blur-md"
+          : "border-b border-transparent bg-transparent"
+      )}
+    >
+      <div className="flex items-center gap-2.5">
+        <h1 className="text-base font-bold tracking-tight text-foreground sm:text-lg">
+          {pageTitle}
+        </h1>
+        {headerActions}
       </div>
 
       {/* Right / End Section */}

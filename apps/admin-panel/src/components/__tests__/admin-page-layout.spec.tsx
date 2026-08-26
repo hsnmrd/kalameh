@@ -1,9 +1,8 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "../../test/test-utils"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { HeaderActionsProvider } from "../admin-base-layout/header-actions-context"
 import { AdminPageHeader } from "../admin-page-header"
 import { AdminPageShell } from "../admin-page-shell"
-import { Users } from "lucide-react"
 
 describe("AdminPageHeader & AdminPageShell Components", () => {
   describe("AdminPageHeader", () => {
@@ -35,18 +34,23 @@ describe("AdminPageHeader & AdminPageShell Components", () => {
   })
 
   describe("AdminPageShell", () => {
-    it("should render header, filter, content children, and modals in a consistent layout", () => {
+    it("should render filter, content children, and modals in a consistent layout", () => {
       render(
-        <AdminPageShell
-          header={<div data-testid="page-header">Header Content</div>}
-          filter={<div data-testid="page-filter">Filter Content</div>}
-          modals={<div data-testid="page-modal">Modal Content</div>}
-        >
-          <div data-testid="page-table">Table Content</div>
-        </AdminPageShell>
+        <HeaderActionsProvider>
+          <AdminPageShell
+            actions={
+              <button type="button" data-testid="page-action">
+                Actions
+              </button>
+            }
+            filter={<div data-testid="page-filter">Filter Content</div>}
+            modals={<div data-testid="page-modal">Modal Content</div>}
+          >
+            <div data-testid="page-table">Table Content</div>
+          </AdminPageShell>
+        </HeaderActionsProvider>
       )
 
-      expect(screen.getByTestId("page-header")).toBeInTheDocument()
       expect(screen.getByTestId("page-filter")).toBeInTheDocument()
       expect(screen.getByTestId("page-table")).toBeInTheDocument()
       expect(screen.getByTestId("page-modal")).toBeInTheDocument()

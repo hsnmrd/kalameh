@@ -22,7 +22,7 @@ import { usePermissions } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
-import { UsersHeader } from "./components/users-header"
+import { UsersHeaderActions } from "./components/users-header-actions"
 import { UsersFilter } from "./components/users-filter"
 import { UsersTable } from "./components/users-table"
 import { UsersList } from "./components/users-list"
@@ -107,14 +107,12 @@ export default function UsersPage() {
     <ModuleGuard module={APP_MODULES.USERS_STAFF}>
       <PermissionGuard permission={PERMISSIONS.VIEW_USERS} mode="forbidden">
         <AdminPageShell
-          header={
-            <UsersHeader
+          actions={
+            <UsersHeaderActions
               totalCount={totalCount}
-              onAddUserClick={() => setCreateModalOpen(true)}
               onImportClick={() => setImportModalOpen(true)}
               onExportClick={handleExport}
               isExporting={isExporting}
-              onMobileMenuClick={() => setMobileMenuOpen(true)}
             />
           }
           filter={

@@ -13,6 +13,7 @@ import { NavList, type NavSection } from "./nav-list"
 import { SidebarFooter } from "./sidebar-footer"
 import { MobileBottomNavigation } from "./mobile-bottom-navigation"
 import { AdminHeader } from "./admin-header"
+import { HeaderActionsProvider } from "./header-actions-context"
 import {
   SUPER_ADMIN_PLATFORM_NAV,
   INSTITUTE_NAV_ITEMS,
@@ -101,55 +102,57 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   }
 
   return (
-    <div className="flex min-h-[100dvh] bg-background font-sans text-foreground">
-      {/* Desktop Static Sidebar */}
-      <aside
-        className={cn(
-          "sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between bg-sidebar p-6 text-sidebar-foreground lg:flex xl:w-72",
-          isRtl
-            ? "border-l border-sidebar-border"
-            : "border-r border-sidebar-border"
-        )}
-      >
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="shrink-0 border-b border-sidebar-border/60 pb-4">
-            <SidebarBrand role={effectiveRole} />
+    <HeaderActionsProvider>
+      <div className="flex min-h-[100dvh] bg-background font-sans text-foreground">
+        {/* Desktop Static Sidebar */}
+        <aside
+          className={cn(
+            "sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between bg-sidebar p-6 text-sidebar-foreground lg:flex xl:w-72",
+            isRtl
+              ? "border-l border-sidebar-border"
+              : "border-r border-sidebar-border"
+          )}
+        >
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="shrink-0 border-b border-sidebar-border/60 pb-4">
+              <SidebarBrand role={effectiveRole} />
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-6">
+              <NavList sections={navSections} pathname={pathname} />
+            </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-6">
-            <NavList sections={navSections} pathname={pathname} />
+          <div className="shrink-0">
+            <SidebarFooter
+              onLogout={handleLogout}
+              onSwitchLanguage={handleSwitchLanguage}
+              locale={locale}
+            />
           </div>
-        </div>
-        <div className="shrink-0">
-          <SidebarFooter
-            onLogout={handleLogout}
-            onSwitchLanguage={handleSwitchLanguage}
-            locale={locale}
-          />
-        </div>
-      </aside>
+        </aside>
 
-      <MobileBottomNavigation
-        sections={navSections}
-        pathname={pathname}
-        onLogout={handleLogout}
-        onSwitchLanguage={handleSwitchLanguage}
-        locale={locale}
-      />
-
-      {/* Main Content Container */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AdminHeader
-          role={effectiveRole}
-          user={user}
-          onSwitchLanguage={handleSwitchLanguage}
+        <MobileBottomNavigation
+          sections={navSections}
+          pathname={pathname}
           onLogout={handleLogout}
+          onSwitchLanguage={handleSwitchLanguage}
           locale={locale}
         />
 
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-6 lg:p-8">
-          {children}
-        </main>
+        {/* Main Content Container */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <AdminHeader
+            role={effectiveRole}
+            user={user}
+            onSwitchLanguage={handleSwitchLanguage}
+            onLogout={handleLogout}
+            locale={locale}
+          />
+
+          <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-6 lg:p-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </HeaderActionsProvider>
   )
 }

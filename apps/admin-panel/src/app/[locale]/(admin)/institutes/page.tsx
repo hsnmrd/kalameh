@@ -14,10 +14,10 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@workspace/ui/components/empty"
+import { FABSingle } from "@workspace/ui/components/fab"
 import type { InstituteWithStats } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
 import { AdminPageShell } from "@/components/admin-page-shell"
-import { AdminPageHeader } from "@/components/admin-page-header"
 import { InstituteCard } from "./components/institute-card"
 import { CreateInstituteModal } from "./components/create-institute-modal"
 import { EditInstituteModal } from "./components/edit-institute-modal"
@@ -37,16 +37,10 @@ export default function InstitutesPage() {
 
   return (
     <AdminPageShell
-      header={
-        <AdminPageHeader
-          title={t("title")}
-          subtitle={t("subtitle")}
-          count={institutes.length}
-          countIcon={Building2}
-          action={{
-            label: t("addInstitute"),
-            onClick: () => setIsCreateOpen(true),
-          }}
+      fab={
+        <FABSingle
+          onClick={() => setIsCreateOpen(true)}
+          aria-label={t("addInstitute")}
         />
       }
     >

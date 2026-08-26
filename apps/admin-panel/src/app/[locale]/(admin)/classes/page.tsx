@@ -12,7 +12,6 @@ import { usePermissions } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
-import { ClassesHeader } from "./components/classes-header"
 import { ClassesFilter } from "./components/classes-filter"
 import { ClassesTable } from "./components/classes-table"
 import { ClassesList } from "./components/classes-list"
@@ -50,7 +49,6 @@ export default function ClassesPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_CLASSES} mode="forbidden">
         <AdminPageShell
-          header={<ClassesHeader onAddClass={() => setCreateModalOpen(true)} />}
           filter={
             <ClassesFilter
               termId={termId}

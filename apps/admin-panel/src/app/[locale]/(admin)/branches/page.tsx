@@ -16,7 +16,6 @@ import { usePermissions } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
-import { BranchesHeader } from "./components/branches-header"
 import { BranchesTable } from "./components/branches-table"
 import { BranchesList } from "./components/branches-list"
 import { CreateBranchModal } from "./components/create-branch-modal"
@@ -45,9 +44,6 @@ export default function BranchesPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_BRANCHES} mode="forbidden">
         <AdminPageShell
-          header={
-            <BranchesHeader onAddBranch={() => setCreateModalOpen(true)} />
-          }
           modals={
             <>
               <CreateBranchModal
