@@ -92,7 +92,7 @@ export function AdminHeader({
       className={cn(
         "sticky top-0 z-30 flex h-16 items-center justify-between px-4 transition-all duration-200 sm:px-6 lg:px-8",
         isScrolled
-          ? "border-b border-border bg-card/85 shadow-xs backdrop-blur-md"
+          ? "border-b border-border bg-card/10 backdrop-blur-md"
           : "border-b border-transparent bg-transparent"
       )}
     >
