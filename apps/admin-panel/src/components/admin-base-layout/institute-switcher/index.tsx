@@ -15,13 +15,12 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
 import {
-  Dialog,
-  DialogTrigger,
-  DialogPopup,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogCloseButton,
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogDescription,
+  ResponsiveDialogCloseButton,
 } from "@workspace/ui/components/dialog"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
@@ -29,16 +28,37 @@ import { useActiveInstitute } from "@/lib/stores"
 import { useRouter, useIsRtl } from "@/i18n/routing"
 
 export interface InstituteSwitcherProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  trigger?: React.ReactNode
   className?: string
 }
 
-export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
+export function InstituteSwitcher({
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+  trigger,
+  className,
+}: InstituteSwitcherProps) {
   const t = useTranslations("institutes")
   const locale = useLocale()
   const isRtl = useIsRtl()
   const router = useRouter()
-  const [open, setOpen] = React.useState(false)
+  const [internalOpen, setInternalOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
+
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = React.useCallback(
+    (nextOpen: boolean) => {
+      if (isControlled) {
+        setControlledOpen?.(nextOpen)
+      } else {
+        setInternalOpen(nextOpen)
+      }
+    },
+    [isControlled, setControlledOpen]
+  )
 
   const {
     activeInstitute,
@@ -73,44 +93,20 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
   const ActionArrow = isRtl ? ArrowLeft : ArrowRight
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={cn(
-              "h-9 max-w-[220px] cursor-pointer items-center justify-between gap-2 rounded-xl border-border bg-background px-3 text-xs font-semibold text-foreground transition-all hover:bg-muted sm:max-w-[280px]",
-              activeInstitute &&
-                "border-emerald-500/30 bg-emerald-500/10 text-emerald-600",
-              className
-            )}
-          >
-            <div className="flex min-w-0 items-center gap-1.5 truncate">
-              {activeInstitute ? (
-                <Building2 className="size-3.5 shrink-0 text-emerald-600" />
-              ) : (
-                <Globe className="size-3.5 shrink-0 text-muted-foreground" />
-              )}
-              <span className="truncate">
-                {activeInstitute
-                  ? activeInstitute.name
-                  : t("switcher.allInstitutes")}
-              </span>
-            </div>
-            <ChevronsUpDown className="size-3.5 shrink-0 opacity-50" />
-          </Button>
-        }
-      />
+    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+      {trigger}
 
-      <DialogPopup className="max-w-md p-0">
+      <ResponsiveDialogContent
+        className={cn("max-w-md overflow-hidden p-0", className)}
+      >
         <div className="p-6 pb-3">
-          <DialogHeader>
-            <DialogTitle>{t("switcher.title")}</DialogTitle>
-            <DialogDescription>{t("switcher.description")}</DialogDescription>
-          </DialogHeader>
-          <DialogCloseButton />
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>{t("switcher.title")}</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              {t("switcher.description")}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          <ResponsiveDialogCloseButton />
 
           <div className="relative mt-4">
             <Search className="pointer-events-none absolute start-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -221,7 +217,7 @@ export function InstituteSwitcher({ className }: InstituteSwitcherProps) {
             </div>
           )}
         </div>
-      </DialogPopup>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   )
 }

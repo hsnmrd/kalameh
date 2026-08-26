@@ -7,7 +7,6 @@ import { Button } from "@workspace/ui/components/button"
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { ROLES, type Role, type AuthUser } from "@workspace/types"
 import { UserBadge } from "./user-badge"
-import { InstituteSwitcher } from "../institute-switcher"
 
 export interface AdminHeaderProps {
   role?: Role
@@ -37,11 +36,9 @@ export function AdminHeader({
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/95 px-4 backdrop-blur-md sm:px-6 lg:px-8">
       <div className="flex items-center gap-3">
-        {!isSuperAdmin && (
-          <span className="text-sm font-bold text-foreground lg:hidden">
-            {t("appName")}
-          </span>
-        )}
+        <span className="text-sm font-bold text-foreground lg:hidden">
+          {t("appName")}
+        </span>
 
         <div className="hidden lg:flex lg:items-center lg:gap-3">
           <span className="text-sm font-semibold text-foreground">
@@ -49,18 +46,11 @@ export function AdminHeader({
               ? `${t("appName")} • ${t("superAdmin")}`
               : `${t("appName")} • ${t("adminPanel")}`}
           </span>
-          {isSuperAdmin && <InstituteSwitcher />}
         </div>
       </div>
 
       {/* Right / End Section */}
       <div className="flex items-center gap-2.5">
-        {isSuperAdmin && (
-          <div className="lg:hidden">
-            <InstituteSwitcher />
-          </div>
-        )}
-
         {/* Theme and Language Switcher (Desktop only; moved to drawer on mobile) */}
         <div className="hidden lg:flex lg:items-center lg:gap-2.5">
           <ThemeToggle />
@@ -78,7 +68,7 @@ export function AdminHeader({
         </div>
 
         {/* User Card Info with Avatar Trigger & Popup */}
-        <UserBadge user={user} onLogout={onLogout} />
+        <UserBadge user={user} role={role} onLogout={onLogout} />
       </div>
     </header>
   )
