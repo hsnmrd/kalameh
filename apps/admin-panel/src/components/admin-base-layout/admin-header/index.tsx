@@ -97,10 +97,10 @@ export function AdminHeader({
       )}
     >
       <div className="flex items-center gap-2.5">
+        {headerActions}
         <h1 className="text-base font-bold tracking-tight text-foreground sm:text-lg">
           {pageTitle}
         </h1>
-        {headerActions}
       </div>
 
       {/* Right / End Section */}
