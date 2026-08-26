@@ -53,23 +53,19 @@ describe("MobileBottomNavigation", () => {
       name: "ناوبری موبایل",
     })
 
-    expect(navigation).toHaveTextContent("پیشخوان مدیریت")
-    expect(navigation).toHaveTextContent("مدیریت کلاس‌ها")
-    expect(navigation).toHaveTextContent("فراگیران و زبان‌آموزان")
-    expect(navigation).toHaveTextContent("امور مالی و فیش‌ها")
-    expect(navigation).not.toHaveTextContent("شعب آموزشگاه")
+    expect(navigation).toHaveTextContent("پیشخوان")
+    expect(navigation).toHaveTextContent("کلاس‌ها")
+    expect(navigation).toHaveTextContent("زبان‌آموزان")
+    expect(navigation).toHaveTextContent("امور مالی")
+    expect(navigation).not.toHaveTextContent("شعب")
 
     fireEvent.click(screen.getByRole("button", { name: "منو" }))
 
     expect(await screen.findByText("سایر بخش‌ها")).toBeInTheDocument()
     expect(screen.getByRole("dialog")).toHaveClass("h-[90dvh]", "max-h-[90dvh]")
-    expect(screen.getByRole("link", { name: "شعب آموزشگاه" })).toBeVisible()
-    expect(
-      screen.getByRole("link", { name: "برنامه‌های آموزشی" })
-    ).toBeVisible()
-    expect(
-      screen.getByRole("link", { name: "پرسنل و دسترسی‌ها" })
-    ).toBeVisible()
+    expect(screen.getByRole("link", { name: "شعب" })).toBeVisible()
+    expect(screen.getByRole("link", { name: "دوره‌ها" })).toBeVisible()
+    expect(screen.getByRole("link", { name: "پرسنل" })).toBeVisible()
   })
 
   it("marks Menu as active when the current page is an overflow destination", () => {
@@ -86,7 +82,7 @@ describe("MobileBottomNavigation", () => {
     render(<MobileBottomNavigation {...defaultProps} />)
 
     fireEvent.click(screen.getByRole("button", { name: "منو" }))
-    fireEvent.click(await screen.findByRole("link", { name: "شعب آموزشگاه" }))
+    fireEvent.click(await screen.findByRole("link", { name: "شعب" }))
 
     await waitFor(() => {
       expect(screen.queryByText("سایر بخش‌ها")).not.toBeInTheDocument()
