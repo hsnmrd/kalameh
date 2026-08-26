@@ -6,6 +6,25 @@
   "superAdminMode": "Institute View (Super Admin)",
   "nav": {
     "dashboard": "Dashboard",
+    "institutes": "Institutes Management",
+    "classes": "Classes Management",
+    "branches": "Branches Management",
+    "terms": "Terms & Cycles",
+    "courses": "Courses Management",
+    "students": "Students Management",
+    "staff": "Staff Management",
+    "rolePermissions": "Roles & Permissions",
+    "finance": "Financial Transactions",
+    "superAdminSection": "Platform Management",
+    "instituteSection": "Institute Management",
+    "menu": "Menu",
+    "moreTitle": "More sections",
+    "mobileNavigation": "Mobile navigation",
+    "noMoreLinks": "All available sections are already in the navigation bar.",
+    "locked": "Locked module"
+  },
+  "navShort": {
+    "dashboard": "Dashboard",
     "institutes": "Institutes",
     "classes": "Classes",
     "branches": "Branches",
@@ -15,13 +34,7 @@
     "staff": "Staff",
     "rolePermissions": "Permissions",
     "finance": "Finance",
-    "superAdminSection": "Platform Management",
-    "instituteSection": "Institute Management",
-    "menu": "Menu",
-    "moreTitle": "More sections",
-    "mobileNavigation": "Mobile navigation",
-    "noMoreLinks": "All available sections are already in the navigation bar.",
-    "locked": "Locked module"
+    "menu": "Menu"
   },
   "theme": {
     "light": "Light",

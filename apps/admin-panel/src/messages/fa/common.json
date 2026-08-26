@@ -5,6 +5,25 @@
   "adminPanel": "پنل مدیریت",
   "superAdminMode": "مدیریت آموزشگاه (ادمین کل)",
   "nav": {
+    "dashboard": "داشبورد",
+    "institutes": "مدیریت آموزشگاه‌ها",
+    "classes": "مدیریت کلاس‌ها",
+    "branches": "مدیریت شعب",
+    "terms": "ترم‌ها و دوره‌ها",
+    "courses": "مدیریت دوره‌ها",
+    "students": "مدیریت زبان‌آموزان",
+    "staff": "مدیریت پرسنل",
+    "rolePermissions": "نقش‌ها و دسترسی‌ها",
+    "finance": "تراکنش‌های مالی",
+    "superAdminSection": "مدیریت کل سامانه",
+    "instituteSection": "مدیریت آموزشگاه",
+    "menu": "منو",
+    "moreTitle": "سایر بخش‌ها",
+    "mobileNavigation": "ناوبری موبایل",
+    "noMoreLinks": "همه بخش‌های در دسترس در نوار پایین قرار دارند.",
+    "locked": "ماژول غیرفعال"
+  },
+  "navShort": {
     "dashboard": "پیشخوان",
     "institutes": "آموزشگاه‌ها",
     "classes": "کلاس‌ها",
@@ -15,13 +34,7 @@
     "staff": "پرسنل",
     "rolePermissions": "دسترسی‌ها",
     "finance": "امور مالی",
-    "superAdminSection": "مدیریت کل سامانه",
-    "instituteSection": "مدیریت آموزشگاه",
-    "menu": "منو",
-    "moreTitle": "سایر بخش‌ها",
-    "mobileNavigation": "ناوبری موبایل",
-    "noMoreLinks": "همه بخش‌های در دسترس در نوار پایین قرار دارند.",
-    "locked": "ماژول غیرفعال"
+    "menu": "منو"
   },
   "theme": {
     "light": "روشن",

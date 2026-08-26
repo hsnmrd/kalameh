@@ -144,7 +144,7 @@ export function MobileBottomNavigation({
                   )}
                 </span>
                 <span className="max-w-full truncate">
-                  {t(`nav.${item.key}`)}
+                  {t(`navShort.${item.key}`)}
                 </span>
                 {isActive && (
                   <span className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-primary" />

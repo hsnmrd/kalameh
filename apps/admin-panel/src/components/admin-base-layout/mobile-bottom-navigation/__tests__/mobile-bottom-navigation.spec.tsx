@@ -63,9 +63,9 @@ describe("MobileBottomNavigation", () => {
 
     expect(await screen.findByText("سایر بخش‌ها")).toBeInTheDocument()
     expect(screen.getByRole("dialog")).toHaveClass("h-[90dvh]", "max-h-[90dvh]")
-    expect(screen.getByRole("link", { name: "شعب" })).toBeVisible()
-    expect(screen.getByRole("link", { name: "دوره‌ها" })).toBeVisible()
-    expect(screen.getByRole("link", { name: "پرسنل" })).toBeVisible()
+    expect(screen.getByRole("link", { name: "مدیریت شعب" })).toBeVisible()
+    expect(screen.getByRole("link", { name: "مدیریت دوره‌ها" })).toBeVisible()
+    expect(screen.getByRole("link", { name: "مدیریت پرسنل" })).toBeVisible()
   })
 
   it("marks Menu as active when the current page is an overflow destination", () => {
@@ -82,7 +82,7 @@ describe("MobileBottomNavigation", () => {
     render(<MobileBottomNavigation {...defaultProps} />)
 
     fireEvent.click(screen.getByRole("button", { name: "منو" }))
-    fireEvent.click(await screen.findByRole("link", { name: "شعب" }))
+    fireEvent.click(await screen.findByRole("link", { name: "مدیریت شعب" }))
 
     await waitFor(() => {
       expect(screen.queryByText("سایر بخش‌ها")).not.toBeInTheDocument()
