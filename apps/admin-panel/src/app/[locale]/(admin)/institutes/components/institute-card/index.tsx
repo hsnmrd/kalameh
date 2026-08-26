@@ -17,7 +17,6 @@ import {
   Trash2,
   Ban,
   ShieldCheck,
-  MoreVertical,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -28,19 +27,13 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
 } from "@workspace/ui/components/context-menu"
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@workspace/ui/components/dropdown-menu"
 import { toast } from "@workspace/ui/components/sonner"
 import type { InstituteWithStats } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { useRouter, useIsRtl } from "@/i18n/routing"
 import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
+import { InstituteActionMenu } from "./action-menu"
 
 export interface InstituteCardProps {
   institute: InstituteWithStats
@@ -171,43 +164,12 @@ export function InstituteCard({
                 {institute.isActive ? t("status.active") : t("status.blocked")}
               </Badge>
 
-              {/* Three-dot Action Dropdown Trigger */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className="flex size-7.5 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-hidden"
-                  aria-label={t("actions")}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreVertical className="size-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit?.(institute)}>
-                    <Edit2 className="size-4" />
-                    <span>{t("edit")}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleToggleBlock()}>
-                    {institute.isActive ? (
-                      <>
-                        <Ban className="size-4" />
-                        <span>{t("block")}</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShieldCheck className="size-4" />
-                        <span>{t("unblock")}</span>
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => onDelete?.(institute)}
-                  >
-                    <Trash2 className="size-4" />
-                    <span>{t("delete")}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <InstituteActionMenu
+                isActive={institute.isActive}
+                onEdit={onEdit ? () => onEdit(institute) : undefined}
+                onToggleBlock={() => handleToggleBlock()}
+                onDelete={onDelete ? () => onDelete(institute) : undefined}
+              />
             </div>
           </div>
 

@@ -3,6 +3,14 @@
 import * as React from "react"
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
 import { cn } from "@workspace/ui/lib/utils"
+import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "./drawer"
 
 const Popover = PopoverPrimitive.Root
 const PopoverTrigger = PopoverPrimitive.Trigger
@@ -49,32 +57,17 @@ export {
   PopoverPopup as PopoverContent,
 }
 
-// ─── ResponsivePopover ────────────────────────────────────────────────────────
-// On desktop: renders a standard Popover anchored to the trigger.
-// On mobile:  renders a bottom-sheet Drawer opened by the trigger.
-
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "./drawer"
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState(false)
-  React.useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px)")
-    setIsMobile(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener("change", handler)
-    return () => mq.removeEventListener("change", handler)
-  }, [])
-  return isMobile
-}
-
 export interface ResponsivePopoverProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  trigger?: React.ReactNode
-  /** Title shown in the Drawer header on mobile */
-  drawerTitle?: string
+  trigger: React.ReactElement
+  drawerTitle: React.ReactNode
   children: React.ReactNode
   className?: string
+  drawerClassName?: string
+  drawerBodyClassName?: string
+  sideOffset?: number
+  align?: "start" | "center" | "end"
 }
 
 export function ResponsivePopover({
@@ -84,31 +77,40 @@ export function ResponsivePopover({
   drawerTitle,
   children,
   className,
+  drawerClassName,
+  drawerBodyClassName,
+  sideOffset = 4,
+  align = "center",
 }: ResponsivePopoverProps) {
   const isMobile = useIsMobile()
 
   if (isMobile) {
     return (
-      <>
-        {trigger}
-        <Drawer open={open} onOpenChange={onOpenChange}>
-          <DrawerContent className={className}>
-            {drawerTitle && (
-              <DrawerHeader>
-                <DrawerTitle>{drawerTitle}</DrawerTitle>
-              </DrawerHeader>
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+        <DrawerContent className={drawerClassName}>
+          <DrawerHeader>
+            <DrawerTitle>{drawerTitle}</DrawerTitle>
+          </DrawerHeader>
+          <div
+            className={cn(
+              "pb-safe-or-4 overflow-y-auto px-4 pt-2",
+              drawerBodyClassName
             )}
-            <div className="pb-safe-or-4 overflow-y-auto">{children}</div>
-          </DrawerContent>
-        </Drawer>
-      </>
+          >
+            {children}
+          </div>
+        </DrawerContent>
+      </Drawer>
     )
   }
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      {trigger && <PopoverTrigger render={<span />}>{trigger}</PopoverTrigger>}
-      <PopoverPopup className={className}>{children}</PopoverPopup>
+      <PopoverTrigger render={trigger} />
+      <PopoverPopup className={className} sideOffset={sideOffset} align={align}>
+        {children}
+      </PopoverPopup>
     </Popover>
   )
 }

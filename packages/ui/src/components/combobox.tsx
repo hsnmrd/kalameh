@@ -4,6 +4,7 @@ import * as React from "react"
 import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox"
 import { Check, ChevronDown, Search, X } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
+import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
 
 export interface ComboboxOption {
   value: string
@@ -145,18 +146,6 @@ export function Combobox({
 //                    with a search input and scrollable option list.
 
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "./drawer"
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState(false)
-  React.useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px)")
-    setIsMobile(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener("change", handler)
-    return () => mq.removeEventListener("change", handler)
-  }, [])
-  return isMobile
-}
 
 export interface ResponsiveComboboxProps extends ComboboxProps {
   /** Label shown in the Drawer header on mobile */

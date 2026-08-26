@@ -1,9 +1,13 @@
-import { describe, it, expect, vi } from "vitest"
+import { afterEach, describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "../../test/test-utils"
 import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Calendar } from "@workspace/ui/components/calendar"
 
 describe("Calendar & DatePicker Components", () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   describe("Calendar", () => {
     it("should render in Persian (Jalali) calendar mode by default when locale is fa", () => {
       render(
@@ -45,6 +49,37 @@ describe("Calendar & DatePicker Components", () => {
       )
 
       expect(screen.getByText("انتخاب تاریخ تولد")).toBeInTheDocument()
+    })
+
+    it("should open the calendar in a bottom-sheet drawer on mobile", () => {
+      vi.spyOn(window, "matchMedia").mockImplementation(
+        (query) =>
+          ({
+            matches: true,
+            media: query,
+            onchange: null,
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+          }) as MediaQueryList
+      )
+
+      render(
+        <DatePicker
+          value=""
+          onChange={vi.fn()}
+          locale="fa"
+          placeholder="انتخاب تاریخ تولد"
+        />
+      )
+
+      fireEvent.click(screen.getByRole("button", { name: "انتخاب تاریخ تولد" }))
+
+      expect(
+        screen.getByRole("heading", { name: "انتخاب تاریخ" })
+      ).toBeInTheDocument()
     })
 
     it("should format and display selected date in Persian format", () => {

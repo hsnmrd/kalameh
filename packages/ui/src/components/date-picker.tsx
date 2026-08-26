@@ -6,11 +6,7 @@ import { format as formatJalali } from "date-fns-jalali"
 import { Calendar as CalendarIcon, X } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverPopup,
-} from "@workspace/ui/components/popover"
+import { ResponsivePopover } from "@workspace/ui/components/popover"
 import {
   Calendar,
   type CalendarLocale,
@@ -29,6 +25,7 @@ export interface DatePickerProps {
   "data-invalid"?: boolean
   minDate?: Date
   maxDate?: Date
+  drawerTitle?: string
 }
 
 export function DatePicker({
@@ -44,6 +41,7 @@ export function DatePicker({
   "data-invalid": dataInvalid,
   minDate,
   maxDate,
+  drawerTitle,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -88,44 +86,39 @@ export function DatePicker({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <div
-        className={cn(
-          "relative flex h-10 w-full items-center justify-between rounded-xl border border-border bg-background px-3 text-sm text-foreground shadow-2xs transition-colors focus-within:border-primary disabled:cursor-not-allowed disabled:opacity-50",
-          dataInvalid && "border-destructive focus-within:border-destructive",
-          className
-        )}
-      >
-        <PopoverTrigger
-          disabled={disabled}
-          className="flex h-full w-full cursor-pointer items-center gap-2 text-start text-sm outline-hidden select-none"
-        >
-          <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
-          <span
-            className={cn(
-              "flex-1 font-mono text-sm",
-              !formattedDisplay && "font-sans text-muted-foreground"
-            )}
-          >
-            {formattedDisplay || placeholder}
-          </span>
-        </PopoverTrigger>
-
-        {clearable && selectedDate && !disabled && (
-          <Button
+    <div
+      className={cn(
+        "relative flex h-10 w-full items-center justify-between rounded-xl border border-border bg-background px-3 text-sm text-foreground shadow-2xs transition-colors focus-within:border-primary disabled:cursor-not-allowed disabled:opacity-50",
+        dataInvalid && "border-destructive focus-within:border-destructive",
+        className
+      )}
+    >
+      <ResponsivePopover
+        open={open}
+        onOpenChange={setOpen}
+        drawerTitle={
+          drawerTitle ?? (locale === "fa" ? "انتخاب تاریخ" : "Select date")
+        }
+        className="w-auto border-0 bg-transparent p-0 shadow-none"
+        drawerBodyClassName="flex justify-center px-4"
+        trigger={
+          <button
             type="button"
-            variant="ghost"
-            size="icon"
-            onClick={handleClear}
-            className="size-6 rounded-md p-0 text-muted-foreground hover:text-foreground"
-            aria-label="Clear date"
+            disabled={disabled}
+            className="flex h-full min-w-0 flex-1 cursor-pointer items-center gap-2 text-start text-sm outline-hidden select-none disabled:cursor-not-allowed"
           >
-            <X className="size-3.5" />
-          </Button>
-        )}
-      </div>
-
-      <PopoverPopup className="w-auto border-0 bg-transparent p-0 shadow-none">
+            <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
+            <span
+              className={cn(
+                "flex-1 font-mono text-sm",
+                !formattedDisplay && "font-sans text-muted-foreground"
+              )}
+            >
+              {formattedDisplay || placeholder}
+            </span>
+          </button>
+        }
+      >
         <Calendar
           mode="single"
           selected={selectedDate}
@@ -143,7 +136,20 @@ export function DatePicker({
           }
           autoFocus
         />
-      </PopoverPopup>
-    </Popover>
+      </ResponsivePopover>
+
+      {clearable && selectedDate && !disabled && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={handleClear}
+          className="size-6 rounded-md p-0 text-muted-foreground hover:text-foreground"
+          aria-label="Clear date"
+        >
+          <X className="size-3.5" />
+        </Button>
+      )}
+    </div>
   )
 }

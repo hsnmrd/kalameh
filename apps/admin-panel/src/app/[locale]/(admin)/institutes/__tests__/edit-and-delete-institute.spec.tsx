@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest"
+import { afterEach, describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "../../../../../test/test-utils"
 import { EditInstituteModal } from "../components/edit-institute-modal"
 import { DeleteInstituteModal } from "../components/delete-institute-modal"
@@ -98,6 +98,10 @@ describe("DeleteInstituteModal Component", () => {
 })
 
 describe("InstituteCard Component", () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it("should render card with primary manage button and status badge", () => {
     const { rerender } = render(<InstituteCard institute={mockInstitute} />)
     expect(
@@ -121,5 +125,33 @@ describe("InstituteCard Component", () => {
     expect(
       screen.getByRole("button", { name: /عملیات آموزشگاه/i })
     ).toBeInTheDocument()
+  })
+
+  it("should open institute actions in a bottom-sheet drawer on mobile", () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query) =>
+        ({
+          matches: true,
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as MediaQueryList
+    )
+
+    const onEdit = vi.fn()
+    render(<InstituteCard institute={mockInstitute} onEdit={onEdit} />)
+
+    fireEvent.click(screen.getByRole("button", { name: "عملیات آموزشگاه" }))
+
+    expect(
+      screen.getByRole("heading", { name: "عملیات آموزشگاه" })
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("menuitem", { name: "ویرایش" }))
+    expect(onEdit).toHaveBeenCalledWith(mockInstitute)
   })
 })

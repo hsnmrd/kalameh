@@ -4,6 +4,7 @@ import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { X } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
+import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
 
 const Dialog = DialogPrimitive.Root
 const DialogTrigger = DialogPrimitive.Trigger
@@ -129,20 +130,6 @@ import {
   DrawerDescription,
   DrawerCloseButton,
 } from "./drawer"
-
-// ─── useIsMobile ─────────────────────────────────────────────────────────────
-// Returns true when window width is below the lg breakpoint (1024px).
-function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState(false)
-  React.useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px)")
-    setIsMobile(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener("change", handler)
-    return () => mq.removeEventListener("change", handler)
-  }, [])
-  return isMobile
-}
 
 // ─── ResponsiveDialog ─────────────────────────────────────────────────────────
 // On mobile (< lg): renders a bottom-sheet Drawer.
