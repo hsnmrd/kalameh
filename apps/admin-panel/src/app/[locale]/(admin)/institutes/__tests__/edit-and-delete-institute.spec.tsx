@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "../../../../../test/test-utils"
 import { EditInstituteModal } from "../components/edit-institute-modal"
 import { DeleteInstituteModal } from "../components/delete-institute-modal"
 import { InstituteCard } from "../components/institute-card"
+import { InstitutesList } from "../components/institutes-list"
 import type { InstituteWithStats } from "@workspace/types"
 
 // Mock sonner toast
@@ -153,5 +154,24 @@ describe("InstituteCard Component", () => {
 
     fireEvent.click(screen.getByRole("menuitem", { name: "ویرایش" }))
     expect(onEdit).toHaveBeenCalledWith(mockInstitute)
+  })
+})
+
+describe("InstitutesList Component", () => {
+  it("should render mobile list of institutes and handle click", () => {
+    const onEdit = vi.fn()
+    const onDelete = vi.fn()
+    render(
+      <InstitutesList
+        institutes={[mockInstitute]}
+        isLoading={false}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    )
+
+    expect(screen.getByText("آموزشگاه تهران")).toBeInTheDocument()
+    expect(screen.getByText("tehran.kalameh.ir")).toBeInTheDocument()
+    expect(screen.getByText("فعال")).toBeInTheDocument()
   })
 })

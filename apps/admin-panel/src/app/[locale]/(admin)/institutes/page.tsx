@@ -19,6 +19,7 @@ import type { InstituteWithStats } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { InstituteCard } from "./components/institute-card"
+import { InstitutesList } from "./components/institutes-list"
 import { CreateInstituteModal } from "./components/create-institute-modal"
 import { EditInstituteModal } from "./components/edit-institute-modal"
 import { DeleteInstituteModal } from "./components/delete-institute-modal"
@@ -67,16 +68,29 @@ export default function InstitutesPage() {
           </EmptyContent>
         </Empty>
       ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {institutes.map((institute) => (
-            <InstituteCard
-              key={institute.id}
-              institute={institute}
+        <>
+          {/* Desktop: Card Grid */}
+          <div className="hidden gap-6 lg:grid lg:grid-cols-2 xl:grid-cols-3">
+            {institutes.map((institute) => (
+              <InstituteCard
+                key={institute.id}
+                institute={institute}
+                onEdit={(inst) => setEditingInstitute(inst)}
+                onDelete={(inst) => setDeletingInstitute(inst)}
+              />
+            ))}
+          </div>
+
+          {/* Mobile: Flat Divider List */}
+          <div className="lg:hidden">
+            <InstitutesList
+              institutes={institutes}
+              isLoading={isLoading}
               onEdit={(inst) => setEditingInstitute(inst)}
               onDelete={(inst) => setDeletingInstitute(inst)}
             />
-          ))}
-        </div>
+          </div>
+        </>
       )}
 
       <CreateInstituteModal
