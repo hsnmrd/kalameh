@@ -87,7 +87,7 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="max-w-md">
+      <FormDialogContent className="sm:max-w-md">
         <FormDialogHeader>
           <div className="space-y-1">
             <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>

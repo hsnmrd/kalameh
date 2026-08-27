@@ -128,7 +128,7 @@ export function EditBranchModal({
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="max-w-lg">
+      <FormDialogContent className="sm:max-w-lg">
         <FormDialogHeader>
           <div className="space-y-1">
             <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>

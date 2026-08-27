@@ -111,7 +111,7 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="max-w-md">
+      <FormDialogContent className="sm:max-w-md">
         <FormDialogHeader>
           <div className="space-y-1">
             <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>

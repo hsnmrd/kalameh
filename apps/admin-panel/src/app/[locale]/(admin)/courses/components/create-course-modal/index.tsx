@@ -112,7 +112,7 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="max-w-md">
+      <FormDialogContent className="sm:max-w-md">
         <FormDialogHeader>
           <div className="space-y-1">
             <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>

@@ -155,7 +155,7 @@ export function ImportUsersModal({
 
   return (
     <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-      <FormDialogContent className="max-w-lg">
+      <FormDialogContent className="sm:max-w-lg">
         <FormDialogHeader>
           <div className="space-y-1">
             <FormDialogTitle>{t("title")}</FormDialogTitle>

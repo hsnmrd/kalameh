@@ -290,10 +290,10 @@ function FormDialogContent({
   return (
     <DialogPortal>
       <DialogBackdrop />
-      <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
         <DialogPrimitive.Popup
           className={cn(
-            "fixed inset-0 z-50 flex h-[100dvh] max-h-[100dvh] min-h-0 w-full flex-col overflow-hidden bg-background p-0 text-foreground outline-hidden transition-all duration-150 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0 sm:relative sm:inset-auto sm:h-auto sm:max-h-[90dvh] sm:w-full sm:max-w-lg sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-6 sm:text-card-foreground sm:shadow-xl",
+            "fixed inset-0 z-50 flex h-dvh max-h-dvh min-h-0 w-screen max-w-none flex-col overflow-hidden rounded-none border-0 bg-background p-0 text-foreground outline-hidden transition-all duration-150 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0 sm:relative sm:inset-auto sm:h-auto sm:max-h-[90dvh] sm:w-full sm:max-w-lg sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-6 sm:text-card-foreground sm:shadow-xl",
             className
           )}
           {...props}

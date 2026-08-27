@@ -51,7 +51,7 @@ export function DeleteUserModal({ open, onClose, user }: DeleteUserModalProps) {
       open={open}
       onOpenChange={(isOpen) => !isOpen && onClose()}
     >
-      <ResponsiveDialogContent className="max-w-md p-6">
+      <ResponsiveDialogContent className="p-6 sm:max-w-md">
         <ResponsiveDialogCloseButton />
 
         <div className="flex items-start gap-4">

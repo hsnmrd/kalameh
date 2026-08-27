@@ -153,7 +153,7 @@ export function EditStudentModal({
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="max-w-2xl">
+      <FormDialogContent className="sm:max-w-2xl">
         <FormDialogHeader>
           <div className="space-y-1">
             <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
