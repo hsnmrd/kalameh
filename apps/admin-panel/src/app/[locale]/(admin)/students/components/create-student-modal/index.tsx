@@ -192,6 +192,9 @@ export function CreateStudentModal({
                     className="text-start font-mono"
                     placeholder={t("createModal.nationalCodePlaceholder")}
                   />
+                  <FieldDescription>
+                    {t("createModal.nationalCodeHint")}
+                  </FieldDescription>
                   <FieldError>{errors.nationalCode?.message}</FieldError>
                 </Field>
               </div>

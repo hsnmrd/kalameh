@@ -16,7 +16,12 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
-import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
+import {
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+} from "@workspace/ui/components/field"
 import {
   ResponsiveCombobox,
   type ComboboxOption,
@@ -195,6 +200,9 @@ export function EditStudentModal({
                   {...register("nationalCode")}
                   className="text-start font-mono"
                 />
+                <FieldDescription>
+                  {t("editModal.nationalCodeHint")}
+                </FieldDescription>
                 <FieldError>{errors.nationalCode?.message}</FieldError>
               </Field>
             </div>
