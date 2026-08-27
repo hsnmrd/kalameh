@@ -39,7 +39,11 @@ export function UsersHeaderActions({
       >
         <MoreVertical className="size-4 text-muted-foreground" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-44">
+      <DropdownMenuContent
+        align="end"
+        drawerTitle={t("navShort.staff")}
+        className="min-w-44"
+      >
         {onImportClick && (
           <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="hide">
             <DropdownMenuItem
