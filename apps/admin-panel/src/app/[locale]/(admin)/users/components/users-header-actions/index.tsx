@@ -34,10 +34,10 @@ export function UsersHeaderActions({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="flex size-8 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-hidden"
+        className="flex size-9 cursor-pointer items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-hidden active:scale-95"
         aria-label={t("navShort.staff")}
       >
-        <MoreVertical className="size-4 text-muted-foreground" />
+        <MoreVertical className="size-5 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"

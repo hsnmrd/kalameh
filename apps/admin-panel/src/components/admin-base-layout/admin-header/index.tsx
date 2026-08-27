@@ -96,9 +96,9 @@ export function AdminHeader({
           : "border-b border-transparent bg-transparent"
       )}
     >
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-3">
         {headerActions}
-        <h1 className="text-base font-bold tracking-tight text-foreground sm:text-lg">
+        <h1 className="text-lg font-bold tracking-tight text-foreground sm:text-xl lg:text-2xl">
           {pageTitle}
         </h1>
       </div>
