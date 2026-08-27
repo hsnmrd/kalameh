@@ -16,11 +16,23 @@ export class InstitutesService {
     private readonly i18n: I18nService,
   ) {}
 
-  async findAll(currentUser: JwtPayload) {
+  async findAll(currentUser: JwtPayload, search?: string, isActive?: boolean) {
     if (currentUser.role !== 'SUPER_ADMIN') {
       const { _count, ...institute } =
         await this.prisma.institute.findFirstOrThrow({
-          where: { id: currentUser.instituteId, deletedAt: null },
+          where: {
+            id: currentUser.instituteId,
+            deletedAt: null,
+            ...(search
+              ? {
+                  OR: [
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { subdomain: { contains: search, mode: 'insensitive' } },
+                  ],
+                }
+              : {}),
+            ...(isActive !== undefined ? { isActive } : {}),
+          },
           include: {
             _count: { select: { classes: true, users: true } },
           },
@@ -36,7 +48,19 @@ export class InstitutesService {
     }
 
     const institutes = await this.prisma.institute.findMany({
-      where: { subdomain: { not: 'system' }, deletedAt: null },
+      where: {
+        subdomain: { not: 'system' },
+        deletedAt: null,
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { subdomain: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+        ...(isActive !== undefined ? { isActive } : {}),
+      },
       include: {
         _count: { select: { classes: true, users: true } },
       },

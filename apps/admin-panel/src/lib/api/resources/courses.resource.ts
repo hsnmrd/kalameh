@@ -6,7 +6,10 @@ import type {
 import { api } from "../client"
 
 export const coursesResource = api.resource("courses", {
-  list: api.get<CourseDto[], { instituteId?: string } | void>("/courses", {
+  list: api.get<
+    CourseDto[],
+    { instituteId?: string; search?: string; prerequisiteId?: string } | void
+  >("/courses", {
     query: (params) => params || {},
   }),
   detail: api.get<CourseDto, string>((id) => `/courses/${id}`),

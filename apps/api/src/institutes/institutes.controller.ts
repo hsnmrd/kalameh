@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -22,6 +23,7 @@ import { CurrentLocale } from '../i18n';
 import { instituteLogoMulterOptions } from '../common/upload/multer.util';
 import {
   PERMISSIONS,
+  parseStatusFilter,
   type JwtPayload,
   type SupportedLocale,
 } from '@workspace/types';
@@ -33,8 +35,13 @@ export class InstitutesController {
 
   @Get()
   @RequirePermissions(PERMISSIONS.VIEW_INSTITUTES)
-  async findAll(@CurrentUser() currentUser: JwtPayload) {
-    return this.institutesService.findAll(currentUser);
+  async findAll(
+    @CurrentUser() currentUser: JwtPayload,
+    @Query('search') search?: string,
+    @Query('isActive') isActive?: string,
+  ) {
+    const parsedIsActive = parseStatusFilter(isActive);
+    return this.institutesService.findAll(currentUser, search, parsedIsActive);
   }
 
   @Get(':id')

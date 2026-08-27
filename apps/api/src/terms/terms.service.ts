@@ -20,6 +20,8 @@ export class TermsService {
   async findAll(
     currentUser: JwtPayload,
     targetInstituteId?: string,
+    search?: string,
+    isActive?: boolean,
   ): Promise<TermDto[]> {
     const instituteId =
       currentUser.role === 'SUPER_ADMIN' && targetInstituteId
@@ -27,7 +29,11 @@ export class TermsService {
         : currentUser.instituteId;
 
     const terms = await this.prisma.term.findMany({
-      where: { instituteId },
+      where: {
+        instituteId,
+        ...(search ? { title: { contains: search, mode: 'insensitive' } } : {}),
+        ...(isActive !== undefined ? { isActive } : {}),
+      },
       include: {
         _count: { select: { classes: true } },
       },

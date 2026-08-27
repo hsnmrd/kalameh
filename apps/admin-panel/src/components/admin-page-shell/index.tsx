@@ -8,6 +8,7 @@ export interface AdminPageShellProps {
   /** Optional actions (e.g. three-dot action menu) rendered dynamically in the header next to the page title */
   actions?: React.ReactNode
   filter?: React.ReactNode
+  filters?: React.ReactNode
   children: React.ReactNode
   modals?: React.ReactNode
   /** Floating action button — rendered after modals (fixed position, mobile-only) */
@@ -18,6 +19,7 @@ export interface AdminPageShellProps {
 export function AdminPageShell({
   actions,
   filter,
+  filters,
   children,
   modals,
   fab,
@@ -30,9 +32,11 @@ export function AdminPageShell({
     return () => setHeaderActions(null)
   }, [actions, setHeaderActions])
 
+  const resolvedFilter = filter ?? filters
+
   return (
     <div className={cn("w-full", className)}>
-      {filter}
+      {resolvedFilter}
       {children}
       {modals}
       {fab}

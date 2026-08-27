@@ -6,7 +6,10 @@ import type {
 import { api } from "../client"
 
 export const termsResource = api.resource("terms", {
-  list: api.get<TermDto[], { instituteId?: string } | void>("/terms", {
+  list: api.get<
+    TermDto[],
+    { instituteId?: string; search?: string; isActive?: boolean } | void
+  >("/terms", {
     query: (params) => params || {},
   }),
   detail: api.get<TermDto, string>((id) => `/terms/${id}`),

@@ -34,8 +34,8 @@ export function InstituteAdminView() {
 
   const currentInstitute = instituteDetail ?? activeInstitute
 
-  const classesCount = currentInstitute?.classesCount ?? 0
-  const usersCount = currentInstitute?.usersCount ?? 0
+  const classesCount = instituteDetail?.classesCount ?? 0
+  const usersCount = instituteDetail?.usersCount ?? 0
   const instituteName = currentInstitute?.name ?? t("title")
 
   return (

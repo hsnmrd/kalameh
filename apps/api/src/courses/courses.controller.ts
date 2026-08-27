@@ -36,8 +36,15 @@ export class CoursesController {
   async findAll(
     @CurrentUser() currentUser: JwtPayload,
     @Query('instituteId') targetInstituteId?: string,
+    @Query('search') search?: string,
+    @Query('prerequisiteId') prerequisiteId?: string,
   ) {
-    return this.coursesService.findAll(currentUser, targetInstituteId);
+    return this.coursesService.findAll(
+      currentUser,
+      targetInstituteId,
+      search,
+      prerequisiteId,
+    );
   }
 
   @Get(':id')

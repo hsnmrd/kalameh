@@ -4,7 +4,12 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import type { StudentDto } from "@workspace/types"
-import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
+import {
+  PERMISSIONS,
+  APP_MODULES,
+  ROLES,
+  parseStatusFilter,
+} from "@workspace/types"
 import { FABSingle } from "@workspace/ui/components/fab"
 import { coursesResource, studentsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
@@ -51,18 +56,11 @@ export default function StudentsPage() {
   })
 
   // Query students
-  const isActiveFilter =
-    selectedStatus === "ACTIVE"
-      ? true
-      : selectedStatus === "INACTIVE"
-        ? false
-        : undefined
-
   const { data: students, isLoading } = useQuery({
     ...studentsResource.list.toQuery({
       search: searchValue.trim() || undefined,
       courseId: selectedCourseId !== "ALL" ? selectedCourseId : undefined,
-      isActive: isActiveFilter,
+      isActive: parseStatusFilter(selectedStatus),
       instituteId: activeInstituteId,
     }),
     enabled: Boolean(activeInstituteId && hasModule),

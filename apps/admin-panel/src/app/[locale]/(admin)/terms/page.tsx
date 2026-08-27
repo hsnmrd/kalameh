@@ -4,7 +4,12 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import type { TermDto } from "@workspace/types"
-import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
+import {
+  PERMISSIONS,
+  APP_MODULES,
+  ROLES,
+  parseStatusFilter,
+} from "@workspace/types"
 import { FABSingle } from "@workspace/ui/components/fab"
 import { termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
@@ -34,23 +39,13 @@ export default function TermsPage() {
     activeInstitute?.enabledModules?.includes(APP_MODULES.CLASSES_COURSES)
 
   const { data: terms = [], isLoading } = useQuery({
-    ...termsResource.list.toQuery({ instituteId: activeInstituteId }),
+    ...termsResource.list.toQuery({
+      instituteId: activeInstituteId,
+      search: search.trim() || undefined,
+      isActive: parseStatusFilter(selectedStatus),
+    }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
-
-  const filteredTerms = React.useMemo(() => {
-    return terms.filter((term) => {
-      const matchesSearch =
-        !search.trim() ||
-        term.title.toLowerCase().includes(search.trim().toLowerCase())
-
-      const matchesStatus =
-        selectedStatus === "ALL" ||
-        (selectedStatus === "ACTIVE" ? term.isActive : !term.isActive)
-
-      return matchesSearch && matchesStatus
-    })
-  }, [terms, search, selectedStatus])
 
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
@@ -90,7 +85,7 @@ export default function TermsPage() {
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
             <TermsTable
-              terms={filteredTerms}
+              terms={terms}
               isLoading={isLoading}
               onEdit={(term) => setEditingTerm(term)}
             />
@@ -99,7 +94,7 @@ export default function TermsPage() {
           {/* Mobile: flat divider list */}
           <div className="lg:hidden">
             <TermsList
-              terms={filteredTerms}
+              terms={terms}
               isLoading={isLoading}
               onEdit={(term) => setEditingTerm(term)}
             />

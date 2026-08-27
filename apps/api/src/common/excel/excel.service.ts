@@ -136,8 +136,9 @@ export class ExcelService {
    */
   parseUserRows(
     fileBuffer: Buffer,
-    _locale: SupportedLocale = 'fa',
+    locale: SupportedLocale = 'fa',
   ): UserTemplateRow[] {
+    void locale;
     const isZip =
       fileBuffer.length > 4 &&
       fileBuffer[0] === 0x50 &&
@@ -240,9 +241,9 @@ export class ExcelService {
       const sharedStrings: string[] = [];
       const siMatches = sharedStringsXml.match(/<si>[\s\S]*?<\/si>/g) || [];
       for (const si of siMatches) {
-        const textParts = si.match(/<t[^>]*>([\s\S]*?)<\/t>/g) || [];
+        const textParts: string[] = si.match(/<t[^>]*>([\s\S]*?)<\/t>/g) || [];
         const text = textParts
-          .map((t) => t.replace(/<[^>]+>/g, ''))
+          .map((t: string) => t.replace(/<[^>]+>/g, ''))
           .join('')
           .replace(/&amp;/g, '&')
           .replace(/&lt;/g, '<')
@@ -257,7 +258,7 @@ export class ExcelService {
 
       for (const rowXml of rowMatches) {
         const rowCells: string[] = [];
-        const cellMatches = rowXml.match(/<c[\s\S]*?<\/c>|<c[^\/]*\/>/g) || [];
+        const cellMatches = rowXml.match(/<c[\s\S]*?<\/c>|<c[^/]*\/>/g) || [];
 
         for (const cellXml of cellMatches) {
           const isSharedString = cellXml.includes('t="s"');
@@ -320,7 +321,6 @@ export class ExcelService {
 
       const compressionMethod = buffer.readUInt16LE(offset + 8);
       const compressedSize = buffer.readUInt32LE(offset + 18);
-      const uncompressedSize = buffer.readUInt32LE(offset + 22);
       const fileNameLength = buffer.readUInt16LE(offset + 26);
       const extraFieldLength = buffer.readUInt16LE(offset + 28);
 

@@ -23,6 +23,7 @@ import { CurrentLocale } from '../i18n';
 import {
   PERMISSIONS,
   APP_MODULES,
+  parseStatusFilter,
   type JwtPayload,
   type SupportedLocale,
 } from '@workspace/types';
@@ -53,8 +54,7 @@ export class StudentsController {
     @Query('instituteId') instituteId?: string,
     @CurrentLocale() locale?: SupportedLocale,
   ) {
-    const parsedIsActive =
-      isActive === 'true' ? true : isActive === 'false' ? false : undefined;
+    const parsedIsActive = parseStatusFilter(isActive);
 
     return this.studentsService.findAll(
       currentUser,

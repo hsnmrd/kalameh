@@ -36,25 +36,22 @@ export default function CoursesPage() {
     isSuperAdmin ||
     activeInstitute?.enabledModules?.includes(APP_MODULES.CLASSES_COURSES)
 
-  const { data: courses = [], isLoading } = useQuery({
+  // All courses for prerequisite dropdown options
+  const { data: allCourses = [] } = useQuery({
     ...coursesResource.list.toQuery({ instituteId: activeInstituteId }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
-  const filteredCourses = React.useMemo(() => {
-    return courses.filter((course) => {
-      const matchesSearch =
-        !search.trim() ||
-        course.title.toLowerCase().includes(search.trim().toLowerCase())
-
-      const matchesPrerequisite =
-        selectedPrerequisiteId === "ALL" ||
-        (selectedPrerequisiteId === "NONE" && !course.prerequisiteId) ||
-        course.prerequisiteId === selectedPrerequisiteId
-
-      return matchesSearch && matchesPrerequisite
-    })
-  }, [courses, search, selectedPrerequisiteId])
+  // Filtered courses from backend
+  const { data: courses = [], isLoading } = useQuery({
+    ...coursesResource.list.toQuery({
+      instituteId: activeInstituteId,
+      search: search.trim() || undefined,
+      prerequisiteId:
+        selectedPrerequisiteId !== "ALL" ? selectedPrerequisiteId : undefined,
+    }),
+    enabled: Boolean(activeInstituteId && hasModule),
+  })
 
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
@@ -66,7 +63,7 @@ export default function CoursesPage() {
               onSearchChange={setSearch}
               selectedPrerequisiteId={selectedPrerequisiteId}
               onPrerequisiteChange={setSelectedPrerequisiteId}
-              courses={courses}
+              courses={allCourses}
             />
           }
           modals={
@@ -98,7 +95,7 @@ export default function CoursesPage() {
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
             <CoursesTable
-              courses={filteredCourses}
+              courses={courses}
               isLoading={isLoading}
               onEdit={(course) => setEditingCourse(course)}
             />
@@ -107,7 +104,7 @@ export default function CoursesPage() {
           {/* Mobile: flat divider list */}
           <div className="lg:hidden">
             <CoursesList
-              courses={filteredCourses}
+              courses={courses}
               isLoading={isLoading}
               onEdit={(course) => setEditingCourse(course)}
             />

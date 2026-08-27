@@ -20,6 +20,8 @@ export class CoursesService {
   async findAll(
     currentUser: JwtPayload,
     targetInstituteId?: string,
+    search?: string,
+    prerequisiteId?: string,
   ): Promise<CourseDto[]> {
     const instituteId =
       currentUser.role === 'SUPER_ADMIN' && targetInstituteId
@@ -27,7 +29,15 @@ export class CoursesService {
         : currentUser.instituteId;
 
     const courses = await this.prisma.course.findMany({
-      where: { instituteId },
+      where: {
+        instituteId,
+        ...(search ? { title: { contains: search, mode: 'insensitive' } } : {}),
+        ...(prerequisiteId === 'NONE'
+          ? { prerequisiteId: null }
+          : prerequisiteId && prerequisiteId !== 'ALL'
+            ? { prerequisiteId }
+            : {}),
+      },
       include: {
         prerequisite: {
           select: {

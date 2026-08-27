@@ -43,7 +43,7 @@ export class UsersController {
 
   @Get('excel-template')
   @RequirePermissions(PERMISSIONS.MANAGE_USERS)
-  async getExcelTemplate(
+  getExcelTemplate(
     @CurrentLocale() locale: SupportedLocale,
     @Res() res: Response,
   ) {

@@ -23,6 +23,8 @@ export class BranchesService {
   async findAll(
     currentUser: JwtPayload,
     targetInstituteId?: string,
+    search?: string,
+    isActive?: boolean,
   ): Promise<BranchWithStats[]> {
     const isSuperAdmin = currentUser.role === 'SUPER_ADMIN';
     const instituteId = isSuperAdmin
@@ -30,11 +32,22 @@ export class BranchesService {
       : currentUser.instituteId;
 
     let branches = await this.prisma.branch.findMany({
-      where: instituteId
-        ? { instituteId }
-        : isSuperAdmin
-          ? { institute: { subdomain: { not: 'system' } } }
-          : { instituteId: currentUser.instituteId },
+      where: {
+        ...(instituteId
+          ? { instituteId }
+          : isSuperAdmin
+            ? { institute: { subdomain: { not: 'system' } } }
+            : { instituteId: currentUser.instituteId }),
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { address: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+        ...(isActive !== undefined ? { isActive } : {}),
+      },
       include: {
         _count: { select: { classes: true, users: true } },
       },

@@ -547,7 +547,7 @@ export class UsersService {
         lastName: row.lastName,
         phone: row.phone,
         nationalCode: row.nationalCode || undefined,
-        role: row.role as Role,
+        role: row.role,
         password: hashedPassword,
       });
     }

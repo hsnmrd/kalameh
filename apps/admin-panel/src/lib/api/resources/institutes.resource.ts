@@ -6,7 +6,12 @@ import type {
 import { api } from "../client"
 
 export const institutesResource = api.resource("institutes", {
-  list: api.get<InstituteWithStats[]>("/institutes"),
+  list: api.get<
+    InstituteWithStats[],
+    { search?: string; isActive?: boolean } | void
+  >("/institutes", {
+    query: (params) => params || {},
+  }),
   detail: api.get<InstituteWithStats, string>((id) => `/institutes/${id}`),
   create: api.post<InstituteWithStats, CreateInstituteInput>("/institutes", {
     bodyType: "form-data",

@@ -21,6 +21,7 @@ import { CurrentLocale } from '../i18n';
 import {
   PERMISSIONS,
   APP_MODULES,
+  parseStatusFilter,
   type JwtPayload,
   type SupportedLocale,
 } from '@workspace/types';
@@ -36,8 +37,16 @@ export class TermsController {
   async findAll(
     @CurrentUser() currentUser: JwtPayload,
     @Query('instituteId') targetInstituteId?: string,
+    @Query('search') search?: string,
+    @Query('isActive') isActive?: string,
   ) {
-    return this.termsService.findAll(currentUser, targetInstituteId);
+    const parsedIsActive = parseStatusFilter(isActive);
+    return this.termsService.findAll(
+      currentUser,
+      targetInstituteId,
+      search,
+      parsedIsActive,
+    );
   }
 
   @Get(':id')

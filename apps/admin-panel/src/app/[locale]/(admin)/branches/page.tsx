@@ -7,6 +7,7 @@ import {
   PERMISSIONS,
   APP_MODULES,
   ROLES,
+  parseStatusFilter,
   type BranchWithStats,
 } from "@workspace/types"
 import { FABSingle } from "@workspace/ui/components/fab"
@@ -39,31 +40,19 @@ export default function BranchesPage() {
     activeInstitute?.enabledModules?.includes(APP_MODULES.CLASSES_COURSES)
 
   const { data: branches = [], isLoading } = useQuery({
-    ...branchesResource.list.toQuery({ instituteId: activeInstituteId }),
+    ...branchesResource.list.toQuery({
+      instituteId: activeInstituteId,
+      search: search.trim() || undefined,
+      isActive: parseStatusFilter(selectedStatus),
+    }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
-
-  const filteredBranches = React.useMemo(() => {
-    return branches.filter((branch) => {
-      const matchesSearch =
-        !search.trim() ||
-        branch.name.toLowerCase().includes(search.trim().toLowerCase()) ||
-        branch.address?.toLowerCase().includes(search.trim().toLowerCase()) ||
-        branch.phones?.some((p) => p.includes(search.trim()))
-
-      const matchesStatus =
-        selectedStatus === "ALL" ||
-        (selectedStatus === "ACTIVE" ? branch.isActive : !branch.isActive)
-
-      return matchesSearch && matchesStatus
-    })
-  }, [branches, search, selectedStatus])
 
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_BRANCHES} mode="forbidden">
         <AdminPageShell
-          filter={
+          filters={
             <BranchesFilter
               search={search}
               onSearchChange={setSearch}
@@ -100,7 +89,7 @@ export default function BranchesPage() {
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
             <BranchesTable
-              branches={filteredBranches}
+              branches={branches}
               isLoading={isLoading}
               onEdit={(branch) => setEditingBranch(branch)}
             />
@@ -109,7 +98,7 @@ export default function BranchesPage() {
           {/* Mobile: flat divider list */}
           <div className="lg:hidden">
             <BranchesList
-              branches={filteredBranches}
+              branches={branches}
               isLoading={isLoading}
               onEdit={(branch) => setEditingBranch(branch)}
             />
