@@ -8,7 +8,6 @@ import {
   ResponsiveDialogContent,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
-  ResponsiveDialogDescription,
   ResponsiveDialogCloseButton,
   ResponsiveDialogFooter,
 } from "@workspace/ui/components/dialog"
@@ -68,15 +67,12 @@ export function StudentProfileModal({
       onOpenChange={(isOpen) => !isOpen && onClose()}
     >
       <ResponsiveDialogContent className="sm:max-h-[90vh] sm:max-w-xl">
-        <ResponsiveDialogCloseButton />
-        <ResponsiveDialogHeader className="mb-2 text-start">
+        <ResponsiveDialogHeader className="mb-2 flex flex-row items-center justify-between">
           <ResponsiveDialogTitle className="flex items-center gap-2">
             <User className="size-5 text-primary" />
             <span>{t("profileModal.title")}</span>
           </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
-            {t("profileModal.description")}
-          </ResponsiveDialogDescription>
+          <ResponsiveDialogCloseButton />
         </ResponsiveDialogHeader>
 
         <div className="space-y-4 px-6 pt-2 pb-6">

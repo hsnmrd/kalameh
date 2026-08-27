@@ -351,12 +351,12 @@ function FormDialogCloseButton({
   return (
     <DialogPrimitive.Close
       className={cn(
-        "cursor-pointer rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-hidden sm:absolute sm:end-4 sm:top-4",
+        "cursor-pointer rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-hidden",
         className
       )}
       {...props}
     >
-      <X className="size-5 sm:size-4" />
+      <X className="size-5" />
       <span className="sr-only">Close</span>
     </DialogPrimitive.Close>
   )

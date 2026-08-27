@@ -19,7 +19,6 @@ import {
   ResponsiveDialogContent,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
-  ResponsiveDialogDescription,
   ResponsiveDialogCloseButton,
   ResponsiveDialogFooter,
 } from "@workspace/ui/components/dialog"
@@ -101,13 +100,10 @@ export function InstituteSwitcher({
         className={cn("max-w-md overflow-hidden p-0", className)}
       >
         <div className="p-6 pb-3">
-          <ResponsiveDialogHeader>
+          <ResponsiveDialogHeader className="flex flex-row items-center justify-between">
             <ResponsiveDialogTitle>{t("switcher.title")}</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
-              {t("switcher.description")}
-            </ResponsiveDialogDescription>
+            <ResponsiveDialogCloseButton />
           </ResponsiveDialogHeader>
-          <ResponsiveDialogCloseButton />
 
           <div className="relative mt-4">
             <Search className="pointer-events-none absolute start-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

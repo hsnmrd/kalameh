@@ -11,7 +11,6 @@ import {
   FormDialogContent,
   FormDialogHeader,
   FormDialogTitle,
-  FormDialogDescription,
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
@@ -114,12 +113,7 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
     <FormDialog open={open} onOpenChange={handleOpenChange}>
       <FormDialogContent className="sm:max-w-md">
         <FormDialogHeader>
-          <div className="space-y-1">
-            <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>
-            <FormDialogDescription>
-              {t("createModal.description")}
-            </FormDialogDescription>
-          </div>
+          <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
         </FormDialogHeader>
 

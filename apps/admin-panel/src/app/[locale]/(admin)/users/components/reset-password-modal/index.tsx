@@ -9,7 +9,6 @@ import {
   FormDialogContent,
   FormDialogHeader,
   FormDialogTitle,
-  FormDialogDescription,
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
@@ -64,14 +63,7 @@ export function ResetPasswordModal({
     <FormDialog open={open} onOpenChange={handleOpenChange}>
       <FormDialogContent className="sm:max-w-md">
         <FormDialogHeader>
-          <div className="space-y-1">
-            <FormDialogTitle>{t("resetPasswordModal.title")}</FormDialogTitle>
-            <FormDialogDescription>
-              {t("resetPasswordModal.description", {
-                name: user ? `${user.firstName} ${user.lastName}` : "",
-              })}
-            </FormDialogDescription>
-          </div>
+          <FormDialogTitle>{t("resetPasswordModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
         </FormDialogHeader>
 
@@ -80,6 +72,16 @@ export function ResetPasswordModal({
           className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
         >
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+            {user && (
+              <div className="rounded-xl border border-border/80 bg-muted/40 p-3 text-xs">
+                <span className="text-muted-foreground">
+                  {t("deleteModal.userName")}:{" "}
+                </span>
+                <strong className="text-foreground">
+                  {user.firstName} {user.lastName}
+                </strong>
+              </div>
+            )}
             <Field>
               <FieldLabel>{t("resetPasswordModal.newPassword")}</FieldLabel>
               <PasswordInput

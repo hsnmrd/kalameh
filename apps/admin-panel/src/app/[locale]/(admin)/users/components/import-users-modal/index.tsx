@@ -17,7 +17,6 @@ import {
   FormDialogContent,
   FormDialogHeader,
   FormDialogTitle,
-  FormDialogDescription,
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
@@ -157,10 +156,7 @@ export function ImportUsersModal({
     <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <FormDialogContent className="sm:max-w-lg">
         <FormDialogHeader>
-          <div className="space-y-1">
-            <FormDialogTitle>{t("title")}</FormDialogTitle>
-            <FormDialogDescription>{t("description")}</FormDialogDescription>
-          </div>
+          <FormDialogTitle>{t("title")}</FormDialogTitle>
           <FormDialogCloseButton />
         </FormDialogHeader>
 

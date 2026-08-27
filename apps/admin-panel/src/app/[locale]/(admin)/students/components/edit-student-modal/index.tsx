@@ -11,7 +11,6 @@ import {
   FormDialogContent,
   FormDialogHeader,
   FormDialogTitle,
-  FormDialogDescription,
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
@@ -155,12 +154,7 @@ export function EditStudentModal({
     <FormDialog open={open} onOpenChange={handleOpenChange}>
       <FormDialogContent className="sm:max-w-2xl">
         <FormDialogHeader>
-          <div className="space-y-1">
-            <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
-            <FormDialogDescription>
-              {t("editModal.description")}
-            </FormDialogDescription>
-          </div>
+          <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
         </FormDialogHeader>
 

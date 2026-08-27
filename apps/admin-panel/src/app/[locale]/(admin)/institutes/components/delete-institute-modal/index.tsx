@@ -10,7 +10,6 @@ import {
   ResponsiveDialogContent,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
-  ResponsiveDialogDescription,
   ResponsiveDialogCloseButton,
   ResponsiveDialogFooter,
 } from "@workspace/ui/components/dialog"
@@ -60,23 +59,20 @@ export function DeleteInstituteModal({
       onOpenChange={(isOpen) => !isOpen && onClose()}
     >
       <ResponsiveDialogContent className="p-6 sm:max-w-md">
-        <ResponsiveDialogCloseButton />
+        <ResponsiveDialogHeader className="flex flex-row items-center justify-between">
+          <ResponsiveDialogTitle>
+            {t("deleteModal.title")}
+          </ResponsiveDialogTitle>
+          <ResponsiveDialogCloseButton />
+        </ResponsiveDialogHeader>
 
-        <div className="flex items-start gap-4">
+        <div className="mt-4 flex items-start gap-4">
           <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
             <AlertTriangle className="size-6" />
           </div>
-
-          <div className="space-y-1">
-            <ResponsiveDialogHeader className="text-start">
-              <ResponsiveDialogTitle>
-                {t("deleteModal.title")}
-              </ResponsiveDialogTitle>
-              <ResponsiveDialogDescription className="text-xs leading-relaxed">
-                {t("deleteModal.description")}
-              </ResponsiveDialogDescription>
-            </ResponsiveDialogHeader>
-          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {t("deleteModal.description")}
+          </p>
         </div>
 
         {institute && (
