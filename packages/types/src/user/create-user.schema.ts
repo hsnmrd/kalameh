@@ -26,7 +26,10 @@ export const createCreateUserSchema = (msg?: {
       ),
     password: z
       .string()
-      .min(6, msg?.passwordMin ? { message: msg.passwordMin } : undefined)
+      .refine(
+        (val) => !val || val.length === 0 || val.length >= 6,
+        msg?.passwordMin ? { message: msg.passwordMin } : undefined
+      )
       .optional(),
     role: RoleEnum.default("STUDENT"),
     nationalCode: z.string().trim().optional().nullable(),

@@ -25,7 +25,10 @@ export const createCreateStudentSchema = (msg?: {
       ),
     password: z
       .string()
-      .min(6, msg?.passwordMin ? { message: msg.passwordMin } : undefined)
+      .refine(
+        (val) => !val || val.length === 0 || val.length >= 6,
+        msg?.passwordMin ? { message: msg.passwordMin } : undefined
+      )
       .optional(),
     nationalCode: z.string().trim().optional().nullable(),
     avatarUrl: z.string().optional().nullable(),

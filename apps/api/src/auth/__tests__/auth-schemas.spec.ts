@@ -153,6 +153,34 @@ describe('Auth & User Zod Schemas (@workspace/types)', () => {
       });
       expect(result.success).toBe(false);
     });
+
+    it('should allow empty string or undefined password for default phone password fallback', () => {
+      const emptyStrResult = CreateUserSchema.safeParse({
+        firstName: 'Ali',
+        lastName: 'Rezaei',
+        phone: '09123456789',
+        password: '',
+      });
+      expect(emptyStrResult.success).toBe(true);
+
+      const undefinedResult = CreateUserSchema.safeParse({
+        firstName: 'Ali',
+        lastName: 'Rezaei',
+        phone: '09123456789',
+        password: undefined,
+      });
+      expect(undefinedResult.success).toBe(true);
+    });
+
+    it('should reject non-empty password with less than 6 characters', () => {
+      const result = CreateUserSchema.safeParse({
+        firstName: 'Ali',
+        lastName: 'Rezaei',
+        phone: '09123456789',
+        password: '123',
+      });
+      expect(result.success).toBe(false);
+    });
   });
 
   describe('UpdateUserSchema', () => {
