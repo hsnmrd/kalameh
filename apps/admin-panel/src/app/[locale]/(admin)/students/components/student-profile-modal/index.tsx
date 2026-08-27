@@ -66,7 +66,7 @@ export function StudentProfileModal({
       open={open}
       onOpenChange={(isOpen) => !isOpen && onClose()}
     >
-      <ResponsiveDialogContent className="max-h-[90vh] max-w-xl overflow-y-auto">
+      <ResponsiveDialogContent className="sm:max-h-[90vh] sm:max-w-xl">
         <ResponsiveDialogCloseButton />
         <ResponsiveDialogHeader className="mb-2 text-start">
           <ResponsiveDialogTitle className="flex items-center gap-2">

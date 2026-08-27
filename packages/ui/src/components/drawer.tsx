@@ -39,7 +39,7 @@ function DrawerContent({
       <DrawerOverlay />
       <DrawerPrimitive.Content
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[90dvh] w-full flex-col rounded-t-2xl border border-border bg-card focus:outline-hidden",
+          "fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-card focus:outline-hidden",
           className
         )}
         {...props}
@@ -47,7 +47,9 @@ function DrawerContent({
         {showHandle && (
           <div className="mx-auto mt-3 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-border" />
         )}
-        {children}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
+          {children}
+        </div>
       </DrawerPrimitive.Content>
     </DrawerPortal>
   )

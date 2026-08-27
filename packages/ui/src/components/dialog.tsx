@@ -194,7 +194,7 @@ function ResponsiveDialogContent({
   if (isMobile) {
     return (
       <DrawerContent className={cn("px-0", className)} {...props}>
-        <div className="overflow-y-auto">{children}</div>
+        {children}
       </DrawerContent>
     )
   }
