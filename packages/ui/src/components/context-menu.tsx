@@ -4,17 +4,91 @@ import * as React from "react"
 import { ContextMenu as ContextMenuPrimitive } from "@base-ui/react/context-menu"
 import { Check, ChevronRight, Circle } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
+import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+} from "./drawer"
+import { Button } from "./button"
 
-const ContextMenu = ContextMenuPrimitive.Root
+interface ContextMenuStateContext {
+  open: boolean
+  setOpen: (open: boolean) => void
+  isMobile: boolean
+}
+
+const ContextMenuStateContext = React.createContext<ContextMenuStateContext>({
+  open: false,
+  setOpen: () => {},
+  isMobile: false,
+})
+
+function ContextMenu({
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  children,
+  ...props
+}: ContextMenuPrimitive.Root.Props) {
+  const isMobile = useIsMobile()
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : uncontrolledOpen
+
+  const handleOpenChange = (
+    nextOpen: boolean,
+    eventDetails: ContextMenuPrimitive.Root.ChangeEventDetails
+  ) => {
+    if (!isControlled) {
+      setUncontrolledOpen(nextOpen)
+    }
+    controlledOnOpenChange?.(nextOpen, eventDetails)
+  }
+
+  const setOpen = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!isControlled) {
+        setUncontrolledOpen(nextOpen)
+      }
+      controlledOnOpenChange?.(nextOpen, {
+        reason: "none",
+        cancel: () => {},
+        allowPropagation: () => {},
+        isCanceled: false,
+        isPropagationAllowed: true,
+        trigger: undefined,
+        event: new Event("change"),
+      })
+    },
+    [isControlled, controlledOnOpenChange]
+  )
+
+  return (
+    <ContextMenuStateContext.Provider value={{ open, setOpen, isMobile }}>
+      <ContextMenuPrimitive.Root
+        open={open}
+        onOpenChange={handleOpenChange}
+        {...props}
+      >
+        {children}
+      </ContextMenuPrimitive.Root>
+    </ContextMenuStateContext.Provider>
+  )
+}
 
 function ContextMenuTrigger({
   className,
   ...props
 }: ContextMenuPrimitive.Trigger.Props) {
+  const { open } = React.useContext(ContextMenuStateContext)
+
   return (
     <ContextMenuPrimitive.Trigger
+      data-popup-open={open ? "" : undefined}
       className={cn(
-        "touch-manipulation select-none [-webkit-touch-callout:none]",
+        "touch-manipulation transition-colors duration-150 select-none [-webkit-touch-callout:none] data-[popup-open]:rounded-2xl data-[popup-open]:bg-muted/70",
         className
       )}
       {...props}
@@ -27,16 +101,59 @@ const ContextMenuPortal = ContextMenuPrimitive.Portal
 const ContextMenuSubmenu = ContextMenuPrimitive.SubmenuRoot
 const ContextMenuRadioGroup = ContextMenuPrimitive.RadioGroup
 
+export interface ContextMenuPopupProps
+  extends ContextMenuPrimitive.Popup.Props {
+  sideOffset?: number
+  align?: "start" | "center" | "end"
+  drawerTitle?: string
+  title?: string
+}
+
 function ContextMenuPopup({
   className,
   children,
   sideOffset = 4,
   align = "start",
+  drawerTitle,
+  title,
   ...props
-}: ContextMenuPrimitive.Popup.Props & {
-  sideOffset?: number
-  align?: "start" | "center" | "end"
-}) {
+}: ContextMenuPopupProps) {
+  const { open, setOpen, isMobile } = React.useContext(ContextMenuStateContext)
+
+  const isFa =
+    typeof document !== "undefined" && document.documentElement.lang
+      ? document.documentElement.lang.toLowerCase().startsWith("fa")
+      : true
+
+  if (isMobile) {
+    const resolvedTitle = drawerTitle ?? title ?? (isFa ? "عملیات" : "Actions")
+
+    return (
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{resolvedTitle}</DrawerTitle>
+          </DrawerHeader>
+
+          <div className="flex min-h-0 flex-1 flex-col space-y-1.5 overflow-y-auto overscroll-contain p-3">
+            {children}
+          </div>
+
+          <DrawerFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full rounded-xl"
+              onClick={() => setOpen(false)}
+            >
+              {isFa ? "بستن" : "Close"}
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
   return (
     <ContextMenuPrimitive.Portal>
       <ContextMenuPrimitive.Positioner
@@ -63,6 +180,8 @@ function ContextMenuItem({
   variant = "default",
   onClick,
   onSelect,
+  disabled,
+  children,
   ...props
 }: ContextMenuPrimitive.Item.Props & {
   variant?: "default" | "destructive"
@@ -72,14 +191,45 @@ function ContextMenuItem({
     >[0]
   ) => void
 }) {
+  const { setOpen, isMobile } = React.useContext(ContextMenuStateContext)
+
   const handleClick: ContextMenuPrimitive.Item.Props["onClick"] = (event) => {
     onClick?.(event)
     onSelect?.(event)
+    if (isMobile) {
+      setOpen(false)
+    }
+  }
+
+  if (isMobile) {
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={(e) => {
+          handleClick(
+            e as unknown as Parameters<
+              NonNullable<ContextMenuPrimitive.Item.Props["onClick"]>
+            >[0]
+          )
+        }}
+        className={cn(
+          "flex min-h-13 w-full cursor-pointer items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition-colors select-none hover:bg-muted/60 active:bg-muted disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-5 [&_svg]:shrink-0",
+          variant === "destructive"
+            ? "text-destructive hover:bg-destructive/10 active:bg-destructive/20"
+            : "text-foreground",
+          className
+        )}
+      >
+        {children}
+      </button>
+    )
   }
 
   return (
     <ContextMenuPrimitive.Item
       onClick={handleClick}
+      disabled={disabled}
       className={cn(
         "relative flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium outline-hidden transition-colors select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted data-[highlighted]:text-foreground sm:min-h-10 [&_svg]:size-4.5 [&_svg]:shrink-0",
         variant === "destructive" &&
@@ -87,7 +237,9 @@ function ContextMenuItem({
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </ContextMenuPrimitive.Item>
   )
 }
 
@@ -141,8 +293,24 @@ function ContextMenuRadioItem({
 
 function ContextMenuGroupLabel({
   className,
+  children,
   ...props
 }: ContextMenuPrimitive.GroupLabel.Props) {
+  const { isMobile } = React.useContext(ContextMenuStateContext)
+
+  if (isMobile) {
+    return (
+      <div
+        className={cn(
+          "px-4 py-2 text-xs font-semibold text-muted-foreground",
+          className
+        )}
+      >
+        {children}
+      </div>
+    )
+  }
+
   return (
     <ContextMenuPrimitive.GroupLabel
       className={cn(
@@ -150,7 +318,9 @@ function ContextMenuGroupLabel({
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </ContextMenuPrimitive.GroupLabel>
   )
 }
 
@@ -158,6 +328,12 @@ function ContextMenuSeparator({
   className,
   ...props
 }: ContextMenuPrimitive.Separator.Props) {
+  const { isMobile } = React.useContext(ContextMenuStateContext)
+
+  if (isMobile) {
+    return <div className={cn("-mx-1 my-1.5 h-px bg-border/80", className)} />
+  }
+
   return (
     <ContextMenuPrimitive.Separator
       className={cn("-mx-1.5 my-1 h-px bg-border", className)}
