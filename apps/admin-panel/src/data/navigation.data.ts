@@ -7,7 +7,7 @@ import {
   Users,
   GraduationCap,
   CreditCard,
-  ShieldAlert,
+  Landmark,
   ShieldCheck,
 } from "lucide-react"
 import { PERMISSIONS, APP_MODULES } from "@workspace/types"
@@ -23,7 +23,7 @@ export const SUPER_ADMIN_PLATFORM_NAV: NavItem[] = [
   {
     key: "institutes",
     href: "/institutes",
-    icon: ShieldAlert,
+    icon: Landmark,
     permission: PERMISSIONS.VIEW_INSTITUTES,
   },
 ]
