@@ -31,7 +31,7 @@ export function AdminPageShell({
   }, [actions, setHeaderActions])
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn("w-full", className)}>
       {filter}
       {children}
       {modals}

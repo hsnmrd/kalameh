@@ -27,7 +27,7 @@ export default function UsersPage() {
   const t = useTranslations("users")
   const locale = useLocale()
   const [searchValue, setSearchValue] = React.useState("")
-  const [selectedRole, setSelectedRole] = React.useState("")
+  const [selectedRole, setSelectedRole] = React.useState("ALL")
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [importModalOpen, setImportModalOpen] = React.useState(false)
   const [isExporting, setIsExporting] = React.useState(false)
@@ -45,9 +45,12 @@ export default function UsersPage() {
     activeInstitute?.enabledModules?.includes(APP_MODULES.USERS_STAFF)
 
   // Fetch users with filters (and scoped to active institute for Super Admin / Institute Admin)
+  const effectiveRoleFilter =
+    selectedRole && selectedRole !== "ALL" ? selectedRole : undefined
+
   const { data: users, isLoading } = useQuery({
     ...usersResource.list.toQuery({
-      role: selectedRole || undefined,
+      role: effectiveRoleFilter,
       search: searchValue.trim() || undefined,
       instituteId: activeInstituteId,
     }),
@@ -61,7 +64,7 @@ export default function UsersPage() {
       setIsExporting(true)
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || ""
       const queryParams = new URLSearchParams()
-      if (selectedRole) queryParams.set("role", selectedRole)
+      if (effectiveRoleFilter) queryParams.set("role", effectiveRoleFilter)
       if (searchValue.trim()) queryParams.set("search", searchValue.trim())
       if (activeInstituteId) queryParams.set("instituteId", activeInstituteId)
 

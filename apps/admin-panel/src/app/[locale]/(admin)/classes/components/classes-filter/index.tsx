@@ -56,8 +56,15 @@ export function ClassesFilter({
       ],
     })
 
+  const hasActiveFilter = Boolean(
+    search.trim() ||
+    (termId && termId !== "all") ||
+    (courseId && courseId !== "all")
+  )
+
   return (
     <AdminFilterBar
+      isPinned={hasActiveFilter}
       search={
         <AdminSearchInput
           value={search}

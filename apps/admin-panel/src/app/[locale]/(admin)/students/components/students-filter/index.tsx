@@ -46,12 +46,16 @@ export function StudentsFilter({
     return [
       { key: "ALL", label: t("filter.allStatus") },
       { key: "ACTIVE", label: t("filter.active") },
-      { key: "INACTIVE", label: t("filter.inactive") },
     ]
   }, [t])
 
+  const hasActiveFilter = Boolean(
+    searchValue.trim() || selectedCourseId !== "ALL" || selectedStatus !== "ALL"
+  )
+
   return (
     <AdminFilterBar
+      isPinned={hasActiveFilter}
       search={
         <AdminSearchInput
           value={searchValue}

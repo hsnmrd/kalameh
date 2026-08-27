@@ -37,8 +37,14 @@ export function UsersFilter({
     ]
   }, [t])
 
+  const hasActiveFilter = Boolean(
+    searchValue.trim() ||
+    (selectedRole && selectedRole !== "ALL" && selectedRole !== "")
+  )
+
   return (
     <AdminFilterBar
+      isPinned={hasActiveFilter}
       search={
         <AdminSearchInput
           value={searchValue}

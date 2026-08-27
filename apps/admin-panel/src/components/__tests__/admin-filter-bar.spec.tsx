@@ -78,5 +78,35 @@ describe("Admin Filter System Components", () => {
       expect(screen.getByTestId("search-slot")).toBeInTheDocument()
       expect(screen.getByTestId("filter-slot")).toBeInTheDocument()
     })
+
+    it("should apply pinned revealed classes when isPinned is true", () => {
+      const { container } = render(
+        <AdminFilterBar
+          isPinned={true}
+          search={<div data-testid="search-slot">Search</div>}
+        />
+      )
+
+      const wrapper = container.querySelector(".grid-rows-\\[1fr\\]")
+      expect(wrapper).toBeInTheDocument()
+    })
+
+    it("should open mobile filter drawer on clicking filter button", () => {
+      render(
+        <AdminFilterBar
+          filters={<div data-testid="drawer-filter-content">Options</div>}
+        />
+      )
+
+      const filterBtn = screen.getByRole("button", {
+        name: /فیلتر|filter/i,
+      })
+      expect(filterBtn).toBeInTheDocument()
+      expect(screen.getAllByTestId("drawer-filter-content")).toHaveLength(1)
+
+      fireEvent.click(filterBtn)
+
+      expect(screen.getAllByTestId("drawer-filter-content")).toHaveLength(2)
+    })
   })
 })
