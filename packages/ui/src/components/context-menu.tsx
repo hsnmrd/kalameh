@@ -46,7 +46,7 @@ function ContextMenuPopup({
       >
         <ContextMenuPrimitive.Popup
           className={cn(
-            "relative z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg outline-hidden transition-all data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
+            "relative z-50 min-w-52 overflow-hidden rounded-2xl border border-border bg-popover p-1.5 text-popover-foreground shadow-xl outline-hidden transition-all data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
             className
           )}
           {...props}
@@ -81,7 +81,7 @@ function ContextMenuItem({
     <ContextMenuPrimitive.Item
       onClick={handleClick}
       className={cn(
-        "relative flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium outline-hidden transition-colors select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted data-[highlighted]:text-foreground [&_svg]:size-4 [&_svg]:shrink-0",
+        "relative flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium outline-hidden transition-colors select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted data-[highlighted]:text-foreground sm:min-h-10 [&_svg]:size-4.5 [&_svg]:shrink-0",
         variant === "destructive" &&
           "text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive",
         className
@@ -100,13 +100,13 @@ function ContextMenuCheckboxItem({
   return (
     <ContextMenuPrimitive.CheckboxItem
       className={cn(
-        "relative flex cursor-pointer items-center rounded-lg py-2 ps-8 pe-2.5 text-xs font-medium outline-hidden transition-colors select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted data-[highlighted]:text-foreground",
+        "relative flex min-h-12 cursor-pointer items-center rounded-xl py-2.5 ps-9 pe-3 text-sm font-medium outline-hidden transition-colors select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted data-[highlighted]:text-foreground sm:min-h-10",
         className
       )}
       checked={checked}
       {...props}
     >
-      <span className="absolute start-2 flex size-3.5 items-center justify-center">
+      <span className="absolute start-2.5 flex size-4 items-center justify-center">
         <ContextMenuPrimitive.CheckboxItemIndicator>
           <Check className="size-4" />
         </ContextMenuPrimitive.CheckboxItemIndicator>
@@ -124,12 +124,12 @@ function ContextMenuRadioItem({
   return (
     <ContextMenuPrimitive.RadioItem
       className={cn(
-        "relative flex cursor-pointer items-center rounded-lg py-2 ps-8 pe-2.5 text-xs font-medium outline-hidden transition-colors select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted data-[highlighted]:text-foreground",
+        "relative flex min-h-12 cursor-pointer items-center rounded-xl py-2.5 ps-9 pe-3 text-sm font-medium outline-hidden transition-colors select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted data-[highlighted]:text-foreground sm:min-h-10",
         className
       )}
       {...props}
     >
-      <span className="absolute start-2 flex size-3.5 items-center justify-center">
+      <span className="absolute start-2.5 flex size-4 items-center justify-center">
         <ContextMenuPrimitive.RadioItemIndicator>
           <Circle className="size-2 fill-current" />
         </ContextMenuPrimitive.RadioItemIndicator>
@@ -146,7 +146,7 @@ function ContextMenuGroupLabel({
   return (
     <ContextMenuPrimitive.GroupLabel
       className={cn(
-        "px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground",
+        "px-3.5 py-2 text-xs font-semibold text-muted-foreground",
         className
       )}
       {...props}
@@ -160,7 +160,7 @@ function ContextMenuSeparator({
 }: ContextMenuPrimitive.Separator.Props) {
   return (
     <ContextMenuPrimitive.Separator
-      className={cn("-mx-1 my-1 h-px bg-border", className)}
+      className={cn("-mx-1.5 my-1 h-px bg-border", className)}
       {...props}
     />
   )
@@ -174,13 +174,13 @@ function ContextMenuSubmenuTrigger({
   return (
     <ContextMenuPrimitive.SubmenuTrigger
       className={cn(
-        "flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium outline-hidden select-none data-[highlighted]:bg-muted data-[highlighted]:text-foreground",
+        "flex min-h-12 cursor-pointer items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium outline-hidden select-none data-[highlighted]:bg-muted data-[highlighted]:text-foreground sm:min-h-10",
         className
       )}
       {...props}
     >
       {children}
-      <ChevronRight className="size-4 text-muted-foreground" />
+      <ChevronRight className="size-4.5 text-muted-foreground" />
     </ContextMenuPrimitive.SubmenuTrigger>
   )
 }
