@@ -13,6 +13,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
   Role,
+  ROLES,
+  STAFF_ROLES,
+  STUDENT_ROLES,
   JwtPayload,
   SupportedLocale,
   UserImportRowSchema,
@@ -116,22 +119,30 @@ export class UsersService {
         ? instituteId
         : currentUser.instituteId;
 
-    let roleFilter: Role | { not: 'SUPER_ADMIN' } | { in: Role[] } | undefined;
+    let roleFilter: Role | { in: Role[] } | { notIn: Role[] } | undefined;
 
-    if (currentUser.role === 'SUPER_ADMIN') {
-      roleFilter = role;
-    } else if (currentUser.role === 'ADMIN') {
-      // Institute Admin can never view SUPER_ADMIN accounts
-      if (role === 'SUPER_ADMIN') {
+    if (currentUser.role === ROLES.SUPER_ADMIN) {
+      roleFilter = role ? role : { notIn: STUDENT_ROLES };
+    } else if (currentUser.role === ROLES.ADMIN) {
+      // Institute Admin can only view staff/personnel accounts in /users (students are managed in /students)
+      if (
+        role === ROLES.SUPER_ADMIN ||
+        role === ROLES.STUDENT ||
+        role === ROLES.SUPER_STUDENT
+      ) {
         return [];
       }
-      roleFilter = role ? role : { not: 'SUPER_ADMIN' };
-    } else if (currentUser.role === 'CLERK') {
-      // Clerk can only view STUDENT accounts
-      if (role && role !== 'STUDENT') {
+      roleFilter = role ? role : { in: STAFF_ROLES };
+    } else if (currentUser.role === ROLES.CLERK) {
+      if (
+        role &&
+        (role === ROLES.SUPER_ADMIN ||
+          role === ROLES.STUDENT ||
+          role === ROLES.SUPER_STUDENT)
+      ) {
         return [];
       }
-      roleFilter = 'STUDENT';
+      roleFilter = role ? role : { in: STAFF_ROLES };
     } else {
       throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
     }

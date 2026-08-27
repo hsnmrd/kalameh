@@ -10,7 +10,7 @@ import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { ExcelService } from '../common/excel/excel.service';
-import { JwtPayload } from '@workspace/types';
+import { JwtPayload, STAFF_ROLES } from '@workspace/types';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -236,7 +236,7 @@ describe('UsersService', () => {
   describe('findAll', () => {
     it('should filter users by target instituteId', async () => {
       const mockUsers = [
-        { id: 'u1', firstName: 'Ali', lastName: 'A', role: 'STUDENT' },
+        { id: 'u1', firstName: 'Ali', lastName: 'A', role: 'TEACHER' },
       ];
       prismaService.user.findMany.mockResolvedValue(mockUsers);
 
@@ -246,32 +246,25 @@ describe('UsersService', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             instituteId: 'inst-1',
-            role: { not: 'SUPER_ADMIN' },
+            role: { in: STAFF_ROLES },
           }),
         }),
       );
       expect(result).toEqual(mockUsers);
     });
 
-    it('should restrict CLERK to only viewing STUDENT accounts', async () => {
-      prismaService.user.findMany.mockResolvedValue([]);
-
-      await service.findAll(mockClerk);
-
-      expect(prismaService.user.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            instituteId: 'inst-1',
-            role: 'STUDENT',
-          }),
-        }),
+    it('should return empty list if ADMIN requests student or super admin role', async () => {
+      const resultStudent = await service.findAll(
+        mockInstituteAdmin,
+        'STUDENT',
       );
-    });
+      expect(resultStudent).toEqual([]);
 
-    it('should return empty list if CLERK requests non-student role', async () => {
-      const result = await service.findAll(mockClerk, 'ADMIN');
-      expect(result).toEqual([]);
-      expect(prismaService.user.findMany).not.toHaveBeenCalled();
+      const resultSuper = await service.findAll(
+        mockInstituteAdmin,
+        'SUPER_ADMIN',
+      );
+      expect(resultSuper).toEqual([]);
     });
 
     it('should throw ForbiddenException for STUDENT attempting to list users', async () => {

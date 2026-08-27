@@ -11,3 +11,14 @@ export const ROLES = {
 } as const
 
 export type Role = (typeof ROLES)[keyof typeof ROLES]
+
+export const STAFF_ROLES: Role[] = [
+  ROLES.ADMIN,
+  ROLES.ASSISTANT,
+  ROLES.SUPERVISOR,
+  ROLES.SUPER_CLERK,
+  ROLES.CLERK,
+  ROLES.TEACHER,
+]
+
+export const STUDENT_ROLES: Role[] = [ROLES.STUDENT, ROLES.SUPER_STUDENT]
