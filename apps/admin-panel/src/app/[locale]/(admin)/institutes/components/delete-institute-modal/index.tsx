@@ -12,6 +12,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogDescription,
   ResponsiveDialogCloseButton,
+  ResponsiveDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -97,13 +98,13 @@ export function DeleteInstituteModal({
           </div>
         )}
 
-        <div className="mt-6 flex items-center justify-end gap-3 border-t border-border/60 pt-4">
+        <ResponsiveDialogFooter className="mt-6 flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3 sm:border-t sm:border-border/60 sm:pt-4">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
             disabled={deleteMutation.isPending}
-            className="h-10 rounded-xl px-4 text-xs font-semibold"
+            className="h-11 w-full rounded-xl text-xs font-semibold sm:h-10 sm:w-auto sm:px-4"
           >
             {t("deleteModal.cancel")}
           </Button>
@@ -113,7 +114,7 @@ export function DeleteInstituteModal({
             variant="destructive"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="h-10 rounded-xl px-5 text-xs font-semibold"
+            className="h-11 w-full rounded-xl text-xs font-semibold sm:h-10 sm:w-auto sm:px-5"
           >
             {deleteMutation.isPending ? (
               <>
@@ -124,7 +125,7 @@ export function DeleteInstituteModal({
               t("deleteModal.confirm")
             )}
           </Button>
-        </div>
+        </ResponsiveDialogFooter>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   )

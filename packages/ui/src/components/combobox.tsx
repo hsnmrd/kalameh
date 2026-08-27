@@ -70,7 +70,7 @@ export function Combobox({
     onValueChange?.(item?.value)
   }
 
-  const isSearchable = searchable !== undefined ? searchable : items.length > 6
+  const isSearchable = items.length >= 5 && searchable !== false
 
   return (
     <ComboboxPrimitive.Root
@@ -101,32 +101,32 @@ export function Combobox({
           sideOffset={4}
           className="z-50 outline-hidden"
         >
-          <ComboboxPrimitive.Popup className="max-h-64 w-[var(--anchor-width)] min-w-[12rem] overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-lg data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
+          <ComboboxPrimitive.Popup className="max-h-72 w-[var(--anchor-width)] min-w-[12rem] overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-xl data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
             {isSearchable && (
-              <div className="flex items-center border-b border-border px-3 py-2">
+              <div className="flex items-center border-b border-border px-3 py-2.5">
                 <Search className="me-2 size-4 shrink-0 text-muted-foreground" />
                 <ComboboxPrimitive.Input
                   placeholder={resolvedSearchPlaceholder}
-                  className="h-8 w-full bg-transparent text-base text-foreground outline-hidden placeholder:text-muted-foreground sm:text-sm"
+                  className="h-8 w-full bg-transparent text-sm text-foreground outline-hidden placeholder:text-muted-foreground"
                 />
               </div>
             )}
 
-            <ComboboxPrimitive.Empty className="p-3 text-center text-xs text-muted-foreground">
+            <ComboboxPrimitive.Empty className="px-4 py-6 text-center text-xs text-muted-foreground">
               {resolvedEmptyMessage}
             </ComboboxPrimitive.Empty>
 
-            <ComboboxPrimitive.List className="max-h-48 overflow-y-auto p-1">
+            <ComboboxPrimitive.List className="max-h-60 space-y-1 overflow-y-auto overscroll-contain p-1.5">
               {(item: ComboboxOption) => (
                 <ComboboxPrimitive.Item
                   key={item.value}
                   value={item}
                   disabled={item.disabled}
-                  className="relative flex cursor-pointer items-center rounded-lg py-2 ps-8 pe-2 text-sm outline-hidden select-none hover:bg-muted focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  className="relative flex min-h-11 cursor-pointer items-center rounded-xl py-2.5 ps-9 pe-3.5 text-sm font-medium outline-hidden transition-colors select-none hover:bg-muted focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                 >
-                  <span className="absolute start-2 flex size-3.5 items-center justify-center">
+                  <span className="absolute start-3 flex size-4 items-center justify-center">
                     <ComboboxPrimitive.ItemIndicator>
-                      <Check className="size-4 text-foreground" />
+                      <Check className="size-4 text-primary" />
                     </ComboboxPrimitive.ItemIndicator>
                   </span>
                   <span>{item.label}</span>
@@ -145,7 +145,14 @@ export function Combobox({
 // On mobile (< lg):  renders a trigger button that opens a bottom-sheet Drawer
 //                    with a search input and scrollable option list.
 
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "./drawer"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+} from "./drawer"
+import { Button } from "./button"
 
 export interface ResponsiveComboboxProps extends ComboboxProps {
   /** Label shown in the Drawer header on mobile */
@@ -189,9 +196,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
   }
 
   const isSearchable =
-    comboboxProps.searchable !== undefined
-      ? comboboxProps.searchable
-      : comboboxProps.items.length > 6
+    comboboxProps.items.length >= 5 && comboboxProps.searchable !== false
 
   return (
     <>
@@ -223,14 +228,14 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
         }}
       >
         <DrawerContent>
-          {drawerTitle && (
-            <DrawerHeader>
-              <DrawerTitle>{drawerTitle}</DrawerTitle>
-            </DrawerHeader>
-          )}
+          <DrawerHeader>
+            <DrawerTitle>
+              {drawerTitle || (isFa ? "انتخاب گزینه" : "Select option")}
+            </DrawerTitle>
+          </DrawerHeader>
 
           {isSearchable && (
-            <div className="flex items-center border-b border-border px-4 py-2">
+            <div className="flex items-center border-b border-border px-4 py-2.5">
               <Search className="me-2 size-4 shrink-0 text-muted-foreground" />
               <input
                 autoFocus
@@ -239,20 +244,20 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
                 placeholder={
                   props.searchPlaceholder ?? (isFa ? "جستجو..." : "Search...")
                 }
-                className="h-9 w-full bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
+                className="h-9 w-full bg-transparent text-base text-foreground outline-hidden placeholder:text-muted-foreground"
               />
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto py-1">
+          <div className="flex-1 space-y-1.5 overflow-y-auto overscroll-contain p-3">
             {comboboxProps.clearable !== false && selectedItem && (
               <button
                 type="button"
                 onClick={handleClear}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted"
+                className="flex min-h-12 w-full cursor-pointer items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
               >
-                <X className="size-4" />
-                <span>{isFa ? "پاک کردن" : "Clear"}</span>
+                <X className="size-4 shrink-0" />
+                <span>{isFa ? "پاک کردن انتخاب" : "Clear selection"}</span>
               </button>
             )}
             {filtered.length === 0 ? (
@@ -270,21 +275,32 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
                     disabled={item.disabled}
                     onClick={() => handleSelect(item)}
                     className={cn(
-                      "flex w-full items-center gap-2 px-4 py-3 text-sm disabled:opacity-50",
+                      "flex min-h-13 w-full cursor-pointer items-center justify-between rounded-xl px-4 py-3.5 text-base font-medium transition-colors disabled:opacity-50",
                       isSelected
-                        ? "bg-muted font-semibold text-foreground"
-                        : "text-foreground hover:bg-muted/60"
+                        ? "bg-primary/10 font-semibold text-primary"
+                        : "text-foreground hover:bg-muted/60 active:bg-muted"
                     )}
                   >
-                    <span className="flex size-4 shrink-0 items-center justify-center">
-                      {isSelected && <Check className="size-4" />}
-                    </span>
-                    {item.label}
+                    <span>{item.label}</span>
+                    {isSelected && (
+                      <Check className="size-5 shrink-0 text-primary" />
+                    )}
                   </button>
                 )
               })
             )}
           </div>
+
+          <DrawerFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full rounded-xl"
+              onClick={() => setDrawerOpen(false)}
+            >
+              {isFa ? "بستن" : "Close"}
+            </Button>
+          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     </>

@@ -32,7 +32,8 @@
     "allInstitutes": "All Institutes",
     "globalView": "Platform Overview",
     "classes": "Classes",
-    "noResults": "No institutes matching your search"
+    "noResults": "No institutes matching your search",
+    "close": "Close"
   },
   "createModal": {
     "title": "Create New Institute",

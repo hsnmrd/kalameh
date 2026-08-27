@@ -10,7 +10,9 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
+  DrawerFooter,
 } from "./drawer"
+import { Button } from "./button"
 
 const Popover = PopoverPrimitive.Root
 const PopoverTrigger = PopoverPrimitive.Trigger
@@ -94,12 +96,22 @@ export function ResponsivePopover({
           </DrawerHeader>
           <div
             className={cn(
-              "pb-safe-or-4 overflow-y-auto px-4 pt-2",
+              "flex-1 overflow-y-auto px-4 pt-2",
               drawerBodyClassName
             )}
           >
             {children}
           </div>
+          <DrawerFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full rounded-xl"
+              onClick={() => onOpenChange(false)}
+            >
+              بستن
+            </Button>
+          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     )

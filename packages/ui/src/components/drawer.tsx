@@ -74,7 +74,7 @@ function DrawerFooter({
   return (
     <div
       className={cn(
-        "pb-safe-or-4 mt-auto flex flex-col gap-2 px-4 pt-2",
+        "sticky bottom-0 mt-auto flex shrink-0 flex-col gap-2 border-t border-border/60 bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))] [&>button]:h-11 [&>button]:w-full [&>button]:rounded-xl",
         className
       )}
       {...props}
@@ -110,21 +110,11 @@ function DrawerDescription({
 }
 
 function DrawerCloseButton({
-  className,
-  ...props
+  className: _className,
+  ..._props
 }: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Close>) {
-  return (
-    <DrawerPrimitive.Close
-      className={cn(
-        "absolute end-4 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-ring focus:outline-hidden",
-        className
-      )}
-      {...props}
-    >
-      <X className="size-4" />
-      <span className="sr-only">Close</span>
-    </DrawerPrimitive.Close>
-  )
+  // Mobile bottom sheets must not render a top-corner close 'X' icon in the header.
+  return null
 }
 
 export {

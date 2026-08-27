@@ -10,6 +10,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogDescription,
   ResponsiveDialogCloseButton,
+  ResponsiveDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -216,18 +217,18 @@ export function StudentProfileModal({
               </div>
             </div>
           </div>
-
-          {/* Close Button */}
-          <div className="flex justify-end pt-2">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="h-10 rounded-xl"
-            >
-              {t("profileModal.close")}
-            </Button>
-          </div>
         </div>
+
+        <ResponsiveDialogFooter className="p-4 sm:p-0 sm:pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="h-11 w-full rounded-xl sm:w-auto"
+          >
+            {t("profileModal.close")}
+          </Button>
+        </ResponsiveDialogFooter>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   )

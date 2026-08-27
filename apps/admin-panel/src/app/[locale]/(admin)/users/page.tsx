@@ -11,6 +11,7 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
+  DrawerFooter,
 } from "@workspace/ui/components/drawer"
 import { FABSingle } from "@workspace/ui/components/fab"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -166,7 +167,7 @@ export default function UsersPage() {
                   <DrawerHeader>
                     <DrawerTitle>{t("title")}</DrawerTitle>
                   </DrawerHeader>
-                  <div className="pb-safe-or-6 flex flex-col gap-2 px-4 pt-2">
+                  <div className="flex flex-col gap-2 px-4 pt-2">
                     <PermissionGuard
                       permission={PERMISSIONS.MANAGE_USERS}
                       mode="hide"
@@ -203,6 +204,16 @@ export default function UsersPage() {
                       <span>{t("export.trigger")}</span>
                     </Button>
                   </div>
+                  <DrawerFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 w-full rounded-xl"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {t("close") || "بستن"}
+                    </Button>
+                  </DrawerFooter>
                 </DrawerContent>
               </Drawer>
             </>

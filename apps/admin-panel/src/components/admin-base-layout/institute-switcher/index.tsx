@@ -21,6 +21,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogDescription,
   ResponsiveDialogCloseButton,
+  ResponsiveDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
@@ -217,6 +218,17 @@ export function InstituteSwitcher({
             </div>
           )}
         </div>
+
+        <ResponsiveDialogFooter className="p-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            className="h-11 w-full rounded-xl"
+          >
+            {t("switcher.close") || "بستن"}
+          </Button>
+        </ResponsiveDialogFooter>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   )
