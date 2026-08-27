@@ -10,11 +10,8 @@ import {
   Calendar,
   ArrowRight,
   ArrowLeft,
-  Building2,
-  Globe,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
 import { Link, useIsRtl } from "@/i18n/routing"
 import { useActiveInstitute } from "@/lib/stores"
 import { authResource, institutesResource } from "@/lib/api"
@@ -26,8 +23,7 @@ export function InstituteAdminView() {
   const ActionArrow = isRtl ? ArrowLeft : ArrowRight
 
   const { data: user } = useQuery(authResource.me.toQuery())
-  const { activeInstitute, isSuperAdminManaging, clearActiveInstitute } =
-    useActiveInstitute()
+  const { activeInstitute } = useActiveInstitute()
 
   const targetInstituteId = activeInstitute?.id || user?.instituteId
 
@@ -44,43 +40,6 @@ export function InstituteAdminView() {
 
   return (
     <div className="space-y-8">
-      {/* Super Admin Active Institute Banner */}
-      {isSuperAdminManaging && currentInstitute && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-foreground shadow-xs sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 font-bold text-white shadow-xs">
-              <Building2 className="size-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-foreground">
-                  {t("managingBanner", { name: currentInstitute.name })}
-                </h2>
-                <Badge variant="success" className="text-[10px]">
-                  {t("superAdminBadge")}
-                </Badge>
-              </div>
-              <p className="font-mono text-xs text-muted-foreground">
-                {currentInstitute.subdomain}.kalameh.ir
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={clearActiveInstitute}
-              className="h-9 cursor-pointer gap-1.5 border-emerald-500/30 bg-background text-xs font-semibold text-emerald-600 hover:bg-emerald-500/20"
-            >
-              <Globe className="size-3.5" />
-              <span>{t("backToOverview")}</span>
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
