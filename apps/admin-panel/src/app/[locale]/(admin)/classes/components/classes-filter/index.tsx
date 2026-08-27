@@ -3,10 +3,8 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import {
-  ResponsiveCombobox,
-  type ComboboxOption,
-} from "@workspace/ui/components/combobox"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
+import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { termsResource, coursesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
@@ -56,15 +54,22 @@ export function ClassesFilter({
       ],
     })
 
-  const hasActiveFilter = Boolean(
-    search.trim() ||
-    (termId && termId !== "all") ||
-    (courseId && courseId !== "all")
-  )
+  const activeFiltersCount =
+    (termId && termId !== "all" ? 1 : 0) +
+    (courseId && courseId !== "all" ? 1 : 0)
+
+  const hasActiveFilter = Boolean(search.trim() || activeFiltersCount > 0)
+
+  const handleClearFilters = React.useCallback(() => {
+    onTermChange("")
+    onCourseChange("")
+  }, [onTermChange, onCourseChange])
 
   return (
     <AdminFilterBar
       isPinned={hasActiveFilter}
+      activeFiltersCount={activeFiltersCount}
+      onClearFilters={handleClearFilters}
       search={
         <AdminSearchInput
           value={search}
@@ -74,7 +79,8 @@ export function ClassesFilter({
       }
       filters={
         <>
-          <div className="w-full sm:w-48">
+          <Field>
+            <FieldLabel>{t("termFilter")}</FieldLabel>
             <ResponsiveCombobox
               items={termOptions}
               value={termId || "all"}
@@ -85,9 +91,10 @@ export function ClassesFilter({
               drawerTitle={t("termFilter")}
               clearable={false}
             />
-          </div>
+          </Field>
 
-          <div className="w-full sm:w-48">
+          <Field>
+            <FieldLabel>{t("courseFilter")}</FieldLabel>
             <ResponsiveCombobox
               items={courseOptions}
               value={courseId || "all"}
@@ -98,7 +105,7 @@ export function ClassesFilter({
               drawerTitle={t("courseFilter")}
               clearable={false}
             />
-          </div>
+          </Field>
         </>
       }
     />

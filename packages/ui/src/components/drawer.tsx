@@ -110,11 +110,21 @@ function DrawerDescription({
 }
 
 function DrawerCloseButton({
-  className: _className,
-  ..._props
+  className,
+  ...props
 }: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Close>) {
-  // Mobile bottom sheets must not render a top-corner close 'X' icon in the header.
-  return null
+  return (
+    <DrawerPrimitive.Close
+      className={cn(
+        "absolute end-4 top-4 cursor-pointer rounded-xl p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-hidden active:scale-95",
+        className
+      )}
+      {...props}
+    >
+      <X className="size-5" />
+      <span className="sr-only">Close</span>
+    </DrawerPrimitive.Close>
+  )
 }
 
 export {

@@ -18,6 +18,7 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { BranchesTable } from "./components/branches-table"
 import { BranchesList } from "./components/branches-list"
+import { BranchesFilter } from "./components/branches-filter"
 import { CreateBranchModal } from "./components/create-branch-modal"
 import { EditBranchModal } from "./components/edit-branch-modal"
 
@@ -26,6 +27,8 @@ export default function BranchesPage() {
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [editingBranch, setEditingBranch] =
     React.useState<BranchWithStats | null>(null)
+  const [search, setSearch] = React.useState("")
+  const [selectedStatus, setSelectedStatus] = React.useState("ALL")
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -35,15 +38,39 @@ export default function BranchesPage() {
     isSuperAdmin ||
     activeInstitute?.enabledModules?.includes(APP_MODULES.CLASSES_COURSES)
 
-  const { data: branches, isLoading } = useQuery({
+  const { data: branches = [], isLoading } = useQuery({
     ...branchesResource.list.toQuery({ instituteId: activeInstituteId }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
+
+  const filteredBranches = React.useMemo(() => {
+    return branches.filter((branch) => {
+      const matchesSearch =
+        !search.trim() ||
+        branch.name.toLowerCase().includes(search.trim().toLowerCase()) ||
+        branch.address?.toLowerCase().includes(search.trim().toLowerCase()) ||
+        branch.phones?.some((p) => p.includes(search.trim()))
+
+      const matchesStatus =
+        selectedStatus === "ALL" ||
+        (selectedStatus === "ACTIVE" ? branch.isActive : !branch.isActive)
+
+      return matchesSearch && matchesStatus
+    })
+  }, [branches, search, selectedStatus])
 
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_BRANCHES} mode="forbidden">
         <AdminPageShell
+          filter={
+            <BranchesFilter
+              search={search}
+              onSearchChange={setSearch}
+              selectedStatus={selectedStatus}
+              onStatusChange={setSelectedStatus}
+            />
+          }
           modals={
             <>
               <CreateBranchModal
@@ -73,7 +100,7 @@ export default function BranchesPage() {
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
             <BranchesTable
-              branches={branches}
+              branches={filteredBranches}
               isLoading={isLoading}
               onEdit={(branch) => setEditingBranch(branch)}
             />
@@ -82,7 +109,7 @@ export default function BranchesPage() {
           {/* Mobile: flat divider list */}
           <div className="lg:hidden">
             <BranchesList
-              branches={branches}
+              branches={filteredBranches}
               isLoading={isLoading}
               onEdit={(branch) => setEditingBranch(branch)}
             />

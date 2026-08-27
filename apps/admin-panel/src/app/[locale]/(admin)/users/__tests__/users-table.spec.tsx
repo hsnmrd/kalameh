@@ -128,7 +128,7 @@ describe("UsersTable & UsersFilter Components", () => {
       expect(handleSearchChange).toHaveBeenCalledWith("Ali")
     })
 
-    it("should render role combobox with all options", () => {
+    it("should render role combobox with all options in filter dialog", () => {
       render(
         <UsersFilter
           searchValue=""
@@ -138,9 +138,12 @@ describe("UsersTable & UsersFilter Components", () => {
         />
       )
 
+      const filterBtn = screen.getByRole("button", { name: /فیلتر|filter/i })
+      fireEvent.click(filterBtn)
+
       const combobox = screen.getByRole("combobox")
       expect(combobox).toBeInTheDocument()
-      expect(combobox).toHaveTextContent("همه پرسنل")
+      expect(combobox).toHaveTextContent("همه نقش‌ها")
     })
   })
 })

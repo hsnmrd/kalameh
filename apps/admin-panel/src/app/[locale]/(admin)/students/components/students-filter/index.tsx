@@ -3,16 +3,13 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import type { CourseDto } from "@workspace/types"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   ResponsiveCombobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { AdminSearchInput } from "@/components/admin-search-input"
-import {
-  AdminFilterTabs,
-  type FilterTabOption,
-} from "@/components/admin-filter-tabs"
 
 export interface StudentsFilterProps {
   searchValue: string
@@ -42,20 +39,29 @@ export function StudentsFilter({
     ]
   }, [courses, t])
 
-  const statusTabs: FilterTabOption[] = React.useMemo(() => {
+  const statusOptions: ComboboxOption[] = React.useMemo(() => {
     return [
-      { key: "ALL", label: t("filter.allStatus") },
-      { key: "ACTIVE", label: t("filter.active") },
+      { value: "ALL", label: t("filter.allStatus") },
+      { value: "ACTIVE", label: t("filter.active") },
+      { value: "INACTIVE", label: t("filter.inactive") },
     ]
   }, [t])
 
-  const hasActiveFilter = Boolean(
-    searchValue.trim() || selectedCourseId !== "ALL" || selectedStatus !== "ALL"
-  )
+  const activeFiltersCount =
+    (selectedCourseId !== "ALL" ? 1 : 0) + (selectedStatus !== "ALL" ? 1 : 0)
+
+  const hasActiveFilter = Boolean(searchValue.trim() || activeFiltersCount > 0)
+
+  const handleClearFilters = React.useCallback(() => {
+    onCourseChange("ALL")
+    onStatusChange("ALL")
+  }, [onCourseChange, onStatusChange])
 
   return (
     <AdminFilterBar
       isPinned={hasActiveFilter}
+      activeFiltersCount={activeFiltersCount}
+      onClearFilters={handleClearFilters}
       search={
         <AdminSearchInput
           value={searchValue}
@@ -66,23 +72,30 @@ export function StudentsFilter({
       filters={
         <>
           {/* Course Combobox Filter */}
-          <div className="w-full sm:w-52">
+          <Field>
+            <FieldLabel>{t("filter.course")}</FieldLabel>
             <ResponsiveCombobox
               items={courseOptions}
               value={selectedCourseId}
               onValueChange={(val) => onCourseChange(val || "ALL")}
               placeholder={t("filter.allCourses")}
-              drawerTitle={t("filter.allCourses")}
+              drawerTitle={t("filter.course")}
               clearable={false}
             />
-          </div>
+          </Field>
 
-          {/* Status Segmented Tabs Filter */}
-          <AdminFilterTabs
-            options={statusTabs}
-            value={selectedStatus}
-            onChange={onStatusChange}
-          />
+          {/* Status Combobox Filter */}
+          <Field>
+            <FieldLabel>{t("filter.status")}</FieldLabel>
+            <ResponsiveCombobox
+              items={statusOptions}
+              value={selectedStatus}
+              onValueChange={(val) => onStatusChange(val || "ALL")}
+              placeholder={t("filter.allStatus")}
+              drawerTitle={t("filter.status")}
+              clearable={false}
+            />
+          </Field>
         </>
       }
     />

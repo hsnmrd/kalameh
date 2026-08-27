@@ -14,6 +14,7 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { TermsTable } from "./components/terms-table"
 import { TermsList } from "./components/terms-list"
+import { TermsFilter } from "./components/terms-filter"
 import { CreateTermModal } from "./components/create-term-modal"
 import { EditTermModal } from "./components/edit-term-modal"
 
@@ -21,6 +22,8 @@ export default function TermsPage() {
   const t = useTranslations("terms")
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [editingTerm, setEditingTerm] = React.useState<TermDto | null>(null)
+  const [search, setSearch] = React.useState("")
+  const [selectedStatus, setSelectedStatus] = React.useState("ALL")
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -30,15 +33,37 @@ export default function TermsPage() {
     isSuperAdmin ||
     activeInstitute?.enabledModules?.includes(APP_MODULES.CLASSES_COURSES)
 
-  const { data: terms, isLoading } = useQuery({
+  const { data: terms = [], isLoading } = useQuery({
     ...termsResource.list.toQuery({ instituteId: activeInstituteId }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
+
+  const filteredTerms = React.useMemo(() => {
+    return terms.filter((term) => {
+      const matchesSearch =
+        !search.trim() ||
+        term.title.toLowerCase().includes(search.trim().toLowerCase())
+
+      const matchesStatus =
+        selectedStatus === "ALL" ||
+        (selectedStatus === "ACTIVE" ? term.isActive : !term.isActive)
+
+      return matchesSearch && matchesStatus
+    })
+  }, [terms, search, selectedStatus])
 
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_TERMS} mode="forbidden">
         <AdminPageShell
+          filters={
+            <TermsFilter
+              search={search}
+              onSearchChange={setSearch}
+              selectedStatus={selectedStatus}
+              onStatusChange={setSelectedStatus}
+            />
+          }
           modals={
             <>
               <CreateTermModal
@@ -65,7 +90,7 @@ export default function TermsPage() {
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
             <TermsTable
-              terms={terms}
+              terms={filteredTerms}
               isLoading={isLoading}
               onEdit={(term) => setEditingTerm(term)}
             />
@@ -74,7 +99,7 @@ export default function TermsPage() {
           {/* Mobile: flat divider list */}
           <div className="lg:hidden">
             <TermsList
-              terms={terms}
+              terms={filteredTerms}
               isLoading={isLoading}
               onEdit={(term) => setEditingTerm(term)}
             />

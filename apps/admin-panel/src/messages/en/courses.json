@@ -2,6 +2,14 @@
   "title": "Educational Courses & Levels",
   "subtitle": "Define course levels, base tuition fees and configure prerequisite progression chains",
   "addCourse": "Add Course Level",
+  "searchPlaceholder": "Search courses and levels...",
+  "filter": {
+    "title": "Filter Courses",
+    "prerequisite": "Prerequisite Level",
+    "allPrerequisites": "All Courses",
+    "baseOnly": "Base Courses Only (No Prerequisite)",
+    "advancedOnly": "Advanced Courses Only (With Prerequisite)"
+  },
   "table": {
     "title": "Course / Level Title",
     "baseFee": "Base Tuition Fee",

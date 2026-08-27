@@ -24,7 +24,7 @@ export function AdminSearchInput({
   const effectivePlaceholder = placeholder ?? t("searchPlaceholder")
 
   return (
-    <div className={cn("relative w-full min-w-0 sm:w-72 lg:w-80", className)}>
+    <div className={cn("relative w-full min-w-0", className)}>
       <Search className="pointer-events-none absolute start-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="text"

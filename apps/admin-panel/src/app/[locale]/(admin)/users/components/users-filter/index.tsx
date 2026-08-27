@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { ROLES } from "@workspace/types"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   ResponsiveCombobox,
   type ComboboxOption,
@@ -37,14 +38,20 @@ export function UsersFilter({
     ]
   }, [t])
 
-  const hasActiveFilter = Boolean(
-    searchValue.trim() ||
-    (selectedRole && selectedRole !== "ALL" && selectedRole !== "")
-  )
+  const activeFiltersCount =
+    selectedRole && selectedRole !== "ALL" && selectedRole !== "" ? 1 : 0
+
+  const hasActiveFilter = Boolean(searchValue.trim() || activeFiltersCount > 0)
+
+  const handleClearFilters = React.useCallback(() => {
+    onRoleChange("ALL")
+  }, [onRoleChange])
 
   return (
     <AdminFilterBar
       isPinned={hasActiveFilter}
+      activeFiltersCount={activeFiltersCount}
+      onClearFilters={handleClearFilters}
       search={
         <AdminSearchInput
           value={searchValue}
@@ -53,7 +60,8 @@ export function UsersFilter({
         />
       }
       filters={
-        <div className="w-full sm:w-56">
+        <Field>
+          <FieldLabel>{t("filter.role")}</FieldLabel>
           <ResponsiveCombobox
             items={roleOptions}
             value={selectedRole || "ALL"}
@@ -61,10 +69,10 @@ export function UsersFilter({
               onRoleChange(val === "ALL" || !val ? "" : val)
             }
             placeholder={t("filter.all")}
-            drawerTitle={t("filter.all")}
+            drawerTitle={t("filter.role")}
             clearable={false}
           />
-        </div>
+        </Field>
       }
     />
   )

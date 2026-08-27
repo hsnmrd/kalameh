@@ -112,7 +112,7 @@ export function Combobox({
               </div>
             )}
 
-            <ComboboxPrimitive.Empty className="px-4 py-6 text-center text-xs text-muted-foreground">
+            <ComboboxPrimitive.Empty className="hidden px-4 py-6 text-center text-sm text-muted-foreground data-[empty]:block data-[hidden]:hidden">
               {resolvedEmptyMessage}
             </ComboboxPrimitive.Empty>
 
@@ -122,14 +122,14 @@ export function Combobox({
                   key={item.value}
                   value={item}
                   disabled={item.disabled}
-                  className="relative flex min-h-11 cursor-pointer items-center rounded-xl py-2.5 ps-9 pe-3.5 text-sm font-medium outline-hidden transition-colors select-none hover:bg-muted focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  className="relative flex min-h-12 cursor-pointer items-center rounded-xl py-3 ps-10 pe-4 text-base font-medium outline-hidden transition-colors select-none hover:bg-muted focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                 >
-                  <span className="absolute start-3 flex size-4 items-center justify-center">
+                  <span className="absolute start-3.5 flex size-4.5 items-center justify-center">
                     <ComboboxPrimitive.ItemIndicator>
-                      <Check className="size-4 text-primary" />
+                      <Check className="size-4.5 text-primary" />
                     </ComboboxPrimitive.ItemIndicator>
                   </span>
-                  <span>{item.label}</span>
+                  <span className="truncate">{item.label}</span>
                 </ComboboxPrimitive.Item>
               )}
             </ComboboxPrimitive.List>

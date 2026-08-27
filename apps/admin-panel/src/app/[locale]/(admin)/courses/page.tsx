@@ -14,6 +14,7 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { CoursesTable } from "./components/courses-table"
 import { CoursesList } from "./components/courses-list"
+import { CoursesFilter } from "./components/courses-filter"
 import { CreateCourseModal } from "./components/create-course-modal"
 import { EditCourseModal } from "./components/edit-course-modal"
 
@@ -23,6 +24,9 @@ export default function CoursesPage() {
   const [editingCourse, setEditingCourse] = React.useState<CourseDto | null>(
     null
   )
+  const [search, setSearch] = React.useState("")
+  const [selectedPrerequisiteId, setSelectedPrerequisiteId] =
+    React.useState("ALL")
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -32,15 +36,39 @@ export default function CoursesPage() {
     isSuperAdmin ||
     activeInstitute?.enabledModules?.includes(APP_MODULES.CLASSES_COURSES)
 
-  const { data: courses, isLoading } = useQuery({
+  const { data: courses = [], isLoading } = useQuery({
     ...coursesResource.list.toQuery({ instituteId: activeInstituteId }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
+
+  const filteredCourses = React.useMemo(() => {
+    return courses.filter((course) => {
+      const matchesSearch =
+        !search.trim() ||
+        course.title.toLowerCase().includes(search.trim().toLowerCase())
+
+      const matchesPrerequisite =
+        selectedPrerequisiteId === "ALL" ||
+        (selectedPrerequisiteId === "NONE" && !course.prerequisiteId) ||
+        course.prerequisiteId === selectedPrerequisiteId
+
+      return matchesSearch && matchesPrerequisite
+    })
+  }, [courses, search, selectedPrerequisiteId])
 
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_COURSES} mode="forbidden">
         <AdminPageShell
+          filters={
+            <CoursesFilter
+              search={search}
+              onSearchChange={setSearch}
+              selectedPrerequisiteId={selectedPrerequisiteId}
+              onPrerequisiteChange={setSelectedPrerequisiteId}
+              courses={courses}
+            />
+          }
           modals={
             <>
               <CreateCourseModal
@@ -70,7 +98,7 @@ export default function CoursesPage() {
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
             <CoursesTable
-              courses={courses}
+              courses={filteredCourses}
               isLoading={isLoading}
               onEdit={(course) => setEditingCourse(course)}
             />
@@ -79,7 +107,7 @@ export default function CoursesPage() {
           {/* Mobile: flat divider list */}
           <div className="lg:hidden">
             <CoursesList
-              courses={courses}
+              courses={filteredCourses}
               isLoading={isLoading}
               onEdit={(course) => setEditingCourse(course)}
             />

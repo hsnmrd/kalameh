@@ -67,7 +67,7 @@ describe("Admin Filter System Components", () => {
   })
 
   describe("AdminFilterBar", () => {
-    it("should render search and filters in layout", () => {
+    it("should render search in layout and show filters on clicking filter button", () => {
       render(
         <AdminFilterBar
           search={<div data-testid="search-slot">Search</div>}
@@ -76,6 +76,10 @@ describe("Admin Filter System Components", () => {
       )
 
       expect(screen.getByTestId("search-slot")).toBeInTheDocument()
+      const filterBtn = screen.getByRole("button", { name: /فیلتر|filter/i })
+      expect(filterBtn).toBeInTheDocument()
+
+      fireEvent.click(filterBtn)
       expect(screen.getByTestId("filter-slot")).toBeInTheDocument()
     })
 
@@ -91,10 +95,10 @@ describe("Admin Filter System Components", () => {
       expect(wrapper).toBeInTheDocument()
     })
 
-    it("should open mobile filter drawer on clicking filter button", () => {
+    it("should open filter dialog on clicking filter button", () => {
       render(
         <AdminFilterBar
-          filters={<div data-testid="drawer-filter-content">Options</div>}
+          filters={<div data-testid="dialog-filter-content">Options</div>}
         />
       )
 
@@ -102,11 +106,10 @@ describe("Admin Filter System Components", () => {
         name: /فیلتر|filter/i,
       })
       expect(filterBtn).toBeInTheDocument()
-      expect(screen.getAllByTestId("drawer-filter-content")).toHaveLength(1)
 
       fireEvent.click(filterBtn)
 
-      expect(screen.getAllByTestId("drawer-filter-content")).toHaveLength(2)
+      expect(screen.getByTestId("dialog-filter-content")).toBeInTheDocument()
     })
   })
 })

@@ -2,6 +2,14 @@
   "title": "Branches Management",
   "subtitle": "Define branches, manage contact details, addresses, and active branch statuses",
   "addBranch": "Add Branch",
+  "searchPlaceholder": "Search institute branches...",
+  "filter": {
+    "title": "Filter Branches",
+    "status": "Branch Status",
+    "allStatus": "All Statuses",
+    "activeOnly": "Active Branches Only",
+    "inactiveOnly": "Inactive Branches Only"
+  },
   "table": {
     "name": "Branch Name",
     "address": "Address",

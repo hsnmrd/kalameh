@@ -2,6 +2,14 @@
   "title": "Institutes Management",
   "subtitle": "Super Admin control panel for language institutes and tenants",
   "addInstitute": "Create Institute",
+  "searchPlaceholder": "Search institutes...",
+  "filter": {
+    "title": "Filter Institutes",
+    "status": "Institute Status",
+    "allStatus": "All Statuses",
+    "activeOnly": "Active Institutes Only",
+    "inactiveOnly": "Inactive Institutes Only"
+  },
   "noInstitutes": "No institutes found.",
   "manageInstitute": "Manage & Enter Institute Panel",
   "currentlyManaging": "Currently Managing",

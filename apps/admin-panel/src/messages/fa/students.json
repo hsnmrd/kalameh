@@ -4,6 +4,8 @@
   "addStudent": "ثبت فراگیر جدید",
   "searchPlaceholder": "جستجو",
   "filter": {
+    "course": "دوره و سطح آموزشی",
+    "status": "وضعیت حساب کاربری",
     "allCourses": "همه دوره‌ها و سطوح",
     "allStatus": "همه وضعیت‌ها",
     "active": "فقط فعال",

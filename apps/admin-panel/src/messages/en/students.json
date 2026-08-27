@@ -4,6 +4,8 @@
   "addStudent": "Register New Student",
   "searchPlaceholder": "Search",
   "filter": {
+    "course": "Course & Level",
+    "status": "Account Status",
     "allCourses": "All Courses & Levels",
     "allStatus": "All Statuses",
     "active": "Active Only",
