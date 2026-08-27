@@ -114,6 +114,7 @@ export default function UsersPage() {
               onSearchChange={setSearchValue}
               selectedRole={selectedRole}
               onRoleChange={setSelectedRole}
+              onAddClick={() => setCreateModalOpen(true)}
             />
           }
           modals={

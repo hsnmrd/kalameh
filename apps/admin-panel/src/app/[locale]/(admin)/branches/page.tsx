@@ -58,6 +58,7 @@ export default function BranchesPage() {
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
+              onAddClick={() => setCreateModalOpen(true)}
             />
           }
           modals={

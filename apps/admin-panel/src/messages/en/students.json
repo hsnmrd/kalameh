@@ -93,7 +93,10 @@
   "profileModal": {
     "title": "Student Academic Profile",
     "subtitle": "Comprehensive identity, guardian info, and enrollment records",
+    "description": "Complete identity, contact, and academic details for the student",
     "personalInfo": "Personal Information",
+    "identityInfo": "Identity & National ID",
+    "contactInfo": "Contact & Residential Information",
     "guardianInfo": "Guardian & Emergency Contact",
     "academicInfo": "Academic Status",
     "close": "Close"

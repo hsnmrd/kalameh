@@ -64,6 +64,7 @@ export default function CoursesPage() {
               selectedPrerequisiteId={selectedPrerequisiteId}
               onPrerequisiteChange={setSelectedPrerequisiteId}
               courses={allCourses}
+              onAddClick={() => setCreateModalOpen(true)}
             />
           }
           modals={

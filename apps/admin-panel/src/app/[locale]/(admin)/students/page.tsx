@@ -81,6 +81,7 @@ export default function StudentsPage() {
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
               courses={courses}
+              onAddClick={() => setCreateModalOpen(true)}
             />
           }
           modals={

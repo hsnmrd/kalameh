@@ -57,6 +57,7 @@ export default function TermsPage() {
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
+              onAddClick={() => setCreateModalOpen(true)}
             />
           }
           modals={

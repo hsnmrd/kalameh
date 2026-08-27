@@ -57,6 +57,7 @@ export default function ClassesPage() {
               onCourseChange={setCourseId}
               search={search}
               onSearchChange={setSearch}
+              onAddClick={() => setCreateModalOpen(true)}
             />
           }
           modals={

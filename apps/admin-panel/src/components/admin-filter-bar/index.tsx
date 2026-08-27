@@ -35,6 +35,8 @@ export interface AdminFilterBarProps {
   isPinned?: boolean
   /** Whether auto-collapsing on mobile scroll is enabled (default: true) */
   autoHideOnMobile?: boolean
+  /** Actions rendered next to filter button (e.g. Add Button on desktop) */
+  actions?: React.ReactNode
 }
 
 export function AdminFilterBar({
@@ -49,6 +51,7 @@ export function AdminFilterBar({
   onClearFilters,
   isPinned = false,
   autoHideOnMobile = true,
+  actions,
 }: AdminFilterBarProps) {
   const t = useTranslations("common.filter")
   const [dialogOpen, setDialogOpen] = React.useState(false)
@@ -113,6 +116,13 @@ export function AdminFilterBar({
                   </Badge>
                 )}
               </Button>
+            )}
+
+            {/* Desktop Actions Slot (e.g. Add Button) — hidden on mobile where FAB is used */}
+            {actions && (
+              <div className="hidden shrink-0 items-center gap-2 sm:flex">
+                {actions}
+              </div>
             )}
           </div>
         </div>

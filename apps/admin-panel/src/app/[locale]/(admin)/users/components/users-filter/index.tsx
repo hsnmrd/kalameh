@@ -1,8 +1,8 @@
-"use client"
-
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { ROLES } from "@workspace/types"
+import { Plus } from "lucide-react"
+import { ROLES, PERMISSIONS } from "@workspace/types"
+import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   ResponsiveCombobox,
@@ -10,12 +10,15 @@ import {
 } from "@workspace/ui/components/combobox"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { AdminSearchInput } from "@/components/admin-search-input"
+import { PermissionGuard } from "@/components/permission-guard"
 
 export interface UsersFilterProps {
   searchValue: string
   onSearchChange: (value: string) => void
   selectedRole: string
   onRoleChange: (role: string) => void
+  onAddClick?: () => void
+  actions?: React.ReactNode
 }
 
 export function UsersFilter({
@@ -23,6 +26,8 @@ export function UsersFilter({
   onSearchChange,
   selectedRole,
   onRoleChange,
+  onAddClick,
+  actions,
 }: UsersFilterProps) {
   const t = useTranslations("users")
 
@@ -47,11 +52,27 @@ export function UsersFilter({
     onRoleChange("ALL")
   }, [onRoleChange])
 
+  const desktopActions =
+    actions ??
+    (onAddClick && (
+      <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="hide">
+        <Button
+          type="button"
+          onClick={onAddClick}
+          className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
+        >
+          <Plus className="size-5" />
+          <span>{t("addUser")}</span>
+        </Button>
+      </PermissionGuard>
+    ))
+
   return (
     <AdminFilterBar
       isPinned={hasActiveFilter}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
+      actions={desktopActions}
       search={
         <AdminSearchInput
           value={searchValue}

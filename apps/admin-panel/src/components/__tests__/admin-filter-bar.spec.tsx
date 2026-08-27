@@ -105,11 +105,20 @@ describe("Admin Filter System Components", () => {
       const filterBtn = screen.getByRole("button", {
         name: /فیلتر|filter/i,
       })
-      expect(filterBtn).toBeInTheDocument()
-
       fireEvent.click(filterBtn)
 
       expect(screen.getByTestId("dialog-filter-content")).toBeInTheDocument()
+    })
+
+    it("should render actions slot when provided", () => {
+      render(
+        <AdminFilterBar
+          search={<div data-testid="search-slot">Search</div>}
+          actions={<div data-testid="action-btn">Add Item</div>}
+        />
+      )
+
+      expect(screen.getByTestId("action-btn")).toBeInTheDocument()
     })
   })
 })

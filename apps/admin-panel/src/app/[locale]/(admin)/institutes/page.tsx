@@ -51,6 +51,7 @@ export default function InstitutesPage() {
           onSearchChange={setSearch}
           selectedStatus={selectedStatus}
           onStatusChange={setSelectedStatus}
+          onAddClick={() => setIsCreateOpen(true)}
         />
       }
       fab={
