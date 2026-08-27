@@ -282,6 +282,7 @@ export function DateInput({
       {clearable && hasValue && !disabled && (
         <Button
           type="button"
+          tabIndex={-1}
           variant="ghost"
           size="icon"
           onClick={handleClear}

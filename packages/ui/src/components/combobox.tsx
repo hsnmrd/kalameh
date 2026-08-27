@@ -200,25 +200,38 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setDrawerOpen(true)}
-        disabled={comboboxProps.disabled}
+      <div
+        onClick={() => {
+          if (!comboboxProps.disabled) {
+            setDrawerOpen(true)
+          }
+        }}
         data-invalid={comboboxProps["data-invalid"]}
         className={cn(
-          "relative flex h-14 w-full cursor-pointer items-center justify-between rounded-2xl border border-border bg-background px-4 text-base text-foreground shadow-2xs transition-colors hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-50 data-[invalid=true]:border-destructive",
+          "relative flex h-14 w-full cursor-pointer items-center justify-between rounded-2xl border border-border bg-background px-4 text-base text-foreground shadow-2xs transition-colors focus-within:border-2 focus-within:border-ring hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-50 data-[invalid=true]:border-destructive",
           comboboxProps.className
         )}
       >
-        <span className="truncate text-start">
-          {selectedItem ? (
-            selectedItem.label
-          ) : (
-            <span className="text-muted-foreground">{resolvedPlaceholder}</span>
-          )}
-        </span>
-        <ChevronDown className="size-4 text-muted-foreground" />
-      </button>
+        <input
+          type="text"
+          readOnly
+          role="combobox"
+          aria-expanded={drawerOpen}
+          aria-haspopup="dialog"
+          inputMode="none"
+          tabIndex={comboboxProps.disabled ? -1 : 0}
+          disabled={comboboxProps.disabled}
+          value={selectedItem ? selectedItem.label : ""}
+          placeholder={resolvedPlaceholder}
+          onFocus={() => {
+            if (!comboboxProps.disabled) {
+              setDrawerOpen(true)
+            }
+          }}
+          className="h-full w-full cursor-pointer bg-transparent text-start text-base text-foreground outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed"
+        />
+        <ChevronDown className="pointer-events-none size-4 shrink-0 text-muted-foreground" />
+      </div>
 
       <Drawer
         open={drawerOpen}

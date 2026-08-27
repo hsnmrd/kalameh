@@ -141,6 +141,7 @@ export function DatePicker({
       {clearable && selectedDate && !disabled && (
         <Button
           type="button"
+          tabIndex={-1}
           variant="ghost"
           size="icon"
           onClick={handleClear}
