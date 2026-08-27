@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { RoleEnum } from "../roles/index.js"
 import { StudentProfileSchema } from "../student/student-profile.schema.js"
+import { InstituteSchema } from "../institute/institute.schema.js"
 
 export const AuthUserSchema = z.object({
   id: z.string().uuid(),
@@ -14,6 +15,7 @@ export const AuthUserSchema = z.object({
   isActive: z.boolean(),
   currentAllowedCourseId: z.string().nullable().optional(),
   studentProfile: StudentProfileSchema.nullable().optional(),
+  institute: InstituteSchema.nullable().optional(),
   permissions: z.array(z.string()).optional(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),

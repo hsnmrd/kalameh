@@ -28,12 +28,16 @@ export function useActiveInstitute() {
     enabled: isSuperAdmin,
   })
 
-  // Synchronously derive fresh institute details from query if available
+  // Synchronously derive fresh institute details from query or user profile
   const activeInstitute = React.useMemo(() => {
-    if (!storeActiveInstitute) return null
-    const fresh = institutes.find((i) => i.id === storeActiveInstitute.id)
-    return fresh ?? storeActiveInstitute
-  }, [institutes, storeActiveInstitute])
+    if (isSuperAdmin) {
+      if (!storeActiveInstitute) return null
+      const fresh = institutes.find((i) => i.id === storeActiveInstitute.id)
+      return fresh ?? storeActiveInstitute
+    }
+
+    return user?.institute ?? null
+  }, [institutes, storeActiveInstitute, isSuperAdmin, user?.institute])
 
   const isSuperAdminManaging = isSuperAdmin && activeInstitute !== null
 
