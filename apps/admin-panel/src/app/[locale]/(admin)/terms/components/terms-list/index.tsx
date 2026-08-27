@@ -102,7 +102,7 @@ export function TermsList({ terms, isLoading, onEdit }: TermsListProps) {
 
           <ContextMenuContent>
             <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
-              <ContextMenuItem onSelect={() => onEdit(term)}>
+              <ContextMenuItem onClick={() => onEdit(term)}>
                 <Edit2 className="me-2 size-4 text-muted-foreground" />
                 {t("table.actions")}
               </ContextMenuItem>

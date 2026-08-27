@@ -61,12 +61,25 @@ function ContextMenuPopup({
 function ContextMenuItem({
   className,
   variant = "default",
+  onClick,
+  onSelect,
   ...props
 }: ContextMenuPrimitive.Item.Props & {
   variant?: "default" | "destructive"
+  onSelect?: (
+    event: Parameters<
+      NonNullable<ContextMenuPrimitive.Item.Props["onClick"]>
+    >[0]
+  ) => void
 }) {
+  const handleClick: ContextMenuPrimitive.Item.Props["onClick"] = (event) => {
+    onClick?.(event)
+    onSelect?.(event)
+  }
+
   return (
     <ContextMenuPrimitive.Item
+      onClick={handleClick}
       className={cn(
         "relative flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium outline-hidden transition-colors select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted data-[highlighted]:text-foreground [&_svg]:size-4 [&_svg]:shrink-0",
         variant === "destructive" &&

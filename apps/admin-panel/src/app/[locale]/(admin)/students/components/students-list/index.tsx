@@ -127,7 +127,7 @@ export function StudentsList({
                 permission={PERMISSIONS.VIEW_STUDENTS}
                 mode="hide"
               >
-                <ContextMenuItem onSelect={() => onViewProfile(student)}>
+                <ContextMenuItem onClick={() => onViewProfile(student)}>
                   <Eye className="me-2 size-4 text-muted-foreground" />
                   {t("actions.viewProfile")}
                 </ContextMenuItem>
@@ -137,12 +137,12 @@ export function StudentsList({
                 permission={PERMISSIONS.MANAGE_STUDENTS}
                 mode="hide"
               >
-                <ContextMenuItem onSelect={() => onEdit(student)}>
+                <ContextMenuItem onClick={() => onEdit(student)}>
                   <Edit className="me-2 size-4 text-muted-foreground" />
                   {t("actions.edit")}
                 </ContextMenuItem>
 
-                <ContextMenuItem onSelect={() => onResetPassword(student)}>
+                <ContextMenuItem onClick={() => onResetPassword(student)}>
                   <KeyRound className="me-2 size-4 text-muted-foreground" />
                   {t("actions.resetPassword")}
                 </ContextMenuItem>

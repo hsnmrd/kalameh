@@ -175,15 +175,15 @@ export function InstitutesList({
             </ContextMenuTrigger>
 
             <ContextMenuContent>
-              <ContextMenuItem onSelect={() => handleSelect(institute)}>
+              <ContextMenuItem onClick={() => handleSelect(institute)}>
                 <Building2 className="me-2 size-4 text-muted-foreground" />
                 {t("manage")}
               </ContextMenuItem>
-              <ContextMenuItem onSelect={() => onEdit(institute)}>
+              <ContextMenuItem onClick={() => onEdit(institute)}>
                 <Edit2 className="me-2 size-4 text-muted-foreground" />
                 {t("edit")}
               </ContextMenuItem>
-              <ContextMenuItem onSelect={() => handleToggleBlock(institute)}>
+              <ContextMenuItem onClick={() => handleToggleBlock(institute)}>
                 {institute.isActive ? (
                   <>
                     <Ban className="me-2 size-4 text-destructive" />
@@ -198,7 +198,7 @@ export function InstitutesList({
               </ContextMenuItem>
               <ContextMenuSeparator />
               <ContextMenuItem
-                onSelect={() => onDelete(institute)}
+                onClick={() => onDelete(institute)}
                 className="text-destructive focus:bg-destructive/10 focus:text-destructive"
               >
                 <Trash2 className="me-2 size-4 text-destructive" />

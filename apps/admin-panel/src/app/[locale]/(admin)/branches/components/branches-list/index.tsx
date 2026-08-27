@@ -100,7 +100,7 @@ export function BranchesList({
               permission={PERMISSIONS.MANAGE_BRANCHES}
               mode="hide"
             >
-              <ContextMenuItem onSelect={() => onEdit(branch)}>
+              <ContextMenuItem onClick={() => onEdit(branch)}>
                 <Edit2 className="me-2 size-4 text-muted-foreground" />
                 {t("table.actions")}
               </ContextMenuItem>

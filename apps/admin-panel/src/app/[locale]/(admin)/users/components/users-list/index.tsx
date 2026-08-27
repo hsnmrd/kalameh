@@ -123,18 +123,18 @@ export function UsersList({
                 permission={PERMISSIONS.MANAGE_USERS}
                 mode="hide"
               >
-                <ContextMenuItem onSelect={() => onEdit(user)}>
+                <ContextMenuItem onClick={() => onEdit(user)}>
                   <Edit2 className="me-2 size-4 text-muted-foreground" />
                   {t("table.actions")}
                 </ContextMenuItem>
 
-                <ContextMenuItem onSelect={() => onResetPassword(user)}>
+                <ContextMenuItem onClick={() => onResetPassword(user)}>
                   <KeyRound className="me-2 size-4 text-muted-foreground" />
                   {t("actions.resetPassword")}
                 </ContextMenuItem>
 
                 <ContextMenuItem
-                  onSelect={() => onDelete(user)}
+                  onClick={() => onDelete(user)}
                   className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                 >
                   <Trash2 className="me-2 size-4 text-destructive" />

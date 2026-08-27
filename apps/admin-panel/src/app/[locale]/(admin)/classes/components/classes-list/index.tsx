@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { Layers, Edit2, GraduationCap } from "lucide-react"
-import { Link } from "@/i18n/routing"
+import { Link, useRouter } from "@/i18n/routing"
 import {
   MobileList,
   MobileListItem,
@@ -39,6 +39,7 @@ export interface ClassesListProps {
 export function ClassesList({ classes, isLoading, onEdit }: ClassesListProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
+  const router = useRouter()
 
   if (isLoading) {
     return (
@@ -120,19 +121,19 @@ export function ClassesList({ classes, isLoading, onEdit }: ClassesListProps) {
                 ]}
                 mode="hide"
               >
-                <Link href={`/classes/${cls.id}/grades`}>
-                  <ContextMenuItem>
-                    <GraduationCap className="me-2 size-4 text-primary" />
-                    {t("grades")}
-                  </ContextMenuItem>
-                </Link>
+                <ContextMenuItem
+                  onClick={() => router.push(`/classes/${cls.id}/grades`)}
+                >
+                  <GraduationCap className="me-2 size-4 text-primary" />
+                  {t("grades")}
+                </ContextMenuItem>
               </PermissionGuard>
 
               <PermissionGuard
                 permission={PERMISSIONS.MANAGE_CLASSES}
                 mode="hide"
               >
-                <ContextMenuItem onSelect={() => onEdit(cls)}>
+                <ContextMenuItem onClick={() => onEdit(cls)}>
                   <Edit2 className="me-2 size-4 text-muted-foreground" />
                   {t("table.actions")}
                 </ContextMenuItem>

@@ -103,7 +103,7 @@ export function CoursesList({ courses, isLoading, onEdit }: CoursesListProps) {
               permission={PERMISSIONS.MANAGE_COURSES}
               mode="hide"
             >
-              <ContextMenuItem onSelect={() => onEdit(course)}>
+              <ContextMenuItem onClick={() => onEdit(course)}>
                 <Edit2 className="me-2 size-4 text-muted-foreground" />
                 {t("table.actions")}
               </ContextMenuItem>
