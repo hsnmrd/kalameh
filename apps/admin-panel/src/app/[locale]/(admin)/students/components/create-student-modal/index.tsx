@@ -7,6 +7,7 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
+import { useDebounce } from "@workspace/ui/hooks/use-debounce"
 import {
   FormDialog,
   FormDialogContent,
@@ -103,23 +104,12 @@ export function CreateStudentModal({
   // Live Lookup Logic
   const nationalCodeValue = watch("nationalCode")
   const phoneValue = watch("phone")
-  const [debouncedNationalCode, setDebouncedNationalCode] = React.useState("")
-  const [debouncedPhone, setDebouncedPhone] = React.useState("")
+  const debouncedNationalCode = useDebounce(
+    nationalCodeValue?.trim() || "",
+    400
+  )
+  const debouncedPhone = useDebounce(phoneValue?.trim() || "", 400)
   const lastAutoFilledIdRef = React.useRef<string | null>(null)
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedNationalCode(nationalCodeValue?.trim() || "")
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [nationalCodeValue])
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedPhone(phoneValue?.trim() || "")
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [phoneValue])
 
   const shouldQuery =
     open && (debouncedNationalCode.length >= 8 || debouncedPhone.length === 11)
