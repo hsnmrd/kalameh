@@ -10,7 +10,11 @@ import { I18nService } from '../i18n/i18n.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentFilterDto } from './dto/student-filter.dto';
-import type { JwtPayload, SupportedLocale } from '@workspace/types';
+import type {
+  JwtPayload,
+  SupportedLocale,
+  StudentLookupResponse,
+} from '@workspace/types';
 
 @Injectable()
 export class StudentsService {
@@ -367,6 +371,65 @@ export class StudentsService {
 
     return {
       message: this.i18n.t('students.passwordResetSuccess', locale),
+    };
+  }
+
+  async lookup(
+    currentUser: JwtPayload,
+    nationalCode?: string,
+    phone?: string,
+  ): Promise<StudentLookupResponse> {
+    const trimmedNationalCode = nationalCode?.trim();
+    const trimmedPhone = phone?.trim();
+
+    if (!trimmedNationalCode && !trimmedPhone) {
+      return { found: false, student: null };
+    }
+
+    const whereOr: Array<{ nationalCode?: string; phone?: string }> = [];
+    if (trimmedNationalCode) {
+      whereOr.push({ nationalCode: trimmedNationalCode });
+    }
+    if (trimmedPhone) {
+      whereOr.push({ phone: trimmedPhone });
+    }
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        OR: whereOr,
+      },
+      include: {
+        studentProfile: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
+
+    if (users.length === 0) {
+      return { found: false, student: null };
+    }
+
+    const matchedUser =
+      users.find((u) => u.instituteId === currentUser.instituteId) || users[0];
+
+    const profile = matchedUser.studentProfile;
+
+    return {
+      found: true,
+      student: {
+        id: matchedUser.id,
+        firstName: matchedUser.firstName,
+        lastName: matchedUser.lastName,
+        phone: matchedUser.phone,
+        nationalCode: matchedUser.nationalCode,
+        avatarUrl: matchedUser.avatarUrl,
+        fatherName: profile?.fatherName ?? null,
+        birthDate: profile?.birthDate ? profile.birthDate.toISOString() : null,
+        gender: profile?.gender ?? null,
+        emergencyPhone: profile?.emergencyPhone ?? null,
+        address: profile?.address ?? null,
+        currentAllowedCourseId: matchedUser.currentAllowedCourseId,
+      },
     };
   }
 }

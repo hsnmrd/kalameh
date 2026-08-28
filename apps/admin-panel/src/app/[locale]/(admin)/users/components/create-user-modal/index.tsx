@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { CheckCircle2, UserPlus } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -72,6 +73,8 @@ export function CreateUserModal({
     handleSubmit,
     control,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<CreateUserInput>({
     resolver: zodResolver(createUserSchema),
@@ -85,6 +88,63 @@ export function CreateUserModal({
     },
   })
 
+  // Live Lookup Logic
+  const nationalCodeValue = watch("nationalCode")
+  const phoneValue = watch("phone")
+  const [debouncedNationalCode, setDebouncedNationalCode] = React.useState("")
+  const [debouncedPhone, setDebouncedPhone] = React.useState("")
+  const lastAutoFilledIdRef = React.useRef<string | null>(null)
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedNationalCode(nationalCodeValue?.trim() || "")
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [nationalCodeValue])
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedPhone(phoneValue?.trim() || "")
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [phoneValue])
+
+  const shouldQuery =
+    open && (debouncedNationalCode.length >= 8 || debouncedPhone.length === 11)
+
+  const { data: lookupData, isFetching: isLookingUp } = useQuery({
+    ...usersResource.lookup.toQuery({
+      nationalCode:
+        debouncedNationalCode.length >= 8 ? debouncedNationalCode : undefined,
+      phone: debouncedPhone.length === 11 ? debouncedPhone : undefined,
+    }),
+    enabled: shouldQuery,
+  })
+
+  React.useEffect(() => {
+    if (lookupData?.found && lookupData?.user) {
+      const user = lookupData.user
+      if (lastAutoFilledIdRef.current !== user.id) {
+        lastAutoFilledIdRef.current = user.id
+        setValue("firstName", user.firstName, { shouldValidate: true })
+        setValue("lastName", user.lastName, { shouldValidate: true })
+        if (user.phone) {
+          setValue("phone", user.phone, { shouldValidate: true })
+        }
+        if (user.nationalCode) {
+          setValue("nationalCode", user.nationalCode, { shouldValidate: true })
+        }
+        if (
+          user.role &&
+          user.role !== ROLES.STUDENT &&
+          user.role !== ROLES.SUPER_STUDENT
+        ) {
+          setValue("role", user.role, { shouldValidate: true })
+        }
+      }
+    }
+  }, [lookupData, setValue])
+
   const createMutation = useMutation({
     ...usersResource.create.toMutation(),
     onSuccess: () => {
@@ -92,6 +152,7 @@ export function CreateUserModal({
       queryClient.invalidateQueries({
         queryKey: usersResource.list.baseKey(),
       })
+      lastAutoFilledIdRef.current = null
       reset()
       onClose()
     },
@@ -108,6 +169,7 @@ export function CreateUserModal({
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
+      lastAutoFilledIdRef.current = null
       reset()
       onClose()
     }
@@ -126,6 +188,52 @@ export function CreateUserModal({
           className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
         >
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+            {/* Lookup Status Banner */}
+            {isLookingUp && (
+              <div className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                <Spinner className="size-3 text-muted-foreground" />
+                <span>{t("createModal.lookupChecking")}</span>
+              </div>
+            )}
+            {lookupData?.found && !isLookingUp && (
+              <div className="flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                <CheckCircle2 className="size-3.5 shrink-0 text-primary" />
+                <span>{t("createModal.lookupFound")}</span>
+              </div>
+            )}
+            {shouldQuery && !isLookingUp && lookupData && !lookupData.found && (
+              <div className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                <UserPlus className="size-3.5 shrink-0 text-muted-foreground" />
+                <span>{t("createModal.lookupNew")}</span>
+              </div>
+            )}
+
+            {/* National Code */}
+            <Field data-invalid={Boolean(errors.nationalCode)}>
+              <FieldLabel>{t("createModal.nationalCode")}</FieldLabel>
+              <Input
+                type="text"
+                dir="ltr"
+                {...register("nationalCode")}
+                className="text-start font-mono"
+                placeholder={t("createModal.nationalCodePlaceholder")}
+              />
+              <FieldError>{errors.nationalCode?.message}</FieldError>
+            </Field>
+
+            {/* Phone Number */}
+            <Field data-invalid={Boolean(errors.phone)}>
+              <FieldLabel>{t("createModal.phone")}</FieldLabel>
+              <Input
+                type="tel"
+                dir="ltr"
+                {...register("phone")}
+                className="text-start font-mono"
+                placeholder={t("createModal.phonePlaceholder")}
+              />
+              <FieldError>{errors.phone?.message}</FieldError>
+            </Field>
+
             {/* First & Last Name */}
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={Boolean(errors.firstName)}>
@@ -146,32 +254,6 @@ export function CreateUserModal({
                 <FieldError>{errors.lastName?.message}</FieldError>
               </Field>
             </div>
-
-            {/* Phone Number */}
-            <Field data-invalid={Boolean(errors.phone)}>
-              <FieldLabel>{t("createModal.phone")}</FieldLabel>
-              <Input
-                type="tel"
-                dir="ltr"
-                {...register("phone")}
-                className="text-start font-mono"
-                placeholder={t("createModal.phonePlaceholder")}
-              />
-              <FieldError>{errors.phone?.message}</FieldError>
-            </Field>
-
-            {/* National Code */}
-            <Field data-invalid={Boolean(errors.nationalCode)}>
-              <FieldLabel>{t("createModal.nationalCode")}</FieldLabel>
-              <Input
-                type="text"
-                dir="ltr"
-                {...register("nationalCode")}
-                className="text-start font-mono"
-                placeholder={t("createModal.nationalCodePlaceholder")}
-              />
-              <FieldError>{errors.nationalCode?.message}</FieldError>
-            </Field>
 
             {/* Role Selection via ResponsiveCombobox */}
             <Field data-invalid={Boolean(errors.role)}>

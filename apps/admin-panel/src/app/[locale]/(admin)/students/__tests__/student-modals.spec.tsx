@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest"
 import { render, screen } from "../../../../../test/test-utils"
 import { StudentProfileModal } from "../components/student-profile-modal"
 import { ResetPasswordModal } from "../components/reset-password-modal"
+import { CreateStudentModal } from "../components/create-student-modal"
 import type { StudentDto } from "@workspace/types"
 
 describe("Student Modals", () => {
@@ -64,6 +65,29 @@ describe("Student Modals", () => {
       expect(
         screen.getByText(/بازنشانی رمز عبور فراگیر|Reset Student Password/i)
       ).toBeInTheDocument()
+    })
+  })
+
+  describe("CreateStudentModal", () => {
+    it("should render registration fields with national code, phone and identity inputs", () => {
+      render(
+        <CreateStudentModal
+          open={true}
+          onClose={vi.fn()}
+          instituteId="inst-1"
+        />
+      )
+
+      expect(
+        screen.getByRole("heading", {
+          name: /ثبت فراگیر جدید|Register New Student/i,
+        })
+      ).toBeInTheDocument()
+      expect(screen.getAllByText(/کد ملی|National ID/i).length).toBeGreaterThan(
+        0
+      )
+      expect(screen.getAllByText(/شماره تماس|Phone/i).length).toBeGreaterThan(0)
+      expect(screen.getByText(/اطلاعات هویتی|Identity/i)).toBeInTheDocument()
     })
   })
 })

@@ -3,6 +3,7 @@ import type {
   CreateUserInput,
   UpdateUserInput,
   ExcelImportResult,
+  UserLookupResponse,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -11,6 +12,12 @@ export const usersResource = api.resource("users", {
     AuthUser[],
     { role?: string; search?: string; instituteId?: string } | undefined
   >("/users", {
+    query: (params) => params || {},
+  }),
+  lookup: api.get<
+    UserLookupResponse,
+    { nationalCode?: string; phone?: string } | undefined
+  >("/users/lookup", {
     query: (params) => params || {},
   }),
   detail: api.get<AuthUser, string>((id) => `/users/${id}`),

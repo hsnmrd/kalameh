@@ -537,4 +537,51 @@ describe('UsersService', () => {
       ).rejects.toThrow(BadRequestException);
     });
   });
+
+  describe('lookup', () => {
+    it('should return found=false when nationalCode and phone are empty', async () => {
+      const result = await service.lookup(mockInstituteAdmin, '', '');
+      expect(result).toEqual({ found: false, user: null });
+      expect(prismaService.user.findMany).not.toHaveBeenCalled();
+    });
+
+    it('should return found=true with user details when matched by phone', async () => {
+      prismaService.user.findMany.mockResolvedValue([
+        {
+          id: 'u-1',
+          instituteId: 'inst-1',
+          firstName: 'Sara',
+          lastName: 'Rad',
+          phone: '09121112233',
+          nationalCode: '0012345678',
+          role: 'TEACHER',
+          studentProfile: {
+            fatherName: 'Ali',
+            birthDate: new Date('1995-05-05'),
+            gender: 'FEMALE',
+            emergencyPhone: '09129998877',
+            address: 'Tehran',
+          },
+        },
+      ]);
+
+      const result = await service.lookup(
+        mockInstituteAdmin,
+        undefined,
+        '09121112233',
+      );
+      expect(result.found).toBe(true);
+      expect(result.user).toBeDefined();
+      expect(result.user?.firstName).toBe('Sara');
+      expect(result.user?.role).toBe('TEACHER');
+    });
+
+    it('should return found=false when no user matches query', async () => {
+      prismaService.user.findMany.mockResolvedValue([]);
+
+      const result = await service.lookup(mockInstituteAdmin, '0000000000');
+      expect(result.found).toBe(false);
+      expect(result.user).toBeNull();
+    });
+  });
 });

@@ -56,7 +56,10 @@
     "passwordHint": "If left empty, phone number will be used as default password.",
     "submit": "Create User",
     "cancel": "Cancel",
-    "success": "Staff member created successfully."
+    "success": "Staff member created successfully.",
+    "lookupFound": "User record found in system. Form auto-filled.",
+    "lookupNew": "New User",
+    "lookupChecking": "Checking user record..."
   },
   "editModal": {
     "title": "Edit Staff Profile",

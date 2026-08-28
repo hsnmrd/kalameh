@@ -63,7 +63,10 @@
     "passwordHint": "If left empty, phone number will be used as default password.",
     "submit": "Register Student",
     "cancel": "Cancel",
-    "success": "Student registered successfully."
+    "success": "Student registered successfully.",
+    "lookupFound": "Student record found in system. Form auto-filled.",
+    "lookupNew": "New Student",
+    "lookupChecking": "Checking student record..."
   },
   "editModal": {
     "title": "Edit Student Profile",

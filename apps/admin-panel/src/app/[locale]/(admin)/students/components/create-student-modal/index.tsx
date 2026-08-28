@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { CheckCircle2, UserPlus } from "lucide-react"
 import { useTranslations, useLocale } from "next-intl"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -78,6 +79,8 @@ export function CreateStudentModal({
     handleSubmit,
     control,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<CreateStudentInput>({
     resolver: zodResolver(createStudentSchema),
@@ -97,6 +100,82 @@ export function CreateStudentModal({
     },
   })
 
+  // Live Lookup Logic
+  const nationalCodeValue = watch("nationalCode")
+  const phoneValue = watch("phone")
+  const [debouncedNationalCode, setDebouncedNationalCode] = React.useState("")
+  const [debouncedPhone, setDebouncedPhone] = React.useState("")
+  const lastAutoFilledIdRef = React.useRef<string | null>(null)
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedNationalCode(nationalCodeValue?.trim() || "")
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [nationalCodeValue])
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedPhone(phoneValue?.trim() || "")
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [phoneValue])
+
+  const shouldQuery =
+    open && (debouncedNationalCode.length >= 8 || debouncedPhone.length === 11)
+
+  const { data: lookupData, isFetching: isLookingUp } = useQuery({
+    ...studentsResource.lookup.toQuery({
+      nationalCode:
+        debouncedNationalCode.length >= 8 ? debouncedNationalCode : undefined,
+      phone: debouncedPhone.length === 11 ? debouncedPhone : undefined,
+    }),
+    enabled: shouldQuery,
+  })
+
+  React.useEffect(() => {
+    if (lookupData?.found && lookupData?.student) {
+      const student = lookupData.student
+      if (lastAutoFilledIdRef.current !== student.id) {
+        lastAutoFilledIdRef.current = student.id
+        setValue("firstName", student.firstName, { shouldValidate: true })
+        setValue("lastName", student.lastName, { shouldValidate: true })
+        if (student.phone) {
+          setValue("phone", student.phone, { shouldValidate: true })
+        }
+        if (student.nationalCode) {
+          setValue("nationalCode", student.nationalCode, {
+            shouldValidate: true,
+          })
+        }
+        if (student.fatherName) {
+          setValue("fatherName", student.fatherName, { shouldValidate: true })
+        }
+        if (student.birthDate) {
+          setValue("birthDate", student.birthDate.slice(0, 10), {
+            shouldValidate: true,
+          })
+        }
+        if (student.gender) {
+          setValue("gender", student.gender, { shouldValidate: true })
+        }
+        if (student.emergencyPhone) {
+          setValue("emergencyPhone", student.emergencyPhone, {
+            shouldValidate: true,
+          })
+        }
+        if (student.address) {
+          setValue("address", student.address, { shouldValidate: true })
+        }
+        if (student.currentAllowedCourseId) {
+          setValue("currentAllowedCourseId", student.currentAllowedCourseId, {
+            shouldValidate: true,
+          })
+        }
+      }
+    }
+  }, [lookupData, setValue])
+
   const createMutation = useMutation({
     ...studentsResource.create.toMutation(),
     onSuccess: () => {
@@ -104,6 +183,7 @@ export function CreateStudentModal({
       queryClient.invalidateQueries({
         queryKey: studentsResource.list.baseKey(),
       })
+      lastAutoFilledIdRef.current = null
       reset()
       onClose()
     },
@@ -130,6 +210,7 @@ export function CreateStudentModal({
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
+      lastAutoFilledIdRef.current = null
       reset()
       onClose()
     }
@@ -150,40 +231,35 @@ export function CreateStudentModal({
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
             {/* Identity Section */}
             <div className="space-y-3 rounded-xl border border-border/80 bg-muted/20 p-3">
-              <h4 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                {t("createModal.identityTab")}
-              </h4>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                  {t("createModal.identityTab")}
+                </h4>
+                {isLookingUp && (
+                  <div className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                    <Spinner className="size-3 text-muted-foreground" />
+                    <span>{t("createModal.lookupChecking")}</span>
+                  </div>
+                )}
+                {lookupData?.found && !isLookingUp && (
+                  <div className="flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                    <CheckCircle2 className="size-3.5 shrink-0 text-primary" />
+                    <span>{t("createModal.lookupFound")}</span>
+                  </div>
+                )}
+                {shouldQuery &&
+                  !isLookingUp &&
+                  lookupData &&
+                  !lookupData.found && (
+                    <div className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                      <UserPlus className="size-3.5 shrink-0 text-muted-foreground" />
+                      <span>{t("createModal.lookupNew")}</span>
+                    </div>
+                  )}
+              </div>
+
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Field data-invalid={Boolean(errors.firstName)}>
-                  <FieldLabel>{t("createModal.firstName")}</FieldLabel>
-                  <Input
-                    {...register("firstName")}
-                    placeholder={t("createModal.firstNamePlaceholder")}
-                  />
-                  <FieldError>{errors.firstName?.message}</FieldError>
-                </Field>
-
-                <Field data-invalid={Boolean(errors.lastName)}>
-                  <FieldLabel>{t("createModal.lastName")}</FieldLabel>
-                  <Input
-                    {...register("lastName")}
-                    placeholder={t("createModal.lastNamePlaceholder")}
-                  />
-                  <FieldError>{errors.lastName?.message}</FieldError>
-                </Field>
-
-                <Field data-invalid={Boolean(errors.phone)}>
-                  <FieldLabel>{t("createModal.phone")}</FieldLabel>
-                  <Input
-                    type="tel"
-                    dir="ltr"
-                    {...register("phone")}
-                    className="text-start font-mono"
-                    placeholder={t("createModal.phonePlaceholder")}
-                  />
-                  <FieldError>{errors.phone?.message}</FieldError>
-                </Field>
-
+                {/* 1. National Code */}
                 <Field data-invalid={Boolean(errors.nationalCode)}>
                   <FieldLabel>{t("createModal.nationalCode")}</FieldLabel>
                   <Input
@@ -196,6 +272,39 @@ export function CreateStudentModal({
                     {t("createModal.nationalCodeHint")}
                   </FieldDescription>
                   <FieldError>{errors.nationalCode?.message}</FieldError>
+                </Field>
+
+                {/* 2. Phone Number */}
+                <Field data-invalid={Boolean(errors.phone)}>
+                  <FieldLabel>{t("createModal.phone")}</FieldLabel>
+                  <Input
+                    type="tel"
+                    dir="ltr"
+                    {...register("phone")}
+                    className="text-start font-mono"
+                    placeholder={t("createModal.phonePlaceholder")}
+                  />
+                  <FieldError>{errors.phone?.message}</FieldError>
+                </Field>
+
+                {/* 3. First Name */}
+                <Field data-invalid={Boolean(errors.firstName)}>
+                  <FieldLabel>{t("createModal.firstName")}</FieldLabel>
+                  <Input
+                    {...register("firstName")}
+                    placeholder={t("createModal.firstNamePlaceholder")}
+                  />
+                  <FieldError>{errors.firstName?.message}</FieldError>
+                </Field>
+
+                {/* 4. Last Name */}
+                <Field data-invalid={Boolean(errors.lastName)}>
+                  <FieldLabel>{t("createModal.lastName")}</FieldLabel>
+                  <Input
+                    {...register("lastName")}
+                    placeholder={t("createModal.lastNamePlaceholder")}
+                  />
+                  <FieldError>{errors.lastName?.message}</FieldError>
                 </Field>
               </div>
             </div>

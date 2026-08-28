@@ -141,6 +141,16 @@ export class UsersController {
     );
   }
 
+  @Get('lookup')
+  @RequirePermissions(PERMISSIONS.VIEW_USERS)
+  async lookup(
+    @CurrentUser() currentUser: JwtPayload,
+    @Query('nationalCode') nationalCode?: string,
+    @Query('phone') phone?: string,
+  ) {
+    return this.usersService.lookup(currentUser, nationalCode, phone);
+  }
+
   @Get(':id')
   @RequirePermissions(PERMISSIONS.VIEW_USERS)
   async findOne(

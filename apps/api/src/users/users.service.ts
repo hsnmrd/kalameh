@@ -21,6 +21,7 @@ import {
   UserImportRowSchema,
   type ExcelImportResult,
   type ExcelImportError,
+  type UserLookupResponse,
 } from '@workspace/types';
 
 @Injectable()
@@ -574,6 +575,64 @@ export class UsersService {
       importedCount: validRowsToInsert.length,
       failedCount: errors.length,
       errors,
+    };
+  }
+
+  async lookup(
+    currentUser: JwtPayload,
+    nationalCode?: string,
+    phone?: string,
+  ): Promise<UserLookupResponse> {
+    const trimmedNationalCode = nationalCode?.trim();
+    const trimmedPhone = phone?.trim();
+
+    if (!trimmedNationalCode && !trimmedPhone) {
+      return { found: false, user: null };
+    }
+
+    const whereOr: Array<{ nationalCode?: string; phone?: string }> = [];
+    if (trimmedNationalCode) {
+      whereOr.push({ nationalCode: trimmedNationalCode });
+    }
+    if (trimmedPhone) {
+      whereOr.push({ phone: trimmedPhone });
+    }
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        OR: whereOr,
+      },
+      include: {
+        studentProfile: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
+
+    if (users.length === 0) {
+      return { found: false, user: null };
+    }
+
+    const matchedUser =
+      users.find((u) => u.instituteId === currentUser.instituteId) || users[0];
+
+    const profile = matchedUser.studentProfile;
+
+    return {
+      found: true,
+      user: {
+        id: matchedUser.id,
+        firstName: matchedUser.firstName,
+        lastName: matchedUser.lastName,
+        phone: matchedUser.phone,
+        nationalCode: matchedUser.nationalCode,
+        role: matchedUser.role,
+        fatherName: profile?.fatherName ?? null,
+        birthDate: profile?.birthDate ? profile.birthDate.toISOString() : null,
+        gender: profile?.gender ?? null,
+        emergencyPhone: profile?.emergencyPhone ?? null,
+        address: profile?.address ?? null,
+      },
     };
   }
 }

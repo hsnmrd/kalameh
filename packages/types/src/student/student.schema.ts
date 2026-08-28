@@ -27,3 +27,26 @@ export const StudentDtoSchema = z.object({
 })
 
 export type StudentDto = z.infer<typeof StudentDtoSchema>
+
+export const StudentLookupResponseSchema = z.object({
+  found: z.boolean(),
+  student: z
+    .object({
+      id: z.string().uuid(),
+      firstName: z.string(),
+      lastName: z.string(),
+      phone: z.string(),
+      nationalCode: z.string().nullable().optional(),
+      avatarUrl: z.string().nullable().optional(),
+      fatherName: z.string().nullable().optional(),
+      birthDate: z.string().nullable().optional(),
+      gender: z.string().nullable().optional(),
+      emergencyPhone: z.string().nullable().optional(),
+      address: z.string().nullable().optional(),
+      currentAllowedCourseId: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+})
+
+export type StudentLookupResponse = z.infer<typeof StudentLookupResponseSchema>
