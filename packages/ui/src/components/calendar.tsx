@@ -68,7 +68,7 @@ export function Calendar({
         selected:
           "!bg-primary !text-primary-foreground font-semibold hover:!bg-primary hover:!text-primary-foreground",
         today: "bg-muted font-bold text-foreground ring-1 ring-border",
-        outside: "text-muted-foreground/40 opacity-50",
+        outside: "text-muted-foreground",
         disabled:
           "text-muted-foreground/30 opacity-30 cursor-not-allowed pointer-events-none",
         hidden: "invisible",

@@ -26,6 +26,7 @@ export interface ComboboxProps {
   clearable?: boolean
   className?: string
   "data-invalid"?: boolean
+  "aria-label"?: string
 }
 
 export function Combobox({
@@ -42,6 +43,7 @@ export function Combobox({
   clearable = true,
   className,
   "data-invalid": dataInvalid,
+  "aria-label": ariaLabel,
 }: ComboboxProps) {
   const currentLocale =
     locale ??
@@ -66,21 +68,25 @@ export function Combobox({
     [items, defaultValue]
   )
 
-  const handleItemChange = (item: ComboboxOption | null) => {
+  const handleItemChange = (item: ComboboxOption | null | undefined) => {
     onValueChange?.(item?.value)
   }
 
   const isSearchable = items.length >= 5 && searchable !== false
 
+  const controlledValueProps =
+    value !== undefined ? { value: selectedItem } : {}
+
   return (
     <ComboboxPrimitive.Root
       items={items}
-      value={selectedItem}
       defaultValue={defaultSelectedItem}
       onValueChange={handleItemChange}
       disabled={disabled}
+      {...controlledValueProps}
     >
       <ComboboxPrimitive.Trigger
+        aria-label={ariaLabel ?? resolvedPlaceholder}
         className={cn(
           "relative flex h-14 w-full cursor-pointer items-center justify-between rounded-2xl border border-border bg-background px-4 text-base text-foreground shadow-2xs transition-colors hover:bg-muted/30 focus-visible:border-2 focus-visible:border-ring focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
           dataInvalid && "border-destructive focus-visible:border-destructive",
@@ -164,6 +170,9 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
   const isMobile = useIsMobile()
   const [drawerOpen, setDrawerOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
+  const [uncontrolledValue, setUncontrolledValue] = React.useState<
+    string | undefined
+  >(props.defaultValue)
 
   const isFa = (props.locale ?? "fa").startsWith("fa")
   const resolvedPlaceholder =
@@ -173,8 +182,12 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
     return <Combobox {...comboboxProps} />
   }
 
+  const selectedValue =
+    comboboxProps.value !== undefined
+      ? (comboboxProps.value ?? undefined)
+      : uncontrolledValue
   const selectedItem = comboboxProps.items.find(
-    (item) => item.value === comboboxProps.value
+    (item) => item.value === selectedValue
   )
 
   const filtered = search.trim()
@@ -184,12 +197,18 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
     : comboboxProps.items
 
   const handleSelect = (item: ComboboxOption) => {
+    if (comboboxProps.value === undefined) {
+      setUncontrolledValue(item.value)
+    }
     comboboxProps.onValueChange?.(item.value)
     setDrawerOpen(false)
     setSearch("")
   }
 
   const handleClear = () => {
+    if (comboboxProps.value === undefined) {
+      setUncontrolledValue(undefined)
+    }
     comboboxProps.onValueChange?.(undefined)
     setDrawerOpen(false)
     setSearch("")
@@ -216,6 +235,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
           type="text"
           readOnly
           role="combobox"
+          aria-label={comboboxProps["aria-label"] ?? resolvedPlaceholder}
           aria-expanded={drawerOpen}
           aria-haspopup="dialog"
           inputMode="none"
@@ -280,7 +300,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
               </p>
             ) : (
               filtered.map((item) => {
-                const isSelected = item.value === comboboxProps.value
+                const isSelected = item.value === selectedValue
                 return (
                   <button
                     key={item.value}

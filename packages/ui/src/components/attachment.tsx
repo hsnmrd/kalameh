@@ -207,7 +207,7 @@ export function Attachment({
             isDragging
               ? "border-primary bg-primary/5"
               : "border-border bg-muted/20 hover:border-primary/50 hover:bg-muted/40",
-            disabled && "cursor-not-allowed opacity-60"
+            disabled && "cursor-not-allowed bg-muted/40"
           )}
         >
           <div className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-transform group-hover:scale-105">
