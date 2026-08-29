@@ -20,6 +20,7 @@ out/
 # production
 build
 dist
+storybook-static
 packages/database/src/generated/
 
 # turbo
