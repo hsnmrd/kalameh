@@ -1,3 +1,4 @@
+import type { Viewport, Metadata } from "next"
 import localFont from "next/font/local"
 import { Geist, Geist_Mono } from "next/font/google"
 import { notFound } from "next/navigation"
@@ -10,6 +11,24 @@ import {
 import { Providers } from "@/components/providers"
 import { cn } from "@workspace/ui/lib/utils"
 import "@workspace/ui/globals.css"
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
+  viewportFit: "cover",
+  width: "device-width",
+  initialScale: 1,
+}
+
+export const metadata: Metadata = {
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Kalameh",
+  },
+}
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
