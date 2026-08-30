@@ -135,6 +135,8 @@ export function CreateUserModal({
 
         <form
           onSubmit={handleSubmit(onSubmit)}
+          autoComplete="off"
+          data-form-type="other"
           className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
         >
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
@@ -173,13 +175,26 @@ export function CreateUserModal({
 
             {/* Phone Number */}
             <Field data-invalid={Boolean(errors.phone)}>
-              <FieldLabel>{t("createModal.phone")}</FieldLabel>
-              <Input
-                type="tel"
-                dir="ltr"
-                {...register("phone")}
-                className="text-start font-mono"
-                placeholder={t("createModal.phonePlaceholder")}
+              <FieldLabel htmlFor="new-user-phone">
+                {t("createModal.phone")}
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="phone"
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id="new-user-phone"
+                    name="new-user-phone"
+                    type="tel"
+                    dir="ltr"
+                    autoComplete="off"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    className="text-start font-mono"
+                    placeholder={t("createModal.phonePlaceholder")}
+                  />
+                )}
               />
               <FieldError>{errors.phone?.message}</FieldError>
             </Field>
@@ -229,10 +244,23 @@ export function CreateUserModal({
 
             {/* Initial Password */}
             <Field data-invalid={Boolean(errors.password)}>
-              <FieldLabel>{t("createModal.password")}</FieldLabel>
-              <PasswordInput
-                {...register("password")}
-                placeholder={t("createModal.passwordPlaceholder")}
+              <FieldLabel htmlFor="new-user-password">
+                {t("createModal.password")}
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field }) => (
+                  <PasswordInput
+                    {...field}
+                    id="new-user-password"
+                    name="new-user-password"
+                    autoComplete="new-password"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    placeholder={t("createModal.passwordPlaceholder")}
+                  />
+                )}
               />
               <FieldDescription>
                 {t("createModal.passwordHint")}
