@@ -127,4 +127,7 @@
   body {
     @apply bg-background text-foreground;
   }
+  ::placeholder {
+    color: color-mix(in oklch, var(--muted-foreground) 35%, transparent);
+  }
 }
