@@ -3,7 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
-import { Users, Edit2, KeyRound, Trash2 } from "lucide-react"
+import { Users, Edit2, KeyRound, Trash2, Eye } from "lucide-react"
 import {
   MobileList,
   MobileListItem,
@@ -33,6 +33,7 @@ import { UserStatusBadge } from "../user-status-badge"
 export interface UsersListProps {
   users: AuthUser[] | undefined
   isLoading: boolean
+  onViewProfile: (user: AuthUser) => void
   onEdit: (user: AuthUser) => void
   onResetPassword: (user: AuthUser) => void
   onDelete: (user: AuthUser) => void
@@ -41,6 +42,7 @@ export interface UsersListProps {
 export function UsersList({
   users,
   isLoading,
+  onViewProfile,
   onEdit,
   onResetPassword,
   onDelete,
@@ -79,7 +81,7 @@ export function UsersList({
           <ContextMenu key={user.id}>
             <ContextMenuTrigger>
               <MobileListItem
-                onClick={() => onEdit(user)}
+                onClick={() => onViewProfile(user)}
                 isLast={index === users.length - 1}
               >
                 <MobileListItemIcon>
@@ -119,13 +121,20 @@ export function UsersList({
             </ContextMenuTrigger>
 
             <ContextMenuContent>
+              <PermissionGuard permission={PERMISSIONS.VIEW_USERS} mode="hide">
+                <ContextMenuItem onClick={() => onViewProfile(user)}>
+                  <Eye className="me-2 size-4 text-muted-foreground" />
+                  {t("actions.viewProfile")}
+                </ContextMenuItem>
+              </PermissionGuard>
+
               <PermissionGuard
                 permission={PERMISSIONS.MANAGE_USERS}
                 mode="hide"
               >
                 <ContextMenuItem onClick={() => onEdit(user)}>
                   <Edit2 className="me-2 size-4 text-muted-foreground" />
-                  {t("table.actions")}
+                  {t("actions.edit")}
                 </ContextMenuItem>
 
                 <ContextMenuItem onClick={() => onResetPassword(user)}>
@@ -138,7 +147,7 @@ export function UsersList({
                   className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                 >
                   <Trash2 className="me-2 size-4 text-destructive" />
-                  {t("deleteModal.title")}
+                  {t("actions.delete")}
                 </ContextMenuItem>
               </PermissionGuard>
             </ContextMenuContent>

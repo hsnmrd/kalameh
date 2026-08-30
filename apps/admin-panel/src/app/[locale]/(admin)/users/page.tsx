@@ -22,6 +22,7 @@ import { EditUserModal } from "./components/edit-user-modal"
 import { ResetPasswordModal } from "./components/reset-password-modal"
 import { ImportUsersModal } from "./components/import-users-modal"
 import { DeleteUserModal } from "./components/delete-user-modal"
+import { UserProfileModal } from "./components/user-profile-modal"
 
 export default function UsersPage() {
   const t = useTranslations("users")
@@ -31,6 +32,9 @@ export default function UsersPage() {
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [importModalOpen, setImportModalOpen] = React.useState(false)
   const [isExporting, setIsExporting] = React.useState(false)
+  const [viewProfileUser, setViewProfileUser] = React.useState<AuthUser | null>(
+    null
+  )
   const [editUser, setEditUser] = React.useState<AuthUser | null>(null)
   const [deleteUser, setDeleteUser] = React.useState<AuthUser | null>(null)
   const [resetPasswordUser, setResetPasswordUser] =
@@ -133,6 +137,13 @@ export default function UsersPage() {
                 instituteId={activeInstituteId}
               />
 
+              {/* View User Profile Modal */}
+              <UserProfileModal
+                user={viewProfileUser}
+                open={Boolean(viewProfileUser)}
+                onClose={() => setViewProfileUser(null)}
+              />
+
               {/* Edit User Modal */}
               <EditUserModal
                 user={editUser}
@@ -169,6 +180,7 @@ export default function UsersPage() {
             <UsersTable
               users={users}
               isLoading={isLoading}
+              onViewProfile={(user) => setViewProfileUser(user)}
               onEdit={(user) => setEditUser(user)}
               onResetPassword={(user) => setResetPasswordUser(user)}
               onDelete={(user) => setDeleteUser(user)}
@@ -180,6 +192,7 @@ export default function UsersPage() {
             <UsersList
               users={users}
               isLoading={isLoading}
+              onViewProfile={(user) => setViewProfileUser(user)}
               onEdit={(user) => setEditUser(user)}
               onResetPassword={(user) => setResetPasswordUser(user)}
               onDelete={(user) => setDeleteUser(user)}

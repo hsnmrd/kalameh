@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Edit2, KeyRound, Trash2 } from "lucide-react"
+import { Edit2, KeyRound, Trash2, Eye } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { PERMISSIONS, type AuthUser } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -11,6 +11,7 @@ import { UserStatusBadge } from "../user-status-badge"
 
 export interface UserRowProps {
   user: AuthUser
+  onViewProfile?: (user: AuthUser) => void
   onEdit: (user: AuthUser) => void
   onResetPassword: (user: AuthUser) => void
   onDelete: (user: AuthUser) => void
@@ -18,6 +19,7 @@ export interface UserRowProps {
 
 export function UserRow({
   user,
+  onViewProfile,
   onEdit,
   onResetPassword,
   onDelete,
@@ -83,6 +85,20 @@ export function UserRow({
       {/* Actions */}
       <td className="px-4 py-3.5 text-end">
         <div className="flex items-center justify-end gap-1.5">
+          {onViewProfile && (
+            <PermissionGuard permission={PERMISSIONS.VIEW_USERS} mode="disable">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => onViewProfile(user)}
+                title={t("actions.viewProfile")}
+                className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <Eye className="size-3.5" />
+              </Button>
+            </PermissionGuard>
+          )}
+
           <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="disable">
             <Button
               variant="ghost"

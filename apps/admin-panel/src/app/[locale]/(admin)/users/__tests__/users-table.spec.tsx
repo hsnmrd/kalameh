@@ -36,8 +36,10 @@ describe("UsersTable & UsersFilter Components", () => {
         <UsersTable
           users={undefined}
           isLoading={true}
+          onViewProfile={vi.fn()}
           onEdit={vi.fn()}
           onResetPassword={vi.fn()}
+          onDelete={vi.fn()}
         />
       )
 
@@ -50,8 +52,10 @@ describe("UsersTable & UsersFilter Components", () => {
         <UsersTable
           users={[]}
           isLoading={false}
+          onViewProfile={vi.fn()}
           onEdit={vi.fn()}
           onResetPassword={vi.fn()}
+          onDelete={vi.fn()}
         />
       )
 
@@ -65,8 +69,10 @@ describe("UsersTable & UsersFilter Components", () => {
         <UsersTable
           users={mockUsers}
           isLoading={false}
+          onViewProfile={vi.fn()}
           onEdit={vi.fn()}
           onResetPassword={vi.fn()}
+          onDelete={vi.fn()}
         />
       )
 
@@ -76,7 +82,8 @@ describe("UsersTable & UsersFilter Components", () => {
       expect(screen.getAllByText("09122222222").length).toBeGreaterThan(0)
     })
 
-    it("should trigger onEdit, onResetPassword, and onDelete callbacks when action buttons are clicked", () => {
+    it("should trigger onViewProfile, onEdit, onResetPassword, and onDelete callbacks when action buttons are clicked", () => {
+      const handleViewProfile = vi.fn()
       const handleEdit = vi.fn()
       const handleResetPassword = vi.fn()
       const handleDelete = vi.fn()
@@ -85,11 +92,18 @@ describe("UsersTable & UsersFilter Components", () => {
         <UsersTable
           users={mockUsers}
           isLoading={false}
+          onViewProfile={handleViewProfile}
           onEdit={handleEdit}
           onResetPassword={handleResetPassword}
           onDelete={handleDelete}
         />
       )
+
+      const viewButtons = screen.getAllByRole("button", {
+        name: /مشاهده جزئیات|مشاهده/i,
+      })
+      fireEvent.click(viewButtons[0]!)
+      expect(handleViewProfile).toHaveBeenCalledWith(mockUsers[0])
 
       const editButtons = screen.getAllByRole("button", {
         name: /ویرایش کاربر|ویرایش/i,

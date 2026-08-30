@@ -87,7 +87,16 @@
     "cancel": "Cancel",
     "success": "Password reset successfully."
   },
+  "profileModal": {
+    "title": "Staff Profile",
+    "personalInfo": "Personal Details",
+    "identityInfo": "Identity Information",
+    "contactInfo": "Contact Information",
+    "systemInfo": "System & Access Details",
+    "close": "Close"
+  },
   "actions": {
+    "viewProfile": "View Details",
     "edit": "Edit Profile",
     "resetPassword": "Reset Password",
     "delete": "Delete Account"

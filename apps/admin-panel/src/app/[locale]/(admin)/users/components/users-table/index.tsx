@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Users, Edit2, KeyRound, Trash2 } from "lucide-react"
+import { Users, Edit2, KeyRound, Trash2, Eye } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
@@ -25,6 +25,7 @@ import { UserCard } from "../user-card"
 export interface UsersTableProps {
   users: AuthUser[] | undefined
   isLoading: boolean
+  onViewProfile: (user: AuthUser) => void
   onEdit: (user: AuthUser) => void
   onResetPassword: (user: AuthUser) => void
   onDelete: (user: AuthUser) => void
@@ -33,6 +34,7 @@ export interface UsersTableProps {
 export function UsersTable({
   users,
   isLoading,
+  onViewProfile,
   onEdit,
   onResetPassword,
   onDelete,
@@ -122,6 +124,21 @@ export function UsersTable({
           return (
             <div className="flex items-center justify-end gap-1.5">
               <PermissionGuard
+                permission={PERMISSIONS.VIEW_USERS}
+                mode="disable"
+              >
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onViewProfile(user)}
+                  title={t("actions.viewProfile")}
+                  className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <Eye className="size-3.5" />
+                </Button>
+              </PermissionGuard>
+
+              <PermissionGuard
                 permission={PERMISSIONS.MANAGE_USERS}
                 mode="disable"
               >
@@ -170,7 +187,7 @@ export function UsersTable({
         },
       },
     ],
-    [locale, onEdit, onResetPassword, onDelete, t]
+    [locale, onEdit, onResetPassword, onDelete, onViewProfile, t]
   )
 
   if (isLoading) {

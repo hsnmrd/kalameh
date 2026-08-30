@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "../../../../../test/test-utils"
 import { ResetPasswordModal } from "../components/reset-password-modal"
 import { DeleteUserModal } from "../components/delete-user-modal"
+import { UserProfileModal } from "../components/user-profile-modal"
 import type { AuthUser } from "@workspace/types"
 
 // Mock sonner toast
@@ -79,6 +80,38 @@ describe("User Modals", () => {
 
       const cancelBtn = screen.getByRole("button", { name: /انصراف|لغو/i })
       fireEvent.click(cancelBtn)
+
+      expect(handleClose).toHaveBeenCalled()
+    })
+  })
+
+  describe("UserProfileModal", () => {
+    it("should render dialog with user profile details when open", () => {
+      const handleClose = vi.fn()
+      render(
+        <UserProfileModal user={mockUser} open={true} onClose={handleClose} />
+      )
+
+      expect(
+        screen.getByRole("heading", { name: /مشخصات پرسنل|profile/i })
+      ).toBeInTheDocument()
+      expect(screen.getAllByText(/Ali Rezaei/i).length).toBeGreaterThan(0)
+      expect(screen.getAllByText("09123456789").length).toBeGreaterThan(0)
+      expect(
+        screen.getAllByRole("button", { name: /بستن|close/i }).length
+      ).toBeGreaterThan(0)
+    })
+
+    it("should call onClose when close button is clicked", () => {
+      const handleClose = vi.fn()
+      render(
+        <UserProfileModal user={mockUser} open={true} onClose={handleClose} />
+      )
+
+      const closeButtons = screen.getAllByRole("button", {
+        name: /بستن|close/i,
+      })
+      fireEvent.click(closeButtons[0]!)
 
       expect(handleClose).toHaveBeenCalled()
     })

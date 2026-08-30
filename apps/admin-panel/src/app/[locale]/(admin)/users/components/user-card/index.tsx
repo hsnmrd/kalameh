@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Edit2, KeyRound, Trash2 } from "lucide-react"
+import { Edit2, KeyRound, Trash2, Eye } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { PERMISSIONS, type AuthUser } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -11,6 +11,7 @@ import { UserStatusBadge } from "../user-status-badge"
 
 export interface UserCardProps {
   user: AuthUser
+  onViewProfile?: (user: AuthUser) => void
   onEdit: (user: AuthUser) => void
   onResetPassword: (user: AuthUser) => void
   onDelete: (user: AuthUser) => void
@@ -18,6 +19,7 @@ export interface UserCardProps {
 
 export function UserCard({
   user,
+  onViewProfile,
   onEdit,
   onResetPassword,
   onDelete,
@@ -72,6 +74,20 @@ export function UserCard({
       )}
 
       <div className="flex items-center justify-end gap-2 border-t border-border/60 pt-2.5">
+        {onViewProfile && (
+          <PermissionGuard permission={PERMISSIONS.VIEW_USERS} mode="disable">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewProfile(user)}
+              className="gap-1.5 rounded-lg text-xs"
+            >
+              <Eye className="size-3" />
+              <span>{t("actions.viewProfile")}</span>
+            </Button>
+          </PermissionGuard>
+        )}
+
         <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="disable">
           <Button
             variant="outline"

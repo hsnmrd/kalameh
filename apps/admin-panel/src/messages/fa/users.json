@@ -87,7 +87,16 @@
     "cancel": "انصراف",
     "success": "رمز عبور با موفقیت بازنشانی شد."
   },
+  "profileModal": {
+    "title": "مشخصات پرسنل",
+    "personalInfo": "مشخصات فردی",
+    "identityInfo": "مشخصات هویتی",
+    "contactInfo": "اطلاعات تماس و سکونت",
+    "systemInfo": "اطلاعات سیستمی و دسترسی",
+    "close": "بستن"
+  },
   "actions": {
+    "viewProfile": "مشاهده جزئیات",
     "edit": "ویرایش مشخصات",
     "resetPassword": "بازنشانی رمز عبور",
     "delete": "حذف حساب کاربری"
