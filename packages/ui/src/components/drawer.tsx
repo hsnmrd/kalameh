@@ -74,7 +74,7 @@ function DrawerFooter({
   return (
     <div
       className={cn(
-        "sticky bottom-0 mt-auto flex shrink-0 flex-col gap-2 border-t border-border/60 bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))] [&>button]:h-11 [&>button]:w-full [&>button]:rounded-xl",
+        "sticky bottom-0 mt-auto flex shrink-0 items-center gap-3 border-t border-border/60 bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))] [&>button]:h-14 [&>button]:flex-1 [&>button]:rounded-2xl [&>button]:text-base [&>button]:font-medium",
         className
       )}
       {...props}

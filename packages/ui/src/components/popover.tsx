@@ -106,7 +106,7 @@ export function ResponsivePopover({
             <Button
               type="button"
               variant="outline"
-              className="h-11 w-full rounded-xl"
+              className="h-14 w-full rounded-2xl text-base font-medium"
               onClick={() => onOpenChange(false)}
             >
               بستن
