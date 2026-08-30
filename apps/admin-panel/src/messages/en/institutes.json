@@ -79,7 +79,7 @@
     "next": "Next",
     "prev": "Previous",
     "submit": "Create Institute",
-    "submitting": "Creating Institute...",
+    "submitting": "Creating...",
     "success": "New institute created successfully."
   },
   "editModal": {
@@ -96,7 +96,7 @@
     "description": "Are you sure you want to delete this institute? It will be deactivated and archived from the active list, while historical records remain intact in the database.",
     "instituteName": "Institute Name:",
     "subdomain": "Subdomain:",
-    "confirm": "Delete and Archive Institute",
+    "confirm": "Delete Institute",
     "deleting": "Deleting...",
     "cancel": "Cancel",
     "success": "Institute deleted successfully."

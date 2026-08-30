@@ -59,7 +59,7 @@ describe("CreateInstituteModal Component", () => {
     fireEvent.click(bankingTabBtn)
 
     const submitBtn = screen.getByRole("button", {
-      name: /ثبت و راه‌اندازی آموزشگاه/i,
+      name: /ثبت آموزشگاه|ثبت و راه‌اندازی آموزشگاه/i,
     })
     fireEvent.click(submitBtn)
 
@@ -100,7 +100,7 @@ describe("CreateInstituteModal Component", () => {
     expect(screen.getByText(/نشانی آموزشگاه/i)).toBeInTheDocument()
 
     // Click Next button on contact tab
-    const nextBtn = screen.getByRole("button", { name: /مرحله بعد/i })
+    const nextBtn = screen.getByRole("button", { name: /بعدی|مرحله بعد/i })
     fireEvent.click(nextBtn)
 
     // Should now be on Banking tab

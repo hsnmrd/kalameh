@@ -516,7 +516,7 @@ export function CreateInstituteModal({
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-1 items-center justify-end gap-3 sm:flex-initial [&>button]:w-full [&>button]:min-w-0 [&>button]:flex-1 [&>button]:px-3 sm:[&>button]:w-auto sm:[&>button]:flex-initial sm:[&>button]:px-6">
               <Button
                 type="button"
                 variant="outline"
