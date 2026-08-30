@@ -111,7 +111,7 @@ export function DatePicker({
             <span
               className={cn(
                 "flex-1 font-mono text-sm",
-                !formattedDisplay && "font-sans text-muted-foreground"
+                !formattedDisplay && "font-sans text-muted-foreground/35"
               )}
             >
               {formattedDisplay || placeholder}

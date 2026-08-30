@@ -239,7 +239,7 @@ export function DateInput({
           onChange={handleYearChange}
           onPaste={handlePaste}
           placeholder={placeholderYear || (isJalali ? "۱۳۸۰" : "YYYY")}
-          className="w-14 border-0 bg-transparent text-center text-base font-medium text-foreground outline-hidden placeholder:font-sans placeholder:text-sm placeholder:text-muted-foreground/60"
+          className="w-14 border-0 bg-transparent text-center text-base font-medium text-foreground outline-hidden placeholder:font-sans placeholder:text-sm placeholder:text-muted-foreground/35"
         />
 
         <span className="text-muted-foreground/40 select-none">/</span>
@@ -257,7 +257,7 @@ export function DateInput({
           onKeyDown={(e) => handleKeyDown("month", e)}
           onPaste={handlePaste}
           placeholder={placeholderMonth || (isJalali ? "ماه" : "MM")}
-          className="w-10 border-0 bg-transparent text-center text-base font-medium text-foreground outline-hidden placeholder:font-sans placeholder:text-sm placeholder:text-muted-foreground/60"
+          className="w-10 border-0 bg-transparent text-center text-base font-medium text-foreground outline-hidden placeholder:font-sans placeholder:text-sm placeholder:text-muted-foreground/35"
         />
 
         <span className="text-muted-foreground/40 select-none">/</span>
@@ -275,7 +275,7 @@ export function DateInput({
           onKeyDown={(e) => handleKeyDown("day", e)}
           onPaste={handlePaste}
           placeholder={placeholderDay || (isJalali ? "روز" : "DD")}
-          className="w-10 border-0 bg-transparent text-center text-base font-medium text-foreground outline-hidden placeholder:font-sans placeholder:text-sm placeholder:text-muted-foreground/60"
+          className="w-10 border-0 bg-transparent text-center text-base font-medium text-foreground outline-hidden placeholder:font-sans placeholder:text-sm placeholder:text-muted-foreground/35"
         />
       </div>
 

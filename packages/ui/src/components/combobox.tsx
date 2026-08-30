@@ -93,7 +93,12 @@ export function Combobox({
           className
         )}
       >
-        <span className="truncate text-start">
+        <span
+          className={cn(
+            "truncate text-start",
+            !selectedItem && "text-muted-foreground/35"
+          )}
+        >
           <ComboboxPrimitive.Value placeholder={resolvedPlaceholder} />
         </span>
 
@@ -113,7 +118,7 @@ export function Combobox({
                 <Search className="me-2 size-4 shrink-0 text-muted-foreground" />
                 <ComboboxPrimitive.Input
                   placeholder={resolvedSearchPlaceholder}
-                  className="h-8 w-full bg-transparent text-sm text-foreground outline-hidden placeholder:text-muted-foreground"
+                  className="h-8 w-full bg-transparent text-sm text-foreground outline-hidden placeholder:text-muted-foreground/35"
                 />
               </div>
             )}
@@ -248,7 +253,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
               setDrawerOpen(true)
             }
           }}
-          className="h-full w-full cursor-pointer bg-transparent text-start text-base text-foreground outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed"
+          className="h-full w-full cursor-pointer bg-transparent text-start text-base text-foreground outline-hidden placeholder:text-muted-foreground/35 disabled:cursor-not-allowed"
         />
         <ChevronDown className="pointer-events-none size-4 shrink-0 text-muted-foreground" />
       </div>
@@ -277,7 +282,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
                 placeholder={
                   props.searchPlaceholder ?? (isFa ? "جستجو..." : "Search...")
                 }
-                className="h-9 w-full bg-transparent text-base text-foreground outline-hidden placeholder:text-muted-foreground"
+                className="h-9 w-full bg-transparent text-base text-foreground outline-hidden placeholder:text-muted-foreground/35"
               />
             </div>
           )}
@@ -328,7 +333,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
             <Button
               type="button"
               variant="outline"
-              className="h-11 w-full rounded-xl"
+              className="h-14 w-full rounded-2xl text-base font-medium"
               onClick={() => setDrawerOpen(false)}
             >
               {isFa ? "بستن" : "Close"}
