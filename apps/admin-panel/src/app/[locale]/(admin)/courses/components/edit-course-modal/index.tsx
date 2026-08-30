@@ -132,9 +132,9 @@ export function EditCourseModal({
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
+          className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
             <Field data-invalid={Boolean(errors.title)}>
               <FieldLabel>{t("editModal.courseTitle")}</FieldLabel>
               <Input {...register("title")} />
@@ -177,17 +177,17 @@ export function EditCourseModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="h-10 rounded-xl px-4"
+              className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
             >
               {t("editModal.cancel")}
             </Button>
             <Button
               type="submit"
               disabled={updateMutation.isPending}
-              className="h-10 rounded-xl bg-primary px-5 text-primary-foreground hover:bg-primary/90"
+              className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
             >
               {updateMutation.isPending && (
-                <Spinner className="me-2 size-4 text-primary-foreground" />
+                <Spinner className="me-2 size-5 text-primary-foreground" />
               )}
               {t("editModal.submit")}
             </Button>

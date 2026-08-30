@@ -117,9 +117,9 @@ export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
+          className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
             {/* Branch Name */}
             <Field>
               <FieldLabel>{t("createModal.branchName")}</FieldLabel>
@@ -156,51 +156,52 @@ export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
                 </Button>
               </div>
 
-              <div className="space-y-2">
-                {phones.map((_, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Input
-                      {...register(`phones.${index}` as const)}
-                      placeholder={t("createModal.phonePlaceholder")}
-                      dir="ltr"
-                      className="text-start font-mono"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemovePhone(index)}
-                      className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              {phones.map((_, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    {...register(`phones.${index}` as const)}
+                    placeholder={t("createModal.phonePlaceholder")}
+                    dir="ltr"
+                    className="text-start font-mono"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemovePhone(index)}
+                    className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
 
-            {/* Active Switch / Checkbox */}
-            <div className="flex items-center gap-2 pt-1">
-              <Controller
-                control={control}
-                name="isActive"
-                render={({ field }) => (
-                  <input
-                    type="checkbox"
-                    id="create-branch-active"
-                    checked={field.value ?? true}
-                    onChange={(e) => field.onChange(e.target.checked)}
-                    className="size-4 rounded border-border text-primary focus:ring-primary"
-                  />
-                )}
-              />
-              <label
-                htmlFor="create-branch-active"
-                className="cursor-pointer text-sm font-medium text-foreground"
-              >
-                {t("createModal.isActive")}
-              </label>
-            </div>
+            {/* Active Status */}
+            <Field>
+              <div className="flex items-center gap-2 pt-2">
+                <Controller
+                  control={control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <input
+                      type="checkbox"
+                      id="branch-create-isActive"
+                      checked={field.value}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      className="size-4 rounded border-border text-primary focus:ring-primary"
+                    />
+                  )}
+                />
+                <FieldLabel
+                  htmlFor="branch-create-isActive"
+                  className="cursor-pointer text-sm font-normal text-foreground"
+                >
+                  {t("createModal.isActive")}
+                </FieldLabel>
+              </div>
+              <FieldError>{errors.isActive?.message}</FieldError>
+            </Field>
           </div>
 
           {/* Modal Actions */}
@@ -213,12 +214,17 @@ export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
                 onClose()
               }}
               disabled={createMutation.isPending}
+              className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
             >
               {t("createModal.cancel")}
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
+            <Button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
+            >
               {createMutation.isPending ? (
-                <Spinner className="me-2 size-4" />
+                <Spinner className="me-2 size-5 text-primary-foreground" />
               ) : null}
               {t("createModal.submit")}
             </Button>

@@ -162,37 +162,33 @@ export function CreateStudentModal({
           onSubmit={handleSubmit(onSubmit)}
           autoComplete="off"
           data-form-type="other"
-          className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden"
+          className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 sm:px-0 sm:py-0">
-            {/* Identity Section */}
-            <div className="space-y-3 rounded-xl border border-border/80 bg-muted/20 p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h4 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                  {t("createModal.identityTab")}
-                </h4>
-                {isLookingUp && (
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+            {/* Identity Info */}
+            <div className="space-y-3">
+              {/* Lookup Status Banner */}
+              {isLookingUp && (
+                <div className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                  <Spinner className="size-3 text-muted-foreground" />
+                  <span>{t("createModal.lookupChecking")}</span>
+                </div>
+              )}
+              {lookupData?.found && !isLookingUp && (
+                <div className="flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                  <CheckCircle2 className="size-3.5 shrink-0 text-primary" />
+                  <span>{t("createModal.lookupFound")}</span>
+                </div>
+              )}
+              {shouldQuery &&
+                !isLookingUp &&
+                lookupData &&
+                !lookupData.found && (
                   <div className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
-                    <Spinner className="size-3 text-muted-foreground" />
-                    <span>{t("createModal.lookupChecking")}</span>
+                    <UserPlus className="size-3.5 shrink-0 text-muted-foreground" />
+                    <span>{t("createModal.lookupNew")}</span>
                   </div>
                 )}
-                {lookupData?.found && !isLookingUp && (
-                  <div className="flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                    <CheckCircle2 className="size-3.5 shrink-0 text-primary" />
-                    <span>{t("createModal.lookupFound")}</span>
-                  </div>
-                )}
-                {shouldQuery &&
-                  !isLookingUp &&
-                  lookupData &&
-                  !lookupData.found && (
-                    <div className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
-                      <UserPlus className="size-3.5 shrink-0 text-muted-foreground" />
-                      <span>{t("createModal.lookupNew")}</span>
-                    </div>
-                  )}
-              </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {/* 1. National Code */}
@@ -258,143 +254,133 @@ export function CreateStudentModal({
               </div>
             </div>
 
-            {/* Profile & Guardian Section */}
-            <div className="space-y-3 rounded-xl border border-border/80 bg-muted/20 p-3">
-              <h4 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                {t("createModal.profileTab")}
-              </h4>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Field data-invalid={Boolean(errors.fatherName)}>
-                  <FieldLabel>{t("createModal.fatherName")}</FieldLabel>
-                  <Input
-                    {...register("fatherName")}
-                    placeholder={t("createModal.fatherNamePlaceholder")}
-                  />
-                  <FieldError>{errors.fatherName?.message}</FieldError>
-                </Field>
+            {/* Profile & Guardian */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field data-invalid={Boolean(errors.fatherName)}>
+                <FieldLabel>{t("createModal.fatherName")}</FieldLabel>
+                <Input
+                  {...register("fatherName")}
+                  placeholder={t("createModal.fatherNamePlaceholder")}
+                />
+                <FieldError>{errors.fatherName?.message}</FieldError>
+              </Field>
 
-                <Field data-invalid={Boolean(errors.emergencyPhone)}>
-                  <FieldLabel>{t("createModal.emergencyPhone")}</FieldLabel>
-                  <Input
-                    type="tel"
-                    dir="ltr"
-                    {...register("emergencyPhone")}
-                    className="text-start font-mono"
-                    placeholder={t("createModal.emergencyPhonePlaceholder")}
-                  />
-                  <FieldError>{errors.emergencyPhone?.message}</FieldError>
-                </Field>
+              <Field data-invalid={Boolean(errors.emergencyPhone)}>
+                <FieldLabel>{t("createModal.emergencyPhone")}</FieldLabel>
+                <Input
+                  type="tel"
+                  dir="ltr"
+                  {...register("emergencyPhone")}
+                  className="text-start font-mono"
+                  placeholder={t("createModal.emergencyPhonePlaceholder")}
+                />
+                <FieldError>{errors.emergencyPhone?.message}</FieldError>
+              </Field>
 
-                <Field data-invalid={Boolean(errors.gender)}>
-                  <FieldLabel>{t("createModal.gender")}</FieldLabel>
-                  <Controller
-                    control={control}
-                    name="gender"
-                    render={({ field }) => (
-                      <ResponsiveCombobox
-                        items={genderOptions}
-                        value={field.value || undefined}
-                        onValueChange={(val) => field.onChange(val || "")}
-                        placeholder={t("createModal.genderSelect")}
-                        drawerTitle={t("createModal.gender")}
-                        searchable={false}
-                        data-invalid={Boolean(errors.gender)}
-                      />
-                    )}
-                  />
-                  <FieldError>{errors.gender?.message}</FieldError>
-                </Field>
-
-                <Field data-invalid={Boolean(errors.birthDate)}>
-                  <FieldLabel>{t("createModal.birthDate")}</FieldLabel>
-                  <Controller
-                    control={control}
-                    name="birthDate"
-                    render={({ field }) => (
-                      <DateInput
-                        value={field.value || undefined}
-                        onChange={(val) => field.onChange(val || "")}
-                        locale={locale}
-                        placeholderYear={locale === "fa" ? "۱۳۸۰" : "YYYY"}
-                        placeholderMonth={locale === "fa" ? "ماه" : "MM"}
-                        placeholderDay={locale === "fa" ? "روز" : "DD"}
-                        data-invalid={Boolean(errors.birthDate)}
-                      />
-                    )}
-                  />
-                  <FieldError>{errors.birthDate?.message}</FieldError>
-                </Field>
-
-                <div className="col-span-1 sm:col-span-2">
-                  <Field data-invalid={Boolean(errors.address)}>
-                    <FieldLabel>{t("createModal.address")}</FieldLabel>
-                    <Input
-                      {...register("address")}
-                      placeholder={t("createModal.addressPlaceholder")}
+              <Field data-invalid={Boolean(errors.gender)}>
+                <FieldLabel>{t("createModal.gender")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="gender"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={genderOptions}
+                      value={field.value || undefined}
+                      onValueChange={(val) => field.onChange(val || "")}
+                      placeholder={t("createModal.genderSelect")}
+                      drawerTitle={t("createModal.gender")}
+                      searchable={false}
+                      data-invalid={Boolean(errors.gender)}
                     />
-                    <FieldError>{errors.address?.message}</FieldError>
-                  </Field>
-                </div>
+                  )}
+                />
+                <FieldError>{errors.gender?.message}</FieldError>
+              </Field>
+
+              <Field data-invalid={Boolean(errors.birthDate)}>
+                <FieldLabel>{t("createModal.birthDate")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="birthDate"
+                  render={({ field }) => (
+                    <DateInput
+                      value={field.value || undefined}
+                      onChange={(val) => field.onChange(val || "")}
+                      locale={locale}
+                      placeholderYear={locale === "fa" ? "۱۳۸۰" : "YYYY"}
+                      placeholderMonth={locale === "fa" ? "ماه" : "MM"}
+                      placeholderDay={locale === "fa" ? "روز" : "DD"}
+                      data-invalid={Boolean(errors.birthDate)}
+                    />
+                  )}
+                />
+                <FieldError>{errors.birthDate?.message}</FieldError>
+              </Field>
+
+              <div className="col-span-1 sm:col-span-2">
+                <Field data-invalid={Boolean(errors.address)}>
+                  <FieldLabel>{t("createModal.address")}</FieldLabel>
+                  <Input
+                    {...register("address")}
+                    placeholder={t("createModal.addressPlaceholder")}
+                  />
+                  <FieldError>{errors.address?.message}</FieldError>
+                </Field>
               </div>
             </div>
 
-            {/* Academic & Auth Section */}
-            <div className="space-y-3 rounded-xl border border-border/80 bg-muted/20 p-3">
-              <h4 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                {t("createModal.academicTab")}
-              </h4>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Field data-invalid={Boolean(errors.currentAllowedCourseId)}>
-                  <FieldLabel>
-                    {t("createModal.currentAllowedCourseId")}
-                  </FieldLabel>
-                  <Controller
-                    control={control}
-                    name="currentAllowedCourseId"
-                    render={({ field }) => (
-                      <ResponsiveCombobox
-                        items={courseOptions}
-                        value={field.value || "ROOT"}
-                        onValueChange={(val) =>
-                          field.onChange(val === "ROOT" ? null : val || null)
-                        }
-                        placeholder={t("createModal.selectCourse")}
-                        drawerTitle={t("createModal.currentAllowedCourseId")}
-                        clearable={false}
-                        data-invalid={Boolean(errors.currentAllowedCourseId)}
-                      />
-                    )}
-                  />
-                  <FieldError>
-                    {errors.currentAllowedCourseId?.message}
-                  </FieldError>
-                </Field>
+            {/* Academic & Auth */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field data-invalid={Boolean(errors.currentAllowedCourseId)}>
+                <FieldLabel>
+                  {t("createModal.currentAllowedCourseId")}
+                </FieldLabel>
+                <Controller
+                  control={control}
+                  name="currentAllowedCourseId"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={courseOptions}
+                      value={field.value || "ROOT"}
+                      onValueChange={(val) =>
+                        field.onChange(val === "ROOT" ? null : val || null)
+                      }
+                      placeholder={t("createModal.selectCourse")}
+                      drawerTitle={t("createModal.currentAllowedCourseId")}
+                      clearable={false}
+                      data-invalid={Boolean(errors.currentAllowedCourseId)}
+                    />
+                  )}
+                />
+                <FieldError>
+                  {errors.currentAllowedCourseId?.message}
+                </FieldError>
+              </Field>
 
-                <Field data-invalid={Boolean(errors.password)}>
-                  <FieldLabel htmlFor="new-student-password">
-                    {t("createModal.password")}
-                  </FieldLabel>
-                  <Controller
-                    control={control}
-                    name="password"
-                    render={({ field }) => (
-                      <PasswordInput
-                        {...field}
-                        id="new-student-password"
-                        name="new-student-password"
-                        autoComplete="new-password"
-                        data-lpignore="true"
-                        data-1p-ignore="true"
-                        placeholder={t("createModal.passwordPlaceholder")}
-                      />
-                    )}
-                  />
-                  <FieldDescription>
-                    {t("createModal.passwordHint")}
-                  </FieldDescription>
-                  <FieldError>{errors.password?.message}</FieldError>
-                </Field>
-              </div>
+              <Field data-invalid={Boolean(errors.password)}>
+                <FieldLabel htmlFor="new-student-password">
+                  {t("createModal.password")}
+                </FieldLabel>
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field }) => (
+                    <PasswordInput
+                      {...field}
+                      id="new-student-password"
+                      name="new-student-password"
+                      autoComplete="new-password"
+                      data-lpignore="true"
+                      data-1p-ignore="true"
+                      placeholder={t("createModal.passwordPlaceholder")}
+                    />
+                  )}
+                />
+                <FieldDescription>
+                  {t("createModal.passwordHint")}
+                </FieldDescription>
+                <FieldError>{errors.password?.message}</FieldError>
+              </Field>
             </div>
           </div>
 
@@ -404,17 +390,17 @@ export function CreateStudentModal({
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
-              className="h-10 rounded-xl"
+              className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
             >
               {t("createModal.cancel")}
             </Button>
             <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="h-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+              className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
             >
               {createMutation.isPending && (
-                <Spinner className="me-2 size-4 text-primary-foreground" />
+                <Spinner className="me-2 size-5 text-primary-foreground" />
               )}
               <span>{t("createModal.submit")}</span>
             </Button>

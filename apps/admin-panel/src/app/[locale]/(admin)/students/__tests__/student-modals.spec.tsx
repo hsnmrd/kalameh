@@ -87,7 +87,11 @@ describe("Student Modals", () => {
         0
       )
       expect(screen.getAllByText(/شماره تماس|Phone/i).length).toBeGreaterThan(0)
-      expect(screen.getByText(/اطلاعات هویتی|Identity/i)).toBeInTheDocument()
+      expect(
+        screen.getByRole("button", {
+          name: /ثبت|Submit/i,
+        })
+      ).toBeInTheDocument()
     })
   })
 })

@@ -293,7 +293,7 @@ function FormDialogContent({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
         <DialogPrimitive.Popup
           className={cn(
-            "fixed inset-0 z-50 flex h-dvh max-h-dvh min-h-0 w-screen max-w-none flex-col overflow-hidden rounded-none border-0 bg-background p-0 text-foreground outline-hidden transition-all duration-150 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0 sm:relative sm:inset-auto sm:h-auto sm:max-h-[90dvh] sm:w-full sm:max-w-lg sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-6 sm:text-card-foreground sm:shadow-xl",
+            "fixed inset-0 z-50 flex h-dvh max-h-dvh min-h-0 w-screen max-w-none flex-col gap-2 overflow-hidden rounded-none border-0 bg-background p-0 text-foreground outline-hidden transition-all duration-150 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0 sm:relative sm:inset-auto sm:h-auto sm:max-h-[90dvh] sm:w-full sm:max-w-lg sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-0 sm:text-card-foreground sm:shadow-xl",
             className
           )}
           {...props}
@@ -312,7 +312,7 @@ function FormDialogHeader({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-between border-b border-border/80 px-4 py-3 sm:border-0 sm:p-0 sm:pb-4",
+        "flex shrink-0 items-center justify-between border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4",
         className
       )}
       {...props}
@@ -324,7 +324,7 @@ function FormDialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       className={cn(
-        "text-base font-semibold tracking-tight text-foreground sm:text-lg",
+        "text-lg font-semibold tracking-tight text-foreground sm:text-xl",
         className
       )}
       {...props}
@@ -369,7 +369,7 @@ function FormDialogFooter({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-end gap-2 border-t border-border/80 bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:border-0 sm:bg-transparent sm:p-0 sm:pt-4",
+        "flex shrink-0 items-center justify-end gap-3 border-t border-border/60 bg-muted/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:px-6 sm:py-4",
         className
       )}
       {...props}
