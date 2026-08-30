@@ -23,7 +23,7 @@ import {
 } from "@workspace/ui/components/combobox"
 import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Spinner } from "@workspace/ui/components/spinner"
-import type { TermDto } from "@workspace/types"
+import type { TermDto, SupportedLocale } from "@workspace/types"
 import { termsResource } from "@/lib/api"
 import {
   useUpdateTermSchema,
@@ -38,7 +38,7 @@ export interface EditTermModalProps {
 
 export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
   const t = useTranslations("terms")
-  const locale = useLocale() as "fa" | "en"
+  const locale = useLocale() as SupportedLocale
   const queryClient = useQueryClient()
   const updateTermSchema = useUpdateTermSchema()
 

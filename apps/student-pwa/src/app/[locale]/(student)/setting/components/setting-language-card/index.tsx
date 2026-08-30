@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { Languages, Check } from "lucide-react"
+import { LOCALES_LIST, type SupportedLocale } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { useRouter, usePathname } from "@/i18n/routing"
@@ -13,20 +14,7 @@ export function SettingLanguageCard() {
   const router = useRouter()
   const pathname = usePathname()
 
-  const languages = [
-    {
-      id: "fa",
-      label: t("language.fa"),
-      direction: "RTL",
-    },
-    {
-      id: "en",
-      label: t("language.en"),
-      direction: "LTR",
-    },
-  ] as const
-
-  const handleSwitchLanguage = (newLocale: "en" | "fa") => {
+  const handleSwitchLanguage = (newLocale: SupportedLocale) => {
     if (newLocale !== locale) {
       router.replace(pathname, { locale: newLocale })
     }
@@ -45,15 +33,15 @@ export function SettingLanguageCard() {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        {languages.map((lang) => {
-          const isSelected = locale === lang.id
+        {LOCALES_LIST.map((lang) => {
+          const isSelected = locale === lang.code
 
           return (
             <Button
-              key={lang.id}
+              key={lang.code}
               type="button"
               variant="outline"
-              onClick={() => handleSwitchLanguage(lang.id)}
+              onClick={() => handleSwitchLanguage(lang.code)}
               className={cn(
                 "flex min-h-[56px] cursor-pointer items-center justify-between rounded-xl border p-3.5 transition-all",
                 isSelected
@@ -63,10 +51,10 @@ export function SettingLanguageCard() {
             >
               <div className="flex flex-col items-start gap-0.5">
                 <span className="text-xs font-semibold text-foreground">
-                  {lang.label}
+                  {lang.nativeName} ({lang.directionLabel})
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  {lang.direction}
+                  {lang.name}
                 </span>
               </div>
               {isSelected && <Check className="size-3.5 text-primary" />}

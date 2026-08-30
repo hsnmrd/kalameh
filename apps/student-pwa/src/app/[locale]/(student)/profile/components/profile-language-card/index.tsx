@@ -3,12 +3,13 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Languages } from "lucide-react"
+import { LOCALES_LIST, type SupportedLocale } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 
 export interface ProfileLanguageCardProps {
   locale: string
-  onSwitchLanguage: (newLocale: "en" | "fa") => void
+  onSwitchLanguage: (newLocale: SupportedLocale) => void
 }
 
 export function ProfileLanguageCard({
@@ -25,32 +26,28 @@ export function ProfileLanguageCard({
       </h3>
 
       <div className="grid grid-cols-2 gap-2 pt-1">
-        <Button
-          type="button"
-          variant={locale === "en" ? "default" : "outline"}
-          onClick={() => onSwitchLanguage("en")}
-          className={cn(
-            "h-10 cursor-pointer rounded-xl text-xs font-semibold",
-            locale === "en"
-              ? "bg-primary text-primary-foreground shadow-xs"
-              : "border-border bg-background text-foreground hover:bg-muted"
-          )}
-        >
-          <span>English (LTR)</span>
-        </Button>
-        <Button
-          type="button"
-          variant={locale === "fa" ? "default" : "outline"}
-          onClick={() => onSwitchLanguage("fa")}
-          className={cn(
-            "h-10 cursor-pointer rounded-xl text-xs font-semibold",
-            locale === "fa"
-              ? "bg-primary text-primary-foreground shadow-xs"
-              : "border-border bg-background text-foreground hover:bg-muted"
-          )}
-        >
-          <span>فارسی (RTL)</span>
-        </Button>
+        {LOCALES_LIST.map((lang) => {
+          const isSelected = locale === lang.code
+
+          return (
+            <Button
+              key={lang.code}
+              type="button"
+              variant={isSelected ? "default" : "outline"}
+              onClick={() => onSwitchLanguage(lang.code)}
+              className={cn(
+                "h-10 cursor-pointer rounded-xl text-xs font-semibold",
+                isSelected
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "border-border bg-background text-foreground hover:bg-muted"
+              )}
+            >
+              <span>
+                {lang.nativeName} ({lang.directionLabel})
+              </span>
+            </Button>
+          )
+        })}
       </div>
     </div>
   )

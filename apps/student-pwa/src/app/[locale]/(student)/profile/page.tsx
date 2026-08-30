@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { authResource } from "@/lib/api"
 import { useRouter, usePathname } from "@/i18n/routing"
+import type { SupportedLocale } from "@workspace/types"
 import { ProfileUserCard } from "./components/profile-user-card"
 import { ProfileLanguageCard } from "./components/profile-language-card"
 import { ProfileActionsCard } from "./components/profile-actions-card"
@@ -33,7 +34,7 @@ export default function StudentProfilePage() {
 
   const initial = (user?.firstName?.[0] || "S").toUpperCase()
 
-  const handleSwitchLanguage = (newLocale: "en" | "fa") => {
+  const handleSwitchLanguage = (newLocale: SupportedLocale) => {
     if (newLocale !== locale) {
       router.replace(pathname, { locale: newLocale })
     }

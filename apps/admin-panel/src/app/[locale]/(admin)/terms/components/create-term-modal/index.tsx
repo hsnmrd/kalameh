@@ -20,6 +20,7 @@ import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { termsResource } from "@/lib/api"
+import type { SupportedLocale } from "@workspace/types"
 import {
   useCreateTermSchema,
   type CreateTermInput,
@@ -32,7 +33,7 @@ export interface CreateTermModalProps {
 
 export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
   const t = useTranslations("terms")
-  const locale = useLocale() as "fa" | "en"
+  const locale = useLocale() as SupportedLocale
   const queryClient = useQueryClient()
   const createTermSchema = useCreateTermSchema()
 

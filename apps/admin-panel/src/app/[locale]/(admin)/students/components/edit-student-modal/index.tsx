@@ -28,7 +28,7 @@ import {
 } from "@workspace/ui/components/combobox"
 import { DateInput } from "@workspace/ui/components/date-input"
 import { Spinner } from "@workspace/ui/components/spinner"
-import type { StudentDto } from "@workspace/types"
+import type { StudentDto, SupportedLocale } from "@workspace/types"
 import { coursesResource, studentsResource } from "@/lib/api"
 import {
   useUpdateStudentSchema,
@@ -47,7 +47,7 @@ export function EditStudentModal({
   onClose,
 }: EditStudentModalProps) {
   const t = useTranslations("students")
-  const locale = useLocale() as "fa" | "en"
+  const locale = useLocale() as SupportedLocale
   const queryClient = useQueryClient()
   const updateStudentSchema = useUpdateStudentSchema()
 

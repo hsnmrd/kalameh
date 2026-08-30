@@ -31,6 +31,7 @@ import {
 import { DateInput } from "@workspace/ui/components/date-input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { coursesResource, studentsResource } from "@/lib/api"
+import type { SupportedLocale } from "@workspace/types"
 import {
   useCreateStudentSchema,
   type CreateStudentInput,
@@ -49,7 +50,7 @@ export function CreateStudentModal({
   instituteId,
 }: CreateStudentModalProps) {
   const t = useTranslations("students")
-  const locale = useLocale() as "fa" | "en"
+  const locale = useLocale() as SupportedLocale
   const queryClient = useQueryClient()
   const createStudentSchema = useCreateStudentSchema()
 
