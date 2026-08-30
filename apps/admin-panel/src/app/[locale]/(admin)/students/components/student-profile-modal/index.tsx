@@ -13,14 +13,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
-import {
-  User,
-  Phone,
-  Home,
-  FileText,
-  GraduationCap,
-  HeartHandshake,
-} from "lucide-react"
+import { Phone, GraduationCap } from "lucide-react"
 import type { StudentDto } from "@workspace/types"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { StudentStatusBadge } from "../student-status-badge"
@@ -67,17 +60,16 @@ export function StudentProfileModal({
       onOpenChange={(isOpen) => !isOpen && onClose()}
     >
       <ResponsiveDialogContent className="sm:max-h-[90vh] sm:max-w-xl">
-        <ResponsiveDialogHeader className="mb-2 flex flex-row items-center justify-between">
-          <ResponsiveDialogTitle className="flex items-center gap-2">
-            <User className="size-5 text-primary" />
-            <span>{t("profileModal.title")}</span>
+        <ResponsiveDialogHeader className="sticky top-0 z-10 flex flex-row items-center justify-between border-b border-border/60 bg-card px-4 py-3.5 sm:px-6 sm:py-4">
+          <ResponsiveDialogTitle className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+            {t("profileModal.title")}
           </ResponsiveDialogTitle>
-          <ResponsiveDialogCloseButton />
+          <ResponsiveDialogCloseButton className="relative end-auto top-auto" />
         </ResponsiveDialogHeader>
 
-        <div className="space-y-4 px-6 pt-2 pb-6">
+        <div className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6">
           {/* Header Card with Avatar */}
-          <div className="flex items-center gap-4 rounded-xl border border-border/80 bg-muted/20 p-4">
+          <div className="flex items-center gap-4">
             <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
               {student.avatarUrl ? (
                 <Image
@@ -93,11 +85,11 @@ export function StudentProfileModal({
               )}
             </div>
             <div className="flex-1">
-              <h3 className="text-base font-bold text-foreground">
+              <h3 className="text-base font-bold text-foreground sm:text-lg">
                 {fullName}
               </h3>
-              <p className="flex items-center gap-1.5 pt-0.5 text-xs text-muted-foreground">
-                <Phone className="size-3" />
+              <p className="flex items-center gap-1.5 pt-0.5 text-sm text-muted-foreground">
+                <Phone className="size-3.5" />
                 <span className="font-mono">{student.phone}</span>
               </p>
             </div>
@@ -105,122 +97,111 @@ export function StudentProfileModal({
           </div>
 
           {/* Identity & Personal Info */}
-          <div className="space-y-2">
-            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-              <FileText className="size-4 text-primary" />
-              <span>{t("profileModal.identityInfo")}</span>
-            </h4>
-            <div className="grid grid-cols-2 gap-3 rounded-xl border border-border/80 p-3 text-sm">
-              <div>
-                <span className="text-xs text-muted-foreground">
-                  {t("table.fatherName")}:{" "}
-                </span>
-                <p className="font-medium text-foreground">
-                  {student.studentProfile?.fatherName || "—"}
-                </p>
-              </div>
-              <div>
-                <span className="text-xs text-muted-foreground">
-                  {t("table.nationalCode")}:{" "}
-                </span>
-                <p className="font-mono font-medium text-foreground">
-                  {student.nationalCode || "—"}
-                </p>
-              </div>
-              <div>
-                <span className="text-xs text-muted-foreground">
-                  {t("createModal.birthDate")}:{" "}
-                </span>
-                <p className="font-medium text-foreground">
-                  {formattedBirthDate}
-                </p>
-              </div>
-              <div>
-                <span className="text-xs text-muted-foreground">
-                  {t("createModal.gender")}:{" "}
-                </span>
-                <p className="font-medium text-foreground">
-                  {student.studentProfile?.gender === "MALE"
-                    ? t("createModal.genderMale")
-                    : student.studentProfile?.gender === "FEMALE"
-                      ? t("createModal.genderFemale")
-                      : "—"}
-                </p>
-              </div>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-xs text-muted-foreground">
+                {t("table.fatherName")}
+              </span>
+              <p className="font-medium text-foreground">
+                {student.studentProfile?.fatherName || "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-xs text-muted-foreground">
+                {t("table.nationalCode")}
+              </span>
+              <p className="font-mono font-medium text-foreground">
+                {student.nationalCode || "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-xs text-muted-foreground">
+                {t("createModal.birthDate")}
+              </span>
+              <p className="font-medium text-foreground">
+                {formattedBirthDate}
+              </p>
+            </div>
+            <div>
+              <span className="text-xs text-muted-foreground">
+                {t("createModal.gender")}
+              </span>
+              <p className="font-medium text-foreground">
+                {student.studentProfile?.gender === "MALE"
+                  ? t("createModal.genderMale")
+                  : student.studentProfile?.gender === "FEMALE"
+                    ? t("createModal.genderFemale")
+                    : "—"}
+              </p>
             </div>
           </div>
 
           {/* Contact & Address */}
-          <div className="space-y-2">
-            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-              <Home className="size-4 text-primary" />
-              <span>{t("profileModal.contactInfo")}</span>
-            </h4>
-            <div className="grid grid-cols-1 gap-3 rounded-xl border border-border/80 p-3 text-sm sm:grid-cols-2">
-              <div>
-                <span className="text-xs text-muted-foreground">
-                  {t("createModal.emergencyPhone")}:{" "}
-                </span>
-                <p className="font-mono font-medium text-foreground">
-                  {student.studentProfile?.emergencyPhone || "—"}
-                </p>
-              </div>
-              <div>
-                <span className="text-xs text-muted-foreground">
-                  {t("createModal.address")}:{" "}
-                </span>
-                <p className="font-medium text-foreground">
-                  {student.studentProfile?.address || "—"}
-                </p>
-              </div>
+          {(student.studentProfile?.emergencyPhone ||
+            student.studentProfile?.address) && (
+            <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+              {student.studentProfile?.emergencyPhone && (
+                <div>
+                  <span className="text-xs text-muted-foreground">
+                    {t("createModal.emergencyPhone")}
+                  </span>
+                  <p className="font-mono font-medium text-foreground">
+                    {student.studentProfile.emergencyPhone}
+                  </p>
+                </div>
+              )}
+              {student.studentProfile?.address && (
+                <div>
+                  <span className="text-xs text-muted-foreground">
+                    {t("createModal.address")}
+                  </span>
+                  <p className="font-medium text-foreground">
+                    {student.studentProfile.address}
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* Academic Info */}
-          <div className="space-y-2">
-            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-              <GraduationCap className="size-4 text-primary" />
-              <span>{t("profileModal.academicInfo")}</span>
-            </h4>
-            <div className="grid grid-cols-2 gap-3 rounded-xl border border-border/80 p-3 text-sm">
-              <div>
-                <span className="text-xs text-muted-foreground">
-                  {t("table.currentLevel")}:{" "}
-                </span>
-                <div className="pt-1">
-                  {student.currentAllowedCourse ? (
-                    <Badge
-                      variant="outline"
-                      className="gap-1 text-xs text-primary"
-                    >
-                      <GraduationCap className="size-3" />
-                      <span>{student.currentAllowedCourse.title}</span>
-                    </Badge>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">
-                      {t("table.noLevel")}
-                    </span>
-                  )}
-                </div>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-xs text-muted-foreground">
+                {t("table.currentLevel")}
+              </span>
+              <div className="pt-1">
+                {student.currentAllowedCourse ? (
+                  <Badge
+                    variant="outline"
+                    className="gap-1 text-xs text-primary"
+                  >
+                    <GraduationCap className="size-3" />
+                    <span>{student.currentAllowedCourse.title}</span>
+                  </Badge>
+                ) : (
+                  <span className="text-xs text-muted-foreground">
+                    {t("table.noLevel")}
+                  </span>
+                )}
               </div>
-              <div>
-                <span className="text-xs text-muted-foreground">
-                  {t("table.createdAt")}:{" "}
-                </span>
-                <p className="font-medium text-foreground">
-                  {formattedCreatedDate}
-                </p>
-              </div>
+            </div>
+            <div>
+              <span className="text-xs text-muted-foreground">
+                {t("table.createdAt")}
+              </span>
+              <p className="font-medium text-foreground">
+                {formattedCreatedDate}
+              </p>
             </div>
           </div>
         </div>
 
-        <ResponsiveDialogFooter className="p-4 sm:p-0 sm:pt-4">
+        <ResponsiveDialogFooter className="border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
-            className="h-14 w-full rounded-2xl text-base font-medium sm:h-10 sm:w-auto sm:rounded-xl sm:px-5 sm:text-sm"
+            className="h-14 min-w-28 rounded-2xl px-6 text-base font-medium"
           >
             {t("profileModal.close")}
           </Button>
