@@ -244,9 +244,9 @@ export function MobileBottomNavigation({
               type="button"
               variant="ghost"
               onClick={onLogout}
-              className="h-11 justify-start gap-2.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="h-14 w-full justify-start gap-3 rounded-2xl text-base font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
-              <LogOut className="size-4 text-destructive" aria-hidden />
+              <LogOut className="size-5 text-destructive" aria-hidden />
               <span>{t("logout")}</span>
             </Button>
           </DrawerFooter>

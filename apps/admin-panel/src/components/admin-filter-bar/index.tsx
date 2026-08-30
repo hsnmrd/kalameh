@@ -144,12 +144,12 @@ export function AdminFilterBar({
               {children}
             </div>
 
-            <ResponsiveDialogFooter className="flex-row items-center gap-2 pt-2 sm:justify-end">
+            <ResponsiveDialogFooter className="flex-row items-center gap-3 pt-2 sm:justify-end">
               {onClearFilters && (
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-11 rounded-xl font-medium"
+                  className="h-14 flex-1 rounded-2xl text-base font-medium sm:h-10 sm:flex-initial sm:rounded-xl sm:px-4 sm:text-sm"
                   onClick={() => {
                     onClearFilters()
                     setDialogOpen(false)
@@ -160,7 +160,7 @@ export function AdminFilterBar({
               )}
               <Button
                 type="button"
-                className="h-11 flex-1 rounded-xl bg-primary font-semibold text-primary-foreground hover:bg-primary/90 sm:flex-initial sm:px-6"
+                className="h-14 flex-1 rounded-2xl bg-primary text-base font-medium text-primary-foreground hover:bg-primary/90 sm:h-10 sm:flex-initial sm:rounded-xl sm:px-6 sm:text-sm"
                 onClick={() => setDialogOpen(false)}
               >
                 {t("show")}

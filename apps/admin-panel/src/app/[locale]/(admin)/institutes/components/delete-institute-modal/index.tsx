@@ -94,13 +94,13 @@ export function DeleteInstituteModal({
           </div>
         )}
 
-        <ResponsiveDialogFooter className="mt-6 flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3 sm:border-t sm:border-border/60 sm:pt-4">
+        <ResponsiveDialogFooter className="mt-6 flex-row items-center gap-3 sm:justify-end sm:border-t sm:border-border/60 sm:pt-4">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
             disabled={deleteMutation.isPending}
-            className="h-11 w-full rounded-xl text-xs font-semibold sm:h-10 sm:w-auto sm:px-4"
+            className="h-14 flex-1 rounded-2xl text-base font-medium sm:h-10 sm:w-auto sm:flex-initial sm:rounded-xl sm:px-4 sm:text-sm"
           >
             {t("deleteModal.cancel")}
           </Button>
@@ -110,11 +110,11 @@ export function DeleteInstituteModal({
             variant="destructive"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="h-11 w-full rounded-xl text-xs font-semibold sm:h-10 sm:w-auto sm:px-5"
+            className="h-14 flex-1 rounded-2xl text-base font-medium sm:h-10 sm:w-auto sm:flex-initial sm:rounded-xl sm:px-5 sm:text-sm"
           >
             {deleteMutation.isPending ? (
               <>
-                <Spinner className="text-destructive-foreground me-2 size-4" />
+                <Spinner className="text-destructive-foreground me-2 size-5" />
                 {t("deleteModal.deleting")}
               </>
             ) : (
