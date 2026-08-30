@@ -5,9 +5,8 @@ import { CheckCircle2, UserPlus } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
-import { useDebounce } from "@workspace/ui/hooks/use-debounce"
 import {
   FormDialog,
   FormDialogContent,
@@ -31,11 +30,12 @@ import {
 } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { ROLES, type Role } from "@workspace/types"
-import { authResource, usersResource } from "@/lib/api"
+import { usersResource } from "@/lib/api"
 import {
   useCreateUserSchema,
   type CreateUserInput,
 } from "../../hooks/use-user-schemas"
+import { useUserLookup } from "../../hooks/use-user-lookup"
 
 export interface CreateUserModalProps {
   open: boolean
@@ -51,7 +51,6 @@ export function CreateUserModal({
   const t = useTranslations("users")
   const queryClient = useQueryClient()
   const createUserSchema = useCreateUserSchema()
-  const { data: currentUser } = useQuery(authResource.me.toQuery())
 
   const roleOptions: ComboboxOption[] = React.useMemo(() => {
     const staffRoles: Role[] = [
@@ -90,50 +89,11 @@ export function CreateUserModal({
   })
 
   // Live Lookup Logic
-  const nationalCodeValue = watch("nationalCode")
-  const phoneValue = watch("phone")
-  const debouncedNationalCode = useDebounce(
-    nationalCodeValue?.trim() || "",
-    400
-  )
-  const debouncedPhone = useDebounce(phoneValue?.trim() || "", 400)
-  const lastAutoFilledIdRef = React.useRef<string | null>(null)
-
-  const shouldQuery =
-    open && (debouncedNationalCode.length >= 8 || debouncedPhone.length === 11)
-
-  const { data: lookupData, isFetching: isLookingUp } = useQuery({
-    ...usersResource.lookup.toQuery({
-      nationalCode:
-        debouncedNationalCode.length >= 8 ? debouncedNationalCode : undefined,
-      phone: debouncedPhone.length === 11 ? debouncedPhone : undefined,
-    }),
-    enabled: shouldQuery,
+  const { lookupData, isLookingUp, shouldQuery, resetLookup } = useUserLookup({
+    open,
+    watch,
+    setValue,
   })
-
-  React.useEffect(() => {
-    if (lookupData?.found && lookupData?.user) {
-      const user = lookupData.user
-      if (lastAutoFilledIdRef.current !== user.id) {
-        lastAutoFilledIdRef.current = user.id
-        setValue("firstName", user.firstName, { shouldValidate: true })
-        setValue("lastName", user.lastName, { shouldValidate: true })
-        if (user.phone) {
-          setValue("phone", user.phone, { shouldValidate: true })
-        }
-        if (user.nationalCode) {
-          setValue("nationalCode", user.nationalCode, { shouldValidate: true })
-        }
-        if (
-          user.role &&
-          user.role !== ROLES.STUDENT &&
-          user.role !== ROLES.SUPER_STUDENT
-        ) {
-          setValue("role", user.role, { shouldValidate: true })
-        }
-      }
-    }
-  }, [lookupData, setValue])
 
   const createMutation = useMutation({
     ...usersResource.create.toMutation(),
@@ -142,7 +102,7 @@ export function CreateUserModal({
       queryClient.invalidateQueries({
         queryKey: usersResource.list.baseKey(),
       })
-      lastAutoFilledIdRef.current = null
+      resetLookup()
       reset()
       onClose()
     },
@@ -159,7 +119,7 @@ export function CreateUserModal({
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
-      lastAutoFilledIdRef.current = null
+      resetLookup()
       reset()
       onClose()
     }
