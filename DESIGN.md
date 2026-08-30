@@ -92,7 +92,7 @@
     <input
       :type="isPasswordVisible ? 'text' : 'password'"
       id="password"
-      placeholder="••••••••"
+      placeholder="Enter password"
       class="h-14 w-full bg-transparent px-4 text-slate-900 outline-none placeholder:text-slate-400"
       @input="$emit('change', { value: $event.target.value })"
     />
