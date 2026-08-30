@@ -196,6 +196,9 @@ export function EditStudentModal({
               <Field data-invalid={Boolean(errors.nationalCode)}>
                 <FieldLabel>{t("editModal.nationalCode")}</FieldLabel>
                 <Input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   dir="ltr"
                   {...register("nationalCode")}
                   className="text-start font-mono"

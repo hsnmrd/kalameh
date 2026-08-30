@@ -165,6 +165,8 @@ export function CreateUserModal({
               <FieldLabel>{t("createModal.nationalCode")}</FieldLabel>
               <Input
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 dir="ltr"
                 {...register("nationalCode")}
                 className="text-start font-mono"
