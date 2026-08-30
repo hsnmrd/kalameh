@@ -2,9 +2,6 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Languages } from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { type Role, type AuthUser } from "@workspace/types"
 import { cn } from "@workspace/ui/lib/utils"
 import { usePathname } from "@/i18n/routing"
@@ -21,9 +18,9 @@ export interface AdminHeaderProps {
     avatarUrl?: string | null
     isActive?: boolean
   }
-  onSwitchLanguage: () => void
+  onSwitchLanguage?: () => void
   onLogout?: () => void
-  locale: string
+  locale?: string
 }
 
 function getPageTitle(pathname: string, t: (key: string) => string): string {
@@ -66,13 +63,7 @@ function getPageTitle(pathname: string, t: (key: string) => string): string {
   return t("nav.dashboard")
 }
 
-export function AdminHeader({
-  role,
-  user,
-  onSwitchLanguage,
-  onLogout,
-  locale,
-}: AdminHeaderProps) {
+export function AdminHeader({ role, user, onLogout }: AdminHeaderProps) {
   const t = useTranslations("common")
   const pathname = usePathname()
   const pageTitle = getPageTitle(pathname, t)
@@ -108,22 +99,6 @@ export function AdminHeader({
 
       {/* Right / End Section */}
       <div className="flex items-center gap-2.5">
-        {/* Theme and Language Switcher (Desktop only; moved to drawer on mobile) */}
-        <div className="hidden lg:flex lg:items-center lg:gap-2.5">
-          <ThemeToggle />
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onSwitchLanguage}
-            className="h-8 cursor-pointer gap-1.5 border-border bg-background text-xs font-semibold text-foreground hover:bg-muted active:scale-95"
-          >
-            <Languages className="size-3.5" />
-            <span>{locale === "en" ? "FA" : "EN"}</span>
-          </Button>
-        </div>
-
         {/* User Card Info with Avatar Trigger & Popup */}
         <UserBadge user={user} role={role} onLogout={onLogout} />
       </div>

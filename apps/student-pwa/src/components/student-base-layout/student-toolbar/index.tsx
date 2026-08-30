@@ -2,21 +2,14 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import {
-  BookOpen,
-  ArrowLeft,
-  ArrowRight,
-  LogOut,
-  Languages,
-} from "lucide-react"
+import { BookOpen, ArrowLeft, ArrowRight, LogOut } from "lucide-react"
 import { Link, useRouter, useIsRtl } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 
 export interface StudentToolbarProps {
   isHomePage: boolean
-  locale: string
-  onSwitchLanguage: () => void
+  locale?: string
+  onSwitchLanguage?: () => void
   onLogout: () => void
   isLogoutPending?: boolean
 }
@@ -35,7 +28,7 @@ export function StudentToolbar({
 
   return (
     <header className="relative sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border/80 bg-card/95 px-4 backdrop-blur-md">
-      {/* Left Action (Back Button on Inner Pages / Language Toggle) */}
+      {/* Left Action (Back Button on Inner Pages) */}
       <div className="z-10 flex min-w-9 items-center gap-1.5">
         {!isHomePage ? (
           <Button
@@ -50,18 +43,7 @@ export function StudentToolbar({
             <BackIcon className="size-5" />
           </Button>
         ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onSwitchLanguage}
-            className="h-8 cursor-pointer gap-1 border-border bg-background px-2 text-xs font-semibold text-foreground hover:bg-muted active:scale-95"
-            title={t("language")}
-            aria-label={t("language")}
-          >
-            <Languages className="size-3.5" />
-            <span>{locale === "en" ? "FA" : "EN"}</span>
-          </Button>
+          <div className="size-9" />
         )}
       </div>
 
@@ -81,25 +63,8 @@ export function StudentToolbar({
         </Link>
       </div>
 
-      {/* Right Action (Theme Toggle, Logout & Language Switcher) */}
+      {/* Right Action (Logout) */}
       <div className="z-10 flex min-w-9 items-center justify-end gap-1.5">
-        <ThemeToggle />
-
-        {!isHomePage && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onSwitchLanguage}
-            className="h-8 cursor-pointer gap-1 border-border bg-background px-2 text-xs font-semibold text-foreground hover:bg-muted active:scale-95"
-            title={t("language")}
-            aria-label={t("language")}
-          >
-            <Languages className="size-3.5" />
-            <span>{locale === "en" ? "FA" : "EN"}</span>
-          </Button>
-        )}
-
         <Button
           type="button"
           variant="ghost"

@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useLocale } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { authResource } from "@/lib/api"
 import { usePathname, useRouter } from "@/i18n/routing"
@@ -13,7 +12,6 @@ export interface StudentBaseLayoutProps {
 }
 
 export function StudentBaseLayout({ children }: StudentBaseLayoutProps) {
-  const locale = useLocale()
   const pathname = usePathname()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -27,11 +25,6 @@ export function StudentBaseLayout({ children }: StudentBaseLayoutProps) {
     },
   })
 
-  const handleSwitchLanguage = () => {
-    const nextLocale = locale === "en" ? "fa" : "en"
-    router.replace(pathname, { locale: nextLocale })
-  }
-
   const handleLogout = () => logoutMutation.mutate()
 
   return (
@@ -41,8 +34,6 @@ export function StudentBaseLayout({ children }: StudentBaseLayoutProps) {
         {/* Top Toolbar */}
         <StudentToolbar
           isHomePage={isHomePage}
-          locale={locale}
-          onSwitchLanguage={handleSwitchLanguage}
           onLogout={handleLogout}
           isLogoutPending={logoutMutation.isPending}
         />

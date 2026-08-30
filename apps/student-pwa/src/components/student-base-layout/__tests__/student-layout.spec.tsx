@@ -28,18 +28,10 @@ vi.mock("@/i18n/routing", () => ({
 }))
 
 describe("StudentToolbar Component", () => {
-  it("should render app name, logo, language switcher, and logout button on home page", () => {
-    const handleSwitchLanguage = vi.fn()
+  it("should render app name, logo, and logout button on home page", () => {
     const handleLogout = vi.fn()
 
-    render(
-      <StudentToolbar
-        isHomePage={true}
-        locale="fa"
-        onSwitchLanguage={handleSwitchLanguage}
-        onLogout={handleLogout}
-      />
-    )
+    render(<StudentToolbar isHomePage={true} onLogout={handleLogout} />)
 
     expect(screen.getByText("کلمه")).toBeInTheDocument()
     expect(

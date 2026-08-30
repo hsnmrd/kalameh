@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Languages, Lock, LogOut, Menu } from "lucide-react"
+import { Lock, LogOut, Menu } from "lucide-react"
 import { ROLES, type AppModule } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -13,7 +13,6 @@ import {
   DrawerTitle,
 } from "@workspace/ui/components/drawer"
 import { Separator } from "@workspace/ui/components/separator"
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { cn } from "@workspace/ui/lib/utils"
 import { Link } from "@/i18n/routing"
 import { usePermissions } from "@/lib/hooks"
@@ -40,16 +39,14 @@ export interface MobileBottomNavigationProps {
   sections: NavSection[]
   pathname: string
   onLogout: () => void
-  onSwitchLanguage: () => void
-  locale: string
+  onSwitchLanguage?: () => void
+  locale?: string
 }
 
 export function MobileBottomNavigation({
   sections,
   pathname,
   onLogout,
-  onSwitchLanguage,
-  locale,
 }: MobileBottomNavigationProps) {
   const [open, setOpen] = React.useState(false)
   const t = useTranslations("common")
@@ -243,27 +240,6 @@ export function MobileBottomNavigation({
           <Separator />
 
           <DrawerFooter className="gap-3 pt-3">
-            <div className="grid grid-cols-2 gap-2">
-              <ThemeToggle
-                showLabel
-                labels={{
-                  light: t("theme.light"),
-                  dark: t("theme.dark"),
-                  system: t("theme.system"),
-                }}
-                className="h-11 justify-center"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onSwitchLanguage}
-                className="h-11 gap-2"
-                aria-label={t("language")}
-              >
-                <Languages className="size-4" aria-hidden />
-                <span>{locale === "en" ? "فارسی" : "English"}</span>
-              </Button>
-            </div>
             <Button
               type="button"
               variant="ghost"

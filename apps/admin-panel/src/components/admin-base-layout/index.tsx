@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ROLES, type Role } from "@workspace/types"
 import { authResource } from "@/lib/api"
@@ -27,7 +27,6 @@ export interface AdminBaseLayoutProps {
 
 export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   const t = useTranslations("common.nav")
-  const locale = useLocale()
   const pathname = usePathname()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -90,11 +89,6 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
     }
   }, [user?.role, logoutMutate])
 
-  const handleSwitchLanguage = () => {
-    const nextLocale = locale === "en" ? "fa" : "en"
-    router.replace(pathname, { locale: nextLocale })
-  }
-
   const handleLogout = () => logoutMutation.mutate()
 
   if (user?.role === ROLES.STUDENT) {
@@ -122,11 +116,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
             </div>
           </div>
           <div className="shrink-0">
-            <SidebarFooter
-              onLogout={handleLogout}
-              onSwitchLanguage={handleSwitchLanguage}
-              locale={locale}
-            />
+            <SidebarFooter onLogout={handleLogout} />
           </div>
         </aside>
 
@@ -134,8 +124,6 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
           sections={navSections}
           pathname={pathname}
           onLogout={handleLogout}
-          onSwitchLanguage={handleSwitchLanguage}
-          locale={locale}
         />
 
         {/* Main Content Container */}
@@ -143,9 +131,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
           <AdminHeader
             role={effectiveRole}
             user={user}
-            onSwitchLanguage={handleSwitchLanguage}
             onLogout={handleLogout}
-            locale={locale}
           />
 
           <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-6 lg:p-8">
