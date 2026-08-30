@@ -10,7 +10,7 @@ export default function SettingPage() {
   const t = useTranslations("setting")
 
   return (
-    <AdminPageShell className="mx-auto max-w-4xl space-y-6 py-2">
+    <AdminPageShell className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
           {t("title")}
