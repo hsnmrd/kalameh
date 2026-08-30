@@ -4,12 +4,12 @@ import * as React from "react"
 import Image from "next/image"
 import { useTranslations, useLocale } from "next-intl"
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogCloseButton,
-  ResponsiveDialogFooter,
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogCloseButton,
+  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -55,19 +55,14 @@ export function StudentProfileModal({
   ).format(new Date(student.createdAt))
 
   return (
-    <ResponsiveDialog
-      open={open}
-      onOpenChange={(isOpen) => !isOpen && onClose()}
-    >
-      <ResponsiveDialogContent className="sm:max-h-[90vh] sm:max-w-xl">
-        <ResponsiveDialogHeader className="sticky top-0 z-10 flex flex-row items-center justify-between border-b border-border/60 bg-card px-4 py-3.5 sm:px-6 sm:py-4">
-          <ResponsiveDialogTitle className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
-            {t("profileModal.title")}
-          </ResponsiveDialogTitle>
-          <ResponsiveDialogCloseButton className="relative end-auto top-auto" />
-        </ResponsiveDialogHeader>
+    <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <FormDialogContent className="sm:max-w-xl">
+        <FormDialogHeader>
+          <FormDialogTitle>{t("profileModal.title")}</FormDialogTitle>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-        <div className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6">
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
           {/* Header Card with Avatar */}
           <div className="flex items-center gap-4">
             <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
@@ -196,7 +191,7 @@ export function StudentProfileModal({
           </div>
         </div>
 
-        <ResponsiveDialogFooter className="border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4">
+        <FormDialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -205,8 +200,8 @@ export function StudentProfileModal({
           >
             {t("profileModal.close")}
           </Button>
-        </ResponsiveDialogFooter>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+        </FormDialogFooter>
+      </FormDialogContent>
+    </FormDialog>
   )
 }
