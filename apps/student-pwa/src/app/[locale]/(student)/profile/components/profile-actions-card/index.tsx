@@ -2,19 +2,21 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Lock, LogOut } from "lucide-react"
+import { Lock, LogOut, Settings } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 
 export interface ProfileActionsCardProps {
   onLogout: () => void
   isLoggingOut?: boolean
   onChangePassword?: () => void
+  onSettings?: () => void
 }
 
 export function ProfileActionsCard({
   onLogout,
   isLoggingOut,
   onChangePassword,
+  onSettings,
 }: ProfileActionsCardProps) {
   const t = useTranslations("profile")
 
@@ -23,6 +25,18 @@ export function ProfileActionsCard({
       <h3 className="text-sm font-semibold text-foreground">
         {t("accountActions")}
       </h3>
+
+      {onSettings && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onSettings}
+          className="w-full cursor-pointer justify-start gap-2 border-border text-foreground hover:bg-muted"
+        >
+          <Settings className="size-4 text-muted-foreground" />
+          <span>{t("settings")}</span>
+        </Button>
+      )}
 
       <Button
         type="button"

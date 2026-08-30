@@ -60,6 +60,9 @@ function getPageTitle(pathname: string, t: (key: string) => string): string {
   if (pathname.startsWith("/transactions")) {
     return t("nav.finance")
   }
+  if (pathname.startsWith("/setting")) {
+    return t("settings")
+  }
   return t("nav.dashboard")
 }
 

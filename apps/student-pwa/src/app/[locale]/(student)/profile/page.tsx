@@ -63,6 +63,7 @@ export default function StudentProfilePage() {
         />
 
         <ProfileActionsCard
+          onSettings={() => router.push("/setting")}
           onLogout={() => logoutMutation.mutate()}
           isLoggingOut={logoutMutation.isPending}
         />

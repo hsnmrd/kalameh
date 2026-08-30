@@ -42,6 +42,7 @@
     "system": "سیستم"
   },
   "language": "زبان",
+  "settings": "تنظیمات",
   "logout": "خروج از حساب",
   "filter": {
     "title": "فیلترها",

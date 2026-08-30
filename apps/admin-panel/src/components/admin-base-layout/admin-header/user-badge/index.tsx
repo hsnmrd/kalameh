@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Building2, LogOut } from "lucide-react"
+import { Building2, LogOut, Settings } from "lucide-react"
 import { ROLES, type Role, type AuthUser } from "@workspace/types"
 import { ResponsivePopover } from "@workspace/ui/components/popover"
 import { Button } from "@workspace/ui/components/button"
@@ -137,9 +137,26 @@ export function UserBadge({ user, role, onLogout }: UserBadgeProps) {
             </Button>
           )}
 
+          {/* Settings Action */}
+          <div className="border-t border-border pt-2.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setOpen(false)
+                router.push("/setting")
+              }}
+              className="flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-border text-xs font-medium text-foreground hover:bg-muted active:scale-95"
+            >
+              <Settings className="size-3.5 text-muted-foreground" />
+              <span>{t("settings")}</span>
+            </Button>
+          </div>
+
           {/* Logout Action */}
           {onLogout && (
-            <div className="border-t border-border pt-2.5">
+            <div className="pt-1">
               <Button
                 type="button"
                 variant="ghost"

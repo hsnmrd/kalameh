@@ -19,6 +19,7 @@ export default async function StudentLayout({
     enrollments: messages.enrollments,
     flashcards: messages.flashcards,
     profile: messages.profile,
+    setting: messages.setting,
   }
 
   return (

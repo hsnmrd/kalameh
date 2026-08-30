@@ -42,6 +42,7 @@
     "system": "System"
   },
   "language": "Language",
+  "settings": "Settings",
   "logout": "Sign Out",
   "filter": {
     "title": "Filters",
