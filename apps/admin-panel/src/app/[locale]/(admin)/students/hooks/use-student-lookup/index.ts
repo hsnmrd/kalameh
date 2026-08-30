@@ -30,7 +30,17 @@ export function useStudentLookup({
   const shouldQuery =
     open && (debouncedNationalCode.length >= 8 || debouncedPhone.length === 11)
 
-  const { data: lookupData, isFetching: isLookingUp } = useQuery({
+  const hasInput =
+    open &&
+    ((nationalCodeValue?.trim().length ?? 0) >= 8 ||
+      (phoneValue?.trim().length ?? 0) === 11)
+
+  const isDebouncing =
+    hasInput &&
+    (debouncedNationalCode !== (nationalCodeValue?.trim() || "") ||
+      debouncedPhone !== (phoneValue?.trim() || ""))
+
+  const { data: lookupData, isFetching: isQueryFetching } = useQuery({
     ...studentsResource.lookup.toQuery({
       nationalCode:
         debouncedNationalCode.length >= 8 ? debouncedNationalCode : undefined,
@@ -38,6 +48,8 @@ export function useStudentLookup({
     }),
     enabled: shouldQuery,
   })
+
+  const isLookingUp = isQueryFetching || isDebouncing
 
   React.useEffect(() => {
     if (!open) {

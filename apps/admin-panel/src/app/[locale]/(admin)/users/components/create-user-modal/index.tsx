@@ -140,21 +140,21 @@ export function CreateUserModal({
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-            {/* Lookup Status Banner */}
+            {/* Lookup Status */}
             {isLookingUp && (
-              <div className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
-                <Spinner className="size-3 text-muted-foreground" />
+              <div className="flex items-center gap-1.5 py-0.5 text-xs text-muted-foreground">
+                <Spinner className="size-3.5 text-muted-foreground" />
                 <span>{t("createModal.lookupChecking")}</span>
               </div>
             )}
             {lookupData?.found && !isLookingUp && (
-              <div className="flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+              <div className="flex items-center gap-1.5 py-0.5 text-xs font-medium text-primary">
                 <CheckCircle2 className="size-3.5 shrink-0 text-primary" />
                 <span>{t("createModal.lookupFound")}</span>
               </div>
             )}
             {shouldQuery && !isLookingUp && lookupData && !lookupData.found && (
-              <div className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 py-0.5 text-xs text-muted-foreground">
                 <UserPlus className="size-3.5 shrink-0 text-muted-foreground" />
                 <span>{t("createModal.lookupNew")}</span>
               </div>
