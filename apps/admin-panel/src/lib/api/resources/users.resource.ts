@@ -21,11 +21,14 @@ export const usersResource = api.resource("users", {
     query: (params) => params || {},
   }),
   detail: api.get<AuthUser, string>((id) => `/users/${id}`),
-  create: api.post<AuthUser, CreateUserInput>("/users"),
+  create: api.post<AuthUser, CreateUserInput>("/users", {
+    bodyType: "form-data",
+  }),
   update: api.patch<AuthUser, { id: string; body: UpdateUserInput }>(
     ({ id }) => `/users/${id}`,
     {
       body: ({ body }) => body,
+      bodyType: "form-data",
     }
   ),
   resetPassword: api.post<

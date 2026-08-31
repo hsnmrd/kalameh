@@ -24,6 +24,7 @@ import {
   FieldError,
   FieldDescription,
 } from "@workspace/ui/components/field"
+import { Attachment } from "@workspace/ui/components/attachment"
 import {
   ResponsiveCombobox,
   type ComboboxOption,
@@ -87,6 +88,8 @@ export function CreateStudentModal({
   } = useForm<CreateStudentInput>({
     resolver: zodResolver(createStudentSchema),
     defaultValues: {
+      avatar: null,
+      avatarUrl: null,
       firstName: "",
       lastName: "",
       phone: "",
@@ -126,6 +129,8 @@ export function CreateStudentModal({
   const onSubmit = (values: CreateStudentInput) => {
     createMutation.mutate({
       ...values,
+      avatar: values.avatar || undefined,
+      avatarUrl: values.avatarUrl || undefined,
       instituteId: instituteId || values.instituteId || undefined,
       nationalCode: values.nationalCode || undefined,
       fatherName: values.fatherName || undefined,
@@ -189,6 +194,23 @@ export function CreateStudentModal({
                     <span>{t("createModal.lookupNew")}</span>
                   </div>
                 )}
+
+              <Field>
+                <FieldLabel>{t("createModal.avatar")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="avatar"
+                  render={({ field }) => (
+                    <Attachment
+                      value={field.value}
+                      onChange={(file) => field.onChange(file)}
+                      placeholder={t("createModal.avatarPlaceholder")}
+                      description={t("createModal.avatarDescription")}
+                      removeLabel={t("createModal.removeAvatar")}
+                    />
+                  )}
+                />
+              </Field>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {/* 1. National Code */}

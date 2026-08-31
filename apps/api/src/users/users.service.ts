@@ -36,7 +36,12 @@ export class UsersService {
     currentUser: JwtPayload,
     dto: CreateUserDto,
     locale: SupportedLocale = 'fa',
+    file?: Express.Multer.File,
   ) {
+    const avatarUrl = file
+      ? `/uploads/avatars/${file.filename}`
+      : dto.avatarUrl;
+
     const targetInstituteId =
       currentUser.role === 'SUPER_ADMIN' && dto.instituteId
         ? dto.instituteId
@@ -89,6 +94,7 @@ export class UsersService {
         role: dto.role || 'STUDENT',
         nationalCode: dto.nationalCode,
         currentAllowedCourseId: dto.currentAllowedCourseId,
+        ...(avatarUrl !== undefined ? { avatarUrl } : {}),
       },
       select: {
         id: true,
@@ -100,6 +106,7 @@ export class UsersService {
         nationalCode: true,
         isActive: true,
         currentAllowedCourseId: true,
+        avatarUrl: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -172,6 +179,7 @@ export class UsersService {
         nationalCode: true,
         isActive: true,
         currentAllowedCourseId: true,
+        avatarUrl: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -203,6 +211,7 @@ export class UsersService {
         nationalCode: true,
         isActive: true,
         currentAllowedCourseId: true,
+        avatarUrl: true,
         currentAllowedCourse: {
           select: {
             id: true,
@@ -236,7 +245,12 @@ export class UsersService {
     id: string,
     dto: UpdateUserDto,
     locale: SupportedLocale = 'fa',
+    file?: Express.Multer.File,
   ) {
+    const avatarUrl = file
+      ? `/uploads/avatars/${file.filename}`
+      : dto.avatarUrl;
+
     const targetUser = await this.findOne(currentUser, id, locale);
 
     // RBAC: Non-super-admins cannot update SUPER_ADMIN
@@ -290,6 +304,7 @@ export class UsersService {
           ? { nationalCode: dto.nationalCode }
           : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+        ...(avatarUrl !== undefined ? { avatarUrl } : {}),
         ...(dto.currentAllowedCourseId !== undefined
           ? { currentAllowedCourseId: dto.currentAllowedCourseId }
           : {}),
@@ -304,6 +319,7 @@ export class UsersService {
         nationalCode: true,
         isActive: true,
         currentAllowedCourseId: true,
+        avatarUrl: true,
         createdAt: true,
         updatedAt: true,
       },

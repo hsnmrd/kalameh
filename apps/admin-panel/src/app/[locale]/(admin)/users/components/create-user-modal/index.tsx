@@ -24,6 +24,7 @@ import {
   FieldError,
   FieldDescription,
 } from "@workspace/ui/components/field"
+import { Attachment } from "@workspace/ui/components/attachment"
 import {
   ResponsiveCombobox,
   type ComboboxOption,
@@ -79,6 +80,8 @@ export function CreateUserModal({
   } = useForm<CreateUserInput>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
+      avatar: null,
+      avatarUrl: null,
       firstName: "",
       lastName: "",
       phone: "",
@@ -111,6 +114,8 @@ export function CreateUserModal({
   const onSubmit = (values: CreateUserInput) => {
     createMutation.mutate({
       ...values,
+      avatar: values.avatar || undefined,
+      avatarUrl: values.avatarUrl || undefined,
       instituteId: instituteId || values.instituteId || undefined,
       nationalCode: values.nationalCode || undefined,
       password: values.password || undefined,
@@ -159,6 +164,23 @@ export function CreateUserModal({
                 <span>{t("createModal.lookupNew")}</span>
               </div>
             )}
+
+            <Field>
+              <FieldLabel>{t("createModal.avatar")}</FieldLabel>
+              <Controller
+                control={control}
+                name="avatar"
+                render={({ field }) => (
+                  <Attachment
+                    value={field.value}
+                    onChange={(file) => field.onChange(file)}
+                    placeholder={t("createModal.avatarPlaceholder")}
+                    description={t("createModal.avatarDescription")}
+                    removeLabel={t("createModal.removeAvatar")}
+                  />
+                )}
+              />
+            </Field>
 
             {/* National Code */}
             <Field data-invalid={Boolean(errors.nationalCode)}>

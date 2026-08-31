@@ -7,6 +7,8 @@ export const createUpdateStudentSchema = (msg?: {
   phoneRegex?: string
 }) =>
   z.object({
+    avatar: z.any().optional().nullable(),
+    avatarUrl: z.string().trim().optional().nullable(),
     firstName: z
       .string()
       .trim()
@@ -26,14 +28,19 @@ export const createUpdateStudentSchema = (msg?: {
       )
       .optional(),
     nationalCode: z.string().trim().optional().nullable(),
-    avatarUrl: z.string().optional().nullable(),
     fatherName: z.string().trim().optional().nullable(),
     birthDate: z.string().optional().nullable(),
     gender: z.string().optional().nullable(),
     emergencyPhone: z.string().trim().optional().nullable(),
     address: z.string().trim().optional().nullable(),
     notes: z.string().trim().optional().nullable(),
-    isActive: z.boolean().optional(),
+    isActive: z
+      .preprocess((val) => {
+        if (val === "true" || val === true) return true
+        if (val === "false" || val === false) return false
+        return val
+      }, z.boolean())
+      .optional(),
     currentAllowedCourseId: z.string().uuid().optional().nullable(),
   })
 

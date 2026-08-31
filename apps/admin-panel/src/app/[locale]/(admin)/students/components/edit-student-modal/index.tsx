@@ -22,6 +22,7 @@ import {
   FieldError,
   FieldDescription,
 } from "@workspace/ui/components/field"
+import { Attachment } from "@workspace/ui/components/attachment"
 import {
   ResponsiveCombobox,
   type ComboboxOption,
@@ -104,6 +105,8 @@ export function EditStudentModal({
         lastName: student.lastName,
         phone: student.phone,
         nationalCode: student.nationalCode || "",
+        avatar: null,
+        avatarUrl: student.avatarUrl || null,
         fatherName: student.studentProfile?.fatherName || "",
         birthDate: birthDateStr || "",
         gender: student.studentProfile?.gender || "",
@@ -134,6 +137,7 @@ export function EditStudentModal({
       id: student.id,
       body: {
         ...values,
+        avatar: values.avatar || undefined,
         nationalCode: values.nationalCode || null,
         fatherName: values.fatherName || null,
         birthDate: values.birthDate || null,
@@ -168,6 +172,23 @@ export function EditStudentModal({
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+            <Field>
+              <FieldLabel>{t("editModal.avatar")}</FieldLabel>
+              <Controller
+                control={control}
+                name="avatar"
+                render={({ field }) => (
+                  <Attachment
+                    value={field.value || undefined}
+                    onChange={(file) => field.onChange(file)}
+                    placeholder={t("createModal.avatarPlaceholder")}
+                    description={t("createModal.avatarDescription")}
+                    removeLabel={t("createModal.removeAvatar")}
+                  />
+                )}
+              />
+            </Field>
+
             {/* Identity Info */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field data-invalid={Boolean(errors.firstName)}>

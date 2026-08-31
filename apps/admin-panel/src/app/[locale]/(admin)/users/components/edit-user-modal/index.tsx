@@ -17,6 +17,7 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
+import { Attachment } from "@workspace/ui/components/attachment"
 import {
   ResponsiveCombobox,
   type ComboboxOption,
@@ -73,6 +74,8 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
   } = useForm<UpdateUserInput>({
     resolver: zodResolver(updateUserSchema),
     defaultValues: {
+      avatar: null,
+      avatarUrl: null,
       firstName: "",
       lastName: "",
       phone: "",
@@ -89,6 +92,8 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
         lastName: user.lastName,
         phone: user.phone,
         nationalCode: user.nationalCode || "",
+        avatar: null,
+        avatarUrl: user.avatarUrl || null,
         role: user.role,
         isActive: user.isActive,
       })
@@ -112,6 +117,7 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
       id: user.id,
       body: {
         ...values,
+        avatar: values.avatar || undefined,
         nationalCode: values.nationalCode || null,
       },
     })
@@ -136,6 +142,23 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+            <Field>
+              <FieldLabel>{t("editModal.avatar")}</FieldLabel>
+              <Controller
+                control={control}
+                name="avatar"
+                render={({ field }) => (
+                  <Attachment
+                    value={field.value || undefined}
+                    onChange={(file) => field.onChange(file)}
+                    placeholder={t("createModal.avatarPlaceholder")}
+                    description={t("createModal.avatarDescription")}
+                    removeLabel={t("createModal.removeAvatar")}
+                  />
+                )}
+              />
+            </Field>
+
             {/* First & Last Name */}
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={Boolean(errors.firstName)}>

@@ -8,6 +8,8 @@ export const createCreateStudentSchema = (msg?: {
   passwordMin?: string
 }) =>
   z.object({
+    avatar: z.any().optional().nullable(),
+    avatarUrl: z.string().trim().optional().nullable(),
     firstName: z
       .string()
       .trim()
@@ -31,7 +33,6 @@ export const createCreateStudentSchema = (msg?: {
       )
       .optional(),
     nationalCode: z.string().trim().optional().nullable(),
-    avatarUrl: z.string().optional().nullable(),
     fatherName: z.string().trim().optional().nullable(),
     birthDate: z.string().optional().nullable(),
     gender: z.string().optional().nullable(),

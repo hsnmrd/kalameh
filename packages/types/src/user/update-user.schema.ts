@@ -8,6 +8,8 @@ export const createUpdateUserSchema = (msg?: {
   phoneRegex?: string
 }) =>
   z.object({
+    avatar: z.any().optional().nullable(),
+    avatarUrl: z.string().trim().optional().nullable(),
     firstName: z
       .string()
       .trim()
@@ -28,7 +30,13 @@ export const createUpdateUserSchema = (msg?: {
       .optional(),
     role: RoleEnum.optional(),
     nationalCode: z.string().trim().optional().nullable(),
-    isActive: z.boolean().optional(),
+    isActive: z
+      .preprocess((val) => {
+        if (val === "true" || val === true) return true
+        if (val === "false" || val === false) return false
+        return val
+      }, z.boolean())
+      .optional(),
     currentAllowedCourseId: z.string().uuid().optional().nullable(),
   })
 

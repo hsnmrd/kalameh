@@ -27,6 +27,7 @@ import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { RequireModules } from '../auth/decorators/modules.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CurrentLocale } from '../i18n';
+import { imageUploadOptions } from '../common/upload/multer.util';
 import {
   PERMISSIONS,
   APP_MODULES,
@@ -115,12 +116,14 @@ export class UsersController {
 
   @Post()
   @RequirePermissions(PERMISSIONS.MANAGE_USERS)
+  @UseInterceptors(FileInterceptor('avatar', imageUploadOptions('avatars')))
   async create(
     @CurrentUser() currentUser: JwtPayload,
     @Body() dto: CreateUserDto,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentLocale() locale: SupportedLocale,
   ) {
-    return this.usersService.create(currentUser, dto, locale);
+    return this.usersService.create(currentUser, dto, locale, file);
   }
 
   @Get()
@@ -163,13 +166,15 @@ export class UsersController {
 
   @Patch(':id')
   @RequirePermissions(PERMISSIONS.MANAGE_USERS)
+  @UseInterceptors(FileInterceptor('avatar', imageUploadOptions('avatars')))
   async update(
     @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,
     @Body() dto: UpdateUserDto,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentLocale() locale: SupportedLocale,
   ) {
-    return this.usersService.update(currentUser, id, dto, locale);
+    return this.usersService.update(currentUser, id, dto, locale, file);
   }
 
   @Post(':id/reset-password')

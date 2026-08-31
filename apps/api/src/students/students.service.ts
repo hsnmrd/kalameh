@@ -27,7 +27,12 @@ export class StudentsService {
     currentUser: JwtPayload,
     dto: CreateStudentDto,
     locale: SupportedLocale = 'fa',
+    file?: Express.Multer.File,
   ) {
+    const avatarUrl = file
+      ? `/uploads/avatars/${file.filename}`
+      : dto.avatarUrl;
+
     const targetInstituteId =
       currentUser.role === 'SUPER_ADMIN' && dto.instituteId
         ? dto.instituteId
@@ -68,7 +73,7 @@ export class StudentsService {
           password: hashedPassword,
           role: 'STUDENT',
           nationalCode: dto.nationalCode,
-          avatarUrl: dto.avatarUrl,
+          ...(avatarUrl !== undefined ? { avatarUrl } : {}),
           currentAllowedCourseId: dto.currentAllowedCourseId,
         },
       });
@@ -231,7 +236,12 @@ export class StudentsService {
     id: string,
     dto: UpdateStudentDto,
     locale: SupportedLocale = 'fa',
+    file?: Express.Multer.File,
   ) {
+    const avatarUrl = file
+      ? `/uploads/avatars/${file.filename}`
+      : dto.avatarUrl;
+
     const targetInstituteId =
       currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
 
@@ -282,7 +292,7 @@ export class StudentsService {
           lastName: dto.lastName,
           phone: dto.phone,
           nationalCode: dto.nationalCode,
-          avatarUrl: dto.avatarUrl,
+          ...(avatarUrl !== undefined ? { avatarUrl } : {}),
           isActive: dto.isActive,
           currentAllowedCourseId: dto.currentAllowedCourseId,
         },

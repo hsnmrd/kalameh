@@ -6,10 +6,13 @@ import {
   Param,
   Body,
   Query,
+  UseInterceptors,
+  UploadedFile,
   UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -20,6 +23,7 @@ import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { RequireModules } from '../auth/decorators/modules.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CurrentLocale } from '../i18n';
+import { imageUploadOptions } from '../common/upload/multer.util';
 import {
   PERMISSIONS,
   APP_MODULES,
@@ -36,12 +40,14 @@ export class StudentsController {
 
   @Post()
   @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
+  @UseInterceptors(FileInterceptor('avatar', imageUploadOptions('avatars')))
   async create(
     @CurrentUser() currentUser: JwtPayload,
     @Body() dto: CreateStudentDto,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentLocale() locale: SupportedLocale,
   ) {
-    return this.studentsService.create(currentUser, dto, locale);
+    return this.studentsService.create(currentUser, dto, locale, file);
   }
 
   @Get()
@@ -90,13 +96,15 @@ export class StudentsController {
 
   @Patch(':id')
   @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
+  @UseInterceptors(FileInterceptor('avatar', imageUploadOptions('avatars')))
   async update(
     @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,
     @Body() dto: UpdateStudentDto,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentLocale() locale: SupportedLocale,
   ) {
-    return this.studentsService.update(currentUser, id, dto, locale);
+    return this.studentsService.update(currentUser, id, dto, locale, file);
   }
 
   @Post(':id/reset-password')

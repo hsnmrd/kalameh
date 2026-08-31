@@ -9,6 +9,8 @@ export const createCreateUserSchema = (msg?: {
   passwordMin?: string
 }) =>
   z.object({
+    avatar: z.any().optional().nullable(),
+    avatarUrl: z.string().trim().optional().nullable(),
     firstName: z
       .string()
       .trim()
