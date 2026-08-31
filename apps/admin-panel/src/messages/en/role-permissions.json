@@ -61,6 +61,7 @@
     "users:view": "View staff list",
     "users:delete": "Delete staff accounts",
     "students:manage": "Register and manage student profiles",
+    "students:notes": "Add and append student notes history",
     "students:view": "View student profiles",
     "enrollments:manage": "Approve and manage class enrollments",
     "enrollments:view": "View class enrollments list",

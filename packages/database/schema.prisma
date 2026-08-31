@@ -92,6 +92,7 @@ model User {
   studentProfile       StudentProfile?
   enrollments          Enrollment[]
   transactions         Transaction[]
+  studentNotesCreated  StudentNote[]   @relation("StudentNoteAuthor")
 
   @@unique([phone, instituteId])
   @@index([instituteId])
@@ -99,19 +100,35 @@ model User {
 }
 
 model StudentProfile {
-  id             String    @id @default(uuid())
-  userId         String    @unique
+  id             String        @id @default(uuid())
+  userId         String        @unique
   fatherName     String?
   birthDate      DateTime?
   gender         String?
   emergencyPhone String?
   address        String?
-  notes          String?
+  notes          StudentNote[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StudentNote {
+  id               String @id @default(uuid())
+  studentProfileId String
+  createdByUserId  String
+
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  createdByUser  User           @relation("StudentNoteAuthor", fields: [createdByUserId], references: [id])
+
+  @@index([studentProfileId])
+  @@index([createdByUserId])
 }
 
 model Term {

@@ -48,6 +48,10 @@ describe('StudentsService', () => {
       studentProfile: {
         create: jest.fn(),
         upsert: jest.fn(),
+        findUnique: jest.fn(),
+      },
+      studentNote: {
+        create: jest.fn(),
       },
       $transaction: jest.fn((cb) => {
         return cb(prismaService);

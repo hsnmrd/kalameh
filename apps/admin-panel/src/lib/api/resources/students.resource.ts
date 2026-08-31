@@ -42,4 +42,10 @@ export const studentsResource = api.resource("students", {
   >(({ id }) => `/students/${id}/reset-password`, {
     body: ({ newPassword }) => ({ newPassword }),
   }),
+  addNote: api.post<StudentDto, { id: string; content: string }>(
+    ({ id }) => `/students/${id}/notes`,
+    {
+      body: ({ content }) => ({ content }),
+    }
+  ),
 })

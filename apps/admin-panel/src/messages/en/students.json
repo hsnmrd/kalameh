@@ -112,6 +112,11 @@
     "contactInfo": "Contact & Residential Information",
     "guardianInfo": "Guardian & Emergency Contact",
     "academicInfo": "Academic Status",
+    "addNote": "Add Note",
+    "addNotePlaceholder": "Write a note and save",
+    "addNoteButton": "Save Note",
+    "noteAdded": "Student note added successfully.",
+    "addNoteFailed": "Failed to save note.",
     "close": "Close"
   },
   "resetPasswordModal": {

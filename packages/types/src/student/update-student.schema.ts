@@ -33,7 +33,7 @@ export const createUpdateStudentSchema = (msg?: {
     gender: z.string().optional().nullable(),
     emergencyPhone: z.string().trim().optional().nullable(),
     address: z.string().trim().optional().nullable(),
-    notes: z.string().trim().optional().nullable(),
+    newNote: z.string().trim().optional().nullable(),
     isActive: z
       .preprocess((val) => {
         if (val === "true" || val === true) return true

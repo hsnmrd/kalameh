@@ -112,6 +112,11 @@
     "contactInfo": "اطلاعات تماس و سکونت",
     "guardianInfo": "اطلاعات ولی و تماس اضطراری",
     "academicInfo": "وضعیت آموزشی",
+    "addNote": "افزودن یادداشت",
+    "addNotePlaceholder": "یک یادداشت وارد کنید",
+    "addNoteButton": "ثبت یادداشت",
+    "noteAdded": "یادداشت با موفقیت ثبت شد.",
+    "addNoteFailed": "ثبت یادداشت ناموفق بود.",
     "close": "بستن"
   },
   "resetPasswordModal": {

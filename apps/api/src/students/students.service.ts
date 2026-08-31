@@ -14,6 +14,7 @@ import type {
   JwtPayload,
   SupportedLocale,
   StudentLookupResponse,
+  AddStudentNoteInput,
 } from '@workspace/types';
 
 @Injectable()
@@ -62,6 +63,7 @@ export class StudentsService {
     const rawPassword = dto.password || dto.phone;
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     const parsedBirthDate = dto.birthDate ? new Date(dto.birthDate) : null;
+    const initialNote = dto.notes?.trim();
 
     const student = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -86,13 +88,42 @@ export class StudentsService {
           gender: dto.gender,
           emergencyPhone: dto.emergencyPhone,
           address: dto.address,
-          notes: dto.notes,
+        },
+      });
+
+      if (initialNote) {
+        await tx.studentNote.create({
+          data: {
+            studentProfileId: profile.id,
+            createdByUserId: currentUser.sub,
+            content: initialNote,
+          },
+        });
+      }
+
+      const profileWithNotes = await tx.studentProfile.findUnique({
+        where: { id: profile.id },
+        include: {
+          notes: {
+            include: {
+              createdByUser: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
         },
       });
 
       return {
         ...user,
-        studentProfile: profile,
+        studentProfile: profileWithNotes,
       };
     });
 
@@ -156,7 +187,24 @@ export class StudentsService {
           : {}),
       },
       include: {
-        studentProfile: true,
+        studentProfile: {
+          include: {
+            notes: {
+              include: {
+                createdByUser: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
+          },
+        },
         currentAllowedCourse: {
           select: {
             id: true,
@@ -195,7 +243,24 @@ export class StudentsService {
         ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
       },
       include: {
-        studentProfile: true,
+        studentProfile: {
+          include: {
+            notes: {
+              include: {
+                createdByUser: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
+          },
+        },
         currentAllowedCourse: {
           select: {
             id: true,
@@ -307,7 +372,6 @@ export class StudentsService {
           gender: dto.gender,
           emergencyPhone: dto.emergencyPhone,
           address: dto.address,
-          notes: dto.notes,
         },
         update: {
           ...(dto.fatherName !== undefined
@@ -321,13 +385,43 @@ export class StudentsService {
             ? { emergencyPhone: dto.emergencyPhone }
             : {}),
           ...(dto.address !== undefined ? { address: dto.address } : {}),
-          ...(dto.notes !== undefined ? { notes: dto.notes } : {}),
+        },
+      });
+
+      const newNote = dto.newNote?.trim();
+      if (newNote) {
+        await tx.studentNote.create({
+          data: {
+            studentProfileId: profile.id,
+            createdByUserId: currentUser.sub,
+            content: newNote,
+          },
+        });
+      }
+
+      const profileWithNotes = await tx.studentProfile.findUnique({
+        where: { userId: id },
+        include: {
+          notes: {
+            include: {
+              createdByUser: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
         },
       });
 
       return {
         ...user,
-        studentProfile: profile,
+        studentProfile: profileWithNotes,
       };
     });
 
@@ -382,6 +476,51 @@ export class StudentsService {
     return {
       message: this.i18n.t('students.passwordResetSuccess', locale),
     };
+  }
+
+  async addNote(
+    currentUser: JwtPayload,
+    id: string,
+    dto: AddStudentNoteInput,
+    locale: SupportedLocale = 'fa',
+  ) {
+    const targetInstituteId =
+      currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
+
+    const existing = await this.prisma.user.findFirst({
+      where: {
+        id,
+        role: 'STUDENT',
+        ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
+      },
+      include: {
+        studentProfile: {
+          select: { id: true },
+        },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(
+        this.i18n.t('students.studentNotFound', locale),
+      );
+    }
+
+    if (!existing.studentProfile?.id) {
+      throw new NotFoundException(
+        this.i18n.t('students.studentNotFound', locale),
+      );
+    }
+
+    await this.prisma.studentNote.create({
+      data: {
+        studentProfileId: existing.studentProfile.id,
+        createdByUserId: currentUser.sub,
+        content: dto.content,
+      },
+    });
+
+    return this.findOne(currentUser, id, locale);
   }
 
   async lookup(

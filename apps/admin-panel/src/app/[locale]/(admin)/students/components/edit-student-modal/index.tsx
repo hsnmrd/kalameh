@@ -112,7 +112,7 @@ export function EditStudentModal({
         gender: student.studentProfile?.gender || "",
         emergencyPhone: student.studentProfile?.emergencyPhone || "",
         address: student.studentProfile?.address || "",
-        notes: student.studentProfile?.notes || "",
+        newNote: "",
         currentAllowedCourseId: student.currentAllowedCourseId || null,
         isActive: student.isActive,
       })
@@ -144,7 +144,7 @@ export function EditStudentModal({
         gender: values.gender || null,
         emergencyPhone: values.emergencyPhone || null,
         address: values.address || null,
-        notes: values.notes || null,
+        newNote: values.newNote || null,
         currentAllowedCourseId:
           values.currentAllowedCourseId === "ROOT"
             ? null
@@ -295,6 +295,13 @@ export function EditStudentModal({
                   <FieldLabel>{t("editModal.address")}</FieldLabel>
                   <Input {...register("address")} />
                   <FieldError>{errors.address?.message}</FieldError>
+                </Field>
+              </div>
+              <div className="col-span-1 sm:col-span-2">
+                <Field data-invalid={Boolean(errors.newNote)}>
+                  <FieldLabel>{t("editModal.notes")}</FieldLabel>
+                  <Input {...register("newNote")} />
+                  <FieldError>{errors.newNote?.message}</FieldError>
                 </Field>
               </div>
             </div>

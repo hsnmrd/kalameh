@@ -16,6 +16,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { AddStudentNoteDto } from './dto/add-student-note.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { ModulesGuard } from '../auth/guards/modules.guard';
@@ -122,5 +123,16 @@ export class StudentsController {
       newPassword,
       locale,
     );
+  }
+
+  @Post(':id/notes')
+  @RequirePermissions(PERMISSIONS.MANAGE_STUDENT_NOTES)
+  async addNote(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: AddStudentNoteDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.studentsService.addNote(currentUser, id, dto, locale);
   }
 }
