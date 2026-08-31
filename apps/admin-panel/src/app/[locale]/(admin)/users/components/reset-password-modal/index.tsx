@@ -4,6 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
+import Image from "next/image"
 import {
   FormDialog,
   FormDialogContent,
@@ -16,6 +17,10 @@ import { Button } from "@workspace/ui/components/button"
 import { PasswordInput } from "@workspace/ui/components/password-input"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { Phone } from "lucide-react"
+import { getAssetUrl } from "@workspace/ui/lib/utils"
+import { UserRoleBadge } from "../user-role-badge"
+import { UserStatusBadge } from "../user-status-badge"
 import type { AuthUser } from "@workspace/types"
 import { usersResource } from "@/lib/api"
 
@@ -59,6 +64,13 @@ export function ResetPasswordModal({
     }
   }
 
+  const userFullName = user ? `${user.firstName} ${user.lastName}` : ""
+  const userInitial = (
+    user?.firstName?.[0] ||
+    user?.lastName?.[0] ||
+    "U"
+  ).toUpperCase()
+
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
       <FormDialogContent className="sm:max-w-md">
@@ -73,15 +85,73 @@ export function ResetPasswordModal({
         >
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
             {user && (
-              <div className="rounded-xl border border-border/80 bg-muted/40 p-3 text-xs">
-                <span className="text-muted-foreground">
-                  {t("deleteModal.userName")}:{" "}
-                </span>
-                <strong className="text-foreground">
-                  {user.firstName} {user.lastName}
-                </strong>
+              <div className="rounded-xl border border-border/80 bg-muted/30 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                    {user.avatarUrl ? (
+                      <Image
+                        src={getAssetUrl(user.avatarUrl)}
+                        alt={userFullName}
+                        width={48}
+                        height={48}
+                        className="size-12 rounded-full object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <span>{userInitial}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-semibold text-foreground">
+                      {userFullName}
+                    </h3>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Phone className="size-3.5 text-muted-foreground" />
+                      <span className="font-mono">{user.phone}</span>
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <UserStatusBadge isActive={user.isActive} />
+                    <UserRoleBadge role={user.role} />
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                  <div>
+                    <p className="text-muted-foreground">{t("table.phone")}</p>
+                    <p className="font-medium text-foreground">{user.phone}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">
+                      {t("table.nationalCode")}
+                    </p>
+                    <p className="font-mono font-medium text-foreground">
+                      {user.nationalCode || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">{t("table.role")}</p>
+                    <p className="font-medium text-foreground">
+                      {t(`roles.${user.role}`)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">{t("table.status")}</p>
+                    <p className="font-medium text-foreground">
+                      {user.isActive
+                        ? t("status.active")
+                        : t("status.inactive")}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
+            {user ? (
+              <p className="text-xs text-muted-foreground">
+                {t("resetPasswordModal.description", {
+                  name: `${user.firstName} ${user.lastName}`,
+                })}
+              </p>
+            ) : null}
             <Field>
               <FieldLabel>{t("resetPasswordModal.newPassword")}</FieldLabel>
               <PasswordInput
