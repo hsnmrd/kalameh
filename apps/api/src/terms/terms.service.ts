@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { CreateTermDto } from './dto/create-term.dto';
 import { UpdateTermDto } from './dto/update-term.dto';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import type { JwtPayload, SupportedLocale, TermDto } from '@workspace/types';
 
 @Injectable()
@@ -18,6 +19,7 @@ export class TermsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   async findAll(
@@ -126,6 +128,19 @@ export class TermsService {
       `Term created: "${created.title}" (${created.id}) for institute ${instituteId} by user ${currentUser.sub} (${currentUser.role})`,
     );
 
+    await this.auditLogsService.log({
+      instituteId,
+      userId: currentUser.sub,
+      module: 'TERM',
+      entityId: created.id,
+      action: 'CREATE',
+      metadata: {
+        title: created.title,
+        startDate: created.startDate,
+        endDate: created.endDate,
+      },
+    });
+
     const { _count, ...data } = created;
     return {
       ...data,
@@ -182,6 +197,15 @@ export class TermsService {
       include: {
         _count: { select: { classes: true } },
       },
+    });
+
+    await this.auditLogsService.log({
+      instituteId: existing.instituteId,
+      userId: currentUser.sub,
+      module: 'TERM',
+      entityId: updated.id,
+      action: 'UPDATE',
+      metadata: dto as unknown as Record<string, unknown>,
     });
 
     const { _count, ...data } = updated;

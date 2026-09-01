@@ -56,6 +56,9 @@ export const PERMISSIONS = {
   // Role & Permission Management
   MANAGE_ROLE_PERMISSIONS: "role_permissions:manage",
   VIEW_ROLE_PERMISSIONS: "role_permissions:view",
+
+  // Audit Logs
+  VIEW_AUDIT_LOGS: "audit_logs:view",
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
@@ -184,6 +187,15 @@ export const PERMISSION_MODULES: PermissionModule[] = [
       },
     ],
   },
+  {
+    id: "audit_logs",
+    permissions: [
+      {
+        key: "VIEW_AUDIT_LOGS",
+        permission: PERMISSIONS.VIEW_AUDIT_LOGS,
+      },
+    ],
+  },
 ]
 
 // ─── Roles Whose Permissions Can Be Customized Per-Institute ─────────────────
@@ -229,6 +241,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     PERMISSIONS.MANAGE_TRANSACTIONS,
     PERMISSIONS.VIEW_TRANSACTIONS,
     PERMISSIONS.VIEW_ROLE_PERMISSIONS,
+    PERMISSIONS.VIEW_AUDIT_LOGS,
   ],
 
   [ROLES.ASSISTANT]: [

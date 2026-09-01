@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { UpdateBranchDto } from './dto/update-branch.dto';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import type {
   JwtPayload,
   SupportedLocale,
@@ -21,6 +22,7 @@ export class BranchesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   async findAll(
@@ -158,6 +160,18 @@ export class BranchesService {
       `Branch created: "${created.name}" (${created.id}) for institute ${instituteId} by user ${currentUser.sub} (${currentUser.role})`,
     );
 
+    await this.auditLogsService.log({
+      instituteId,
+      userId: currentUser.sub,
+      module: 'BRANCH',
+      entityId: created.id,
+      action: 'CREATE',
+      metadata: {
+        name: created.name,
+        address: created.address,
+      },
+    });
+
     const { _count, ...data } = created;
     return {
       ...data,
@@ -205,6 +219,15 @@ export class BranchesService {
       include: {
         _count: { select: { classes: true, users: true } },
       },
+    });
+
+    await this.auditLogsService.log({
+      instituteId: existing.instituteId,
+      userId: currentUser.sub,
+      module: 'BRANCH',
+      entityId: updated.id,
+      action: 'UPDATE',
+      metadata: dto as unknown as Record<string, unknown>,
     });
 
     const { _count, ...data } = updated;

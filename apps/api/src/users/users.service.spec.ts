@@ -10,6 +10,7 @@ import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { ExcelService } from '../common/excel/excel.service';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { JwtPayload, STAFF_ROLES } from '@workspace/types';
 
 describe('UsersService', () => {
@@ -89,6 +90,7 @@ describe('UsersService', () => {
         { provide: PrismaService, useValue: prismaService },
         { provide: I18nService, useValue: i18nService },
         { provide: ExcelService, useValue: excelService },
+        { provide: AuditLogsService, useValue: { log: jest.fn() } },
       ],
     }).compile();
 

@@ -34,6 +34,7 @@ model Institute {
   classes         Class[]
   transactions    Transaction[]
   rolePermissions RolePermission[]
+  auditLogs       AuditLog[]
 }
 
 model Branch {
@@ -93,6 +94,7 @@ model User {
   enrollments          Enrollment[]
   transactions         Transaction[]
   studentNotesCreated  StudentNote[]   @relation("StudentNoteAuthor")
+  auditLogs            AuditLog[]
 
   @@unique([phone, instituteId])
   @@index([instituteId])
@@ -261,4 +263,25 @@ model RolePermission {
 
   @@unique([instituteId, role])
   @@index([instituteId])
+}
+
+model AuditLog {
+  id          String  @id @default(uuid())
+  instituteId String
+  userId      String
+  module      String
+  entityId    String
+  action      String
+  description String?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+
+  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([instituteId])
+  @@index([module, entityId])
+  @@index([userId])
+  @@index([createdAt])
 }

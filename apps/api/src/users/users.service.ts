@@ -12,6 +12,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { ExcelService } from '../common/excel/excel.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import {
   Role,
   ROLES,
@@ -33,6 +34,7 @@ export class UsersService {
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
     private readonly excelService: ExcelService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   async create(
@@ -118,6 +120,20 @@ export class UsersService {
     this.logger.log(
       `User created: "${user.firstName} ${user.lastName}" (${user.id}) with role ${user.role} for institute ${targetInstituteId} by user ${currentUser.sub} (${currentUser.role})`,
     );
+
+    await this.auditLogsService.log({
+      instituteId: targetInstituteId,
+      userId: currentUser.sub,
+      module: 'USER',
+      entityId: user.id,
+      action: 'CREATE',
+      metadata: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
 
     return user;
   }
@@ -332,6 +348,15 @@ export class UsersService {
       },
     });
 
+    await this.auditLogsService.log({
+      instituteId: targetUser.instituteId,
+      userId: currentUser.sub,
+      module: 'USER',
+      entityId: updated.id,
+      action: 'UPDATE',
+      metadata: dto as unknown as Record<string, unknown>,
+    });
+
     return updated;
   }
 
@@ -417,6 +442,20 @@ export class UsersService {
 
     await this.prisma.user.delete({
       where: { id },
+    });
+
+    await this.auditLogsService.log({
+      instituteId: targetUser.instituteId,
+      userId: currentUser.sub,
+      module: 'USER',
+      entityId: targetUser.id,
+      action: 'DELETE',
+      metadata: {
+        firstName: targetUser.firstName,
+        lastName: targetUser.lastName,
+        phone: targetUser.phone,
+        role: targetUser.role,
+      },
     });
 
     return { message: this.i18n.t('users.userDeletedSuccess', locale) };

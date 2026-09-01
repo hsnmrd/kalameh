@@ -8,6 +8,7 @@ import {
 import { StudentsService } from './students.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { JwtPayload } from '@workspace/types';
 
 describe('StudentsService', () => {
@@ -68,6 +69,7 @@ describe('StudentsService', () => {
         StudentsService,
         { provide: PrismaService, useValue: prismaService },
         { provide: I18nService, useValue: i18nService },
+        { provide: AuditLogsService, useValue: { log: jest.fn() } },
       ],
     }).compile();
 

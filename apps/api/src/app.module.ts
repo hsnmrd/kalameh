@@ -14,6 +14,7 @@ import { StudentsModule } from './students/students.module';
 import { I18nModule } from './i18n/i18n.module';
 import { RolePermissionsModule } from './role-permissions/role-permissions.module';
 import { ExcelModule } from './common/excel/excel.module';
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ExcelModule } from './common/excel/excel.module';
     ClassesModule,
     GradesModule,
     RolePermissionsModule,
+    AuditLogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

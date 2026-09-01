@@ -11,6 +11,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentFilterDto } from './dto/student-filter.dto';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import type {
   JwtPayload,
   SupportedLocale,
@@ -25,6 +26,7 @@ export class StudentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   async create(
@@ -133,6 +135,20 @@ export class StudentsService {
     this.logger.log(
       `Student created: "${student.firstName} ${student.lastName}" (${student.id}) for institute ${targetInstituteId} by user ${currentUser.sub} (${currentUser.role})`,
     );
+
+    await this.auditLogsService.log({
+      instituteId: targetInstituteId,
+      userId: currentUser.sub,
+      module: 'STUDENT',
+      entityId: student.id,
+      action: 'CREATE',
+      metadata: {
+        firstName: student.firstName,
+        lastName: student.lastName,
+        phone: student.phone,
+        nationalCode: student.nationalCode,
+      },
+    });
 
     return {
       id: student.id,
@@ -432,6 +448,15 @@ export class StudentsService {
       };
     });
 
+    await this.auditLogsService.log({
+      instituteId: existing.instituteId,
+      userId: currentUser.sub,
+      module: 'STUDENT',
+      entityId: updated.id,
+      action: 'UPDATE',
+      metadata: dto as unknown as Record<string, unknown>,
+    });
+
     return {
       id: updated.id,
       instituteId: updated.instituteId,
@@ -527,6 +552,15 @@ export class StudentsService {
         createdByUserId: currentUser.sub,
         content: dto.content,
       },
+    });
+
+    await this.auditLogsService.log({
+      instituteId: existing.instituteId,
+      userId: currentUser.sub,
+      module: 'STUDENT',
+      entityId: existing.id,
+      action: 'ADD_NOTE',
+      metadata: { content: dto.content },
     });
 
     return this.findOne(currentUser, id, locale);

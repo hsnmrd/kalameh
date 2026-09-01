@@ -47,6 +47,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return prisma.studentNote;
   }
 
+  get auditLog(): typeof prisma.auditLog {
+    return prisma.auditLog;
+  }
+
   get client(): typeof prisma {
     return prisma;
   }

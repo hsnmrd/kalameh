@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import type { JwtPayload, SupportedLocale, CourseDto } from '@workspace/types';
 
 @Injectable()
@@ -18,6 +19,7 @@ export class CoursesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   async findAll(
@@ -157,6 +159,19 @@ export class CoursesService {
       `Course created: "${created.title}" (${created.id}) for institute ${instituteId} by user ${currentUser.sub} (${currentUser.role})`,
     );
 
+    await this.auditLogsService.log({
+      instituteId,
+      userId: currentUser.sub,
+      module: 'COURSE',
+      entityId: created.id,
+      action: 'CREATE',
+      metadata: {
+        title: created.title,
+        baseFee: created.baseFee,
+        prerequisiteId: created.prerequisiteId,
+      },
+    });
+
     const { _count, ...data } = created;
     return {
       ...data,
@@ -251,6 +266,15 @@ export class CoursesService {
         },
         _count: { select: { classes: true } },
       },
+    });
+
+    await this.auditLogsService.log({
+      instituteId: existing.instituteId,
+      userId: currentUser.sub,
+      module: 'COURSE',
+      entityId: updated.id,
+      action: 'UPDATE',
+      metadata: dto as unknown as Record<string, unknown>,
     });
 
     const { _count, ...data } = updated;
