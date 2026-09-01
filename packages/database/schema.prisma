@@ -177,11 +177,15 @@ model Class {
   courseId    String
   branchId    String?
 
-  title       String
-  capacity    Int
-  fee         Int
-  teacherName String?
-  schedule    String?
+  title        String
+  capacity     Int
+  fee          Int
+  teacherName  String?
+  schedule     String?
+  daysOfWeek   String[] @default([])
+  sessionDates String[] @default([])
+  startTime    String?
+  endTime      String?
 
   institute   Institute    @relation(fields: [instituteId], references: [id])
   term        Term         @relation(fields: [termId], references: [id])

@@ -1,5 +1,17 @@
 import { z } from "zod"
 
+export const WEEK_DAYS = [
+  "SATURDAY",
+  "SUNDAY",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+] as const
+
+export type WeekDay = (typeof WEEK_DAYS)[number]
+
 export const ClassSchema = z.object({
   id: z.string().uuid(),
   instituteId: z.string().uuid(),
@@ -11,6 +23,10 @@ export const ClassSchema = z.object({
   fee: z.number(),
   teacherName: z.string().nullable().optional(),
   schedule: z.string().nullable().optional(),
+  daysOfWeek: z.array(z.string()).default([]),
+  sessionDates: z.array(z.string()).default([]),
+  startTime: z.string().nullable().optional(),
+  endTime: z.string().nullable().optional(),
   branch: z
     .object({
       id: z.string().uuid(),

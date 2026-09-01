@@ -29,11 +29,14 @@ import {
   branchesResource,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { Calendar as CalendarIcon } from "lucide-react"
+import { cn } from "@workspace/ui/lib/utils"
 import {
   useCreateClassSchema,
   type CreateClassInput,
 } from "../../hooks/use-class-schemas"
 import { TermDetailsPreview } from "../term-details-preview"
+import { ClassScheduleWizard } from "../class-schedule-wizard"
 
 export interface CreateClassModalProps {
   open: boolean
@@ -97,8 +100,15 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
       fee: 1500000,
       teacherName: "",
       schedule: "",
+      daysOfWeek: [],
+      sessionDates: [],
+      startTime: null,
+      endTime: null,
     },
   })
+
+  const [isScheduleWizardOpen, setIsScheduleWizardOpen] = React.useState(false)
+  const currentSchedule = watch("schedule")
 
   const hasAutoSelectedBranchRef = React.useRef(false)
 
@@ -159,6 +169,10 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
         fee: courses[0]?.baseFee || 1500000,
         teacherName: "",
         schedule: "",
+        daysOfWeek: [],
+        sessionDates: [],
+        startTime: null,
+        endTime: null,
       })
     } else {
       hasAutoSelectedBranchRef.current = false
@@ -309,16 +323,61 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
                 <FieldError>{errors.teacherName?.message}</FieldError>
               </Field>
 
-              <Field data-invalid={Boolean(errors.schedule)}>
+              <Field
+                data-invalid={Boolean(errors.schedule)}
+                className="min-w-0"
+              >
                 <FieldLabel>{t("createModal.schedule")}</FieldLabel>
-                <Input
-                  {...register("schedule")}
-                  placeholder={t("createModal.schedulePlaceholder")}
-                />
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setIsScheduleWizardOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setIsScheduleWizardOpen(true)
+                    }
+                  }}
+                  className={cn(
+                    "flex h-14 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-border bg-background px-4 text-base shadow-2xs transition-colors hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden",
+                    errors.schedule &&
+                      "border-destructive ring-1 ring-destructive"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "min-w-0 flex-1 truncate text-sm sm:text-base",
+                      currentSchedule
+                        ? "font-medium text-foreground"
+                        : "text-muted-foreground/45"
+                    )}
+                  >
+                    {currentSchedule || t("scheduleWizard.noScheduleSet")}
+                  </span>
+                  <CalendarIcon className="size-5 shrink-0 text-muted-foreground" />
+                </div>
                 <FieldError>{errors.schedule?.message}</FieldError>
               </Field>
             </div>
           </div>
+
+          <ClassScheduleWizard
+            open={isScheduleWizardOpen}
+            onClose={() => setIsScheduleWizardOpen(false)}
+            term={selectedTerm}
+            initialDaysOfWeek={watch("daysOfWeek") || []}
+            initialSessionDates={watch("sessionDates") || []}
+            initialStartTime={watch("startTime")}
+            initialEndTime={watch("endTime")}
+            onConfirm={(data) => {
+              setValue("daysOfWeek", data.daysOfWeek)
+              setValue("sessionDates", data.sessionDates)
+              setValue("startTime", data.startTime)
+              setValue("endTime", data.endTime)
+              setValue("schedule", data.formattedSchedule, {
+                shouldValidate: true,
+              })
+            }}
+          />
 
           <FormDialogFooter>
             <Button

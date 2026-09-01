@@ -25,6 +25,10 @@ export const createUpdateClassSchema = (msg?: {
       .optional(),
     teacherName: z.string().trim().optional().nullable(),
     schedule: z.string().trim().optional().nullable(),
+    daysOfWeek: z.array(z.string()).optional(),
+    sessionDates: z.array(z.string()).optional(),
+    startTime: z.string().trim().optional().nullable(),
+    endTime: z.string().trim().optional().nullable(),
   })
 
 export const UpdateClassSchema = createUpdateClassSchema()

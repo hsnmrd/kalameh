@@ -62,5 +62,35 @@
     "submit": "Save Changes",
     "cancel": "Cancel",
     "success": "Class updated successfully."
+  },
+  "scheduleWizard": {
+    "title": "Class Schedule & Timetable",
+    "description": "Select the days of the week and class hours to automatically preview session dates on the term calendar.",
+    "triggerButton": "Configure Schedule",
+    "triggerChange": "Change Schedule",
+    "noScheduleSet": "No schedule configured",
+    "presets": "Quick Presets",
+    "presetEven": "Even Days (Sat - Mon - Wed)",
+    "presetOdd": "Odd Days (Sun - Tue)",
+    "presetWeekend": "Weekend (Thu - Fri)",
+    "weekdays": "Weekly Session Days",
+    "timeRange": "Class Hours",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "calendarPreview": "Term Calendar Preview",
+    "noTermSelectedHint": "Select a term first to preview session dates.",
+    "calculatedSessions": "{count} sessions during the term",
+    "clickToToggleHint": "Click any calendar date to add or remove specific class sessions.",
+    "confirm": "Apply Schedule",
+    "cancel": "Cancel",
+    "days": {
+      "SATURDAY": "Saturday",
+      "SUNDAY": "Sunday",
+      "MONDAY": "Monday",
+      "TUESDAY": "Tuesday",
+      "WEDNESDAY": "Wednesday",
+      "THURSDAY": "Thursday",
+      "FRIDAY": "Friday"
+    }
   }
 }

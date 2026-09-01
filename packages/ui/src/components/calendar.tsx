@@ -7,6 +7,7 @@ import * as dateFnsJalali from "date-fns-jalali"
 import { faIR } from "date-fns-jalali/locale"
 import { enUS } from "date-fns/locale"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { buttonVariants } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 
 export type CalendarLocale = "fa" | "en"
@@ -40,37 +41,43 @@ export function Calendar({
       dir={resolvedDir}
       dateLib={dateLib}
       locale={activeLocale}
-      className={cn("rounded-2xl border border-border bg-card p-3", className)}
+      className={cn(
+        "relative rounded-2xl border border-border bg-card p-4",
+        className
+      )}
       classNames={{
-        months: "flex flex-col sm:flex-row gap-4",
-        month: "flex flex-col gap-3",
-        month_caption: "relative flex items-center justify-center pt-1 px-8",
+        months: "relative flex flex-col sm:flex-row gap-4",
+        month: "relative flex flex-col gap-3",
+        month_caption: "relative flex h-8 items-center justify-center px-8",
         caption_label: "text-sm font-semibold text-foreground",
-        nav: "flex items-center gap-1",
+        nav: "flex items-center justify-between absolute inset-x-0 top-0.5 z-10 w-full pointer-events-none",
         button_previous: cn(
-          "absolute start-1 top-1 flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          buttonVariants({ variant: "outline", size: "icon-xs" }),
+          "pointer-events-auto size-7 rounded-lg border-border bg-card/80 p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         ),
         button_next: cn(
-          "absolute end-1 top-1 flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          buttonVariants({ variant: "outline", size: "icon-xs" }),
+          "pointer-events-auto size-7 rounded-lg border-border bg-card/80 p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         ),
-        month_grid: "w-full border-collapse",
-        weekdays: "flex justify-between",
+        month_grid: "w-full border-collapse space-y-1",
+        weekdays: "grid grid-cols-7 gap-1 w-full justify-items-center mb-1",
         weekday:
-          "text-muted-foreground rounded-lg size-9 font-medium text-xs flex items-center justify-center select-none",
-        weeks: "flex flex-col gap-1 mt-1.5",
-        week: "flex w-full justify-between",
-        day: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
+          "size-9 rounded-xl font-medium text-xs text-muted-foreground flex items-center justify-center select-none",
+        weeks: "flex flex-col gap-1 w-full",
+        week: "grid grid-cols-7 gap-1 w-full justify-items-center",
+        day: "relative p-0 flex items-center justify-center size-9 text-center text-sm rounded-xl focus-within:relative focus-within:z-20",
         day_button: cn(
-          "flex size-9 cursor-pointer items-center justify-center rounded-xl p-0 font-normal transition-colors select-none",
-          "hover:bg-muted hover:text-foreground",
+          buttonVariants({ variant: "ghost" }),
+          "aspect-square size-9 rounded-xl p-0 text-sm font-medium transition-all select-none",
+          "hover:bg-muted hover:text-foreground active:scale-95",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
         ),
         selected:
-          "!bg-primary !text-primary-foreground font-semibold hover:!bg-primary hover:!text-primary-foreground",
-        today: "bg-muted font-bold text-foreground ring-1 ring-border",
-        outside: "text-muted-foreground",
+          "!bg-primary !text-primary-foreground rounded-xl font-semibold shadow-xs hover:!bg-primary hover:!text-primary-foreground",
+        today: "border border-primary/50 text-foreground font-bold rounded-xl",
+        outside: "text-muted-foreground/35 opacity-40 hover:opacity-100",
         disabled:
-          "text-muted-foreground/30 opacity-30 cursor-not-allowed pointer-events-none",
+          "text-muted-foreground/30 opacity-30 cursor-not-allowed pointer-events-none bg-muted/20 rounded-xl",
         hidden: "invisible",
         ...classNames,
       }}

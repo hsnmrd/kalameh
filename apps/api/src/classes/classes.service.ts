@@ -292,6 +292,10 @@ export class ClassesService {
         fee: dto.fee,
         teacherName: dto.teacherName || null,
         schedule: dto.schedule || null,
+        daysOfWeek: dto.daysOfWeek || [],
+        sessionDates: dto.sessionDates || [],
+        startTime: dto.startTime || null,
+        endTime: dto.endTime || null,
       },
       include: {
         branch: {
@@ -352,6 +356,10 @@ export class ClassesService {
       fee: created.fee,
       teacherName: created.teacherName,
       schedule: created.schedule,
+      daysOfWeek: created.daysOfWeek,
+      sessionDates: created.sessionDates,
+      startTime: created.startTime,
+      endTime: created.endTime,
       branch: created.branch,
       term: created.term,
       course: created.course,
@@ -417,6 +425,12 @@ export class ClassesService {
           ? { teacherName: dto.teacherName }
           : {}),
         ...(dto.schedule !== undefined ? { schedule: dto.schedule } : {}),
+        ...(dto.daysOfWeek !== undefined ? { daysOfWeek: dto.daysOfWeek } : {}),
+        ...(dto.sessionDates !== undefined
+          ? { sessionDates: dto.sessionDates }
+          : {}),
+        ...(dto.startTime !== undefined ? { startTime: dto.startTime } : {}),
+        ...(dto.endTime !== undefined ? { endTime: dto.endTime } : {}),
       },
       include: {
         branch: {
