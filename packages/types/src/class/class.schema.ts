@@ -18,6 +18,7 @@ export const ClassSchema = z.object({
   termId: z.string().uuid(),
   courseId: z.string().uuid(),
   branchId: z.string().uuid().nullable().optional(),
+  classroomId: z.string().uuid().nullable().optional(),
   title: z.string(),
   capacity: z.number(),
   fee: z.number(),
@@ -31,6 +32,14 @@ export const ClassSchema = z.object({
     .object({
       id: z.string().uuid(),
       name: z.string(),
+    })
+    .nullable()
+    .optional(),
+  classroom: z
+    .object({
+      id: z.string().uuid(),
+      name: z.string(),
+      capacity: z.number().optional(),
     })
     .nullable()
     .optional(),

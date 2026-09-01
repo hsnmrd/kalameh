@@ -69,6 +69,13 @@ export class ClassesService {
             baseFee: true,
           },
         },
+        classroom: {
+          select: {
+            id: true,
+            name: true,
+            capacity: true,
+          },
+        },
         _count: {
           select: {
             enrollments: {
@@ -146,6 +153,13 @@ export class ClassesService {
             baseFee: true,
           },
         },
+        classroom: {
+          select: {
+            id: true,
+            name: true,
+            capacity: true,
+          },
+        },
         _count: {
           select: {
             enrollments: {
@@ -201,6 +215,13 @@ export class ClassesService {
             id: true,
             title: true,
             baseFee: true,
+          },
+        },
+        classroom: {
+          select: {
+            id: true,
+            name: true,
+            capacity: true,
           },
         },
         _count: {
@@ -281,12 +302,28 @@ export class ClassesService {
       }
     }
 
+    // Verify Classroom exists and belongs to institute if provided
+    if (dto.classroomId) {
+      const classroom = await this.prisma.classroom.findFirst({
+        where: {
+          id: dto.classroomId,
+          instituteId,
+        },
+      });
+      if (!classroom) {
+        throw new BadRequestException(
+          this.i18n.t('classrooms.classroomNotFound', locale),
+        );
+      }
+    }
+
     const created = await this.prisma.class.create({
       data: {
         instituteId,
         termId: dto.termId,
         courseId: dto.courseId,
         branchId: dto.branchId || null,
+        classroomId: dto.classroomId || null,
         title: dto.title,
         capacity: dto.capacity,
         fee: dto.fee,
@@ -302,6 +339,13 @@ export class ClassesService {
           select: {
             id: true,
             name: true,
+          },
+        },
+        classroom: {
+          select: {
+            id: true,
+            name: true,
+            capacity: true,
           },
         },
         term: {
@@ -351,6 +395,7 @@ export class ClassesService {
       termId: created.termId,
       courseId: created.courseId,
       branchId: created.branchId,
+      classroomId: created.classroomId,
       title: created.title,
       capacity: created.capacity,
       fee: created.fee,
@@ -361,6 +406,7 @@ export class ClassesService {
       startTime: created.startTime,
       endTime: created.endTime,
       branch: created.branch,
+      classroom: created.classroom,
       term: created.term,
       course: created.course,
       enrolledCount: 0,
@@ -410,6 +456,17 @@ export class ClassesService {
       }
     }
 
+    if (dto.classroomId) {
+      const classroom = await this.prisma.classroom.findFirst({
+        where: { id: dto.classroomId, instituteId: existing.instituteId },
+      });
+      if (!classroom) {
+        throw new BadRequestException(
+          this.i18n.t('classrooms.classroomNotFound', locale),
+        );
+      }
+    }
+
     const updated = await this.prisma.class.update({
       where: { id },
       data: {
@@ -418,6 +475,9 @@ export class ClassesService {
         ...(dto.courseId ? { courseId: dto.courseId } : {}),
         ...(dto.branchId !== undefined
           ? { branchId: dto.branchId || null }
+          : {}),
+        ...(dto.classroomId !== undefined
+          ? { classroomId: dto.classroomId || null }
           : {}),
         ...(dto.capacity !== undefined ? { capacity: dto.capacity } : {}),
         ...(dto.fee !== undefined ? { fee: dto.fee } : {}),
@@ -437,6 +497,13 @@ export class ClassesService {
           select: {
             id: true,
             name: true,
+          },
+        },
+        classroom: {
+          select: {
+            id: true,
+            name: true,
+            capacity: true,
           },
         },
         term: {

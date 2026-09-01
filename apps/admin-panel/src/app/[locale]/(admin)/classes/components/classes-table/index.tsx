@@ -80,11 +80,18 @@ export function ClassesTable({
         accessorKey: "branch",
         header: t("table.branch"),
         cell: ({ row }) => (
-          <span className="text-sm text-foreground/80">
-            {row.original.branch?.name || (
-              <span className="text-muted-foreground">—</span>
+          <div>
+            <span className="block text-sm text-foreground/80">
+              {row.original.branch?.name || (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </span>
+            {row.original.classroom && (
+              <span className="block text-xs font-medium text-muted-foreground">
+                {row.original.classroom.name}
+              </span>
             )}
-          </span>
+          </div>
         ),
       },
       {

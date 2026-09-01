@@ -21,6 +21,7 @@ export const createCreateClassSchema = (msg?: {
         msg?.courseIdRequired ? { message: msg.courseIdRequired } : undefined
       ),
     branchId: z.string().uuid().optional().nullable(),
+    classroomId: z.string().uuid().optional().nullable(),
     capacity: z
       .number({
         invalid_type_error: msg?.capacityMin,

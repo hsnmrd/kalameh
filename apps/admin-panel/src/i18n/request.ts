@@ -17,6 +17,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     branches,
     courses,
     classes,
+    classrooms,
     grades,
   ] = await Promise.all([
     import(`../messages/${locale}/common.json`),
@@ -28,6 +29,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     import(`../messages/${locale}/branches.json`),
     import(`../messages/${locale}/courses.json`),
     import(`../messages/${locale}/classes.json`),
+    import(`../messages/${locale}/classrooms.json`),
     import(`../messages/${locale}/grades.json`),
   ])
 
@@ -43,6 +45,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       branches: branches.default,
       courses: courses.default,
       classes: classes.default,
+      classrooms: classrooms.default,
       grades: grades.default,
     },
   }

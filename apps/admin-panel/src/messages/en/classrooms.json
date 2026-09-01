@@ -1,0 +1,62 @@
+{
+  "title": "Classrooms Management",
+  "subtitle": "Define physical rooms, seating capacities, and assign to institute branches",
+  "addClassroom": "Add New Classroom",
+  "searchPlaceholder": "Search classrooms and rooms...",
+  "filter": {
+    "title": "Filter Classrooms",
+    "branch": "Branch",
+    "allBranches": "All branches",
+    "status": "Status",
+    "allStatus": "All statuses",
+    "activeOnly": "Active only",
+    "inactiveOnly": "Inactive only"
+  },
+  "table": {
+    "name": "Classroom Name",
+    "branch": "Branch",
+    "capacity": "Capacity",
+    "description": "Facilities / Description",
+    "status": "Status",
+    "classesCount": "Assigned Classes",
+    "actions": "Actions",
+    "empty": "No classrooms found for this institute."
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "person": "seats",
+  "createModal": {
+    "title": "Add New Classroom",
+    "name": "Classroom / Room Name",
+    "namePlaceholder": "e.g. Room 101, Computer Lab, Seminar Hall",
+    "branch": "Branch",
+    "branchPlaceholder": "Select branch (optional)",
+    "noBranch": "General / No specific branch",
+    "capacity": "Seating Capacity (seats)",
+    "capacityPlaceholder": "e.g. 20",
+    "description": "Facilities and Description",
+    "descriptionPlaceholder": "e.g. Equipped with projector, smart board...",
+    "isActive": "Classroom is active and available",
+    "submit": "Save Classroom",
+    "cancel": "Cancel",
+    "success": "New classroom created successfully."
+  },
+  "editModal": {
+    "title": "Edit Classroom Details",
+    "name": "Classroom / Room Name",
+    "namePlaceholder": "Classroom name",
+    "branch": "Branch",
+    "branchPlaceholder": "Select branch",
+    "noBranch": "General / No specific branch",
+    "capacity": "Seating Capacity (seats)",
+    "capacityPlaceholder": "Room capacity",
+    "description": "Facilities and Description",
+    "descriptionPlaceholder": "Facilities description...",
+    "isActive": "Classroom is active and available",
+    "submit": "Save Changes",
+    "cancel": "Cancel",
+    "success": "Classroom details updated successfully."
+  }
+}

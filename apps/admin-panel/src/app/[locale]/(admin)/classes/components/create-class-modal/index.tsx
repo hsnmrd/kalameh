@@ -27,9 +27,10 @@ import {
   termsResource,
   coursesResource,
   branchesResource,
+  classroomsResource,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, AlertTriangle } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   useCreateClassSchema,
@@ -65,6 +66,10 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
     ...branchesResource.list.toQuery(queryParams),
     enabled: open && !!activeInstituteId,
   })
+  const { data: classrooms = [] } = useQuery({
+    ...classroomsResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
+  })
 
   const termOptions = React.useMemo(
     () => terms.map((tm) => ({ value: tm.id, label: tm.title })),
@@ -96,6 +101,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
       termId: "",
       courseId: "",
       branchId: singleBranchId,
+      classroomId: null,
       capacity: 15,
       fee: 1500000,
       teacherName: "",
@@ -118,6 +124,45 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
     [terms, selectedTermId]
   )
 
+  const selectedBranchId = watch("branchId")
+  const filteredClassrooms = React.useMemo(() => {
+    if (!selectedBranchId) {
+      return classrooms
+    }
+    return classrooms.filter(
+      (r) => !r.branchId || r.branchId === selectedBranchId
+    )
+  }, [classrooms, selectedBranchId])
+
+  const classroomOptions = React.useMemo(
+    () =>
+      filteredClassrooms.map((r) => ({
+        value: r.id,
+        label: `${r.name} (${r.capacity} ${t("createModal.capacity") || "نفر"})`,
+      })),
+    [filteredClassrooms, t]
+  )
+
+  const selectedClassroomId = watch("classroomId")
+  const selectedClassroom = React.useMemo(
+    () => classrooms.find((r) => r.id === selectedClassroomId),
+    [classrooms, selectedClassroomId]
+  )
+  const classCapacity = watch("capacity") || 0
+  const isCapacityExceeded = Boolean(
+    selectedClassroom && classCapacity > selectedClassroom.capacity
+  )
+
+  // When selected branch changes, clear classroomId if room belongs to another branch
+  React.useEffect(() => {
+    if (selectedClassroomId && selectedBranchId) {
+      const room = classrooms.find((r) => r.id === selectedClassroomId)
+      if (room && room.branchId && room.branchId !== selectedBranchId) {
+        setValue("classroomId", null)
+      }
+    }
+  }, [selectedBranchId, selectedClassroomId, classrooms, setValue])
+
   // When course changes, update default fee to course.baseFee
   const selectedCourseId = watch("courseId")
   React.useEffect(() => {
@@ -130,19 +175,33 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
   }, [selectedCourseId, courses, setValue])
 
   // When terms query resolves, set default termId if not set
+  const hasSetDefaultTermRef = React.useRef(false)
   React.useEffect(() => {
-    if (open && terms.length > 0 && !selectedTermId) {
+    if (
+      open &&
+      terms.length > 0 &&
+      !selectedTermId &&
+      !hasSetDefaultTermRef.current
+    ) {
       setValue("termId", terms[0]?.id || "")
+      hasSetDefaultTermRef.current = true
     }
   }, [open, terms, selectedTermId, setValue])
 
   // When courses query resolves, set default courseId and fee if not set
+  const hasSetDefaultCourseRef = React.useRef(false)
   React.useEffect(() => {
-    if (open && courses.length > 0 && !selectedCourseId) {
+    if (
+      open &&
+      courses.length > 0 &&
+      !selectedCourseId &&
+      !hasSetDefaultCourseRef.current
+    ) {
       setValue("courseId", courses[0]?.id || "")
       if (courses[0]?.baseFee) {
         setValue("fee", courses[0].baseFee)
       }
+      hasSetDefaultCourseRef.current = true
     }
   }, [open, courses, selectedCourseId, setValue])
 
@@ -165,6 +224,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
         termId: terms[0]?.id || "",
         courseId: courses[0]?.id || "",
         branchId: singleBranchId,
+        classroomId: null,
         capacity: 15,
         fee: courses[0]?.baseFee || 1500000,
         teacherName: "",
@@ -176,6 +236,8 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
       })
     } else {
       hasAutoSelectedBranchRef.current = false
+      hasSetDefaultTermRef.current = false
+      hasSetDefaultCourseRef.current = false
     }
   }, [open, reset])
 
@@ -193,6 +255,8 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
   const onSubmit = (values: CreateClassInput) => {
     createMutation.mutate({
       ...values,
+      classroomId:
+        values.classroomId === "NONE" ? null : values.classroomId || null,
       instituteId: activeInstituteId || undefined,
     })
   }
@@ -271,25 +335,60 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
             {/* Selected Term Details Preview */}
             <TermDetailsPreview term={selectedTerm} />
 
-            {/* Branch (Optional) */}
-            <Field data-invalid={Boolean(errors.branchId)}>
-              <FieldLabel>{t("createModal.branch")}</FieldLabel>
-              <Controller
-                control={control}
-                name="branchId"
-                render={({ field }) => (
-                  <ResponsiveCombobox
-                    items={branchOptions}
-                    value={field.value || ""}
-                    onValueChange={(val) => field.onChange(val || null)}
-                    placeholder={t("createModal.branchPlaceholder")}
-                    drawerTitle={t("createModal.branch")}
-                    className="w-full"
-                  />
-                )}
-              />
-              <FieldError>{errors.branchId?.message}</FieldError>
-            </Field>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {/* Branch (Optional) */}
+              <Field data-invalid={Boolean(errors.branchId)}>
+                <FieldLabel>{t("createModal.branch")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="branchId"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={branchOptions}
+                      value={field.value || ""}
+                      onValueChange={(val) => field.onChange(val || null)}
+                      placeholder={t("createModal.branchPlaceholder")}
+                      drawerTitle={t("createModal.branch")}
+                      className="w-full"
+                    />
+                  )}
+                />
+                <FieldError>{errors.branchId?.message}</FieldError>
+              </Field>
+
+              {/* Classroom (Optional) */}
+              <Field data-invalid={Boolean(errors.classroomId)}>
+                <FieldLabel>{t("createModal.classroom")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="classroomId"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={classroomOptions}
+                      value={field.value || ""}
+                      onValueChange={(val) => field.onChange(val || null)}
+                      placeholder={t("createModal.classroomPlaceholder")}
+                      drawerTitle={t("createModal.classroom")}
+                      className="w-full"
+                    />
+                  )}
+                />
+                <FieldError>{errors.classroomId?.message}</FieldError>
+              </Field>
+            </div>
+
+            {/* Classroom Capacity Warning */}
+            {isCapacityExceeded && selectedClassroom && (
+              <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs font-medium text-amber-700">
+                <AlertTriangle className="size-4 shrink-0" />
+                <span>
+                  {t("createModal.capacityWarning", {
+                    classCapacity,
+                    roomCapacity: selectedClassroom.capacity,
+                  })}
+                </span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field data-invalid={Boolean(errors.capacity)}>

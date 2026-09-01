@@ -50,6 +50,10 @@ export interface TranslationDictionary {
     branchNotFound: string;
     branchAlreadyExists: string;
   };
+  classrooms: {
+    classroomNotFound: string;
+    classroomAlreadyExists: string;
+  };
   terms: {
     termNotFound: string;
     termAlreadyExists: string;

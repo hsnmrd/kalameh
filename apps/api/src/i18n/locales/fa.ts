@@ -62,6 +62,11 @@ export const fa: TranslationDictionary = {
     branchNotFound: 'شعبه مورد نظر یافت نشد',
     branchAlreadyExists: 'شعبه‌ای با این نام قبلاً در آموزشگاه ثبت شده است',
   },
+  classrooms: {
+    classroomNotFound: 'کلاس درس/اتاق مورد نظر یافت نشد',
+    classroomAlreadyExists:
+      'کلاس درس/اتاقی با این نام قبلاً در این شعبه ثبت شده است',
+  },
   terms: {
     termNotFound: 'ترم تحصیلی مورد نظر یافت نشد',
     termAlreadyExists: 'ترمی با این عنوان قبلاً در آموزشگاه ثبت شده است',

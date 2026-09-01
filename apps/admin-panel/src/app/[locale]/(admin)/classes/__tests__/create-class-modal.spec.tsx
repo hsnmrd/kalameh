@@ -2,7 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, waitFor } from "../../../../../test/test-utils"
 import { CreateClassModal } from "../components/create-class-modal"
 import * as stores from "@/lib/stores"
-import { branchesResource, coursesResource, termsResource } from "@/lib/api"
+import {
+  branchesResource,
+  classroomsResource,
+  coursesResource,
+  termsResource,
+} from "@/lib/api"
 
 vi.mock("@workspace/ui/components/sonner", () => ({
   toast: {
@@ -50,6 +55,11 @@ describe("CreateClassModal - Branch Defaulting", () => {
           updatedAt: new Date().toISOString(),
         },
       ],
+    } as any)
+
+    vi.spyOn(classroomsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["classrooms", { instituteId: "inst-1" }],
+      queryFn: async () => [],
     } as any)
   })
 

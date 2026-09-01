@@ -9,6 +9,7 @@ import {
   CreditCard,
   Landmark,
   ShieldCheck,
+  DoorOpen,
 } from "lucide-react"
 import { PERMISSIONS, APP_MODULES } from "@workspace/types"
 import type { NavItem } from "@/components/admin-base-layout/nav-list"
@@ -55,6 +56,13 @@ export const INSTITUTE_NAV_ITEMS: NavItem[] = [
     href: "/classes",
     icon: Layers,
     permission: PERMISSIONS.VIEW_CLASSES,
+    module: APP_MODULES.CLASSES_COURSES,
+  },
+  {
+    key: "classrooms",
+    href: "/classrooms",
+    icon: DoorOpen,
+    permission: PERMISSIONS.VIEW_CLASSROOMS,
     module: APP_MODULES.CLASSES_COURSES,
   },
   {

@@ -68,6 +68,11 @@ export const en: TranslationDictionary = {
     branchAlreadyExists:
       'A branch with this name already exists in this institute',
   },
+  classrooms: {
+    classroomNotFound: 'Requested classroom was not found',
+    classroomAlreadyExists:
+      'A classroom with this name already exists in this branch',
+  },
   terms: {
     termNotFound: 'Requested term was not found',
     termAlreadyExists:

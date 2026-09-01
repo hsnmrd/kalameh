@@ -28,9 +28,10 @@ import {
   termsResource,
   coursesResource,
   branchesResource,
+  classroomsResource,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, AlertTriangle } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   useUpdateClassSchema,
@@ -77,6 +78,11 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
     select: (branches) => branches.map((b) => ({ value: b.id, label: b.name })),
   })
 
+  const { data: classrooms = [] } = useQuery({
+    ...classroomsResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
+  })
+
   const {
     register,
     handleSubmit,
@@ -92,6 +98,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
       termId: "",
       courseId: "",
       branchId: null,
+      classroomId: null,
       capacity: 15,
       fee: 0,
       teacherName: "",
@@ -112,6 +119,45 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
     [terms, selectedTermId]
   )
 
+  const selectedBranchId = watch("branchId")
+  const filteredClassrooms = React.useMemo(() => {
+    if (!selectedBranchId) {
+      return classrooms
+    }
+    return classrooms.filter(
+      (r) => !r.branchId || r.branchId === selectedBranchId
+    )
+  }, [classrooms, selectedBranchId])
+
+  const classroomOptions = React.useMemo(
+    () =>
+      filteredClassrooms.map((r) => ({
+        value: r.id,
+        label: `${r.name} (${r.capacity} ${t("editModal.capacity") || "نفر"})`,
+      })),
+    [filteredClassrooms, t]
+  )
+
+  const selectedClassroomId = watch("classroomId")
+  const selectedClassroom = React.useMemo(
+    () => classrooms.find((r) => r.id === selectedClassroomId),
+    [classrooms, selectedClassroomId]
+  )
+  const classCapacity = watch("capacity") || 0
+  const isCapacityExceeded = Boolean(
+    selectedClassroom && classCapacity > selectedClassroom.capacity
+  )
+
+  // When selected branch changes, clear classroomId if room belongs to another branch
+  React.useEffect(() => {
+    if (selectedClassroomId && selectedBranchId) {
+      const room = classrooms.find((r) => r.id === selectedClassroomId)
+      if (room && room.branchId && room.branchId !== selectedBranchId) {
+        setValue("classroomId", null)
+      }
+    }
+  }, [selectedBranchId, selectedClassroomId, classrooms, setValue])
+
   React.useEffect(() => {
     if (cls) {
       reset({
@@ -119,6 +165,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
         termId: cls.termId,
         courseId: cls.courseId,
         branchId: cls.branchId || null,
+        classroomId: cls.classroomId || null,
         capacity: cls.capacity,
         fee: cls.fee,
         teacherName: cls.teacherName || "",
@@ -146,7 +193,11 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
     if (!cls) return
     updateMutation.mutate({
       id: cls.id,
-      body: values,
+      body: {
+        ...values,
+        classroomId:
+          values.classroomId === "NONE" ? null : values.classroomId || null,
+      },
     })
   }
 
@@ -221,25 +272,60 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
             {/* Selected Term Details Preview */}
             <TermDetailsPreview term={selectedTerm} />
 
-            {/* Branch (Optional) */}
-            <Field data-invalid={Boolean(errors.branchId)}>
-              <FieldLabel>{t("editModal.branch")}</FieldLabel>
-              <Controller
-                control={control}
-                name="branchId"
-                render={({ field }) => (
-                  <ResponsiveCombobox
-                    items={branchOptions}
-                    value={field.value || ""}
-                    onValueChange={(val) => field.onChange(val || null)}
-                    placeholder={t("editModal.branchPlaceholder")}
-                    drawerTitle={t("editModal.branch")}
-                    className="w-full"
-                  />
-                )}
-              />
-              <FieldError>{errors.branchId?.message}</FieldError>
-            </Field>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {/* Branch (Optional) */}
+              <Field data-invalid={Boolean(errors.branchId)}>
+                <FieldLabel>{t("editModal.branch")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="branchId"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={branchOptions}
+                      value={field.value || ""}
+                      onValueChange={(val) => field.onChange(val || null)}
+                      placeholder={t("editModal.branchPlaceholder")}
+                      drawerTitle={t("editModal.branch")}
+                      className="w-full"
+                    />
+                  )}
+                />
+                <FieldError>{errors.branchId?.message}</FieldError>
+              </Field>
+
+              {/* Classroom (Optional) */}
+              <Field data-invalid={Boolean(errors.classroomId)}>
+                <FieldLabel>{t("editModal.classroom")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="classroomId"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={classroomOptions}
+                      value={field.value || ""}
+                      onValueChange={(val) => field.onChange(val || null)}
+                      placeholder={t("editModal.classroomPlaceholder")}
+                      drawerTitle={t("editModal.classroom")}
+                      className="w-full"
+                    />
+                  )}
+                />
+                <FieldError>{errors.classroomId?.message}</FieldError>
+              </Field>
+            </div>
+
+            {/* Classroom Capacity Warning */}
+            {isCapacityExceeded && selectedClassroom && (
+              <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs font-medium text-amber-700">
+                <AlertTriangle className="size-4 shrink-0" />
+                <span>
+                  {t("editModal.capacityWarning", {
+                    classCapacity,
+                    roomCapacity: selectedClassroom.capacity,
+                  })}
+                </span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field data-invalid={Boolean(errors.capacity)}>

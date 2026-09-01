@@ -27,6 +27,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return prisma.class;
   }
 
+  get classroom(): typeof prisma.classroom {
+    return prisma.classroom;
+  }
+
   get enrollment(): typeof prisma.enrollment {
     return prisma.enrollment;
   }

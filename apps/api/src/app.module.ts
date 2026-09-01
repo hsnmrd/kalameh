@@ -9,6 +9,7 @@ import { BranchesModule } from './branches/branches.module';
 import { TermsModule } from './terms/terms.module';
 import { CoursesModule } from './courses/courses.module';
 import { ClassesModule } from './classes/classes.module';
+import { ClassroomsModule } from './classrooms/classrooms.module';
 import { GradesModule } from './grades/grades.module';
 import { StudentsModule } from './students/students.module';
 import { I18nModule } from './i18n/i18n.module';
@@ -29,6 +30,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
     TermsModule,
     CoursesModule,
     ClassesModule,
+    ClassroomsModule,
     GradesModule,
     RolePermissionsModule,
     AuditLogsModule,
