@@ -23,6 +23,7 @@ import {
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { ROLES, type AuthUser, type Role } from "@workspace/types"
 import { usersResource } from "@/lib/api"
 import {
@@ -70,6 +71,8 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
     handleSubmit,
     control,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<UpdateUserInput>({
     resolver: zodResolver(updateUserSchema),
@@ -84,6 +87,8 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
       isActive: true,
     },
   })
+
+  const avatarUrl = watch("avatarUrl")
 
   React.useEffect(() => {
     if (user) {
@@ -104,15 +109,14 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
     ...usersResource.update.toMutation(),
     onSuccess: () => {
       toast.success(t("editModal.success"))
-      queryClient.invalidateQueries({
-        queryKey: usersResource.list.baseKey(),
-      })
+      queryClient.invalidateQueries({ queryKey: usersResource.list.baseKey() })
       onClose()
     },
   })
 
   const onSubmit = (values: UpdateUserInput) => {
     if (!user) return
+
     updateMutation.mutate({
       id: user.id,
       body: {
@@ -149,8 +153,16 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
                 name="avatar"
                 render={({ field }) => (
                   <Attachment
-                    value={field.value || undefined}
-                    onChange={(file) => field.onChange(file)}
+                    value={
+                      field.value ||
+                      (avatarUrl ? getAssetUrl(avatarUrl) : undefined)
+                    }
+                    onChange={(file) => {
+                      field.onChange(file)
+                      if (!file) {
+                        setValue("avatarUrl", null, { shouldDirty: true })
+                      }
+                    }}
                     placeholder={t("createModal.avatarPlaceholder")}
                     description={t("createModal.avatarDescription")}
                     removeLabel={t("createModal.removeAvatar")}

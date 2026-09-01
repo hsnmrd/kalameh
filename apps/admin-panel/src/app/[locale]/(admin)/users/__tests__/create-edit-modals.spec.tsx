@@ -91,5 +91,23 @@ describe("CreateUserModal & EditUserModal Components", () => {
       fireEvent.click(cancelBtn)
       expect(handleClose).toHaveBeenCalled()
     })
+
+    it("should display avatar preview when user has avatarUrl", () => {
+      const userWithAvatar: AuthUser = {
+        ...mockUser,
+        avatarUrl: "/uploads/avatars/test-user.jpg",
+      }
+
+      render(
+        <EditUserModal user={userWithAvatar} open={true} onClose={vi.fn()} />
+      )
+
+      const img = screen.getByAltText(/test-user\.jpg|Attachment preview/i)
+      expect(img).toBeInTheDocument()
+      expect(img).toHaveAttribute(
+        "src",
+        expect.stringContaining("test-user.jpg")
+      )
+    })
   })
 })

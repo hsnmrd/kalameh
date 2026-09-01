@@ -29,6 +29,7 @@ import {
 } from "@workspace/ui/components/combobox"
 import { DateInput } from "@workspace/ui/components/date-input"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { type StudentDto, type SupportedLocale } from "@workspace/types"
 import { coursesResource, studentsResource } from "@/lib/api"
 import {
@@ -88,10 +89,14 @@ export function EditStudentModal({
     handleSubmit,
     control,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<UpdateStudentInput>({
     resolver: zodResolver(updateStudentSchema),
   })
+
+  const avatarUrl = watch("avatarUrl")
 
   // Populate form with student values when student changes
   React.useEffect(() => {
@@ -177,8 +182,16 @@ export function EditStudentModal({
                 name="avatar"
                 render={({ field }) => (
                   <Attachment
-                    value={field.value || undefined}
-                    onChange={(file) => field.onChange(file)}
+                    value={
+                      field.value ||
+                      (avatarUrl ? getAssetUrl(avatarUrl) : undefined)
+                    }
+                    onChange={(file) => {
+                      field.onChange(file)
+                      if (!file) {
+                        setValue("avatarUrl", null, { shouldDirty: true })
+                      }
+                    }}
                     placeholder={t("createModal.avatarPlaceholder")}
                     description={t("createModal.avatarDescription")}
                     removeLabel={t("createModal.removeAvatar")}

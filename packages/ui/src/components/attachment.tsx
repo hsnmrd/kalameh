@@ -33,6 +33,7 @@ export function Attachment({
   const [isDragging, setIsDragging] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [fileName, setFileName] = React.useState<string | null>(null)
+  const [hasImageError, setHasImageError] = React.useState(false)
 
   const previewSrc = React.useMemo(() => {
     if (!value) return null
@@ -42,6 +43,10 @@ export function Attachment({
     }
     return null
   }, [value])
+
+  React.useEffect(() => {
+    setHasImageError(false)
+  }, [previewSrc])
 
   React.useEffect(() => {
     return () => {
@@ -144,14 +149,19 @@ export function Attachment({
         <div className="relative flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-3 shadow-2xs transition-all">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/60">
-              <Image
-                src={previewSrc}
-                alt={displayName || "Attachment preview"}
-                width={48}
-                height={48}
-                className="size-full object-contain p-1"
-                unoptimized
-              />
+              {hasImageError ? (
+                <ImageIcon className="size-6 text-muted-foreground" />
+              ) : (
+                <Image
+                  src={previewSrc}
+                  alt={displayName || "Attachment preview"}
+                  width={48}
+                  height={48}
+                  className="size-full object-contain p-1"
+                  unoptimized
+                  onError={() => setHasImageError(true)}
+                />
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-foreground">

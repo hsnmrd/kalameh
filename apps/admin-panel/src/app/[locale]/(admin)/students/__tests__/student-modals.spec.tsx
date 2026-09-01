@@ -3,6 +3,7 @@ import { render, screen } from "../../../../../test/test-utils"
 import { StudentProfileModal } from "../components/student-profile-modal"
 import { ResetPasswordModal } from "../components/reset-password-modal"
 import { CreateStudentModal } from "../components/create-student-modal"
+import { EditStudentModal } from "../components/edit-student-modal"
 import { AddStudentNoteModal } from "../components/add-student-note-modal"
 import type { StudentDto } from "@workspace/types"
 
@@ -153,6 +154,36 @@ describe("Student Modals", () => {
           /متن یادداشت پرونده را وارد کنید\.\.\.|Enter note content\.\.\./i
         )
       ).toBeInTheDocument()
+    })
+  })
+
+  describe("EditStudentModal", () => {
+    it("should render edit dialog with existing student data and avatar preview", () => {
+      const studentWithAvatar: StudentDto = {
+        ...mockStudent,
+        avatarUrl: "/uploads/avatars/test-student.jpg",
+      }
+
+      render(
+        <EditStudentModal
+          student={studentWithAvatar}
+          open={true}
+          onClose={vi.fn()}
+        />
+      )
+
+      expect(
+        screen.getByRole("heading", {
+          name: /ویرایش اطلاعات فراگیر|Edit Student/i,
+        })
+      ).toBeInTheDocument()
+
+      const img = screen.getByAltText(/test-student\.jpg|Attachment preview/i)
+      expect(img).toBeInTheDocument()
+      expect(img).toHaveAttribute(
+        "src",
+        expect.stringContaining("test-student.jpg")
+      )
     })
   })
 })

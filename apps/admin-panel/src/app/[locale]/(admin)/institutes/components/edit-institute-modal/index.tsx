@@ -31,7 +31,7 @@ import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Attachment } from "@workspace/ui/components/attachment"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DEFAULT_ENABLED_MODULES } from "@workspace/types"
-import { cn } from "@workspace/ui/lib/utils"
+import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
 import type { InstituteWithStats } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
@@ -140,6 +140,7 @@ export function EditInstituteModal({
 
   const phones = watch("phones") || [""]
   const selectedColor = watch("primaryColor") || "#10b981"
+  const logoUrl = watch("logoUrl")
 
   const handleAddPhone = () => {
     const current = getValues("phones") || []
@@ -307,8 +308,16 @@ export function EditInstituteModal({
                   name="logo"
                   render={({ field }) => (
                     <Attachment
-                      value={field.value}
-                      onChange={(file) => field.onChange(file)}
+                      value={
+                        field.value ||
+                        (logoUrl ? getAssetUrl(logoUrl) : undefined)
+                      }
+                      onChange={(file) => {
+                        field.onChange(file)
+                        if (!file) {
+                          setValue("logoUrl", null, { shouldDirty: true })
+                        }
+                      }}
                       placeholder={t("createModal.logoPlaceholder")}
                       description={t("createModal.logoDescription")}
                       removeLabel={t("createModal.removePhone")}
