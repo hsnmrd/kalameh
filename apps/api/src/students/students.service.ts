@@ -106,7 +106,7 @@ export class StudentsService {
         include: {
           notes: {
             include: {
-              createdByUser: {
+              createdBy: {
                 select: {
                   id: true,
                   firstName: true,
@@ -191,7 +191,7 @@ export class StudentsService {
           include: {
             notes: {
               include: {
-                createdByUser: {
+                createdBy: {
                   select: {
                     id: true,
                     firstName: true,
@@ -247,7 +247,7 @@ export class StudentsService {
           include: {
             notes: {
               include: {
-                createdByUser: {
+                createdBy: {
                   select: {
                     id: true,
                     firstName: true,
@@ -404,7 +404,7 @@ export class StudentsService {
         include: {
           notes: {
             include: {
-              createdByUser: {
+              createdBy: {
                 select: {
                   id: true,
                   firstName: true,
@@ -506,15 +506,17 @@ export class StudentsService {
       );
     }
 
-    if (!existing.studentProfile?.id) {
-      throw new NotFoundException(
-        this.i18n.t('students.studentNotFound', locale),
-      );
-    }
+    const profileId =
+      existing.studentProfile?.id ??
+      (
+        await this.prisma.studentProfile.create({
+          data: { userId: existing.id },
+        })
+      ).id;
 
     await this.prisma.studentNote.create({
       data: {
-        studentProfileId: existing.studentProfile.id,
+        studentProfileId: profileId,
         createdByUserId: currentUser.sub,
         content: dto.content,
       },

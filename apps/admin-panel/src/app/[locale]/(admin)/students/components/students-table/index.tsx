@@ -4,7 +4,7 @@ import * as React from "react"
 import Image from "next/image"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { GraduationCap, Edit2, KeyRound, Eye } from "lucide-react"
+import { GraduationCap, Edit2, KeyRound, Eye, FileText } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -26,6 +26,7 @@ export interface StudentsTableProps {
   students: StudentDto[] | undefined
   isLoading: boolean
   onViewProfile: (student: StudentDto) => void
+  onAddNote: (student: StudentDto) => void
   onEdit: (student: StudentDto) => void
   onResetPassword: (student: StudentDto) => void
 }
@@ -34,6 +35,7 @@ export function StudentsTable({
   students,
   isLoading,
   onViewProfile,
+  onAddNote,
   onEdit,
   onResetPassword,
 }: StudentsTableProps) {
@@ -172,6 +174,21 @@ export function StudentsTable({
               </PermissionGuard>
 
               <PermissionGuard
+                permission={PERMISSIONS.MANAGE_STUDENT_NOTES}
+                mode="disable"
+              >
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onAddNote(student)}
+                  title={t("actions.addNote")}
+                  className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <FileText className="size-3.5" />
+                </Button>
+              </PermissionGuard>
+
+              <PermissionGuard
                 permission={PERMISSIONS.MANAGE_STUDENTS}
                 mode="disable"
               >
@@ -205,7 +222,7 @@ export function StudentsTable({
         },
       },
     ],
-    [locale, onEdit, onResetPassword, onViewProfile, t]
+    [locale, onAddNote, onEdit, onResetPassword, onViewProfile, t]
   )
 
   if (isLoading) {

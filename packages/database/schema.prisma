@@ -125,7 +125,7 @@ model StudentNote {
   updatedAt DateTime @updatedAt
 
   studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
-  createdByUser  User           @relation("StudentNoteAuthor", fields: [createdByUserId], references: [id])
+  createdBy      User           @relation("StudentNoteAuthor", fields: [createdByUserId], references: [id])
 
   @@index([studentProfileId])
   @@index([createdByUserId])

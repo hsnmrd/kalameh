@@ -30,7 +30,7 @@
       "dependsOn": ["^format"]
     },
     "typecheck": {
-      "dependsOn": ["^db:generate", "^typecheck"]
+      "dependsOn": ["^db:generate", "^build", "^typecheck"]
     },
     "test": {
       "dependsOn": ["^db:generate"]

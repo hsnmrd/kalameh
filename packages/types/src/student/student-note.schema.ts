@@ -1,18 +1,18 @@
 import { z } from "zod"
 
+export const StudentNoteAuthorSchema = z.object({
+  id: z.string().uuid(),
+  firstName: z.string(),
+  lastName: z.string(),
+})
+
 export const StudentNoteSchema = z.object({
   id: z.string().uuid(),
   studentProfileId: z.string().uuid(),
   createdByUserId: z.string().uuid(),
   content: z.string().trim(),
-  createdBy: z
-    .object({
-      id: z.string().uuid(),
-      firstName: z.string(),
-      lastName: z.string(),
-    })
-    .nullable()
-    .optional(),
+  createdBy: StudentNoteAuthorSchema.nullable().optional(),
+  createdByUser: StudentNoteAuthorSchema.nullable().optional(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
 })

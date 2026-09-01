@@ -51,16 +51,45 @@ export const api = createMicroApi({
     }
 
     if (error instanceof MicroApiError) {
-      const data = error.data as { message?: string | string[] } | undefined
-      const message =
-        data?.message ||
-        (Array.isArray(data?.message) ? data.message.join(" ") : null) ||
+      const data = error.data as
+        | {
+            message?: string | string[]
+            errors?: Array<{
+              path?: (string | number)[]
+              message?: string
+              code?: string
+            }>
+          }
+        | undefined
+
+      const title =
+        (typeof data?.message === "string" ? data.message : null) ||
         error.statusText ||
         "خطایی در برقراری ارتباط با سرور رخ داد"
 
-      toast.error(
-        typeof message === "string" ? message : JSON.stringify(message)
-      )
+      let description: string | undefined
+
+      if (Array.isArray(data?.errors) && data.errors.length > 0) {
+        const errorDetails = data.errors
+          .map((err) => {
+            if (typeof err === "string") return err
+            const field =
+              Array.isArray(err?.path) && err.path.length > 0
+                ? err.path.join(".")
+                : ""
+            const errMsg = err?.message || ""
+            return field && errMsg ? `${field}: ${errMsg}` : errMsg || field
+          })
+          .filter(Boolean)
+
+        if (errorDetails.length > 0) {
+          description = errorDetails.join("\n")
+        }
+      } else if (Array.isArray(data?.message) && data.message.length > 0) {
+        description = data.message.join("\n")
+      }
+
+      toast.error(title, description ? { description } : undefined)
 
       const isLoginPage = window.location.pathname.includes("/login")
       if (error.status === 401 && !isLoginPage) {

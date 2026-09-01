@@ -3,7 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
-import { Eye, Edit, KeyRound, GraduationCap } from "lucide-react"
+import { Eye, Edit, KeyRound, GraduationCap, FileText } from "lucide-react"
 import {
   MobileList,
   MobileListItem,
@@ -34,6 +34,7 @@ export interface StudentsListProps {
   students: StudentDto[] | undefined
   isLoading: boolean
   onViewProfile: (student: StudentDto) => void
+  onAddNote: (student: StudentDto) => void
   onEdit: (student: StudentDto) => void
   onResetPassword: (student: StudentDto) => void
 }
@@ -42,6 +43,7 @@ export function StudentsList({
   students,
   isLoading,
   onViewProfile,
+  onAddNote,
   onEdit,
   onResetPassword,
 }: StudentsListProps) {
@@ -130,6 +132,16 @@ export function StudentsList({
                 <ContextMenuItem onClick={() => onViewProfile(student)}>
                   <Eye className="me-2 size-4 text-muted-foreground" />
                   {t("actions.viewProfile")}
+                </ContextMenuItem>
+              </PermissionGuard>
+
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_STUDENT_NOTES}
+                mode="hide"
+              >
+                <ContextMenuItem onClick={() => onAddNote(student)}>
+                  <FileText className="me-2 size-4 text-muted-foreground" />
+                  {t("actions.addNote")}
                 </ContextMenuItem>
               </PermissionGuard>
 

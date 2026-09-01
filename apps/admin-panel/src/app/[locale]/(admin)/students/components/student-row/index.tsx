@@ -3,15 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
-import {
-  MoreHorizontal,
-  Edit,
-  KeyRound,
-  Eye,
-  GraduationCap,
-  Phone,
-  User as UserIcon,
-} from "lucide-react"
+import { Edit, KeyRound, Eye, GraduationCap, FileText } from "lucide-react"
 import type { StudentDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -21,6 +13,7 @@ import { StudentStatusBadge } from "../student-status-badge"
 export interface StudentRowProps {
   student: StudentDto
   onViewProfile: (student: StudentDto) => void
+  onAddNote: (student: StudentDto) => void
   onEdit: (student: StudentDto) => void
   onResetPassword: (student: StudentDto) => void
 }
@@ -28,11 +21,11 @@ export interface StudentRowProps {
 export function StudentRow({
   student,
   onViewProfile,
+  onAddNote,
   onEdit,
   onResetPassword,
 }: StudentRowProps) {
   const t = useTranslations("students")
-  const [menuOpen, setMenuOpen] = React.useState(false)
 
   const fullName = `${student.firstName} ${student.lastName}`
   const initial = student.firstName?.[0] || student.lastName?.[0] || "S"
@@ -105,6 +98,14 @@ export function StudentRow({
             title={t("actions.viewProfile")}
           >
             <Eye className="size-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onAddNote(student)}
+            title={t("actions.addNote")}
+          >
+            <FileText className="size-4" />
           </Button>
           <Button
             variant="ghost"

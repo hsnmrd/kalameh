@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { PhoneRegex } from "../common/index.js"
+import { PhoneRegex, emptyToNull } from "../common/index.js"
 
 export const createUpdateStudentSchema = (msg?: {
   firstNameMin?: string
@@ -8,7 +8,9 @@ export const createUpdateStudentSchema = (msg?: {
 }) =>
   z.object({
     avatar: z.any().optional().nullable(),
-    avatarUrl: z.string().trim().optional().nullable(),
+    avatarUrl: z
+      .preprocess(emptyToNull, z.string().trim().nullable())
+      .optional(),
     firstName: z
       .string()
       .trim()
@@ -27,13 +29,19 @@ export const createUpdateStudentSchema = (msg?: {
         msg?.phoneRegex ? { message: msg.phoneRegex } : undefined
       )
       .optional(),
-    nationalCode: z.string().trim().optional().nullable(),
-    fatherName: z.string().trim().optional().nullable(),
-    birthDate: z.string().optional().nullable(),
-    gender: z.string().optional().nullable(),
-    emergencyPhone: z.string().trim().optional().nullable(),
-    address: z.string().trim().optional().nullable(),
-    newNote: z.string().trim().optional().nullable(),
+    nationalCode: z
+      .preprocess(emptyToNull, z.string().trim().nullable())
+      .optional(),
+    fatherName: z
+      .preprocess(emptyToNull, z.string().trim().nullable())
+      .optional(),
+    birthDate: z.preprocess(emptyToNull, z.string().nullable()).optional(),
+    gender: z.preprocess(emptyToNull, z.string().nullable()).optional(),
+    emergencyPhone: z
+      .preprocess(emptyToNull, z.string().trim().nullable())
+      .optional(),
+    address: z.preprocess(emptyToNull, z.string().trim().nullable()).optional(),
+    newNote: z.preprocess(emptyToNull, z.string().trim().nullable()).optional(),
     isActive: z
       .preprocess((val) => {
         if (val === "true" || val === true) return true
@@ -41,7 +49,9 @@ export const createUpdateStudentSchema = (msg?: {
         return val
       }, z.boolean())
       .optional(),
-    currentAllowedCourseId: z.string().uuid().optional().nullable(),
+    currentAllowedCourseId: z
+      .preprocess(emptyToNull, z.string().uuid().nullable())
+      .optional(),
   })
 
 export const UpdateStudentSchema = createUpdateStudentSchema()

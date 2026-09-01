@@ -29,7 +29,7 @@ import {
 } from "@workspace/ui/components/combobox"
 import { DateInput } from "@workspace/ui/components/date-input"
 import { Spinner } from "@workspace/ui/components/spinner"
-import type { StudentDto, SupportedLocale } from "@workspace/types"
+import { type StudentDto, type SupportedLocale } from "@workspace/types"
 import { coursesResource, studentsResource } from "@/lib/api"
 import {
   useUpdateStudentSchema,
@@ -112,7 +112,6 @@ export function EditStudentModal({
         gender: student.studentProfile?.gender || "",
         emergencyPhone: student.studentProfile?.emergencyPhone || "",
         address: student.studentProfile?.address || "",
-        newNote: "",
         currentAllowedCourseId: student.currentAllowedCourseId || null,
         isActive: student.isActive,
       })
@@ -144,7 +143,6 @@ export function EditStudentModal({
         gender: values.gender || null,
         emergencyPhone: values.emergencyPhone || null,
         address: values.address || null,
-        newNote: values.newNote || null,
         currentAllowedCourseId:
           values.currentAllowedCourseId === "ROOT"
             ? null
@@ -295,13 +293,6 @@ export function EditStudentModal({
                   <FieldLabel>{t("editModal.address")}</FieldLabel>
                   <Input {...register("address")} />
                   <FieldError>{errors.address?.message}</FieldError>
-                </Field>
-              </div>
-              <div className="col-span-1 sm:col-span-2">
-                <Field data-invalid={Boolean(errors.newNote)}>
-                  <FieldLabel>{t("editModal.notes")}</FieldLabel>
-                  <Input {...register("newNote")} />
-                  <FieldError>{errors.newNote?.message}</FieldError>
                 </Field>
               </div>
             </div>

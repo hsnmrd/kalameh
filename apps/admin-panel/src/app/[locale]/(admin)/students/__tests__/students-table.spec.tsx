@@ -57,6 +57,7 @@ describe("StudentsTable & StudentsFilter Components", () => {
           students={undefined}
           isLoading={true}
           onViewProfile={vi.fn()}
+          onAddNote={vi.fn()}
           onEdit={vi.fn()}
           onResetPassword={vi.fn()}
         />
@@ -71,6 +72,7 @@ describe("StudentsTable & StudentsFilter Components", () => {
           students={[]}
           isLoading={false}
           onViewProfile={vi.fn()}
+          onAddNote={vi.fn()}
           onEdit={vi.fn()}
           onResetPassword={vi.fn()}
         />
@@ -87,6 +89,7 @@ describe("StudentsTable & StudentsFilter Components", () => {
           students={mockStudents}
           isLoading={false}
           onViewProfile={vi.fn()}
+          onAddNote={vi.fn()}
           onEdit={vi.fn()}
           onResetPassword={vi.fn()}
         />
@@ -98,8 +101,9 @@ describe("StudentsTable & StudentsFilter Components", () => {
       expect(screen.getAllByText("Sara Ahmadi").length).toBeGreaterThan(0)
     })
 
-    it("should trigger onViewProfile and onEdit callbacks when buttons are clicked", () => {
+    it("should trigger onViewProfile, onAddNote and onEdit callbacks when buttons are clicked", () => {
       const onViewProfileMock = vi.fn()
+      const onAddNoteMock = vi.fn()
       const onEditMock = vi.fn()
       const onResetPasswordMock = vi.fn()
 
@@ -108,6 +112,7 @@ describe("StudentsTable & StudentsFilter Components", () => {
           students={mockStudents}
           isLoading={false}
           onViewProfile={onViewProfileMock}
+          onAddNote={onAddNoteMock}
           onEdit={onEditMock}
           onResetPassword={onResetPasswordMock}
         />
@@ -116,6 +121,10 @@ describe("StudentsTable & StudentsFilter Components", () => {
       const profileButtons = screen.getAllByTitle(/مشاهده پرونده|View Profile/i)
       fireEvent.click(profileButtons[0]!)
       expect(onViewProfileMock).toHaveBeenCalledWith(mockStudents[0])
+
+      const noteButtons = screen.getAllByTitle(/ثبت یادداشت|Add Note/i)
+      fireEvent.click(noteButtons[0]!)
+      expect(onAddNoteMock).toHaveBeenCalledWith(mockStudents[0])
 
       const editButtons = screen.getAllByTitle(/ویرایش|Edit/i)
       fireEvent.click(editButtons[0]!)

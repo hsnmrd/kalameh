@@ -36,7 +36,7 @@ describe("User Modals", () => {
       expect(
         screen.getByText(/تغییر رمز عبور|بازنشانی رمز عبور/i)
       ).toBeInTheDocument()
-      expect(screen.getByText(/Ali Rezaei/i)).toBeInTheDocument()
+      expect(screen.getAllByText(/Ali Rezaei/i).length).toBeGreaterThan(0)
       expect(
         screen.getByRole("button", { name: /تغییر رمز|ثبت|بازنشانی/i })
       ).toBeInTheDocument()

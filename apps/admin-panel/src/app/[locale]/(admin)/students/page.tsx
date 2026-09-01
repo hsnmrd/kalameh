@@ -24,6 +24,7 @@ import { CreateStudentModal } from "./components/create-student-modal"
 import { EditStudentModal } from "./components/edit-student-modal"
 import { StudentProfileModal } from "./components/student-profile-modal"
 import { ResetPasswordModal } from "./components/reset-password-modal"
+import { AddStudentNoteModal } from "./components/add-student-note-modal"
 
 export default function StudentsPage() {
   const t = useTranslations("students")
@@ -36,6 +37,7 @@ export default function StudentsPage() {
   const [profileStudent, setProfileStudent] = React.useState<StudentDto | null>(
     null
   )
+  const [noteStudent, setNoteStudent] = React.useState<StudentDto | null>(null)
   const [resetPasswordStudent, setResetPasswordStudent] =
     React.useState<StudentDto | null>(null)
 
@@ -113,6 +115,13 @@ export default function StudentsPage() {
                 open={Boolean(resetPasswordStudent)}
                 onClose={() => setResetPasswordStudent(null)}
               />
+
+              {/* Add Student Note Modal */}
+              <AddStudentNoteModal
+                student={noteStudent}
+                open={Boolean(noteStudent)}
+                onClose={() => setNoteStudent(null)}
+              />
             </>
           }
           fab={
@@ -133,6 +142,7 @@ export default function StudentsPage() {
               students={students}
               isLoading={isLoading}
               onViewProfile={(student) => setProfileStudent(student)}
+              onAddNote={(student) => setNoteStudent(student)}
               onEdit={(student) => setEditStudent(student)}
               onResetPassword={(student) => setResetPasswordStudent(student)}
             />
@@ -144,6 +154,7 @@ export default function StudentsPage() {
               students={students}
               isLoading={isLoading}
               onViewProfile={(student) => setProfileStudent(student)}
+              onAddNote={(student) => setNoteStudent(student)}
               onEdit={(student) => setEditStudent(student)}
               onResetPassword={(student) => setResetPasswordStudent(student)}
             />

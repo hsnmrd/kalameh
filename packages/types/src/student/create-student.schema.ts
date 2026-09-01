@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { PhoneRegex } from "../common/index.js"
+import { PhoneRegex, emptyToNull } from "../common/index.js"
 
 export const createCreateStudentSchema = (msg?: {
   firstNameMin?: string
@@ -9,7 +9,9 @@ export const createCreateStudentSchema = (msg?: {
 }) =>
   z.object({
     avatar: z.any().optional().nullable(),
-    avatarUrl: z.string().trim().optional().nullable(),
+    avatarUrl: z
+      .preprocess(emptyToNull, z.string().trim().nullable())
+      .optional(),
     firstName: z
       .string()
       .trim()
@@ -32,14 +34,22 @@ export const createCreateStudentSchema = (msg?: {
         msg?.passwordMin ? { message: msg.passwordMin } : undefined
       )
       .optional(),
-    nationalCode: z.string().trim().optional().nullable(),
-    fatherName: z.string().trim().optional().nullable(),
-    birthDate: z.string().optional().nullable(),
-    gender: z.string().optional().nullable(),
-    emergencyPhone: z.string().trim().optional().nullable(),
-    address: z.string().trim().optional().nullable(),
-    notes: z.string().trim().optional().nullable(),
-    currentAllowedCourseId: z.string().uuid().optional().nullable(),
+    nationalCode: z
+      .preprocess(emptyToNull, z.string().trim().nullable())
+      .optional(),
+    fatherName: z
+      .preprocess(emptyToNull, z.string().trim().nullable())
+      .optional(),
+    birthDate: z.preprocess(emptyToNull, z.string().nullable()).optional(),
+    gender: z.preprocess(emptyToNull, z.string().nullable()).optional(),
+    emergencyPhone: z
+      .preprocess(emptyToNull, z.string().trim().nullable())
+      .optional(),
+    address: z.preprocess(emptyToNull, z.string().trim().nullable()).optional(),
+    notes: z.preprocess(emptyToNull, z.string().trim().nullable()).optional(),
+    currentAllowedCourseId: z
+      .preprocess(emptyToNull, z.string().uuid().nullable())
+      .optional(),
     instituteId: z.string().uuid().optional(),
   })
 

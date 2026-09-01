@@ -97,6 +97,7 @@
     "address": "Home Address",
     "addressPlaceholder": "Home address...",
     "notes": "Notes",
+    "notesPlaceholder": "Add a new note to student record...",
     "currentAllowedCourseId": "Allowed Course Level",
     "isActive": "Account Status (Active / Suspended)",
     "submit": "Save Changes",
@@ -129,8 +130,18 @@
     "cancel": "Cancel",
     "success": "Student password reset successfully."
   },
+  "addNoteModal": {
+    "title": "Add Student Note",
+    "description": "Add a new note to the academic and disciplinary record of {name}",
+    "note": "Note Content",
+    "notePlaceholder": "Enter note content...",
+    "submit": "Save Note",
+    "cancel": "Cancel",
+    "success": "Note added to student record successfully."
+  },
   "actions": {
     "viewProfile": "View Profile",
+    "addNote": "Add Note",
     "edit": "Edit Profile",
     "resetPassword": "Reset Password"
   },

@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { RoleEnum } from "../roles/index.js"
-import { PhoneRegex } from "../common/index.js"
+import { PhoneRegex, emptyToNull } from "../common/index.js"
 
 export const createUpdateUserSchema = (msg?: {
   firstNameMin?: string
@@ -9,7 +9,9 @@ export const createUpdateUserSchema = (msg?: {
 }) =>
   z.object({
     avatar: z.any().optional().nullable(),
-    avatarUrl: z.string().trim().optional().nullable(),
+    avatarUrl: z
+      .preprocess(emptyToNull, z.string().trim().nullable())
+      .optional(),
     firstName: z
       .string()
       .trim()
@@ -29,7 +31,9 @@ export const createUpdateUserSchema = (msg?: {
       )
       .optional(),
     role: RoleEnum.optional(),
-    nationalCode: z.string().trim().optional().nullable(),
+    nationalCode: z
+      .preprocess(emptyToNull, z.string().trim().nullable())
+      .optional(),
     isActive: z
       .preprocess((val) => {
         if (val === "true" || val === true) return true
@@ -37,7 +41,9 @@ export const createUpdateUserSchema = (msg?: {
         return val
       }, z.boolean())
       .optional(),
-    currentAllowedCourseId: z.string().uuid().optional().nullable(),
+    currentAllowedCourseId: z
+      .preprocess(emptyToNull, z.string().uuid().nullable())
+      .optional(),
   })
 
 export const UpdateUserSchema = createUpdateUserSchema()

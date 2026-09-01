@@ -3,8 +3,6 @@
 import * as React from "react"
 import Image from "next/image"
 import { useTranslations, useLocale } from "next-intl"
-import { useMutation } from "@tanstack/react-query"
-import { toast } from "@workspace/ui/components/sonner"
 import {
   FormDialog,
   FormDialogContent,
@@ -15,18 +13,11 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
-import { Input } from "@workspace/ui/components/input"
-import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { Phone, GraduationCap } from "lucide-react"
-import {
-  PERMISSIONS,
-  type StudentDto,
-  type StudentNoteDto,
-} from "@workspace/types"
-import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
-import { PermissionGuard } from "@/components/permission-guard"
+import type { StudentDto } from "@workspace/types"
+import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { StudentStatusBadge } from "../student-status-badge"
-import { studentsResource } from "@/lib/api"
+import { StudentProfileNotes } from "./student-profile-notes"
 
 export interface StudentProfileModalProps {
   student: StudentDto | null
@@ -41,34 +32,6 @@ export function StudentProfileModal({
 }: StudentProfileModalProps) {
   const t = useTranslations("students")
   const locale = useLocale()
-  const [newNote, setNewNote] = React.useState("")
-  const [notes, setNotes] = React.useState<StudentNoteDto[]>([])
-
-  React.useEffect(() => {
-    if (student) {
-      setNotes(student.studentProfile?.notes || [])
-    }
-  }, [student])
-
-  const addNoteMutation = useMutation({
-    ...studentsResource.addNote.toMutation(),
-    onSuccess: (updatedStudent) => {
-      setNotes(updatedStudent.studentProfile?.notes || [])
-      setNewNote("")
-      toast.success(t("profileModal.noteAdded"))
-    },
-  })
-
-  const handleAddNote = () => {
-    if (!student) return
-    const content = newNote.trim()
-    if (!content || addNoteMutation.isPending) return
-
-    addNoteMutation.mutate({
-      id: student.id,
-      content,
-    })
-  }
 
   if (!student) return null
 
@@ -91,19 +54,6 @@ export function StudentProfileModal({
       day: "numeric",
     }
   ).format(new Date(student.createdAt))
-
-  const formattedNotes = notes.map((note) => ({
-    id: note.id,
-    content: note.content,
-    authorName: note.createdBy
-      ? `${note.createdBy.firstName} ${note.createdBy.lastName}`
-      : "—",
-    createdDate: new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }).format(new Date(note.createdAt)),
-  }))
 
   return (
     <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -144,65 +94,11 @@ export function StudentProfileModal({
 
           {/* Identity & Personal Info */}
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="col-span-2">
-              <span className="text-xs text-muted-foreground">
-                {t("editModal.notes")}
-              </span>
-              {formattedNotes.length === 0 ? (
-                <p className="font-mono text-muted-foreground">—</p>
-              ) : (
-                <div className="space-y-2 pt-1">
-                  {formattedNotes.map((note, index) => (
-                    <div
-                      key={note.id}
-                      className={cn(
-                        "rounded-md border border-border/60 bg-muted/30 px-3 py-2",
-                        index === 0 && "bg-muted/60"
-                      )}
-                    >
-                      <p className="text-sm text-foreground">{note.content}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {note.authorName} · {note.createdDate}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <PermissionGuard
-                permission={PERMISSIONS.MANAGE_STUDENT_NOTES}
-                mode="hide"
-              >
-                <div className="mt-2 space-y-2">
-                  <Field data-invalid={addNoteMutation.isError}>
-                    <FieldLabel>{t("profileModal.addNote")}</FieldLabel>
-                    <Input
-                      value={newNote}
-                      onChange={(event) => setNewNote(event.target.value)}
-                      placeholder={t("profileModal.addNotePlaceholder")}
-                      className="h-11"
-                    />
-                    <FieldError>
-                      {addNoteMutation.isError
-                        ? t("profileModal.addNoteFailed")
-                        : null}
-                    </FieldError>
-                  </Field>
-
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleAddNote}
-                    disabled={
-                      addNoteMutation.isPending || !newNote.trim() || !student
-                    }
-                    className="h-11 rounded-xl"
-                  >
-                    {t("profileModal.addNoteButton")}
-                  </Button>
-                </div>
-              </PermissionGuard>
-            </div>
+            <StudentProfileNotes
+              key={student.id}
+              studentId={student.id}
+              initialNotes={student.studentProfile?.notes}
+            />
             <div>
               <span className="text-xs text-muted-foreground">
                 {t("table.fatherName")}

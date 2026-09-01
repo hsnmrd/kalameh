@@ -99,7 +99,16 @@ describe('StudentsService', () => {
         gender: 'MALE',
         emergencyPhone: '09121112233',
         address: 'Tehran',
-        notes: null,
+      });
+      prismaService.studentProfile.findUnique.mockResolvedValue({
+        id: 'profile-id',
+        userId: 'new-student-id',
+        fatherName: 'Reza',
+        birthDate: null,
+        gender: 'MALE',
+        emergencyPhone: '09121112233',
+        address: 'Tehran',
+        notes: [],
       });
 
       const result = await service.create(mockAdmin, {
@@ -238,6 +247,75 @@ describe('StudentsService', () => {
       const result = await service.lookup(mockAdmin, '9999999999');
       expect(result.found).toBe(false);
       expect(result.student).toBeNull();
+    });
+  });
+
+  describe('addNote', () => {
+    it('should create note and return updated student', async () => {
+      prismaService.user.findFirst
+        .mockResolvedValueOnce({
+          id: 'student-1',
+          instituteId: 'inst-1',
+          role: 'STUDENT',
+          studentProfile: { id: 'profile-1' },
+        })
+        .mockResolvedValueOnce({
+          id: 'student-1',
+          instituteId: 'inst-1',
+          role: 'STUDENT',
+          firstName: 'Ali',
+          lastName: 'Rezaei',
+          studentProfile: {
+            id: 'profile-1',
+            notes: [
+              {
+                id: 'note-1',
+                content: 'Excellent progress',
+                createdBy: {
+                  id: 'admin-1',
+                  firstName: 'Admin',
+                  lastName: 'User',
+                },
+              },
+            ],
+          },
+          currentAllowedCourse: null,
+          enrollments: [],
+          transactions: [],
+          password: 'hashed-password',
+        });
+
+      prismaService.studentNote.create.mockResolvedValue({
+        id: 'note-1',
+        studentProfileId: 'profile-1',
+        createdByUserId: mockAdmin.sub,
+        content: 'Excellent progress',
+      });
+
+      const result = await service.addNote(mockAdmin, 'student-1', {
+        content: 'Excellent progress',
+      });
+
+      expect(prismaService.studentNote.create).toHaveBeenCalledWith({
+        data: {
+          studentProfileId: 'profile-1',
+          createdByUserId: mockAdmin.sub,
+          content: 'Excellent progress',
+        },
+      });
+      expect(result).toBeDefined();
+      expect(result.id).toBe('student-1');
+      expect(result).not.toHaveProperty('password');
+    });
+
+    it('should throw NotFoundException if student is not found', async () => {
+      prismaService.user.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.addNote(mockAdmin, 'non-existent', {
+          content: 'Some note',
+        }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

@@ -8,9 +8,8 @@ import {
   Edit,
   KeyRound,
   Phone,
-  User,
   GraduationCap,
-  ShieldAlert,
+  FileText,
 } from "lucide-react"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
@@ -22,6 +21,7 @@ import { StudentStatusBadge } from "../student-status-badge"
 export interface StudentCardProps {
   student: StudentDto
   onViewProfile: (student: StudentDto) => void
+  onAddNote: (student: StudentDto) => void
   onEdit: (student: StudentDto) => void
   onResetPassword: (student: StudentDto) => void
 }
@@ -29,6 +29,7 @@ export interface StudentCardProps {
 export function StudentCard({
   student,
   onViewProfile,
+  onAddNote,
   onEdit,
   onResetPassword,
 }: StudentCardProps) {
@@ -108,6 +109,22 @@ export function StudentCard({
           >
             <Eye className="size-3.5" />
             <span>{t("actions.viewProfile")}</span>
+          </Button>
+        </PermissionGuard>
+
+        <PermissionGuard
+          permission={PERMISSIONS.MANAGE_STUDENT_NOTES}
+          mode="disable"
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onAddNote(student)}
+            className="gap-1 text-xs"
+            title={t("actions.addNote")}
+          >
+            <FileText className="size-3.5" />
+            <span>{t("actions.addNote")}</span>
           </Button>
         </PermissionGuard>
 

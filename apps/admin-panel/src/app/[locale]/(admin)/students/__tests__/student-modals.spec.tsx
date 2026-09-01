@@ -3,6 +3,7 @@ import { render, screen } from "../../../../../test/test-utils"
 import { StudentProfileModal } from "../components/student-profile-modal"
 import { ResetPasswordModal } from "../components/reset-password-modal"
 import { CreateStudentModal } from "../components/create-student-modal"
+import { AddStudentNoteModal } from "../components/add-student-note-modal"
 import type { StudentDto } from "@workspace/types"
 
 describe("Student Modals", () => {
@@ -50,6 +51,43 @@ describe("Student Modals", () => {
       expect(screen.getByText("Tehran, Valiasr St.")).toBeInTheDocument()
       expect(screen.getByText("Starter 101")).toBeInTheDocument()
     })
+
+    it("should render student notes history and note author", () => {
+      const studentWithNotes: StudentDto = {
+        ...mockStudent,
+        studentProfile: {
+          ...mockStudent.studentProfile,
+          notes: [
+            {
+              id: "note-1",
+              studentProfileId: "profile-1",
+              createdByUserId: "user-1",
+              content: "Student needs extra tutoring in listening",
+              createdBy: {
+                id: "user-1",
+                firstName: "Mohammad",
+                lastName: "Ahmadi",
+              },
+              createdAt: "2024-02-01T10:00:00.000Z",
+              updatedAt: "2024-02-01T10:00:00.000Z",
+            },
+          ],
+        },
+      }
+
+      render(
+        <StudentProfileModal
+          student={studentWithNotes}
+          open={true}
+          onClose={vi.fn()}
+        />
+      )
+
+      expect(
+        screen.getByText("Student needs extra tutoring in listening")
+      ).toBeInTheDocument()
+      expect(screen.getByText(/Mohammad Ahmadi/)).toBeInTheDocument()
+    })
   })
 
   describe("ResetPasswordModal", () => {
@@ -91,6 +129,29 @@ describe("Student Modals", () => {
         screen.getByRole("button", {
           name: /ثبت|Submit/i,
         })
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe("AddStudentNoteModal", () => {
+    it("should render note dialog with student name and textarea", () => {
+      render(
+        <AddStudentNoteModal
+          student={mockStudent}
+          open={true}
+          onClose={vi.fn()}
+        />
+      )
+
+      expect(
+        screen.getByRole("heading", {
+          name: /ثبت یادداشت جدید در پرونده|Add Student Note/i,
+        })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByPlaceholderText(
+          /متن یادداشت پرونده را وارد کنید\.\.\.|Enter note content\.\.\./i
+        )
       ).toBeInTheDocument()
     })
   })
