@@ -39,6 +39,10 @@
   - **NEVER** use raw `<img>` HTML tags. Always import and use Next.js `<Image />` component from `next/image` (with `unoptimized` where dynamic external / uploaded asset URLs are used) across all apps and packages.
   - Always import and use centralized, accessible UI primitives from `@workspace/ui/components/*` (`Button`, `Input`, `Field`, `PasswordInput`, `DataTable`, `Table`, etc.).
   - If a specific UI component or kit (e.g. Select, Dialog, Dropdown, Checkbox) is needed and does not yet exist in `@workspace/ui`, create an implementation plan to scaffold/install it into `packages/ui` first using Base UI / shadcn patterns before using it.
+- **No Vanilla JS Dialogs (`alert`, `prompt`):**
+  - **NEVER** use vanilla JavaScript `alert()` or `prompt()` (or `window.alert`, `window.prompt`) anywhere in applications (`apps/*`).
+  - For alerting users and displaying notifications, use centralized toast notifications (`toast.error`, `toast.success`, `toast.info` from `sonner`).
+  - For capturing user input or prompting confirmations, use centralized modal dialogs (e.g. `ResponsiveDialog`, `Dialog` from `@workspace/ui/components/dialog`).
 - **Data Table & Data Grid Standard:**
   - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying tabular data.
   - Define columns using TanStack Table `ColumnDef` to ensure consistent typography, responsive design, empty states, and accessibility across all dashboards.

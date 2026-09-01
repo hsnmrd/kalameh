@@ -14,12 +14,13 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { RolePermissionsEditor } from "./components/role-permissions-editor"
 import { RolePermissionsStickyBar } from "./components/role-permissions-sticky-bar"
+import { ResetRoleModal } from "./components/reset-role-modal"
 
 export default function RolePermissionsPage() {
   const t = useTranslations("rolePermissions")
   const queryClient = useQueryClient()
-  const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
+  const { activeInstitute, activeInstituteId } = useActiveInstitute()
 
   const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
   const hasModule =
@@ -27,6 +28,7 @@ export default function RolePermissionsPage() {
     activeInstitute?.enabledModules?.includes(APP_MODULES.USERS_STAFF)
 
   const [selectedRole, setSelectedRole] = React.useState<Role>(ROLES.CLERK)
+  const [resetModalOpen, setResetModalOpen] = React.useState(false)
   const [selectedPermissions, setSelectedPermissions] = React.useState<
     Set<string>
   >(new Set())
@@ -136,12 +138,20 @@ export default function RolePermissionsPage() {
 
   const handleReset = () => {
     if (!activeInstituteId) return
-    if (window.confirm(t("resetConfirm"))) {
-      resetMutation.mutate({
+    setResetModalOpen(true)
+  }
+
+  const handleConfirmReset = () => {
+    if (!activeInstituteId) return
+    resetMutation.mutate(
+      {
         role: selectedRole,
         instituteId: activeInstituteId,
-      })
-    }
+      },
+      {
+        onSettled: () => setResetModalOpen(false),
+      }
+    )
   }
 
   return (
@@ -153,7 +163,16 @@ export default function RolePermissionsPage() {
         ]}
         mode="forbidden"
       >
-        <AdminPageShell>
+        <AdminPageShell
+          modals={
+            <ResetRoleModal
+              open={resetModalOpen}
+              onClose={() => setResetModalOpen(false)}
+              onConfirm={handleConfirmReset}
+              isLoading={resetMutation.isPending}
+            />
+          }
+        >
           {isLoading ? (
             <div className="flex h-64 items-center justify-center">
               <Spinner className="size-8 text-primary" />

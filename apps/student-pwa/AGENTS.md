@@ -37,6 +37,7 @@
 - **Single Card Anti-Pattern:**
   - Do not wrap pages with a `<Card>` component if the page content is already rendered within a single container (like the student login view).
 - **UI Primitives:** Use `@workspace/ui` (shadcn/ui + Tailwind CSS) as the component source.
+- **No Vanilla JS Dialogs (`alert`, `prompt`):** NEVER use native browser `alert()` or `prompt()`. Use shadcn/Sonner `toast` for notifications and responsive modals/drawers for confirmations or user inputs.
 - **Validation:** Use `react-hook-form` and shared Zod schemas from `@workspace/types`.
 - **Core Student Flows (V1 Scope):**
   - View allowed courses based on placement level / prerequisite chain.

@@ -58,5 +58,14 @@
     "submit": "Save Changes",
     "cancel": "Cancel",
     "success": "Classroom details updated successfully."
+  },
+  "deleteModal": {
+    "title": "Delete Classroom",
+    "description": "Are you sure you want to delete this classroom? This action cannot be undone.",
+    "classroomName": "Classroom Name",
+    "confirm": "Delete Classroom",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "success": "Classroom deleted successfully."
   }
 }

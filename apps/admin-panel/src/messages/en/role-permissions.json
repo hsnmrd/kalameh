@@ -8,6 +8,12 @@
   "resetToDefaults": "Reset to Defaults",
   "resetting": "Resetting...",
   "resetConfirm": "Are you sure you want to reset this role's permissions to default settings?",
+  "resetModal": {
+    "title": "Reset Permissions",
+    "description": "Are you sure you want to reset this role's permissions to default settings?",
+    "confirm": "Reset to Defaults",
+    "cancel": "Cancel"
+  },
   "saveSuccess": "Role permissions updated successfully",
   "resetSuccess": "Role permissions reset to defaults",
   "isCustomized": "Customized for this institute",
