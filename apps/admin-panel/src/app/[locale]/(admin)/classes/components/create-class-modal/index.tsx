@@ -49,32 +49,33 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
     ? { instituteId: activeInstituteId }
     : undefined
 
-  const { data: terms } = useQuery({
+  const { data: terms = [] } = useQuery({
     ...termsResource.list.toQuery(queryParams),
     enabled: open && !!activeInstituteId,
   })
-  const { data: courses } = useQuery({
+  const { data: courses = [] } = useQuery({
     ...coursesResource.list.toQuery(queryParams),
     enabled: open && !!activeInstituteId,
   })
-
-  const { data: termOptions = [] } = useQuery({
-    ...termsResource.list.toQuery(queryParams),
-    enabled: open && !!activeInstituteId,
-    select: (list) => list.map((tm) => ({ value: tm.id, label: tm.title })),
-  })
-
-  const { data: courseOptions = [] } = useQuery({
-    ...coursesResource.list.toQuery(queryParams),
-    enabled: open && !!activeInstituteId,
-    select: (list) => list.map((c) => ({ value: c.id, label: c.title })),
-  })
-
-  const { data: branchOptions = [] } = useQuery({
+  const { data: branches = [] } = useQuery({
     ...branchesResource.list.toQuery(queryParams),
     enabled: open && !!activeInstituteId,
-    select: (list) => list.map((b) => ({ value: b.id, label: b.name })),
   })
+
+  const termOptions = React.useMemo(
+    () => terms.map((tm) => ({ value: tm.id, label: tm.title })),
+    [terms]
+  )
+  const courseOptions = React.useMemo(
+    () => courses.map((c) => ({ value: c.id, label: c.title })),
+    [courses]
+  )
+  const branchOptions = React.useMemo(
+    () => branches.map((b) => ({ value: b.id, label: b.name })),
+    [branches]
+  )
+
+  const singleBranchId = branches.length === 1 ? branches[0]?.id || null : null
 
   const {
     register,
@@ -90,7 +91,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
       title: "",
       termId: "",
       courseId: "",
-      branchId: null,
+      branchId: singleBranchId,
       capacity: 15,
       fee: 1500000,
       teacherName: "",
@@ -98,10 +99,12 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
     },
   })
 
+  const hasAutoSelectedBranchRef = React.useRef(false)
+
   // When course changes, update default fee to course.baseFee
   const selectedCourseId = watch("courseId")
   React.useEffect(() => {
-    if (selectedCourseId && courses) {
+    if (selectedCourseId && courses.length > 0) {
       const selected = courses.find((c) => c.id === selectedCourseId)
       if (selected) {
         setValue("fee", selected.baseFee)
@@ -109,20 +112,34 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
     }
   }, [selectedCourseId, courses, setValue])
 
+  // When only 1 branch exists, set it as default
+  React.useEffect(() => {
+    if (open && singleBranchId && !hasAutoSelectedBranchRef.current) {
+      setValue("branchId", singleBranchId)
+      hasAutoSelectedBranchRef.current = true
+    }
+  }, [open, singleBranchId, setValue])
+
+  // Reset form when modal opens
   React.useEffect(() => {
     if (open) {
+      if (singleBranchId) {
+        hasAutoSelectedBranchRef.current = true
+      }
       reset({
         title: "",
-        termId: terms?.[0]?.id || "",
-        courseId: courses?.[0]?.id || "",
-        branchId: null,
+        termId: terms[0]?.id || "",
+        courseId: courses[0]?.id || "",
+        branchId: singleBranchId,
         capacity: 15,
-        fee: courses?.[0]?.baseFee || 1500000,
+        fee: courses[0]?.baseFee || 1500000,
         teacherName: "",
         schedule: "",
       })
+    } else {
+      hasAutoSelectedBranchRef.current = false
     }
-  }, [open, terms, courses, reset])
+  }, [open, reset])
 
   const createMutation = useMutation({
     ...classesResource.create.toMutation(),
