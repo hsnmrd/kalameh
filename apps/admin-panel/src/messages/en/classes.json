@@ -36,6 +36,9 @@
     "teacherNamePlaceholder": "e.g. John Doe",
     "schedule": "Schedule (e.g. Mon, Wed 17:00-18:30)",
     "schedulePlaceholder": "Mon, Wed 17:00-18:30",
+    "termDatesLabel": "Term duration:",
+    "toDateSeparator": "to",
+    "activeTermBadge": "Active Term",
     "submit": "Create Class",
     "cancel": "Cancel",
     "success": "Class created successfully."

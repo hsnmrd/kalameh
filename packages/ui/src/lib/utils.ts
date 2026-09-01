@@ -109,3 +109,31 @@ export function getAssetUrl(
 
   return `${baseUrl}${normalizedPath}`
 }
+
+/**
+ * Format a date string or Date object according to locale (Persian solar calendar for fa, Gregorian for others).
+ */
+export function formatDate(
+  dateVal: string | Date | null | undefined,
+  locale?: string
+): string {
+  if (!dateVal) return "-"
+  try {
+    const d = new Date(dateVal)
+    if (isNaN(d.getTime())) return "-"
+    const currentLocale =
+      locale ??
+      (typeof document !== "undefined" && document.documentElement.lang
+        ? document.documentElement.lang
+        : "fa")
+
+    const isFa = currentLocale.toLowerCase().startsWith("fa")
+    return new Intl.DateTimeFormat(isFa ? "fa-IR-u-ca-persian" : "en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }).format(d)
+  } catch {
+    return String(dateVal)
+  }
+}

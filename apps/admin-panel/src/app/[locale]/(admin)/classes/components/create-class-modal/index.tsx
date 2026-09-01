@@ -33,6 +33,7 @@ import {
   useCreateClassSchema,
   type CreateClassInput,
 } from "../../hooks/use-class-schemas"
+import { TermDetailsPreview } from "../term-details-preview"
 
 export interface CreateClassModalProps {
   open: boolean
@@ -101,6 +102,12 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
 
   const hasAutoSelectedBranchRef = React.useRef(false)
 
+  const selectedTermId = watch("termId")
+  const selectedTerm = React.useMemo(
+    () => terms.find((tm) => tm.id === selectedTermId),
+    [terms, selectedTermId]
+  )
+
   // When course changes, update default fee to course.baseFee
   const selectedCourseId = watch("courseId")
   React.useEffect(() => {
@@ -111,6 +118,23 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
       }
     }
   }, [selectedCourseId, courses, setValue])
+
+  // When terms query resolves, set default termId if not set
+  React.useEffect(() => {
+    if (open && terms.length > 0 && !selectedTermId) {
+      setValue("termId", terms[0]?.id || "")
+    }
+  }, [open, terms, selectedTermId, setValue])
+
+  // When courses query resolves, set default courseId and fee if not set
+  React.useEffect(() => {
+    if (open && courses.length > 0 && !selectedCourseId) {
+      setValue("courseId", courses[0]?.id || "")
+      if (courses[0]?.baseFee) {
+        setValue("fee", courses[0].baseFee)
+      }
+    }
+  }, [open, courses, selectedCourseId, setValue])
 
   // When only 1 branch exists, set it as default
   React.useEffect(() => {
@@ -229,6 +253,9 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
                 <FieldError>{errors.courseId?.message}</FieldError>
               </Field>
             </div>
+
+            {/* Selected Term Details Preview */}
+            <TermDetailsPreview term={selectedTerm} />
 
             {/* Branch (Optional) */}
             <Field data-invalid={Boolean(errors.branchId)}>

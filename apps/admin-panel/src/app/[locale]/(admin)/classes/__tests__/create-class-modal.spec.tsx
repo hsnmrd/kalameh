@@ -123,4 +123,18 @@ describe("CreateClassModal - Branch Defaulting", () => {
       expect(screen.getByText("انتخاب شعبه (اختیاری)")).toBeInTheDocument()
     })
   })
+
+  it("should display term details preview when a term is selected", async () => {
+    vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
+      queryKey: ["branches-none", { instituteId: "inst-1" }],
+      queryFn: async () => [],
+    } as any)
+
+    render(<CreateClassModal open={true} onClose={vi.fn()} />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/بازه زمانی ترم:/i)).toBeInTheDocument()
+      expect(screen.getByText(/ترم فعال/i)).toBeInTheDocument()
+    })
+  })
 })

@@ -34,6 +34,7 @@ import {
   useUpdateClassSchema,
   type UpdateClassInput,
 } from "../../hooks/use-class-schemas"
+import { TermDetailsPreview } from "../term-details-preview"
 
 export interface EditClassModalProps {
   cls: ClassDto | null
@@ -51,11 +52,15 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
     ? { instituteId: activeInstituteId }
     : undefined
 
-  const { data: termOptions = [] } = useQuery({
+  const { data: terms = [] } = useQuery({
     ...termsResource.list.toQuery(queryParams),
     enabled: open && !!activeInstituteId,
-    select: (terms) => terms.map((tm) => ({ value: tm.id, label: tm.title })),
   })
+
+  const termOptions = React.useMemo(
+    () => terms.map((tm) => ({ value: tm.id, label: tm.title })),
+    [terms]
+  )
 
   const { data: courseOptions = [] } = useQuery({
     ...coursesResource.list.toQuery(queryParams),
@@ -74,6 +79,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
     handleSubmit,
     control,
     reset,
+    watch,
     formState: { errors },
   } = useForm<UpdateClassInput>({
     resolver: zodResolver(updateClassSchema),
@@ -88,6 +94,12 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
       schedule: "",
     },
   })
+
+  const selectedTermId = watch("termId")
+  const selectedTerm = React.useMemo(
+    () => terms.find((tm) => tm.id === selectedTermId),
+    [terms, selectedTermId]
+  )
 
   React.useEffect(() => {
     if (cls) {
@@ -190,6 +202,9 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
                 <FieldError>{errors.courseId?.message}</FieldError>
               </Field>
             </div>
+
+            {/* Selected Term Details Preview */}
+            <TermDetailsPreview term={selectedTerm} />
 
             {/* Branch (Optional) */}
             <Field data-invalid={Boolean(errors.branchId)}>

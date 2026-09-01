@@ -36,6 +36,9 @@
     "teacherNamePlaceholder": "مثلاً دکتر محمدی",
     "schedule": "برنامه زمانی (مثلاً: زوج ۱۷:۰۰ تا ۱۸:۳۰)",
     "schedulePlaceholder": "زوج ۱۷:۰۰ تا ۱۸:۳۰",
+    "termDatesLabel": "بازه زمانی ترم:",
+    "toDateSeparator": "تا",
+    "activeTermBadge": "ترم فعال",
     "submit": "ثبت کلاس",
     "cancel": "انصراف",
     "success": "کلاس با موفقیت ایجاد شد."
