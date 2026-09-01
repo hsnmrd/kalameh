@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -12,6 +13,8 @@ import type { JwtPayload, SupportedLocale, ClassDto } from '@workspace/types';
 
 @Injectable()
 export class ClassesService {
+  private readonly logger = new Logger(ClassesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
@@ -228,7 +231,10 @@ export class ClassesService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<ClassDto> {
-    const instituteId = currentUser.instituteId;
+    const instituteId =
+      currentUser.role === 'SUPER_ADMIN' && dto.instituteId
+        ? dto.instituteId
+        : currentUser.instituteId;
 
     // Verify Term exists and belongs to institute
     const term = await this.prisma.term.findFirst({
@@ -313,6 +319,10 @@ export class ClassesService {
         },
       },
     });
+
+    this.logger.log(
+      `Class created: "${created.title}" (${created.id}) for institute ${instituteId} by user ${currentUser.sub} (${currentUser.role})`,
+    );
 
     return {
       id: created.id,

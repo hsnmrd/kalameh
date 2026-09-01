@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -12,6 +13,8 @@ import type { JwtPayload, SupportedLocale, CourseDto } from '@workspace/types';
 
 @Injectable()
 export class CoursesService {
+  private readonly logger = new Logger(CoursesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
@@ -97,7 +100,10 @@ export class CoursesService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<CourseDto> {
-    const instituteId = currentUser.instituteId;
+    const instituteId =
+      currentUser.role === 'SUPER_ADMIN' && dto.instituteId
+        ? dto.instituteId
+        : currentUser.instituteId;
 
     // Check duplicate title in same institute
     const existing = await this.prisma.course.findFirst({
@@ -146,6 +152,10 @@ export class CoursesService {
         _count: { select: { classes: true } },
       },
     });
+
+    this.logger.log(
+      `Course created: "${created.title}" (${created.id}) for institute ${instituteId} by user ${currentUser.sub} (${currentUser.role})`,
+    );
 
     const { _count, ...data } = created;
     return {

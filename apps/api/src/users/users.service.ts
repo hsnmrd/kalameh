@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
@@ -26,6 +27,8 @@ import {
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
@@ -111,6 +114,10 @@ export class UsersService {
         updatedAt: true,
       },
     });
+
+    this.logger.log(
+      `User created: "${user.firstName} ${user.lastName}" (${user.id}) with role ${user.role} for institute ${targetInstituteId} by user ${currentUser.sub} (${currentUser.role})`,
+    );
 
     return user;
   }

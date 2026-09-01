@@ -100,6 +100,7 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
         values.prerequisiteId === "none" || !values.prerequisiteId
           ? null
           : values.prerequisiteId,
+      instituteId: activeInstituteId || undefined,
     })
   }
 

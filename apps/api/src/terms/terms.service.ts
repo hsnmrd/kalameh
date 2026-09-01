@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -12,6 +13,8 @@ import type { JwtPayload, SupportedLocale, TermDto } from '@workspace/types';
 
 @Injectable()
 export class TermsService {
+  private readonly logger = new Logger(TermsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
@@ -79,7 +82,10 @@ export class TermsService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<TermDto> {
-    const instituteId = currentUser.instituteId;
+    const instituteId =
+      currentUser.role === 'SUPER_ADMIN' && dto.instituteId
+        ? dto.instituteId
+        : currentUser.instituteId;
 
     const start = new Date(dto.startDate);
     const end = new Date(dto.endDate);
@@ -115,6 +121,10 @@ export class TermsService {
         _count: { select: { classes: true } },
       },
     });
+
+    this.logger.log(
+      `Term created: "${created.title}" (${created.id}) for institute ${instituteId} by user ${currentUser.sub} (${currentUser.role})`,
+    );
 
     const { _count, ...data } = created;
     return {

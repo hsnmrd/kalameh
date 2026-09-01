@@ -15,6 +15,7 @@ export const createCreateCourseSchema = (msg?: {
       })
       .min(0, msg?.baseFeeMin ? { message: msg.baseFeeMin } : undefined),
     prerequisiteId: z.string().uuid().optional().nullable(),
+    instituteId: z.string().uuid().optional(),
   })
 
 export const CreateCourseSchema = createCreateCourseSchema()

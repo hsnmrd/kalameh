@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
@@ -19,6 +20,8 @@ import type {
 
 @Injectable()
 export class StudentsService {
+  private readonly logger = new Logger(StudentsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
@@ -126,6 +129,10 @@ export class StudentsService {
         studentProfile: profileWithNotes,
       };
     });
+
+    this.logger.log(
+      `Student created: "${student.firstName} ${student.lastName}" (${student.id}) for institute ${targetInstituteId} by user ${currentUser.sub} (${currentUser.role})`,
+    );
 
     return {
       id: student.id,

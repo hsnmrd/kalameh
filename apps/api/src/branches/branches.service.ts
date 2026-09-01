@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -15,6 +16,8 @@ import type {
 
 @Injectable()
 export class BranchesService {
+  private readonly logger = new Logger(BranchesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
@@ -150,6 +153,10 @@ export class BranchesService {
         _count: { select: { classes: true, users: true } },
       },
     });
+
+    this.logger.log(
+      `Branch created: "${created.name}" (${created.id}) for institute ${instituteId} by user ${currentUser.sub} (${currentUser.role})`,
+    );
 
     const { _count, ...data } = created;
     return {

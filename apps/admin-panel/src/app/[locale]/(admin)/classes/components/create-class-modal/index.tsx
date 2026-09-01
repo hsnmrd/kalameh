@@ -136,7 +136,10 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
   })
 
   const onSubmit = (values: CreateClassInput) => {
-    createMutation.mutate(values)
+    createMutation.mutate({
+      ...values,
+      instituteId: activeInstituteId || undefined,
+    })
   }
 
   const handleOpenChange = (isOpen: boolean) => {

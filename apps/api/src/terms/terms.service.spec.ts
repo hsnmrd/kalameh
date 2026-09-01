@@ -129,6 +129,43 @@ describe('TermsService', () => {
       expect(result.id).toBe('new-term-id');
       expect(result.title).toBe('پاییز ۱۴۰۵');
     });
+
+    it('should create new term for target institute when currentUser is SUPER_ADMIN', async () => {
+      const superAdmin: JwtPayload = {
+        sub: 'super-admin-id',
+        phone: '09120000001',
+        role: 'SUPER_ADMIN',
+        instituteId: 'platform-inst-id',
+      };
+      const dto = {
+        title: 'زمستان ۱۴۰۵',
+        startDate: '2026-12-22',
+        endDate: '2027-03-20',
+        isActive: true,
+        instituteId: 'target-inst-id',
+      };
+
+      prismaService.term.findFirst.mockResolvedValue(null);
+      prismaService.term.create.mockResolvedValue({
+        id: 'new-term-id-2',
+        ...dto,
+        startDate: new Date(dto.startDate),
+        endDate: new Date(dto.endDate),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        _count: { classes: 0 },
+      });
+
+      const result = await service.create(dto, superAdmin);
+      expect(result.id).toBe('new-term-id-2');
+      expect(prismaService.term.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            instituteId: 'target-inst-id',
+          }),
+        }),
+      );
+    });
   });
 
   describe('update', () => {

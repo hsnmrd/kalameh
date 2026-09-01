@@ -34,6 +34,7 @@ export const createCreateClassSchema = (msg?: {
       .min(0, msg?.feeMin ? { message: msg.feeMin } : undefined),
     teacherName: z.string().trim().optional().nullable(),
     schedule: z.string().trim().optional().nullable(),
+    instituteId: z.string().uuid().optional(),
   })
 
 export const CreateClassSchema = createCreateClassSchema()

@@ -20,6 +20,7 @@ import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { termsResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import type { SupportedLocale } from "@workspace/types"
 import {
   useCreateTermSchema,
@@ -35,6 +36,7 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
   const t = useTranslations("terms")
   const locale = useLocale() as SupportedLocale
   const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
   const createTermSchema = useCreateTermSchema()
 
   const {
@@ -76,7 +78,10 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
   })
 
   const onSubmit = (values: CreateTermInput) => {
-    createMutation.mutate(values)
+    createMutation.mutate({
+      ...values,
+      instituteId: activeInstituteId || undefined,
+    })
   }
 
   const handleOpenChange = (isOpen: boolean) => {
