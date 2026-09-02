@@ -250,7 +250,7 @@ export function ClassScheduleWizard({
 
   return (
     <FormDialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <FormDialogContent className="sm:max-w-2xl">
+      <FormDialogContent className="sm:max-w-lg">
         <FormDialogHeader>
           <FormDialogTitle>{t("title")}</FormDialogTitle>
           <FormDialogCloseButton />
