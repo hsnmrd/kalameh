@@ -91,6 +91,15 @@ export const RtlContent: Story = {
           این نام برای فراگیران و پرسنل نمایش داده می‌شود.
         </FieldDescription>
       </Field>
+
+      <Field>
+        <FieldLabel htmlFor="storybook-fa-password">رمز عبور</FieldLabel>
+        <PasswordInput
+          id="storybook-fa-password"
+          placeholder="رمز عبور خود را وارد کنید"
+          defaultValue="راز_محرمانه_۱۲۳"
+        />
+      </Field>
     </FieldGroup>
   ),
 }

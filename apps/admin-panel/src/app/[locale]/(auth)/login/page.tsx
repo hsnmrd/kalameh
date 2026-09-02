@@ -179,7 +179,6 @@ export default function AdminLoginPage() {
                 <FieldLabel htmlFor="password">{t("passwordLabel")}</FieldLabel>
                 <PasswordInput
                   id="password"
-                  dir="ltr"
                   variant="auth"
                   autoComplete="current-password"
                   placeholder={t("passwordPlaceholder")}

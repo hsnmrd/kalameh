@@ -155,7 +155,6 @@ export default function StudentLoginPage() {
                   </FieldLabel>
                   <PasswordInput
                     id="student-password"
-                    dir="ltr"
                     variant="auth"
                     placeholder={t("passwordPlaceholder")}
                     autoComplete="current-password"
