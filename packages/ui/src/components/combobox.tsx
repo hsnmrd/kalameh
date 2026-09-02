@@ -73,6 +73,13 @@ export function Combobox({
   }
 
   const isSearchable = items.length >= 5 && searchable !== false
+  const [searchQuery, setSearchQuery] = React.useState("")
+
+  const handleOpenChange = React.useCallback((open: boolean) => {
+    if (!open) {
+      setSearchQuery("")
+    }
+  }, [])
 
   const controlledValueProps =
     value !== undefined ? { value: selectedItem } : {}
@@ -83,6 +90,11 @@ export function Combobox({
       defaultValue={defaultSelectedItem}
       onValueChange={handleItemChange}
       disabled={disabled}
+      filter={isSearchable ? undefined : null}
+      inputValue={isSearchable ? searchQuery : ""}
+      onInputValueChange={isSearchable ? setSearchQuery : undefined}
+      onOpenChange={handleOpenChange}
+      itemToStringLabel={(item: ComboboxOption) => item?.label ?? ""}
       {...controlledValueProps}
     >
       <ComboboxPrimitive.Trigger
