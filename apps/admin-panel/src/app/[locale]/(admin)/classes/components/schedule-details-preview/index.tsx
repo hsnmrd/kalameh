@@ -44,23 +44,23 @@ export function ScheduleDetailsPreview({
   return (
     <div
       className={cn(
-        "flex animate-in flex-col gap-2.5 rounded-2xl border border-border/80 bg-muted/20 p-3.5 text-xs transition-all fade-in-50",
+        "flex animate-in flex-col gap-2.5 rounded-xl border border-success/25 bg-success/10 p-3.5 text-xs transition-all fade-in-50",
         className
       )}
     >
       {/* Header Row */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 font-semibold text-foreground">
-          <CalendarClock className="size-4 shrink-0 text-foreground" />
+        <div className="flex items-center gap-1.5 font-semibold text-success">
+          <CalendarClock className="size-4 shrink-0 text-success" />
           <span>{t("scheduleDetails.title")}</span>
         </div>
 
         {hasSessions && (
           <Badge
-            variant="secondary"
-            className="h-5 gap-1 px-2 text-[11px] font-medium"
+            variant="outline"
+            className="h-5 gap-1 border-success/30 bg-success/15 px-2 text-[11px] font-medium text-success"
           >
-            <CalendarCheck className="size-3 text-muted-foreground" />
+            <CalendarCheck className="size-3 text-success" />
             <span>
               {t("scheduleDetails.sessionCount", {
                 count: sortedSessionDates.length,
@@ -86,7 +86,7 @@ export function ScheduleDetailsPreview({
               <Badge
                 key={day}
                 variant="outline"
-                className="h-6 rounded-lg border-border/70 bg-background px-2 text-xs font-normal text-foreground"
+                className="h-6 rounded-lg border-success/25 bg-background/90 px-2 text-xs font-normal text-foreground"
               >
                 {dayLabel}
               </Badge>
@@ -97,10 +97,10 @@ export function ScheduleDetailsPreview({
 
       {/* Time & Session Dates Range */}
       {(hasTime || (firstSessionDate && lastSessionDate)) && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/40 pt-2 text-[11px] text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-success/20 pt-2 text-[11px] text-foreground/80">
           {hasTime && (
             <div className="flex items-center gap-1.5">
-              <Clock className="size-3.5 shrink-0 text-muted-foreground" />
+              <Clock className="size-3.5 shrink-0 text-success" />
               <span>
                 {t("scheduleDetails.timeSlot", {
                   start: startTime ?? "",
