@@ -141,7 +141,7 @@ export function ClassesList({
                 <ContextMenuItem
                   onClick={() => router.push(`/classes/${cls.id}/grades`)}
                 >
-                  <GraduationCap className="me-2 size-4 text-primary" />
+                  <GraduationCap className="me-2 size-4 text-muted-foreground" />
                   {t("grades")}
                 </ContextMenuItem>
               </PermissionGuard>

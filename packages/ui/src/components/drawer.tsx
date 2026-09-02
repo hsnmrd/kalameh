@@ -20,7 +20,7 @@ function DrawerOverlay({
 }: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>) {
   return (
     <DrawerPrimitive.Overlay
-      className={cn("fixed inset-0 z-50 bg-black/50", className)}
+      className={cn("fixed inset-0 z-[60] bg-black/50", className)}
       {...props}
     />
   )
@@ -39,7 +39,7 @@ function DrawerContent({
       <DrawerOverlay />
       <DrawerPrimitive.Content
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-card focus:outline-hidden",
+          "fixed inset-x-0 bottom-0 z-[60] mx-auto flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-card focus:outline-hidden",
           className
         )}
         {...props}

@@ -13,8 +13,15 @@ import {
   Edit2,
   CalendarCheck,
   DoorOpen,
+  MoreVertical,
 } from "lucide-react"
 import { Link } from "@/i18n/routing"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@workspace/ui/components/dropdown-menu"
 import {
   FormDialog,
   FormDialogContent,
@@ -71,15 +78,66 @@ export function ClassDetailsModal({
     <FormDialog open={open} onOpenChange={handleOpenChange}>
       <FormDialogContent className="sm:max-w-lg">
         <FormDialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-hidden"
+                aria-label={t("detailsModal.title")}
+              >
+                <MoreVertical className="size-4 text-muted-foreground" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                drawerTitle={cls.title}
+                className="min-w-48"
+              >
+                <PermissionGuard
+                  permission={[
+                    PERMISSIONS.VIEW_GRADES,
+                    PERMISSIONS.MANAGE_GRADES,
+                  ]}
+                  mode="hide"
+                >
+                  <Link href={`/classes/${cls.id}/grades`}>
+                    <DropdownMenuItem>
+                      <GraduationCap className="size-4 text-muted-foreground" />
+                      <span>{t("detailsModal.viewGrades")}</span>
+                    </DropdownMenuItem>
+                  </Link>
+                </PermissionGuard>
+
+                <PermissionGuard
+                  permission={PERMISSIONS.MANAGE_CLASSES}
+                  mode="hide"
+                >
+                  <DropdownMenuItem
+                    onClick={() => {
+                      onClose()
+                      onEdit?.(cls)
+                    }}
+                  >
+                    <Edit2 className="size-4 text-muted-foreground" />
+                    <span>{t("detailsModal.editClass")}</span>
+                  </DropdownMenuItem>
+                </PermissionGuard>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <FormDialogTitle>{t("detailsModal.title")}</FormDialogTitle>
+          </div>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
+
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+          {/* Class Overview Banner */}
+          <div className="flex items-center gap-3.5 rounded-2xl border border-border/80 bg-muted/20 p-4">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Layers className="size-5" />
             </div>
-            <div>
-              <FormDialogTitle className="text-base font-bold text-foreground sm:text-lg">
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-base font-bold text-foreground sm:text-lg">
                 {cls.title}
-              </FormDialogTitle>
-              <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+              </h3>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                 <span>{cls.course?.title || "-"}</span>
                 {cls.term?.title && (
                   <>
@@ -100,10 +158,6 @@ export function ClassDetailsModal({
               </div>
             </div>
           </div>
-          <FormDialogCloseButton />
-        </FormDialogHeader>
-
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {/* Instructor */}
@@ -308,49 +362,12 @@ export function ClassDetailsModal({
           </div>
         </div>
 
-        <FormDialogFooter className="justify-between gap-2 sm:justify-between">
-          <div className="flex items-center gap-2">
-            <PermissionGuard
-              permission={[PERMISSIONS.VIEW_GRADES, PERMISSIONS.MANAGE_GRADES]}
-              mode="hide"
-            >
-              <Link href={`/classes/${cls.id}/grades`}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 rounded-xl text-xs text-primary"
-                >
-                  <GraduationCap className="size-4" />
-                  <span>{t("detailsModal.viewGrades")}</span>
-                </Button>
-              </Link>
-            </PermissionGuard>
-
-            <PermissionGuard
-              permission={PERMISSIONS.MANAGE_CLASSES}
-              mode="hide"
-            >
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  onClose()
-                  onEdit?.(cls)
-                }}
-                className="gap-1.5 rounded-xl text-xs text-muted-foreground hover:text-foreground"
-              >
-                <Edit2 className="size-3.5" />
-                <span>{t("detailsModal.editClass")}</span>
-              </Button>
-            </PermissionGuard>
-          </div>
-
+        <FormDialogFooter>
           <Button
             type="button"
-            variant="secondary"
-            size="sm"
+            variant="outline"
             onClick={onClose}
-            className="rounded-xl text-xs"
+            className="h-11 min-w-28 rounded-xl text-sm font-medium"
           >
             {t("detailsModal.close")}
           </Button>

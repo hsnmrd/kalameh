@@ -107,6 +107,18 @@ export default function StudentsPage() {
                 student={profileStudent}
                 open={Boolean(profileStudent)}
                 onClose={() => setProfileStudent(null)}
+                onEdit={(s) => {
+                  setProfileStudent(null)
+                  setEditStudent(s)
+                }}
+                onAddNote={(s) => {
+                  setProfileStudent(null)
+                  setNoteStudent(s)
+                }}
+                onResetPassword={(s) => {
+                  setProfileStudent(null)
+                  setResetPasswordStudent(s)
+                }}
               />
 
               {/* Reset Password Modal */}

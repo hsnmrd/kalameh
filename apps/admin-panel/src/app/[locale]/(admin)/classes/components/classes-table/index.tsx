@@ -164,12 +164,13 @@ export function ClassesTable({
             >
               <Link href={`/classes/${row.original.id}/grades`}>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="h-8 gap-1.5 rounded-lg px-2.5 text-xs text-primary hover:bg-muted"
+                  className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                  aria-label={t("grades")}
+                  title={t("grades")}
                 >
-                  <GraduationCap className="size-3.5" />
-                  <span>{t("grades")}</span>
+                  <GraduationCap className="size-4" />
                 </Button>
               </Link>
             </PermissionGuard>

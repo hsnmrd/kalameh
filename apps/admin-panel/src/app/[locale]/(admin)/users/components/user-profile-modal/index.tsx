@@ -12,9 +12,16 @@ import {
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
-import { Phone } from "lucide-react"
-import type { AuthUser } from "@workspace/types"
+import { Phone, KeyRound, Edit2, Trash2, MoreVertical } from "lucide-react"
+import { PERMISSIONS, type AuthUser } from "@workspace/types"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@workspace/ui/components/dropdown-menu"
+import { PermissionGuard } from "@/components/permission-guard"
 import { UserStatusBadge } from "../user-status-badge"
 import { UserRoleBadge } from "../user-role-badge"
 
@@ -22,12 +29,18 @@ export interface UserProfileModalProps {
   user: AuthUser | null
   open: boolean
   onClose: () => void
+  onEdit?: (user: AuthUser) => void
+  onResetPassword?: (user: AuthUser) => void
+  onDelete?: (user: AuthUser) => void
 }
 
 export function UserProfileModal({
   user,
   open,
   onClose,
+  onEdit,
+  onResetPassword,
+  onDelete,
 }: UserProfileModalProps) {
   const t = useTranslations("users")
   const locale = useLocale()
@@ -58,7 +71,76 @@ export function UserProfileModal({
     <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <FormDialogContent className="sm:max-w-xl">
         <FormDialogHeader>
-          <FormDialogTitle>{t("profileModal.title")}</FormDialogTitle>
+          <div className="flex items-center gap-2">
+            {(onResetPassword || onEdit || onDelete) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-hidden"
+                  aria-label={t("actions.viewProfile")}
+                >
+                  <MoreVertical className="size-4 text-muted-foreground" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  drawerTitle={fullName}
+                  className="min-w-48"
+                >
+                  {onResetPassword && (
+                    <PermissionGuard
+                      permission={PERMISSIONS.MANAGE_USERS}
+                      mode="hide"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => {
+                          onClose()
+                          onResetPassword(user)
+                        }}
+                      >
+                        <KeyRound className="size-4 text-muted-foreground" />
+                        <span>{t("actions.resetPassword")}</span>
+                      </DropdownMenuItem>
+                    </PermissionGuard>
+                  )}
+
+                  {onEdit && (
+                    <PermissionGuard
+                      permission={PERMISSIONS.MANAGE_USERS}
+                      mode="hide"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => {
+                          onClose()
+                          onEdit(user)
+                        }}
+                      >
+                        <Edit2 className="size-4 text-muted-foreground" />
+                        <span>{t("actions.edit")}</span>
+                      </DropdownMenuItem>
+                    </PermissionGuard>
+                  )}
+
+                  {onDelete && (
+                    <PermissionGuard
+                      permission={PERMISSIONS.MANAGE_USERS}
+                      mode="hide"
+                    >
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => {
+                          onClose()
+                          onDelete(user)
+                        }}
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                        <span>{t("actions.delete")}</span>
+                      </DropdownMenuItem>
+                    </PermissionGuard>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <FormDialogTitle>{t("profileModal.title")}</FormDialogTitle>
+          </div>
           <FormDialogCloseButton />
         </FormDialogHeader>
 
@@ -193,7 +275,7 @@ export function UserProfileModal({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="h-14 min-w-28 rounded-2xl px-6 text-base font-medium"
+            className="h-11 min-w-28 rounded-xl text-sm font-medium"
           >
             {t("profileModal.close")}
           </Button>

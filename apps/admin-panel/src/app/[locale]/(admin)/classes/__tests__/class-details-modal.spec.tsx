@@ -82,8 +82,12 @@ describe("ClassDetailsModal Component", () => {
         onEdit={handleEdit}
       />
     )
+    const moreBtn = screen.getByRole("button", {
+      name: /مشخصات و جزئیات کلاس|Class Details/i,
+    })
+    fireEvent.click(moreBtn)
 
-    const editBtn = screen.getByRole("button", { name: /ویرایش کلاس/i })
+    const editBtn = screen.getByText(/ویرایش کلاس/i)
     fireEvent.click(editBtn)
 
     expect(handleClose).toHaveBeenCalled()

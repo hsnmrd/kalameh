@@ -165,11 +165,11 @@ function DropdownMenuPopup({
       <MenuPrimitive.Positioner
         sideOffset={sideOffset}
         align={align}
-        className="z-50"
+        className="z-[60]"
       >
         <MenuPrimitive.Popup
           className={cn(
-            "relative z-50 min-w-52 overflow-hidden rounded-2xl border border-border bg-popover p-1.5 text-popover-foreground shadow-xl outline-hidden transition-all data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
+            "relative z-[60] min-w-52 overflow-hidden rounded-2xl border border-border bg-popover p-1.5 text-popover-foreground shadow-xl outline-hidden transition-all data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
             className
           )}
           {...props}

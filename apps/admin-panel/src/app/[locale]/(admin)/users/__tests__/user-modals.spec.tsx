@@ -115,5 +115,40 @@ describe("User Modals", () => {
 
       expect(handleClose).toHaveBeenCalled()
     })
+
+    it("should render action buttons in footer and invoke callbacks", () => {
+      const handleClose = vi.fn()
+      const handleEdit = vi.fn()
+      const handleResetPassword = vi.fn()
+      const handleDelete = vi.fn()
+
+      render(
+        <UserProfileModal
+          user={mockUser}
+          open={true}
+          onClose={handleClose}
+          onEdit={handleEdit}
+          onResetPassword={handleResetPassword}
+          onDelete={handleDelete}
+        />
+      )
+
+      const moreBtn = screen.getByRole("button", {
+        name: /مشاهده جزئیات|View Profile/i,
+      })
+      fireEvent.click(moreBtn)
+
+      const resetPwdItem = screen.getByText(/بازنشانی رمز عبور|Reset Password/i)
+      const editItem = screen.getByText(/ویرایش مشخصات|Edit/i)
+      const deleteItem = screen.getByText(/حذف حساب کاربری|Delete/i)
+
+      expect(resetPwdItem).toBeInTheDocument()
+      expect(editItem).toBeInTheDocument()
+      expect(deleteItem).toBeInTheDocument()
+
+      fireEvent.click(editItem)
+      expect(handleClose).toHaveBeenCalled()
+      expect(handleEdit).toHaveBeenCalledWith(mockUser)
+    })
   })
 })

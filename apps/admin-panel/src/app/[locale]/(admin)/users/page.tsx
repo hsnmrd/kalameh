@@ -142,6 +142,18 @@ export default function UsersPage() {
                 user={viewProfileUser}
                 open={Boolean(viewProfileUser)}
                 onClose={() => setViewProfileUser(null)}
+                onEdit={(u) => {
+                  setViewProfileUser(null)
+                  setEditUser(u)
+                }}
+                onResetPassword={(u) => {
+                  setViewProfileUser(null)
+                  setResetPasswordUser(u)
+                }}
+                onDelete={(u) => {
+                  setViewProfileUser(null)
+                  setDeleteUser(u)
+                }}
               />
 
               {/* Edit User Modal */}

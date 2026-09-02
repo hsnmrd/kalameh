@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest"
-import { render, screen } from "../../../../../test/test-utils"
+import { render, screen, fireEvent } from "../../../../../test/test-utils"
 import { StudentProfileModal } from "../components/student-profile-modal"
 import { ResetPasswordModal } from "../components/reset-password-modal"
 import { CreateStudentModal } from "../components/create-student-modal"
@@ -88,6 +88,41 @@ describe("Student Modals", () => {
         screen.getByText("Student needs extra tutoring in listening")
       ).toBeInTheDocument()
       expect(screen.getByText(/Mohammad Ahmadi/)).toBeInTheDocument()
+    })
+
+    it("should render action buttons in footer and invoke callbacks", () => {
+      const handleClose = vi.fn()
+      const handleEdit = vi.fn()
+      const handleAddNote = vi.fn()
+      const handleResetPassword = vi.fn()
+
+      render(
+        <StudentProfileModal
+          student={mockStudent}
+          open={true}
+          onClose={handleClose}
+          onEdit={handleEdit}
+          onAddNote={handleAddNote}
+          onResetPassword={handleResetPassword}
+        />
+      )
+
+      const moreBtn = screen.getByRole("button", {
+        name: /مشاهده پرونده|View Profile/i,
+      })
+      fireEvent.click(moreBtn)
+
+      const addNoteItem = screen.getByText(/ثبت یادداشت|Add Note/i)
+      const resetPwdItem = screen.getByText(/بازنشانی رمز عبور|Reset Password/i)
+      const editItem = screen.getByText(/ویرایش مشخصات|Edit/i)
+
+      expect(addNoteItem).toBeInTheDocument()
+      expect(resetPwdItem).toBeInTheDocument()
+      expect(editItem).toBeInTheDocument()
+
+      fireEvent.click(addNoteItem)
+      expect(handleClose).toHaveBeenCalled()
+      expect(handleAddNote).toHaveBeenCalledWith(mockStudent)
     })
   })
 

@@ -13,9 +13,23 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
-import { Phone, GraduationCap } from "lucide-react"
-import type { StudentDto } from "@workspace/types"
+import {
+  Phone,
+  GraduationCap,
+  FileText,
+  KeyRound,
+  Edit2,
+  MoreVertical,
+} from "lucide-react"
+import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@workspace/ui/components/dropdown-menu"
+import { PermissionGuard } from "@/components/permission-guard"
 import { StudentStatusBadge } from "../student-status-badge"
 import { StudentProfileNotes } from "./student-profile-notes"
 
@@ -23,12 +37,18 @@ export interface StudentProfileModalProps {
   student: StudentDto | null
   open: boolean
   onClose: () => void
+  onEdit?: (student: StudentDto) => void
+  onAddNote?: (student: StudentDto) => void
+  onResetPassword?: (student: StudentDto) => void
 }
 
 export function StudentProfileModal({
   student,
   open,
   onClose,
+  onEdit,
+  onAddNote,
+  onResetPassword,
 }: StudentProfileModalProps) {
   const t = useTranslations("students")
   const locale = useLocale()
@@ -59,7 +79,75 @@ export function StudentProfileModal({
     <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <FormDialogContent className="sm:max-w-xl">
         <FormDialogHeader>
-          <FormDialogTitle>{t("profileModal.title")}</FormDialogTitle>
+          <div className="flex items-center gap-2">
+            {(onAddNote || onResetPassword || onEdit) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-hidden"
+                  aria-label={t("actions.viewProfile")}
+                >
+                  <MoreVertical className="size-4 text-muted-foreground" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  drawerTitle={fullName}
+                  className="min-w-48"
+                >
+                  {onAddNote && (
+                    <PermissionGuard
+                      permission={PERMISSIONS.MANAGE_STUDENT_NOTES}
+                      mode="hide"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => {
+                          onClose()
+                          onAddNote(student)
+                        }}
+                      >
+                        <FileText className="size-4 text-muted-foreground" />
+                        <span>{t("actions.addNote")}</span>
+                      </DropdownMenuItem>
+                    </PermissionGuard>
+                  )}
+
+                  {onResetPassword && (
+                    <PermissionGuard
+                      permission={PERMISSIONS.MANAGE_STUDENTS}
+                      mode="hide"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => {
+                          onClose()
+                          onResetPassword(student)
+                        }}
+                      >
+                        <KeyRound className="size-4 text-muted-foreground" />
+                        <span>{t("actions.resetPassword")}</span>
+                      </DropdownMenuItem>
+                    </PermissionGuard>
+                  )}
+
+                  {onEdit && (
+                    <PermissionGuard
+                      permission={PERMISSIONS.MANAGE_STUDENTS}
+                      mode="hide"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => {
+                          onClose()
+                          onEdit(student)
+                        }}
+                      >
+                        <Edit2 className="size-4 text-muted-foreground" />
+                        <span>{t("actions.edit")}</span>
+                      </DropdownMenuItem>
+                    </PermissionGuard>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <FormDialogTitle>{t("profileModal.title")}</FormDialogTitle>
+          </div>
           <FormDialogCloseButton />
         </FormDialogHeader>
 
@@ -202,7 +290,7 @@ export function StudentProfileModal({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="h-14 min-w-28 rounded-2xl px-6 text-base font-medium"
+            className="h-11 min-w-28 rounded-xl text-sm font-medium"
           >
             {t("profileModal.close")}
           </Button>
