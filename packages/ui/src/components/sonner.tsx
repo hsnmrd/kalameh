@@ -13,11 +13,46 @@ function isToastAction(target: Element) {
 export function Toaster({
   position = "bottom-center",
   toastOptions,
+  dir,
   ...props
 }: ToasterProps) {
   const { theme = "system" } = useTheme()
   const { toasts } = useSonner()
   const toasterRef = React.useRef<HTMLElement>(null)
+  const [resolvedDir, setResolvedDir] = React.useState<
+    "rtl" | "ltr" | "auto" | undefined
+  >(dir ?? "auto")
+
+  React.useEffect(() => {
+    if (dir) {
+      setResolvedDir(dir)
+      return
+    }
+
+    const updateDirection = () => {
+      if (typeof document !== "undefined") {
+        const htmlDir = document.documentElement.getAttribute("dir")
+        if (htmlDir === "rtl" || htmlDir === "ltr") {
+          setResolvedDir(htmlDir)
+        } else {
+          setResolvedDir("auto")
+        }
+      }
+    }
+
+    updateDirection()
+
+    const observer = new MutationObserver(() => {
+      updateDirection()
+    })
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["dir"],
+    })
+
+    return () => observer.disconnect()
+  }, [dir])
 
   const getClickedToast = React.useCallback(
     (target: EventTarget | null): ToastT | undefined => {
@@ -85,6 +120,7 @@ export function Toaster({
       ref={toasterRef}
       theme={theme as ToasterProps["theme"]}
       position={position}
+      dir={resolvedDir}
       className="toaster group font-sans"
       toastOptions={{
         ...toastOptions,

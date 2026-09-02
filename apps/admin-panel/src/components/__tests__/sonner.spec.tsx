@@ -50,4 +50,31 @@ describe("shared Toaster", () => {
       "false"
     )
   })
+
+  it("adapts direction based on document direction (ltr vs rtl)", async () => {
+    document.documentElement.setAttribute("dir", "ltr")
+    const { unmount } = render(<Toaster />)
+
+    act(() => {
+      toast("LTR Notification")
+    })
+
+    const ltrNotification = await screen.findByText("LTR Notification")
+    const ltrToaster = ltrNotification.closest("[data-sonner-toaster]")
+    expect(ltrToaster).toHaveAttribute("dir", "ltr")
+
+    unmount()
+    toast.dismiss()
+
+    document.documentElement.setAttribute("dir", "rtl")
+    render(<Toaster />)
+
+    act(() => {
+      toast("RTL Notification")
+    })
+
+    const rtlNotification = await screen.findByText("RTL Notification")
+    const rtlToaster = rtlNotification.closest("[data-sonner-toaster]")
+    expect(rtlToaster).toHaveAttribute("dir", "rtl")
+  })
 })
