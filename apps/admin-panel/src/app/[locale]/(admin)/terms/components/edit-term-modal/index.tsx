@@ -2,9 +2,10 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { AlertTriangle } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
   FormDialog,
@@ -23,6 +24,7 @@ import {
 } from "@workspace/ui/components/combobox"
 import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import type { TermDto, SupportedLocale } from "@workspace/types"
 import { termsResource } from "@/lib/api"
 import {
@@ -71,6 +73,27 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
       isActive: true,
     },
   })
+
+  const classesCount = term?.classesCount ?? 0
+  const hasClasses = classesCount > 0
+
+  const originalStartDate = React.useMemo(
+    () => formatDateForInput(term?.startDate),
+    [term?.startDate]
+  )
+  const originalEndDate = React.useMemo(
+    () => formatDateForInput(term?.endDate),
+    [term?.endDate]
+  )
+
+  const watchedStartDate = useWatch({ control, name: "startDate" })
+  const watchedEndDate = useWatch({ control, name: "endDate" })
+
+  const isDateChanged = Boolean(
+    hasClasses &&
+    ((watchedStartDate && watchedStartDate !== originalStartDate) ||
+      (watchedEndDate && watchedEndDate !== originalEndDate))
+  )
 
   React.useEffect(() => {
     if (term) {
@@ -164,6 +187,17 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
                 <FieldError>{errors.endDate?.message}</FieldError>
               </Field>
             </div>
+
+            {isDateChanged && (
+              <div className="flex animate-in items-start gap-2.5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs leading-relaxed text-warning fade-in-50">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
+                <span>
+                  {t("editModal.dateChangeWarning", {
+                    count: formatNumber(classesCount, locale),
+                  })}
+                </span>
+              </div>
+            )}
 
             <Field>
               <FieldLabel>{t("editModal.isActive")}</FieldLabel>

@@ -43,6 +43,7 @@
     "startDate": "Start Date",
     "endDate": "End Date",
     "isActive": "Term Active Status",
+    "dateChangeWarning": "Warning: {count} classes are already associated with this term. Changing the term dates will not automatically recalculate existing class session dates, and their schedules may require manual review.",
     "submit": "Save Changes",
     "cancel": "Cancel",
     "success": "Academic term updated successfully."
