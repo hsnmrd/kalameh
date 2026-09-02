@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Layers, Edit2, GraduationCap } from "lucide-react"
+import { Layers, Edit2, GraduationCap, Eye } from "lucide-react"
 import { Link } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -25,12 +25,14 @@ export interface ClassesTableProps {
   classes: ClassDto[] | undefined
   isLoading: boolean
   onEdit: (cls: ClassDto) => void
+  onViewDetails?: (cls: ClassDto) => void
 }
 
 export function ClassesTable({
   classes,
   isLoading,
   onEdit,
+  onViewDetails,
 }: ClassesTableProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -145,6 +147,17 @@ export function ClassesTable({
         header: t("table.actions"),
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onViewDetails?.(row.original)}
+              className="size-8 p-0 text-muted-foreground hover:text-foreground"
+              aria-label={t("table.viewDetails")}
+              title={t("table.viewDetails")}
+            >
+              <Eye className="size-4" />
+            </Button>
+
             <PermissionGuard
               permission={[PERMISSIONS.VIEW_GRADES, PERMISSIONS.MANAGE_GRADES]}
               mode="disable"
@@ -179,7 +192,7 @@ export function ClassesTable({
         ),
       },
     ],
-    [t, locale, onEdit]
+    [t, locale, onEdit, onViewDetails]
   )
 
   if (isLoading) {

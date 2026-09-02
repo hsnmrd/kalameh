@@ -19,6 +19,7 @@
     "capacity": "Capacity / Enrolled",
     "fee": "Tuition Fee",
     "actions": "Actions",
+    "viewDetails": "View Details",
     "empty": "No classes found with matching filters."
   },
   "createModal": {
@@ -107,5 +108,23 @@
     "sessionCount": "{count} sessions in term",
     "timeSlot": "{start} to {end}",
     "dateRange": "From {start} to {end}"
+  },
+  "detailsModal": {
+    "title": "Class Details & Timetable",
+    "description": "Full information, timetable, instructor, and enrollment status",
+    "teacher": "Instructor",
+    "noTeacher": "Not assigned",
+    "tuition": "Tuition Fee",
+    "enrollment": "Enrollment & Capacity",
+    "branch": "Branch",
+    "noBranch": "Online / No Branch",
+    "classroom": "Classroom",
+    "noClassroom": "No assigned room",
+    "schedule": "Schedule & Sessions",
+    "noSchedule": "No schedule configured",
+    "sessionDates": "Term Calendar Dates ({count} sessions)",
+    "viewGrades": "Gradebook",
+    "editClass": "Edit Class",
+    "close": "Close"
   }
 }

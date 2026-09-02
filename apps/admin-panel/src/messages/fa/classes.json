@@ -19,6 +19,7 @@
     "capacity": "ظرفیت / ثبت‌نامی",
     "fee": "شهریه (تومان)",
     "actions": "عملیات",
+    "viewDetails": "مشاهده جزئیات",
     "empty": "هیچ کلاسی با این مشخصات یافت نشد."
   },
   "createModal": {
@@ -107,5 +108,23 @@
     "sessionCount": "{count} جلسه در ترم",
     "timeSlot": "ساعت {start} تا {end}",
     "dateRange": "از {start} تا {end}"
+  },
+  "detailsModal": {
+    "title": "مشخصات و جزئیات کلاس",
+    "description": "اطلاعات کامل، برنامه زمانی، مدرس و وضعیت ثبت‌نام کلاس",
+    "teacher": "مدرس کلاس",
+    "noTeacher": "تعیین نشده",
+    "tuition": "شهریه مصوب",
+    "enrollment": "وضعیت ظرفیت و ثبت‌نام",
+    "branch": "شعبه برگزاری",
+    "noBranch": "آنلاین / بدون شعبه",
+    "classroom": "کلاس / اتاق فیزیکی",
+    "noClassroom": "بدون اتاق اختصاصی",
+    "schedule": "برنامه زمانی و جلسات",
+    "noSchedule": "زمان‌بندی تنظیم نشده است",
+    "sessionDates": "مشاهده تقویم جلسات ({count} جلسه)",
+    "viewGrades": "دفتر نمرات",
+    "editClass": "ویرایش کلاس",
+    "close": "بستن"
   }
 }

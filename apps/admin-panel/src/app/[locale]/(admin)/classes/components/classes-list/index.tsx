@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Layers, Edit2, GraduationCap } from "lucide-react"
+import { Layers, Edit2, GraduationCap, Eye } from "lucide-react"
 import { Link, useRouter } from "@/i18n/routing"
 import {
   MobileList,
@@ -34,9 +34,15 @@ export interface ClassesListProps {
   classes: ClassDto[] | undefined
   isLoading: boolean
   onEdit: (cls: ClassDto) => void
+  onViewDetails?: (cls: ClassDto) => void
 }
 
-export function ClassesList({ classes, isLoading, onEdit }: ClassesListProps) {
+export function ClassesList({
+  classes,
+  isLoading,
+  onEdit,
+  onViewDetails,
+}: ClassesListProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
   const router = useRouter()
@@ -74,7 +80,9 @@ export function ClassesList({ classes, isLoading, onEdit }: ClassesListProps) {
           <ContextMenu key={cls.id}>
             <ContextMenuTrigger>
               <MobileListItem
-                onClick={() => onEdit(cls)}
+                onClick={() =>
+                  onViewDetails ? onViewDetails(cls) : onEdit(cls)
+                }
                 isLast={index === classes.length - 1}
               >
                 <MobileListItemIcon>
@@ -114,6 +122,15 @@ export function ClassesList({ classes, isLoading, onEdit }: ClassesListProps) {
             </ContextMenuTrigger>
 
             <ContextMenuContent>
+              <ContextMenuItem
+                onClick={() =>
+                  onViewDetails ? onViewDetails(cls) : onEdit(cls)
+                }
+              >
+                <Eye className="me-2 size-4 text-muted-foreground" />
+                {t("table.viewDetails")}
+              </ContextMenuItem>
+
               <PermissionGuard
                 permission={[
                   PERMISSIONS.VIEW_GRADES,

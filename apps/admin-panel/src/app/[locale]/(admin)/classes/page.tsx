@@ -17,11 +17,13 @@ import { ClassesTable } from "./components/classes-table"
 import { ClassesList } from "./components/classes-list"
 import { CreateClassModal } from "./components/create-class-modal"
 import { EditClassModal } from "./components/edit-class-modal"
+import { ClassDetailsModal } from "./components/class-details-modal"
 
 export default function ClassesPage() {
   const t = useTranslations("classes")
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [editingClass, setEditingClass] = React.useState<ClassDto | null>(null)
+  const [viewingClass, setViewingClass] = React.useState<ClassDto | null>(null)
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -72,6 +74,16 @@ export default function ClassesPage() {
                 open={Boolean(editingClass)}
                 onClose={() => setEditingClass(null)}
               />
+
+              <ClassDetailsModal
+                cls={viewingClass}
+                open={Boolean(viewingClass)}
+                onClose={() => setViewingClass(null)}
+                onEdit={(cls) => {
+                  setViewingClass(null)
+                  setEditingClass(cls)
+                }}
+              />
             </>
           }
           fab={
@@ -92,6 +104,7 @@ export default function ClassesPage() {
               classes={classes}
               isLoading={isLoading}
               onEdit={(cls) => setEditingClass(cls)}
+              onViewDetails={(cls) => setViewingClass(cls)}
             />
           </div>
 
@@ -101,6 +114,7 @@ export default function ClassesPage() {
               classes={classes}
               isLoading={isLoading}
               onEdit={(cls) => setEditingClass(cls)}
+              onViewDetails={(cls) => setViewingClass(cls)}
             />
           </div>
         </AdminPageShell>
