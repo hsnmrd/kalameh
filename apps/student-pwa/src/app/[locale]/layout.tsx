@@ -79,13 +79,14 @@ export default async function LocaleLayout({
   const isRtl = isRtlLocale(locale)
   const dir = getLocaleDirection(locale)
   const fontVariable = isRtl ? yekanBakh.variable : geist.variable
+  const monoVariable = isRtl ? undefined : fontMono.variable
 
   return (
     <html
       lang={locale}
       dir={dir}
       suppressHydrationWarning
-      className={cn("font-sans antialiased", fontMono.variable, fontVariable)}
+      className={cn("font-sans antialiased", monoVariable, fontVariable)}
     >
       <body className="min-h-screen bg-background text-foreground">
         <Providers>{children}</Providers>

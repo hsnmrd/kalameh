@@ -51,6 +51,12 @@
   --font-mono: var(--font-mono);
 }
 
+html[dir="rtl"],
+html[lang^="fa"],
+[dir="rtl"] {
+  --font-mono: var(--font-sans);
+}
+
 :root {
   --background: oklch(0.985 0.008 250);
   --foreground: oklch(0.18 0.04 255);

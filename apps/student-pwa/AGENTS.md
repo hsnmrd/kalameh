@@ -4,8 +4,8 @@
 - **Multi-Language Architecture (`next-intl`):**
   - Path-based localization (`/[locale]/...`) supporting **English (`/en/...`)** and **Persian (`/fa/...`)**.
   - Localized direction & typography:
-    - English (`en`): `dir="ltr"`, Font: **Geist** (`--font-sans`).
-    - Persian (`fa`): `dir="rtl"`, Font: **Vazirmatn** (`--font-sans`).
+    - English (`en`): `dir="ltr"`, Font: **Geist** (`--font-sans`), **Geist Mono** (`--font-mono`).
+    - Persian (`fa`): `dir="rtl"`, Font: **Yekan Bakh** (`--font-sans` and `--font-mono`). **NEVER use `fontMono` / `Geist Mono` in Persian (`fa`) mode.** Any code using `font-mono` must resolve to Yekan Bakh in RTL mode.
   - Modular per-page message files in `messages/[locale]/` to optimize client bundle size.
   - **Every layout that renders `<NextIntlClientProvider>` must include `common` messages** in its `messages` object alongside feature-specific message namespaces.
 - **Layout Architecture & Base Layout:**

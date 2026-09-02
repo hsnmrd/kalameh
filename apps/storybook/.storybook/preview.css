@@ -33,6 +33,7 @@
 
 html[dir="rtl"] {
   --font-sans: var(--storybook-font-rtl);
+  --font-mono: var(--storybook-font-rtl);
 }
 
 body,
