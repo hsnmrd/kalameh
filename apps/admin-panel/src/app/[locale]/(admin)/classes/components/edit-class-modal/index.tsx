@@ -40,6 +40,7 @@ import {
 } from "../../hooks/use-class-schemas"
 import { TermDetailsPreview } from "../term-details-preview"
 import { ClassScheduleWizard } from "../class-schedule-wizard"
+import { ScheduleDetailsPreview } from "../schedule-details-preview"
 
 export interface EditClassModalProps {
   cls: ClassDto | null
@@ -398,6 +399,15 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
                 <FieldError>{errors.schedule?.message}</FieldError>
               </Field>
             </div>
+
+            {/* Schedule Details Preview */}
+            <ScheduleDetailsPreview
+              daysOfWeek={watch("daysOfWeek")}
+              sessionDates={watch("sessionDates")}
+              startTime={watch("startTime")}
+              endTime={watch("endTime")}
+              schedule={currentSchedule}
+            />
           </div>
 
           <ClassScheduleWizard

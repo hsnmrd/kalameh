@@ -101,5 +101,11 @@
       "THURSDAY": "پنج‌شنبه",
       "FRIDAY": "جمعه"
     }
+  },
+  "scheduleDetails": {
+    "title": "جزئیات زمان‌بندی و جلسات",
+    "sessionCount": "{count} جلسه در ترم",
+    "timeSlot": "ساعت {start} تا {end}",
+    "dateRange": "از {start} تا {end}"
   }
 }

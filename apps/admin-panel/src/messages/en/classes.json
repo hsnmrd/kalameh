@@ -101,5 +101,11 @@
       "THURSDAY": "Thursday",
       "FRIDAY": "Friday"
     }
+  },
+  "scheduleDetails": {
+    "title": "Schedule & Session Details",
+    "sessionCount": "{count} sessions in term",
+    "timeSlot": "{start} to {end}",
+    "dateRange": "From {start} to {end}"
   }
 }
