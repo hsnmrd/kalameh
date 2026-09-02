@@ -5,6 +5,10 @@
 - **Dev Migrations:** Always create version-controlled migrations for schema changes:
   `pnpm run db:migrate:dev --name <descriptive_name>`
   - When modifying `schema.prisma`, AI agents must immediately execute this command with a meaningful name and run `pnpm run db:generate`. Never leave schema edits unmigrated.
+- **Migration Immutability (Never Edit Existing Migrations):**
+  - **NEVER edit or modify an existing `migration.sql` file once created, applied, or committed.**
+  - Prisma records a SHA-256 checksum of every migration file in the `_prisma_migrations` table. Altering an existing migration file causes checksum mismatches that fail builds and deployments in both development (`migrate dev`) and production (`migrate deploy`).
+  - Always generate a **new, incremental migration** via `pnpm run db:migrate:dev --name <new_descriptive_name>` for any subsequent schema changes, table alterations, or data migrations.
 - **Production Migrations:** Production and CI/CD environments must ONLY run:
   `pnpm run db:migrate:deploy`
   _(Never use `db push` or `migrate dev` in production)_.
