@@ -16,6 +16,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { PriceInput } from "@workspace/ui/components/price-input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import {
   ResponsiveCombobox,
@@ -143,10 +144,16 @@ export function EditCourseModal({
 
             <Field data-invalid={Boolean(errors.baseFee)}>
               <FieldLabel>{t("editModal.baseFee")}</FieldLabel>
-              <Input
-                type="number"
-                {...register("baseFee", { valueAsNumber: true })}
-                className="font-mono"
+              <Controller
+                control={control}
+                name="baseFee"
+                render={({ field }) => (
+                  <PriceInput
+                    value={field.value}
+                    onValueChange={(val) => field.onChange(val ?? 0)}
+                    placeholder="1,000,000"
+                  />
+                )}
               />
               <FieldError>{errors.baseFee?.message}</FieldError>
             </Field>

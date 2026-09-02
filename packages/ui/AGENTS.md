@@ -9,6 +9,11 @@
 - **Price & Currency Formatting Standard:**
   - Export and maintain `<Price />` and `formatCurrency` (`src/components/price.tsx`, `src/lib/utils.ts`) for centralized 3-digit comma separation and localized currency units (`تومان` / `Toman`).
   - **Always use `num.toLocaleString("en-US")` for formatting price numbers even when the active locale is `fa`.**
+- **Price Input Standard:**
+  - Export and maintain `<PriceInput />` (`src/components/price-input.tsx`) for all price, tuition, fee, or amount input fields across apps.
+  - **Always separate the input value with commas `","` 3 by 3 from the right** for optimal user readability.
+  - **Always place the currency unit (`تومان` / `Toman`) inside the input at the end of the input.**
+  - **NEVER put the currency unit in the label of the input** (e.g. use "شهریه کلاس" instead of "شهریه کلاس (تومان)").
 - **General Number Formatting Standard:**
   - `formatNumber` (`src/lib/utils.ts`) dynamically applies active locale (`fa-IR` vs `en-US`) for count badges, pagination, and statistical totals.
 - **Theme & Dark Mode Standard (Semantic CSS Variables Only):**

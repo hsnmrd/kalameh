@@ -51,6 +51,11 @@
   - Always use `<Price amount={value} />` from `@workspace/ui/components/price` (or `formatCurrency` from `@workspace/ui/lib/utils`) to format prices.
   - **Always format price numbers with `toLocaleString("en-US")` (English digits e.g. `1,500,000 تومان`) even when the active locale is `fa`.**
   - Do NOT implement ad-hoc `formatCurrency` functions in components or pages. The centralized helper handles 3-digit comma separation and localized currency units (`تومان` / `Toman`).
+- **Price Input Standard (Formatted Digits & Embedded Currency Unit):**
+  - For all price, tuition, fee, or monetary amount inputs across apps, always use `<PriceInput />` from `@workspace/ui/components/price-input`.
+  - **Always separate the input value with commas `","` 3 by 3 from the right** (e.g. `1,500,000`) for maximum user readability.
+  - **Always place the currency unit (`تومان` / `Toman`) inside the input at the end of the input.**
+  - **NEVER put the currency unit in the label of the input** (e.g. use "شهریه کلاس" or "Class Tuition" instead of "شهریه کلاس (تومان)").
 - **General Number Formatting Standard:**
   - Use `formatNumber` from `@workspace/ui/lib/utils` for counts, indexes, and statistical numbers, which formats digits dynamically based on the active locale (`fa-IR` vs `en-US`).
 - **Theme & Dark Mode Standard (Semantic CSS Variables Only):**

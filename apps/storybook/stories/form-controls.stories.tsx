@@ -10,6 +10,7 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { PasswordInput } from "@workspace/ui/components/password-input"
+import { PriceInput } from "@workspace/ui/components/price-input"
 
 const meta = {
   title: "Inputs/Form Controls",
@@ -53,6 +54,11 @@ export const FormStates: Story = {
           id="storybook-password"
           defaultValue="storybook-password"
         />
+      </Field>
+
+      <Field>
+        <FieldLabel htmlFor="storybook-fee">Tuition fee</FieldLabel>
+        <PriceInput id="storybook-fee" locale="en" defaultValue={1500000} />
       </Field>
 
       <Field className="flex-row items-center gap-3">
@@ -99,6 +105,11 @@ export const RtlContent: Story = {
           placeholder="رمز عبور خود را وارد کنید"
           defaultValue="راز_محرمانه_۱۲۳"
         />
+      </Field>
+
+      <Field>
+        <FieldLabel htmlFor="storybook-fa-fee">شهریه دوره</FieldLabel>
+        <PriceInput id="storybook-fa-fee" locale="fa" defaultValue={2500000} />
       </Field>
     </FieldGroup>
   ),
