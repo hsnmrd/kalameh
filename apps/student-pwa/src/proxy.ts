@@ -51,12 +51,15 @@ export function proxy(request: NextRequest) {
 
   // Parse JWT token payload safely
   let isTokenValid = false
+  let tokenRole: string | null = null
+
   if (accessToken) {
     try {
       const parts = accessToken.split(".")
       if (parts.length === 3 && parts[1]) {
         const payloadJson = Buffer.from(parts[1], "base64").toString("utf-8")
         const payload = JSON.parse(payloadJson)
+        tokenRole = payload?.role ?? null
         const isExpired = payload?.exp && payload.exp * 1000 <= Date.now()
         isTokenValid = !isExpired
       }
@@ -73,6 +76,17 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  const isStudent = tokenRole === "STUDENT" || tokenRole === "SUPER_STUDENT"
+
+  // Reject and clear token if a staff or non-student user attempts to access student portal
+  if (isTokenValid && !isStudent) {
+    const loginUrl = new URL(
+      `/${locale}/login?error=staff_not_allowed`,
+      request.url
+    )
+    return createRedirectResponse(loginUrl, true)
+  }
+
   // If user is not authenticated and trying to access protected page
   if (!isTokenValid && !isAuthPage) {
     const loginUrl = new URL(`/${locale}/login`, request.url)
@@ -80,7 +94,7 @@ export function proxy(request: NextRequest) {
   }
 
   // If user is authenticated and trying to access login page or root "/"
-  if (isTokenValid && (isAuthPage || pathWithoutLocale === "/")) {
+  if (isTokenValid && isStudent && (isAuthPage || pathWithoutLocale === "/")) {
     const defaultUrl = new URL(`/${locale}/dashboard`, request.url)
     return createRedirectResponse(defaultUrl)
   }

@@ -5,7 +5,15 @@ import {
   fireEvent,
   waitFor,
 } from "../../../../../test/test-utils"
+import { toast } from "@workspace/ui/components/sonner"
 import StudentLoginPage from "../page"
+
+vi.mock("@workspace/ui/components/sonner", () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
+}))
 
 // Mock next-intl routing
 vi.mock("@/i18n/routing", () => ({
@@ -79,5 +87,21 @@ describe("StudentLoginPage Component", () => {
     })
     fireEvent.click(hideButton)
     expect(passwordInput.type).toBe("password")
+  })
+
+  it("should display error toast if error=staff_not_allowed query param is present", () => {
+    const originalLocation = window.location
+    delete (window as any).location
+    ;(window as any).location = new URL(
+      "http://localhost/fa/login?error=staff_not_allowed"
+    )
+
+    render(<StudentLoginPage />)
+
+    expect(toast.error).toHaveBeenCalledWith(
+      expect.stringMatching(/کادر اداری|Admin Panel/i)
+    )
+
+    window.location = originalLocation
   })
 })

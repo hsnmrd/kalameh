@@ -48,14 +48,36 @@ export default function StudentLoginPage() {
     },
   })
 
+  const logoutMutation = useMutation({
+    ...authResource.logout.toMutation(),
+  })
+
   const loginMutation = useMutation({
     ...authResource.login.toMutation(),
     onSuccess: (data) => {
+      const isStudent =
+        data.user.role === "STUDENT" || data.user.role === "SUPER_STUDENT"
+
+      if (!isStudent) {
+        logoutMutation.mutate(undefined)
+        toast.error(t("staffNotAllowed"))
+        return
+      }
+
       queryClient.setQueryData(authResource.me.toQuery().queryKey, data.user)
       toast.success(t("loginSuccess"))
       router.push("/dashboard")
     },
   })
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("error") === "staff_not_allowed") {
+        toast.error(t("staffNotAllowed"))
+      }
+    }
+  }, [t])
 
   const onSubmit = (formData: LoginSchemaInput) => {
     loginMutation.mutate({
