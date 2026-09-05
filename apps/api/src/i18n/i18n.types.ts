@@ -70,6 +70,8 @@ export interface TranslationDictionary {
     classAlreadyExists: string;
     classFull: string;
     invalidTermOrCourse: string;
+    classroomConflict: string;
+    teacherConflict: string;
   };
   grades: {
     gradesSubmittedSuccess: string;

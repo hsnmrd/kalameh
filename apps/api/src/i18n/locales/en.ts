@@ -93,6 +93,10 @@ export const en: TranslationDictionary = {
       'A class with these specifications already exists in this term',
     classFull: 'This class has reached its maximum capacity',
     invalidTermOrCourse: 'Selected term or course is invalid',
+    classroomConflict:
+      'Selected classroom conflicts with class "{conflictingClass}" on the chosen days and time',
+    teacherConflict:
+      'Selected teacher is already teaching in class "{conflictingClass}" on the chosen days and time',
   },
   grades: {
     gradesSubmittedSuccess:

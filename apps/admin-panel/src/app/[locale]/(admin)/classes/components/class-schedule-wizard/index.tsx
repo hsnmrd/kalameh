@@ -2,7 +2,17 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Calendar as CalendarIcon, Clock, Sparkles, Check } from "lucide-react"
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Sparkles,
+  Check,
+  AlertTriangle,
+} from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import { toast } from "@workspace/ui/components/sonner"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { classesResource } from "@/lib/api"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   FormDialog,
@@ -17,13 +27,22 @@ import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Calendar } from "@workspace/ui/components/calendar"
 import { Badge } from "@workspace/ui/components/badge"
-import { WEEK_DAYS, type WeekDay, type TermDto } from "@workspace/types"
+import {
+  WEEK_DAYS,
+  type WeekDay,
+  type TermDto,
+  type ClassConflictResult,
+} from "@workspace/types"
 import { DAY_TO_JS_DAY, PRESETS } from "@/data"
 
 export interface ClassScheduleWizardProps {
   open: boolean
   onClose: () => void
   term?: TermDto | null
+  instituteId?: string | null
+  classroomId?: string | null
+  teacherName?: string | null
+  excludeClassId?: string | null
   initialDaysOfWeek?: string[]
   initialSessionDates?: string[]
   initialStartTime?: string | null
@@ -50,6 +69,10 @@ export function ClassScheduleWizard({
   open,
   onClose,
   term,
+  instituteId,
+  classroomId,
+  teacherName,
+  excludeClassId,
   initialDaysOfWeek = EMPTY_DAYS,
   initialSessionDates = EMPTY_DAYS,
   initialStartTime = "17:00",
@@ -58,6 +81,23 @@ export function ClassScheduleWizard({
 }: ClassScheduleWizardProps) {
   const t = useTranslations("classes.scheduleWizard")
   const locale = useLocale()
+
+  const [conflictingDates, setConflictingDates] = React.useState<string[]>([])
+  const [conflictMessage, setConflictMessage] = React.useState<string | null>(
+    null
+  )
+  const [conflictResult, setConflictResult] =
+    React.useState<ClassConflictResult | null>(null)
+
+  const clearConflictState = React.useCallback(() => {
+    setConflictingDates([])
+    setConflictMessage(null)
+    setConflictResult(null)
+  }, [])
+
+  const checkConflictsMutation = useMutation({
+    ...classesResource.checkConflicts.toMutation(),
+  })
 
   const computePatternKeys = React.useCallback(
     (days: WeekDay[]) => {
@@ -121,6 +161,7 @@ export function ClassScheduleWizard({
   // Reset state when modal opens with initial values
   React.useEffect(() => {
     if (open) {
+      clearConflictState()
       const validInitialDays = initialDaysOfWeek.filter((d) =>
         WEEK_DAYS.includes(d as WeekDay)
       ) as WeekDay[]
@@ -140,9 +181,11 @@ export function ClassScheduleWizard({
     initialStartTime,
     initialEndTime,
     computePatternKeys,
+    clearConflictState,
   ])
 
   const toggleDay = (day: WeekDay) => {
+    clearConflictState()
     const nextDays = selectedDays.includes(day)
       ? selectedDays.filter((d) => d !== day)
       : [...selectedDays, day]
@@ -151,6 +194,7 @@ export function ClassScheduleWizard({
   }
 
   const applyPreset = (presetDays: WeekDay[]) => {
+    clearConflictState()
     setSelectedDays(presetDays)
     setSessionDateKeys(computePatternKeys(presetDays))
   }
@@ -166,6 +210,8 @@ export function ClassScheduleWizard({
 
     // Ignore clicks outside the selected term's range
     if (clickedDate < start || clickedDate > end) return
+
+    clearConflictState()
 
     const key = toDateKey(clickedDate)
     setSessionDateKeys((prev) => {
@@ -221,8 +267,45 @@ export function ClassScheduleWizard({
 
   const initialMonthKey = initialMonth.toISOString().slice(0, 7)
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const sortedDays = WEEK_DAYS.filter((d) => selectedDays.includes(d))
+    const sortedSessionDates = Array.from(sessionDateKeys).sort()
+
+    // Conflict check service call
+    if (
+      term?.id &&
+      (classroomId || teacherName?.trim()) &&
+      startTime &&
+      endTime
+    ) {
+      try {
+        const result = await checkConflictsMutation.mutateAsync({
+          termId: term.id,
+          classroomId: classroomId === "NONE" ? null : classroomId || null,
+          teacherName: teacherName?.trim() || null,
+          startTime,
+          endTime,
+          daysOfWeek: sortedDays,
+          sessionDates: sortedSessionDates,
+          excludeClassId: excludeClassId || null,
+          instituteId: instituteId || term.instituteId || undefined,
+        })
+
+        if (result.hasConflict) {
+          setConflictingDates(result.conflictingDates)
+          const firstMsg = result.conflicts[0]?.message || t("conflictDetected")
+          setConflictMessage(firstMsg)
+          setConflictResult(result)
+          toast.error(firstMsg)
+          return
+        }
+      } catch {
+        return
+      }
+    }
+
+    clearConflictState()
+
     const dayNames = sortedDays.map((d) => t(`days.${d}`)).join("، ")
 
     let formattedSchedule = ""
@@ -236,8 +319,6 @@ export function ClassScheduleWizard({
       }
     }
 
-    const sortedSessionDates = Array.from(sessionDateKeys).sort()
-
     onConfirm({
       daysOfWeek: sortedDays,
       sessionDates: sortedSessionDates,
@@ -247,6 +328,44 @@ export function ClassScheduleWizard({
     })
     onClose()
   }
+
+  const conflictingDateObjects = React.useMemo(() => {
+    const dates: Date[] = []
+    for (const key of conflictingDates) {
+      const parts = key.split("-")
+      const y = Number(parts[0])
+      const m = Number(parts[1])
+      const d = Number(parts[2])
+      if (y && m && d) {
+        dates.push(new Date(y, m - 1, d))
+      }
+    }
+    return dates
+  }, [conflictingDates])
+
+  const normalSessionDates = React.useMemo(() => {
+    if (conflictingDates.length === 0) return sessionDates
+    const conflictSet = new Set(conflictingDates)
+    return sessionDates.filter((d) => !conflictSet.has(toDateKey(d)))
+  }, [sessionDates, conflictingDates])
+
+  const displayedConflicts = React.useMemo(() => {
+    if (!conflictResult?.conflicts) return []
+    const classroomConflictTitles = new Set(
+      conflictResult.conflicts
+        .filter((c) => c.type === "CLASSROOM")
+        .map((c) => c.conflictingClassTitle)
+    )
+    return conflictResult.conflicts.filter((c) => {
+      if (
+        c.type === "TEACHER" &&
+        classroomConflictTitles.has(c.conflictingClassTitle)
+      ) {
+        return false
+      }
+      return true
+    })
+  }, [conflictResult?.conflicts])
 
   return (
     <FormDialog open={open} onOpenChange={(val) => !val && onClose()}>
@@ -329,7 +448,10 @@ export function ClassScheduleWizard({
                 <Input
                   type="time"
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
+                  onChange={(e) => {
+                    setStartTime(e.target.value)
+                    clearConflictState()
+                  }}
                   className="text-center font-mono"
                 />
               </Field>
@@ -338,7 +460,10 @@ export function ClassScheduleWizard({
                 <Input
                   type="time"
                   value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
+                  onChange={(e) => {
+                    setEndTime(e.target.value)
+                    clearConflictState()
+                  }}
                   className="text-center font-mono"
                 />
               </Field>
@@ -354,15 +479,85 @@ export function ClassScheduleWizard({
                   {t("calendarPreview")}
                 </span>
               </div>
-              {term && sessionDates.length > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="h-6 rounded-lg px-2 text-xs font-medium"
-                >
-                  {t("calculatedSessions", { count: sessionDates.length })}
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                {conflictingDates.length > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="h-6 rounded-lg bg-amber-500 px-2 text-xs font-medium text-white shadow-xs hover:bg-amber-600"
+                  >
+                    {t("conflictDaysCount", { count: conflictingDates.length })}
+                  </Badge>
+                )}
+                {term && sessionDates.length > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="h-6 rounded-lg px-2 text-xs font-medium"
+                  >
+                    {t("calculatedSessions", { count: sessionDates.length })}
+                  </Badge>
+                )}
+              </div>
             </div>
+
+            {/* Conflict Warning - Clean & Compact */}
+            {conflictResult &&
+            conflictResult.hasConflict &&
+            displayedConflicts.length > 0 ? (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-foreground">
+                <div className="flex items-start gap-2.5">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 font-semibold text-amber-800 dark:text-amber-300">
+                      <span>{t("conflictBannerTitle")}</span>
+                      <span className="rounded-md bg-amber-500/20 px-2 py-0.5 text-[11px] font-medium text-amber-800 dark:text-amber-300">
+                        {t("conflictDaysCount", {
+                          count: conflictResult.conflictingDates.length,
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1 text-[11px] text-muted-foreground">
+                      {displayedConflicts.map((conflict, idx) => (
+                        <div
+                          key={idx}
+                          className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-foreground"
+                        >
+                          <span className="font-medium text-amber-800 dark:text-amber-300">
+                            {conflict.type === "CLASSROOM"
+                              ? t("conflictTypeClassroom")
+                              : t("conflictTypeTeacher")}
+                            :
+                          </span>
+                          <span className="font-semibold">
+                            {conflict.conflictingClassTitle}
+                          </span>
+                          {conflict.startTime && conflict.endTime && (
+                            <span className="font-mono text-muted-foreground">
+                              ({conflict.startTime} - {conflict.endTime})
+                            </span>
+                          )}
+                          {conflict.classroomName && (
+                            <span className="text-muted-foreground">
+                              • {conflict.classroomName}
+                            </span>
+                          )}
+                          {conflict.teacherName && (
+                            <span className="text-muted-foreground">
+                              • {conflict.teacherName}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : conflictMessage ? (
+              <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                <AlertTriangle className="size-4 shrink-0" />
+                <span>{conflictMessage}</span>
+              </div>
+            ) : null}
 
             {!term ? (
               <p className="py-4 text-center text-xs text-muted-foreground">
@@ -376,10 +571,15 @@ export function ClassScheduleWizard({
                     defaultMonth={initialMonth}
                     onDayClick={handleDayClick}
                     disabled={isDateDisabled}
-                    modifiers={{ session: sessionDates }}
+                    modifiers={{
+                      session: normalSessionDates,
+                      conflict: conflictingDateObjects,
+                    }}
                     modifiersClassNames={{
                       session:
                         "!bg-primary !text-primary-foreground rounded-xl font-semibold shadow-xs hover:!bg-primary/90",
+                      conflict:
+                        "!bg-amber-500 hover:!bg-amber-600 !text-white rounded-xl font-semibold shadow-xs",
                     }}
                     locale={locale === "fa" ? "fa" : "en"}
                     className="rounded-xl border border-border bg-card shadow-2xs"
@@ -401,9 +601,15 @@ export function ClassScheduleWizard({
             type="button"
             variant="default"
             onClick={handleConfirm}
-            disabled={sessionDates.length === 0}
+            disabled={
+              sessionDates.length === 0 || checkConflictsMutation.isPending
+            }
+            className="gap-2"
           >
-            {t("confirm")}
+            {checkConflictsMutation.isPending && (
+              <Spinner className="size-3.5" />
+            )}
+            <span>{t("confirm")}</span>
           </Button>
         </FormDialogFooter>
       </FormDialogContent>

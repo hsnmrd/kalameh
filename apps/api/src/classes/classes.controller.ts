@@ -12,6 +12,7 @@ import { ClassesService } from './classes.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { ClassFilterDto } from './dto/class-filter.dto';
+import { CheckClassConflictsDto } from './dto/check-class-conflicts.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { ModulesGuard } from '../auth/guards/modules.guard';
@@ -55,6 +56,16 @@ export class ClassesController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.classesService.findOne(id, currentUser, locale);
+  }
+
+  @Post('check-conflicts')
+  @RequirePermissions(PERMISSIONS.VIEW_CLASSES)
+  async checkConflicts(
+    @Body() dto: CheckClassConflictsDto,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.classesService.checkConflicts(dto, currentUser, locale);
   }
 
   @Post()

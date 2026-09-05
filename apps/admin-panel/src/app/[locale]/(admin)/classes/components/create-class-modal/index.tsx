@@ -480,6 +480,9 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
             open={isScheduleWizardOpen}
             onClose={() => setIsScheduleWizardOpen(false)}
             term={selectedTerm}
+            instituteId={activeInstituteId || selectedTerm?.instituteId}
+            classroomId={watch("classroomId")}
+            teacherName={watch("teacherName")}
             initialDaysOfWeek={watch("daysOfWeek") || []}
             initialSessionDates={watch("sessionDates") || []}
             initialStartTime={watch("startTime")}

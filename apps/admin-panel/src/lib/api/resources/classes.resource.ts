@@ -3,6 +3,8 @@ import type {
   CreateClassInput,
   UpdateClassInput,
   ClassFilterInput,
+  CheckClassConflictsInput,
+  ClassConflictResult,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -20,5 +22,8 @@ export const classesResource = api.resource("classes", {
     {
       body: ({ body }) => body,
     }
+  ),
+  checkConflicts: api.post<ClassConflictResult, CheckClassConflictsInput>(
+    "/classes/check-conflicts"
   ),
 })

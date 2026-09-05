@@ -414,6 +414,12 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
             open={isScheduleWizardOpen}
             onClose={() => setIsScheduleWizardOpen(false)}
             term={selectedTerm}
+            instituteId={
+              activeInstituteId || selectedTerm?.instituteId || cls?.instituteId
+            }
+            classroomId={watch("classroomId")}
+            teacherName={watch("teacherName")}
+            excludeClassId={cls?.id}
             initialDaysOfWeek={watch("daysOfWeek") || []}
             initialSessionDates={watch("sessionDates") || []}
             initialStartTime={watch("startTime")}

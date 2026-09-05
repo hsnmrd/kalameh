@@ -84,6 +84,10 @@ export const fa: TranslationDictionary = {
     classAlreadyExists: 'کلاسی با این مشخصات قبلاً در این ترم ثبت شده است',
     classFull: 'ظرفیت این کلاس تکمیل شده است',
     invalidTermOrCourse: 'ترم یا سطح آموزشی انتخابی نامعتبر است',
+    classroomConflict:
+      'کلاس درس/اتاق انتخابی در این روزها و ساعات با کلاس "{conflictingClass}" تداخل دارد',
+    teacherConflict:
+      'استاد انتخابی در این روزها و ساعات در کلاس "{conflictingClass}" مشغول به تدریس است',
   },
   grades: {
     gradesSubmittedSuccess:
