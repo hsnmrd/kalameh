@@ -101,6 +101,7 @@
     "conflictDetailsTitle": "جزئیات تداخل‌های شناسایی‌شده",
     "conflictTypeClassroom": "تداخل فضای آموزشی",
     "conflictTypeTeacher": "تداخل برنامه استاد",
+    "conflictTypeTeacherFreeTime": "عدم تطابق با زمان آزاد استاد",
     "conflictClass": "کلاس متداخل: «{title}»",
     "conflictDatesList": "{count} روز تداخل",
     "showConflictDates": "مشاهده روزهای متداخل",

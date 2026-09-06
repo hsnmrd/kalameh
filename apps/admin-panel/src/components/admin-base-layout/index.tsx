@@ -82,16 +82,16 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
 
   const logoutMutate = logoutMutation.mutate
 
-  // Block student from accessing admin layout
+  // Block student and teacher from accessing admin layout
   React.useEffect(() => {
-    if (user?.role === ROLES.STUDENT) {
+    if (user?.role === ROLES.STUDENT || user?.role === ROLES.TEACHER) {
       logoutMutate()
     }
   }, [user?.role, logoutMutate])
 
   const handleLogout = () => logoutMutation.mutate()
 
-  if (user?.role === ROLES.STUDENT) {
+  if (user?.role === ROLES.STUDENT || user?.role === ROLES.TEACHER) {
     return null
   }
 

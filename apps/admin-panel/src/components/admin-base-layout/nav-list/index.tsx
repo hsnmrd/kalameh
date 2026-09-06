@@ -18,6 +18,7 @@ export type NavItemKey =
   | "branches"
   | "terms"
   | "courses"
+  | "teachers"
   | "students"
   | "staff"
   | "rolePermissions"

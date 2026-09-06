@@ -30,6 +30,7 @@ export const createUpdateClassSchema = (msg?: {
       .number()
       .min(0, msg?.feeMin ? { message: msg.feeMin } : undefined)
       .optional(),
+    teacherId: z.string().uuid().optional().nullable(),
     teacherName: z.string().trim().optional().nullable(),
     schedule: z.string().trim().optional().nullable(),
     daysOfWeek: z.array(z.string()).optional(),

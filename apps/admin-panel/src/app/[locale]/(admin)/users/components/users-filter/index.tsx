@@ -39,7 +39,6 @@ export function UsersFilter({
       { value: ROLES.ASSISTANT, label: t("roles.ASSISTANT") },
       { value: ROLES.SUPER_CLERK, label: t("roles.SUPER_CLERK") },
       { value: ROLES.CLERK, label: t("roles.CLERK") },
-      { value: ROLES.TEACHER, label: t("roles.TEACHER") },
     ]
   }, [t])
 

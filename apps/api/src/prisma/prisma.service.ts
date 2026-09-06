@@ -55,14 +55,24 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return prisma.auditLog;
   }
 
+  get teacherProfile(): typeof prisma.teacherProfile {
+    return prisma.teacherProfile;
+  }
+
+  get teacherAvailability(): typeof prisma.teacherAvailability {
+    return prisma.teacherAvailability;
+  }
+
   get client(): typeof prisma {
     return prisma;
   }
 
   $transaction<T>(
-    fn: (tx: Prisma.TransactionClient) => Promise<T>,
+    arg:
+      | ((tx: Prisma.TransactionClient) => Promise<T>)
+      | Prisma.PrismaPromise<any>[],
   ): Promise<T> {
-    return prisma.$transaction(fn);
+    return (prisma.$transaction as any)(arg);
   }
 
   async onModuleInit() {

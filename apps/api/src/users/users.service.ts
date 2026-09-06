@@ -153,13 +153,21 @@ export class UsersService {
     let roleFilter: Role | { in: Role[] } | { notIn: Role[] } | undefined;
 
     if (currentUser.role === ROLES.SUPER_ADMIN) {
-      roleFilter = role ? role : { notIn: STUDENT_ROLES };
+      if (
+        role === ROLES.STUDENT ||
+        role === ROLES.SUPER_STUDENT ||
+        role === ROLES.TEACHER
+      ) {
+        return [];
+      }
+      roleFilter = role ? role : { notIn: [...STUDENT_ROLES, ROLES.TEACHER] };
     } else if (currentUser.role === ROLES.ADMIN) {
-      // Institute Admin can only view staff/personnel accounts in /users (students are managed in /students)
+      // Institute Admin can only view administrative staff in /users (teachers in /teachers, students in /students)
       if (
         role === ROLES.SUPER_ADMIN ||
         role === ROLES.STUDENT ||
-        role === ROLES.SUPER_STUDENT
+        role === ROLES.SUPER_STUDENT ||
+        role === ROLES.TEACHER
       ) {
         return [];
       }
@@ -169,7 +177,8 @@ export class UsersService {
         role &&
         (role === ROLES.SUPER_ADMIN ||
           role === ROLES.STUDENT ||
-          role === ROLES.SUPER_STUDENT)
+          role === ROLES.SUPER_STUDENT ||
+          role === ROLES.TEACHER)
       ) {
         return [];
       }

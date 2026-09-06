@@ -14,6 +14,7 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { PriceInput } from "@workspace/ui/components/price-input"
+import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Calendar as CalendarIcon } from "lucide-react"
@@ -39,6 +40,8 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
     termOptions,
     courseOptions,
     branchOptions,
+    teacherOptions,
+    teachers,
     classroomOptions,
     filteredClassrooms,
     selectedTerm,
@@ -123,13 +126,38 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field data-invalid={Boolean(errors.teacherName)}>
+              <Field
+                data-invalid={Boolean(errors.teacherName || errors.teacherId)}
+              >
                 <FieldLabel>{t("createModal.teacherName")}</FieldLabel>
-                <Input
-                  {...register("teacherName")}
-                  placeholder={t("createModal.teacherNamePlaceholder")}
+                <Controller
+                  control={control}
+                  name="teacherId"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={teacherOptions}
+                      value={field.value || ""}
+                      onValueChange={(val) => {
+                        field.onChange(val || null)
+                        const found = teachers.find((tch) => tch.id === val)
+                        if (found) {
+                          setValue(
+                            "teacherName",
+                            `${found.firstName} ${found.lastName}`
+                          )
+                        } else if (!val) {
+                          setValue("teacherName", "")
+                        }
+                      }}
+                      placeholder={t("createModal.teacherNamePlaceholder")}
+                      drawerTitle={t("createModal.teacherName")}
+                      className="w-full"
+                    />
+                  )}
                 />
-                <FieldError>{errors.teacherName?.message}</FieldError>
+                <FieldError>
+                  {errors.teacherId?.message || errors.teacherName?.message}
+                </FieldError>
               </Field>
 
               <Field
@@ -177,6 +205,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
             term={selectedTerm}
             instituteId={activeInstituteId || selectedTerm?.instituteId}
             classroomId={watch("classroomId")}
+            teacherId={watch("teacherId")}
             teacherName={watch("teacherName")}
             initialDaysOfWeek={watch("daysOfWeek") || []}
             initialSessionDates={watch("sessionDates") || []}

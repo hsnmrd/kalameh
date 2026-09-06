@@ -519,5 +519,38 @@ describe('ClassesService', () => {
         'Existing Class Both',
       );
     });
+
+    it('should detect TEACHER_FREE_TIME conflict when proposed class is outside teacher available hours', async () => {
+      prismaService.class.findMany.mockResolvedValue([]);
+      prismaService.user.findUnique.mockResolvedValue({
+        id: 'teacher-1',
+        firstName: 'Ali',
+        lastName: 'Rezaei',
+        teacherProfile: {
+          availabilities: [
+            {
+              dayOfWeek: 'SATURDAY',
+              startTime: '10:00',
+              endTime: '14:00',
+            },
+          ],
+        },
+      });
+
+      const dto = {
+        termId: 'term-1',
+        teacherId: 'teacher-1',
+        startTime: '16:00',
+        endTime: '18:00',
+        daysOfWeek: ['SATURDAY'],
+        sessionDates: [],
+      };
+
+      const result = await service.checkConflicts(dto as any, mockAdmin);
+      expect(result.hasConflict).toBe(true);
+      expect(result.conflicts).toHaveLength(1);
+      expect(result.conflicts[0].type).toBe('TEACHER_FREE_TIME');
+      expect(result.conflictingDates).toContain('SATURDAY');
+    });
   });
 });

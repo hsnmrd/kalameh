@@ -101,6 +101,7 @@
     "conflictDetailsTitle": "Conflict Details",
     "conflictTypeClassroom": "Classroom Conflict",
     "conflictTypeTeacher": "Teacher Schedule Conflict",
+    "conflictTypeTeacherFreeTime": "Outside Teacher Available Hours",
     "conflictClass": "Conflicting Class: \"{title}\"",
     "conflictDatesList": "{count} conflicting days",
     "showConflictDates": "Show conflicting dates",

@@ -12,12 +12,13 @@ import { UpdateClassDto } from './dto/update-class.dto';
 import { ClassFilterDto } from './dto/class-filter.dto';
 import { CheckClassConflictsDto } from './dto/check-class-conflicts.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import type {
-  JwtPayload,
-  SupportedLocale,
-  ClassDto,
-  ClassConflictResult,
-  ClassConflictItem,
+import {
+  ROLES,
+  type JwtPayload,
+  type SupportedLocale,
+  type ClassDto,
+  type ClassConflictResult,
+  type ClassConflictItem,
 } from '@workspace/types';
 
 @Injectable()
@@ -335,12 +336,23 @@ export class ClassesService {
       }
     }
 
+    let resolvedTeacherName = dto.teacherName || null;
+    if (dto.teacherId && !resolvedTeacherName) {
+      const teacher = await this.prisma.user.findFirst({
+        where: { id: dto.teacherId, instituteId, role: ROLES.TEACHER },
+      });
+      if (teacher) {
+        resolvedTeacherName = `${teacher.firstName} ${teacher.lastName}`;
+      }
+    }
+
     await this.validateScheduleConflicts(
       instituteId,
       dto.termId,
       {
         classroomId: dto.classroomId,
-        teacherName: dto.teacherName,
+        teacherId: dto.teacherId,
+        teacherName: resolvedTeacherName,
         startTime: dto.startTime,
         endTime: dto.endTime,
         daysOfWeek: dto.daysOfWeek,
@@ -359,7 +371,8 @@ export class ClassesService {
         title: dto.title,
         capacity: dto.capacity,
         fee: dto.fee,
-        teacherName: dto.teacherName || null,
+        teacherId: dto.teacherId || null,
+        teacherName: resolvedTeacherName,
         schedule: dto.schedule || null,
         daysOfWeek: dto.daysOfWeek || [],
         sessionDates: dto.sessionDates || [],
@@ -502,8 +515,6 @@ export class ClassesService {
     const targetTermId = dto.termId || existing.termId;
     const targetClassroomId =
       dto.classroomId !== undefined ? dto.classroomId : existing.classroomId;
-    const targetTeacherName =
-      dto.teacherName !== undefined ? dto.teacherName : existing.teacherName;
     const targetStartTime =
       dto.startTime !== undefined ? dto.startTime : existing.startTime;
     const targetEndTime =
@@ -513,11 +524,30 @@ export class ClassesService {
     const targetSessionDates =
       dto.sessionDates !== undefined ? dto.sessionDates : existing.sessionDates;
 
+    const targetTeacherId =
+      dto.teacherId !== undefined ? dto.teacherId : (existing as any).teacherId;
+    let targetTeacherName =
+      dto.teacherName !== undefined ? dto.teacherName : existing.teacherName;
+
+    if (dto.teacherId && dto.teacherName === undefined) {
+      const teacher = await this.prisma.user.findFirst({
+        where: {
+          id: dto.teacherId,
+          instituteId: existing.instituteId,
+          role: ROLES.TEACHER,
+        },
+      });
+      if (teacher) {
+        targetTeacherName = `${teacher.firstName} ${teacher.lastName}`;
+      }
+    }
+
     await this.validateScheduleConflicts(
       existing.instituteId,
       targetTermId,
       {
         classroomId: targetClassroomId,
+        teacherId: targetTeacherId,
         teacherName: targetTeacherName,
         startTime: targetStartTime,
         endTime: targetEndTime,
@@ -542,8 +572,11 @@ export class ClassesService {
           : {}),
         ...(dto.capacity !== undefined ? { capacity: dto.capacity } : {}),
         ...(dto.fee !== undefined ? { fee: dto.fee } : {}),
-        ...(dto.teacherName !== undefined
-          ? { teacherName: dto.teacherName }
+        ...(dto.teacherId !== undefined
+          ? { teacherId: dto.teacherId || null }
+          : {}),
+        ...(targetTeacherName !== undefined
+          ? { teacherName: targetTeacherName }
           : {}),
         ...(dto.schedule !== undefined ? { schedule: dto.schedule } : {}),
         ...(dto.daysOfWeek !== undefined ? { daysOfWeek: dto.daysOfWeek } : {}),
@@ -668,7 +701,7 @@ export class ClassesService {
     }
 
     const trimmedTeacher = dto.teacherName?.trim();
-    if (!dto.classroomId && !trimmedTeacher) {
+    if (!dto.classroomId && !trimmedTeacher && !dto.teacherId) {
       return { hasConflict: false, conflictingDates: [], conflicts: [] };
     }
 
@@ -680,11 +713,16 @@ export class ClassesService {
 
     const orConditions: Array<{
       classroomId?: string;
+      teacherId?: string;
       teacherName?: { equals: string; mode: 'insensitive' };
     }> = [];
 
     if (dto.classroomId) {
       orConditions.push({ classroomId: dto.classroomId });
+    }
+
+    if (dto.teacherId) {
+      orConditions.push({ teacherId: dto.teacherId });
     }
 
     if (trimmedTeacher) {
@@ -734,6 +772,7 @@ export class ClassesService {
             name: true,
           },
         },
+        teacherId: true,
         teacherName: true,
         startTime: true,
         endTime: true,
@@ -771,9 +810,10 @@ export class ClassesService {
       );
 
       const isTeacherCollision = Boolean(
-        trimmedTeacher &&
-        this.normalizePersianText(candidate.teacherName) ===
-          this.normalizePersianText(trimmedTeacher),
+        (dto.teacherId && candidate.teacherId === dto.teacherId) ||
+        (trimmedTeacher &&
+          this.normalizePersianText(candidate.teacherName) ===
+            this.normalizePersianText(trimmedTeacher)),
       );
 
       // Check classroom collision
@@ -812,6 +852,84 @@ export class ClassesService {
           }),
           conflictingDates: collidingDates,
         });
+      }
+    }
+
+    // Check teacher free-time availability
+    if (dto.teacherId) {
+      const teacher = await this.prisma.user.findUnique({
+        where: { id: dto.teacherId },
+        include: {
+          teacherProfile: {
+            include: { availabilities: true },
+          },
+        },
+      });
+
+      if (
+        teacher?.teacherProfile?.availabilities &&
+        teacher.teacherProfile.availabilities.length > 0
+      ) {
+        const availabilities = teacher.teacherProfile.availabilities;
+        const JS_DAY_TO_WEEKDAY: Record<number, string> = {
+          0: 'SUNDAY',
+          1: 'MONDAY',
+          2: 'TUESDAY',
+          3: 'WEDNESDAY',
+          4: 'THURSDAY',
+          5: 'FRIDAY',
+          6: 'SATURDAY',
+        };
+
+        const violatingDays: string[] = [];
+        for (const day of dto.daysOfWeek ?? []) {
+          const matchingSlots = availabilities.filter(
+            (a) => a.dayOfWeek === day,
+          );
+          const fitsSlot = matchingSlots.some(
+            (slot) =>
+              slot.startTime <= dto.startTime! && slot.endTime >= dto.endTime!,
+          );
+          if (!fitsSlot) {
+            violatingDays.push(day);
+          }
+        }
+
+        const violatingDates: string[] = [];
+        for (const dateStr of dto.sessionDates ?? []) {
+          const d = new Date(dateStr);
+          if (isNaN(d.getTime())) continue;
+          const dayOfWeek = JS_DAY_TO_WEEKDAY[d.getDay()];
+          const matchingSlots = availabilities.filter(
+            (a) => a.dayOfWeek === dayOfWeek,
+          );
+          const fitsSlot = matchingSlots.some(
+            (slot) =>
+              slot.startTime <= dto.startTime! && slot.endTime >= dto.endTime!,
+          );
+          if (!fitsSlot) {
+            violatingDates.push(dateStr);
+          }
+        }
+
+        const allViolating = Array.from(
+          new Set([...violatingDays, ...violatingDates]),
+        ).sort();
+
+        if (allViolating.length > 0) {
+          allViolating.forEach((v) => allConflictingDates.add(v));
+          const teacherFullName = `${teacher.firstName} ${teacher.lastName}`;
+          conflicts.push({
+            type: 'TEACHER_FREE_TIME',
+            teacherName: teacherFullName,
+            startTime: dto.startTime,
+            endTime: dto.endTime,
+            message: this.i18n.t('classes.teacherFreeTimeConflict', locale, {
+              teacherName: teacherFullName,
+            }),
+            conflictingDates: allViolating,
+          });
+        }
       }
     }
 
@@ -891,6 +1009,7 @@ export class ClassesService {
     termId: string,
     scheduleInfo: {
       classroomId?: string | null;
+      teacherId?: string | null;
       teacherName?: string | null;
       startTime?: string | null;
       endTime?: string | null;
@@ -905,7 +1024,11 @@ export class ClassesService {
     }
 
     const trimmedTeacher = scheduleInfo.teacherName?.trim();
-    if (!scheduleInfo.classroomId && !trimmedTeacher) {
+    if (
+      !scheduleInfo.classroomId &&
+      !trimmedTeacher &&
+      !scheduleInfo.teacherId
+    ) {
       return;
     }
 
@@ -917,11 +1040,16 @@ export class ClassesService {
 
     const orConditions: Array<{
       classroomId?: string;
+      teacherId?: string;
       teacherName?: { equals: string; mode: 'insensitive' };
     }> = [];
 
     if (scheduleInfo.classroomId) {
       orConditions.push({ classroomId: scheduleInfo.classroomId });
+    }
+
+    if (scheduleInfo.teacherId) {
+      orConditions.push({ teacherId: scheduleInfo.teacherId });
     }
 
     if (trimmedTeacher) {
@@ -965,6 +1093,7 @@ export class ClassesService {
         id: true,
         title: true,
         classroomId: true,
+        teacherId: true,
         teacherName: true,
         startTime: true,
         endTime: true,
@@ -1007,16 +1136,84 @@ export class ClassesService {
       }
 
       // Check teacher collision
-      if (
-        trimmedTeacher &&
-        this.normalizePersianText(candidate.teacherName) ===
-          this.normalizePersianText(trimmedTeacher)
-      ) {
+      const isTeacherCollision = Boolean(
+        (scheduleInfo.teacherId &&
+          candidate.teacherId === scheduleInfo.teacherId) ||
+        (trimmedTeacher &&
+          this.normalizePersianText(candidate.teacherName) ===
+            this.normalizePersianText(trimmedTeacher)),
+      );
+
+      if (isTeacherCollision) {
         throw new ConflictException(
           this.i18n.t('classes.teacherConflict', locale, {
             conflictingClass: candidate.title,
           }),
         );
+      }
+    }
+
+    // Check teacher free-time availability
+    if (scheduleInfo.teacherId) {
+      const teacher = await this.prisma.user.findUnique({
+        where: { id: scheduleInfo.teacherId },
+        include: {
+          teacherProfile: {
+            include: { availabilities: true },
+          },
+        },
+      });
+
+      if (
+        teacher?.teacherProfile?.availabilities &&
+        teacher.teacherProfile.availabilities.length > 0
+      ) {
+        const availabilities = teacher.teacherProfile.availabilities;
+        const JS_DAY_TO_WEEKDAY: Record<number, string> = {
+          0: 'SUNDAY',
+          1: 'MONDAY',
+          2: 'TUESDAY',
+          3: 'WEDNESDAY',
+          4: 'THURSDAY',
+          5: 'FRIDAY',
+          6: 'SATURDAY',
+        };
+
+        const hasInvalidDay = (scheduleInfo.daysOfWeek ?? []).some((day) => {
+          const matchingSlots = availabilities.filter(
+            (a) => a.dayOfWeek === day,
+          );
+          return !matchingSlots.some(
+            (slot) =>
+              slot.startTime <= scheduleInfo.startTime! &&
+              slot.endTime >= scheduleInfo.endTime!,
+          );
+        });
+
+        const hasInvalidDate = (scheduleInfo.sessionDates ?? []).some(
+          (dateStr) => {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return false;
+            const dayOfWeek = JS_DAY_TO_WEEKDAY[d.getDay()];
+            const matchingSlots = availabilities.filter(
+              (a) => a.dayOfWeek === dayOfWeek,
+            );
+            return !matchingSlots.some(
+              (slot) =>
+                slot.startTime <= scheduleInfo.startTime! &&
+                slot.endTime >= scheduleInfo.endTime!,
+            );
+          },
+        );
+
+        if (hasInvalidDay || hasInvalidDate) {
+          const teacherFullName = `${teacher.firstName} ${teacher.lastName}`;
+          throw new ConflictException(
+            this.i18n.t('classes.teacherFreeTimeConflict', locale, {
+              teacherName: teacherFullName,
+            }),
+          );
+        }
       }
     }
   }

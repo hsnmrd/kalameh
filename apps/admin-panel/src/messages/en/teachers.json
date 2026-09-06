@@ -1,0 +1,114 @@
+{
+  "title": "Teachers & Instructors",
+  "subtitle": "Manage teachers, credentials, qualifications, and weekly available teaching hours",
+  "addTeacher": "Add Teacher",
+  "searchPlaceholder": "Search by name, phone, or national code...",
+  "filter": {
+    "all": "All Statuses",
+    "active": "Active",
+    "inactive": "Inactive",
+    "title": "Filter Teachers"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "table": {
+    "name": "Teacher Name",
+    "phone": "Phone",
+    "nationalCode": "National Code",
+    "degree": "Degree",
+    "availabilities": "Free Times",
+    "classesCount": "Classes",
+    "status": "Status",
+    "actions": "Actions",
+    "empty": "No teachers found",
+    "classesUnit": "Classes",
+    "noAvailability": "Not specified"
+  },
+  "actions": {
+    "viewProfile": "View Dossier",
+    "edit": "Edit Teacher",
+    "resetPassword": "Reset Password",
+    "delete": "Delete Teacher",
+    "deactivate": "Deactivate"
+  },
+  "createModal": {
+    "title": "Add New Teacher",
+    "description": "Enter personal information and weekly free-time availability slots.",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "e.g. John",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "e.g. Doe",
+    "phone": "Phone Number",
+    "phonePlaceholder": "09123456789",
+    "nationalCode": "National Code",
+    "nationalCodePlaceholder": "10 digits",
+    "password": "Initial Password",
+    "passwordPlaceholder": "Defaults to phone number if empty",
+    "degree": "Degree / Qualification",
+    "degreePlaceholder": "e.g. M.A. in TEFL",
+    "bio": "Bio & Experience",
+    "bioPlaceholder": "Brief teaching background and credentials...",
+    "submit": "Save Teacher",
+    "cancel": "Cancel",
+    "success": "Teacher added successfully",
+    "error": "Failed to add teacher"
+  },
+  "editModal": {
+    "title": "Edit Teacher",
+    "description": "Modify teacher personal information and weekly availability.",
+    "status": "Account Status",
+    "submit": "Save Changes",
+    "cancel": "Cancel",
+    "success": "Teacher information updated successfully",
+    "error": "Failed to update teacher"
+  },
+  "availabilities": {
+    "title": "Weekly Free Time Schedule",
+    "description": "Define the teacher's available hours to avoid scheduling conflicts during class generation.",
+    "addSlot": "Add Available Time Slot",
+    "day": "Day of Week",
+    "startTime": "Start",
+    "endTime": "End",
+    "removeSlot": "Remove",
+    "noSlots": "No availability slots defined (classes can be scheduled at any time).",
+    "slotsCount": "{count} free slots"
+  },
+  "days": {
+    "SATURDAY": "Saturday",
+    "SUNDAY": "Sunday",
+    "MONDAY": "Monday",
+    "TUESDAY": "Tuesday",
+    "WEDNESDAY": "Wednesday",
+    "THURSDAY": "Thursday",
+    "FRIDAY": "Friday"
+  },
+  "profileModal": {
+    "title": "Teacher Dossier",
+    "personalInfo": "Personal Information",
+    "academicInfo": "Credentials & Bio",
+    "freeTimeSchedule": "Free Time Schedule",
+    "classesTaught": "Taught Classes",
+    "noClasses": "No classes assigned to this teacher yet.",
+    "close": "Close"
+  },
+  "resetPasswordModal": {
+    "title": "Reset Teacher Password",
+    "description": "Enter a new password for {name}.",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Minimum 6 characters",
+    "submit": "Update Password",
+    "cancel": "Cancel",
+    "success": "Password reset successfully",
+    "error": "Failed to reset password"
+  },
+  "deleteDialog": {
+    "title": "Delete Teacher",
+    "description": "Are you sure you want to delete «{name}»? If any classes are linked, the account will be deactivated instead.",
+    "confirm": "Delete Teacher",
+    "cancel": "Cancel",
+    "success": "Teacher deleted or deactivated successfully",
+    "error": "Failed to delete teacher"
+  }
+}

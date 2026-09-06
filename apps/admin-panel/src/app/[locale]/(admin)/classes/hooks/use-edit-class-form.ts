@@ -13,6 +13,7 @@ import {
   coursesResource,
   branchesResource,
   classroomsResource,
+  teachersResource,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import {
@@ -61,6 +62,23 @@ export function useEditClassForm(
     enabled: open && !!activeInstituteId,
   })
 
+  const { data: teachers = [] } = useQuery({
+    ...teachersResource.list.toQuery({
+      ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
+      isActive: true,
+    }),
+    enabled: open && !!activeInstituteId,
+  })
+
+  const teacherOptions = React.useMemo(
+    () =>
+      teachers.map((tch) => ({
+        value: tch.id,
+        label: `${tch.firstName} ${tch.lastName}`,
+      })),
+    [teachers]
+  )
+
   const form = useForm<UpdateClassInput>({
     resolver: zodResolver(updateClassSchema),
     defaultValues: {
@@ -71,6 +89,7 @@ export function useEditClassForm(
       classroomId: null,
       capacity: 15,
       fee: 0,
+      teacherId: null,
       teacherName: "",
       schedule: "",
       daysOfWeek: [],
@@ -136,6 +155,7 @@ export function useEditClassForm(
         classroomId: cls.classroomId || null,
         capacity: cls.capacity,
         fee: cls.fee,
+        teacherId: cls.teacherId || null,
         teacherName: cls.teacherName || "",
         schedule: cls.schedule || "",
         daysOfWeek: cls.daysOfWeek || [],
@@ -175,6 +195,8 @@ export function useEditClassForm(
     termOptions,
     courseOptions,
     branchOptions,
+    teacherOptions,
+    teachers,
     classroomOptions,
     selectedTerm,
     selectedClassroom,

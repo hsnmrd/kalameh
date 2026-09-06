@@ -39,6 +39,7 @@ export const createCreateClassSchema = (msg?: {
         invalid_type_error: msg?.feeMin,
       })
       .min(0, msg?.feeMin ? { message: msg.feeMin } : undefined),
+    teacherId: z.string().uuid().optional().nullable(),
     teacherName: z.string().trim().optional().nullable(),
     schedule: z.string().trim().optional().nullable(),
     daysOfWeek: z.array(z.string()).default([]).optional(),

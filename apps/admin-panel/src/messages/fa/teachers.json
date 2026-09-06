@@ -1,0 +1,114 @@
+{
+  "title": "اساتید و مدرسین",
+  "subtitle": "مدیریت اساتید، مشخصات، مدارک و برنامه‌ریزی زمان‌های آزاد تدریس",
+  "addTeacher": "افزودن استاد",
+  "searchPlaceholder": "جستجو بر اساس نام، شماره تماس یا کد ملی...",
+  "filter": {
+    "all": "همه وضعیت‌ها",
+    "active": "فعال",
+    "inactive": "غیرفعال",
+    "title": "فیلتر اساتید"
+  },
+  "status": {
+    "active": "فعال",
+    "inactive": "غیرفعال"
+  },
+  "table": {
+    "name": "نام استاد",
+    "phone": "شماره تماس",
+    "nationalCode": "کد ملی",
+    "degree": "مدرک",
+    "availabilities": "زمان‌های آزاد",
+    "classesCount": "کلاس‌ها",
+    "status": "وضعیت",
+    "actions": "عملیات",
+    "empty": "هیچ استادی یافت نشد",
+    "classesUnit": "کلاس",
+    "noAvailability": "ثبت نشده"
+  },
+  "actions": {
+    "viewProfile": "مشاهده پرونده",
+    "edit": "ویرایش استاد",
+    "resetPassword": "تغییر رمز عبور",
+    "delete": "حذف استاد",
+    "deactivate": "غیرفعال‌سازی"
+  },
+  "createModal": {
+    "title": "افزودن استاد جدید",
+    "description": "مشخصات فردی و زمان‌های آزاد هفتگی استاد را وارد کنید.",
+    "firstName": "نام",
+    "firstNamePlaceholder": "مثلاً علی",
+    "lastName": "نام خانوادگی",
+    "lastNamePlaceholder": "مثلاً رضایی",
+    "phone": "شماره تماس",
+    "phonePlaceholder": "09123456789",
+    "nationalCode": "کد ملی",
+    "nationalCodePlaceholder": "10 رقم",
+    "password": "رمز عبور اولیه",
+    "passwordPlaceholder": "در صورت خالی ماندن، شماره تماس تنظیم می‌شود",
+    "degree": "مدرک تحصیلی",
+    "degreePlaceholder": "مثلاً کارشناسی ارشد آموزش زبان",
+    "bio": "بیوگرافی و سوابق",
+    "bioPlaceholder": "توضیح مختصری درباره سوابق تدریس...",
+    "submit": "ثبت استاد",
+    "cancel": "انصراف",
+    "success": "استاد با موفقیت افزوده شد",
+    "error": "خطا در افزودن استاد"
+  },
+  "editModal": {
+    "title": "ویرایش استاد",
+    "description": "اطلاعات و زمان‌های آزاد استاد را ویرایش نمایید.",
+    "status": "وضعیت حساب کاربری",
+    "submit": "ذخیره تغییرات",
+    "cancel": "انصراف",
+    "success": "اطلاعات استاد با موفقیت ویرایش شد",
+    "error": "خطا در ویرایش اطلاعات استاد"
+  },
+  "availabilities": {
+    "title": "برنامه زمان‌های آزاد هفتگی",
+    "description": "ساعات آزاد استاد را برای جلوگیری از تداخل در زمان تشکیل کلاس‌ها تعریف کنید.",
+    "addSlot": "افزودن بازه زمانی آزاد",
+    "day": "روز هفته",
+    "startTime": "شروع",
+    "endTime": "پایان",
+    "removeSlot": "حذف",
+    "noSlots": "زمان آزادی برای این استاد تعریف نشده است (امکان ثبت کلاس در هر ساعتی وجود دارد).",
+    "slotsCount": "{count} بازه زمانی آزاد"
+  },
+  "days": {
+    "SATURDAY": "شنبه",
+    "SUNDAY": "یکشنبه",
+    "MONDAY": "دوشنبه",
+    "TUESDAY": "سه‌شنبه",
+    "WEDNESDAY": "چهارشنبه",
+    "THURSDAY": "پنج‌شنبه",
+    "FRIDAY": "جمعه"
+  },
+  "profileModal": {
+    "title": "پرونده استاد",
+    "personalInfo": "مشخصات فردی",
+    "academicInfo": "سوابق و مدارک",
+    "freeTimeSchedule": "زمان‌بندی ساعات آزاد",
+    "classesTaught": "کلاس‌های تدریس‌شده",
+    "noClasses": "کلاسی برای این استاد یافت نشد.",
+    "close": "بستن"
+  },
+  "resetPasswordModal": {
+    "title": "تغییر رمز عبور استاد",
+    "description": "رمز عبور جدید را برای {name} وارد کنید.",
+    "newPassword": "رمز عبور جدید",
+    "newPasswordPlaceholder": "حداقل ۶ کاراکتر",
+    "submit": "تغییر رمز",
+    "cancel": "انصراف",
+    "success": "رمز عبور با موفقیت به‌روزرسانی شد",
+    "error": "خطا در تغییر رمز عبور"
+  },
+  "deleteDialog": {
+    "title": "حذف استاد",
+    "description": "آیا از حذف استاد «{name}» اطمینان دارید؟ اگر کلاسی به این استاد متصل باشد، حساب کاربری غیرفعال خواهد شد.",
+    "confirm": "حذف استاد",
+    "cancel": "انصراف",
+    "success": "استاد با موفقیت حذف یا غیرفعال شد",
+    "error": "خطا در حذف استاد"
+  }
+}

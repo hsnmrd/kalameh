@@ -14,6 +14,7 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { PriceInput } from "@workspace/ui/components/price-input"
+import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type { ClassDto } from "@workspace/types"
@@ -41,6 +42,8 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
     termOptions,
     courseOptions,
     branchOptions,
+    teacherOptions,
+    teachers,
     classroomOptions,
     selectedTerm,
     selectedClassroom,
@@ -123,13 +126,38 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field data-invalid={Boolean(errors.teacherName)}>
+              <Field
+                data-invalid={Boolean(errors.teacherName || errors.teacherId)}
+              >
                 <FieldLabel>{t("editModal.teacherName")}</FieldLabel>
-                <Input
-                  {...register("teacherName")}
-                  placeholder={t("editModal.teacherNamePlaceholder")}
+                <Controller
+                  control={control}
+                  name="teacherId"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={teacherOptions}
+                      value={field.value || ""}
+                      onValueChange={(val) => {
+                        field.onChange(val || null)
+                        const found = teachers.find((tch) => tch.id === val)
+                        if (found) {
+                          setValue(
+                            "teacherName",
+                            `${found.firstName} ${found.lastName}`
+                          )
+                        } else if (!val) {
+                          setValue("teacherName", "")
+                        }
+                      }}
+                      placeholder={t("editModal.teacherNamePlaceholder")}
+                      drawerTitle={t("editModal.teacherName")}
+                      className="w-full"
+                    />
+                  )}
                 />
-                <FieldError>{errors.teacherName?.message}</FieldError>
+                <FieldError>
+                  {errors.teacherId?.message || errors.teacherName?.message}
+                </FieldError>
               </Field>
 
               <Field
@@ -179,6 +207,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
               activeInstituteId || selectedTerm?.instituteId || cls?.instituteId
             }
             classroomId={watch("classroomId")}
+            teacherId={watch("teacherId")}
             teacherName={watch("teacherName")}
             excludeClassId={cls?.id}
             initialDaysOfWeek={watch("daysOfWeek") || []}

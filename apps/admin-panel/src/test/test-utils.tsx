@@ -16,6 +16,7 @@ import { ROLES, type AuthUser } from "@workspace/types"
 import { authResource } from "../lib/api"
 import branchesMessagesFa from "../messages/fa/branches.json"
 import classroomsMessagesFa from "../messages/fa/classrooms.json"
+import teachersMessagesFa from "../messages/fa/teachers.json"
 
 const defaultMessages = {
   auth: authMessagesFa,
@@ -27,6 +28,7 @@ const defaultMessages = {
   courses: coursesMessagesFa,
   classes: classesMessagesFa,
   classrooms: classroomsMessagesFa,
+  teachers: teachersMessagesFa,
   grades: gradesMessagesFa,
   institutes: institutesMessagesFa,
   rolePermissions: rolePermissionsMessagesFa,

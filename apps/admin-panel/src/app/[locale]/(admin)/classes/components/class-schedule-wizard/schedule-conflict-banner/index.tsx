@@ -65,7 +65,9 @@ export function ScheduleConflictBanner({
                     <span className="font-medium text-warning">
                       {conflict.type === "CLASSROOM"
                         ? t("conflictTypeClassroom")
-                        : t("conflictTypeTeacher")}
+                        : conflict.type === "TEACHER_FREE_TIME"
+                          ? t("conflictTypeTeacherFreeTime")
+                          : t("conflictTypeTeacher")}
                       :
                     </span>
                     <span className="font-semibold">

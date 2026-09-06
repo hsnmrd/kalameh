@@ -97,6 +97,8 @@ export const en: TranslationDictionary = {
       'Selected classroom conflicts with class "{conflictingClass}" on the chosen days and time',
     teacherConflict:
       'Selected teacher is already teaching in class "{conflictingClass}" on the chosen days and time',
+    teacherFreeTimeConflict:
+      "Selected class schedule is outside of the teacher's ({teacherName}) registered available hours",
   },
   grades: {
     gradesSubmittedSuccess:

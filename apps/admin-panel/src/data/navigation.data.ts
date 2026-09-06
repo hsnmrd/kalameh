@@ -10,6 +10,7 @@ import {
   Landmark,
   ShieldCheck,
   DoorOpen,
+  UserCheck,
 } from "lucide-react"
 import { PERMISSIONS, APP_MODULES } from "@workspace/types"
 import type { NavItem } from "@/components/admin-base-layout/nav-list"
@@ -63,6 +64,13 @@ export const INSTITUTE_NAV_ITEMS: NavItem[] = [
     href: "/classrooms",
     icon: DoorOpen,
     permission: PERMISSIONS.VIEW_CLASSROOMS,
+    module: APP_MODULES.CLASSES_COURSES,
+  },
+  {
+    key: "teachers",
+    href: "/teachers",
+    icon: UserCheck,
+    permission: PERMISSIONS.VIEW_TEACHERS,
     module: APP_MODULES.CLASSES_COURSES,
   },
   {

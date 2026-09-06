@@ -22,6 +22,7 @@ export const ClassSchema = z.object({
   title: z.string(),
   capacity: z.number(),
   fee: z.number(),
+  teacherId: z.string().uuid().nullable().optional(),
   teacherName: z.string().nullable().optional(),
   schedule: z.string().nullable().optional(),
   daysOfWeek: z.array(z.string()).default([]),

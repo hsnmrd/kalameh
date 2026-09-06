@@ -88,6 +88,8 @@ export const fa: TranslationDictionary = {
       'کلاس درس/اتاق انتخابی در این روزها و ساعات با کلاس "{conflictingClass}" تداخل دارد',
     teacherConflict:
       'استاد انتخابی در این روزها و ساعات در کلاس "{conflictingClass}" مشغول به تدریس است',
+    teacherFreeTimeConflict:
+      'زمان انتخابی کلاس خارج از ساعات آزاد اعلام‌شده برای استاد ({teacherName}) است',
   },
   grades: {
     gradesSubmittedSuccess:

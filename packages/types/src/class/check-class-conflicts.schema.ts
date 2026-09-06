@@ -10,6 +10,7 @@ export const CheckClassConflictsSchema = z.object({
     .optional()
     .nullable()
     .transform((val) => (val === "REMOTE" || val === "NONE" ? null : val)),
+  teacherId: z.string().uuid().optional().nullable(),
   teacherName: z.string().trim().optional().nullable(),
   startTime: z.string().trim().optional().nullable(),
   endTime: z.string().trim().optional().nullable(),
@@ -22,8 +23,8 @@ export const CheckClassConflictsSchema = z.object({
 export type CheckClassConflictsInput = z.infer<typeof CheckClassConflictsSchema>
 
 export interface ClassConflictItem {
-  type: "CLASSROOM" | "TEACHER"
-  conflictingClassTitle: string
+  type: "CLASSROOM" | "TEACHER" | "TEACHER_FREE_TIME"
+  conflictingClassTitle?: string
   conflictingClassId?: string
   message: string
   startTime?: string | null

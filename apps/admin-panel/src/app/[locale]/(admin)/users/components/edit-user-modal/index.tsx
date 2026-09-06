@@ -57,7 +57,6 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
       ROLES.SUPERVISOR,
       ROLES.SUPER_CLERK,
       ROLES.CLERK,
-      ROLES.TEACHER,
     ]
 
     return staffRoles.map((r) => ({

@@ -33,6 +33,7 @@ export interface ClassScheduleWizardProps {
   term?: TermDto | null
   instituteId?: string | null
   classroomId?: string | null
+  teacherId?: string | null
   teacherName?: string | null
   excludeClassId?: string | null
   initialDaysOfWeek?: string[]
@@ -56,6 +57,7 @@ export function ClassScheduleWizard({
   term,
   instituteId,
   classroomId,
+  teacherId,
   teacherName,
   excludeClassId,
   initialDaysOfWeek = EMPTY_DAYS,
@@ -117,7 +119,7 @@ export function ClassScheduleWizard({
 
     if (
       term?.id &&
-      (effectiveClassroomId || teacherName?.trim()) &&
+      (effectiveClassroomId || teacherId || teacherName?.trim()) &&
       startTime &&
       endTime
     ) {
@@ -125,6 +127,7 @@ export function ClassScheduleWizard({
         const result = await checkConflictsMutation.mutateAsync({
           termId: term.id,
           classroomId: effectiveClassroomId,
+          teacherId: teacherId || null,
           teacherName: teacherName?.trim() || null,
           startTime,
           endTime,

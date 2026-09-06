@@ -76,8 +76,8 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // Reject and clear token if a student attempts to access admin panel
-  if (isTokenValid && tokenRole === "STUDENT") {
+  // Reject and clear token if a student or teacher attempts to access admin panel
+  if (isTokenValid && (tokenRole === "STUDENT" || tokenRole === "TEACHER")) {
     const loginUrl = new URL(`/${locale}/login`, request.url)
     return createRedirectResponse(loginUrl, true)
   }

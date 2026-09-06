@@ -12,6 +12,7 @@ import {
   coursesResource,
   branchesResource,
   classroomsResource,
+  teachersResource,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import {
@@ -45,6 +46,13 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
     ...classroomsResource.list.toQuery(queryParams),
     enabled: open && !!activeInstituteId,
   })
+  const { data: teachers = [] } = useQuery({
+    ...teachersResource.list.toQuery({
+      ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
+      isActive: true,
+    }),
+    enabled: open && !!activeInstituteId,
+  })
 
   const termOptions = React.useMemo(
     () => terms.map((tm) => ({ value: tm.id, label: tm.title })),
@@ -57,6 +65,14 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
   const branchOptions = React.useMemo(
     () => branches.map((b) => ({ value: b.id, label: b.name })),
     [branches]
+  )
+  const teacherOptions = React.useMemo(
+    () =>
+      teachers.map((tch) => ({
+        value: tch.id,
+        label: `${tch.firstName} ${tch.lastName}`,
+      })),
+    [teachers]
   )
 
   const singleBranchId = branches.length === 1 ? branches[0]?.id || null : null
@@ -71,6 +87,7 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
       classroomId: null,
       capacity: 15,
       fee: 1500000,
+      teacherId: null,
       teacherName: "",
       schedule: "",
       daysOfWeek: [],
@@ -190,6 +207,7 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
         classroomId: null,
         capacity: 15,
         fee: courses[0]?.baseFee || 1500000,
+        teacherId: null,
         teacherName: "",
         schedule: "",
         daysOfWeek: [],
@@ -232,6 +250,8 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
     termOptions,
     courseOptions,
     branchOptions,
+    teacherOptions,
+    teachers,
     classroomOptions,
     filteredClassrooms,
     selectedTerm,
