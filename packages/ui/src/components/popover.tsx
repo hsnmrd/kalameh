@@ -64,6 +64,8 @@ export interface ResponsivePopoverProps {
   onOpenChange: (open: boolean) => void
   trigger: React.ReactElement
   drawerTitle: React.ReactNode
+  onClear?: () => void
+  clearLabel?: string
   children: React.ReactNode
   className?: string
   drawerClassName?: string
@@ -77,6 +79,8 @@ export function ResponsivePopover({
   onOpenChange,
   trigger,
   drawerTitle,
+  onClear,
+  clearLabel = "پاک کردن",
   children,
   className,
   drawerClassName,
@@ -91,8 +95,19 @@ export function ResponsivePopover({
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className={drawerClassName}>
-          <DrawerHeader>
+          <DrawerHeader className="flex flex-row items-center justify-between">
             <DrawerTitle>{drawerTitle}</DrawerTitle>
+            {onClear && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onClear}
+                className="h-auto p-1 text-xs font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                {clearLabel}
+              </Button>
+            )}
           </DrawerHeader>
           <div
             className={cn(

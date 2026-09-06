@@ -99,13 +99,23 @@ export function DatePicker({
         drawerTitle={
           drawerTitle ?? (locale === "fa" ? "انتخاب تاریخ" : "Select date")
         }
+        onClear={
+          clearable && selectedDate
+            ? () => {
+                onChange?.(undefined)
+                setOpen(false)
+              }
+            : undefined
+        }
+        clearLabel={locale === "fa" ? "پاک کردن" : "Clear"}
         className="w-auto border-0 bg-transparent p-0 shadow-none"
         drawerBodyClassName="flex justify-center px-4"
         trigger={
-          <button
+          <Button
             type="button"
+            variant="ghost"
             disabled={disabled}
-            className="flex h-full min-w-0 flex-1 cursor-pointer items-center gap-2 text-start text-sm outline-hidden select-none disabled:cursor-not-allowed"
+            className="flex h-full min-w-0 flex-1 cursor-pointer items-center justify-start gap-2 p-0 text-start text-sm font-normal outline-hidden select-none hover:bg-transparent disabled:cursor-not-allowed"
           >
             <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
             <span
@@ -116,7 +126,7 @@ export function DatePicker({
             >
               {formattedDisplay || placeholder}
             </span>
-          </button>
+          </Button>
         }
       >
         <Calendar

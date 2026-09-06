@@ -278,10 +278,21 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
         }}
       >
         <DrawerContent>
-          <DrawerHeader>
+          <DrawerHeader className="flex flex-row items-center justify-between">
             <DrawerTitle>
               {drawerTitle || (isFa ? "انتخاب گزینه" : "Select option")}
             </DrawerTitle>
+            {comboboxProps.clearable !== false && selectedItem && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClear}
+                className="h-auto p-1 text-xs font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                {isFa ? "پاک کردن" : "Clear"}
+              </Button>
+            )}
           </DrawerHeader>
 
           {isSearchable && (
@@ -300,16 +311,6 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
           )}
 
           <div className="flex-1 space-y-1.5 overflow-y-auto overscroll-contain p-3">
-            {comboboxProps.clearable !== false && selectedItem && (
-              <button
-                type="button"
-                onClick={handleClear}
-                className="flex min-h-12 w-full cursor-pointer items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
-              >
-                <X className="size-4 shrink-0" />
-                <span>{isFa ? "پاک کردن انتخاب" : "Clear selection"}</span>
-              </button>
-            )}
             {filtered.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-muted-foreground">
                 {props.emptyMessage ??
@@ -319,15 +320,16 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
               filtered.map((item) => {
                 const isSelected = item.value === selectedValue
                 return (
-                  <button
+                  <Button
                     key={item.value}
                     type="button"
+                    variant="ghost"
                     disabled={item.disabled}
                     onClick={() => handleSelect(item)}
                     className={cn(
                       "flex min-h-13 w-full cursor-pointer items-center justify-between rounded-xl px-4 py-3.5 text-base font-medium transition-colors disabled:opacity-50",
                       isSelected
-                        ? "bg-primary/10 font-semibold text-primary"
+                        ? "bg-primary/10 font-semibold text-primary hover:bg-primary/15 hover:text-primary"
                         : "text-foreground hover:bg-muted/60 active:bg-muted"
                     )}
                   >
@@ -335,7 +337,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
                     {isSelected && (
                       <Check className="size-5 shrink-0 text-primary" />
                     )}
-                  </button>
+                  </Button>
                 )
               })
             )}
