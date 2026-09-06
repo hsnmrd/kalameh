@@ -52,15 +52,15 @@ export function ScheduleCalendarPreview({
 
   return (
     <div className="space-y-3 border-t border-border pt-4">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-foreground">
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0 truncate text-xs font-medium text-foreground">
           {t("calendarPreview")}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
           {conflictingDates.length > 0 && (
             <Badge
               variant="destructive"
-              className="h-6 rounded-lg bg-warning px-2 text-xs font-medium text-warning-foreground shadow-xs hover:bg-warning/90"
+              className="h-6 shrink-0 rounded-lg bg-warning px-2 text-xs font-medium whitespace-nowrap text-warning-foreground shadow-xs hover:bg-warning/90"
             >
               {t("conflictDaysCount", { count: conflictingDates.length })}
             </Badge>
@@ -68,7 +68,7 @@ export function ScheduleCalendarPreview({
           {term && sessionDates.length > 0 && (
             <Badge
               variant="secondary"
-              className="h-6 rounded-lg px-2 text-xs font-medium"
+              className="h-6 shrink-0 rounded-lg px-2 text-xs font-medium whitespace-nowrap"
             >
               {t("calculatedSessions", { count: sessionDates.length })}
             </Badge>

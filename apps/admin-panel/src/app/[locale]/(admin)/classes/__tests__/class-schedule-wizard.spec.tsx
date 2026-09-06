@@ -58,7 +58,7 @@ describe("ClassScheduleWizard Component", () => {
     fireEvent.click(evenPresetBtn)
 
     // Verify session badge displays calculated sessions
-    expect(screen.getByText(/جلسه در طول ترم/i)).toBeInTheDocument()
+    expect(screen.getByText(/جلسه در ترم/i)).toBeInTheDocument()
   })
 
   it("should call onConfirm with formatted schedule when confirm button is clicked", () => {
@@ -121,7 +121,7 @@ describe("ClassScheduleWizard Component", () => {
     )
 
     // Initial session count badge
-    const badge = screen.getByText(/جلسه در طول ترم/i)
+    const badge = screen.getByText(/جلسه در ترم/i)
     const initialText = badge.textContent
 
     // Find day buttons in the calendar table
@@ -182,7 +182,7 @@ describe("ClassScheduleWizard Component", () => {
       />
     )
 
-    const badge = screen.getByText(/جلسه در طول ترم/i)
+    const badge = screen.getByText(/جلسه در ترم/i)
     const initialText = badge.textContent
 
     const dayButtons = screen.getAllByRole("button").filter((btn) => {
@@ -232,7 +232,7 @@ describe("ClassScheduleWizard Component", () => {
       />
     )
 
-    const reOpenedBadge = screen.getByText(/جلسه در طول ترم/i)
+    const reOpenedBadge = screen.getByText(/جلسه در ترم/i)
     expect(reOpenedBadge.textContent).toContain(
       String(capturedSessionDates.length)
     )

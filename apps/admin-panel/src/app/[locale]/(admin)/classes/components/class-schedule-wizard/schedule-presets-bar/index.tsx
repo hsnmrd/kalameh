@@ -49,7 +49,6 @@ export function SchedulePresetsBar({
         <Carousel
           opts={{
             align: "start",
-            dragFree: true,
             containScroll: "trimSnaps",
           }}
           className="w-full"
@@ -61,24 +60,23 @@ export function SchedulePresetsBar({
                 preset.days.every((d) => selectedDays.includes(d))
 
               return (
-                <CarouselItem
-                  key={preset.id}
-                  className="basis-[42%] ps-2 sm:basis-auto"
-                >
+                <CarouselItem key={preset.id} className="basis-auto ps-2">
                   <Button
                     type="button"
                     variant={isActive ? "secondary" : "outline"}
                     size="sm"
                     onClick={() => onApplyPreset(preset.days)}
                     className={cn(
-                      "h-8 w-full justify-center rounded-xl px-3 text-xs font-medium transition-colors sm:w-auto",
+                      "h-8 shrink-0 justify-center rounded-xl px-3 text-xs font-medium transition-colors",
                       isActive
                         ? "border border-primary/40 bg-primary/10 font-semibold text-primary"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >
                     {isActive && <Check className="me-1 size-3 text-primary" />}
-                    <span className="truncate">{t(preset.titleKey)}</span>
+                    <span className="whitespace-nowrap">
+                      {t(preset.titleKey)}
+                    </span>
                   </Button>
                 </CarouselItem>
               )
