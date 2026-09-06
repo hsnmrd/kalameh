@@ -40,6 +40,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
     courseOptions,
     branchOptions,
     classroomOptions,
+    filteredClassrooms,
     selectedTerm,
     selectedClassroom,
     classCapacity,
@@ -88,6 +89,7 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
               errors={errors}
               branchOptions={branchOptions}
               classroomOptions={classroomOptions}
+              classrooms={filteredClassrooms}
               selectedClassroom={selectedClassroom}
               classCapacity={classCapacity}
               isCapacityExceeded={isCapacityExceeded}

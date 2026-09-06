@@ -219,7 +219,9 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
     createMutation.mutate({
       ...values,
       classroomId:
-        values.classroomId === "NONE" ? null : values.classroomId || null,
+        values.classroomId === "NONE" || values.classroomId === "REMOTE"
+          ? null
+          : values.classroomId || null,
       instituteId: activeInstituteId || undefined,
     })
   }
@@ -231,6 +233,7 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
     courseOptions,
     branchOptions,
     classroomOptions,
+    filteredClassrooms,
     selectedTerm,
     selectedClassroom,
     classCapacity,

@@ -138,5 +138,20 @@
     "viewGrades": "Gradebook",
     "editClass": "Edit Class",
     "close": "Close"
+  },
+  "classroomPicker": {
+    "title": "Select Physical Classroom",
+    "description": "Choose a classroom or physical room from the list.",
+    "searchPlaceholder": "Search room name or description...",
+    "clearSearch": "Clear search",
+    "noClassroom": "No Room / Online Class",
+    "noClassroomDesc": "Online sessions or without dedicated physical space",
+    "capacity": "Capacity: {count} seats",
+    "capacityWarning": "Room capacity is less than class capacity",
+    "selected": "Selected",
+    "empty": "No classrooms registered for this branch.",
+    "noResults": "No classrooms match your search.",
+    "remoteClass": "Online Class / No Physical Room",
+    "remoteBadge": "Online / Remote"
   }
 }
