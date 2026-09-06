@@ -107,6 +107,12 @@ export function useEditClassForm(
     [terms, selectedTermId]
   )
 
+  const selectedTeacherId = watch("teacherId")
+  const selectedTeacher = React.useMemo(
+    () => teachers.find((tch) => tch.id === selectedTeacherId) || null,
+    [teachers, selectedTeacherId]
+  )
+
   const selectedBranchId = watch("branchId")
   const filteredClassrooms = React.useMemo(() => {
     if (!selectedBranchId) return classrooms
@@ -199,6 +205,7 @@ export function useEditClassForm(
     teachers,
     classroomOptions,
     selectedTerm,
+    selectedTeacher,
     selectedClassroom,
     classCapacity,
     isCapacityExceeded,

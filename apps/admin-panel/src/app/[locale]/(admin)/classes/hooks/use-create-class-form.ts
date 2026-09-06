@@ -106,6 +106,12 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
     [terms, selectedTermId]
   )
 
+  const selectedTeacherId = watch("teacherId")
+  const selectedTeacher = React.useMemo(
+    () => teachers.find((tch) => tch.id === selectedTeacherId) || null,
+    [teachers, selectedTeacherId]
+  )
+
   const selectedBranchId = watch("branchId")
   const filteredClassrooms = React.useMemo(() => {
     if (!selectedBranchId) return classrooms
@@ -255,6 +261,7 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
     classroomOptions,
     filteredClassrooms,
     selectedTerm,
+    selectedTeacher,
     selectedClassroom,
     classCapacity,
     isCapacityExceeded,

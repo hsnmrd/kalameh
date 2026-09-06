@@ -21,9 +21,11 @@ import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   WEEK_DAYS,
   type TermDto,
+  type TeacherDto,
   type ClassConflictResult,
 } from "@workspace/types"
 import { useClassScheduleState } from "../../hooks/use-class-schedule-state"
+import { TeacherSchedulePreview } from "../teacher-schedule-preview"
 import { SchedulePresetsBar } from "./schedule-presets-bar"
 import { ScheduleCalendarPreview } from "./schedule-calendar-preview"
 
@@ -31,6 +33,7 @@ export interface ClassScheduleWizardProps {
   open: boolean
   onClose: () => void
   term?: TermDto | null
+  teacher?: TeacherDto | null
   instituteId?: string | null
   classroomId?: string | null
   teacherId?: string | null
@@ -55,6 +58,7 @@ export function ClassScheduleWizard({
   open,
   onClose,
   term,
+  teacher,
   instituteId,
   classroomId,
   teacherId,
@@ -177,6 +181,8 @@ export function ClassScheduleWizard({
         </FormDialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+          {teacher && <TeacherSchedulePreview teacher={teacher} />}
+
           <SchedulePresetsBar
             selectedDays={selectedDays}
             onApplyPreset={applyPreset}

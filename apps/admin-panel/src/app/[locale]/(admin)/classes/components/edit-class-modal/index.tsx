@@ -46,6 +46,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
     teachers,
     classroomOptions,
     selectedTerm,
+    selectedTeacher,
     selectedClassroom,
     classCapacity,
     isCapacityExceeded,
@@ -165,11 +166,13 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
                 className="min-w-0"
               >
                 <FieldLabel>{t("editModal.schedule")}</FieldLabel>
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  disabled={!selectedTeacher}
                   onClick={() => setIsScheduleWizardOpen(true)}
                   className={cn(
-                    "flex h-14 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-border bg-background px-4 text-base shadow-2xs transition-colors hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden",
+                    "flex h-14 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-border bg-background px-4 text-base shadow-2xs transition-colors hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
                     errors.schedule &&
                       "border-destructive ring-1 ring-destructive"
                   )}
@@ -185,7 +188,12 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
                     {currentSchedule || t("scheduleWizard.noScheduleSet")}
                   </span>
                   <CalendarIcon className="size-5 shrink-0 text-muted-foreground" />
-                </button>
+                </Button>
+                {!selectedTeacher && (
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    {t("editModal.selectTeacherFirst")}
+                  </p>
+                )}
                 <FieldError>{errors.schedule?.message}</FieldError>
               </Field>
             </div>
@@ -203,6 +211,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
             open={isScheduleWizardOpen}
             onClose={() => setIsScheduleWizardOpen(false)}
             term={selectedTerm}
+            teacher={selectedTeacher}
             instituteId={
               activeInstituteId || selectedTerm?.instituteId || cls?.instituteId
             }

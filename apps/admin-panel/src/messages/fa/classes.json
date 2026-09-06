@@ -43,6 +43,7 @@
     "teacherNamePlaceholder": "مثلاً دکتر محمدی",
     "schedule": "برنامه زمانی (مثلاً: زوج ۱۷:۰۰ تا ۱۸:۳۰)",
     "schedulePlaceholder": "زوج ۱۷:۰۰ تا ۱۸:۳۰",
+    "selectTeacherFirst": "برای تنظیم برنامه کلاسی، ابتدا مدرس / استاد را انتخاب کنید.",
     "termDatesLabel": "بازه زمانی ترم:",
     "toDateSeparator": "تا",
     "activeTermBadge": "ترم فعال",
@@ -71,6 +72,7 @@
     "teacherNamePlaceholder": "نام مدرس",
     "schedule": "برنامه زمانی",
     "schedulePlaceholder": "برنامه زمانی",
+    "selectTeacherFirst": "برای تنظیم برنامه کلاسی، ابتدا مدرس / استاد را انتخاب کنید.",
     "submit": "ذخیره تغییرات",
     "cancel": "انصراف",
     "success": "مشخصات کلاس با موفقیت به‌روزرسانی شد."
@@ -115,6 +117,11 @@
       "THURSDAY": "پنج‌شنبه",
       "FRIDAY": "جمعه"
     }
+  },
+  "teacherSchedule": {
+    "title": "زمان‌های آزاد تدریس استاد",
+    "slotsCount": "{count} بازه زمانی آزاد",
+    "noRestrictions": "ساعات آزادی برای این استاد محدود نشده است (امکان انتخاب هر ساعتی وجود دارد)."
   },
   "scheduleDetails": {
     "title": "جزئیات زمان‌بندی و جلسات",

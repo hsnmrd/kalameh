@@ -43,6 +43,7 @@
     "teacherNamePlaceholder": "e.g. John Doe",
     "schedule": "Schedule (e.g. Mon, Wed 17:00-18:30)",
     "schedulePlaceholder": "Mon, Wed 17:00-18:30",
+    "selectTeacherFirst": "Please select a teacher first before configuring the class schedule.",
     "termDatesLabel": "Term duration:",
     "toDateSeparator": "to",
     "activeTermBadge": "Active Term",
@@ -71,6 +72,7 @@
     "teacherNamePlaceholder": "Teacher Name",
     "schedule": "Schedule",
     "schedulePlaceholder": "Schedule",
+    "selectTeacherFirst": "Please select a teacher first before configuring the class schedule.",
     "submit": "Save Changes",
     "cancel": "Cancel",
     "success": "Class updated successfully."
@@ -115,6 +117,11 @@
       "THURSDAY": "Thursday",
       "FRIDAY": "Friday"
     }
+  },
+  "teacherSchedule": {
+    "title": "Teacher Available Hours",
+    "slotsCount": "{count} free-time slots",
+    "noRestrictions": "No restricted hours defined for this teacher (classes can be scheduled at any time)."
   },
   "scheduleDetails": {
     "title": "Schedule & Session Details",
