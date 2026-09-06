@@ -110,16 +110,21 @@ export function ClassScheduleWizard({
     const sortedDays = WEEK_DAYS.filter((d) => selectedDays.includes(d))
     const sortedSessionDates = Array.from(sessionDateKeys).sort()
 
+    const effectiveClassroomId =
+      classroomId === "NONE" || classroomId === "REMOTE"
+        ? null
+        : classroomId || null
+
     if (
       term?.id &&
-      (classroomId || teacherName?.trim()) &&
+      (effectiveClassroomId || teacherName?.trim()) &&
       startTime &&
       endTime
     ) {
       try {
         const result = await checkConflictsMutation.mutateAsync({
           termId: term.id,
-          classroomId: classroomId === "NONE" ? null : classroomId || null,
+          classroomId: effectiveClassroomId,
           teacherName: teacherName?.trim() || null,
           startTime,
           endTime,

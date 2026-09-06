@@ -2,7 +2,14 @@ import { z } from "zod"
 
 export const CheckClassConflictsSchema = z.object({
   termId: z.string().uuid(),
-  classroomId: z.string().uuid().optional().nullable(),
+  classroomId: z
+    .string()
+    .uuid()
+    .or(z.literal("REMOTE"))
+    .or(z.literal("NONE"))
+    .optional()
+    .nullable()
+    .transform((val) => (val === "REMOTE" || val === "NONE" ? null : val)),
   teacherName: z.string().trim().optional().nullable(),
   startTime: z.string().trim().optional().nullable(),
   endTime: z.string().trim().optional().nullable(),
