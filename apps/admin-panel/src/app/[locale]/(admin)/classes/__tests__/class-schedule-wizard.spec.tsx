@@ -32,7 +32,7 @@ describe("ClassScheduleWizard Component", () => {
     )
 
     expect(
-      screen.getByRole("heading", { name: /تنظیم برنامه زمانی و روزهای کلاس/i })
+      screen.getByRole("heading", { name: /تنظیم برنامه کلاس/i })
     ).toBeInTheDocument()
     expect(screen.getByText(/الگوهای سریع/i)).toBeInTheDocument()
     expect(screen.getByText(/روزهای زوج/i)).toBeInTheDocument()
@@ -78,7 +78,7 @@ describe("ClassScheduleWizard Component", () => {
     )
 
     const confirmBtn = screen.getByRole("button", {
-      name: /تأیید و اعمال برنامه/i,
+      name: /اعمال برنامه/i,
     })
     fireEvent.click(confirmBtn)
 
@@ -213,7 +213,7 @@ describe("ClassScheduleWizard Component", () => {
     expect(badge.textContent).not.toEqual(initialText)
 
     const confirmBtn = screen.getByRole("button", {
-      name: /تأیید و اعمال برنامه/i,
+      name: /اعمال برنامه/i,
     })
     fireEvent.click(confirmBtn)
     expect(handleConfirm).toHaveBeenCalled()
@@ -273,7 +273,7 @@ describe("ClassScheduleWizard Component", () => {
     )
 
     const confirmBtn = screen.getByRole("button", {
-      name: /تأیید و اعمال برنامه/i,
+      name: /اعمال برنامه/i,
     })
     fireEvent.click(confirmBtn)
 
@@ -329,7 +329,7 @@ describe("ClassScheduleWizard Component", () => {
     )
 
     const confirmBtn = screen.getByRole("button", {
-      name: /تأیید و اعمال برنامه/i,
+      name: /اعمال برنامه/i,
     })
     fireEvent.click(confirmBtn)
 
@@ -379,7 +379,7 @@ describe("ClassScheduleWizard Component", () => {
     )
 
     const confirmBtn = screen.getByRole("button", {
-      name: /تأیید و اعمال برنامه/i,
+      name: /اعمال برنامه/i,
     })
     fireEvent.click(confirmBtn)
 
@@ -442,7 +442,7 @@ describe("ClassScheduleWizard Component", () => {
     )
 
     const confirmBtn = screen.getByRole("button", {
-      name: /تأیید و اعمال برنامه/i,
+      name: /اعمال برنامه/i,
     })
     fireEvent.click(confirmBtn)
 
