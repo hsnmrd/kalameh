@@ -22,19 +22,15 @@ import {
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
-import { type TeacherDto } from "@workspace/types"
 import { teachersResource } from "@/lib/api"
 import {
   useUpdateTeacherSchema,
   type UpdateTeacherInput,
 } from "../../hooks/use-teacher-schemas"
 import { AvailabilityEditor } from "../availability-editor"
+import type { EditTeacherModalProps } from "./types"
 
-export interface EditTeacherModalProps {
-  teacher: TeacherDto | null
-  open: boolean
-  onClose: () => void
-}
+export type { EditTeacherModalProps } from "./types"
 
 export function EditTeacherModal({
   teacher,

@@ -18,39 +18,14 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
-import {
-  WEEK_DAYS,
-  type TermDto,
-  type TeacherDto,
-  type ClassConflictResult,
-} from "@workspace/types"
+import { WEEK_DAYS, type ClassConflictResult } from "@workspace/types"
 import { useClassScheduleState } from "../../hooks/use-class-schedule-state"
 import { TeacherSchedulePreview } from "../teacher-schedule-preview"
 import { SchedulePresetsBar } from "./schedule-presets-bar"
 import { ScheduleCalendarPreview } from "./schedule-calendar-preview"
+import type { ClassScheduleWizardProps } from "./types"
 
-export interface ClassScheduleWizardProps {
-  open: boolean
-  onClose: () => void
-  term?: TermDto | null
-  teacher?: TeacherDto | null
-  instituteId?: string | null
-  classroomId?: string | null
-  teacherId?: string | null
-  teacherName?: string | null
-  excludeClassId?: string | null
-  initialDaysOfWeek?: string[]
-  initialSessionDates?: string[]
-  initialStartTime?: string | null
-  initialEndTime?: string | null
-  onConfirm: (data: {
-    daysOfWeek: string[]
-    sessionDates: string[]
-    startTime: string | null
-    endTime: string | null
-    formattedSchedule: string
-  }) => void
-}
+export type { ClassScheduleValue, ClassScheduleWizardProps } from "./types"
 
 const EMPTY_DAYS: string[] = []
 

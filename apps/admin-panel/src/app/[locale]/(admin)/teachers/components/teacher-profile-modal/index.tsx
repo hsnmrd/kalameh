@@ -1,20 +1,9 @@
 "use client"
 
 import * as React from "react"
-import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import {
-  Phone,
-  GraduationCap,
-  Clock,
-  BookOpen,
-  Calendar,
-  FileText,
-  MoreVertical,
-  KeyRound,
-  Edit2,
-} from "lucide-react"
+import { GraduationCap, Clock, BookOpen, Calendar } from "lucide-react"
 import {
   FormDialog,
   FormDialogContent,
@@ -24,7 +13,6 @@ import {
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Carousel,
@@ -33,16 +21,10 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@workspace/ui/components/carousel"
-import { getAssetUrl } from "@workspace/ui/lib/utils"
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@workspace/ui/components/dropdown-menu"
-import { PermissionGuard } from "@/components/permission-guard"
-import { PERMISSIONS, type TeacherDto, type WeekDay } from "@workspace/types"
+import { type TeacherDto, type WeekDay } from "@workspace/types"
 import { teachersResource } from "@/lib/api"
+import { ProfileActions } from "./profile-actions"
+import { ProfileSummary } from "./profile-summary"
 
 export interface TeacherProfileModalProps {
   teacher: TeacherDto | null
@@ -85,55 +67,13 @@ export function TeacherProfileModal({
       <FormDialogContent className="sm:max-w-2xl">
         <FormDialogHeader>
           <div className="flex items-center gap-2">
-            {(onEdit || onResetPassword) && (
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-hidden"
-                  aria-label={t("actions.viewProfile")}
-                >
-                  <MoreVertical className="size-4 text-muted-foreground" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="start"
-                  drawerTitle={fullName}
-                  className="min-w-48"
-                >
-                  {onResetPassword && (
-                    <PermissionGuard
-                      permission={PERMISSIONS.MANAGE_TEACHERS}
-                      mode="hide"
-                    >
-                      <DropdownMenuItem
-                        onClick={() => {
-                          onClose()
-                          onResetPassword(currentTeacher)
-                        }}
-                      >
-                        <KeyRound className="size-4 text-muted-foreground" />
-                        <span>{t("actions.resetPassword")}</span>
-                      </DropdownMenuItem>
-                    </PermissionGuard>
-                  )}
-
-                  {onEdit && (
-                    <PermissionGuard
-                      permission={PERMISSIONS.MANAGE_TEACHERS}
-                      mode="hide"
-                    >
-                      <DropdownMenuItem
-                        onClick={() => {
-                          onClose()
-                          onEdit(currentTeacher)
-                        }}
-                      >
-                        <Edit2 className="size-4 text-muted-foreground" />
-                        <span>{t("actions.edit")}</span>
-                      </DropdownMenuItem>
-                    </PermissionGuard>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            <ProfileActions
+              teacher={currentTeacher}
+              fullName={fullName}
+              onClose={onClose}
+              onEdit={onEdit}
+              onResetPassword={onResetPassword}
+            />
             <FormDialogTitle>{t("profileModal.title")}</FormDialogTitle>
           </div>
           <FormDialogCloseButton />
@@ -145,62 +85,11 @@ export function TeacherProfileModal({
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-            {/* Dossier Header Card */}
-            <div className="flex flex-row items-center gap-4 rounded-2xl border border-border/80 bg-muted/30 p-4 sm:p-5">
-              <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-lg font-bold text-primary sm:size-16 sm:text-xl">
-                {currentTeacher.avatarUrl ? (
-                  <Image
-                    src={getAssetUrl(currentTeacher.avatarUrl)}
-                    alt={fullName}
-                    width={64}
-                    height={64}
-                    className="size-14 rounded-2xl object-cover sm:size-16"
-                    unoptimized
-                  />
-                ) : (
-                  <span>{initials}</span>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-base font-bold text-foreground sm:text-lg">
-                    {fullName}
-                  </h3>
-                  <Badge
-                    variant={currentTeacher.isActive ? "outline" : "secondary"}
-                    className={
-                      currentTeacher.isActive
-                        ? "border-success/30 bg-success/10 text-success"
-                        : "text-muted-foreground"
-                    }
-                  >
-                    {currentTeacher.isActive
-                      ? t("status.active")
-                      : t("status.inactive")}
-                  </Badge>
-                </div>
-
-                <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-muted-foreground sm:gap-4">
-                  <span
-                    className="flex items-center gap-1.5 font-mono"
-                    dir="ltr"
-                  >
-                    <Phone className="size-3.5 text-muted-foreground" />
-                    {currentTeacher.phone}
-                  </span>
-                  {currentTeacher.nationalCode && (
-                    <span
-                      className="flex items-center gap-1.5 font-mono"
-                      dir="ltr"
-                    >
-                      <FileText className="size-3.5 text-muted-foreground" />
-                      {currentTeacher.nationalCode}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+            <ProfileSummary
+              teacher={currentTeacher}
+              fullName={fullName}
+              initials={initials}
+            />
 
             {/* Academic & Bio */}
             <div className="flex flex-col gap-3">

@@ -19,18 +19,14 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
-import type { BranchWithStats } from "@workspace/types"
 import { branchesResource } from "@/lib/api"
 import {
   useUpdateBranchSchema,
   type UpdateBranchInput,
 } from "../../hooks/use-branch-schemas"
+import type { EditBranchModalProps } from "./types"
 
-export interface EditBranchModalProps {
-  branch: BranchWithStats | null
-  open: boolean
-  onClose: () => void
-}
+export type { EditBranchModalProps } from "./types"
 
 export function EditBranchModal({
   branch,

@@ -22,13 +22,9 @@ import {
   type SingleStudentGradeInput,
 } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
+import type { GradesTableProps } from "./types"
 
-export interface GradesTableProps {
-  records: ClassGradeRecordDto[] | undefined
-  isLoading: boolean
-  isSubmitting: boolean
-  onSubmit: (grades: SingleStudentGradeInput[]) => void
-}
+export type { GradesTableProps } from "./types"
 
 export function GradesTable({
   records,

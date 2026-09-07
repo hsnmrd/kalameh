@@ -4,26 +4,11 @@ import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import {
-  UserCheck,
-  Edit2,
-  KeyRound,
-  Eye,
-  Trash2,
-  MoreVertical,
-  Clock,
-} from "lucide-react"
+import { Edit2, KeyRound, Eye, Trash2, MoreVertical, Clock } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
-import {
-  Empty,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-  EmptyDescription,
-} from "@workspace/ui/components/empty"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -34,6 +19,7 @@ import {
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type TeacherDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
+import { TeachersTableEmptyState } from "./empty-state"
 
 export interface TeachersTableProps {
   teachers: TeacherDto[] | undefined
@@ -240,17 +226,7 @@ export function TeachersTable({
   }
 
   if (!teachers || teachers.length === 0) {
-    return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <UserCheck className="size-8 text-muted-foreground" />
-          </EmptyMedia>
-          <EmptyTitle>{t("table.empty")}</EmptyTitle>
-          <EmptyDescription>{t("subtitle")}</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
-    )
+    return <TeachersTableEmptyState />
   }
 
   return (

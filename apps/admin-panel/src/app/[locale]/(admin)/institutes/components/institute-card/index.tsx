@@ -1,11 +1,9 @@
 "use client"
 
 import * as React from "react"
-import Image from "next/image"
 import { useTranslations, useLocale } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
-  Building2,
   ArrowRight,
   ArrowLeft,
   Check,
@@ -19,7 +17,6 @@ import {
   ShieldCheck,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -32,8 +29,8 @@ import type { InstituteWithStats } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { useRouter, useIsRtl } from "@/i18n/routing"
-import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
-import { InstituteActionMenu } from "./action-menu"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { CardHeader } from "./card-header"
 
 export interface InstituteCardProps {
   institute: InstituteWithStats
@@ -90,7 +87,6 @@ export function InstituteCard({
     })
   }
 
-  const brandColor = institute.primaryColor || null
   const hasPhones = institute.phones && institute.phones.length > 0
 
   return (
@@ -105,73 +101,13 @@ export function InstituteCard({
         )}
       >
         <div className="flex flex-col gap-4">
-          {/* Header with Logo / Icon, Name, Subdomain, Status, and Action Menu */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <div
-                className={cn(
-                  "relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-bold shadow-2xs",
-                  isSelected
-                    ? "bg-success text-success-foreground"
-                    : "bg-muted text-foreground"
-                )}
-                style={
-                  brandColor && !isSelected
-                    ? {
-                        backgroundColor: `${brandColor}15`,
-                        color: brandColor,
-                        borderColor: `${brandColor}40`,
-                      }
-                    : undefined
-                }
-              >
-                {institute.logoUrl ? (
-                  <Image
-                    src={getAssetUrl(institute.logoUrl)}
-                    alt={institute.name}
-                    width={48}
-                    height={48}
-                    className="size-full object-contain p-1"
-                    unoptimized
-                  />
-                ) : (
-                  <Building2 className="size-6" />
-                )}
-              </div>
-
-              <div className="min-w-0">
-                <h2 className="line-clamp-1 text-base font-bold text-foreground">
-                  {institute.name}
-                </h2>
-                <span
-                  className="font-mono text-xs text-muted-foreground"
-                  dir="ltr"
-                >
-                  {institute.subdomain}.kalameh.ir
-                </span>
-              </div>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-1.5">
-              <Badge
-                variant={institute.isActive ? "success" : "destructive"}
-                className={cn(
-                  "shrink-0 text-[11px]",
-                  !institute.isActive &&
-                    "border border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/15"
-                )}
-              >
-                {institute.isActive ? t("status.active") : t("status.blocked")}
-              </Badge>
-
-              <InstituteActionMenu
-                isActive={institute.isActive}
-                onEdit={onEdit ? () => onEdit(institute) : undefined}
-                onToggleBlock={() => handleToggleBlock()}
-                onDelete={onDelete ? () => onDelete(institute) : undefined}
-              />
-            </div>
-          </div>
+          <CardHeader
+            institute={institute}
+            isSelected={isSelected}
+            onEdit={onEdit ? () => onEdit(institute) : undefined}
+            onToggleBlock={() => handleToggleBlock()}
+            onDelete={onDelete ? () => onDelete(institute) : undefined}
+          />
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/50 p-3 text-xs">

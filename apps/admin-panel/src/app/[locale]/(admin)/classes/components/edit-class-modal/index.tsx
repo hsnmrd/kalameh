@@ -9,14 +9,12 @@ import {
   FormDialogHeader,
   FormDialogTitle,
   FormDialogCloseButton,
-  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { PriceInput } from "@workspace/ui/components/price-input"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
-import { Spinner } from "@workspace/ui/components/spinner"
 import type { ClassDto } from "@workspace/types"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
@@ -24,6 +22,7 @@ import { useEditClassForm } from "../../hooks/use-edit-class-form"
 import { TermDetailsPreview } from "../term-details-preview"
 import { ClassScheduleWizard } from "../class-schedule-wizard"
 import { ScheduleDetailsPreview } from "../schedule-details-preview"
+import { ClassFormFooter } from "../class-form-footer"
 import { EditGeneralFields } from "./edit-general-fields"
 import { EditLocationFields } from "./edit-location-fields"
 
@@ -234,26 +233,11 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
             }}
           />
 
-          <FormDialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
-            >
-              {t("editModal.cancel")}
-            </Button>
-            <Button
-              type="submit"
-              disabled={updateMutation.isPending}
-              className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              {updateMutation.isPending && (
-                <Spinner className="me-2 size-5 text-primary-foreground" />
-              )}
-              {t("editModal.submit")}
-            </Button>
-          </FormDialogFooter>
+          <ClassFormFooter
+            mode="edit"
+            isPending={updateMutation.isPending}
+            onClose={onClose}
+          />
         </form>
       </FormDialogContent>
     </FormDialog>

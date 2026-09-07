@@ -19,6 +19,7 @@ import {
   useCreateClassSchema,
   type CreateClassInput,
 } from "./use-class-schemas"
+import { getCreateClassDefaults } from "./create-class-form-utils"
 
 export function useCreateClassForm(open: boolean, onClose: () => void) {
   const t = useTranslations("classes")
@@ -79,22 +80,7 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
 
   const form = useForm<CreateClassInput>({
     resolver: zodResolver(createClassSchema),
-    defaultValues: {
-      title: "",
-      termId: "",
-      courseId: "",
-      branchId: singleBranchId,
-      classroomId: null,
-      capacity: 15,
-      fee: 1500000,
-      teacherId: null,
-      teacherName: "",
-      schedule: "",
-      daysOfWeek: [],
-      sessionDates: [],
-      startTime: null,
-      endTime: null,
-    },
+    defaultValues: getCreateClassDefaults({ branchId: singleBranchId }),
   })
 
   const { watch, setValue, reset } = form
@@ -205,22 +191,14 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
       if (singleBranchId) {
         hasAutoSelectedBranchRef.current = true
       }
-      reset({
-        title: "",
-        termId: terms[0]?.id || "",
-        courseId: courses[0]?.id || "",
-        branchId: singleBranchId,
-        classroomId: null,
-        capacity: 15,
-        fee: courses[0]?.baseFee || 1500000,
-        teacherId: null,
-        teacherName: "",
-        schedule: "",
-        daysOfWeek: [],
-        sessionDates: [],
-        startTime: null,
-        endTime: null,
-      })
+      reset(
+        getCreateClassDefaults({
+          termId: terms[0]?.id,
+          courseId: courses[0]?.id,
+          branchId: singleBranchId,
+          fee: courses[0]?.baseFee,
+        })
+      )
     } else {
       hasAutoSelectedBranchRef.current = false
       hasSetDefaultTermRef.current = false

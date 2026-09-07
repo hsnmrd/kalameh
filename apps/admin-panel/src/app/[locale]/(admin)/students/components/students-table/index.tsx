@@ -21,15 +21,7 @@ import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { StudentStatusBadge } from "../student-status-badge"
 import { StudentCard } from "../student-card"
-
-export interface StudentsTableProps {
-  students: StudentDto[] | undefined
-  isLoading: boolean
-  onViewProfile: (student: StudentDto) => void
-  onAddNote: (student: StudentDto) => void
-  onEdit: (student: StudentDto) => void
-  onResetPassword: (student: StudentDto) => void
-}
+import type { StudentsTableProps } from "./types"
 
 export function StudentsTable({
   students,

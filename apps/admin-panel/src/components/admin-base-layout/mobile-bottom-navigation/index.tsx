@@ -17,31 +17,10 @@ import { cn } from "@workspace/ui/lib/utils"
 import { Link } from "@/i18n/routing"
 import { usePermissions } from "@/lib/hooks"
 import { useActiveInstitute } from "@/lib/stores"
-import type { NavItem, NavItemKey, NavSection } from "../nav-list"
+import type { MobileBottomNavigationProps } from "./types"
+import { DIRECT_ITEM_PRIORITY, MAX_DIRECT_ITEMS, isItemActive } from "./utils"
 
-const DIRECT_ITEM_PRIORITY: NavItemKey[] = [
-  "dashboard",
-  "institutes",
-  "classes",
-  "students",
-  "finance",
-]
-
-const MAX_DIRECT_ITEMS = 4
-
-function isItemActive(item: NavItem, pathname: string) {
-  return item.href === "/"
-    ? pathname === "/" || pathname === ""
-    : pathname.startsWith(item.href)
-}
-
-export interface MobileBottomNavigationProps {
-  sections: NavSection[]
-  pathname: string
-  onLogout: () => void
-  onSwitchLanguage?: () => void
-  locale?: string
-}
+export type { MobileBottomNavigationProps } from "./types"
 
 export function MobileBottomNavigation({
   sections,

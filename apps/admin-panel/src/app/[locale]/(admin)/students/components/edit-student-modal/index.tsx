@@ -1,41 +1,29 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations, useLocale } from "next-intl"
-import { useForm, Controller } from "react-hook-form"
+import { useLocale, useTranslations } from "next-intl"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "@workspace/ui/components/sonner"
+import { Button } from "@workspace/ui/components/button"
+import { type ComboboxOption } from "@workspace/ui/components/combobox"
 import {
   FormDialog,
+  FormDialogCloseButton,
   FormDialogContent,
+  FormDialogFooter,
   FormDialogHeader,
   FormDialogTitle,
-  FormDialogCloseButton,
-  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import {
-  Field,
-  FieldLabel,
-  FieldError,
-  FieldDescription,
-} from "@workspace/ui/components/field"
-import { Attachment } from "@workspace/ui/components/attachment"
-import {
-  ResponsiveCombobox,
-  type ComboboxOption,
-} from "@workspace/ui/components/combobox"
-import { DateInput } from "@workspace/ui/components/date-input"
+import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { getAssetUrl } from "@workspace/ui/lib/utils"
-import { type StudentDto, type SupportedLocale } from "@workspace/types"
+import type { StudentDto, SupportedLocale } from "@workspace/types"
 import { coursesResource, studentsResource } from "@/lib/api"
 import {
-  useUpdateStudentSchema,
   type UpdateStudentInput,
+  useUpdateStudentSchema,
 } from "../../hooks/use-student-schemas"
+import { FormFields } from "./form-fields"
 
 export interface EditStudentModalProps {
   student: StudentDto | null
@@ -52,7 +40,6 @@ export function EditStudentModal({
   const locale = useLocale() as SupportedLocale
   const queryClient = useQueryClient()
   const updateStudentSchema = useUpdateStudentSchema()
-
   const { data: courses = [] } = useQuery({
     ...coursesResource.list.toQuery(
       student?.instituteId ? { instituteId: student.instituteId } : undefined
@@ -67,15 +54,13 @@ export function EditStudentModal({
     ],
     [t]
   )
-
   const courseOptions: ComboboxOption[] = React.useMemo(
     () => [
       { value: "ROOT", label: t("createModal.selectCourse") },
-      ...courses.map((c) => ({ value: c.id, label: c.title })),
+      ...courses.map((course) => ({ value: course.id, label: course.title })),
     ],
     [courses, t]
   )
-
   const statusOptions: ComboboxOption[] = React.useMemo(
     () => [
       { value: "ACTIVE", label: t("status.active") },
@@ -84,43 +69,31 @@ export function EditStudentModal({
     [t]
   )
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<UpdateStudentInput>({
+  const form = useForm<UpdateStudentInput>({
     resolver: zodResolver(updateStudentSchema),
   })
+  const { handleSubmit, reset } = form
 
-  const avatarUrl = watch("avatarUrl")
-
-  // Populate form with student values when student changes
   React.useEffect(() => {
-    if (student) {
-      const birthDateStr = student.studentProfile?.birthDate
-        ? new Date(student.studentProfile.birthDate).toISOString().split("T")[0]
-        : ""
-
-      reset({
-        firstName: student.firstName,
-        lastName: student.lastName,
-        phone: student.phone,
-        nationalCode: student.nationalCode || "",
-        avatar: null,
-        avatarUrl: student.avatarUrl || null,
-        fatherName: student.studentProfile?.fatherName || "",
-        birthDate: birthDateStr || "",
-        gender: student.studentProfile?.gender || "",
-        emergencyPhone: student.studentProfile?.emergencyPhone || "",
-        address: student.studentProfile?.address || "",
-        currentAllowedCourseId: student.currentAllowedCourseId || null,
-        isActive: student.isActive,
-      })
-    }
+    if (!student) return
+    const birthDate = student.studentProfile?.birthDate
+      ? new Date(student.studentProfile.birthDate).toISOString().split("T")[0]
+      : ""
+    reset({
+      firstName: student.firstName,
+      lastName: student.lastName,
+      phone: student.phone,
+      nationalCode: student.nationalCode || "",
+      avatar: null,
+      avatarUrl: student.avatarUrl || null,
+      fatherName: student.studentProfile?.fatherName || "",
+      birthDate: birthDate || "",
+      gender: student.studentProfile?.gender || "",
+      emergencyPhone: student.studentProfile?.emergencyPhone || "",
+      address: student.studentProfile?.address || "",
+      currentAllowedCourseId: student.currentAllowedCourseId || null,
+      isActive: student.isActive,
+    })
   }, [student, reset])
 
   const updateMutation = useMutation({
@@ -136,7 +109,6 @@ export function EditStudentModal({
 
   const onSubmit = (values: UpdateStudentInput) => {
     if (!student) return
-
     updateMutation.mutate({
       id: student.id,
       body: {
@@ -156,214 +128,31 @@ export function EditStudentModal({
     })
   }
 
-  const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-      onClose()
-    }
-  }
-
   return (
-    <FormDialog open={open} onOpenChange={handleOpenChange}>
+    <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <FormDialogContent className="sm:max-w-2xl">
         <FormDialogHeader>
           <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
         </FormDialogHeader>
-
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
           <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-            <Field>
-              <FieldLabel>{t("editModal.avatar")}</FieldLabel>
-              <Controller
-                control={control}
-                name="avatar"
-                render={({ field }) => (
-                  <Attachment
-                    value={
-                      field.value ||
-                      (avatarUrl ? getAssetUrl(avatarUrl) : undefined)
-                    }
-                    onChange={(file) => {
-                      field.onChange(file)
-                      if (!file) {
-                        setValue("avatarUrl", null, { shouldDirty: true })
-                      }
-                    }}
-                    placeholder={t("createModal.avatarPlaceholder")}
-                    description={t("createModal.avatarDescription")}
-                    removeLabel={t("createModal.removeAvatar")}
-                  />
-                )}
-              />
-            </Field>
-
-            {/* Identity Info */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field data-invalid={Boolean(errors.firstName)}>
-                <FieldLabel>{t("editModal.firstName")}</FieldLabel>
-                <Input {...register("firstName")} />
-                <FieldError>{errors.firstName?.message}</FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.lastName)}>
-                <FieldLabel>{t("editModal.lastName")}</FieldLabel>
-                <Input {...register("lastName")} />
-                <FieldError>{errors.lastName?.message}</FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.phone)}>
-                <FieldLabel>{t("editModal.phone")}</FieldLabel>
-                <Input
-                  type="tel"
-                  dir="ltr"
-                  {...register("phone")}
-                  className="text-start font-mono"
-                />
-                <FieldError>{errors.phone?.message}</FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.nationalCode)}>
-                <FieldLabel>{t("editModal.nationalCode")}</FieldLabel>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  dir="ltr"
-                  {...register("nationalCode")}
-                  className="text-start font-mono"
-                />
-                <FieldDescription>
-                  {t("editModal.nationalCodeHint")}
-                </FieldDescription>
-                <FieldError>{errors.nationalCode?.message}</FieldError>
-              </Field>
-            </div>
-
-            {/* Profile & Guardian */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field data-invalid={Boolean(errors.fatherName)}>
-                <FieldLabel>{t("editModal.fatherName")}</FieldLabel>
-                <Input {...register("fatherName")} />
-                <FieldError>{errors.fatherName?.message}</FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.emergencyPhone)}>
-                <FieldLabel>{t("editModal.emergencyPhone")}</FieldLabel>
-                <Input
-                  type="tel"
-                  dir="ltr"
-                  {...register("emergencyPhone")}
-                  className="text-start font-mono"
-                />
-                <FieldError>{errors.emergencyPhone?.message}</FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.gender)}>
-                <FieldLabel>{t("editModal.gender")}</FieldLabel>
-                <Controller
-                  control={control}
-                  name="gender"
-                  render={({ field }) => (
-                    <ResponsiveCombobox
-                      items={genderOptions}
-                      value={field.value || undefined}
-                      onValueChange={(val) => field.onChange(val || "")}
-                      placeholder={t("createModal.genderSelect")}
-                      drawerTitle={t("editModal.gender")}
-                      searchable={false}
-                      data-invalid={Boolean(errors.gender)}
-                    />
-                  )}
-                />
-                <FieldError>{errors.gender?.message}</FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.birthDate)}>
-                <FieldLabel>{t("editModal.birthDate")}</FieldLabel>
-                <Controller
-                  control={control}
-                  name="birthDate"
-                  render={({ field }) => (
-                    <DateInput
-                      value={field.value || undefined}
-                      onChange={(val) => field.onChange(val || "")}
-                      locale={locale}
-                      placeholderYear={locale === "fa" ? "۱۳۸۰" : "YYYY"}
-                      placeholderMonth={locale === "fa" ? "ماه" : "MM"}
-                      placeholderDay={locale === "fa" ? "روز" : "DD"}
-                      data-invalid={Boolean(errors.birthDate)}
-                    />
-                  )}
-                />
-                <FieldError>{errors.birthDate?.message}</FieldError>
-              </Field>
-
-              <div className="col-span-1 sm:col-span-2">
-                <Field data-invalid={Boolean(errors.address)}>
-                  <FieldLabel>{t("editModal.address")}</FieldLabel>
-                  <Input {...register("address")} />
-                  <FieldError>{errors.address?.message}</FieldError>
-                </Field>
-              </div>
-            </div>
-
-            {/* Academic Level & Status */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field data-invalid={Boolean(errors.currentAllowedCourseId)}>
-                <FieldLabel>{t("editModal.currentAllowedCourseId")}</FieldLabel>
-                <Controller
-                  control={control}
-                  name="currentAllowedCourseId"
-                  render={({ field }) => (
-                    <ResponsiveCombobox
-                      items={courseOptions}
-                      value={field.value || "ROOT"}
-                      onValueChange={(val) =>
-                        field.onChange(val === "ROOT" ? null : val || null)
-                      }
-                      placeholder={t("createModal.selectCourse")}
-                      drawerTitle={t("editModal.currentAllowedCourseId")}
-                      clearable={false}
-                      data-invalid={Boolean(errors.currentAllowedCourseId)}
-                    />
-                  )}
-                />
-                <FieldError>
-                  {errors.currentAllowedCourseId?.message}
-                </FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.isActive)}>
-                <FieldLabel>{t("editModal.isActive")}</FieldLabel>
-                <Controller
-                  control={control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <ResponsiveCombobox
-                      items={statusOptions}
-                      value={field.value ? "ACTIVE" : "INACTIVE"}
-                      onValueChange={(val) => field.onChange(val === "ACTIVE")}
-                      drawerTitle={t("editModal.isActive")}
-                      searchable={false}
-                      clearable={false}
-                      data-invalid={Boolean(errors.isActive)}
-                    />
-                  )}
-                />
-                <FieldError>{errors.isActive?.message}</FieldError>
-              </Field>
-            </div>
+            <FormFields
+              form={form}
+              locale={locale}
+              genderOptions={genderOptions}
+              courseOptions={courseOptions}
+              statusOptions={statusOptions}
+            />
           </div>
-
-          {/* Actions */}
           <FormDialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={() => handleOpenChange(false)}
+              onClick={onClose}
               className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
             >
               {t("editModal.cancel")}

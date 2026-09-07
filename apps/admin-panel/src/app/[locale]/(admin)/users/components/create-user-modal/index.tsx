@@ -1,42 +1,30 @@
 "use client"
 
 import * as React from "react"
-import { CheckCircle2, UserPlus } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useForm, Controller } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "@workspace/ui/components/sonner"
+import { Button } from "@workspace/ui/components/button"
+import type { ComboboxOption } from "@workspace/ui/components/combobox"
 import {
   FormDialog,
+  FormDialogCloseButton,
   FormDialogContent,
+  FormDialogFooter,
   FormDialogHeader,
   FormDialogTitle,
-  FormDialogCloseButton,
-  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { PasswordInput } from "@workspace/ui/components/password-input"
-import {
-  Field,
-  FieldLabel,
-  FieldError,
-  FieldDescription,
-} from "@workspace/ui/components/field"
-import { Attachment } from "@workspace/ui/components/attachment"
-import {
-  ResponsiveCombobox,
-  type ComboboxOption,
-} from "@workspace/ui/components/combobox"
+import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { ROLES, type Role } from "@workspace/types"
 import { usersResource } from "@/lib/api"
 import {
-  useCreateUserSchema,
   type CreateUserInput,
+  useCreateUserSchema,
 } from "../../hooks/use-user-schemas"
 import { useUserLookup } from "../../hooks/use-user-lookup"
+import { FormFields } from "./form-fields"
 
 export interface CreateUserModalProps {
   open: boolean
@@ -52,31 +40,18 @@ export function CreateUserModal({
   const t = useTranslations("users")
   const queryClient = useQueryClient()
   const createUserSchema = useCreateUserSchema()
-
   const roleOptions: ComboboxOption[] = React.useMemo(() => {
-    const staffRoles: Role[] = [
+    const roles: Role[] = [
       ROLES.ADMIN,
       ROLES.ASSISTANT,
       ROLES.SUPERVISOR,
       ROLES.SUPER_CLERK,
       ROLES.CLERK,
     ]
-
-    return staffRoles.map((r) => ({
-      value: r,
-      label: t(`roles.${r}`),
-    }))
+    return roles.map((role) => ({ value: role, label: t(`roles.${role}`) }))
   }, [t])
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<CreateUserInput>({
+  const form = useForm<CreateUserInput>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
       avatar: null,
@@ -89,28 +64,23 @@ export function CreateUserModal({
       password: "",
     },
   })
-
-  // Live Lookup Logic
+  const { handleSubmit, reset, setValue, watch } = form
   const { lookupData, isLookingUp, shouldQuery, resetLookup } = useUserLookup({
     open,
     watch,
     setValue,
   })
-
   const createMutation = useMutation({
     ...usersResource.create.toMutation(),
     onSuccess: () => {
       toast.success(t("createModal.success"))
-      queryClient.invalidateQueries({
-        queryKey: usersResource.list.baseKey(),
-      })
+      queryClient.invalidateQueries({ queryKey: usersResource.list.baseKey() })
       resetLookup()
       reset()
       onClose()
     },
   })
-
-  const onSubmit = (values: CreateUserInput) => {
+  const onSubmit = (values: CreateUserInput) =>
     createMutation.mutate({
       ...values,
       avatar: values.avatar || undefined,
@@ -119,8 +89,6 @@ export function CreateUserModal({
       nationalCode: values.nationalCode || undefined,
       password: values.password || undefined,
     })
-  }
-
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       resetLookup()
@@ -136,7 +104,6 @@ export function CreateUserModal({
           <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
         </FormDialogHeader>
-
         <form
           onSubmit={handleSubmit(onSubmit)}
           autoComplete="off"
@@ -144,155 +111,14 @@ export function CreateUserModal({
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-            {/* Lookup Status */}
-            {isLookingUp && (
-              <div className="flex items-center gap-1.5 py-0.5 text-xs text-muted-foreground">
-                <Spinner className="size-3.5 text-muted-foreground" />
-                <span>{t("createModal.lookupChecking")}</span>
-              </div>
-            )}
-            {lookupData?.found && !isLookingUp && (
-              <div className="flex items-center gap-1.5 py-0.5 text-xs font-medium text-primary">
-                <CheckCircle2 className="size-3.5 shrink-0 text-primary" />
-                <span>{t("createModal.lookupFound")}</span>
-              </div>
-            )}
-            {shouldQuery && !isLookingUp && lookupData && !lookupData.found && (
-              <div className="flex items-center gap-1.5 py-0.5 text-xs text-muted-foreground">
-                <UserPlus className="size-3.5 shrink-0 text-muted-foreground" />
-                <span>{t("createModal.lookupNew")}</span>
-              </div>
-            )}
-
-            <Field>
-              <FieldLabel>{t("createModal.avatar")}</FieldLabel>
-              <Controller
-                control={control}
-                name="avatar"
-                render={({ field }) => (
-                  <Attachment
-                    value={field.value}
-                    onChange={(file) => field.onChange(file)}
-                    placeholder={t("createModal.avatarPlaceholder")}
-                    description={t("createModal.avatarDescription")}
-                    removeLabel={t("createModal.removeAvatar")}
-                  />
-                )}
-              />
-            </Field>
-
-            {/* National Code */}
-            <Field data-invalid={Boolean(errors.nationalCode)}>
-              <FieldLabel>{t("createModal.nationalCode")}</FieldLabel>
-              <Input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                dir="ltr"
-                {...register("nationalCode")}
-                className="text-start font-mono"
-                placeholder={t("createModal.nationalCodePlaceholder")}
-              />
-              <FieldError>{errors.nationalCode?.message}</FieldError>
-            </Field>
-
-            {/* Phone Number */}
-            <Field data-invalid={Boolean(errors.phone)}>
-              <FieldLabel htmlFor="new-user-phone">
-                {t("createModal.phone")}
-              </FieldLabel>
-              <Controller
-                control={control}
-                name="phone"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="new-user-phone"
-                    name="new-user-phone"
-                    type="tel"
-                    dir="ltr"
-                    autoComplete="off"
-                    data-lpignore="true"
-                    data-1p-ignore="true"
-                    className="text-start font-mono"
-                    placeholder={t("createModal.phonePlaceholder")}
-                  />
-                )}
-              />
-              <FieldError>{errors.phone?.message}</FieldError>
-            </Field>
-
-            {/* First & Last Name */}
-            <div className="grid grid-cols-2 gap-3">
-              <Field data-invalid={Boolean(errors.firstName)}>
-                <FieldLabel>{t("createModal.firstName")}</FieldLabel>
-                <Input
-                  {...register("firstName")}
-                  placeholder={t("createModal.firstNamePlaceholder")}
-                />
-                <FieldError>{errors.firstName?.message}</FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.lastName)}>
-                <FieldLabel>{t("createModal.lastName")}</FieldLabel>
-                <Input
-                  {...register("lastName")}
-                  placeholder={t("createModal.lastNamePlaceholder")}
-                />
-                <FieldError>{errors.lastName?.message}</FieldError>
-              </Field>
-            </div>
-
-            {/* Role Selection via ResponsiveCombobox */}
-            <Field data-invalid={Boolean(errors.role)}>
-              <FieldLabel>{t("createModal.role")}</FieldLabel>
-              <Controller
-                control={control}
-                name="role"
-                render={({ field }) => (
-                  <ResponsiveCombobox
-                    items={roleOptions}
-                    value={field.value}
-                    onValueChange={(val) =>
-                      field.onChange((val as Role) || ROLES.STUDENT)
-                    }
-                    placeholder={t("createModal.role")}
-                    drawerTitle={t("createModal.role")}
-                    data-invalid={Boolean(errors.role)}
-                  />
-                )}
-              />
-              <FieldError>{errors.role?.message}</FieldError>
-            </Field>
-
-            {/* Initial Password */}
-            <Field data-invalid={Boolean(errors.password)}>
-              <FieldLabel htmlFor="new-user-password">
-                {t("createModal.password")}
-              </FieldLabel>
-              <Controller
-                control={control}
-                name="password"
-                render={({ field }) => (
-                  <PasswordInput
-                    {...field}
-                    id="new-user-password"
-                    name="new-user-password"
-                    autoComplete="new-password"
-                    data-lpignore="true"
-                    data-1p-ignore="true"
-                    placeholder={t("createModal.passwordPlaceholder")}
-                  />
-                )}
-              />
-              <FieldDescription>
-                {t("createModal.passwordHint")}
-              </FieldDescription>
-              <FieldError>{errors.password?.message}</FieldError>
-            </Field>
+            <FormFields
+              form={form}
+              roleOptions={roleOptions}
+              isLookingUp={isLookingUp}
+              lookupData={lookupData}
+              shouldQuery={shouldQuery}
+            />
           </div>
-
-          {/* Actions */}
           <FormDialogFooter>
             <Button
               type="button"
