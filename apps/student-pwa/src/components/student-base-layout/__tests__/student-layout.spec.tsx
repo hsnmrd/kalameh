@@ -34,9 +34,10 @@ describe("StudentToolbar Component", () => {
     render(<StudentToolbar isHomePage={true} onLogout={handleLogout} />)
 
     expect(screen.getByText("کلمه")).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: /خروج|logout/i })
-    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /خروج|logout/i })).toHaveClass(
+      "size-11"
+    )
+    expect(screen.getByRole("link", { name: "کلمه" })).toHaveClass("min-h-11")
   })
 
   it("should trigger onLogout callback when logout button is clicked", () => {
@@ -67,8 +68,8 @@ describe("StudentToolbar Component", () => {
       />
     )
 
-    expect(
-      screen.getByRole("button", { name: /بازگشت|back/i })
-    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /بازگشت|back/i })).toHaveClass(
+      "size-11"
+    )
   })
 })

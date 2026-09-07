@@ -29,21 +29,21 @@ export function StudentToolbar({
   return (
     <header className="relative sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border/80 bg-card/95 px-4 backdrop-blur-md">
       {/* Left Action (Back Button on Inner Pages) */}
-      <div className="z-10 flex min-w-9 items-center gap-1.5">
+      <div className="z-10 flex min-w-11 items-center gap-1.5">
         {!isHomePage ? (
           <Button
             type="button"
             variant="ghost"
-            size="icon"
+            size="icon-xl"
             onClick={() => router.back()}
-            className="size-9 cursor-pointer rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+            className="cursor-pointer rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
             aria-label={t("back")}
             title={t("back")}
           >
             <BackIcon className="size-5" />
           </Button>
         ) : (
-          <div className="size-9" />
+          <div className="size-11" />
         )}
       </div>
 
@@ -51,7 +51,7 @@ export function StudentToolbar({
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <Link
           href="/dashboard"
-          className="pointer-events-auto flex items-center gap-2 transition-opacity hover:opacity-80 active:scale-95"
+          className="pointer-events-auto flex min-h-11 items-center gap-2 transition-opacity hover:opacity-80 active:scale-95"
           aria-label={t("appName")}
         >
           <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
@@ -64,14 +64,14 @@ export function StudentToolbar({
       </div>
 
       {/* Right Action (Logout) */}
-      <div className="z-10 flex min-w-9 items-center justify-end gap-1.5">
+      <div className="z-10 flex min-w-11 items-center justify-end gap-1.5">
         <Button
           type="button"
           variant="ghost"
-          size="icon"
+          size="icon-xl"
           onClick={onLogout}
           disabled={isLogoutPending}
-          className="size-9 cursor-pointer rounded-xl text-muted-foreground hover:bg-muted hover:text-destructive active:scale-95"
+          className="cursor-pointer rounded-xl text-muted-foreground hover:bg-muted hover:text-destructive active:scale-95"
           aria-label={t("logout")}
           title={t("logout")}
         >
