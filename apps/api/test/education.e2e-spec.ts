@@ -8,6 +8,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import * as bcrypt from 'bcryptjs';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { ALL_APP_MODULES, ROLES } from '@workspace/types';
 
 describe('Education & Classes Infrastructure (e2e)', () => {
   let app: INestApplication<App>;
@@ -20,6 +21,7 @@ describe('Education & Classes Infrastructure (e2e)', () => {
     name: 'Tehran Institute',
     subdomain: 'tehran',
     isActive: true,
+    enabledModules: [...ALL_APP_MODULES],
   };
 
   const mockAdmin = {
@@ -27,7 +29,7 @@ describe('Education & Classes Infrastructure (e2e)', () => {
     instituteId: mockInstitute.id,
     phone: '09121111111',
     password: '',
-    role: 'INSTITUTE_ADMIN',
+    role: ROLES.ADMIN,
     firstName: 'Manager',
     lastName: 'Tehran',
     isActive: true,
@@ -39,7 +41,7 @@ describe('Education & Classes Infrastructure (e2e)', () => {
     instituteId: mockInstitute.id,
     phone: '09122222222',
     password: '',
-    role: 'STUDENT',
+    role: ROLES.STUDENT,
     firstName: 'Ali',
     lastName: 'Rezaei',
     isActive: true,
@@ -91,6 +93,9 @@ describe('Education & Classes Infrastructure (e2e)', () => {
         findMany: jest.fn(),
         findUnique: jest.fn(),
         update: jest.fn(),
+      },
+      auditLog: {
+        create: jest.fn(),
       },
       $transaction: jest.fn((cb: any) => cb(prismaService)),
     };
@@ -275,8 +280,8 @@ describe('Education & Classes Infrastructure (e2e)', () => {
     });
 
     it('GET /classes/available - student should get classes for their allowed level', async () => {
-      prismaService.user.findUnique.mockResolvedValue(mockStudent);
-      prismaService.course.findUnique.mockResolvedValue({
+      prismaService.user.findFirst.mockResolvedValue(mockStudent);
+      prismaService.course.findFirst.mockResolvedValue({
         id: 'course-tn1-id',
         title: 'Top Notch 1',
       });
@@ -342,7 +347,7 @@ describe('Education & Classes Infrastructure (e2e)', () => {
 
       expect(res.body).toHaveProperty('updatedCount', 1);
       expect(prismaService.user.update).toHaveBeenCalledWith({
-        where: { id: studentId },
+        where: { id: studentId, instituteId: mockInstitute.id },
         data: { currentAllowedCourseId: 'course-tn2-id' },
       });
     });

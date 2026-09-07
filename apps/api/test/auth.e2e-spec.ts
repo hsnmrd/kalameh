@@ -8,6 +8,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import * as bcrypt from 'bcryptjs';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { ROLES } from '@workspace/types';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication<App>;
@@ -56,7 +57,7 @@ describe('AuthController (e2e)', () => {
         instituteId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
         phone: '09123456789',
         password: hashedPassword,
-        role: 'INSTITUTE_ADMIN',
+        role: ROLES.ADMIN,
         firstName: 'Ali',
         lastName: 'Rezaei',
         isActive: true,
@@ -78,7 +79,7 @@ describe('AuthController (e2e)', () => {
       expect(response.body).toHaveProperty('accessToken');
       expect(response.body.user).toMatchObject({
         id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-        role: 'INSTITUTE_ADMIN',
+        role: ROLES.ADMIN,
         firstName: 'Ali',
         lastName: 'Rezaei',
       });
@@ -160,6 +161,7 @@ describe('AuthController (e2e)', () => {
 
       prismaService.institute.findFirstOrThrow.mockResolvedValue(mockInstitute);
       prismaService.user.findMany.mockResolvedValue([mockUser]);
+      prismaService.user.findUnique.mockResolvedValue(mockUser);
       prismaService.user.findUniqueOrThrow.mockResolvedValue(mockUser);
 
       // 1. Login to get token

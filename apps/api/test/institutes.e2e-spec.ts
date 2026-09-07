@@ -8,6 +8,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import * as bcrypt from 'bcryptjs';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { ROLES } from '@workspace/types';
 
 describe('InstitutesController (e2e)', () => {
   let app: INestApplication<App>;
@@ -27,7 +28,7 @@ describe('InstitutesController (e2e)', () => {
     instituteId: mockSuperInstitute.id,
     phone: '09120000000',
     password: '',
-    role: 'SUPER_ADMIN',
+    role: ROLES.SUPER_ADMIN,
     firstName: 'Super',
     lastName: 'Admin',
     isActive: true,
@@ -52,6 +53,9 @@ describe('InstitutesController (e2e)', () => {
         findUnique: jest.fn(),
         findUniqueOrThrow: jest.fn(),
       },
+      branch: {
+        create: jest.fn(),
+      },
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -71,6 +75,7 @@ describe('InstitutesController (e2e)', () => {
       mockSuperInstitute,
     );
     prismaService.user.findMany.mockResolvedValue([mockSuperAdmin]);
+    prismaService.user.findUnique.mockResolvedValue(mockSuperAdmin);
     prismaService.user.findUniqueOrThrow.mockResolvedValue(mockSuperAdmin);
 
     const loginRes = await request(app.getHttpAdapter().getInstance())

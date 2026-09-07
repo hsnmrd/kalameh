@@ -8,6 +8,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import * as bcrypt from 'bcryptjs';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { APP_MODULES, ROLES } from '@workspace/types';
 
 describe('Cross-Tenant Isolation & Multi-Tenancy Security (e2e)', () => {
   let app: INestApplication<App>;
@@ -18,6 +19,7 @@ describe('Cross-Tenant Isolation & Multi-Tenancy Security (e2e)', () => {
     name: 'Tehran Institute',
     subdomain: 'tehran',
     isActive: true,
+    enabledModules: [APP_MODULES.USERS_STAFF],
   };
 
   const instituteShiraz = {
@@ -32,7 +34,7 @@ describe('Cross-Tenant Isolation & Multi-Tenancy Security (e2e)', () => {
     instituteId: instituteTehran.id,
     phone: '09121111111',
     password: '',
-    role: 'STUDENT',
+    role: ROLES.STUDENT,
     firstName: 'Ali',
     lastName: 'Tehrani',
     isActive: true,
@@ -44,7 +46,7 @@ describe('Cross-Tenant Isolation & Multi-Tenancy Security (e2e)', () => {
     instituteId: instituteTehran.id,
     phone: '09123333333',
     password: '',
-    role: 'INSTITUTE_ADMIN',
+    role: ROLES.ADMIN,
     firstName: 'Manager',
     lastName: 'Tehran',
     isActive: true,
@@ -110,6 +112,7 @@ describe('Cross-Tenant Isolation & Multi-Tenancy Security (e2e)', () => {
   it('should strictly scope user queries to the authenticated admin institute', async () => {
     prismaService.institute.findFirstOrThrow.mockResolvedValue(instituteTehran);
     prismaService.user.findMany.mockResolvedValue([adminTehran]);
+    prismaService.user.findUnique.mockResolvedValue(adminTehran);
     prismaService.user.findUniqueOrThrow.mockResolvedValue(adminTehran);
 
     // 1. Login as Tehran admin

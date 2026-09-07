@@ -8,6 +8,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import * as bcrypt from 'bcryptjs';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { APP_MODULES, ROLES } from '@workspace/types';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication<App>;
@@ -18,6 +19,7 @@ describe('UsersController (e2e)', () => {
     id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
     subdomain: 'tehran',
     isActive: true,
+    enabledModules: [APP_MODULES.USERS_STAFF],
   };
 
   const mockAdmin = {
@@ -25,7 +27,7 @@ describe('UsersController (e2e)', () => {
     instituteId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
     phone: '09121111111',
     password: '',
-    role: 'INSTITUTE_ADMIN',
+    role: ROLES.ADMIN,
     firstName: 'Admin',
     lastName: 'User',
     isActive: true,
@@ -49,6 +51,9 @@ describe('UsersController (e2e)', () => {
         create: jest.fn(),
         update: jest.fn(),
       },
+      auditLog: {
+        create: jest.fn(),
+      },
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -66,6 +71,7 @@ describe('UsersController (e2e)', () => {
     // Login as admin to get valid token
     prismaService.institute.findFirstOrThrow.mockResolvedValue(mockInstitute);
     prismaService.user.findMany.mockResolvedValue([mockAdmin]);
+    prismaService.user.findUnique.mockResolvedValue(mockAdmin);
     prismaService.user.findUniqueOrThrow.mockResolvedValue(mockAdmin);
 
     const loginRes = await request(app.getHttpAdapter().getInstance())
@@ -124,7 +130,9 @@ describe('UsersController (e2e)', () => {
         role: 'STUDENT',
       };
 
-      prismaService.user.findUnique.mockResolvedValue(null);
+      prismaService.user.findUnique
+        .mockResolvedValueOnce(mockAdmin)
+        .mockResolvedValueOnce(null);
       prismaService.user.create.mockResolvedValue({
         id: 'new-user-id',
         ...newUserDto,
