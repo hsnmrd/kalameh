@@ -107,6 +107,10 @@ export const en: TranslationDictionary = {
     invalidScoreRange: 'Score must be a number between 0 and 100',
     studentLevelUpdatedSuccess: 'Student allowed level updated successfully',
   },
+  transactions: {
+    receiptRequired: 'A payment receipt image is required',
+    studentOnly: 'Only student accounts can submit payment receipts',
+  },
   common: {
     internalServerError: 'Internal server error occurred',
     unauthorized: 'Unauthorized access, please login again',

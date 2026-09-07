@@ -19,6 +19,7 @@ import { RolePermissionsModule } from './role-permissions/role-permissions.modul
 import { ExcelModule } from './common/excel/excel.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exception.filter';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exce
     GradesModule,
     RolePermissionsModule,
     AuditLogsModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [

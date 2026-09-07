@@ -98,6 +98,10 @@ export const fa: TranslationDictionary = {
     invalidScoreRange: 'نمره باید عددی بین ۰ تا ۱۰۰ باشد',
     studentLevelUpdatedSuccess: 'سطح مجاز زبان‌آموز با موفقیت تغییر یافت',
   },
+  transactions: {
+    receiptRequired: 'تصویر رسید پرداخت الزامی است',
+    studentOnly: 'فقط حساب فراگیر می‌تواند رسید پرداخت ثبت کند',
+  },
   common: {
     internalServerError: 'خطای داخلی سرور رخ داده است',
     unauthorized: 'عدم دسترسی، لطفاً مجدداً وارد شوید',

@@ -17,6 +17,7 @@ import { authResource } from "../lib/api"
 import branchesMessagesFa from "../messages/fa/branches.json"
 import classroomsMessagesFa from "../messages/fa/classrooms.json"
 import teachersMessagesFa from "../messages/fa/teachers.json"
+import transactionsMessagesFa from "../messages/fa/transactions.json"
 
 const defaultMessages = {
   auth: authMessagesFa,
@@ -32,6 +33,7 @@ const defaultMessages = {
   grades: gradesMessagesFa,
   institutes: institutesMessagesFa,
   rolePermissions: rolePermissionsMessagesFa,
+  transactions: transactionsMessagesFa,
 }
 
 export const defaultTestUser: AuthUser = {

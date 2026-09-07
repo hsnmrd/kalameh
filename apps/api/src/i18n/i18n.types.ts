@@ -80,6 +80,10 @@ export interface TranslationDictionary {
     invalidScoreRange: string;
     studentLevelUpdatedSuccess: string;
   };
+  transactions: {
+    receiptRequired: string;
+    studentOnly: string;
+  };
   common: {
     internalServerError: string;
     unauthorized: string;
