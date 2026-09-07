@@ -161,9 +161,12 @@ export class AuthService {
     };
   }
 
-  async getProfile(userId: string) {
+  async getProfile(currentUser: JwtPayload) {
     const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
+      where: {
+        id: currentUser.sub,
+        instituteId: currentUser.instituteId,
+      },
       include: {
         institute: true,
         currentAllowedCourse: true,
@@ -182,12 +185,15 @@ export class AuthService {
   }
 
   async changePassword(
-    userId: string,
+    currentUser: JwtPayload,
     dto: ChangePasswordDto,
     locale: SupportedLocale = 'fa',
   ) {
     const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
+      where: {
+        id: currentUser.sub,
+        instituteId: currentUser.instituteId,
+      },
     });
 
     const isPasswordValid = await bcrypt.compare(
@@ -203,7 +209,10 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
 
     await this.prisma.user.update({
-      where: { id: userId },
+      where: {
+        id: currentUser.sub,
+        instituteId: currentUser.instituteId,
+      },
       data: { password: hashedPassword },
     });
 

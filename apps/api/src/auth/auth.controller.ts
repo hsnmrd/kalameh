@@ -10,7 +10,7 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import type { SupportedLocale } from '@workspace/types';
+import type { JwtPayload, SupportedLocale } from '@workspace/types';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -66,17 +66,17 @@ export class AuthController {
   }
 
   @Get('me')
-  async getProfile(@CurrentUser('sub') userId: string) {
-    return this.authService.getProfile(userId);
+  async getProfile(@CurrentUser() currentUser: JwtPayload) {
+    return this.authService.getProfile(currentUser);
   }
 
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
   async changePassword(
-    @CurrentUser('sub') userId: string,
+    @CurrentUser() currentUser: JwtPayload,
     @Body() dto: ChangePasswordDto,
     @CurrentLocale() locale: SupportedLocale,
   ) {
-    return this.authService.changePassword(userId, dto, locale);
+    return this.authService.changePassword(currentUser, dto, locale);
   }
 }

@@ -36,6 +36,7 @@ describe('ClassesService', () => {
       },
       user: {
         findUnique: jest.fn(),
+        findFirst: jest.fn(),
       },
       term: {
         findFirst: jest.fn(),
@@ -396,12 +397,12 @@ describe('ClassesService', () => {
 
   describe('findAvailableForStudent', () => {
     it('should return classes matching student allowed level', async () => {
-      prismaService.user.findUnique.mockResolvedValue({
+      prismaService.user.findFirst.mockResolvedValue({
         id: mockStudent.sub,
         currentAllowedCourseId: 'course-level-2',
       });
 
-      prismaService.course.findUnique.mockResolvedValue({
+      prismaService.course.findFirst.mockResolvedValue({
         id: 'course-level-2',
         title: 'Top Notch 2',
       });
@@ -420,6 +421,11 @@ describe('ClassesService', () => {
       expect(result.allowedCourseTitle).toBe('Top Notch 2');
       expect(result.classes).toHaveLength(1);
       expect(result.classes[0].enrolledCount).toBe(5);
+      expect(prismaService.user.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: mockStudent.sub, instituteId: 'inst-1' },
+        }),
+      );
     });
   });
 
@@ -522,7 +528,7 @@ describe('ClassesService', () => {
 
     it('should detect TEACHER_FREE_TIME conflict when proposed class is outside teacher available hours', async () => {
       prismaService.class.findMany.mockResolvedValue([]);
-      prismaService.user.findUnique.mockResolvedValue({
+      prismaService.user.findFirst.mockResolvedValue({
         id: 'teacher-1',
         firstName: 'Ali',
         lastName: 'Rezaei',

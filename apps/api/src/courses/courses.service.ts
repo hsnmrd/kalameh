@@ -237,8 +237,11 @@ export class CoursesService {
           }
           visited.add(currentPrereqId);
 
-          const parentCourse = await this.prisma.course.findUnique({
-            where: { id: currentPrereqId },
+          const parentCourse = await this.prisma.course.findFirst({
+            where: {
+              id: currentPrereqId,
+              instituteId: existing.instituteId,
+            },
             select: { id: true, prerequisiteId: true },
           });
 
@@ -249,7 +252,10 @@ export class CoursesService {
     }
 
     const updated = await this.prisma.course.update({
-      where: { id },
+      where: {
+        id,
+        instituteId: existing.instituteId,
+      },
       data: {
         ...(dto.title ? { title: dto.title } : {}),
         ...(dto.baseFee !== undefined ? { baseFee: dto.baseFee } : {}),

@@ -356,7 +356,10 @@ export class TeachersService {
     }
 
     const updated = await this.prisma.user.update({
-      where: { id },
+      where: {
+        id,
+        instituteId: existing.instituteId,
+      },
       data: userUpdateData,
       include: {
         teacherProfile: {
@@ -404,7 +407,10 @@ export class TeachersService {
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
     await this.prisma.user.update({
-      where: { id },
+      where: {
+        id,
+        instituteId: teacher.instituteId,
+      },
       data: { password: hashedPassword },
     });
 
@@ -443,14 +449,20 @@ export class TeachersService {
     if (teacher._count.teachingClasses > 0) {
       // Soft-deactivate if classes are associated
       await this.prisma.user.update({
-        where: { id },
+        where: {
+          id,
+          instituteId: teacher.instituteId,
+        },
         data: { isActive: false },
       });
       return { success: true, deactivated: true };
     }
 
     await this.prisma.user.delete({
-      where: { id },
+      where: {
+        id,
+        instituteId: teacher.instituteId,
+      },
     });
 
     await this.auditLogsService.log({

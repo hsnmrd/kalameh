@@ -326,7 +326,10 @@ export class UsersService {
     }
 
     const updated = await this.prisma.user.update({
-      where: { id },
+      where: {
+        id,
+        instituteId: targetUser.instituteId,
+      },
       data: {
         ...(dto.firstName ? { firstName: dto.firstName } : {}),
         ...(dto.lastName ? { lastName: dto.lastName } : {}),
@@ -398,7 +401,10 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(passwordToSet, 10);
 
     await this.prisma.user.update({
-      where: { id },
+      where: {
+        id,
+        instituteId: targetUser.instituteId,
+      },
       data: { password: hashedPassword },
     });
 
@@ -410,8 +416,13 @@ export class UsersService {
     id: string,
     locale: SupportedLocale = 'fa',
   ): Promise<{ message: string }> {
-    const targetUser = await this.prisma.user.findUnique({
-      where: { id },
+    const targetUser = await this.prisma.user.findFirst({
+      where: {
+        id,
+        ...(currentUser.role === 'SUPER_ADMIN'
+          ? {}
+          : { instituteId: currentUser.instituteId }),
+      },
     });
 
     if (!targetUser) {
@@ -440,7 +451,12 @@ export class UsersService {
     // Check for dependent records that would break referential integrity
     const [enrollmentsCount, transactionsCount] = await Promise.all([
       this.prisma.enrollment.count({ where: { studentId: id } }),
-      this.prisma.transaction.count({ where: { studentId: id } }),
+      this.prisma.transaction.count({
+        where: {
+          studentId: id,
+          instituteId: targetUser.instituteId,
+        },
+      }),
     ]);
 
     if (enrollmentsCount > 0 || transactionsCount > 0) {
@@ -450,7 +466,10 @@ export class UsersService {
     }
 
     await this.prisma.user.delete({
-      where: { id },
+      where: {
+        id,
+        instituteId: targetUser.instituteId,
+      },
     });
 
     await this.auditLogsService.log({
@@ -671,6 +690,9 @@ export class UsersService {
 
     const users = await this.prisma.user.findMany({
       where: {
+        ...(currentUser.role === 'SUPER_ADMIN'
+          ? {}
+          : { instituteId: currentUser.instituteId }),
         OR: whereOr,
       },
       include: {
@@ -684,8 +706,7 @@ export class UsersService {
       return { found: false, user: null };
     }
 
-    const matchedUser =
-      users.find((u) => u.instituteId === currentUser.instituteId) || users[0];
+    const matchedUser = users[0];
 
     const profile = matchedUser.studentProfile;
 

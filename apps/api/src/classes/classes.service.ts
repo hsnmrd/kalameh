@@ -109,14 +109,17 @@ export class ClassesService {
   async findAvailableForStudent(
     currentUser: JwtPayload,
   ): Promise<{ allowedCourseTitle?: string; classes: ClassDto[] }> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: currentUser.sub },
+    const instituteId = currentUser.instituteId;
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: currentUser.sub,
+        instituteId,
+      },
       include: {
         currentAllowedCourse: true,
       },
     });
 
-    const instituteId = currentUser.instituteId;
     let targetCourseId = user?.currentAllowedCourseId;
 
     // If user has no specific allowed course set, default to root courses (prerequisiteId: null)
@@ -135,8 +138,11 @@ export class ClassesService {
       return { allowedCourseTitle: undefined, classes: [] };
     }
 
-    const course = await this.prisma.course.findUnique({
-      where: { id: targetCourseId },
+    const course = await this.prisma.course.findFirst({
+      where: {
+        id: targetCourseId,
+        instituteId,
+      },
     });
 
     const classes = await this.prisma.class.findMany({
@@ -559,7 +565,10 @@ export class ClassesService {
     );
 
     const updated = await this.prisma.class.update({
-      where: { id },
+      where: {
+        id,
+        instituteId: existing.instituteId,
+      },
       data: {
         ...(dto.title ? { title: dto.title } : {}),
         ...(dto.termId ? { termId: dto.termId } : {}),
@@ -857,8 +866,11 @@ export class ClassesService {
 
     // Check teacher free-time availability
     if (dto.teacherId) {
-      const teacher = await this.prisma.user.findUnique({
-        where: { id: dto.teacherId },
+      const teacher = await this.prisma.user.findFirst({
+        where: {
+          id: dto.teacherId,
+          instituteId,
+        },
         include: {
           teacherProfile: {
             include: { availabilities: true },
@@ -1155,8 +1167,11 @@ export class ClassesService {
 
     // Check teacher free-time availability
     if (scheduleInfo.teacherId) {
-      const teacher = await this.prisma.user.findUnique({
-        where: { id: scheduleInfo.teacherId },
+      const teacher = await this.prisma.user.findFirst({
+        where: {
+          id: scheduleInfo.teacherId,
+          instituteId,
+        },
         include: {
           teacherProfile: {
             include: { availabilities: true },

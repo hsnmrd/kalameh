@@ -241,6 +241,11 @@ describe('StudentsService', () => {
       expect(result.student).toBeDefined();
       expect(result.student?.firstName).toBe('Sina');
       expect(result.student?.fatherName).toBe('Hossein');
+      expect(prismaService.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ instituteId: 'inst-1' }),
+        }),
+      );
     });
 
     it('should return found=false if no user matches query', async () => {

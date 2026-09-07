@@ -44,6 +44,12 @@ describe('JwtStrategy', () => {
 
     const result = await strategy.validate(payload);
 
+    expect(prismaService.user.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'user-1', instituteId: 'inst-1' },
+      }),
+    );
+
     expect(result).toEqual({
       sub: 'user-1',
       phone: '09123456789',

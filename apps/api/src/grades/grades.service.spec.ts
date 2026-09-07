@@ -99,7 +99,7 @@ describe('GradesService', () => {
 
       // Verify user 1 was upgraded to level 2
       expect(prismaService.user.update).toHaveBeenCalledWith({
-        where: { id: student1Id },
+        where: { id: student1Id, instituteId: 'inst-1' },
         data: { currentAllowedCourseId: 'course-level-2' },
       });
 
@@ -133,7 +133,7 @@ describe('GradesService', () => {
 
       expect(result).toHaveProperty('message');
       expect(prismaService.user.update).toHaveBeenCalledWith({
-        where: { id: studentId },
+        where: { id: studentId, instituteId: 'inst-1' },
         data: { currentAllowedCourseId: targetCourseId },
       });
     });

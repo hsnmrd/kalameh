@@ -127,7 +127,10 @@ export class GradesService {
         // If student passed, auto-progress currentAllowedCourseId to next course
         if (gradeItem.isPassed === true && nextCourse) {
           await tx.user.update({
-            where: { id: gradeItem.studentId },
+            where: {
+              id: gradeItem.studentId,
+              instituteId: cls.instituteId,
+            },
             data: {
               currentAllowedCourseId: nextCourse.id,
             },
@@ -179,7 +182,10 @@ export class GradesService {
     }
 
     await this.prisma.user.update({
-      where: { id: studentId },
+      where: {
+        id: studentId,
+        instituteId: student.instituteId,
+      },
       data: {
         currentAllowedCourseId: dto.currentAllowedCourseId || null,
       },

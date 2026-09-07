@@ -185,7 +185,10 @@ export class TermsService {
     }
 
     const updated = await this.prisma.term.update({
-      where: { id },
+      where: {
+        id,
+        instituteId: existing.instituteId,
+      },
       data: {
         ...(dto.title ? { title: dto.title } : {}),
         ...(dto.startDate ? { startDate: start } : {}),

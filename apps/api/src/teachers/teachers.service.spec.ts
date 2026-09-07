@@ -215,7 +215,7 @@ describe('TeachersService', () => {
       expect(result.success).toBe(true);
       expect(prisma.user.update).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: 'teacher-1' },
+          where: { id: 'teacher-1', instituteId: 'inst-1' },
           data: expect.objectContaining({
             password: expect.any(String),
           }),

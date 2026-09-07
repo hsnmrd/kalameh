@@ -374,7 +374,10 @@ export class StudentsService {
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.update({
-        where: { id },
+        where: {
+          id,
+          instituteId: existing.instituteId,
+        },
         data: {
           firstName: dto.firstName,
           lastName: dto.lastName,
@@ -501,7 +504,10 @@ export class StudentsService {
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
     await this.prisma.user.update({
-      where: { id },
+      where: {
+        id,
+        instituteId: student.instituteId,
+      },
       data: { password: hashedPassword },
     });
 
@@ -588,6 +594,9 @@ export class StudentsService {
 
     const users = await this.prisma.user.findMany({
       where: {
+        ...(currentUser.role === 'SUPER_ADMIN'
+          ? {}
+          : { instituteId: currentUser.instituteId }),
         OR: whereOr,
       },
       include: {
@@ -601,8 +610,7 @@ export class StudentsService {
       return { found: false, student: null };
     }
 
-    const matchedUser =
-      users.find((u) => u.instituteId === currentUser.instituteId) || users[0];
+    const matchedUser = users[0];
 
     const profile = matchedUser.studentProfile;
 
