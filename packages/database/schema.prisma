@@ -201,6 +201,7 @@ model Course {
   updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
+  @@index([prerequisiteId])
 }
 
 model Class {
@@ -234,6 +235,8 @@ model Class {
   updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
+  @@index([termId])
+  @@index([courseId])
   @@index([branchId])
   @@index([classroomId])
   @@index([teacherId])
@@ -311,6 +314,7 @@ model Transaction {
   student   User      @relation(fields: [studentId], references: [id])
 
   @@index([instituteId])
+  @@index([studentId])
 }
 
 model RolePermission {
