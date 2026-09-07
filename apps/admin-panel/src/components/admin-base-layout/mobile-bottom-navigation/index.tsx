@@ -180,9 +180,9 @@ export function MobileBottomNavigation({
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
             {overflowSections.length > 0 ? (
-              <div className="space-y-5">
+              <div className="flex flex-col gap-5">
                 {overflowSections.map((section) => (
-                  <section key={section.id} className="space-y-2">
+                  <section key={section.id} className="flex flex-col gap-2">
                     {section.title && (
                       <div className="flex items-center justify-between px-2 text-xs font-semibold text-muted-foreground">
                         <span className="truncate">{section.title}</span>

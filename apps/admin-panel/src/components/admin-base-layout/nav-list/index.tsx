@@ -88,12 +88,12 @@ export function NavList({
   }, [sections, items, hasPermission])
 
   return (
-    <nav className="space-y-5">
+    <nav className="flex flex-col gap-5">
       {effectiveSections.map((section, sectionIdx) => (
         <div
           key={section.id}
           className={cn(
-            "space-y-1.5",
+            "flex flex-col gap-1.5",
             sectionIdx > 0 && "border-t border-sidebar-border/50 pt-4"
           )}
         >
@@ -101,13 +101,13 @@ export function NavList({
             <div className="flex items-center justify-between px-3 pb-1 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
               <span className="truncate">{section.title}</span>
               {section.badge && (
-                <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-600">
+                <span className="rounded-md bg-success/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-success">
                   {section.badge}
                 </span>
               )}
             </div>
           )}
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             {section.items.map((item) => {
               const Icon = item.icon
               const isLocked = !hasModuleAccess(item.module)
@@ -134,7 +134,7 @@ export function NavList({
                   <span className="truncate">{t(item.key)}</span>
                   {isLocked && (
                     <Lock
-                      aria-label="Locked Module"
+                      aria-label={t("locked")}
                       className={cn(
                         "ms-auto size-3.5 shrink-0 transition-colors",
                         isActive

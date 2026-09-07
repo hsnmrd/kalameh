@@ -137,7 +137,7 @@ export function EditBranchModal({
           onSubmit={handleSubmit(onSubmit)}
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
             {/* Branch Name */}
             <Field>
               <FieldLabel>{t("editModal.branchName")}</FieldLabel>
@@ -159,7 +159,7 @@ export function EditBranchModal({
             </Field>
 
             {/* Phones */}
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <FieldLabel>{t("editModal.phones")}</FieldLabel>
                 <Button
@@ -174,7 +174,7 @@ export function EditBranchModal({
                 </Button>
               </div>
 
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 {phones.map((_, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Input

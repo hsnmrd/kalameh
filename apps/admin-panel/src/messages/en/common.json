@@ -80,6 +80,7 @@
   "footer": "Kalameh Language Platform • Admin Panel v1.0",
   "success": "Operation completed successfully",
   "error": "An error occurred",
+  "clearSearch": "Clear search",
   "noPermission": "You do not have permission to perform this action",
   "notFound": {
     "title": "Page Not Found",

@@ -25,7 +25,7 @@ export function StatCard({
   badgeVariant = "neutral",
 }: StatCardProps) {
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs transition-all hover:border-border/80">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs transition-all hover:border-border/80">
       <div className="flex items-center justify-between">
         <div
           className={cn(
@@ -41,11 +41,11 @@ export function StatCard({
             className={cn(
               "rounded-full px-2.5 py-0.5 text-xs font-semibold",
               badgeVariant === "success" &&
-                "border border-emerald-500/20 bg-emerald-500/10 text-emerald-600",
+                "border border-success/20 bg-success/10 text-success",
               badgeVariant === "neutral" &&
                 "border border-border bg-muted text-muted-foreground",
               badgeVariant === "info" &&
-                "border border-sky-500/20 bg-sky-500/10 text-sky-600"
+                "border border-primary/20 bg-primary/10 text-primary"
             )}
           >
             {badgeText}

@@ -109,14 +109,14 @@ export function RoleSelector({
                           "flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                           isSelected
                             ? "bg-primary/20 font-semibold text-primary"
-                            : "bg-amber-500/15 text-amber-600"
+                            : "bg-warning/15 text-warning"
                         )}
                         title={t("isCustomized")}
                       >
                         <span
                           className={cn(
                             "size-1.5 rounded-full",
-                            isSelected ? "bg-primary" : "bg-amber-500"
+                            isSelected ? "bg-primary" : "bg-warning"
                           )}
                         />
                         <span>{t("customizedBadge")}</span>

@@ -14,7 +14,7 @@ export function UserStatusBadge({ isActive }: UserStatusBadgeProps) {
   if (isActive) {
     return (
       <Badge variant="success">
-        <span className="me-1.5 size-1.5 rounded-full bg-emerald-500" />
+        <span className="me-1.5 size-1.5 rounded-full bg-success" />
         {t("active")}
       </Badge>
     )
@@ -22,7 +22,7 @@ export function UserStatusBadge({ isActive }: UserStatusBadgeProps) {
 
   return (
     <Badge variant="destructive">
-      <span className="me-1.5 size-1.5 rounded-full bg-rose-500" />
+      <span className="me-1.5 size-1.5 rounded-full bg-destructive" />
       {t("inactive")}
     </Badge>
   )

@@ -74,7 +74,7 @@ export default function ClassGradesPage() {
       >
         <AdminPageShell
           filter={
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               <Link href="/classes">
                 <Button
                   variant="ghost"

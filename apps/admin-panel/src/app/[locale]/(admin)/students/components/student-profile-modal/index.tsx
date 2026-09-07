@@ -151,7 +151,7 @@ export function StudentProfileModal({
           <FormDialogCloseButton />
         </FormDialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
           {/* Header Card with Avatar */}
           <div className="flex items-center gap-4">
             <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">

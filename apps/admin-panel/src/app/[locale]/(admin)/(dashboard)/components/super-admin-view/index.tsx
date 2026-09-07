@@ -32,7 +32,7 @@ export function SuperAdminView() {
   const activeTenants = institutes.filter((i) => i.isActive).length
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -60,9 +60,9 @@ export function SuperAdminView() {
           value={totalInstitutes.toString()}
           subtitle={t("stats.total")}
           icon={Building2}
-          iconBgClassName="bg-sky-500/10"
-          iconColorClassName="text-sky-500"
-          badgeText={`${totalInstitutes} Institutes`}
+          iconBgClassName="bg-primary/10"
+          iconColorClassName="text-primary"
+          badgeText={t("instituteCount", { count: totalInstitutes })}
           badgeVariant="info"
         />
 
@@ -71,30 +71,34 @@ export function SuperAdminView() {
           value={activeTenants.toString()}
           subtitle={
             totalInstitutes > 0
-              ? `${Math.round((activeTenants / totalInstitutes) * 100)}% Active`
-              : "100% Active"
+              ? t("activePercentage", {
+                  percentage: Math.round(
+                    (activeTenants / totalInstitutes) * 100
+                  ),
+                })
+              : t("activePercentage", { percentage: 100 })
           }
           icon={ShieldCheck}
-          iconBgClassName="bg-emerald-500/10"
-          iconColorClassName="text-emerald-500"
+          iconBgClassName="bg-success/10"
+          iconColorClassName="text-success"
           badgeText={t("stats.active")}
           badgeVariant="success"
         />
 
         <StatCard
           title={t("stats.systemHealth")}
-          value="99.99%"
-          subtitle="All microservices operational"
+          value={t("stats.uptime")}
+          subtitle={t("stats.operational")}
           icon={Activity}
-          iconBgClassName="bg-purple-500/10"
-          iconColorClassName="text-purple-500"
+          iconBgClassName="bg-primary/10"
+          iconColorClassName="text-primary"
           badgeText={t("stats.healthy")}
           badgeVariant="success"
         />
       </div>
 
       {/* Institutes Quick Access Card */}
-      <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
+      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold text-foreground">

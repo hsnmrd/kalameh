@@ -15,9 +15,9 @@ export function ClassroomStatusBadge({ isActive }: ClassroomStatusBadgeProps) {
     return (
       <Badge
         variant="outline"
-        className="border-emerald-500/30 bg-emerald-500/10 font-medium text-emerald-600"
+        className="border-success/30 bg-success/10 font-medium text-success"
       >
-        <span className="me-1.5 size-1.5 rounded-full bg-emerald-500" />
+        <span className="me-1.5 size-1.5 rounded-full bg-success" />
         {t("active")}
       </Badge>
     )

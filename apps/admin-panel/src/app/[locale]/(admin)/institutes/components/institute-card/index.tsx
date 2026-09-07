@@ -97,14 +97,14 @@ export function InstituteCard({
     <ContextMenu>
       <ContextMenuTrigger
         className={cn(
-          "flex flex-col justify-between space-y-4 rounded-2xl border bg-card p-6 text-card-foreground shadow-xs transition-all",
+          "flex flex-col justify-between gap-4 rounded-2xl border bg-card p-6 text-card-foreground shadow-xs transition-all",
           !institute.isActive && "border-destructive/30 bg-card/60 opacity-85",
           isSelected
-            ? "border-emerald-500 shadow-md ring-2 ring-emerald-500/20"
+            ? "border-success shadow-md ring-2 ring-success/20"
             : "border-border hover:border-border/80"
         )}
       >
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           {/* Header with Logo / Icon, Name, Subdomain, Status, and Action Menu */}
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -112,7 +112,7 @@ export function InstituteCard({
                 className={cn(
                   "relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-bold shadow-2xs",
                   isSelected
-                    ? "bg-emerald-600 text-white"
+                    ? "bg-success text-success-foreground"
                     : "bg-muted text-foreground"
                 )}
                 style={
@@ -197,7 +197,7 @@ export function InstituteCard({
 
           {/* Contact Snippet (Phones & Address) */}
           {(hasPhones || institute.address) && (
-            <div className="space-y-1.5 border-t border-border/40 pt-3 text-xs text-muted-foreground">
+            <div className="flex flex-col gap-1.5 border-t border-border/40 pt-3 text-xs text-muted-foreground">
               {hasPhones && (
                 <div
                   className="flex items-center gap-2"
@@ -230,13 +230,13 @@ export function InstituteCard({
             className={cn(
               "h-10 w-full cursor-pointer justify-center gap-2 rounded-xl text-xs font-semibold",
               isSelected
-                ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+                ? "border border-success/30 bg-success/10 text-success hover:bg-success/20"
                 : "bg-primary text-primary-foreground hover:bg-primary/90"
             )}
           >
             {isSelected ? (
               <>
-                <Check className="size-4 text-emerald-600" />
+                <Check className="size-4 text-success" />
                 <span>{t("currentlyManaging")}</span>
               </>
             ) : (

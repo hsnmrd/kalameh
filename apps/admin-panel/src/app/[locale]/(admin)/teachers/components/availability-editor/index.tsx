@@ -56,7 +56,7 @@ export function AvailabilityEditor({
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-border/80 bg-muted/20 p-4">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border/80 bg-muted/20 p-4">
       <div className="flex items-center gap-2">
         <Clock className="size-4 text-muted-foreground" />
         <h4 className="text-sm font-semibold text-foreground">
@@ -131,7 +131,7 @@ export function AvailabilityEditor({
           {t("availabilities.noSlots")}
         </p>
       ) : (
-        <div className="space-y-2 pt-2">
+        <div className="flex flex-col gap-2 pt-2">
           {value.map((slot, idx) => (
             <div
               key={`${slot.dayOfWeek}-${slot.startTime}-${slot.endTime}-${idx}`}

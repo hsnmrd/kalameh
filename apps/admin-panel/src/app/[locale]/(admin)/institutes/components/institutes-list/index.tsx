@@ -121,13 +121,13 @@ export function InstitutesList({
               <MobileListItem
                 onClick={() => handleSelect(institute)}
                 isLast={index === institutes.length - 1}
-                className={cn(isSelected && "bg-emerald-500/5 font-semibold")}
+                className={cn(isSelected && "bg-success/5 font-semibold")}
               >
                 <MobileListItemIcon>
                   <div
                     className={cn(
                       "relative flex aspect-square size-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold shadow-xs",
-                      !brandColor && "bg-emerald-600 text-white"
+                      !brandColor && "bg-success text-success-foreground"
                     )}
                     style={
                       brandColor
@@ -154,7 +154,7 @@ export function InstitutesList({
                     <div className="flex items-center gap-1.5">
                       <span className="truncate">{institute.name}</span>
                       {isSelected && (
-                        <Check className="size-3.5 shrink-0 text-emerald-600" />
+                        <Check className="size-3.5 shrink-0 text-success" />
                       )}
                     </div>
                   }
@@ -191,7 +191,7 @@ export function InstitutesList({
                   </>
                 ) : (
                   <>
-                    <ShieldCheck className="me-2 size-4 text-emerald-600" />
+                    <ShieldCheck className="me-2 size-4 text-success" />
                     <span>{t("unblock")}</span>
                   </>
                 )}

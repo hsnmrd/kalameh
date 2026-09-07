@@ -23,9 +23,9 @@ export function ClassCard({
   termFilter,
 }: ClassCardProps) {
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
       <div className="flex items-center justify-between">
-        <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600">
+        <span className="rounded-full border border-success/20 bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
           {courseName}
         </span>
         <span className="text-xs text-muted-foreground">{termFilter}</span>

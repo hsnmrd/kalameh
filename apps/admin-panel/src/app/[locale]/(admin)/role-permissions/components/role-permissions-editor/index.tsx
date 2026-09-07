@@ -35,7 +35,7 @@ export function RolePermissionsEditor({
   const t = useTranslations("rolePermissions")
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <RoleSelector
         selectedRole={selectedRole}
         onSelectRole={onSelectRole}
@@ -43,7 +43,7 @@ export function RolePermissionsEditor({
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-muted/30 px-4 py-3">
-        <div className="space-y-0.5">
+        <div className="flex flex-col gap-0.5">
           <p className="text-sm font-semibold text-foreground">
             {t(`roles.${selectedRole}` as any)}
           </p>
@@ -56,7 +56,7 @@ export function RolePermissionsEditor({
           {currentRoleData?.isOverridden ? (
             <Badge
               variant="default"
-              className="bg-amber-500/15 text-amber-600 hover:bg-amber-500/20"
+              className="bg-warning/15 text-warning hover:bg-warning/20"
             >
               {t("isCustomized")}
             </Badge>
@@ -66,7 +66,7 @@ export function RolePermissionsEditor({
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         {PERMISSION_MODULES.map((module) => (
           <PermissionGroupCard
             key={module.id}

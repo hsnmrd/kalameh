@@ -33,7 +33,9 @@ describe("Admin Filter System Components", () => {
         />
       )
 
-      const clearBtn = screen.getByRole("button", { name: /clear search/i })
+      const clearBtn = screen.getByRole("button", {
+        name: /پاک کردن جستجو/i,
+      })
       expect(clearBtn).toBeInTheDocument()
       fireEvent.click(clearBtn)
       expect(handleChange).toHaveBeenCalledWith("")

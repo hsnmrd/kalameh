@@ -178,7 +178,7 @@ export function EditInstituteModal({
           onSubmit={handleSubmit(onSubmit)}
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
-          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
             <div className="grid grid-cols-2 gap-1.5 rounded-xl bg-muted/60 p-1 sm:grid-cols-4">
               <Button
                 type="button"
@@ -251,7 +251,10 @@ export function EditInstituteModal({
             </div>
 
             <div
-              className={cn("space-y-4", activeTab !== "general" && "hidden")}
+              className={cn(
+                "flex flex-col gap-4",
+                activeTab !== "general" && "hidden"
+              )}
             >
               <Field data-invalid={Boolean(errors.name)}>
                 <FieldLabel>{t("createModal.name")}</FieldLabel>
@@ -368,7 +371,7 @@ export function EditInstituteModal({
                   </span>
                   <Input
                     {...register("primaryColor")}
-                    placeholder="#10b981"
+                    placeholder={t("createModal.primaryColorPlaceholder")}
                     className="h-8 max-w-[120px] rounded-lg font-mono text-xs"
                     dir="ltr"
                   />
@@ -379,7 +382,10 @@ export function EditInstituteModal({
 
             {/* TAB 2: Modules & Subscription Plan */}
             <div
-              className={cn("space-y-4", activeTab !== "modules" && "hidden")}
+              className={cn(
+                "flex flex-col gap-4",
+                activeTab !== "modules" && "hidden"
+              )}
             >
               <Controller
                 control={control}
@@ -394,7 +400,10 @@ export function EditInstituteModal({
             </div>
 
             <div
-              className={cn("space-y-4", activeTab !== "contact" && "hidden")}
+              className={cn(
+                "flex flex-col gap-4",
+                activeTab !== "contact" && "hidden"
+              )}
             >
               <Field>
                 <div className="flex items-center justify-between">
@@ -413,7 +422,7 @@ export function EditInstituteModal({
                     {t("createModal.addPhone")}
                   </Button>
                 </div>
-                <div className="mt-2 space-y-2">
+                <div className="mt-2 flex flex-col gap-2">
                   {phones.map((_, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Input
@@ -446,7 +455,10 @@ export function EditInstituteModal({
             </div>
 
             <div
-              className={cn("space-y-4", activeTab !== "banking" && "hidden")}
+              className={cn(
+                "flex flex-col gap-4",
+                activeTab !== "banking" && "hidden"
+              )}
             >
               <Field data-invalid={Boolean(errors.bankAccountName)}>
                 <FieldLabel>{t("createModal.bankAccountName")}</FieldLabel>

@@ -31,13 +31,13 @@ describe("User Badges", () => {
     it("should render active status badge with emerald indicator", () => {
       const { container } = render(<UserStatusBadge isActive={true} />)
       expect(screen.getByText(/فعال/i)).toBeInTheDocument()
-      expect(container.querySelector(".bg-emerald-500")).toBeInTheDocument()
+      expect(container.querySelector(".bg-success")).toBeInTheDocument()
     })
 
     it("should render inactive status badge with rose indicator", () => {
       const { container } = render(<UserStatusBadge isActive={false} />)
       expect(screen.getByText(/غیرفعال/i)).toBeInTheDocument()
-      expect(container.querySelector(".bg-rose-500")).toBeInTheDocument()
+      expect(container.querySelector(".bg-destructive")).toBeInTheDocument()
     })
   })
 })

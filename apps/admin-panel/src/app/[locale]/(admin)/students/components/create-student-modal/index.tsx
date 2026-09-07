@@ -169,9 +169,9 @@ export function CreateStudentModal({
           data-form-type="other"
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
-          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
             {/* Identity Info */}
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               {/* Lookup Status */}
               {isLookingUp && (
                 <div className="flex items-center gap-1.5 py-0.5 text-xs text-muted-foreground">

@@ -9,8 +9,12 @@
       "systemHealth": "وضعیت سیستم",
       "healthy": "عالی (۱۰۰٪)",
       "active": "فعال",
-      "total": "کل در سراسر سامانه"
+      "total": "کل در سراسر سامانه",
+      "uptime": "۹۹٫۹۹٪",
+      "operational": "همه سرویس‌ها در حال کار هستند"
     },
+    "instituteCount": "{count} آموزشگاه",
+    "activePercentage": "{percentage}٪ فعال",
     "recentInstitutes": "آموزشگاه‌های اخیر",
     "recentInstitutesHint": "کلیک روی هر آموزشگاه شما را به پنل مدیریتی آن آموزشگاه هدایت می‌کند",
     "noInstitutes": "آموزشگاهی ثبت نشده است.",
@@ -30,12 +34,26 @@
       "totalStudents": "دانشجویان فعال",
       "termCapacity": "ظرفیت ترم",
       "activeTerm": "پاییز ۱۴۰۵",
-      "occupancy": "۸۵٪ تکمیل"
+      "occupancy": "۸۵٪ تکمیل",
+      "courseFamilies": "Top Notch، Summit و Family & Friends",
+      "studentsScope": "در همه کلاس‌های فعال"
     },
     "enrolledCount": "{count} زبان‌آموز ثبت‌نامی",
     "noUsers": "بدون زبان‌آموز",
     "activeClassesCount": "{count} کلاس فعال",
     "recentClasses": "پیش‌نمایش کلاس‌های فعال",
-    "viewAll": "مشاهده همه کلاس‌ها"
+    "viewAll": "مشاهده همه کلاس‌ها",
+    "preview": {
+      "first": {
+        "title": "Top Notch 1A - گروه A",
+        "schedule": "استاد محمدی • ۱۷:۰۰ تا ۱۸:۳۰",
+        "enrollment": "۱۲ از ۱۵ ثبت‌نام‌شده"
+      },
+      "second": {
+        "title": "Summit 2B - فشرده آخر هفته",
+        "schedule": "استاد رضایی • پنجشنبه و جمعه ۰۹:۰۰ تا ۱۲:۰۰",
+        "enrollment": "۱۸ از ۲۰ ثبت‌نام‌شده"
+      }
+    }
   }
 }

@@ -41,7 +41,7 @@ export function UserCard({
   }, [user.createdAt, locale])
 
   return (
-    <div className="space-y-3 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-2xs">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-2xs">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="flex size-9 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground">

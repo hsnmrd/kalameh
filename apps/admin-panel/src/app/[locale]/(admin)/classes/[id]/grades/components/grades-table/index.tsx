@@ -166,7 +166,7 @@ export function GradesTable({
                 onClick={() => handlePassToggle(r.studentId, true)}
                 className={
                   isPassed === true
-                    ? "h-8 gap-1.5 rounded-lg bg-emerald-500/10 font-medium text-emerald-600 hover:bg-emerald-500/20"
+                    ? "h-8 gap-1.5 rounded-lg bg-success/10 font-medium text-success hover:bg-success/20"
                     : "h-8 gap-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
                 }
               >
@@ -181,7 +181,7 @@ export function GradesTable({
                 onClick={() => handlePassToggle(r.studentId, false)}
                 className={
                   isPassed === false
-                    ? "h-8 gap-1.5 rounded-lg bg-rose-500/10 font-medium text-rose-600 hover:bg-rose-500/20"
+                    ? "h-8 gap-1.5 rounded-lg bg-destructive/10 font-medium text-destructive hover:bg-destructive/20"
                     : "h-8 gap-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
                 }
               >
@@ -219,7 +219,7 @@ export function GradesTable({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <DataTable columns={columns} data={records} />
 
       {/* Action Footer */}

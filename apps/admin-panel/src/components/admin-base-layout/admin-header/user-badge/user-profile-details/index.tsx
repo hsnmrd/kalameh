@@ -63,7 +63,7 @@ export function UserProfileDetails({
       </div>
 
       {/* Details List */}
-      <div className="space-y-2 text-xs">
+      <div className="flex flex-col gap-2 text-xs">
         <div className="flex items-center justify-between py-0.5">
           <span className="flex items-center gap-1.5 text-muted-foreground">
             <Shield className="size-3.5 text-muted-foreground" />

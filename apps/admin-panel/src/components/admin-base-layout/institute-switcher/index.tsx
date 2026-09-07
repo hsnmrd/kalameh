@@ -157,7 +157,7 @@ export function InstituteSwitcher({
               {t("switcher.noResults")}
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               {filteredInstitutes.map((inst) => {
                 const isSelected = activeInstitute?.id === inst.id
                 return (
@@ -169,7 +169,7 @@ export function InstituteSwitcher({
                     className={cn(
                       "h-auto w-full cursor-pointer justify-between rounded-xl p-2.5 text-start transition-colors",
                       isSelected
-                        ? "bg-emerald-500/10 font-semibold text-emerald-600"
+                        ? "bg-success/10 font-semibold text-success"
                         : "text-foreground hover:bg-muted"
                     )}
                   >
@@ -178,7 +178,7 @@ export function InstituteSwitcher({
                         className={cn(
                           "flex size-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
                           isSelected
-                            ? "bg-emerald-600 text-white"
+                            ? "bg-success text-success-foreground"
                             : "bg-muted text-foreground"
                         )}
                       >
@@ -203,7 +203,7 @@ export function InstituteSwitcher({
                         {t("switcher.classes")}
                       </Badge>
                       {isSelected ? (
-                        <Check className="size-4 shrink-0 text-emerald-600" />
+                        <Check className="size-4 shrink-0 text-success" />
                       ) : (
                         <ActionArrow className="size-3 shrink-0 text-muted-foreground" />
                       )}

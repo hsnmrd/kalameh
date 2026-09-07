@@ -96,7 +96,7 @@ export function PermissionGroupCard({
                 disabled={disabled}
                 className="mt-0.5"
               />
-              <div className="min-w-0 flex-1 space-y-0.5">
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <p className="text-sm font-medium text-foreground">
                   {t(`permissions.${permission}` as any)}
                 </p>

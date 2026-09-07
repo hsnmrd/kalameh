@@ -2,12 +2,15 @@
 
 import * as React from "react"
 import { useLocale } from "next-intl"
-import { Plus, SlidersHorizontal } from "lucide-react"
+import { Plus } from "lucide-react"
 import type { Permission } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { PermissionGuard, type PermissionGuardMode } from "../permission-guard"
+
+export { AdminPageHeaderFilterButton } from "./filter-button"
+export type { AdminPageHeaderFilterButtonProps } from "./filter-button"
 
 export interface AdminPageHeaderAction {
   label: string
@@ -84,7 +87,7 @@ export function AdminPageHeader({
       )}
     >
       <div className="flex items-start justify-between gap-3 sm:items-center">
-        <div className="space-y-0.5 sm:space-y-1">
+        <div className="flex flex-col gap-0.5 sm:gap-1">
           <h1 className="text-lg font-bold tracking-tight text-foreground sm:text-xl lg:text-2xl">
             {title}
           </h1>
@@ -110,41 +113,5 @@ export function AdminPageHeader({
         {children}
       </div>
     </div>
-  )
-}
-
-/**
- * AdminPageHeaderFilterButton — a compact filter icon button shown next
- * to the search input on mobile. Renders nothing on desktop (lg+).
- * Passes the click through to open a Drawer filter sheet.
- */
-export interface AdminPageHeaderFilterButtonProps {
-  onClick: () => void
-  active?: boolean
-  "aria-label": string
-  className?: string
-}
-
-export function AdminPageHeaderFilterButton({
-  onClick,
-  active,
-  "aria-label": ariaLabel,
-  className,
-}: AdminPageHeaderFilterButtonProps) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="icon"
-      onClick={onClick}
-      aria-label={ariaLabel}
-      className={cn(
-        "h-10 w-10 shrink-0 rounded-xl border-border lg:hidden",
-        active && "border-primary text-primary",
-        className
-      )}
-    >
-      <SlidersHorizontal className="size-4" />
-    </Button>
   )
 }

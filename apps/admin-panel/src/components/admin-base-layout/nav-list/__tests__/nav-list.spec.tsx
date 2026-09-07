@@ -117,7 +117,7 @@ describe("NavList Component", () => {
     render(<NavList sections={mockSections} pathname="/transactions" />)
 
     // Verify item is active and lock icon has text-primary
-    const lockIcon = screen.getByLabelText("Locked Module")
+    const lockIcon = screen.getByLabelText("ماژول غیرفعال")
     expect(lockIcon).toBeInTheDocument()
     expect(lockIcon).toHaveClass("text-primary")
   })

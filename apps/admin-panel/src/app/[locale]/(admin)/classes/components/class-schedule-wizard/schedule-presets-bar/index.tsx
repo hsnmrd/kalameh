@@ -39,9 +39,9 @@ export function SchedulePresetsBar({
   const isFa = locale === "fa"
 
   return (
-    <div className="space-y-3.5">
+    <div className="flex flex-col gap-3.5">
       {/* Quick Presets with Carousel */}
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <Sparkles className="size-3.5 text-muted-foreground" />
           <span>{t("presets")}</span>
@@ -86,7 +86,7 @@ export function SchedulePresetsBar({
       </div>
 
       {/* Weekday Selection (Separate Title and 7-Column Row) */}
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         <label className="text-xs font-medium text-foreground">
           {t("weekdays")}
         </label>

@@ -91,7 +91,7 @@ export function ImportUsersModal({
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch {
-      toast.error("خطا در دانلود فایل نمونه")
+      toast.error(t("templateDownloadError"))
     } finally {
       setIsDownloadingTemplate(false)
     }
@@ -164,7 +164,7 @@ export function ImportUsersModal({
           onSubmit={handleSubmit}
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
             {/* Download Template Banner */}
             <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
@@ -209,7 +209,7 @@ export function ImportUsersModal({
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-xs font-medium">
-                    <span className="text-emerald-600">
+                    <span className="text-success">
                       {t("importedRows", { count: importResult.importedCount })}
                     </span>
                     <span className="text-destructive">
@@ -257,19 +257,19 @@ export function ImportUsersModal({
                 isDragging
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-primary/50 hover:bg-muted/30",
-                selectedFile && "border-emerald-500/50 bg-emerald-500/5"
+                selectedFile && "border-success/50 bg-success/5"
               )}
             >
               <div
                 className={cn(
                   "flex size-12 items-center justify-center rounded-2xl",
                   selectedFile
-                    ? "bg-emerald-500/10 text-emerald-600"
+                    ? "bg-success/10 text-success"
                     : "bg-muted text-muted-foreground"
                 )}
               >
                 {selectedFile ? (
-                  <CheckCircle2 className="size-6 text-emerald-600" />
+                  <CheckCircle2 className="size-6 text-success" />
                 ) : (
                   <UploadCloud className="size-6 text-muted-foreground" />
                 )}

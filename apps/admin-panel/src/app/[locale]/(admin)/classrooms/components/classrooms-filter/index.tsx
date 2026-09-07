@@ -97,7 +97,7 @@ export function ClassroomsFilter({
       actions={desktopActions}
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field className="space-y-1.5">
+        <Field className="flex flex-col gap-1.5">
           <FieldLabel className="text-xs text-muted-foreground">
             {t("filter.branch")}
           </FieldLabel>
@@ -109,7 +109,7 @@ export function ClassroomsFilter({
           />
         </Field>
 
-        <Field className="space-y-1.5">
+        <Field className="flex flex-col gap-1.5">
           <FieldLabel className="text-xs text-muted-foreground">
             {t("filter.status")}
           </FieldLabel>

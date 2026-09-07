@@ -72,7 +72,7 @@ export function ModulesSelector({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* Presets Header Bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-muted/40 p-3">
         <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
@@ -128,7 +128,7 @@ export function ModulesSelector({
               className={cn(
                 "group relative flex h-auto cursor-pointer items-start gap-3 rounded-xl border p-3 text-start font-normal transition-all",
                 isSelected
-                  ? "border-emerald-500/60 bg-emerald-500/5 shadow-2xs hover:bg-emerald-500/10"
+                  ? "border-success/60 bg-success/5 shadow-2xs hover:bg-success/10"
                   : "border-border/80 bg-card hover:border-border hover:bg-muted/30"
               )}
             >
@@ -136,7 +136,7 @@ export function ModulesSelector({
                 className={cn(
                   "flex size-9 shrink-0 items-center justify-center rounded-lg border transition-colors",
                   isSelected
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+                    ? "border-success/30 bg-success/10 text-success"
                     : "border-border/60 bg-muted/60 text-muted-foreground group-hover:text-foreground"
                 )}
               >
@@ -149,7 +149,7 @@ export function ModulesSelector({
                     {t(`items.${moduleKey}.name`)}
                   </p>
                   {isSelected && (
-                    <div className="flex size-4 items-center justify-center rounded-full bg-emerald-500 text-white">
+                    <div className="flex size-4 items-center justify-center rounded-full bg-success text-success-foreground">
                       <Check className="size-3" />
                     </div>
                   )}

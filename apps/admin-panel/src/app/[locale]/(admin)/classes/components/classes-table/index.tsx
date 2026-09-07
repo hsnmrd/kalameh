@@ -119,7 +119,7 @@ export function ClassesTable({
                 variant="outline"
                 className={
                   isFull
-                    ? "border-rose-500/20 bg-rose-500/10 text-rose-600"
+                    ? "border-destructive/20 bg-destructive/10 text-destructive"
                     : "border-border bg-muted text-muted-foreground"
                 }
               >

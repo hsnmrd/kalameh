@@ -15,9 +15,9 @@ export function TermStatusBadge({ isActive }: TermStatusBadgeProps) {
     return (
       <Badge
         variant="outline"
-        className="border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
+        className="border-success/20 bg-success/10 text-success"
       >
-        <span className="me-1.5 size-1.5 rounded-full bg-emerald-500" />
+        <span className="me-1.5 size-1.5 rounded-full bg-success" />
         {t("active")}
       </Badge>
     )

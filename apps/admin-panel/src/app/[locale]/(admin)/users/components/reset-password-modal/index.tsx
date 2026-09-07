@@ -83,7 +83,7 @@ export function ResetPasswordModal({
           onSubmit={handleSubmit}
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
             {user && (
               <div className="rounded-xl border border-border/80 bg-muted/30 p-4">
                 <div className="flex items-center gap-3">

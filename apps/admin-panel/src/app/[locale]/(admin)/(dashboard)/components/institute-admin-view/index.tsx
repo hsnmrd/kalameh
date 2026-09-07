@@ -39,7 +39,7 @@ export function InstituteAdminView() {
   const instituteName = currentInstitute?.name ?? t("title")
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -69,10 +69,10 @@ export function InstituteAdminView() {
         <StatCard
           title={t("stats.activeClasses")}
           value={classesCount.toString()}
-          subtitle="Top Notch, Summit, Family & Friends"
+          subtitle={t("stats.courseFamilies")}
           icon={Layers}
-          iconBgClassName="bg-sky-500/10"
-          iconColorClassName="text-sky-500"
+          iconBgClassName="bg-primary/10"
+          iconColorClassName="text-primary"
           badgeText={t("activeClassesCount", { count: classesCount })}
           badgeVariant="info"
         />
@@ -80,10 +80,10 @@ export function InstituteAdminView() {
         <StatCard
           title={t("stats.totalStudents")}
           value={usersCount.toString()}
-          subtitle="Across all active classes"
+          subtitle={t("stats.studentsScope")}
           icon={Users}
-          iconBgClassName="bg-emerald-500/10"
-          iconColorClassName="text-emerald-500"
+          iconBgClassName="bg-success/10"
+          iconColorClassName="text-success"
           badgeText={
             usersCount > 0
               ? t("enrolledCount", { count: usersCount })
@@ -97,15 +97,15 @@ export function InstituteAdminView() {
           value={t("stats.occupancy")}
           subtitle={t("stats.activeTerm")}
           icon={Calendar}
-          iconBgClassName="bg-amber-500/10"
-          iconColorClassName="text-amber-500"
+          iconBgClassName="bg-warning/10"
+          iconColorClassName="text-warning"
           badgeText={t("stats.activeTerm")}
           badgeVariant="neutral"
         />
       </div>
 
       {/* Quick Classes Overview Card */}
-      <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
+      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-foreground">
             {t("recentClasses")}
@@ -123,28 +123,28 @@ export function InstituteAdminView() {
           <div className="flex items-center justify-between py-3 text-sm">
             <div>
               <p className="font-semibold text-foreground">
-                Top Notch 1A - Group A
+                {t("preview.first.title")}
               </p>
               <p className="text-xs text-muted-foreground">
-                Instructor Mohammadi • 17:00 - 18:30
+                {t("preview.first.schedule")}
               </p>
             </div>
-            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
-              12 / 15 Enrolled
+            <span className="rounded-full border border-success/20 bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success">
+              {t("preview.first.enrollment")}
             </span>
           </div>
 
           <div className="flex items-center justify-between py-3 text-sm">
             <div>
               <p className="font-semibold text-foreground">
-                Summit 2B - Weekend Intensive
+                {t("preview.second.title")}
               </p>
               <p className="text-xs text-muted-foreground">
-                Instructor Rezaei • Thu & Fri 09:00 - 12:00
+                {t("preview.second.schedule")}
               </p>
             </div>
-            <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-0.5 text-xs font-semibold text-sky-600">
-              18 / 20 Enrolled
+            <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+              {t("preview.second.enrollment")}
             </span>
           </div>
         </div>

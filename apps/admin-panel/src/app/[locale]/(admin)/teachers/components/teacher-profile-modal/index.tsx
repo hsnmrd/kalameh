@@ -144,7 +144,7 @@ export function TeacherProfileModal({
             <Spinner className="size-8 text-foreground" />
           </div>
         ) : (
-          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
             {/* Dossier Header Card */}
             <div className="flex flex-row items-center gap-4 rounded-2xl border border-border/80 bg-muted/30 p-4 sm:p-5">
               <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-lg font-bold text-primary sm:size-16 sm:text-xl">
@@ -171,7 +171,7 @@ export function TeacherProfileModal({
                     variant={currentTeacher.isActive ? "outline" : "secondary"}
                     className={
                       currentTeacher.isActive
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+                        ? "border-success/30 bg-success/10 text-success"
                         : "text-muted-foreground"
                     }
                   >
@@ -203,13 +203,13 @@ export function TeacherProfileModal({
             </div>
 
             {/* Academic & Bio */}
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <GraduationCap className="size-4 text-muted-foreground" />
                 <span>{t("profileModal.academicInfo")}</span>
               </h4>
 
-              <div className="space-y-3 rounded-xl border border-border/80 bg-card p-4 text-xs">
+              <div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card p-4 text-xs">
                 <div>
                   <span className="mb-1 block text-muted-foreground">
                     {t("createModal.degree")}:
@@ -233,7 +233,7 @@ export function TeacherProfileModal({
             </div>
 
             {/* Free-time schedule */}
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               {availabilities.length === 0 ? (
                 <>
                   <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -251,7 +251,7 @@ export function TeacherProfileModal({
                     dragFree: true,
                     containScroll: "trimSnaps",
                   }}
-                  className="w-full space-y-3"
+                  className="flex w-full flex-col gap-3"
                 >
                   <div className="flex items-center justify-between">
                     <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -297,7 +297,7 @@ export function TeacherProfileModal({
             </div>
 
             {/* Classes Taught */}
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <BookOpen className="size-4 text-muted-foreground" />
                 <span>{t("profileModal.classesTaught")}</span>
@@ -308,7 +308,7 @@ export function TeacherProfileModal({
                   {t("profileModal.noClasses")}
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   {teachingClasses.map((cls) => (
                     <div
                       key={cls.id}

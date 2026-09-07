@@ -133,7 +133,7 @@ export function EditTeacherModal({
           onSubmit={handleSubmit(onSubmit)}
           className="flex min-h-0 flex-1 flex-col justify-between gap-4 overflow-hidden"
         >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field data-invalid={Boolean(errors.firstName)}>
                 <FieldLabel>{t("createModal.firstName")}</FieldLabel>

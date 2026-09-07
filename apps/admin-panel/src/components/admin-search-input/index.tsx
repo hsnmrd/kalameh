@@ -40,7 +40,7 @@ export function AdminSearchInput({
           size="icon"
           onClick={() => onChange("")}
           className="absolute end-2.5 top-1/2 size-8 -translate-y-1/2 rounded-xl text-muted-foreground hover:text-foreground"
-          aria-label="Clear search"
+          aria-label={t("clearSearch")}
         >
           <X className="size-4" />
         </Button>

@@ -45,7 +45,7 @@ export function ScheduleConflictBanner({
       <div className="rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs text-foreground">
         <div className="flex items-start gap-2.5">
           <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
-          <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             <div className="flex flex-wrap items-center justify-between gap-1.5 font-semibold text-warning">
               <span>{t("conflictBannerTitle")}</span>
               <span className="rounded-md bg-warning/20 px-2 py-0.5 text-[11px] font-medium text-warning">
@@ -55,7 +55,7 @@ export function ScheduleConflictBanner({
               </span>
             </div>
 
-            <div className="space-y-1 text-[11px] text-muted-foreground">
+            <div className="flex flex-col gap-1 text-[11px] text-muted-foreground">
               {displayedConflicts.map(
                 (conflict: ClassConflictItem, idx: number) => (
                   <div

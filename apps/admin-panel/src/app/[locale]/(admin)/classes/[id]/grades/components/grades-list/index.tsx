@@ -113,7 +113,7 @@ export function GradesList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <MobileList>
         {records.map((r, index) => {
           const override = gradeOverrides[r.studentId]
@@ -156,7 +156,7 @@ export function GradesList({
                     onClick={() => handlePassToggle(r.studentId, true)}
                     className={
                       isPassed === true
-                        ? "h-8 gap-1 rounded-lg bg-emerald-500/10 px-2 text-xs font-medium text-emerald-600"
+                        ? "h-8 gap-1 rounded-lg bg-success/10 px-2 text-xs font-medium text-success"
                         : "h-8 gap-1 rounded-lg px-2 text-xs text-muted-foreground hover:bg-muted"
                     }
                   >
@@ -171,7 +171,7 @@ export function GradesList({
                     onClick={() => handlePassToggle(r.studentId, false)}
                     className={
                       isPassed === false
-                        ? "h-8 gap-1 rounded-lg bg-rose-500/10 px-2 text-xs font-medium text-rose-600"
+                        ? "h-8 gap-1 rounded-lg bg-destructive/10 px-2 text-xs font-medium text-destructive"
                         : "h-8 gap-1 rounded-lg px-2 text-xs text-muted-foreground hover:bg-muted"
                     }
                   >

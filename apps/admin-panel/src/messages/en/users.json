@@ -144,7 +144,8 @@
     "errorListTitle": "Row Error Details:",
     "rowNumber": "Row {row}",
     "successMessage": "{count} staff members were imported successfully.",
-    "close": "Confirm & Close"
+    "close": "Confirm & Close",
+    "templateDownloadError": "The template could not be downloaded."
   },
   "export": {
     "trigger": "Export to Excel",

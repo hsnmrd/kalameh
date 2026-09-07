@@ -17,7 +17,7 @@ export function UserRoleBadge({ role }: UserRoleBadgeProps) {
       return (
         <Badge
           variant="outline"
-          className="border-purple-500/30 bg-purple-500/10 text-purple-600"
+          className="border-primary/30 bg-primary/10 text-primary"
         >
           {t("SUPER_ADMIN")}
         </Badge>

@@ -144,7 +144,8 @@
     "errorListTitle": "جزئیات خطاهای سطرها:",
     "rowNumber": "سطر {row}",
     "successMessage": "تعداد {count} کاربر با موفقیت در سامانه ثبت شدند.",
-    "close": "تأیید و بستن"
+    "close": "تأیید و بستن",
+    "templateDownloadError": "خطا در دانلود فایل نمونه"
   },
   "export": {
     "trigger": "خروجی اکسل",

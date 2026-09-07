@@ -10,15 +10,15 @@ export default function SettingPage() {
   const t = useTranslations("setting")
 
   return (
-    <AdminPageShell className="space-y-6">
-      <div className="space-y-1">
+    <AdminPageShell className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
         <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
           {t("title")}
         </h1>
         <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         <SettingThemeCard />
         <SettingLanguageCard />
       </div>

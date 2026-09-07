@@ -127,7 +127,7 @@ export function ClassDetailsModal({
           <FormDialogCloseButton />
         </FormDialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
           {/* Class Overview Banner */}
           <div className="flex items-center gap-3.5 rounded-2xl border border-border/80 bg-muted/20 p-4">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -213,7 +213,7 @@ export function ClassDetailsModal({
                     className={cn(
                       "h-4 px-1.5 text-[10px] font-medium",
                       isFull
-                        ? "border-rose-500/30 bg-rose-500/15 text-rose-600"
+                        ? "border-destructive/30 bg-destructive/15 text-destructive"
                         : "border-success/30 bg-success/15 text-success"
                     )}
                   >
@@ -269,7 +269,7 @@ export function ClassDetailsModal({
               )}
             </div>
 
-            <div className="space-y-3 pt-3">
+            <div className="flex flex-col gap-3 pt-3">
               {/* Day Badges */}
               {cls.daysOfWeek && cls.daysOfWeek.length > 0 ? (
                 <div className="flex flex-wrap items-center gap-1.5">

@@ -101,7 +101,7 @@ export function ClassroomPickerModal({
           </div>
 
           {/* List of Classrooms */}
-          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
             {/* Online / No classroom option */}
             <ClassroomPickerItem
               title={t("classroomPicker.noClassroom")}

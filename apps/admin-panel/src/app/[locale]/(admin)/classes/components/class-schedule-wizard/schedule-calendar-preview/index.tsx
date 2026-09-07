@@ -51,7 +51,7 @@ export function ScheduleCalendarPreview({
   }, [sessionDates, conflictingDates])
 
   return (
-    <div className="space-y-3 border-t border-border pt-4">
+    <div className="flex flex-col gap-3 border-t border-border pt-4">
       <div className="flex items-center justify-between gap-2">
         <span className="min-w-0 truncate text-xs font-medium text-foreground">
           {t("calendarPreview")}
@@ -86,7 +86,7 @@ export function ScheduleCalendarPreview({
           {t("noTermSelectedHint")}
         </p>
       ) : (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <Calendar
             mode="single"
             defaultMonth={initialMonth}

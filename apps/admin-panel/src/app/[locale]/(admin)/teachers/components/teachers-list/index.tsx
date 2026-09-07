@@ -125,7 +125,7 @@ export function TeachersList({
                       variant={teacher.isActive ? "outline" : "secondary"}
                       className={
                         teacher.isActive
-                          ? "border-emerald-500/30 bg-emerald-500/10 text-[10px] text-emerald-600"
+                          ? "border-success/30 bg-success/10 text-[10px] text-success"
                           : "text-[10px] text-muted-foreground"
                       }
                     >

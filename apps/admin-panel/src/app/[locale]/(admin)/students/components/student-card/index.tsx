@@ -38,7 +38,7 @@ export function StudentCard({
   const initial = student.firstName?.[0] || student.lastName?.[0] || "S"
 
   return (
-    <div className="space-y-4 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-xs">
+    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-xs">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">

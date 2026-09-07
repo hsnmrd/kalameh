@@ -45,7 +45,7 @@ export function StudentProfileNotes({
       {formattedNotes.length === 0 ? (
         <p className="pt-1 text-sm text-muted-foreground">—</p>
       ) : (
-        <div className="max-h-48 space-y-2 overflow-y-auto pt-1">
+        <div className="flex max-h-48 flex-col gap-2 overflow-y-auto pt-1">
           {formattedNotes.map((note, index) => (
             <div
               key={note.id}

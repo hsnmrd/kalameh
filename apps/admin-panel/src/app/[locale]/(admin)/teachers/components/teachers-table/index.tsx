@@ -148,7 +148,7 @@ export function TeachersTable({
               variant={isActive ? "outline" : "secondary"}
               className={
                 isActive
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+                  ? "border-success/30 bg-success/10 text-success"
                   : "text-muted-foreground"
               }
             >

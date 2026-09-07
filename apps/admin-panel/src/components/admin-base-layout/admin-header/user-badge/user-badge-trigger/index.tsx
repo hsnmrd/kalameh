@@ -60,7 +60,7 @@ export const UserBadgeTrigger = React.forwardRef<
       className={cn(
         "relative flex aspect-square size-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border shadow-xs transition-all select-none hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-hidden active:scale-95",
         hasActiveInstitute
-          ? "border-emerald-500/40 bg-emerald-600 text-white"
+          ? "border-success/40 bg-success text-success-foreground"
           : "border-border bg-primary text-primary-foreground",
         className
       )}

@@ -34,7 +34,7 @@ export function ActiveInstituteCard({
         <div
           className={cn(
             "relative flex aspect-square size-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold shadow-xs",
-            !primaryColor && "bg-emerald-600 text-white"
+            !primaryColor && "bg-success text-success-foreground"
           )}
           style={
             primaryColor

@@ -9,8 +9,12 @@
       "systemHealth": "System Health",
       "healthy": "Optimal (100%)",
       "active": "Active",
-      "total": "Total Across Cloud"
+      "total": "Total Across Cloud",
+      "uptime": "99.99%",
+      "operational": "All microservices operational"
     },
+    "instituteCount": "{count} Institutes",
+    "activePercentage": "{percentage}% Active",
     "recentInstitutes": "Recent Institutes",
     "recentInstitutesHint": "Click any institute to manage its operations directly",
     "noInstitutes": "No institutes registered yet.",
@@ -30,12 +34,26 @@
       "totalStudents": "Enrolled Students",
       "termCapacity": "Term Capacity",
       "activeTerm": "Fall 2026",
-      "occupancy": "85% Capacity"
+      "occupancy": "85% Capacity",
+      "courseFamilies": "Top Notch, Summit, Family & Friends",
+      "studentsScope": "Across all active classes"
     },
     "enrolledCount": "{count} Enrolled",
     "noUsers": "No Users",
     "activeClassesCount": "{count} Active",
     "recentClasses": "Active Classes Preview",
-    "viewAll": "View All Classes"
+    "viewAll": "View All Classes",
+    "preview": {
+      "first": {
+        "title": "Top Notch 1A - Group A",
+        "schedule": "Instructor Mohammadi • 17:00 - 18:30",
+        "enrollment": "12 / 15 Enrolled"
+      },
+      "second": {
+        "title": "Summit 2B - Weekend Intensive",
+        "schedule": "Instructor Rezaei • Thu & Fri 09:00 - 12:00",
+        "enrollment": "18 / 20 Enrolled"
+      }
+    }
   }
 }

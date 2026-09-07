@@ -105,7 +105,7 @@ export default function AdminLoginPage() {
           </div>
         </div>
 
-        <div className="max-w-md space-y-6">
+        <div className="flex max-w-md flex-col gap-6">
           <h1 className="text-3xl leading-tight font-semibold text-foreground xl:text-4xl">
             {t("brandingTitle")}
           </h1>
@@ -115,7 +115,7 @@ export default function AdminLoginPage() {
         </div>
 
         <div className="flex items-center gap-3 border-t border-sidebar-border/60 pt-6 text-sm text-muted-foreground">
-          <ShieldCheck className="size-5 text-emerald-500" />
+          <ShieldCheck className="size-5 text-success" />
           <span>{t("securityNotice")}</span>
         </div>
       </aside>
@@ -149,8 +149,8 @@ export default function AdminLoginPage() {
         </header>
 
         {/* Form Container */}
-        <div className="mx-auto my-auto w-full max-w-md space-y-8">
-          <div className="space-y-2">
+        <div className="mx-auto my-auto flex w-full max-w-md flex-col gap-8">
+          <div className="flex flex-col gap-2">
             <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               {t("loginTitle")}
             </h2>
@@ -159,7 +159,10 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-6"
+          >
             <FieldGroup>
               <Field data-invalid={Boolean(errors.phone)}>
                 <FieldLabel htmlFor="phone">{t("phoneLabel")}</FieldLabel>
