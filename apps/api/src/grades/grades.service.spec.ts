@@ -21,9 +21,11 @@ describe('GradesService', () => {
     prismaService = {
       class: {
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
       },
       course: {
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
       },
       enrollment: {
         findMany: jest.fn(),
@@ -32,6 +34,7 @@ describe('GradesService', () => {
       },
       user: {
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         update: jest.fn(),
       },
       $transaction: jest.fn((cb: any) => cb(prismaService)),
@@ -58,7 +61,7 @@ describe('GradesService', () => {
       const student1Id = 'student-1';
       const student2Id = 'student-2';
 
-      prismaService.class.findFirst.mockResolvedValue({
+      prismaService.class.findFirstOrThrow.mockResolvedValue({
         id: classId,
         instituteId: 'inst-1',
         courseId: 'course-level-1',
@@ -115,12 +118,12 @@ describe('GradesService', () => {
       const studentId = 'student-1';
       const targetCourseId = 'target-course-id';
 
-      prismaService.user.findFirst.mockResolvedValue({
+      prismaService.user.findFirstOrThrow.mockResolvedValue({
         id: studentId,
         instituteId: 'inst-1',
       });
 
-      prismaService.course.findFirst.mockResolvedValue({
+      prismaService.course.findFirstOrThrow.mockResolvedValue({
         id: targetCourseId,
         instituteId: 'inst-1',
       });

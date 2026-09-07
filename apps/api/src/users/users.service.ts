@@ -2,7 +2,6 @@ import {
   Injectable,
   ConflictException,
   ForbiddenException,
-  NotFoundException,
   BadRequestException,
   Logger,
 } from '@nestjs/common';
@@ -416,7 +415,7 @@ export class UsersService {
     id: string,
     locale: SupportedLocale = 'fa',
   ): Promise<{ message: string }> {
-    const targetUser = await this.prisma.user.findFirst({
+    const targetUser = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
         ...(currentUser.role === 'SUPER_ADMIN'
@@ -424,10 +423,6 @@ export class UsersService {
           : { instituteId: currentUser.instituteId }),
       },
     });
-
-    if (!targetUser) {
-      throw new NotFoundException(this.i18n.t('users.userNotFound', locale));
-    }
 
     if (currentUser.sub === targetUser.id) {
       throw new BadRequestException(

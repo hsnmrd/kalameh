@@ -28,6 +28,7 @@ describe('TermsService', () => {
       term: {
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
       },
@@ -172,7 +173,9 @@ describe('TermsService', () => {
 
   describe('update', () => {
     it('should throw NotFoundException if term not found', async () => {
-      prismaService.term.findFirst.mockResolvedValue(null);
+      prismaService.term.findFirstOrThrow.mockRejectedValue(
+        new NotFoundException(),
+      );
 
       await expect(
         service.update('invalid-id', { title: 'نام جدید' }, mockAdmin),

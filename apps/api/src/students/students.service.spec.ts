@@ -42,6 +42,7 @@ describe('StudentsService', () => {
       user: {
         findUnique: jest.fn(),
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         findMany: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
@@ -178,7 +179,7 @@ describe('StudentsService', () => {
 
   describe('findOne', () => {
     it('should return student details by id', async () => {
-      prismaService.user.findFirst.mockResolvedValue({
+      prismaService.user.findFirstOrThrow.mockResolvedValue({
         id: 'student-1',
         instituteId: 'inst-1',
         role: 'STUDENT',
@@ -200,7 +201,9 @@ describe('StudentsService', () => {
     });
 
     it('should throw NotFoundException if student does not exist', async () => {
-      prismaService.user.findFirst.mockResolvedValue(null);
+      prismaService.user.findFirstOrThrow.mockRejectedValue(
+        new NotFoundException(),
+      );
 
       await expect(
         service.findOne(mockAdmin, 'non-existing-id'),
@@ -259,7 +262,7 @@ describe('StudentsService', () => {
 
   describe('addNote', () => {
     it('should create note and return updated student', async () => {
-      prismaService.user.findFirst
+      prismaService.user.findFirstOrThrow
         .mockResolvedValueOnce({
           id: 'student-1',
           instituteId: 'inst-1',
@@ -316,7 +319,9 @@ describe('StudentsService', () => {
     });
 
     it('should throw NotFoundException if student is not found', async () => {
-      prismaService.user.findFirst.mockResolvedValue(null);
+      prismaService.user.findFirstOrThrow.mockRejectedValue(
+        new NotFoundException(),
+      );
 
       await expect(
         service.addNote(mockAdmin, 'non-existent', {

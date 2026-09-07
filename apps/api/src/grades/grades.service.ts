@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { Prisma } from '@workspace/database';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -26,18 +22,15 @@ export class GradesService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<ClassGradeRecordDto[]> {
+    void locale;
     const instituteId = currentUser.instituteId;
 
-    const cls = await this.prisma.class.findFirst({
+    await this.prisma.class.findFirstOrThrow({
       where: {
         id: classId,
         ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
       },
     });
-
-    if (!cls) {
-      throw new NotFoundException(this.i18n.t('classes.classNotFound', locale));
-    }
 
     const enrollments = await this.prisma.enrollment.findMany({
       where: { classId },
@@ -73,7 +66,7 @@ export class GradesService {
   ): Promise<{ message: string; updatedCount: number }> {
     const instituteId = currentUser.instituteId;
 
-    const cls = await this.prisma.class.findFirst({
+    const cls = await this.prisma.class.findFirstOrThrow({
       where: {
         id: classId,
         ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
@@ -82,10 +75,6 @@ export class GradesService {
         course: true,
       },
     });
-
-    if (!cls) {
-      throw new NotFoundException(this.i18n.t('classes.classNotFound', locale));
-    }
 
     // Find the subsequent course in the prerequisite chain
     const nextCourse = await this.prisma.course.findFirst({
@@ -155,30 +144,20 @@ export class GradesService {
   ): Promise<{ message: string }> {
     const instituteId = currentUser.instituteId;
 
-    const student = await this.prisma.user.findFirst({
+    const student = await this.prisma.user.findFirstOrThrow({
       where: {
         id: studentId,
         ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
       },
     });
 
-    if (!student) {
-      throw new NotFoundException(this.i18n.t('users.userNotFound', locale));
-    }
-
     if (dto.currentAllowedCourseId) {
-      const course = await this.prisma.course.findFirst({
+      await this.prisma.course.findFirstOrThrow({
         where: {
           id: dto.currentAllowedCourseId,
           instituteId: student.instituteId,
         },
       });
-
-      if (!course) {
-        throw new NotFoundException(
-          this.i18n.t('courses.courseNotFound', locale),
-        );
-      }
     }
 
     await this.prisma.user.update({

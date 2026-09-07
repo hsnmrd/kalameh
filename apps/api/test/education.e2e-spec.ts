@@ -60,6 +60,7 @@ describe('Education & Classes Infrastructure (e2e)', () => {
       user: {
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         findUnique: jest.fn(),
         findUniqueOrThrow: jest.fn(),
         update: jest.fn(),
@@ -67,12 +68,14 @@ describe('Education & Classes Infrastructure (e2e)', () => {
       term: {
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
       },
       course: {
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         findUnique: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
@@ -80,6 +83,7 @@ describe('Education & Classes Infrastructure (e2e)', () => {
       class: {
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
       },
@@ -301,7 +305,7 @@ describe('Education & Classes Infrastructure (e2e)', () => {
       const classId = 'class-to-grade';
       const studentId = mockStudent.id;
 
-      prismaService.class.findFirst.mockResolvedValue({
+      prismaService.class.findFirstOrThrow.mockResolvedValue({
         id: classId,
         instituteId: mockInstitute.id,
         courseId: 'course-tn1-id',

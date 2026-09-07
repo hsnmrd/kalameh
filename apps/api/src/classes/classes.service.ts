@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
   BadRequestException,
   ConflictException,
   Logger,
@@ -206,7 +205,7 @@ export class ClassesService {
   ): Promise<ClassDto> {
     const instituteId = currentUser.instituteId;
 
-    const cls = await this.prisma.class.findFirst({
+    const cls = await this.prisma.class.findFirstOrThrow({
       where: {
         id,
         ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
@@ -252,10 +251,6 @@ export class ClassesService {
         },
       },
     });
-
-    if (!cls) {
-      throw new NotFoundException(this.i18n.t('classes.classNotFound', locale));
-    }
 
     const { _count, ...data } = cls;
     return {

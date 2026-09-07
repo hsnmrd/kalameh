@@ -31,6 +31,7 @@ describe('ClassesService', () => {
       class: {
         findMany: jest.fn().mockResolvedValue([]),
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
       },
@@ -453,7 +454,7 @@ describe('ClassesService', () => {
         sessionDates: ['2026-10-04', '2026-10-06', '2026-10-11'],
       };
 
-      const result = await service.checkConflicts(dto as any, mockAdmin);
+      const result = await service.checkConflicts(dto, mockAdmin);
       expect(result.hasConflict).toBe(true);
       expect(result.conflictingDates).toEqual(['2026-10-04', '2026-10-06']);
       expect(result.conflicts).toHaveLength(1);
@@ -486,7 +487,7 @@ describe('ClassesService', () => {
         sessionDates: ['2026-10-04', '2026-10-06'],
       };
 
-      const result = await service.checkConflicts(dto as any, mockAdmin);
+      const result = await service.checkConflicts(dto, mockAdmin);
       expect(result.hasConflict).toBe(false);
       expect(result.conflictingDates).toEqual([]);
       expect(result.conflicts).toEqual([]);
@@ -517,7 +518,7 @@ describe('ClassesService', () => {
         sessionDates: ['2026-10-04', '2026-10-06'],
       };
 
-      const result = await service.checkConflicts(dto as any, mockAdmin);
+      const result = await service.checkConflicts(dto, mockAdmin);
       expect(result.hasConflict).toBe(true);
       expect(result.conflicts).toHaveLength(1);
       expect(result.conflicts[0].type).toBe('CLASSROOM');
@@ -552,7 +553,7 @@ describe('ClassesService', () => {
         sessionDates: [],
       };
 
-      const result = await service.checkConflicts(dto as any, mockAdmin);
+      const result = await service.checkConflicts(dto, mockAdmin);
       expect(result.hasConflict).toBe(true);
       expect(result.conflicts).toHaveLength(1);
       expect(result.conflicts[0].type).toBe('TEACHER_FREE_TIME');

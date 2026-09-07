@@ -30,6 +30,7 @@ describe('BranchesService', () => {
       branch: {
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
       },
@@ -129,7 +130,7 @@ describe('BranchesService', () => {
 
   describe('findOne', () => {
     it('should return branch with stats', async () => {
-      prismaService.branch.findFirst.mockResolvedValue({
+      prismaService.branch.findFirstOrThrow.mockResolvedValue({
         id: 'branch-1',
         instituteId: 'inst-1',
         name: 'Central Branch',
@@ -148,7 +149,9 @@ describe('BranchesService', () => {
     });
 
     it('should throw NotFoundException if branch does not exist', async () => {
-      prismaService.branch.findFirst.mockResolvedValue(null);
+      prismaService.branch.findFirstOrThrow.mockRejectedValue(
+        new NotFoundException(),
+      );
 
       await expect(
         service.findOne('branch-unknown', mockAdminUser, 'en'),
@@ -212,17 +215,16 @@ describe('BranchesService', () => {
 
   describe('update', () => {
     it('should update branch details successfully', async () => {
-      prismaService.branch.findFirst
-        .mockResolvedValueOnce({
-          id: 'branch-1',
-          instituteId: 'inst-1',
-          name: 'Central Branch',
-          address: null,
-          phones: [],
-          isActive: true,
-          _count: { classes: 2, users: 5 },
-        })
-        .mockResolvedValueOnce(null); // No duplicate name
+      prismaService.branch.findFirstOrThrow.mockResolvedValue({
+        id: 'branch-1',
+        instituteId: 'inst-1',
+        name: 'Central Branch',
+        address: null,
+        phones: [],
+        isActive: true,
+        _count: { classes: 2, users: 5 },
+      });
+      prismaService.branch.findFirst.mockResolvedValue(null);
 
       prismaService.branch.update.mockResolvedValue({
         id: 'branch-1',
@@ -260,17 +262,16 @@ describe('BranchesService', () => {
     });
 
     it('should throw ConflictException if updated name collides with another branch', async () => {
-      prismaService.branch.findFirst
-        .mockResolvedValueOnce({
-          id: 'branch-1',
-          instituteId: 'inst-1',
-          name: 'Central Branch',
-          _count: { classes: 0, users: 0 },
-        })
-        .mockResolvedValueOnce({
-          id: 'branch-2',
-          name: 'West Branch',
-        });
+      prismaService.branch.findFirstOrThrow.mockResolvedValue({
+        id: 'branch-1',
+        instituteId: 'inst-1',
+        name: 'Central Branch',
+        _count: { classes: 0, users: 0 },
+      });
+      prismaService.branch.findFirst.mockResolvedValue({
+        id: 'branch-2',
+        name: 'West Branch',
+      });
 
       await expect(
         service.update(

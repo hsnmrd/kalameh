@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
   ConflictException,
   BadRequestException,
   Logger,
@@ -56,9 +55,10 @@ export class TermsService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<TermDto> {
+    void locale;
     const instituteId = currentUser.instituteId;
 
-    const term = await this.prisma.term.findFirst({
+    const term = await this.prisma.term.findFirstOrThrow({
       where: {
         id,
         ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
@@ -67,10 +67,6 @@ export class TermsService {
         _count: { select: { classes: true } },
       },
     });
-
-    if (!term) {
-      throw new NotFoundException(this.i18n.t('terms.termNotFound', locale));
-    }
 
     const { _count, ...data } = term;
     return {

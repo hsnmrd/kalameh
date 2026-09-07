@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
   ConflictException,
   BadRequestException,
   Logger,
@@ -78,9 +77,10 @@ export class ClassroomsService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<ClassroomDto> {
+    void locale;
     const isSuperAdmin = currentUser.role === 'SUPER_ADMIN';
 
-    const classroom = await this.prisma.classroom.findFirst({
+    const classroom = await this.prisma.classroom.findFirstOrThrow({
       where: {
         id,
         ...(isSuperAdmin ? {} : { instituteId: currentUser.instituteId }),
@@ -97,12 +97,6 @@ export class ClassroomsService {
         },
       },
     });
-
-    if (!classroom) {
-      throw new NotFoundException(
-        this.i18n.t('classrooms.classroomNotFound', locale),
-      );
-    }
 
     const { _count, ...item } = classroom;
     return {

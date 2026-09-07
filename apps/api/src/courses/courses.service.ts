@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
   ConflictException,
   BadRequestException,
   Logger,
@@ -66,9 +65,10 @@ export class CoursesService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<CourseDto> {
+    void locale;
     const instituteId = currentUser.instituteId;
 
-    const course = await this.prisma.course.findFirst({
+    const course = await this.prisma.course.findFirstOrThrow({
       where: {
         id,
         ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
@@ -83,12 +83,6 @@ export class CoursesService {
         _count: { select: { classes: true } },
       },
     });
-
-    if (!course) {
-      throw new NotFoundException(
-        this.i18n.t('courses.courseNotFound', locale),
-      );
-    }
 
     const { _count, ...data } = course;
     return {
@@ -123,18 +117,12 @@ export class CoursesService {
 
     // Verify prerequisite exists in same institute
     if (dto.prerequisiteId) {
-      const prereq = await this.prisma.course.findFirst({
+      await this.prisma.course.findFirstOrThrow({
         where: {
           id: dto.prerequisiteId,
           instituteId,
         },
       });
-
-      if (!prereq) {
-        throw new NotFoundException(
-          this.i18n.t('courses.prerequisiteNotFound', locale),
-        );
-      }
     }
 
     const created = await this.prisma.course.create({
@@ -212,18 +200,12 @@ export class CoursesService {
       }
 
       if (dto.prerequisiteId) {
-        const prereq = await this.prisma.course.findFirst({
+        const prereq = await this.prisma.course.findFirstOrThrow({
           where: {
             id: dto.prerequisiteId,
             instituteId: existing.instituteId,
           },
         });
-
-        if (!prereq) {
-          throw new NotFoundException(
-            this.i18n.t('courses.prerequisiteNotFound', locale),
-          );
-        }
 
         // Trace prerequisite chain upwards to ensure we don't hit `id`
         let currentPrereqId: string | null | undefined = prereq.prerequisiteId;

@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, ConflictException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { CreateBranchDto } from './dto/create-branch.dto';
@@ -94,9 +89,10 @@ export class BranchesService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<BranchWithStats> {
+    void locale;
     const instituteId = currentUser.instituteId;
 
-    const branch = await this.prisma.branch.findFirst({
+    const branch = await this.prisma.branch.findFirstOrThrow({
       where: {
         id,
         ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
@@ -105,12 +101,6 @@ export class BranchesService {
         _count: { select: { classes: true, users: true } },
       },
     });
-
-    if (!branch) {
-      throw new NotFoundException(
-        this.i18n.t('branches.branchNotFound', locale),
-      );
-    }
 
     const { _count, ...data } = branch;
     return {

@@ -28,6 +28,7 @@ describe('CoursesService', () => {
       course: {
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        findFirstOrThrow: jest.fn(),
         findUnique: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
@@ -71,9 +72,10 @@ describe('CoursesService', () => {
         prerequisiteId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
       };
 
-      prismaService.course.findFirst
-        .mockResolvedValueOnce(null) // title check
-        .mockResolvedValueOnce(null); // prereq check
+      prismaService.course.findFirst.mockResolvedValue(null);
+      prismaService.course.findFirstOrThrow.mockRejectedValue(
+        new NotFoundException(),
+      );
 
       await expect(service.create(dto, mockAdmin)).rejects.toThrow(
         NotFoundException,
@@ -107,7 +109,7 @@ describe('CoursesService', () => {
   describe('update (Cycle Prevention)', () => {
     it('should throw BadRequestException if course sets itself as prerequisite', async () => {
       const courseId = 'course-a';
-      prismaService.course.findFirst.mockResolvedValue({
+      prismaService.course.findFirstOrThrow.mockResolvedValue({
         id: courseId,
         instituteId: 'inst-1',
         title: 'Course A',
@@ -127,7 +129,7 @@ describe('CoursesService', () => {
       const courseBId = 'course-b';
 
       // Finding Course A
-      prismaService.course.findFirst
+      prismaService.course.findFirstOrThrow
         .mockResolvedValueOnce({
           id: courseAId,
           instituteId: 'inst-1',

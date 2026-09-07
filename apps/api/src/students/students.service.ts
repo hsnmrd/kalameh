@@ -2,7 +2,6 @@ import {
   Injectable,
   ConflictException,
   ForbiddenException,
-  NotFoundException,
   Logger,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
@@ -256,10 +255,11 @@ export class StudentsService {
     id: string,
     locale: SupportedLocale = 'fa',
   ) {
+    void locale;
     const targetInstituteId =
       currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
 
-    const student = await this.prisma.user.findFirst({
+    const student = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
         role: 'STUDENT',
@@ -308,12 +308,6 @@ export class StudentsService {
       },
     });
 
-    if (!student) {
-      throw new NotFoundException(
-        this.i18n.t('students.studentNotFound', locale),
-      );
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...rest } = student;
     return rest;
@@ -333,7 +327,7 @@ export class StudentsService {
     const targetInstituteId =
       currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
 
-    const existing = await this.prisma.user.findFirst({
+    const existing = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
         role: 'STUDENT',
@@ -341,12 +335,6 @@ export class StudentsService {
       },
       include: { studentProfile: true },
     });
-
-    if (!existing) {
-      throw new NotFoundException(
-        this.i18n.t('students.studentNotFound', locale),
-      );
-    }
 
     if (dto.phone && dto.phone !== existing.phone) {
       const phoneInUse = await this.prisma.user.findUnique({
@@ -486,19 +474,13 @@ export class StudentsService {
     const targetInstituteId =
       currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
 
-    const student = await this.prisma.user.findFirst({
+    const student = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
         role: 'STUDENT',
         ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
       },
     });
-
-    if (!student) {
-      throw new NotFoundException(
-        this.i18n.t('students.studentNotFound', locale),
-      );
-    }
 
     const rawPassword = newPassword?.trim() || student.phone;
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
@@ -525,7 +507,7 @@ export class StudentsService {
     const targetInstituteId =
       currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
 
-    const existing = await this.prisma.user.findFirst({
+    const existing = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
         role: 'STUDENT',
@@ -537,12 +519,6 @@ export class StudentsService {
         },
       },
     });
-
-    if (!existing) {
-      throw new NotFoundException(
-        this.i18n.t('students.studentNotFound', locale),
-      );
-    }
 
     const profileId =
       existing.studentProfile?.id ??

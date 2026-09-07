@@ -485,7 +485,7 @@ describe('UsersService', () => {
 
   describe('delete', () => {
     it('should delete a user successfully by ADMIN', async () => {
-      prismaService.user.findFirst.mockResolvedValue({
+      prismaService.user.findFirstOrThrow.mockResolvedValue({
         id: 'user-to-delete',
         instituteId: 'inst-1',
         role: 'TEACHER',
@@ -496,7 +496,7 @@ describe('UsersService', () => {
 
       const result = await service.delete(mockInstituteAdmin, 'user-to-delete');
       expect(result.message).toBeDefined();
-      expect(prismaService.user.findFirst).toHaveBeenCalledWith({
+      expect(prismaService.user.findFirstOrThrow).toHaveBeenCalledWith({
         where: { id: 'user-to-delete', instituteId: 'inst-1' },
       });
       expect(prismaService.transaction.count).toHaveBeenCalledWith({
@@ -508,7 +508,7 @@ describe('UsersService', () => {
     });
 
     it('should throw BadRequestException if user tries to delete their own account', async () => {
-      prismaService.user.findFirst.mockResolvedValue({
+      prismaService.user.findFirstOrThrow.mockResolvedValue({
         id: 'admin-id',
         instituteId: 'inst-1',
         role: 'ADMIN',
@@ -520,7 +520,7 @@ describe('UsersService', () => {
     });
 
     it('should throw ForbiddenException if trying to delete SUPER_ADMIN', async () => {
-      prismaService.user.findFirst.mockResolvedValue({
+      prismaService.user.findFirstOrThrow.mockResolvedValue({
         id: 'super-admin-id',
         instituteId: 'inst-1',
         role: 'SUPER_ADMIN',
@@ -532,7 +532,7 @@ describe('UsersService', () => {
     });
 
     it('should throw BadRequestException if user has dependent enrollments or transactions', async () => {
-      prismaService.user.findFirst.mockResolvedValue({
+      prismaService.user.findFirstOrThrow.mockResolvedValue({
         id: 'student-with-data',
         instituteId: 'inst-1',
         role: 'STUDENT',
