@@ -23,6 +23,7 @@ export const classesResource = api.resource("classes", {
       body: ({ body }) => body,
     }
   ),
+  delete: api.delete<{ success: boolean }, string>((id) => `/classes/${id}`),
   checkConflicts: api.post<ClassConflictResult, CheckClassConflictsInput>(
     "/classes/check-conflicts"
   ),

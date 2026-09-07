@@ -201,7 +201,7 @@ export class ClassesService {
   async findOne(
     id: string,
     currentUser: JwtPayload,
-    locale: SupportedLocale = 'fa',
+    _locale: SupportedLocale = 'fa',
   ): Promise<ClassDto> {
     const instituteId = currentUser.instituteId;
 
@@ -1226,5 +1226,42 @@ export class ClassesService {
         }
       }
     }
+  }
+
+  async remove(
+    id: string,
+    currentUser: JwtPayload,
+    locale: SupportedLocale = 'fa',
+  ): Promise<{ success: boolean }> {
+    const existing = await this.findOne(id, currentUser, locale);
+
+    const enrollmentsCount = await this.prisma.enrollment.count({
+      where: { classId: id },
+    });
+
+    if (enrollmentsCount > 0) {
+      throw new BadRequestException(
+        this.i18n.t('classes.cannotDeleteWithEnrollments', locale),
+      );
+    }
+
+    await this.prisma.class.delete({
+      where: { id },
+    });
+
+    await this.auditLogsService.log({
+      instituteId: existing.instituteId,
+      userId: currentUser.sub,
+      module: 'CLASS',
+      entityId: id,
+      action: 'DELETE',
+      metadata: {
+        title: existing.title,
+        termId: existing.termId,
+        courseId: existing.courseId,
+      },
+    });
+
+    return { success: true };
   }
 }

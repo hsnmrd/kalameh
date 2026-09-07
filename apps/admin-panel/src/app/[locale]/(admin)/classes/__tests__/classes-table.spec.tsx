@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest"
-import { render, screen } from "../../../../../test/test-utils"
+import { render, screen, fireEvent } from "../../../../../test/test-utils"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { ClassesTable } from "../components/classes-table"
 import type { ClassDto } from "@workspace/types"
@@ -60,5 +60,21 @@ describe("ClassesTable Component", () => {
     )
     const gradesBtn = screen.getByRole("button", { name: /ثبت نمرات|grades/i })
     expect(gradesBtn).toBeInTheDocument()
+  })
+
+  it("should call onDelete when delete button is clicked", () => {
+    const handleDelete = vi.fn()
+    render(
+      <ClassesTable
+        classes={mockClasses}
+        isLoading={false}
+        onEdit={vi.fn()}
+        onDelete={handleDelete}
+      />
+    )
+    const deleteBtn = screen.getByRole("button", { name: /حذف کلاس|delete/i })
+    expect(deleteBtn).toBeInTheDocument()
+    fireEvent.click(deleteBtn)
+    expect(handleDelete).toHaveBeenCalledWith(mockClasses[0])
   })
 })

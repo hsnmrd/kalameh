@@ -90,6 +90,8 @@ export const fa: TranslationDictionary = {
       'استاد انتخابی در این روزها و ساعات در کلاس "{conflictingClass}" مشغول به تدریس است',
     teacherFreeTimeConflict:
       'زمان انتخابی کلاس خارج از ساعات آزاد اعلام‌شده برای استاد ({teacherName}) است',
+    cannotDeleteWithEnrollments:
+      'امکان حذف کلاسی که دارای زبان‌آموز یا ثبت‌نام است وجود ندارد',
   },
   grades: {
     gradesSubmittedSuccess:

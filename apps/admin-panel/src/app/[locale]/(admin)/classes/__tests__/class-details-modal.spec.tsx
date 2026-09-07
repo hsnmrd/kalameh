@@ -93,4 +93,28 @@ describe("ClassDetailsModal Component", () => {
     expect(handleClose).toHaveBeenCalled()
     expect(handleEdit).toHaveBeenCalledWith(mockClass)
   })
+
+  it("should call onDelete and onClose when delete button is clicked", () => {
+    const handleDelete = vi.fn()
+    const handleClose = vi.fn()
+
+    render(
+      <ClassDetailsModal
+        cls={mockClass}
+        open={true}
+        onClose={handleClose}
+        onDelete={handleDelete}
+      />
+    )
+    const moreBtn = screen.getByRole("button", {
+      name: /مشخصات و جزئیات کلاس|Class Details/i,
+    })
+    fireEvent.click(moreBtn)
+
+    const deleteBtn = screen.getByText(/حذف کلاس|delete class/i)
+    fireEvent.click(deleteBtn)
+
+    expect(handleClose).toHaveBeenCalled()
+    expect(handleDelete).toHaveBeenCalledWith(mockClass)
+  })
 })

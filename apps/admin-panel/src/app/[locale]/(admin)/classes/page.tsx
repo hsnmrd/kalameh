@@ -18,12 +18,16 @@ import { ClassesList } from "./components/classes-list"
 import { CreateClassModal } from "./components/create-class-modal"
 import { EditClassModal } from "./components/edit-class-modal"
 import { ClassDetailsModal } from "./components/class-details-modal"
+import { DeleteClassModal } from "./components/delete-class-modal"
 
 export default function ClassesPage() {
   const t = useTranslations("classes")
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [editingClass, setEditingClass] = React.useState<ClassDto | null>(null)
   const [viewingClass, setViewingClass] = React.useState<ClassDto | null>(null)
+  const [deletingClass, setDeletingClass] = React.useState<ClassDto | null>(
+    null
+  )
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -83,6 +87,16 @@ export default function ClassesPage() {
                   setViewingClass(null)
                   setEditingClass(cls)
                 }}
+                onDelete={(cls) => {
+                  setViewingClass(null)
+                  setDeletingClass(cls)
+                }}
+              />
+
+              <DeleteClassModal
+                cls={deletingClass}
+                open={Boolean(deletingClass)}
+                onClose={() => setDeletingClass(null)}
               />
             </>
           }
@@ -105,6 +119,7 @@ export default function ClassesPage() {
               isLoading={isLoading}
               onEdit={(cls) => setEditingClass(cls)}
               onViewDetails={(cls) => setViewingClass(cls)}
+              onDelete={(cls) => setDeletingClass(cls)}
             />
           </div>
 
@@ -115,6 +130,7 @@ export default function ClassesPage() {
               isLoading={isLoading}
               onEdit={(cls) => setEditingClass(cls)}
               onViewDetails={(cls) => setViewingClass(cls)}
+              onDelete={(cls) => setDeletingClass(cls)}
             />
           </div>
         </AdminPageShell>

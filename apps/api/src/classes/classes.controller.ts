@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   Query,
@@ -87,5 +88,15 @@ export class ClassesController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.classesService.update(id, dto, currentUser, locale);
+  }
+
+  @Delete(':id')
+  @RequirePermissions(PERMISSIONS.MANAGE_CLASSES)
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.classesService.remove(id, currentUser, locale);
   }
 }

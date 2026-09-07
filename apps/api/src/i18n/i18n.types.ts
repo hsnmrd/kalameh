@@ -73,6 +73,7 @@ export interface TranslationDictionary {
     classroomConflict: string;
     teacherConflict: string;
     teacherFreeTimeConflict: string;
+    cannotDeleteWithEnrollments: string;
   };
   grades: {
     gradesSubmittedSuccess: string;

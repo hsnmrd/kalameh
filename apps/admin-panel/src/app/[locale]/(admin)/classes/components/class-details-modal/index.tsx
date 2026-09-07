@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Edit2, GraduationCap, MoreVertical } from "lucide-react"
+import { Edit2, GraduationCap, MoreVertical, Trash2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
@@ -29,6 +29,7 @@ export interface ClassDetailsModalProps {
   open: boolean
   onClose: () => void
   onEdit?: (cls: ClassDto) => void
+  onDelete?: (cls: ClassDto) => void
 }
 
 export function ClassDetailsModal({
@@ -36,6 +37,7 @@ export function ClassDetailsModal({
   open,
   onClose,
   onEdit,
+  onDelete,
 }: ClassDetailsModalProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -95,6 +97,16 @@ export function ClassDetailsModal({
                   >
                     <Edit2 className="size-4 text-muted-foreground" />
                     <span>{t("detailsModal.editClass")}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => {
+                      onClose()
+                      onDelete?.(cls)
+                    }}
+                  >
+                    <Trash2 className="size-4 text-destructive" />
+                    <span>{t("detailsModal.deleteClass")}</span>
                   </DropdownMenuItem>
                 </PermissionGuard>
               </DropdownMenuContent>

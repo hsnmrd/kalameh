@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Layers, Edit2, GraduationCap, Eye } from "lucide-react"
+import { Layers, Edit2, GraduationCap, Eye, Trash2 } from "lucide-react"
 import { Link } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -26,6 +26,7 @@ export interface ClassesTableProps {
   isLoading: boolean
   onEdit: (cls: ClassDto) => void
   onViewDetails?: (cls: ClassDto) => void
+  onDelete?: (cls: ClassDto) => void
 }
 
 export function ClassesTable({
@@ -33,6 +34,7 @@ export function ClassesTable({
   isLoading,
   onEdit,
   onViewDetails,
+  onDelete,
 }: ClassesTableProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -189,11 +191,27 @@ export function ClassesTable({
                 <Edit2 className="size-4" />
               </Button>
             </PermissionGuard>
+
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSES}
+              mode="disable"
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete?.(row.original)}
+                className="size-8 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                aria-label={t("table.delete")}
+                title={t("table.delete")}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </PermissionGuard>
           </div>
         ),
       },
     ],
-    [t, locale, onEdit, onViewDetails]
+    [t, locale, onEdit, onViewDetails, onDelete]
   )
 
   if (isLoading) {

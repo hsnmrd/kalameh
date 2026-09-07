@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Layers, Edit2, GraduationCap, Eye } from "lucide-react"
+import { Layers, Edit2, GraduationCap, Eye, Trash2 } from "lucide-react"
 import { Link, useRouter } from "@/i18n/routing"
 import {
   MobileList,
@@ -35,6 +35,7 @@ export interface ClassesListProps {
   isLoading: boolean
   onEdit: (cls: ClassDto) => void
   onViewDetails?: (cls: ClassDto) => void
+  onDelete?: (cls: ClassDto) => void
 }
 
 export function ClassesList({
@@ -42,6 +43,7 @@ export function ClassesList({
   isLoading,
   onEdit,
   onViewDetails,
+  onDelete,
 }: ClassesListProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -153,6 +155,13 @@ export function ClassesList({
                 <ContextMenuItem onClick={() => onEdit(cls)}>
                   <Edit2 className="me-2 size-4 text-muted-foreground" />
                   {t("table.actions")}
+                </ContextMenuItem>
+                <ContextMenuItem
+                  variant="destructive"
+                  onClick={() => onDelete?.(cls)}
+                >
+                  <Trash2 className="me-2 size-4 text-destructive" />
+                  {t("deleteModal.title")}
                 </ContextMenuItem>
               </PermissionGuard>
             </ContextMenuContent>

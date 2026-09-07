@@ -34,6 +34,10 @@ describe('ClassesService', () => {
         findFirstOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
+        delete: jest.fn(),
+      },
+      enrollment: {
+        count: jest.fn().mockResolvedValue(0),
       },
       user: {
         findUnique: jest.fn(),
@@ -558,6 +562,61 @@ describe('ClassesService', () => {
       expect(result.conflicts).toHaveLength(1);
       expect(result.conflicts[0].type).toBe('TEACHER_FREE_TIME');
       expect(result.conflictingDates).toContain('SATURDAY');
+    });
+  });
+
+  describe('remove', () => {
+    it('should delete class successfully when there are no enrollments', async () => {
+      const mockExistingClass = {
+        id: 'class-1',
+        instituteId: 'inst-1',
+        title: 'Class A',
+        termId: 'term-1',
+        courseId: 'course-1',
+        capacity: 15,
+        fee: 1000000,
+        branch: null,
+        term: { id: 'term-1', title: 'Term 1', isActive: true },
+        course: { id: 'course-1', title: 'Course 1', baseFee: 1000000 },
+        classroom: null,
+        _count: { enrollments: 0 },
+      };
+
+      prismaService.class.findFirstOrThrow.mockResolvedValue(mockExistingClass);
+      prismaService.enrollment.count.mockResolvedValue(0);
+      prismaService.class.delete.mockResolvedValue(mockExistingClass);
+
+      const result = await service.remove('class-1', mockAdmin);
+
+      expect(result).toEqual({ success: true });
+      expect(prismaService.class.delete).toHaveBeenCalledWith({
+        where: { id: 'class-1' },
+      });
+    });
+
+    it('should throw BadRequestException when class has enrollments', async () => {
+      const mockExistingClass = {
+        id: 'class-1',
+        instituteId: 'inst-1',
+        title: 'Class A',
+        termId: 'term-1',
+        courseId: 'course-1',
+        capacity: 15,
+        fee: 1000000,
+        branch: null,
+        term: { id: 'term-1', title: 'Term 1', isActive: true },
+        course: { id: 'course-1', title: 'Course 1', baseFee: 1000000 },
+        classroom: null,
+        _count: { enrollments: 1 },
+      };
+
+      prismaService.class.findFirstOrThrow.mockResolvedValue(mockExistingClass);
+      prismaService.enrollment.count.mockResolvedValue(2);
+
+      await expect(service.remove('class-1', mockAdmin)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(prismaService.class.delete).not.toHaveBeenCalled();
     });
   });
 });
