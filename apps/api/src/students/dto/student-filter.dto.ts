@@ -1,6 +1,4 @@
-export class StudentFilterDto {
-  search?: string;
-  courseId?: string;
-  isActive?: boolean;
-  instituteId?: string;
-}
+import { createZodDto } from 'nestjs-zod';
+import { StudentFilterSchema } from '@workspace/types';
+
+export class StudentFilterDto extends createZodDto(StudentFilterSchema) {}

@@ -28,10 +28,10 @@ import { imageUploadOptions } from '../common/upload/multer.util';
 import {
   PERMISSIONS,
   APP_MODULES,
-  parseStatusFilter,
   type JwtPayload,
   type SupportedLocale,
 } from '@workspace/types';
+import { StudentFilterDto } from './dto/student-filter.dto';
 
 @Controller('students')
 @UseGuards(JwtAuthGuard, PermissionsGuard, ModulesGuard)
@@ -55,24 +55,10 @@ export class StudentsController {
   @RequirePermissions(PERMISSIONS.VIEW_STUDENTS)
   async findAll(
     @CurrentUser() currentUser: JwtPayload,
-    @Query('search') search?: string,
-    @Query('courseId') courseId?: string,
-    @Query('isActive') isActive?: string,
-    @Query('instituteId') instituteId?: string,
+    @Query() filter: StudentFilterDto,
     @CurrentLocale() locale?: SupportedLocale,
   ) {
-    const parsedIsActive = parseStatusFilter(isActive);
-
-    return this.studentsService.findAll(
-      currentUser,
-      {
-        search,
-        courseId,
-        isActive: parsedIsActive,
-        instituteId,
-      },
-      locale,
-    );
+    return this.studentsService.findAll(currentUser, filter, locale);
   }
 
   @Get('lookup')
