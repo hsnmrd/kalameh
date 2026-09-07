@@ -9,12 +9,12 @@ export default async function LocalizedNotFound() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-foreground">
-      <div className="w-full max-w-[420px] space-y-6 text-center">
+      <div className="flex w-full max-w-[420px] flex-col gap-6 text-center">
         <div className="mx-auto flex size-20 items-center justify-center rounded-2xl border border-border bg-card text-foreground shadow-xs">
           <FileQuestion className="size-10 stroke-[1.5]" />
         </div>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <span className="inline-block rounded-full bg-muted px-3 py-1 font-mono text-xs font-bold tracking-wider text-muted-foreground">
             404 ERROR
           </span>

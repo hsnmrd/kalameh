@@ -41,15 +41,15 @@ export default function StudentProfilePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
         <h1 className="text-xl font-bold tracking-tight text-foreground">
           {t("title")}
         </h1>
         <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <ProfileUserCard
           initial={initial}
           fullName={fullName}

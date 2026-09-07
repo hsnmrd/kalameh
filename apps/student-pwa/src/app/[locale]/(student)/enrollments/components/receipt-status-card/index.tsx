@@ -23,9 +23,9 @@ export function ReceiptStatusCard({
   const t = useTranslations("enrollments")
 
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
       <div className="flex items-center justify-between">
-        <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600">
+        <span className="rounded-full border border-warning/20 bg-warning/10 px-2.5 py-1 text-xs font-semibold text-warning">
           {statusText}
         </span>
         <span className="font-mono text-xs text-muted-foreground">

@@ -14,7 +14,7 @@ export function StudentLevelHeader({
   const t = useTranslations("classes")
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       <div>
         <h1 className="text-xl font-bold tracking-tight text-foreground">
           {t("title")}
@@ -22,8 +22,8 @@ export function StudentLevelHeader({
         <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <div className="flex items-center gap-3 rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-2xs">
+      <div className="flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/10 p-3.5">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-2xs">
           <Award className="size-5" />
         </div>
         <div className="flex-1">

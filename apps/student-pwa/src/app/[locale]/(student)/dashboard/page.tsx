@@ -10,7 +10,7 @@ export default function StudentDashboardPage() {
   const t = useTranslations("dashboard")
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
         <QuickActionCard
@@ -18,8 +18,8 @@ export default function StudentDashboardPage() {
           title={t("allowedClasses")}
           description={t("allowedClassesDesc")}
           icon={Layers}
-          iconBgClassName="bg-sky-500/10"
-          iconColorClassName="text-sky-600"
+          iconBgClassName="bg-primary/10"
+          iconColorClassName="text-primary"
         />
 
         <QuickActionCard
@@ -27,8 +27,8 @@ export default function StudentDashboardPage() {
           title={t("flashcards")}
           description={t("flashcardsDesc")}
           icon={Sparkles}
-          iconBgClassName="bg-emerald-500/10"
-          iconColorClassName="text-emerald-600"
+          iconBgClassName="bg-success/10"
+          iconColorClassName="text-success"
         />
       </div>
 

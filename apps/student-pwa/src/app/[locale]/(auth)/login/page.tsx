@@ -139,10 +139,10 @@ export default function StudentLoginPage() {
         </header>
 
         {/* Main Area */}
-        <main className="flex-1 space-y-6 px-4 py-6">
+        <main className="flex flex-1 flex-col gap-6 px-4 py-6">
           {/* Login Form Card */}
-          <div className="space-y-6 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs sm:p-8">
-            <div className="space-y-2">
+          <div className="flex flex-col gap-6 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs sm:p-8">
+            <div className="flex flex-col gap-2">
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                 {t("title")}
               </h1>
@@ -151,7 +151,10 @@ export default function StudentLoginPage() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex flex-col gap-5"
+            >
               <FieldGroup>
                 <Field data-invalid={Boolean(errors.phone)}>
                   <FieldLabel htmlFor="student-phone">

@@ -21,7 +21,7 @@ export function StudentClassCard({ cls, onEnroll }: StudentClassCardProps) {
   const isFull = enrolled >= cls.capacity
 
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xs">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xs">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">
           {cls.term?.title}
@@ -30,8 +30,8 @@ export function StudentClassCard({ cls, onEnroll }: StudentClassCardProps) {
           variant="outline"
           className={
             isFull
-              ? "border-rose-500/20 bg-rose-500/10 text-rose-600"
-              : "border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
+              ? "border-destructive/20 bg-destructive/10 text-destructive"
+              : "border-success/20 bg-success/10 text-success"
           }
         >
           {isFull ? (

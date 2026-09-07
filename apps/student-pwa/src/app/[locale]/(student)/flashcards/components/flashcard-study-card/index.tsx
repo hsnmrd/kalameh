@@ -27,12 +27,12 @@ export function FlashcardStudyCard({
   const t = useTranslations("flashcards")
 
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
       <div className="flex items-center justify-between">
-        <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-xs font-semibold text-sky-600">
+        <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
           {boxDueText}
         </span>
-        <Sparkles className="size-4 text-amber-500" />
+        <Sparkles className="size-4 text-warning" />
       </div>
 
       <div className="py-4 text-center">

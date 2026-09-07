@@ -35,8 +35,8 @@ export function SettingThemeCard() {
   ] as const
 
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
-      <div className="space-y-1">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
+      <div className="flex flex-col gap-1">
         <h3 className="text-sm font-semibold text-foreground">
           {t("theme.title")}
         </h3>

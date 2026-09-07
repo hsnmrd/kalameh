@@ -14,7 +14,7 @@ export default function StudentClassesPage() {
   const { data, isLoading } = useQuery(classesResource.available.toQuery())
 
   return (
-    <div className="space-y-5 pb-8">
+    <div className="flex flex-col gap-5 pb-8">
       <StudentLevelHeader allowedCourseTitle={data?.allowedCourseTitle} />
 
       {isLoading ? (
@@ -31,7 +31,7 @@ export default function StudentClassesPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           {data.classes.map((cls) => (
             <StudentClassCard key={cls.id} cls={cls} />
           ))}

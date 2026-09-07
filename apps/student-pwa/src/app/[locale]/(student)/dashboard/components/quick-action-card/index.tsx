@@ -24,7 +24,7 @@ export function QuickActionCard({
   return (
     <Link
       href={href}
-      className="group block space-y-2 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs transition-all hover:border-border/80 hover:shadow-sm active:scale-[0.98]"
+      className="group block flex flex-col gap-2 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs transition-all hover:border-border/80 hover:shadow-sm active:scale-[0.98]"
     >
       <div
         className={cn(

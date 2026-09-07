@@ -21,7 +21,7 @@ export function ProfileActionsCard({
   const t = useTranslations("profile")
 
   return (
-    <div className="space-y-3 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
       <h3 className="text-sm font-semibold text-foreground">
         {t("accountActions")}
       </h3>
