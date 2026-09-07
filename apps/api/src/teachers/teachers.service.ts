@@ -311,33 +311,32 @@ export class TeachersService {
       avatarUrl,
     };
 
-    // Update profile & availabilities
     const hasProfileUpdate =
       dto.bio !== undefined ||
       dto.degree !== undefined ||
       dto.specialties !== undefined ||
       dto.availabilities !== undefined;
 
-    if (hasProfileUpdate) {
-      const profile = await this.prisma.teacherProfile.upsert({
-        where: { userId: id },
-        create: {
-          userId: id,
-          bio: dto.bio,
-          degree: dto.degree,
-          specialties: dto.specialties || [],
-        },
-        update: {
-          ...(dto.bio !== undefined ? { bio: dto.bio } : {}),
-          ...(dto.degree !== undefined ? { degree: dto.degree } : {}),
-          ...(dto.specialties !== undefined
-            ? { specialties: dto.specialties }
-            : {}),
-        },
-      });
+    const updated = await this.prisma.$transaction(async (tx) => {
+      if (hasProfileUpdate) {
+        const profile = await tx.teacherProfile.upsert({
+          where: { userId: id },
+          create: {
+            userId: id,
+            bio: dto.bio,
+            degree: dto.degree,
+            specialties: dto.specialties || [],
+          },
+          update: {
+            ...(dto.bio !== undefined ? { bio: dto.bio } : {}),
+            ...(dto.degree !== undefined ? { degree: dto.degree } : {}),
+            ...(dto.specialties !== undefined
+              ? { specialties: dto.specialties }
+              : {}),
+          },
+        });
 
-      if (dto.availabilities !== undefined) {
-        await this.prisma.$transaction(async (tx) => {
+        if (dto.availabilities !== undefined) {
           await tx.teacherAvailability.deleteMany({
             where: { teacherProfileId: profile.id },
           });
@@ -351,25 +350,25 @@ export class TeachersService {
               })),
             });
           }
-        });
+        }
       }
-    }
 
-    const updated = await this.prisma.user.update({
-      where: {
-        id,
-        instituteId: existing.instituteId,
-      },
-      data: userUpdateData,
-      include: {
-        teacherProfile: {
-          include: {
-            availabilities: {
-              orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
+      return tx.user.update({
+        where: {
+          id,
+          instituteId: existing.instituteId,
+        },
+        data: userUpdateData,
+        include: {
+          teacherProfile: {
+            include: {
+              availabilities: {
+                orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
+              },
             },
           },
         },
-      },
+      });
     });
 
     await this.auditLogsService.log({

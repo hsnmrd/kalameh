@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, BadRequestException } from '@nestjs/common';
+import { ConflictException } from '@nestjs/common';
 import { TeachersService } from './teachers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -40,7 +40,7 @@ describe('TeachersService', () => {
         deleteMany: jest.fn(),
         createMany: jest.fn(),
       },
-      $transaction: jest.fn((promises) => Promise.all(promises)),
+      $transaction: jest.fn((callback) => callback(prisma)),
     };
 
     i18nService = {
@@ -195,6 +195,69 @@ describe('TeachersService', () => {
       const result = await service.findOne(mockAdmin, 'teacher-1');
       expect(result.id).toBe('teacher-1');
       expect(result.classesCount).toBe(0);
+    });
+  });
+
+  describe('update', () => {
+    const existingTeacher = {
+      id: 'teacher-1',
+      instituteId: 'inst-1',
+      firstName: 'Ali',
+      lastName: 'Rezaei',
+      phone: '09123456789',
+      avatarUrl: null,
+      teacherProfile: { id: 'profile-1', availabilities: [] },
+    };
+
+    it('should update the user, profile, and availabilities in one transaction', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);
+      prisma.teacherProfile.upsert.mockResolvedValue({ id: 'profile-1' });
+      prisma.teacherAvailability.deleteMany.mockResolvedValue({ count: 1 });
+      prisma.teacherAvailability.createMany.mockResolvedValue({ count: 1 });
+      prisma.user.update.mockResolvedValue({
+        ...existingTeacher,
+        password: 'hashed-password',
+      });
+
+      await service.update(mockAdmin, 'teacher-1', {
+        firstName: 'Updated',
+        degree: 'PhD',
+        availabilities: [
+          {
+            dayOfWeek: 'SATURDAY',
+            startTime: '10:00',
+            endTime: '12:00',
+          },
+        ],
+      });
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(prisma.teacherProfile.upsert).toHaveBeenCalled();
+      expect(prisma.teacherAvailability.deleteMany).toHaveBeenCalledWith({
+        where: { teacherProfileId: 'profile-1' },
+      });
+      expect(prisma.teacherAvailability.createMany).toHaveBeenCalled();
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'teacher-1', instituteId: 'inst-1' },
+        }),
+      );
+      expect(auditLogsService.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'TEACHER_UPDATED' }),
+      );
+    });
+
+    it('should not write an audit log when the transaction fails', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);
+      prisma.teacherProfile.upsert.mockResolvedValue({ id: 'profile-1' });
+      prisma.user.update.mockRejectedValue(new Error('database failure'));
+
+      await expect(
+        service.update(mockAdmin, 'teacher-1', { degree: 'PhD' }),
+      ).rejects.toThrow('database failure');
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(auditLogsService.log).not.toHaveBeenCalled();
     });
   });
 
