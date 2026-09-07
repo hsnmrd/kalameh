@@ -18,6 +18,7 @@ import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ClassroomsTable } from "./components/classrooms-table"
+import { ClassroomsList } from "./components/classrooms-list"
 import { ClassroomsFilter } from "./components/classrooms-filter"
 import { CreateClassroomModal } from "./components/create-classroom-modal"
 import { EditClassroomModal } from "./components/edit-classroom-modal"
@@ -112,12 +113,23 @@ export default function ClassroomsPage() {
             </PermissionGuard>
           }
         >
-          <ClassroomsTable
-            classrooms={classrooms}
-            isLoading={isLoading}
-            onEdit={(classroom) => setEditingClassroom(classroom)}
-            onDelete={(classroom) => setDeletingClassroom(classroom)}
-          />
+          <div className="hidden lg:block">
+            <ClassroomsTable
+              classrooms={classrooms}
+              isLoading={isLoading}
+              onEdit={(classroom) => setEditingClassroom(classroom)}
+              onDelete={(classroom) => setDeletingClassroom(classroom)}
+            />
+          </div>
+
+          <div className="lg:hidden">
+            <ClassroomsList
+              classrooms={classrooms}
+              isLoading={isLoading}
+              onEdit={(classroom) => setEditingClassroom(classroom)}
+              onDelete={(classroom) => setDeletingClassroom(classroom)}
+            />
+          </div>
         </AdminPageShell>
       </PermissionGuard>
     </ModuleGuard>

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, waitFor } from "../../../../../test/test-utils"
+import { render, screen, waitFor, within } from "../../../../../test/test-utils"
 import ClassroomsPage from "../page"
 import * as stores from "@/lib/stores"
 import { branchesResource, classroomsResource } from "@/lib/api"
@@ -84,11 +84,30 @@ describe("ClassroomsPage", () => {
     render(<ClassroomsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText("کلاس ۱۰۱")).toBeInTheDocument()
-      expect(screen.getByText("سایت کامپیوتر")).toBeInTheDocument()
-      expect(screen.getByText("شعبه مرکزی")).toBeInTheDocument()
+      expect(screen.getAllByText("کلاس ۱۰۱")).toHaveLength(2)
+      expect(screen.getAllByText("سایت کامپیوتر")).toHaveLength(2)
+      expect(screen.getAllByText("شعبه مرکزی")).toHaveLength(2)
       expect(screen.getByText(/دارای ویدئو پروژکتور/)).toBeInTheDocument()
     })
+  })
+
+  it("renders a desktop table and a separate mobile list", async () => {
+    const { container } = render(<ClassroomsPage />)
+
+    await waitFor(() => {
+      expect(screen.getAllByText("کلاس ۱۰۱")).toHaveLength(2)
+    })
+
+    const desktopView = container.querySelector(".hidden.lg\\:block")
+    const mobileView = container.querySelector(".lg\\:hidden")
+
+    expect(desktopView).toBeInTheDocument()
+    expect(mobileView).toBeInTheDocument()
+    expect(within(desktopView as HTMLElement).getByRole("table")).toBeVisible()
+    expect(within(mobileView as HTMLElement).getByRole("list")).toBeVisible()
+    expect(
+      within(mobileView as HTMLElement).getAllByRole("listitem")
+    ).toHaveLength(mockClassrooms.length)
   })
 
   it("should display the add classroom button", async () => {
