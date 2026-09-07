@@ -139,7 +139,7 @@ export function Combobox({
               {resolvedEmptyMessage}
             </ComboboxPrimitive.Empty>
 
-            <ComboboxPrimitive.List className="max-h-60 space-y-1 overflow-y-auto overscroll-contain p-1.5">
+            <ComboboxPrimitive.List className="flex max-h-60 flex-col gap-1 overflow-y-auto overscroll-contain p-1.5">
               {(item: ComboboxOption) => (
                 <ComboboxPrimitive.Item
                   key={item.value}
@@ -310,7 +310,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
             </div>
           )}
 
-          <div className="flex-1 space-y-1.5 overflow-y-auto overscroll-contain p-3">
+          <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto overscroll-contain p-3">
             {filtered.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-muted-foreground">
                 {props.emptyMessage ??

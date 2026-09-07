@@ -59,7 +59,7 @@ export function Calendar({
           buttonVariants({ variant: "outline", size: "icon-xs" }),
           "pointer-events-auto size-7 rounded-lg border-border bg-card/80 p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         ),
-        month_grid: "w-full border-collapse space-y-1",
+        month_grid: "w-full border-separate border-spacing-y-1",
         weekdays: "grid grid-cols-7 gap-1 w-full justify-items-center mb-1",
         weekday:
           "size-9 rounded-xl font-medium text-xs text-muted-foreground flex items-center justify-center select-none",

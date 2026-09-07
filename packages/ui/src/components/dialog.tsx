@@ -56,7 +56,7 @@ function DialogHeader({
   return (
     <div
       className={cn(
-        "flex flex-col space-y-1.5 text-center sm:text-start",
+        "flex flex-col gap-1.5 text-center sm:text-start",
         className
       )}
       {...props}

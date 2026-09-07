@@ -133,7 +133,7 @@ export function Attachment({
   }
 
   return (
-    <div className={cn("w-full space-y-2", className)}>
+    <div className={cn("flex w-full flex-col gap-2", className)}>
       <input
         ref={inputRef}
         type="file"
@@ -223,7 +223,7 @@ export function Attachment({
           <div className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-transform group-hover:scale-105">
             <ImageIcon className="size-5" />
           </div>
-          <div className="mt-2 space-y-0.5">
+          <div className="mt-2 flex flex-col gap-0.5">
             <p className="text-xs font-medium text-foreground">{placeholder}</p>
             <p className="text-[11px] text-muted-foreground">{description}</p>
           </div>

@@ -97,7 +97,7 @@ export function MobileListItemContent({
   className,
 }: MobileListItemContentProps) {
   return (
-    <div className={cn("min-w-0 flex-1 space-y-1", className)}>
+    <div className={cn("flex min-w-0 flex-1 flex-col gap-1", className)}>
       <div className="truncate text-[15px] font-medium tracking-tight text-foreground">
         {primary}
       </div>

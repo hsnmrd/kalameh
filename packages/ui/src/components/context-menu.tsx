@@ -135,7 +135,7 @@ function ContextMenuPopup({
             <DrawerTitle>{resolvedTitle}</DrawerTitle>
           </DrawerHeader>
 
-          <div className="flex min-h-0 flex-1 flex-col space-y-1.5 overflow-y-auto overscroll-contain p-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto overscroll-contain p-3">
             {children}
           </div>
 
