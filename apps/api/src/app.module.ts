@@ -21,6 +21,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exception.filter';
 import { TransactionsModule } from './transactions/transactions.module';
 import { ClassRequirementsModule } from './class-requirements/class-requirements.module';
+import { SchedulingModule } from './scheduling/scheduling.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { ClassRequirementsModule } from './class-requirements/class-requirements
     AuditLogsModule,
     TransactionsModule,
     ClassRequirementsModule,
+    SchedulingModule,
   ],
   controllers: [AppController],
   providers: [

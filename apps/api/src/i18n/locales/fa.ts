@@ -103,6 +103,18 @@ export const fa: TranslationDictionary = {
     invalidCadence:
       'دقیقاً یکی از تعداد جلسات هفتگی یا تعداد کل جلسات باید مشخص شود',
   },
+  scheduling: {
+    instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
+    invalidScope: 'ترم یا شعبه انتخاب‌شده برای این آموزشگاه معتبر نیست',
+    invalidRequirements:
+      'نیازهای کلاسی باید فعال و متعلق به ترم، شعبه و آموزشگاه انتخاب‌شده باشند',
+    sourceRunRequiredForLocks:
+      'برای حفظ پیشنهادهای قفل‌شده باید اجرای مبدا مشخص شود',
+    invalidSourceRun:
+      'اجرای مبدا با ترم، شعبه یا آموزشگاه انتخاب‌شده تطابق ندارد',
+    invalidLockedProposals:
+      'یک یا چند پیشنهاد قفل‌شده معتبر یا متعلق به اجرای مبدا نیستند',
+  },
   grades: {
     gradesSubmittedSuccess:
       'نمرات کلاس با موفقیت ثبت و وضعیت قبولی زبان‌آموزان اعمال شد',

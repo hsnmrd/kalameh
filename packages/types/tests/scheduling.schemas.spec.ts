@@ -44,11 +44,13 @@ describe("MVP-011 scheduling schemas", () => {
 
   it("normalizes generation defaults and duplicate identifiers", () => {
     const input = GenerateSchedulingPlanSchema.parse({
+      instituteId: ids.institute,
       termId: ids.plan,
       requirementIds: [ids.requirement, ids.requirement],
     })
 
     expect(input.requirementIds).toEqual([ids.requirement])
+    expect(input.instituteId).toBe(ids.institute)
     expect(input.alternativePlanCount).toBe(3)
     expect(input.lockedProposalIds).toEqual([])
   })

@@ -112,6 +112,18 @@ export const en: TranslationDictionary = {
     invalidCadence:
       'Exactly one of weekly sessions or total sessions must be specified',
   },
+  scheduling: {
+    instituteRequired: 'Selecting an institute is required for this operation',
+    invalidScope: 'The selected term or branch is invalid for this institute',
+    invalidRequirements:
+      'Class requirements must be active and belong to the selected term, branch, and institute',
+    sourceRunRequiredForLocks:
+      'A source run is required when preserving locked proposals',
+    invalidSourceRun:
+      'The source run does not match the selected term, branch, or institute',
+    invalidLockedProposals:
+      'One or more locked proposals are invalid or do not belong to the source run',
+  },
   grades: {
     gradesSubmittedSuccess:
       'Class grades recorded and student progression applied successfully',

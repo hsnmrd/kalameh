@@ -5,6 +5,7 @@ const uniqueUuidArray = z
   .transform((values) => Array.from(new Set(values)))
 
 export const GenerateSchedulingPlanSchema = z.object({
+  instituteId: z.string().uuid().optional(),
   termId: z.string().uuid(),
   branchId: z.string().uuid().nullable().optional(),
   requirementIds: uniqueUuidArray.pipe(z.array(z.string().uuid()).min(1)),

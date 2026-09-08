@@ -83,6 +83,14 @@ export interface TranslationDictionary {
     instituteRequired: string;
     invalidCadence: string;
   };
+  scheduling: {
+    instituteRequired: string;
+    invalidScope: string;
+    invalidRequirements: string;
+    sourceRunRequiredForLocks: string;
+    invalidSourceRun: string;
+    invalidLockedProposals: string;
+  };
   grades: {
     gradesSubmittedSuccess: string;
     studentNotEnrolled: string;
