@@ -1,0 +1,67 @@
+export const CLASS_DELIVERY_MODES = ["IN_PERSON", "ONLINE"] as const
+
+export const SCHEDULING_RUN_STATUSES = [
+  "QUEUED",
+  "PREFLIGHT_FAILED",
+  "GENERATING",
+  "COMPLETED",
+  "FAILED",
+  "CANCELLED",
+] as const
+
+export const SCHEDULING_PLAN_STATUSES = [
+  "DRAFT",
+  "SELECTED",
+  "PUBLISHED",
+  "REJECTED",
+  "SUPERSEDED",
+] as const
+
+export const SCHEDULING_TIME_GROUPS = [
+  "ODD_MORNING",
+  "ODD_EVENING",
+  "EVEN_MORNING",
+  "EVEN_EVENING",
+  "NEUTRAL_MORNING",
+  "NEUTRAL_EVENING",
+  "MIXED_MORNING",
+  "MIXED_EVENING",
+] as const
+
+export const SCHEDULING_SCORE_STATUSES = [
+  "APPLICABLE",
+  "NOT_APPLICABLE",
+] as const
+
+export const SCHEDULING_WARNING_SEVERITIES = ["INFO", "WARNING"] as const
+
+export const SCHEDULING_WARNING_SCOPES = [
+  "INPUT",
+  "PLAN",
+  "PROPOSAL",
+  "REQUIREMENT",
+] as const
+
+export const SCHEDULING_SELECTION_REASON_CODES = [
+  "MAXIMIZES_STUDENT_COVERAGE",
+  "IMPROVES_TIME_DIVERSITY",
+  "MATCHES_TEACHER_QUALIFICATION",
+  "MATCHES_TEACHER_AVAILABILITY",
+  "BALANCES_TEACHER_LOAD",
+  "ONLY_FEASIBLE_HARD_CONSTRAINT_OPTION",
+  "MANUALLY_SELECTED",
+] as const
+
+export const SCHEDULING_TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/
+export const SCHEDULING_CODE_REGEX = /^[A-Z][A-Z0-9_]*$/
+
+export type ClassDeliveryMode = (typeof CLASS_DELIVERY_MODES)[number]
+export type SchedulingRunStatus = (typeof SCHEDULING_RUN_STATUSES)[number]
+export type SchedulingPlanStatus = (typeof SCHEDULING_PLAN_STATUSES)[number]
+export type SchedulingTimeGroup = (typeof SCHEDULING_TIME_GROUPS)[number]
+export type SchedulingScoreStatus = (typeof SCHEDULING_SCORE_STATUSES)[number]
+export type SchedulingWarningSeverity =
+  (typeof SCHEDULING_WARNING_SEVERITIES)[number]
+export type SchedulingWarningScope = (typeof SCHEDULING_WARNING_SCOPES)[number]
+export type SchedulingSelectionReasonCode =
+  (typeof SCHEDULING_SELECTION_REASON_CODES)[number]
