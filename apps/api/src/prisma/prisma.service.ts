@@ -63,6 +63,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return prisma.teacherAvailability;
   }
 
+  get teacherCourseQualification(): typeof prisma.teacherCourseQualification {
+    return prisma.teacherCourseQualification;
+  }
+
   get client(): typeof prisma {
     return prisma;
   }

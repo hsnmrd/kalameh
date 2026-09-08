@@ -1,32 +1,36 @@
 "use client"
 
-import { useTranslations } from "next-intl"
 import { Controller, type UseFormReturn } from "react-hook-form"
+import { useTranslations } from "next-intl"
+import type { CourseDto } from "@workspace/types"
+import type { ComboboxOption } from "@workspace/ui/components/combobox"
+import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { PasswordInput } from "@workspace/ui/components/password-input"
-import type { CourseDto } from "@workspace/types"
-import type { CreateTeacherInput } from "../../../hooks/use-teacher-schemas"
+import type { UpdateTeacherInput } from "../../../hooks/use-teacher-schemas"
 import { AvailabilityEditor } from "../../availability-editor"
 import { CourseQualificationsEditor } from "../../course-qualifications-editor"
 
 interface FormFieldsProps {
-  form: UseFormReturn<CreateTeacherInput>
+  form: UseFormReturn<UpdateTeacherInput>
   courses: CourseDto[]
   areCoursesLoading: boolean
+  statusOptions: ComboboxOption[]
 }
 
 export function FormFields({
   form,
   courses,
   areCoursesLoading,
+  statusOptions,
 }: FormFieldsProps) {
   const t = useTranslations("teachers")
   const {
-    control,
     register,
+    control,
     formState: { errors },
   } = form
+
   return (
     <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -35,7 +39,6 @@ export function FormFields({
           <Input
             {...register("firstName")}
             placeholder={t("createModal.firstNamePlaceholder")}
-            autoComplete="off"
           />
           <FieldError>{errors.firstName?.message}</FieldError>
         </Field>
@@ -44,11 +47,11 @@ export function FormFields({
           <Input
             {...register("lastName")}
             placeholder={t("createModal.lastNamePlaceholder")}
-            autoComplete="off"
           />
           <FieldError>{errors.lastName?.message}</FieldError>
         </Field>
       </div>
+
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field data-invalid={Boolean(errors.phone)}>
           <FieldLabel>{t("createModal.phone")}</FieldLabel>
@@ -56,7 +59,6 @@ export function FormFields({
             {...register("phone")}
             placeholder={t("createModal.phonePlaceholder")}
             dir="ltr"
-            autoComplete="off"
           />
           <FieldError>{errors.phone?.message}</FieldError>
         </Field>
@@ -66,55 +68,46 @@ export function FormFields({
             {...register("nationalCode")}
             placeholder={t("createModal.nationalCodePlaceholder")}
             dir="ltr"
-            autoComplete="off"
           />
           <FieldError>{errors.nationalCode?.message}</FieldError>
         </Field>
       </div>
+
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field data-invalid={Boolean(errors.degree)}>
           <FieldLabel>{t("createModal.degree")}</FieldLabel>
           <Input
             {...register("degree")}
             placeholder={t("createModal.degreePlaceholder")}
-            autoComplete="off"
-            data-lpignore="true"
-            data-1p-ignore="true"
           />
           <FieldError>{errors.degree?.message}</FieldError>
         </Field>
-        <Field data-invalid={Boolean(errors.password)}>
-          <FieldLabel htmlFor="new-teacher-password">
-            {t("createModal.password")}
-          </FieldLabel>
+        <Field>
+          <FieldLabel>{t("editModal.status")}</FieldLabel>
           <Controller
             control={control}
-            name="password"
+            name="isActive"
             render={({ field }) => (
-              <PasswordInput
-                {...field}
-                id="new-teacher-password"
-                name="new-teacher-password"
-                autoComplete="new-password"
-                data-lpignore="true"
-                data-1p-ignore="true"
-                placeholder={t("createModal.passwordPlaceholder")}
-                dir="ltr"
+              <ResponsiveCombobox
+                items={statusOptions}
+                value={field.value ? "true" : "false"}
+                onValueChange={(value) => field.onChange(value === "true")}
+                drawerTitle={t("editModal.status")}
               />
             )}
           />
-          <FieldError>{errors.password?.message}</FieldError>
         </Field>
       </div>
+
       <Field data-invalid={Boolean(errors.bio)}>
         <FieldLabel>{t("createModal.bio")}</FieldLabel>
         <Input
           {...register("bio")}
           placeholder={t("createModal.bioPlaceholder")}
-          autoComplete="off"
         />
         <FieldError>{errors.bio?.message}</FieldError>
       </Field>
+
       <Controller
         control={control}
         name="courseIds"
@@ -132,7 +125,7 @@ export function FormFields({
         name="availabilities"
         render={({ field }) => (
           <AvailabilityEditor
-            value={field.value || []}
+            value={field.value ?? []}
             onChange={field.onChange}
           />
         )}

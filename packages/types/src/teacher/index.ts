@@ -1,4 +1,5 @@
 export * from "./teacher-availability.schema.js"
+export * from "./teacher-course-qualification.schema.js"
 export * from "./teacher-profile.schema.js"
 export * from "./teacher.schema.js"
 export * from "./create-teacher.schema.js"

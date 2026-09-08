@@ -25,6 +25,7 @@ import { type TeacherDto, type WeekDay } from "@workspace/types"
 import { teachersResource } from "@/lib/api"
 import { ProfileActions } from "./profile-actions"
 import { ProfileSummary } from "./profile-summary"
+import { TeachableCourses } from "./teachable-courses"
 
 export interface TeacherProfileModalProps {
   teacher: TeacherDto | null
@@ -120,6 +121,12 @@ export function TeacherProfileModal({
                 )}
               </div>
             </div>
+
+            <TeachableCourses
+              qualifications={
+                currentTeacher.teacherProfile?.teachableCourses || []
+              }
+            />
 
             {/* Free-time schedule */}
             <div className="flex flex-col gap-3">

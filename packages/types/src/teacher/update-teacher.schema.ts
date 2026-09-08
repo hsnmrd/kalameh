@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { PhoneRegex, emptyToNull } from "../common/index.js"
 import { TeacherAvailabilityInputSchema } from "./teacher-availability.schema.js"
+import { TeacherCourseIdsInputSchema } from "./teacher-course-qualification.schema.js"
 
 export const createUpdateTeacherSchema = (msg?: {
   firstNameMin?: string
@@ -37,6 +38,7 @@ export const createUpdateTeacherSchema = (msg?: {
     degree: z.preprocess(emptyToNull, z.string().trim().nullable()).optional(),
     specialties: z.array(z.string()).optional(),
     availabilities: z.array(TeacherAvailabilityInputSchema).optional(),
+    courseIds: TeacherCourseIdsInputSchema.optional(),
     isActive: z
       .preprocess((val) => {
         if (val === "true" || val === true) return true

@@ -2,18 +2,13 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { useForm, Controller } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
-import {
-  ResponsiveCombobox,
-  type ComboboxOption,
-} from "@workspace/ui/components/combobox"
+import type { ComboboxOption } from "@workspace/ui/components/combobox"
 import {
   FormDialog,
   FormDialogContent,
@@ -22,13 +17,13 @@ import {
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
-import { teachersResource } from "@/lib/api"
+import { coursesResource, teachersResource } from "@/lib/api"
 import {
   useUpdateTeacherSchema,
   type UpdateTeacherInput,
 } from "../../hooks/use-teacher-schemas"
-import { AvailabilityEditor } from "../availability-editor"
 import type { EditTeacherModalProps } from "./types"
+import { FormFields } from "./form-fields"
 
 export type { EditTeacherModalProps } from "./types"
 
@@ -48,14 +43,15 @@ export function EditTeacherModal({
     ]
   }, [t])
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm<UpdateTeacherInput>({
+  const form = useForm<UpdateTeacherInput>({
     resolver: zodResolver(updateTeacherSchema),
+  })
+  const { handleSubmit, reset } = form
+  const { data: courses = [], isLoading: areCoursesLoading } = useQuery({
+    ...coursesResource.list.toQuery(
+      teacher?.instituteId ? { instituteId: teacher.instituteId } : undefined
+    ),
+    enabled: open && Boolean(teacher?.instituteId),
   })
 
   React.useEffect(() => {
@@ -74,6 +70,10 @@ export function EditTeacherModal({
             startTime: a.startTime,
             endTime: a.endTime,
           })) || [],
+        courseIds:
+          teacher.teacherProfile?.teachableCourses?.map(
+            (qualification) => qualification.courseId
+          ) || [],
       })
     }
   }, [teacher, open, reset])
@@ -102,6 +102,7 @@ export function EditTeacherModal({
     if (data.bio !== undefined) formData.append("bio", data.bio || "")
     if (data.isActive !== undefined)
       formData.append("isActive", String(data.isActive))
+    formData.append("courseIds", JSON.stringify(data.courseIds ?? []))
 
     if (data.availabilities) {
       data.availabilities.forEach((slot, index) => {
@@ -113,7 +114,7 @@ export function EditTeacherModal({
 
     updateMutation.mutate({
       id: teacher.id,
-      body: formData as any,
+      body: formData as never,
     })
   }
 
@@ -130,94 +131,11 @@ export function EditTeacherModal({
           className="flex min-h-0 flex-1 flex-col justify-between gap-4 overflow-hidden"
         >
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field data-invalid={Boolean(errors.firstName)}>
-                <FieldLabel>{t("createModal.firstName")}</FieldLabel>
-                <Input
-                  {...register("firstName")}
-                  placeholder={t("createModal.firstNamePlaceholder")}
-                />
-                <FieldError>{errors.firstName?.message}</FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.lastName)}>
-                <FieldLabel>{t("createModal.lastName")}</FieldLabel>
-                <Input
-                  {...register("lastName")}
-                  placeholder={t("createModal.lastNamePlaceholder")}
-                />
-                <FieldError>{errors.lastName?.message}</FieldError>
-              </Field>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field data-invalid={Boolean(errors.phone)}>
-                <FieldLabel>{t("createModal.phone")}</FieldLabel>
-                <Input
-                  {...register("phone")}
-                  placeholder={t("createModal.phonePlaceholder")}
-                  dir="ltr"
-                />
-                <FieldError>{errors.phone?.message}</FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.nationalCode)}>
-                <FieldLabel>{t("createModal.nationalCode")}</FieldLabel>
-                <Input
-                  {...register("nationalCode")}
-                  placeholder={t("createModal.nationalCodePlaceholder")}
-                  dir="ltr"
-                />
-                <FieldError>{errors.nationalCode?.message}</FieldError>
-              </Field>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field data-invalid={Boolean(errors.degree)}>
-                <FieldLabel>{t("createModal.degree")}</FieldLabel>
-                <Input
-                  {...register("degree")}
-                  placeholder={t("createModal.degreePlaceholder")}
-                />
-                <FieldError>{errors.degree?.message}</FieldError>
-              </Field>
-
-              <Field>
-                <FieldLabel>{t("editModal.status")}</FieldLabel>
-                <Controller
-                  control={control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <ResponsiveCombobox
-                      items={statusOptions}
-                      value={field.value ? "true" : "false"}
-                      onValueChange={(val) => field.onChange(val === "true")}
-                      drawerTitle={t("editModal.status")}
-                    />
-                  )}
-                />
-              </Field>
-            </div>
-
-            <Field data-invalid={Boolean(errors.bio)}>
-              <FieldLabel>{t("createModal.bio")}</FieldLabel>
-              <Input
-                {...register("bio")}
-                placeholder={t("createModal.bioPlaceholder")}
-              />
-              <FieldError>{errors.bio?.message}</FieldError>
-            </Field>
-
-            {/* Weekly Free-Time Availability Schedule */}
-            <Controller
-              control={control}
-              name="availabilities"
-              render={({ field }) => (
-                <AvailabilityEditor
-                  value={field.value || []}
-                  onChange={field.onChange}
-                />
-              )}
+            <FormFields
+              form={form}
+              courses={courses}
+              areCoursesLoading={areCoursesLoading}
+              statusOptions={statusOptions}
             />
           </div>
 

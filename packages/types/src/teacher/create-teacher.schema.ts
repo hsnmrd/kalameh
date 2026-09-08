@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { PhoneRegex, emptyToNull } from "../common/index.js"
 import { TeacherAvailabilityInputSchema } from "./teacher-availability.schema.js"
+import { TeacherCourseIdsInputSchema } from "./teacher-course-qualification.schema.js"
 
 export const createCreateTeacherSchema = (msg?: {
   firstNameMin?: string
@@ -45,6 +46,7 @@ export const createCreateTeacherSchema = (msg?: {
       .array(TeacherAvailabilityInputSchema)
       .default([])
       .optional(),
+    courseIds: TeacherCourseIdsInputSchema.default([]),
     instituteId: z.string().uuid().optional(),
   })
 

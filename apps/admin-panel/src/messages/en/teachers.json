@@ -75,6 +75,20 @@
     "noSlots": "No availability slots defined (classes can be scheduled at any time).",
     "slotsCount": "{count} free slots"
   },
+  "qualifications": {
+    "title": "Teachable courses",
+    "description": "Select the courses this teacher is qualified to teach. With none selected, the teacher will not appear in automatic scheduling suggestions.",
+    "placeholder": "Select teachable courses",
+    "searchPlaceholder": "Search courses...",
+    "selectedCount": "{count} courses selected",
+    "selectedList": "Selected courses",
+    "emptyTitle": "No courses found",
+    "emptyDescription": "No course matches the search, or this institute has no courses yet.",
+    "clear": "Clear all",
+    "close": "Apply and close",
+    "profileTitle": "Qualified teaching courses",
+    "profileEmpty": "No teachable course is registered; this teacher will be excluded from automatic scheduling suggestions."
+  },
   "days": {
     "SATURDAY": "Saturday",
     "SUNDAY": "Sunday",

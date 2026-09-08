@@ -66,6 +66,7 @@ export interface ResponsivePopoverProps {
   drawerTitle: React.ReactNode
   onClear?: () => void
   clearLabel?: string
+  closeLabel?: string
   children: React.ReactNode
   className?: string
   drawerClassName?: string
@@ -81,6 +82,7 @@ export function ResponsivePopover({
   drawerTitle,
   onClear,
   clearLabel = "پاک کردن",
+  closeLabel = "بستن",
   children,
   className,
   drawerClassName,
@@ -124,7 +126,7 @@ export function ResponsivePopover({
               className="h-14 w-full rounded-2xl text-base font-medium"
               onClick={() => onOpenChange(false)}
             >
-              بستن
+              {closeLabel}
             </Button>
           </DrawerFooter>
         </DrawerContent>

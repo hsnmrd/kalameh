@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { TeacherAvailabilitySchema } from "./teacher-availability.schema.js"
+import { TeacherCourseQualificationSchema } from "./teacher-course-qualification.schema.js"
 
 export const TeacherProfileSchema = z.object({
   id: z.string().uuid(),
@@ -8,6 +9,7 @@ export const TeacherProfileSchema = z.object({
   degree: z.string().nullable().optional(),
   specialties: z.array(z.string()).default([]),
   availabilities: z.array(TeacherAvailabilitySchema).default([]),
+  teachableCourses: z.array(TeacherCourseQualificationSchema).default([]),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
 })

@@ -4,7 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import {
   FormDialog,
@@ -17,7 +17,7 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { teachersResource } from "@/lib/api"
+import { coursesResource, teachersResource } from "@/lib/api"
 import {
   type CreateTeacherInput,
   useCreateTeacherSchema,
@@ -48,6 +48,7 @@ export function CreateTeacherModal({
       degree: "",
       bio: "",
       availabilities: [],
+      courseIds: [],
       instituteId,
     }),
     [instituteId]
@@ -57,6 +58,10 @@ export function CreateTeacherModal({
     defaultValues: defaults,
   })
   const { handleSubmit, reset } = form
+  const { data: courses = [], isLoading: areCoursesLoading } = useQuery({
+    ...coursesResource.list.toQuery(instituteId ? { instituteId } : undefined),
+    enabled: open,
+  })
 
   React.useEffect(() => {
     if (open) reset(defaults)
@@ -81,6 +86,7 @@ export function CreateTeacherModal({
     if (data.degree) body.append("degree", data.degree)
     if (data.bio) body.append("bio", data.bio)
     if (instituteId) body.append("instituteId", instituteId)
+    body.append("courseIds", JSON.stringify(data.courseIds ?? []))
     data.availabilities?.forEach((slot, index) => {
       body.append(`availabilities[${index}][dayOfWeek]`, slot.dayOfWeek)
       body.append(`availabilities[${index}][startTime]`, slot.startTime)
@@ -122,7 +128,11 @@ export function CreateTeacherModal({
             />
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
-            <FormFields form={form} />
+            <FormFields
+              form={form}
+              courses={courses}
+              areCoursesLoading={areCoursesLoading}
+            />
           </div>
           <FormDialogFooter>
             <Button

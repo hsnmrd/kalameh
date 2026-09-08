@@ -38,6 +38,9 @@ export interface TranslationDictionary {
     phoneAlreadyInUse: string;
     passwordResetSuccess: string;
   };
+  teachers: {
+    invalidCourses: string;
+  };
   institutes: {
     instituteNotFound: string;
     subdomainAlreadyExists: string;

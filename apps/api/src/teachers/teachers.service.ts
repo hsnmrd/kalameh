@@ -65,6 +65,11 @@ export class TeachersService {
 
     const rawPassword = dto.password || dto.phone;
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
+    const courseIds = await this.validateCourseIds(
+      targetInstituteId,
+      dto.courseIds,
+      locale,
+    );
 
     const availabilitiesData =
       dto.availabilities && dto.availabilities.length > 0
@@ -94,6 +99,15 @@ export class TeachersService {
             degree: dto.degree,
             specialties: dto.specialties || [],
             availabilities: availabilitiesData,
+            teachableCourses:
+              courseIds.length > 0
+                ? {
+                    create: courseIds.map((courseId) => ({
+                      instituteId: targetInstituteId,
+                      courseId,
+                    })),
+                  }
+                : undefined,
           },
         },
       },
@@ -101,6 +115,10 @@ export class TeachersService {
         teacherProfile: {
           include: {
             availabilities: true,
+            teachableCourses: {
+              include: { course: { select: { id: true, title: true } } },
+              orderBy: { course: { title: 'asc' } },
+            },
           },
         },
       },
@@ -115,6 +133,7 @@ export class TeachersService {
       metadata: {
         name: `${teacher.firstName} ${teacher.lastName}`,
         phone: teacher.phone,
+        courseIds,
       },
     });
 
@@ -171,6 +190,10 @@ export class TeachersService {
             availabilities: {
               orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
             },
+            teachableCourses: {
+              include: { course: { select: { id: true, title: true } } },
+              orderBy: { course: { title: 'asc' } },
+            },
           },
         },
         _count: {
@@ -220,6 +243,10 @@ export class TeachersService {
           include: {
             availabilities: {
               orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
+            },
+            teachableCourses: {
+              include: { course: { select: { id: true, title: true } } },
+              orderBy: { course: { title: 'asc' } },
             },
           },
         },
@@ -300,6 +327,15 @@ export class TeachersService {
         ? dto.avatarUrl
         : existing.avatarUrl;
 
+    const courseIds =
+      dto.courseIds === undefined
+        ? undefined
+        : await this.validateCourseIds(
+            existing.instituteId,
+            dto.courseIds,
+            locale,
+          );
+
     const userUpdateData: Record<string, unknown> = {
       ...(dto.firstName ? { firstName: dto.firstName } : {}),
       ...(dto.lastName ? { lastName: dto.lastName } : {}),
@@ -315,7 +351,8 @@ export class TeachersService {
       dto.bio !== undefined ||
       dto.degree !== undefined ||
       dto.specialties !== undefined ||
-      dto.availabilities !== undefined;
+      dto.availabilities !== undefined ||
+      courseIds !== undefined;
 
     const updated = await this.prisma.$transaction(async (tx) => {
       if (hasProfileUpdate) {
@@ -351,6 +388,21 @@ export class TeachersService {
             });
           }
         }
+
+        if (courseIds !== undefined) {
+          await tx.teacherCourseQualification.deleteMany({
+            where: { teacherProfileId: profile.id },
+          });
+          if (courseIds.length > 0) {
+            await tx.teacherCourseQualification.createMany({
+              data: courseIds.map((courseId) => ({
+                instituteId: existing.instituteId,
+                teacherProfileId: profile.id,
+                courseId,
+              })),
+            });
+          }
+        }
       }
 
       return tx.user.update({
@@ -364,6 +416,10 @@ export class TeachersService {
             include: {
               availabilities: {
                 orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
+              },
+              teachableCourses: {
+                include: { course: { select: { id: true, title: true } } },
+                orderBy: { course: { title: 'asc' } },
               },
             },
           },
@@ -379,6 +435,7 @@ export class TeachersService {
       entityId: id,
       metadata: {
         fields: Object.keys(dto),
+        ...(courseIds !== undefined ? { courseIds } : {}),
       },
     });
 
@@ -522,5 +579,30 @@ export class TeachersService {
         degree: teacher.teacherProfile?.degree ?? null,
       },
     };
+  }
+
+  private async validateCourseIds(
+    instituteId: string,
+    requestedCourseIds: string[] | undefined,
+    locale: SupportedLocale,
+  ): Promise<string[]> {
+    const courseIds = [...new Set(requestedCourseIds ?? [])];
+    if (courseIds.length === 0) return courseIds;
+
+    const courses = await this.prisma.course.findMany({
+      where: {
+        instituteId,
+        id: { in: courseIds },
+      },
+      select: { id: true },
+    });
+
+    if (courses.length !== courseIds.length) {
+      throw new BadRequestException(
+        this.i18n.t('teachers.invalidCourses', locale),
+      );
+    }
+
+    return courseIds;
   }
 }

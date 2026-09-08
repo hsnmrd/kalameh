@@ -27,15 +27,16 @@ model Institute {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  branches        Branch[]
-  users           User[]
-  courses         Course[]
-  terms           Term[]
-  classes         Class[]
-  classrooms      Classroom[]
-  transactions    Transaction[]
-  rolePermissions RolePermission[]
-  auditLogs       AuditLog[]
+  branches                    Branch[]
+  users                       User[]
+  courses                     Course[]
+  terms                       Term[]
+  classes                     Class[]
+  classrooms                  Classroom[]
+  transactions                Transaction[]
+  rolePermissions             RolePermission[]
+  auditLogs                   AuditLog[]
+  teacherCourseQualifications TeacherCourseQualification[]
 }
 
 model Branch {
@@ -138,12 +139,13 @@ model StudentNote {
 }
 
 model TeacherProfile {
-  id             String                @id @default(uuid())
-  userId         String                @unique
-  bio            String?
-  degree         String?
-  specialties    String[]              @default([])
-  availabilities TeacherAvailability[]
+  id               String                       @id @default(uuid())
+  userId           String                       @unique
+  bio              String?
+  degree           String?
+  specialties      String[]                     @default([])
+  availabilities   TeacherAvailability[]
+  teachableCourses TeacherCourseQualification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -193,15 +195,35 @@ model Course {
   prerequisite   Course?  @relation("Prerequisite", fields: [prerequisiteId], references: [id])
   nextCourses    Course[] @relation("Prerequisite")
 
-  institute    Institute @relation(fields: [instituteId], references: [id])
-  classes      Class[]
-  allowedUsers User[]    @relation("UserAllowedCourse")
+  institute         Institute                    @relation(fields: [instituteId], references: [id])
+  classes           Class[]
+  allowedUsers      User[]                       @relation("UserAllowedCourse")
+  qualifiedTeachers TeacherCourseQualification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
   @@index([prerequisiteId])
+}
+
+model TeacherCourseQualification {
+  id               String @id @default(uuid())
+  instituteId      String
+  teacherProfileId String
+  courseId         String
+
+  institute      Institute      @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+  course         Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teacherProfileId, courseId])
+  @@index([instituteId])
+  @@index([teacherProfileId])
+  @@index([courseId])
 }
 
 model Class {

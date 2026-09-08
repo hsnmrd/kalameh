@@ -53,6 +53,10 @@ export const en: TranslationDictionary = {
       'This phone number is already assigned to another user in this institute',
     passwordResetSuccess: 'Student password reset successfully',
   },
+  teachers: {
+    invalidCourses:
+      'One or more selected courses are not valid for this institute',
+  },
   institutes: {
     instituteNotFound: 'Requested institute was not found',
     subdomainAlreadyExists: 'An institute with this subdomain already exists',

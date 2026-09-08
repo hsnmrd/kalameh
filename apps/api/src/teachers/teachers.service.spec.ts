@@ -1,11 +1,35 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { TeachersService } from './teachers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { ROLES, type JwtPayload } from '@workspace/types';
+import {
+  CreateTeacherSchema,
+  ROLES,
+  UpdateTeacherSchema,
+  type JwtPayload,
+} from '@workspace/types';
+
+describe('Teacher course qualification DTO parsing', () => {
+  const courseId = '11111111-1111-4111-8111-111111111111';
+
+  it('parses JSON course IDs received through multipart form data', () => {
+    const parsed = CreateTeacherSchema.parse({
+      firstName: 'Ali',
+      lastName: 'Rezaei',
+      phone: '09123456789',
+      courseIds: JSON.stringify([courseId, courseId]),
+    });
+
+    expect(parsed.courseIds).toEqual([courseId]);
+  });
+
+  it('parses an empty multipart value as an explicit clear operation', () => {
+    expect(UpdateTeacherSchema.parse({ courseIds: '' }).courseIds).toEqual([]);
+  });
+});
 
 describe('TeachersService', () => {
   let service: TeachersService;
@@ -39,6 +63,13 @@ describe('TeachersService', () => {
       teacherAvailability: {
         deleteMany: jest.fn(),
         createMany: jest.fn(),
+      },
+      teacherCourseQualification: {
+        deleteMany: jest.fn(),
+        createMany: jest.fn(),
+      },
+      course: {
+        findMany: jest.fn(),
       },
       $transaction: jest.fn((callback) => callback(prisma)),
     };
@@ -105,6 +136,7 @@ describe('TeachersService', () => {
         nationalCode: '0011223344',
         bio: 'Math professor',
         degree: 'PhD',
+        courseIds: [],
         availabilities: [
           {
             dayOfWeek: 'SATURDAY',
@@ -140,8 +172,66 @@ describe('TeachersService', () => {
           firstName: 'Ali',
           lastName: 'Rezaei',
           phone: '09123456789',
+          courseIds: [],
         }),
       ).rejects.toThrow(ConflictException);
+    });
+
+    it('should create tenant-scoped course qualifications', async () => {
+      const courseId = '11111111-1111-4111-8111-111111111111';
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.course.findMany.mockResolvedValue([{ id: courseId }]);
+      prisma.user.create.mockResolvedValue({
+        id: 'teacher-1',
+        instituteId: 'inst-1',
+        firstName: 'Ali',
+        lastName: 'Rezaei',
+        phone: '09123456789',
+        password: 'hashed-password',
+        teacherProfile: { teachableCourses: [] },
+      });
+
+      await service.create(mockAdmin, {
+        firstName: 'Ali',
+        lastName: 'Rezaei',
+        phone: '09123456789',
+        courseIds: [courseId],
+      });
+
+      expect(prisma.course.findMany).toHaveBeenCalledWith({
+        where: { instituteId: 'inst-1', id: { in: [courseId] } },
+        select: { id: true },
+      });
+      expect(prisma.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            teacherProfile: expect.objectContaining({
+              create: expect.objectContaining({
+                teachableCourses: {
+                  create: [{ instituteId: 'inst-1', courseId }],
+                },
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('should reject a course outside the teacher institute', async () => {
+      const courseId = '11111111-1111-4111-8111-111111111111';
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.course.findMany.mockResolvedValue([]);
+
+      await expect(
+        service.create(mockAdmin, {
+          firstName: 'Ali',
+          lastName: 'Rezaei',
+          phone: '09123456789',
+          courseIds: [courseId],
+        }),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(prisma.user.create).not.toHaveBeenCalled();
     });
   });
 
@@ -258,6 +348,61 @@ describe('TeachersService', () => {
 
       expect(prisma.$transaction).toHaveBeenCalledTimes(1);
       expect(auditLogsService.log).not.toHaveBeenCalled();
+    });
+
+    it('should replace course qualifications in the same transaction', async () => {
+      const courseId = '11111111-1111-4111-8111-111111111111';
+      prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);
+      prisma.course.findMany.mockResolvedValue([{ id: courseId }]);
+      prisma.teacherProfile.upsert.mockResolvedValue({ id: 'profile-1' });
+      prisma.teacherCourseQualification.deleteMany.mockResolvedValue({
+        count: 1,
+      });
+      prisma.teacherCourseQualification.createMany.mockResolvedValue({
+        count: 1,
+      });
+      prisma.user.update.mockResolvedValue({
+        ...existingTeacher,
+        password: 'hashed-password',
+      });
+
+      await service.update(mockAdmin, 'teacher-1', {
+        courseIds: [courseId],
+      });
+
+      expect(prisma.teacherCourseQualification.deleteMany).toHaveBeenCalledWith(
+        { where: { teacherProfileId: 'profile-1' } },
+      );
+      expect(prisma.teacherCourseQualification.createMany).toHaveBeenCalledWith(
+        {
+          data: [
+            {
+              instituteId: 'inst-1',
+              teacherProfileId: 'profile-1',
+              courseId,
+            },
+          ],
+        },
+      );
+    });
+
+    it('should clear every course qualification when courseIds is empty', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);
+      prisma.teacherProfile.upsert.mockResolvedValue({ id: 'profile-1' });
+      prisma.teacherCourseQualification.deleteMany.mockResolvedValue({
+        count: 2,
+      });
+      prisma.user.update.mockResolvedValue({
+        ...existingTeacher,
+        password: 'hashed-password',
+      });
+
+      await service.update(mockAdmin, 'teacher-1', { courseIds: [] });
+
+      expect(prisma.teacherCourseQualification.deleteMany).toHaveBeenCalled();
+      expect(
+        prisma.teacherCourseQualification.createMany,
+      ).not.toHaveBeenCalled();
     });
   });
 
