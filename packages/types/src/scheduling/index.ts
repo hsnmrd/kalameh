@@ -1,5 +1,7 @@
 export * from "./scheduling.constants.js"
 export * from "./class-requirement.schema.js"
+export * from "./update-class-requirement.schema.js"
+export * from "./class-requirement-filter.schema.js"
 export * from "./generate-scheduling-plan.schema.js"
 export * from "./scheduling-warning.schema.js"
 export * from "./scheduling-selection-reason.schema.js"

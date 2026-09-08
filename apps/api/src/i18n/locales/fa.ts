@@ -98,6 +98,11 @@ export const fa: TranslationDictionary = {
     cannotDeleteWithEnrollments:
       'امکان حذف کلاسی که دارای زبان‌آموز یا ثبت‌نام است وجود ندارد',
   },
+  classRequirements: {
+    instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
+    invalidCadence:
+      'دقیقاً یکی از تعداد جلسات هفتگی یا تعداد کل جلسات باید مشخص شود',
+  },
   grades: {
     gradesSubmittedSuccess:
       'نمرات کلاس با موفقیت ثبت و وضعیت قبولی زبان‌آموزان اعمال شد',

@@ -10,6 +10,7 @@ export const createClassRequirementInputSchema = (
 ) =>
   z
     .object({
+      instituteId: z.string().uuid().optional(),
       termId: z.string().uuid(),
       courseId: z.string().uuid(),
       branchId: z.string().uuid().nullable().optional(),
@@ -54,6 +55,12 @@ export const ClassRequirementSchema = z
     isActive: z.boolean(),
     createdAt: z.string().or(z.date()),
     updatedAt: z.string().or(z.date()),
+    term: z.object({ id: z.string().uuid(), title: z.string() }).optional(),
+    course: z.object({ id: z.string().uuid(), title: z.string() }).optional(),
+    branch: z
+      .object({ id: z.string().uuid(), name: z.string() })
+      .nullable()
+      .optional(),
   })
   .superRefine((requirement, context) => {
     const hasWeeklyCadence = requirement.sessionsPerWeek != null

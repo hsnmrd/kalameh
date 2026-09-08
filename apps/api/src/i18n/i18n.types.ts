@@ -79,6 +79,10 @@ export interface TranslationDictionary {
     teacherFreeTimeConflict: string;
     cannotDeleteWithEnrollments: string;
   };
+  classRequirements: {
+    instituteRequired: string;
+    invalidCadence: string;
+  };
   grades: {
     gradesSubmittedSuccess: string;
     studentNotEnrolled: string;

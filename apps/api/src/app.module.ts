@@ -20,6 +20,7 @@ import { ExcelModule } from './common/excel/excel.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exception.filter';
 import { TransactionsModule } from './transactions/transactions.module';
+import { ClassRequirementsModule } from './class-requirements/class-requirements.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     RolePermissionsModule,
     AuditLogsModule,
     TransactionsModule,
+    ClassRequirementsModule,
   ],
   controllers: [AppController],
   providers: [

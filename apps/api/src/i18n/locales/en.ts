@@ -107,6 +107,11 @@ export const en: TranslationDictionary = {
     cannotDeleteWithEnrollments:
       'Cannot delete a class with existing enrollments',
   },
+  classRequirements: {
+    instituteRequired: 'Selecting an institute is required for this operation',
+    invalidCadence:
+      'Exactly one of weekly sessions or total sessions must be specified',
+  },
   grades: {
     gradesSubmittedSuccess:
       'Class grades recorded and student progression applied successfully',
