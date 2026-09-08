@@ -6,6 +6,7 @@ import {
   SchedulingPreflightReportSchema,
   SchedulingCandidateSlotSchema,
   SchedulingHardConstraintEvaluationSchema,
+  SchedulingCoverageEvaluationSchema,
   SchedulingTimeGroupSettingsSchema,
   SchedulingScoreCriterionSchema,
 } from "../src/index.js"
@@ -202,6 +203,68 @@ describe("MVP-011 scheduling schemas", () => {
       SchedulingHardConstraintEvaluationSchema.safeParse({
         ...evaluation,
         summary: { ...evaluation.summary, feasibleAssignmentCount: 0 },
+      }).success
+    ).toBe(false)
+  })
+
+  it("validates candidate coverage and rejects inconsistent counts", () => {
+    const candidate = {
+      key: "candidate-1",
+      assignmentKey: "candidate-1:ONLINE",
+      requirementId: ids.requirement,
+      courseId: ids.course,
+      branchId: null,
+      teacherId: ids.teacher,
+      qualificationId: ids.plan,
+      availabilityId: ids.institute,
+      classroomId: null,
+      deliveryMode: "ONLINE",
+      capacity: 12,
+      dayOfWeek: "SUNDAY",
+      startTime: "09:00",
+      endTime: "10:30",
+      durationMinutes: 90,
+      timeGroup: "ODD_MORNING",
+    }
+    const evaluation = {
+      candidates: [
+        {
+          candidate,
+          status: "APPLICABLE",
+          knownStudentCount: 1,
+          unknownStudentCount: 0,
+          coveredStudentIds: [ids.teacher],
+          uncoveredStudentIds: [],
+          coveragePercent: 100,
+        },
+      ],
+      courses: [
+        {
+          courseId: ids.course,
+          status: "APPLICABLE",
+          knownStudentCount: 1,
+          unknownStudentCount: 0,
+          bestCoveredStudentCount: 1,
+          bestCoveragePercent: 100,
+          candidateCount: 1,
+        },
+      ],
+      summary: {
+        candidateCount: 1,
+        courseCount: 1,
+        studentCount: 1,
+        knownStudentCount: 1,
+        unknownStudentCount: 0,
+      },
+    }
+
+    expect(
+      SchedulingCoverageEvaluationSchema.safeParse(evaluation).success
+    ).toBe(true)
+    expect(
+      SchedulingCoverageEvaluationSchema.safeParse({
+        ...evaluation,
+        summary: { ...evaluation.summary, knownStudentCount: 0 },
       }).success
     ).toBe(false)
   })
