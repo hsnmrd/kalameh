@@ -52,6 +52,7 @@ export const fa: TranslationDictionary = {
   teachers: {
     invalidCourses:
       'یک یا چند سطح انتخاب‌شده برای این استاد در آموزشگاه معتبر نیست',
+    instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
   },
   institutes: {
     instituteNotFound: 'آموزشگاه مورد نظر یافت نشد',

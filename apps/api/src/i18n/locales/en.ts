@@ -56,6 +56,7 @@ export const en: TranslationDictionary = {
   teachers: {
     invalidCourses:
       'One or more selected courses are not valid for this institute',
+    instituteRequired: 'Selecting an institute is required for this operation',
   },
   institutes: {
     instituteNotFound: 'Requested institute was not found',

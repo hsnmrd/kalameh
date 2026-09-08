@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Put,
   Delete,
   Param,
   Body,
@@ -17,6 +18,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { TeachersService } from './teachers.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
+import { ReplaceTeacherCoursesDto } from './dto/replace-teacher-courses.dto';
+import { TeacherCourseQualificationsQueryDto } from './dto/teacher-course-qualifications-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
@@ -87,6 +90,40 @@ export class TeachersController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.teachersService.findOne(currentUser, id, locale);
+  }
+
+  @Get(':id/course-qualifications')
+  @RequirePermissions(PERMISSIONS.VIEW_TEACHERS)
+  async findCourseQualifications(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('id') id: string,
+    @Query() query: TeacherCourseQualificationsQueryDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.teachersService.findCourseQualifications(
+      currentUser,
+      id,
+      query.instituteId,
+      locale,
+    );
+  }
+
+  @Put(':id/course-qualifications')
+  @RequirePermissions(PERMISSIONS.MANAGE_TEACHERS)
+  async replaceCourseQualifications(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('id') id: string,
+    @Query() query: TeacherCourseQualificationsQueryDto,
+    @Body() dto: ReplaceTeacherCoursesDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.teachersService.replaceCourseQualifications(
+      currentUser,
+      id,
+      dto,
+      query.instituteId,
+      locale,
+    );
   }
 
   @Patch(':id')

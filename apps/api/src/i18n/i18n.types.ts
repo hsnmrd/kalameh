@@ -40,6 +40,7 @@ export interface TranslationDictionary {
   };
   teachers: {
     invalidCourses: string;
+    instituteRequired: string;
   };
   institutes: {
     instituteNotFound: string;
