@@ -442,6 +442,10 @@ model SchedulingProposal {
   startTime        String
   endTime          String
   timeGroup        String?
+  score            Float?
+  scoreBreakdown   Json              @default("{}")
+  selectionReasons Json              @default("[]")
+  scoredAt         DateTime?
   isLocked         Boolean           @default(false)
   lockedByUserId   String?
   lockedAt         DateTime?
