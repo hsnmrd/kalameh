@@ -52,6 +52,17 @@ export const SCHEDULING_SELECTION_REASON_CODES = [
   "MANUALLY_SELECTED",
 ] as const
 
+export const SCHEDULING_HARD_CONSTRAINT_CODES = [
+  "INCOMPLETE_CLASS_REQUIREMENT",
+  "INVALID_TEACHER",
+  "TEACHER_NOT_QUALIFIED",
+  "OUTSIDE_TEACHER_AVAILABILITY",
+  "TEACHER_TIME_CONFLICT",
+  "INVALID_DELIVERY_LOCATION",
+  "INSUFFICIENT_CLASSROOM_CAPACITY",
+  "CLASSROOM_TIME_CONFLICT",
+] as const
+
 export const SCHEDULING_TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/
 export const SCHEDULING_CODE_REGEX = /^[A-Z][A-Z0-9_]*$/
 
@@ -65,3 +76,5 @@ export type SchedulingWarningSeverity =
 export type SchedulingWarningScope = (typeof SCHEDULING_WARNING_SCOPES)[number]
 export type SchedulingSelectionReasonCode =
   (typeof SCHEDULING_SELECTION_REASON_CODES)[number]
+export type SchedulingHardConstraintCode =
+  (typeof SCHEDULING_HARD_CONSTRAINT_CODES)[number]

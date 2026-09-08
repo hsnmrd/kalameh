@@ -132,7 +132,7 @@ export class SchedulingService {
               select: {
                 userId: true,
                 user: {
-                  select: { branchId: true, isActive: true },
+                  select: { branchId: true, isActive: true, role: true },
                 },
                 availabilities: {
                   select: {
