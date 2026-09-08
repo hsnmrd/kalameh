@@ -1,12 +1,12 @@
 import { z } from "zod"
-import { SCHEDULING_CODE_REGEX } from "./scheduling.constants.js"
+import { SCHEDULING_UNRESOLVED_REASON_CODES } from "./scheduling.constants.js"
 
 export const SchedulingUnresolvedRequirementSchema = z.object({
   id: z.string().uuid(),
   instituteId: z.string().uuid(),
   planId: z.string().uuid(),
   classRequirementId: z.string().uuid().nullable().optional(),
-  reasonCode: z.string().regex(SCHEDULING_CODE_REGEX),
+  reasonCode: z.enum(SCHEDULING_UNRESOLVED_REASON_CODES),
   missingClassCount: z.number().int().positive(),
   details: z.record(z.unknown()).nullable().optional(),
   createdAt: z.string().or(z.date()),

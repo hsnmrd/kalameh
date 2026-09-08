@@ -4,6 +4,7 @@ import { SchedulingCandidateSlotService } from './scheduling-candidate-slot.serv
 import { SchedulingHardConstraintService } from './scheduling-hard-constraint.service';
 import { SchedulingStudentCoverageService } from './scheduling-student-coverage.service';
 import { SchedulingTimeDistributionService } from './scheduling-time-distribution.service';
+import { SchedulingUnresolvedRequirementService } from './scheduling-unresolved-requirement.service';
 import { SchedulingPreflightService } from './scheduling-preflight.service';
 import { SchedulingService } from './scheduling.service';
 
@@ -16,6 +17,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingHardConstraintService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
+    SchedulingUnresolvedRequirementService,
   ],
   exports: [
     SchedulingService,
@@ -24,6 +26,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingHardConstraintService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
+    SchedulingUnresolvedRequirementService,
   ],
 })
 export class SchedulingModule {}

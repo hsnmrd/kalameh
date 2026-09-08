@@ -8,6 +8,7 @@ import {
   SchedulingHardConstraintEvaluationSchema,
   SchedulingCoverageEvaluationSchema,
   SchedulingTimeDistributionScoreSchema,
+  SchedulingUnresolvedEvaluationSchema,
   SchedulingTimeGroupSettingsSchema,
   SchedulingScoreCriterionSchema,
 } from "../src/index.js"
@@ -309,6 +310,35 @@ describe("MVP-011 scheduling schemas", () => {
       SchedulingTimeDistributionScoreSchema.safeParse({
         ...score,
         scheduledClassCount: 1,
+      }).success
+    ).toBe(false)
+  })
+
+  it("validates unresolved requirement totals and stable reason codes", () => {
+    const evaluation = {
+      items: [
+        {
+          classRequirementId: ids.requirement,
+          reasonCode: "NO_QUALIFIED_TEACHER",
+          missingClassCount: 2,
+          details: {},
+        },
+      ],
+      summary: {
+        requiredClassCount: 2,
+        scheduledClassCount: 0,
+        missingClassCount: 2,
+        unresolvedRequirementCount: 1,
+      },
+    }
+
+    expect(
+      SchedulingUnresolvedEvaluationSchema.safeParse(evaluation).success
+    ).toBe(true)
+    expect(
+      SchedulingUnresolvedEvaluationSchema.safeParse({
+        ...evaluation,
+        summary: { ...evaluation.summary, missingClassCount: 1 },
       }).success
     ).toBe(false)
   })
