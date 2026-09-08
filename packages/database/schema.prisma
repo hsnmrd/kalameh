@@ -39,6 +39,11 @@ model Institute {
   teacherCourseQualifications TeacherCourseQualification[]
   studentTimeConstraints      StudentTimeConstraint[]
   classRequirements           ClassRequirement[]
+  schedulingRuns              SchedulingRun[]
+  schedulingPlans             SchedulingPlan[]
+  schedulingProposals         SchedulingProposal[]
+  schedulingProposalSessions  SchedulingProposalSession[]
+  schedulingUnresolvedItems   SchedulingUnresolvedRequirement[]
 }
 
 model Branch {
@@ -52,11 +57,13 @@ model Branch {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  institute         Institute          @relation(fields: [instituteId], references: [id], onDelete: Cascade)
-  classes           Class[]
-  classrooms        Classroom[]
-  users             User[]
-  classRequirements ClassRequirement[]
+  institute           Institute            @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  classes             Class[]
+  classrooms          Classroom[]
+  users               User[]
+  classRequirements   ClassRequirement[]
+  schedulingRuns      SchedulingRun[]
+  schedulingProposals SchedulingProposal[]
 
   @@unique([name, instituteId])
   @@index([instituteId])
@@ -93,16 +100,19 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  institute            Institute       @relation(fields: [instituteId], references: [id])
-  branch               Branch?         @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  currentAllowedCourse Course?         @relation("UserAllowedCourse", fields: [currentAllowedCourseId], references: [id])
-  studentProfile       StudentProfile?
-  teacherProfile       TeacherProfile?
-  teachingClasses      Class[]         @relation("TeacherClasses")
-  enrollments          Enrollment[]
-  transactions         Transaction[]
-  studentNotesCreated  StudentNote[]   @relation("StudentNoteAuthor")
-  auditLogs            AuditLog[]
+  institute               Institute            @relation(fields: [instituteId], references: [id])
+  branch                  Branch?              @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  currentAllowedCourse    Course?              @relation("UserAllowedCourse", fields: [currentAllowedCourseId], references: [id])
+  studentProfile          StudentProfile?
+  teacherProfile          TeacherProfile?
+  teachingClasses         Class[]              @relation("TeacherClasses")
+  enrollments             Enrollment[]
+  transactions            Transaction[]
+  studentNotesCreated     StudentNote[]        @relation("StudentNoteAuthor")
+  auditLogs               AuditLog[]
+  schedulingRunsRequested SchedulingRun[]      @relation("SchedulingRunRequester")
+  schedulingProposals     SchedulingProposal[] @relation("SchedulingProposalTeacher")
+  schedulingProposalLocks SchedulingProposal[] @relation("SchedulingProposalLocker")
 
   @@unique([phone, instituteId])
   @@index([instituteId])
@@ -227,6 +237,7 @@ model Term {
   institute         Institute          @relation(fields: [instituteId], references: [id])
   classes           Class[]
   classRequirements ClassRequirement[]
+  schedulingRuns    SchedulingRun[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -244,11 +255,12 @@ model Course {
   prerequisite   Course?  @relation("Prerequisite", fields: [prerequisiteId], references: [id])
   nextCourses    Course[] @relation("Prerequisite")
 
-  institute         Institute                    @relation(fields: [instituteId], references: [id])
-  classes           Class[]
-  allowedUsers      User[]                       @relation("UserAllowedCourse")
-  qualifiedTeachers TeacherCourseQualification[]
-  classRequirements ClassRequirement[]
+  institute           Institute                    @relation(fields: [instituteId], references: [id])
+  classes             Class[]
+  allowedUsers        User[]                       @relation("UserAllowedCourse")
+  qualifiedTeachers   TeacherCourseQualification[]
+  classRequirements   ClassRequirement[]
+  schedulingProposals SchedulingProposal[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -296,10 +308,12 @@ model ClassRequirement {
   deliveryMode           ClassDeliveryMode @default(IN_PERSON)
   isActive               Boolean           @default(true)
 
-  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
-  term      Term      @relation(fields: [termId], references: [id], onDelete: Cascade)
-  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  branch    Branch?   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  institute                        Institute                         @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  term                             Term                              @relation(fields: [termId], references: [id], onDelete: Cascade)
+  course                           Course                            @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  branch                           Branch?                           @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  schedulingProposals              SchedulingProposal[]
+  unresolvedSchedulingRequirements SchedulingUnresolvedRequirement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -309,6 +323,199 @@ model ClassRequirement {
   @@index([courseId])
   @@index([branchId])
   @@index([instituteId, termId, isActive])
+}
+
+enum SchedulingRunStatus {
+  QUEUED
+  PREFLIGHT_FAILED
+  GENERATING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum SchedulingPlanStatus {
+  DRAFT
+  SELECTED
+  PUBLISHED
+  REJECTED
+  SUPERSEDED
+}
+
+model SchedulingRun {
+  id                String              @id @default(uuid())
+  instituteId       String
+  termId            String
+  branchId          String?
+  requestedByUserId String
+  sourceRunId       String?
+  status            SchedulingRunStatus @default(QUEUED)
+
+  inputSnapshot    Json
+  settingsSnapshot Json
+  preflightReport  Json?
+  failureCode      String?
+  failureMessage   String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+
+  institute     Institute        @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  term          Term             @relation(fields: [termId], references: [id], onDelete: Cascade)
+  branch        Branch?          @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  requestedBy   User             @relation("SchedulingRunRequester", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+  sourceRun     SchedulingRun?   @relation("SchedulingRunRegenerations", fields: [sourceRunId], references: [id], onDelete: SetNull)
+  regenerations SchedulingRun[]  @relation("SchedulingRunRegenerations")
+  plans         SchedulingPlan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instituteId])
+  @@index([termId])
+  @@index([branchId])
+  @@index([requestedByUserId])
+  @@index([sourceRunId])
+  @@index([instituteId, status, createdAt])
+}
+
+model SchedulingPlan {
+  id            String               @id @default(uuid())
+  instituteId   String
+  runId         String
+  status        SchedulingPlanStatus @default(DRAFT)
+  rank          Int
+  isRecommended Boolean              @default(false)
+
+  earnedWeightedPoints         Float
+  applicableWeightedPoints     Float
+  qualityIndex                 Float?
+  coveragePercent              Float?
+  minimumCourseCoveragePercent Float?
+  scoreBreakdown               Json
+  metricsSnapshot              Json
+  weightsSnapshot              Json
+  timeGroupsSnapshot           Json
+  dataCompletenessSnapshot     Json
+  warnings                     Json?
+  formulaVersion               String
+  generatedAt                  DateTime @default(now())
+  lastScoredAt                 DateTime @default(now())
+
+  manualEditCount      Int       @default(0)
+  firstReviewStartedAt DateTime?
+  selectedAt           DateTime?
+  rejectedAt           DateTime?
+  publishedAt          DateTime?
+
+  institute              Institute                         @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  run                    SchedulingRun                     @relation(fields: [runId], references: [id], onDelete: Cascade)
+  proposals              SchedulingProposal[]
+  proposalSessions       SchedulingProposalSession[]
+  unresolvedRequirements SchedulingUnresolvedRequirement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([runId, rank])
+  @@index([instituteId])
+  @@index([runId])
+  @@index([instituteId, status, createdAt])
+}
+
+model SchedulingProposal {
+  id                     String   @id @default(uuid())
+  instituteId            String
+  planId                 String
+  classRequirementId     String?
+  courseId               String
+  branchId               String?
+  teacherId              String
+  classroomId            String?
+  teacherQualificationId String?
+  qualificationCheckedAt DateTime
+  publishedClassId       String?  @unique
+
+  title            String
+  capacity         Int
+  deliveryMode     ClassDeliveryMode
+  daysOfWeek       String[]          @default([])
+  startTime        String
+  endTime          String
+  timeGroup        String?
+  isLocked         Boolean           @default(false)
+  lockedByUserId   String?
+  lockedAt         DateTime?
+  isManuallyEdited Boolean           @default(false)
+  editCount        Int               @default(0)
+  warnings         Json?
+
+  institute        Institute                   @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  plan             SchedulingPlan              @relation(fields: [planId], references: [id], onDelete: Cascade)
+  classRequirement ClassRequirement?           @relation(fields: [classRequirementId], references: [id], onDelete: SetNull)
+  course           Course                      @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  branch           Branch?                     @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  teacher          User                        @relation("SchedulingProposalTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+  classroom        Classroom?                  @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+  lockedBy         User?                       @relation("SchedulingProposalLocker", fields: [lockedByUserId], references: [id], onDelete: SetNull)
+  publishedClass   Class?                      @relation(fields: [publishedClassId], references: [id], onDelete: SetNull)
+  sessions         SchedulingProposalSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instituteId])
+  @@index([planId])
+  @@index([classRequirementId])
+  @@index([courseId])
+  @@index([branchId])
+  @@index([teacherId])
+  @@index([classroomId])
+  @@index([lockedByUserId])
+  @@index([planId, isLocked])
+}
+
+model SchedulingProposalSession {
+  id          String   @id @default(uuid())
+  instituteId String
+  planId      String
+  proposalId  String
+  sessionDate DateTime
+  startTime   String
+  endTime     String
+
+  institute Institute          @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  plan      SchedulingPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  proposal  SchedulingProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([proposalId, sessionDate, startTime])
+  @@index([instituteId])
+  @@index([planId, sessionDate])
+  @@index([proposalId])
+}
+
+model SchedulingUnresolvedRequirement {
+  id                 String  @id @default(uuid())
+  instituteId        String
+  planId             String
+  classRequirementId String?
+  reasonCode         String
+  missingClassCount  Int
+  details            Json?
+
+  institute        Institute         @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  plan             SchedulingPlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  classRequirement ClassRequirement? @relation(fields: [classRequirementId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instituteId])
+  @@index([planId])
+  @@index([classRequirementId])
+  @@index([planId, reasonCode])
 }
 
 model Class {
@@ -330,13 +537,14 @@ model Class {
   startTime    String?
   endTime      String?
 
-  institute   Institute    @relation(fields: [instituteId], references: [id])
-  term        Term         @relation(fields: [termId], references: [id])
-  course      Course       @relation(fields: [courseId], references: [id])
-  branch      Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  classroom   Classroom?   @relation(fields: [classroomId], references: [id], onDelete: SetNull)
-  teacher     User?        @relation("TeacherClasses", fields: [teacherId], references: [id], onDelete: SetNull)
-  enrollments Enrollment[]
+  institute                Institute           @relation(fields: [instituteId], references: [id])
+  term                     Term                @relation(fields: [termId], references: [id])
+  course                   Course              @relation(fields: [courseId], references: [id])
+  branch                   Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  classroom                Classroom?          @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+  teacher                  User?               @relation("TeacherClasses", fields: [teacherId], references: [id], onDelete: SetNull)
+  enrollments              Enrollment[]
+  sourceSchedulingProposal SchedulingProposal?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -358,9 +566,10 @@ model Classroom {
   description String?
   isActive    Boolean @default(true)
 
-  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
-  branch    Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  classes   Class[]
+  institute           Institute            @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  branch              Branch?              @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  classes             Class[]
+  schedulingProposals SchedulingProposal[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
