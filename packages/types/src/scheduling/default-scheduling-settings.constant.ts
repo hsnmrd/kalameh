@@ -14,4 +14,7 @@ export const DEFAULT_SCHEDULING_SETTINGS = {
     eveningStartsAt: "14:00",
     timeZone: "Asia/Tehran",
   },
+  generation: {
+    candidateStepMinutes: 30,
+  },
 } as const

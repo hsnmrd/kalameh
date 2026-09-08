@@ -4,6 +4,8 @@ import {
   GenerateSchedulingPlanSchema,
   SchedulingProposalSchema,
   SchedulingPreflightReportSchema,
+  SchedulingCandidateSlotSchema,
+  SchedulingTimeGroupSettingsSchema,
   SchedulingScoreCriterionSchema,
 } from "../src/index.js"
 
@@ -111,6 +113,50 @@ describe("MVP-011 scheduling schemas", () => {
       SchedulingPreflightReportSchema.safeParse({
         ...report,
         passed: true,
+      }).success
+    ).toBe(false)
+  })
+
+  it("validates candidate slots and institute time-group partitions", () => {
+    expect(
+      SchedulingTimeGroupSettingsSchema.safeParse({
+        oddDays: ["SUNDAY", "TUESDAY"],
+        evenDays: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        neutralDays: ["THURSDAY", "FRIDAY"],
+        eveningStartsAt: "14:00",
+        timeZone: "Asia/Tehran",
+      }).success
+    ).toBe(true)
+    expect(
+      SchedulingTimeGroupSettingsSchema.safeParse({
+        oddDays: ["SUNDAY", "TUESDAY"],
+        evenDays: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        neutralDays: ["THURSDAY", "FRIDAY"],
+        eveningStartsAt: "14:00",
+        timeZone: "invalid/time-zone",
+      }).success
+    ).toBe(false)
+    const candidate = {
+      key: "candidate-1",
+      requirementId: ids.requirement,
+      courseId: ids.course,
+      branchId: null,
+      teacherId: ids.teacher,
+      qualificationId: ids.plan,
+      availabilityId: ids.institute,
+      dayOfWeek: "SUNDAY",
+      startTime: "09:00",
+      endTime: "10:30",
+      durationMinutes: 90,
+      timeGroup: "ODD_MORNING",
+    }
+    expect(SchedulingCandidateSlotSchema.safeParse(candidate).success).toBe(
+      true
+    )
+    expect(
+      SchedulingCandidateSlotSchema.safeParse({
+        ...candidate,
+        durationMinutes: 60,
       }).success
     ).toBe(false)
   })
