@@ -2,6 +2,7 @@ import { z } from "zod"
 import { STUDENT_SCHEDULE_STATUSES } from "./student-time-constraint.constants.js"
 import {
   createStudentTimeConstraintInputSchema,
+  StudentTimeConstraintSchema,
   type StudentTimeConstraintValidationMessages,
 } from "./student-time-constraint.schema.js"
 import {
@@ -84,3 +85,12 @@ export const ReplaceStudentTimeProfileSchema =
 export type ReplaceStudentTimeProfileInput = z.infer<
   typeof ReplaceStudentTimeProfileSchema
 >
+
+export const StudentTimeProfileSchema = z.object({
+  studentId: z.string().uuid(),
+  studentProfileId: z.string().uuid().nullable(),
+  scheduleStatus: z.enum(STUDENT_SCHEDULE_STATUSES),
+  constraints: z.array(StudentTimeConstraintSchema).default([]),
+})
+
+export type StudentTimeProfileDto = z.infer<typeof StudentTimeProfileSchema>
