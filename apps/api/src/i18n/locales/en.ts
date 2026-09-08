@@ -123,6 +123,8 @@ export const en: TranslationDictionary = {
       'The source run does not match the selected term, branch, or institute',
     invalidLockedProposals:
       'One or more locked proposals are invalid or do not belong to the source run',
+    preflightBlocked:
+      'Plan generation stopped because preflight found a blocking issue',
   },
   grades: {
     gradesSubmittedSuccess:

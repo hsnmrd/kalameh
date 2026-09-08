@@ -20,7 +20,7 @@
 - اتاق‌های فعال مرتبط؛
 - وزن‌ها، گروه‌های زمانی و نسخه فرمول مؤثر.
 
-در یک nested write اتمیک، یک `SchedulingRun` با وضعیت `QUEUED` و یک `SchedulingPlan` با وضعیت `DRAFT` ساخته می‌شود. Plan اولیه با هشدار `GENERATION_PENDING` مشخص است و تا اضافه‌شدن موتور زمان‌بندی در MVP-017 به بعد Proposal ساختگی ندارد.
+پس از موفقیت preflight، در یک nested write اتمیک، یک `SchedulingRun` با وضعیت `QUEUED` و یک `SchedulingPlan` با وضعیت `DRAFT` ساخته می‌شود. Plan اولیه با هشدار `GENERATION_PENDING` مشخص است و تا اضافه‌شدن موتور زمان‌بندی در MVP-017 به بعد Proposal ساختگی ندارد. در صورت وجود خطای مسدودکننده، Run با وضعیت `PREFLIGHT_FAILED` و بدون Plan ذخیره می‌شود.
 
 ## مرز ایمنی
 

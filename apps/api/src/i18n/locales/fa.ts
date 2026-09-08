@@ -114,6 +114,8 @@ export const fa: TranslationDictionary = {
       'اجرای مبدا با ترم، شعبه یا آموزشگاه انتخاب‌شده تطابق ندارد',
     invalidLockedProposals:
       'یک یا چند پیشنهاد قفل‌شده معتبر یا متعلق به اجرای مبدا نیستند',
+    preflightBlocked:
+      'تولید برنامه به دلیل وجود مشکل مسدودکننده در پیش‌بررسی متوقف شد',
   },
   grades: {
     gradesSubmittedSuccess:

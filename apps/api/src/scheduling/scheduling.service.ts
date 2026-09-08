@@ -12,6 +12,7 @@ import {
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SchedulingPreflightService } from './scheduling-preflight.service';
 
 @Injectable()
 export class SchedulingService {
@@ -19,6 +20,7 @@ export class SchedulingService {
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
     private readonly auditLogsService: AuditLogsService,
+    private readonly preflightService: SchedulingPreflightService,
   ) {}
 
   async generate(
@@ -108,8 +110,8 @@ export class SchedulingService {
     const courseIds = Array.from(
       new Set(requirements.map((requirement) => requirement.courseId)),
     );
-    const [teachers, students, existingClasses, classrooms] = await Promise.all(
-      [
+    const [teachers, students, existingClasses, classrooms, activeTeachers] =
+      await Promise.all([
         this.prisma.teacherCourseQualification.findMany({
           where: {
             instituteId,
@@ -117,6 +119,7 @@ export class SchedulingService {
             teacherProfile: {
               user: {
                 isActive: true,
+                role: 'TEACHER',
                 ...(branchId ? { OR: [{ branchId }, { branchId: null }] } : {}),
               },
             },
@@ -215,10 +218,34 @@ export class SchedulingService {
           },
           orderBy: { id: 'asc' },
         }),
-      ],
-    );
+        this.prisma.user.findMany({
+          where: {
+            instituteId,
+            isActive: true,
+            role: 'TEACHER',
+            ...(branchId ? { OR: [{ branchId }, { branchId: null }] } : {}),
+          },
+          select: {
+            id: true,
+            teacherProfile: {
+              select: {
+                teachableCourses: { select: { id: true } },
+              },
+            },
+          },
+          orderBy: { id: 'asc' },
+        }),
+      ]);
 
     const capturedAt = new Date();
+    const preflightReport = this.preflightService.evaluate({
+      checkedAt: capturedAt,
+      requirements,
+      teachers,
+      students,
+      classrooms,
+      activeTeachers,
+    });
     const inputSnapshot = this.toJson({
       schemaVersion: '1',
       capturedAt,
@@ -234,6 +261,7 @@ export class SchedulingService {
       branch,
       requirements,
       teachers,
+      activeTeachers,
       students,
       existingClasses,
       classrooms,
@@ -269,41 +297,51 @@ export class SchedulingService {
         branchId,
         requestedByUserId: currentUser.sub,
         sourceRunId: input.sourceRunId ?? null,
-        status: 'QUEUED',
+        status: preflightReport.passed ? 'QUEUED' : 'PREFLIGHT_FAILED',
         inputSnapshot,
         settingsSnapshot,
-        plans: {
-          create: {
-            instituteId,
-            status: 'DRAFT',
-            rank: 1,
-            isRecommended: true,
-            earnedWeightedPoints: 0,
-            applicableWeightedPoints: 0,
-            qualityIndex: null,
-            coveragePercent: null,
-            minimumCourseCoveragePercent: null,
-            scoreBreakdown: {
-              criteria: [],
-              earnedWeightedPoints: 0,
-              applicableWeightedPoints: 0,
-              qualityIndex: null,
-            },
-            metricsSnapshot: { generationStatus: 'PENDING_ENGINE' },
-            weightsSnapshot: DEFAULT_SCHEDULING_SETTINGS.weights,
-            timeGroupsSnapshot: DEFAULT_SCHEDULING_SETTINGS.timeGroups,
-            dataCompletenessSnapshot,
-            warnings: [
-              {
-                code: 'GENERATION_PENDING',
-                severity: 'INFO',
-                scope: 'PLAN',
-                context: { engineStartsAtTask: 'MVP-017' },
+        preflightReport: this.toJson(preflightReport),
+        failureCode: preflightReport.passed ? null : 'PREFLIGHT_BLOCKED',
+        failureMessage: preflightReport.passed
+          ? null
+          : this.i18n.t('scheduling.preflightBlocked', locale),
+        completedAt: preflightReport.passed ? null : capturedAt,
+        ...(preflightReport.passed
+          ? {
+              plans: {
+                create: {
+                  instituteId,
+                  status: 'DRAFT' as const,
+                  rank: 1,
+                  isRecommended: true,
+                  earnedWeightedPoints: 0,
+                  applicableWeightedPoints: 0,
+                  qualityIndex: null,
+                  coveragePercent: null,
+                  minimumCourseCoveragePercent: null,
+                  scoreBreakdown: {
+                    criteria: [],
+                    earnedWeightedPoints: 0,
+                    applicableWeightedPoints: 0,
+                    qualityIndex: null,
+                  },
+                  metricsSnapshot: { generationStatus: 'PENDING_ENGINE' },
+                  weightsSnapshot: DEFAULT_SCHEDULING_SETTINGS.weights,
+                  timeGroupsSnapshot: DEFAULT_SCHEDULING_SETTINGS.timeGroups,
+                  dataCompletenessSnapshot,
+                  warnings: [
+                    {
+                      code: 'GENERATION_PENDING',
+                      severity: 'INFO',
+                      scope: 'PLAN',
+                      context: { engineStartsAtTask: 'MVP-017' },
+                    },
+                  ],
+                  formulaVersion: DEFAULT_SCHEDULING_SETTINGS.formulaVersion,
+                },
               },
-            ],
-            formulaVersion: DEFAULT_SCHEDULING_SETTINGS.formulaVersion,
-          },
-        },
+            }
+          : {}),
       },
       include: { plans: true },
     });
@@ -313,7 +351,9 @@ export class SchedulingService {
       userId: currentUser.sub,
       module: 'SCHEDULING',
       entityId: run.id,
-      action: 'GENERATE_REQUESTED',
+      action: preflightReport.passed
+        ? 'GENERATE_REQUESTED'
+        : 'PREFLIGHT_FAILED',
       metadata: {
         termId: input.termId,
         branchId,

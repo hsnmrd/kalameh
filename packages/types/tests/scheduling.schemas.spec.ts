@@ -3,6 +3,7 @@ import {
   ClassRequirementInputSchema,
   GenerateSchedulingPlanSchema,
   SchedulingProposalSchema,
+  SchedulingPreflightReportSchema,
   SchedulingScoreCriterionSchema,
 } from "../src/index.js"
 
@@ -74,6 +75,42 @@ describe("MVP-011 scheduling schemas", () => {
         normalizedScore: 0,
         weight: 10,
         weightedPoints: null,
+      }).success
+    ).toBe(false)
+  })
+
+  it("validates a structured blocking preflight report", () => {
+    const report = SchedulingPreflightReportSchema.parse({
+      schemaVersion: "1",
+      checkedAt: "2026-09-08T08:00:00.000Z",
+      passed: false,
+      summary: {
+        blockingIssueCount: 1,
+        warningCount: 0,
+        infoCount: 0,
+        requirementCount: 1,
+        courseCount: 1,
+        studentCount: 0,
+        completeStudentScheduleCount: 0,
+        activeTeacherCount: 0,
+        teacherWithoutQualificationCount: 0,
+      },
+      issues: [
+        {
+          code: "COURSE_WITHOUT_QUALIFIED_TEACHER",
+          severity: "BLOCKING",
+          scope: "COURSE",
+          entityId: ids.course,
+        },
+      ],
+    })
+
+    expect(report.passed).toBe(false)
+    expect(report.issues[0]?.context).toEqual({})
+    expect(
+      SchedulingPreflightReportSchema.safeParse({
+        ...report,
+        passed: true,
       }).success
     ).toBe(false)
   })

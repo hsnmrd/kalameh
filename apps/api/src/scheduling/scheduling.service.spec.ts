@@ -5,12 +5,14 @@ import { ROLES, type JwtPayload } from '@workspace/types';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SchedulingPreflightService } from './scheduling-preflight.service';
 import { SchedulingService } from './scheduling.service';
 
 describe('MVP-015 SchedulingService', () => {
   let service: SchedulingService;
   let prisma: any;
   let auditLogs: any;
+  let preflight: any;
 
   const ids = {
     institute: '00000000-0000-4000-8000-000000000001',
@@ -43,6 +45,25 @@ describe('MVP-015 SchedulingService', () => {
       schedulingProposal: { findMany: jest.fn() },
     };
     auditLogs = { log: jest.fn() };
+    preflight = {
+      evaluate: jest.fn().mockReturnValue({
+        schemaVersion: '1',
+        checkedAt: generatedAt,
+        passed: true,
+        summary: {
+          blockingIssueCount: 0,
+          warningCount: 0,
+          infoCount: 0,
+          requirementCount: 1,
+          courseCount: 1,
+          studentCount: 0,
+          completeStudentScheduleCount: 0,
+          activeTeacherCount: 0,
+          teacherWithoutQualificationCount: 0,
+        },
+        issues: [],
+      }),
+    };
 
     prisma.term.findFirst.mockResolvedValue({
       id: ids.term,
@@ -77,7 +98,7 @@ describe('MVP-015 SchedulingService', () => {
     prisma.class.findMany.mockResolvedValue([]);
     prisma.classroom.findMany.mockResolvedValue([]);
     prisma.schedulingRun.create.mockImplementation(({ data }: any) => {
-      const planData = data.plans.create;
+      const planData = data.plans?.create;
       return Promise.resolve({
         id: ids.run,
         instituteId: data.instituteId,
@@ -93,23 +114,25 @@ describe('MVP-015 SchedulingService', () => {
         failureMessage: null,
         startedAt: null,
         completedAt: null,
-        plans: [
-          {
-            id: ids.plan,
-            instituteId: ids.institute,
-            runId: ids.run,
-            ...planData,
-            generatedAt,
-            lastScoredAt: generatedAt,
-            manualEditCount: 0,
-            firstReviewStartedAt: null,
-            selectedAt: null,
-            rejectedAt: null,
-            publishedAt: null,
-            createdAt: generatedAt,
-            updatedAt: generatedAt,
-          },
-        ],
+        plans: planData
+          ? [
+              {
+                id: ids.plan,
+                instituteId: ids.institute,
+                runId: ids.run,
+                ...planData,
+                generatedAt,
+                lastScoredAt: generatedAt,
+                manualEditCount: 0,
+                firstReviewStartedAt: null,
+                selectedAt: null,
+                rejectedAt: null,
+                publishedAt: null,
+                createdAt: generatedAt,
+                updatedAt: generatedAt,
+              },
+            ]
+          : [],
         createdAt: generatedAt,
         updatedAt: generatedAt,
       });
@@ -124,6 +147,7 @@ describe('MVP-015 SchedulingService', () => {
           useValue: { t: jest.fn((key: string) => key) },
         },
         { provide: AuditLogsService, useValue: auditLogs },
+        { provide: SchedulingPreflightService, useValue: preflight },
       ],
     }).compile();
 
@@ -237,5 +261,59 @@ describe('MVP-015 SchedulingService', () => {
       ),
     ).rejects.toThrow(BadRequestException);
     expect(prisma.term.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('persists a failed run without a draft when preflight is blocked', async () => {
+    preflight.evaluate.mockReturnValue({
+      schemaVersion: '1',
+      checkedAt: generatedAt,
+      passed: false,
+      summary: {
+        blockingIssueCount: 1,
+        warningCount: 0,
+        infoCount: 0,
+        requirementCount: 1,
+        courseCount: 1,
+        studentCount: 0,
+        completeStudentScheduleCount: 0,
+        activeTeacherCount: 0,
+        teacherWithoutQualificationCount: 0,
+      },
+      issues: [
+        {
+          code: 'COURSE_WITHOUT_QUALIFIED_TEACHER',
+          severity: 'BLOCKING',
+          scope: 'COURSE',
+          entityId: ids.course,
+          context: {},
+        },
+      ],
+    });
+
+    const result = await service.generate(admin, {
+      termId: ids.term,
+      branchId: ids.branch,
+      requirementIds: [ids.requirement],
+      alternativePlanCount: 1,
+      lockedProposalIds: [],
+    });
+
+    expect(result.status).toBe('PREFLIGHT_FAILED');
+    expect(result.plans).toEqual([]);
+    expect(prisma.schedulingRun.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: 'PREFLIGHT_FAILED',
+          failureCode: 'PREFLIGHT_BLOCKED',
+          preflightReport: expect.objectContaining({ passed: false }),
+        }),
+      }),
+    );
+    expect(
+      prisma.schedulingRun.create.mock.calls[0][0].data.plans,
+    ).toBeUndefined();
+    expect(auditLogs.log).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'PREFLIGHT_FAILED' }),
+    );
   });
 });

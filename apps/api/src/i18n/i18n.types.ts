@@ -90,6 +90,7 @@ export interface TranslationDictionary {
     sourceRunRequiredForLocks: string;
     invalidSourceRun: string;
     invalidLockedProposals: string;
+    preflightBlocked: string;
   };
   grades: {
     gradesSubmittedSuccess: string;
