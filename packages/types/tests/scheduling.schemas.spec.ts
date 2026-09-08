@@ -7,6 +7,7 @@ import {
   SchedulingCandidateSlotSchema,
   SchedulingHardConstraintEvaluationSchema,
   SchedulingCoverageEvaluationSchema,
+  SchedulingTimeDistributionScoreSchema,
   SchedulingTimeGroupSettingsSchema,
   SchedulingScoreCriterionSchema,
 } from "../src/index.js"
@@ -265,6 +266,49 @@ describe("MVP-011 scheduling schemas", () => {
       SchedulingCoverageEvaluationSchema.safeParse({
         ...evaluation,
         summary: { ...evaluation.summary, knownStudentCount: 0 },
+      }).success
+    ).toBe(false)
+  })
+
+  it("validates a time-distribution score contract", () => {
+    const score = {
+      requirementId: ids.requirement,
+      requiredClassCount: 2,
+      scheduledClassCount: 2,
+      targetPrimaryGroupCount: 2,
+      distinctPrimaryGroupCount: 2,
+      groupCounts: {
+        ODD_MORNING: 1,
+        ODD_EVENING: 0,
+        EVEN_MORNING: 0,
+        EVEN_EVENING: 1,
+        NEUTRAL_MORNING: 0,
+        NEUTRAL_EVENING: 0,
+        MIXED_MORNING: 0,
+        MIXED_EVENING: 0,
+      },
+      dayAxisScore: 1,
+      timeAxisScore: 1,
+      groupDiversityScore: 1,
+      balanceScore: 1,
+      criterion: {
+        code: "SC_TIME_PATTERN_DIVERSITY",
+        status: "APPLICABLE",
+        rawValue: 1,
+        normalizedScore: 1,
+        weight: 25,
+        weightedPoints: 25,
+      },
+      warnings: [],
+    }
+
+    expect(SchedulingTimeDistributionScoreSchema.safeParse(score).success).toBe(
+      true
+    )
+    expect(
+      SchedulingTimeDistributionScoreSchema.safeParse({
+        ...score,
+        scheduledClassCount: 1,
       }).success
     ).toBe(false)
   })
