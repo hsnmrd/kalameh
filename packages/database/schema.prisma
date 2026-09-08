@@ -37,6 +37,7 @@ model Institute {
   rolePermissions             RolePermission[]
   auditLogs                   AuditLog[]
   teacherCourseQualifications TeacherCourseQualification[]
+  studentTimeConstraints      StudentTimeConstraint[]
 }
 
 model Branch {
@@ -107,19 +108,64 @@ model User {
 }
 
 model StudentProfile {
-  id             String        @id @default(uuid())
-  userId         String        @unique
-  fatherName     String?
-  birthDate      DateTime?
-  gender         String?
-  emergencyPhone String?
-  address        String?
-  notes          StudentNote[]
+  id              String                  @id @default(uuid())
+  userId          String                  @unique
+  fatherName      String?
+  birthDate       DateTime?
+  gender          String?
+  emergencyPhone  String?
+  address         String?
+  scheduleStatus  StudentScheduleStatus   @default(INCOMPLETE)
+  notes           StudentNote[]
+  timeConstraints StudentTimeConstraint[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum StudentScheduleStatus {
+  INCOMPLETE
+  COMPLETE
+}
+
+enum StudentTimeConstraintKind {
+  UNAVAILABLE
+  PREFERRED
+}
+
+enum StudentTimeConstraintSource {
+  SCHOOL
+  UNIVERSITY
+  WORK
+  PERSONAL
+  OTHER
+}
+
+model StudentTimeConstraint {
+  id               String                      @id @default(uuid())
+  instituteId      String
+  studentProfileId String
+  kind             StudentTimeConstraintKind
+  source           StudentTimeConstraintSource @default(OTHER)
+  dayOfWeek        String
+  startTime        String
+  endTime          String
+  label            String?
+  effectiveFrom    DateTime?
+  effectiveUntil   DateTime?
+
+  institute      Institute      @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instituteId])
+  @@index([studentProfileId])
+  @@index([studentProfileId, kind])
+  @@index([studentProfileId, effectiveFrom, effectiveUntil])
 }
 
 model StudentNote {
