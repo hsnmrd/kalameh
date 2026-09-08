@@ -4,6 +4,9 @@
 - **Component Installation & Kits:** When a new UI primitive or kit is needed (e.g. dialog, table, select, dropdown, context-menu), install/scaffold it from shadcn headless UI (`@base-ui/react` primitives) directly inside `packages/ui`. If it does not exist, discuss before adding custom raw HTML.
 - **Context Menu Standard:**
   - Support and export `<ContextMenu />` (`src/components/context-menu.tsx`) based on Base UI primitives for multi-action card workflows (e.g. edit, delete, manage, ban/block).
+- **Alert Dialog Standard:**
+  - Support and export `<AlertDialog />` (`src/components/alert-dialog.tsx`) built on `@base-ui/react/alert-dialog` for all confirmation and "are you sure?" destructive modal flows across the monorepo.
+  - Export `AlertDialog`, `AlertDialogTrigger`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogFooter`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogAction`, and `AlertDialogCancel`.
 - **Data Table / Data Grid Standard:**
   - Export and maintain `<DataTable />` (`src/components/data-table.tsx`) built on TanStack Table for consistent tabular data rendering across apps.
 - **Price & Currency Formatting Standard:**

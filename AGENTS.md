@@ -42,7 +42,11 @@
 - **No Vanilla JS Dialogs (`alert`, `prompt`):**
   - **NEVER** use vanilla JavaScript `alert()` or `prompt()` (or `window.alert`, `window.prompt`) anywhere in applications (`apps/*`).
   - For alerting users and displaying notifications, use centralized toast notifications (`toast.error`, `toast.success`, `toast.info` from `sonner`).
-  - For capturing user input or prompting confirmations, use centralized modal dialogs (e.g. `ResponsiveDialog`, `Dialog` from `@workspace/ui/components/dialog`).
+  - For capturing user input, forms, or data presentation, use centralized modal dialogs (e.g. `Dialog`, `ResponsiveDialog`, `FormDialog` from `@workspace/ui/components/dialog`).
+- **Confirmation & Alert Dialog Standard (`AlertDialog`):**
+  - **For all confirmation scenarios where the user is asked "Are you sure?" (e.g. delete confirmations, destructive resets, irreversible actions), ALWAYS use `<AlertDialog />` from `@workspace/ui/components/alert-dialog` instead of `<Dialog />` or `<ResponsiveDialog />`.**
+  - Compose confirmation flows with `AlertDialog`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogAction`, and `AlertDialogCancel`.
+  - Regular `<Dialog />` / `<ResponsiveDialog />` / `<FormDialog />` are strictly reserved for forms, inputs, data viewers, and wizards.
 - **Data Table & Data Grid Standard:**
   - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying tabular data.
   - Define columns using TanStack Table `ColumnDef` to ensure consistent typography, responsive design, empty states, and accessibility across all dashboards.

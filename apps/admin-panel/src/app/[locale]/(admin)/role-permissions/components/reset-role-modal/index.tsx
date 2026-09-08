@@ -4,14 +4,16 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { AlertTriangle } from "lucide-react"
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogCloseButton,
-  ResponsiveDialogFooter,
-} from "@workspace/ui/components/dialog"
-import { Button } from "@workspace/ui/components/button"
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Spinner } from "@workspace/ui/components/spinner"
 
 export interface ResetRoleModalProps {
@@ -30,54 +32,47 @@ export function ResetRoleModal({
   const t = useTranslations("rolePermissions")
 
   return (
-    <ResponsiveDialog
-      open={open}
-      onOpenChange={(isOpen) => !isOpen && onClose()}
-    >
-      <ResponsiveDialogContent className="p-6 sm:max-w-md">
-        <ResponsiveDialogHeader className="flex flex-row items-center justify-between">
-          <ResponsiveDialogTitle>{t("resetModal.title")}</ResponsiveDialogTitle>
-          <ResponsiveDialogCloseButton />
-        </ResponsiveDialogHeader>
+    <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <AlertDialogContent className="p-6 sm:max-w-md">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t("resetModal.title")}</AlertDialogTitle>
+        </AlertDialogHeader>
 
         <div className="mt-4 flex items-start gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
-            <AlertTriangle className="size-6" />
-          </div>
-          <p className="text-xs leading-relaxed text-muted-foreground">
+          <AlertDialogMedia className="mb-0 bg-destructive/10 text-destructive">
+            <AlertTriangle />
+          </AlertDialogMedia>
+          <AlertDialogDescription className="text-xs leading-relaxed text-muted-foreground">
             {t("resetModal.description")}
-          </p>
+          </AlertDialogDescription>
         </div>
 
-        <ResponsiveDialogFooter className="mt-6 flex-row items-center gap-3 sm:justify-end sm:border-t sm:border-border/60 sm:pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            className="flex-1 sm:flex-initial"
+        <AlertDialogFooter className="mt-6 flex-row items-center gap-3 sm:justify-end sm:border-t sm:border-border/60 sm:pt-4">
+          <AlertDialogCancel
+            className="h-14 flex-1 rounded-2xl text-base font-medium sm:h-10 sm:w-auto sm:flex-initial sm:rounded-xl sm:px-4 sm:text-sm"
             onClick={onClose}
             disabled={isLoading}
           >
             {t("resetModal.cancel")}
-          </Button>
+          </AlertDialogCancel>
 
-          <Button
-            type="button"
+          <AlertDialogAction
             variant="destructive"
-            className="flex-1 sm:flex-initial"
+            className="h-14 flex-1 rounded-2xl text-base font-medium sm:h-10 sm:w-auto sm:flex-initial sm:rounded-xl sm:px-5 sm:text-sm"
             onClick={onConfirm}
             disabled={isLoading}
           >
             {isLoading ? (
               <>
-                <Spinner className="size-4" />
+                <Spinner data-icon="inline-start" />
                 <span>{t("resetting")}</span>
               </>
             ) : (
               t("resetModal.confirm")
             )}
-          </Button>
-        </ResponsiveDialogFooter>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

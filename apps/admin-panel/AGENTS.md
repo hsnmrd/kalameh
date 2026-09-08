@@ -58,7 +58,9 @@
   - Define columns via TanStack `ColumnDef` and never use raw HTML `<table>` elements in views or components.
   - **On mobile (< lg): use `<MobileList />` from `@workspace/ui/components/mobile-list` instead of `DataTable`.** See Mobile UX Standard below.
 - **Forms & Validation:** Always use `react-hook-form` paired with `@hookform/resolvers/zod` and shared Zod schemas from `@workspace/types`.
-- **No Vanilla JS Dialogs (`alert`, `prompt`):** NEVER use native browser `alert()` or `prompt()`. Use shadcn/Sonner `toast` for notifications and `ResponsiveDialog` for confirmations or user inputs.
+- **No Vanilla JS Dialogs (`alert`, `prompt`):** NEVER use native browser `alert()` or `prompt()`. Use shadcn/Sonner `toast` for notifications.
+- **Confirmation Modals (`AlertDialog`):** For all actions asking the user to confirm (e.g. `delete-*-modal`, reset permissions, "are you sure?"), ALWAYS use `<AlertDialog />` from `@workspace/ui/components/alert-dialog`. Do NOT use `ResponsiveDialog` or `Dialog` for confirmation prompts.
+- **Input & Form Modals (`ResponsiveDialog` / `FormDialog`):** Use `ResponsiveDialog` or `FormDialog` from `@workspace/ui/components/dialog` for user inputs, form sheets, details inspectors, and wizards.
 - **File Length:** Keep files under 250 lines. Decompose large tables, dialogs, and forms into dedicated subcomponents.
 
 ## Mobile UX Standard
@@ -95,9 +97,10 @@ All admin-panel list pages and overlays must follow these mobile-specific rules 
 
 ### 5. Modal → Bottom-sheet Drawer on mobile
 
-- Use `ResponsiveDialog`, `ResponsiveDialogContent`, `ResponsiveDialogHeader`, `ResponsiveDialogFooter`, `ResponsiveDialogTitle`, `ResponsiveDialogDescription`, `ResponsiveDialogCloseButton` from `@workspace/ui/components/dialog` instead of `Dialog`/`DialogPopup`.
+- For non-confirmation modals (forms, inspectors, wizards), use `ResponsiveDialog`, `ResponsiveDialogContent`, `ResponsiveDialogHeader`, `ResponsiveDialogFooter`, `ResponsiveDialogTitle`, `ResponsiveDialogDescription`, `ResponsiveDialogCloseButton` from `@workspace/ui/components/dialog` instead of `Dialog`/`DialogPopup`.
 - On mobile it slides up as a Drawer; on desktop it renders the standard centered dialog.
 - Form content must include `px-6 pb-6` padding when inside a `ResponsiveDialogContent`.
+- **For confirmations ("Are you sure?", delete actions), use `AlertDialog` from `@workspace/ui/components/alert-dialog` instead of `ResponsiveDialog`.**
 
 ### 6. Filters → Bottom-sheet Drawer on mobile
 
