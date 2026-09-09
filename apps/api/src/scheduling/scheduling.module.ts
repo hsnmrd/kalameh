@@ -12,14 +12,17 @@ import { SchedulingStudentCoverageService } from './scheduling-student-coverage.
 import { SchedulingTimeDistributionService } from './scheduling-time-distribution.service';
 import { SchedulingUnresolvedRequirementService } from './scheduling-unresolved-requirement.service';
 import { SchedulingPreflightService } from './scheduling-preflight.service';
+import { SchedulingRunQueryService } from './scheduling-run-query.service';
+import { SchedulingRunsController } from './scheduling-runs.controller';
 import { SchedulingService } from './scheduling.service';
 
 @Module({
-  controllers: [SchedulingController],
+  controllers: [SchedulingController, SchedulingRunsController],
   providers: [
     SchedulingService,
     SchedulingAlternativePlanService,
     SchedulingPreflightService,
+    SchedulingRunQueryService,
     SchedulingCandidateSlotService,
     SchedulingDeterministicRankingService,
     SchedulingGenerationEngineService,
@@ -35,6 +38,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingService,
     SchedulingAlternativePlanService,
     SchedulingPreflightService,
+    SchedulingRunQueryService,
     SchedulingCandidateSlotService,
     SchedulingDeterministicRankingService,
     SchedulingGenerationEngineService,

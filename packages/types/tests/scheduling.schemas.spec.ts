@@ -16,6 +16,8 @@ import {
   SchedulingTimeGroupSettingsSchema,
   SchedulingScoreCriterionSchema,
   SchedulingDispatchResultSchema,
+  SchedulingRunQuerySchema,
+  SchedulingRunStatusSchema,
 } from "../src/index.js"
 
 const ids = {
@@ -540,6 +542,60 @@ describe("MVP-027 scheduling dispatch result schema", () => {
         failedRunCount: 0,
         skippedRunCount: 0,
         requeuedStaleRunCount: 0,
+      }).success
+    ).toBe(false)
+  })
+})
+
+describe("MVP-028 scheduling run query schemas", () => {
+  const completedRun = {
+    runId: ids.plan,
+    status: "COMPLETED",
+    isTerminal: true,
+    result: {
+      planIds: [ids.requirement],
+      recommendedPlanId: ids.requirement,
+    },
+    preflightReport: null,
+    failureCode: null,
+    failureMessage: null,
+    startedAt: "2026-09-09T10:00:00.000Z",
+    completedAt: "2026-09-09T10:01:00.000Z",
+    createdAt: "2026-09-09T09:59:00.000Z",
+    updatedAt: "2026-09-09T10:01:00.000Z",
+  }
+
+  it("accepts an optional institute lookup scope", () => {
+    expect(SchedulingRunQuerySchema.parse({})).toEqual({})
+    expect(
+      SchedulingRunQuerySchema.parse({ instituteId: ids.institute })
+    ).toEqual({ instituteId: ids.institute })
+  })
+
+  it("validates a completed result reference", () => {
+    expect(SchedulingRunStatusSchema.safeParse(completedRun).success).toBe(true)
+  })
+
+  it("rejects inconsistent terminal and result states", () => {
+    expect(
+      SchedulingRunStatusSchema.safeParse({
+        ...completedRun,
+        isTerminal: false,
+      }).success
+    ).toBe(false)
+    expect(
+      SchedulingRunStatusSchema.safeParse({
+        ...completedRun,
+        status: "GENERATING",
+      }).success
+    ).toBe(false)
+    expect(
+      SchedulingRunStatusSchema.safeParse({
+        ...completedRun,
+        result: {
+          ...completedRun.result,
+          recommendedPlanId: ids.course,
+        },
       }).success
     ).toBe(false)
   })
