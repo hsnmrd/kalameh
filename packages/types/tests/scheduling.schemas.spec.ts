@@ -7,6 +7,8 @@ import {
   SchedulingCandidateSlotSchema,
   SchedulingHardConstraintEvaluationSchema,
   SchedulingCoverageEvaluationSchema,
+  SchedulingDeterministicPlanCandidateSchema,
+  SchedulingDeterministicRankingSchema,
   SchedulingTimeDistributionScoreSchema,
   SchedulingUnresolvedEvaluationSchema,
   SchedulingTimeGroupSettingsSchema,
@@ -339,6 +341,73 @@ describe("MVP-011 scheduling schemas", () => {
       SchedulingUnresolvedEvaluationSchema.safeParse({
         ...evaluation,
         summary: { ...evaluation.summary, missingClassCount: 1 },
+      }).success
+    ).toBe(false)
+  })
+
+  it("validates deterministic ranking coverage metadata", () => {
+    const candidate = SchedulingDeterministicPlanCandidateSchema.parse({
+      planKey: "plan-a",
+      earnedWeightedPoints: 80,
+      coveragePercent: 90,
+      minimumCourseCoveragePercent: 80,
+      uncoveredStudentCount: 2,
+      timeDiversityScore: 0.75,
+      maximumTeacherLoadRatio: 0.7,
+      warningCount: 1,
+      assignments: [],
+    })
+    const ranking = {
+      plans: [
+        {
+          candidate,
+          rank: 1,
+          isRecommended: true,
+          isWithinCoverageBand: true,
+          stableTieBreakerKey: "NO_ASSIGNMENTS",
+        },
+      ],
+      summary: {
+        planCount: 1,
+        recommendationCandidateCount: 1,
+        bestCoveragePercent: 90,
+        recommendationCoverageFloor: 85,
+      },
+    }
+
+    expect(
+      SchedulingDeterministicRankingSchema.safeParse(ranking).success
+    ).toBe(true)
+    expect(
+      SchedulingDeterministicRankingSchema.safeParse({
+        ...ranking,
+        summary: { ...ranking.summary, recommendationCoverageFloor: 84 },
+      }).success
+    ).toBe(false)
+  })
+
+  it("rejects duplicate assignments in a deterministic plan candidate", () => {
+    const assignment = {
+      assignmentKey: "same",
+      teacherId: ids.teacher,
+      courseId: ids.course,
+      dayOfWeek: "SUNDAY",
+      startTime: "09:00",
+      endTime: "10:30",
+      classroomId: null,
+    }
+
+    expect(
+      SchedulingDeterministicPlanCandidateSchema.safeParse({
+        planKey: "plan-a",
+        earnedWeightedPoints: 80,
+        coveragePercent: null,
+        minimumCourseCoveragePercent: null,
+        uncoveredStudentCount: 0,
+        timeDiversityScore: 1,
+        maximumTeacherLoadRatio: 0,
+        warningCount: 0,
+        assignments: [assignment, assignment],
       }).success
     ).toBe(false)
   })

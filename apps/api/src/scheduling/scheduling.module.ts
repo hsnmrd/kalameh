@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SchedulingController } from './scheduling.controller';
 import { SchedulingCandidateSlotService } from './scheduling-candidate-slot.service';
+import { SchedulingDeterministicRankingService } from './scheduling-deterministic-ranking.service';
 import { SchedulingHardConstraintService } from './scheduling-hard-constraint.service';
 import { SchedulingStudentCoverageService } from './scheduling-student-coverage.service';
 import { SchedulingTimeDistributionService } from './scheduling-time-distribution.service';
@@ -14,6 +15,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingService,
     SchedulingPreflightService,
     SchedulingCandidateSlotService,
+    SchedulingDeterministicRankingService,
     SchedulingHardConstraintService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
@@ -23,6 +25,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingService,
     SchedulingPreflightService,
     SchedulingCandidateSlotService,
+    SchedulingDeterministicRankingService,
     SchedulingHardConstraintService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
