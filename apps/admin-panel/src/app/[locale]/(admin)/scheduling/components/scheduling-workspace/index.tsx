@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { useTranslations } from "next-intl"
 import {
   BookOpenCheck,
@@ -10,21 +11,19 @@ import {
   Sparkles,
   UserRoundCheck,
 } from "lucide-react"
-import { APP_MODULES, PERMISSIONS } from "@workspace/types"
 import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@workspace/ui/components/empty"
+  APP_MODULES,
+  PERMISSIONS,
+  type SchedulingRunDto,
+} from "@workspace/types"
 import { buttonVariants } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { AdminPageHeader } from "@/components/admin-page-header"
 import { ModuleGuard } from "@/components/module-guard"
 import { PermissionGuard } from "@/components/permission-guard"
 import { Link } from "@/i18n/routing"
+import { SchedulingGenerationForm } from "../scheduling-generation-form"
+import { SchedulingRunCreated } from "../scheduling-run-created"
 
 const workflowSteps = [
   { key: "prepare", icon: BookOpenCheck },
@@ -59,6 +58,9 @@ const prerequisiteLinks = [
 
 export function SchedulingWorkspace() {
   const t = useTranslations("scheduling")
+  const [createdRun, setCreatedRun] = React.useState<SchedulingRunDto | null>(
+    null
+  )
 
   return (
     <div className="flex flex-col gap-8">
@@ -102,35 +104,46 @@ export function SchedulingWorkspace() {
         </ol>
       </section>
 
-      <Empty variant="ghost" className="min-h-[300px] border border-dashed">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <Sparkles aria-hidden />
-          </EmptyMedia>
-          <EmptyTitle>{t("ready.title")}</EmptyTitle>
-          <EmptyDescription>{t("ready.description")}</EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          {prerequisiteLinks.map(
-            ({ key, href, icon: Icon, permission, module }) => (
-              <ModuleGuard key={key} module={module} mode="disable">
-                <PermissionGuard permission={permission} mode="disable">
-                  <Link
-                    href={href}
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "lg" }),
-                      "h-11"
-                    )}
-                  >
-                    <Icon data-icon="inline-start" aria-hidden />
-                    {t(`ready.links.${key}`)}
-                  </Link>
-                </PermissionGuard>
-              </ModuleGuard>
-            )
-          )}
-        </EmptyContent>
-      </Empty>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(240px,0.34fr)_minmax(0,1fr)]">
+        <aside className="rounded-2xl border border-border bg-muted/30 p-5 sm:p-6">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-background text-muted-foreground shadow-xs">
+            <BookOpenCheck aria-hidden className="size-5" />
+          </div>
+          <h2 className="mt-4 font-bold text-foreground">{t("ready.title")}</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            {t("ready.description")}
+          </p>
+          <div className="mt-5 flex flex-col gap-2">
+            {prerequisiteLinks.map(
+              ({ key, href, icon: Icon, permission, module }) => (
+                <ModuleGuard key={key} module={module} mode="disable">
+                  <PermissionGuard permission={permission} mode="disable">
+                    <Link
+                      href={href}
+                      className={cn(
+                        buttonVariants({ variant: "outline", size: "lg" }),
+                        "h-11 w-full justify-start bg-background"
+                      )}
+                    >
+                      <Icon data-icon="inline-start" aria-hidden />
+                      {t(`ready.links.${key}`)}
+                    </Link>
+                  </PermissionGuard>
+                </ModuleGuard>
+              )
+            )}
+          </div>
+        </aside>
+
+        {createdRun ? (
+          <SchedulingRunCreated
+            run={createdRun}
+            onReset={() => setCreatedRun(null)}
+          />
+        ) : (
+          <SchedulingGenerationForm onCreated={setCreatedRun} />
+        )}
+      </div>
     </div>
   )
 }

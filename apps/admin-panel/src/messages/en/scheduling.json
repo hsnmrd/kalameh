@@ -31,5 +31,70 @@
       "teachers": "Review teachers",
       "students": "Review students"
     }
+  },
+  "generation": {
+    "title": "Create scheduling suggestions",
+    "description": "Choose the scheduling scope and the class requirements the engine should include.",
+    "success": "The scheduling run was created.",
+    "fields": {
+      "term": {
+        "label": "Term",
+        "placeholder": "Select a term",
+        "search": "Search terms...",
+        "empty": "No active terms found.",
+        "drawerTitle": "Select term"
+      },
+      "branch": {
+        "label": "Branch scope",
+        "placeholder": "All branches",
+        "all": "All branches",
+        "description": "Optional — narrow the suggestions to one branch.",
+        "drawerTitle": "Select branch"
+      },
+      "alternatives": {
+        "label": "Number of suggestions",
+        "placeholder": "Select a number",
+        "drawerTitle": "Number of suggestions",
+        "option": "{count} suggestions"
+      }
+    },
+    "requirements": {
+      "label": "Class requirements",
+      "description": "Select at least one active requirement to schedule.",
+      "selectAll": "Select all",
+      "clear": "Clear",
+      "loading": "Loading class requirements",
+      "empty": "No active requirements match this scope",
+      "emptyHint": "Review class requirements or choose another branch.",
+      "chooseTerm": "Select a term first",
+      "chooseTermHint": "Its active class requirements will appear here.",
+      "unnamed": "Untitled course",
+      "summary": "{classes} classes · capacity {capacity}"
+    },
+    "validation": {
+      "term": "Select a term.",
+      "requirements": "Select at least one class requirement."
+    },
+    "selectionSummary": "{count} requirements selected",
+    "submit": "Generate suggestions",
+    "submitting": "Starting generation...",
+    "instituteRequired": {
+      "title": "Select an institute",
+      "description": "Choose an institute from the header before starting a scheduling run."
+    },
+    "created": {
+      "title": "Scheduling has started",
+      "description": "The request was accepted. Run progress and generated plans will be available in the next scheduling step.",
+      "runId": "Run ID: {id}",
+      "another": "Create another run",
+      "statuses": {
+        "QUEUED": "Queued",
+        "PREFLIGHT_FAILED": "Preflight failed",
+        "GENERATING": "Generating",
+        "COMPLETED": "Completed",
+        "FAILED": "Failed",
+        "CANCELLED": "Cancelled"
+      }
+    }
   }
 }
