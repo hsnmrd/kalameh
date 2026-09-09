@@ -22,6 +22,7 @@ import {
   SchedulingPlanSelectionResultSchema,
   SetSchedulingProposalLockSchema,
   UpdateSchedulingProposalSchema,
+  SchedulingPlanValidationSchema,
 } from "../src/index.js"
 
 const ids = {
@@ -659,5 +660,37 @@ describe("MVP-030 scheduling review schemas", () => {
         selectedAt: "2026-09-09T15:00:00.000Z",
       }).success
     ).toBe(true)
+  })
+})
+
+describe("MVP-031 scheduling plan validation schema", () => {
+  it("keeps validation summaries consistent", () => {
+    const result = {
+      planId: ids.plan,
+      isValid: false,
+      validatedAt: "2026-09-09T16:00:00.000Z",
+      violations: [
+        {
+          code: "TEACHER_TIME_CONFLICT",
+          scope: "PROPOSAL",
+          proposalId: ids.requirement,
+          conflictingEntityIds: [ids.teacher],
+          context: {},
+        },
+      ],
+      summary: {
+        proposalCount: 1,
+        violationCount: 1,
+        invalidProposalCount: 1,
+      },
+    }
+
+    expect(SchedulingPlanValidationSchema.safeParse(result).success).toBe(true)
+    expect(
+      SchedulingPlanValidationSchema.safeParse({
+        ...result,
+        isValid: true,
+      }).success
+    ).toBe(false)
   })
 })

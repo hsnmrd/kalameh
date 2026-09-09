@@ -27,6 +27,7 @@ import { SchedulingRunQueryDto } from './dto/scheduling-run-query.dto';
 import { UpdateSchedulingProposalDto } from './dto/update-scheduling-proposal.dto';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
 import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
+import { SchedulingPlanValidationService } from './scheduling-plan-validation.service';
 import { SchedulingService } from './scheduling.service';
 
 @Controller('scheduling/plans')
@@ -37,6 +38,7 @@ export class SchedulingController {
     private readonly schedulingService: SchedulingService,
     private readonly schedulingPlanQueryService: SchedulingPlanQueryService,
     private readonly schedulingPlanReviewService: SchedulingPlanReviewService,
+    private readonly schedulingPlanValidationService: SchedulingPlanValidationService,
   ) {}
 
   @Get(':planId')
@@ -48,6 +50,22 @@ export class SchedulingController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.schedulingPlanQueryService.findOne(
+      currentUser,
+      planId,
+      query.instituteId,
+      locale,
+    );
+  }
+
+  @Post(':planId/validate')
+  @RequirePermissions(PERMISSIONS.MANAGE_CLASSES)
+  validatePlan(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('planId') planId: string,
+    @Query() query: SchedulingRunQueryDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.schedulingPlanValidationService.validate(
       currentUser,
       planId,
       query.instituteId,
