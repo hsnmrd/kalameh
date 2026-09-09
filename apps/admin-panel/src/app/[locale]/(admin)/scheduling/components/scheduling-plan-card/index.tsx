@@ -6,18 +6,21 @@ import {
   CircleAlert,
   Clock3,
   Gauge,
+  ListTree,
   Sparkles,
   TriangleAlert,
   UsersRound,
 } from "lucide-react"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { formatNumber } from "@workspace/ui/lib/utils"
 
 interface SchedulingPlanCardProps {
   plan: SchedulingPlanDetailsDto
   isRecommended: boolean
+  onViewDetails: () => void
 }
 
 const percent = (value: number | null | undefined, locale: string) =>
@@ -31,6 +34,7 @@ const percent = (value: number | null | undefined, locale: string) =>
 export function SchedulingPlanCard({
   plan,
   isRecommended,
+  onViewDetails,
 }: SchedulingPlanCardProps) {
   const t = useTranslations("scheduling.comparison")
   const locale = useLocale()
@@ -133,6 +137,15 @@ export function SchedulingPlanCard({
             {t("warnings", { count: formatNumber(warningCount, locale) })}
           </Badge>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-4 w-full"
+          onClick={onViewDetails}
+        >
+          <ListTree aria-hidden data-icon="inline-start" />
+          {t("viewDetails")}
+        </Button>
       </div>
     </article>
   )

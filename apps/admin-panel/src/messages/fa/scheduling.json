@@ -146,6 +146,7 @@
     },
     "missingClasses": "{count} کلاس تأمین‌نشده",
     "warnings": "{count} هشدار",
+    "viewDetails": "مشاهده جزئیات",
     "loading": {
       "title": "در حال آماده‌سازی مقایسه",
       "description": "جزئیات برنامه‌های تولیدشده در حال دریافت است."
@@ -155,5 +156,106 @@
       "description": "نتیجه اجرا محفوظ است. برای دریافت دوباره جزئیات تلاش کنید.",
       "retry": "تلاش دوباره"
     }
+  },
+  "planDetails": {
+    "title": "جزئیات برنامه {rank}",
+    "description": "کلاس‌های پیشنهادی و موارد حل‌نشده را پیش از تصمیم نهایی بررسی کنید.",
+    "recommended": "پیشنهاد موتور",
+    "term": "ترم",
+    "branch": "محدوده شعبه",
+    "allBranches": "همه شعبه‌ها",
+    "generatedAt": "تاریخ تولید",
+    "qualityIndex": "شاخص کیفیت",
+    "proposalsTitle": "کلاس‌های پیشنهادی",
+    "proposalCount": "{count} کلاس",
+    "noProposals": {
+      "title": "کلاس قابل اجرا ساخته نشد",
+      "description": "علت‌های تأمین‌نشدن نیازها را در بخش بعد بررسی کنید."
+    },
+    "unresolvedTitle": "نیازهای حل‌نشده",
+    "missingCount": "{count} کلاس کسری",
+    "warningCount": "{count} هشدار",
+    "planWarnings": "هشدارهای برنامه",
+    "proposalWarnings": "هشدارهای کلاس پیشنهادی",
+    "warningSeverities": {
+      "INFO": "اطلاع",
+      "WARNING": "نیازمند توجه"
+    },
+    "warningMessages": {
+      "GENERATION_PENDING": "تولید این برنامه هنوز کامل نشده است.",
+      "MISSING_SCHEDULED_CLASSES": "بخشی از کلاس‌های موردنیاز ساخته نشده‌اند.",
+      "NEUTRAL_TIME_GROUP_USED": "از یک گروه زمانی خنثی استفاده شده است.",
+      "TIME_PATTERN_NOT_DIVERSE": "تنوع فرد/زوج یا صبح/عصر کامل نیست.",
+      "TIME_GROUP_IMBALANCED": "توزیع کلاس‌ها میان گروه‌های زمانی متعادل نیست.",
+      "MANUAL_EDIT_REQUIRES_VALIDATION": "این کلاس پس از ویرایش دستی باید دوباره اعتبارسنجی شود."
+    },
+    "warningContexts": {
+      "classCount": "از {required} کلاس موردنیاز، {scheduled} کلاس قابل زمان‌بندی بوده است.",
+      "spread": "اختلاف بار میان گروه‌های زمانی: {count}",
+      "changedFields": "فیلدهای تغییرکرده: {fields}"
+    },
+    "editableFields": {
+      "title": "عنوان",
+      "teacherId": "استاد",
+      "branchId": "شعبه",
+      "classroomId": "کلاس‌درس",
+      "capacity": "ظرفیت",
+      "deliveryMode": "شیوه برگزاری",
+      "daysOfWeek": "روزهای برگزاری",
+      "startTime": "ساعت شروع",
+      "endTime": "ساعت پایان"
+    },
+    "days": "روزهای برگزاری",
+    "time": "ساعت کلاس",
+    "timeRange": "{start} تا {end}",
+    "location": "محل برگزاری",
+    "capacity": "ظرفیت",
+    "people": "{count} نفر",
+    "deliveryMode": "شیوه برگزاری",
+    "deliveryModes": {
+      "IN_PERSON": "حضوری",
+      "ONLINE": "آنلاین"
+    },
+    "sessions": "تعداد جلسات",
+    "selectionReasons": "دلایل پیشنهاد:",
+    "states": {
+      "locked": "قفل‌شده",
+      "edited": "ویرایش‌شده"
+    },
+    "weekDays": {
+      "SATURDAY": "شنبه",
+      "SUNDAY": "یکشنبه",
+      "MONDAY": "دوشنبه",
+      "TUESDAY": "سه‌شنبه",
+      "WEDNESDAY": "چهارشنبه",
+      "THURSDAY": "پنجشنبه",
+      "FRIDAY": "جمعه"
+    },
+    "daySeparator": "، ",
+    "reasons": {
+      "MAXIMIZES_STUDENT_COVERAGE": "بیشترین پوشش فراگیران",
+      "IMPROVES_TIME_DIVERSITY": "تنوع بهتر زمانی",
+      "MATCHES_TEACHER_QUALIFICATION": "تطابق با صلاحیت استاد",
+      "MATCHES_TEACHER_AVAILABILITY": "تطابق با زمان استاد",
+      "BALANCES_TEACHER_LOAD": "تعادل بار استادان",
+      "ONLY_FEASIBLE_HARD_CONSTRAINT_OPTION": "تنها گزینه بدون تداخل قطعی",
+      "MANUALLY_SELECTED": "انتخاب دستی"
+    },
+    "unresolvedReasons": {
+      "INVALID_REQUIREMENT": "اطلاعات نیاز کلاس کامل یا معتبر نیست.",
+      "NO_VALID_TEACHER": "استاد فعال و معتبری پیدا نشد.",
+      "NO_QUALIFIED_TEACHER": "استاد واجد صلاحیت برای این سطح وجود ندارد.",
+      "NO_TEACHER_AVAILABILITY": "زمان آزاد سازگار برای استاد پیدا نشد.",
+      "TEACHER_TIME_CONFLICT": "زمان‌های ممکن با برنامه استاد تداخل دارند.",
+      "NO_COMPATIBLE_CLASSROOM": "کلاس‌درس سازگار پیدا نشد.",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "ظرفیت کلاس‌درس‌های موجود کافی نیست.",
+      "CLASSROOM_TIME_CONFLICT": "کلاس‌درس در زمان‌های ممکن آزاد نیست.",
+      "NO_FEASIBLE_TIME_SLOT": "بازه زمانی قابل اجرا پیدا نشد.",
+      "INSUFFICIENT_FEASIBLE_CANDIDATES": "تعداد گزینه‌های قابل اجرا کافی نبود.",
+      "PLAN_COMBINATION_CONFLICT": "ترکیب این کلاس با برنامه نهایی تداخل داشت."
+    },
+    "unknownCourse": "سطح نامشخص",
+    "notSpecified": "مشخص نشده",
+    "close": "بستن"
   }
 }

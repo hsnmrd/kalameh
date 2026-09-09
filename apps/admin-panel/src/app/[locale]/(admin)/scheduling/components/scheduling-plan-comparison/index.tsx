@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { useTranslations } from "next-intl"
 import { GitCompareArrows, RefreshCw } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
@@ -14,6 +15,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { useSchedulingPlanDetails } from "../../hooks/use-scheduling-plan-details"
 import { SchedulingPlanCard } from "../scheduling-plan-card"
+import { SchedulingPlanDetailsDialog } from "../scheduling-plan-details-dialog"
 
 interface SchedulingPlanComparisonProps {
   planIds: string[]
@@ -25,12 +27,16 @@ export function SchedulingPlanComparison({
   recommendedPlanId,
 }: SchedulingPlanComparisonProps) {
   const t = useTranslations("scheduling.comparison")
+  const [selectedPlanId, setSelectedPlanId] = React.useState<string | null>(
+    null
+  )
   const planQueries = useSchedulingPlanDetails(planIds)
   const isLoading = planQueries.some((query) => query.isPending)
   const isError = planQueries.some((query) => query.isError)
   const plans = planQueries
     .flatMap((query) => (query.data ? [query.data] : []))
     .sort((first, second) => first.rank - second.rank)
+  const selectedPlan = plans.find((plan) => plan.id === selectedPlanId)
 
   if (isLoading) {
     return (
@@ -99,9 +105,20 @@ export function SchedulingPlanComparison({
             key={plan.id}
             plan={plan}
             isRecommended={plan.id === recommendedPlanId || plan.isRecommended}
+            onViewDetails={() => setSelectedPlanId(plan.id)}
           />
         ))}
       </div>
+
+      {selectedPlan && (
+        <SchedulingPlanDetailsDialog
+          plan={selectedPlan}
+          isRecommended={
+            selectedPlan.id === recommendedPlanId || selectedPlan.isRecommended
+          }
+          onClose={() => setSelectedPlanId(null)}
+        />
+      )}
     </section>
   )
 }

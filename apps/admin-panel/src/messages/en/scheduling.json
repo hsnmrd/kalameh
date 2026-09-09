@@ -146,6 +146,7 @@
     },
     "missingClasses": "{count} unfilled classes",
     "warnings": "{count} warnings",
+    "viewDetails": "View details",
     "loading": {
       "title": "Preparing the comparison",
       "description": "Loading the details of the generated plans."
@@ -155,5 +156,106 @@
       "description": "The run result is safe. Try loading the plan details again.",
       "retry": "Try again"
     }
+  },
+  "planDetails": {
+    "title": "Plan {rank} details",
+    "description": "Review the suggested classes and unresolved requirements before making a final decision.",
+    "recommended": "Engine pick",
+    "term": "Term",
+    "branch": "Branch scope",
+    "allBranches": "All branches",
+    "generatedAt": "Generated on",
+    "qualityIndex": "Quality index",
+    "proposalsTitle": "Suggested classes",
+    "proposalCount": "{count} classes",
+    "noProposals": {
+      "title": "No feasible classes were generated",
+      "description": "Review the unresolved requirements below to understand why."
+    },
+    "unresolvedTitle": "Unresolved requirements",
+    "missingCount": "{count} missing classes",
+    "warningCount": "{count} warnings",
+    "planWarnings": "Plan warnings",
+    "proposalWarnings": "Suggested class warnings",
+    "warningSeverities": {
+      "INFO": "Information",
+      "WARNING": "Needs attention"
+    },
+    "warningMessages": {
+      "GENERATION_PENDING": "This plan has not finished generating.",
+      "MISSING_SCHEDULED_CLASSES": "Some required classes could not be generated.",
+      "NEUTRAL_TIME_GROUP_USED": "A neutral time group was used.",
+      "TIME_PATTERN_NOT_DIVERSE": "The odd/even or morning/evening mix is incomplete.",
+      "TIME_GROUP_IMBALANCED": "Classes are not balanced across time groups.",
+      "MANUAL_EDIT_REQUIRES_VALIDATION": "This class must be validated again after its manual edit."
+    },
+    "warningContexts": {
+      "classCount": "{scheduled} of {required} required classes could be scheduled.",
+      "spread": "Load difference across time groups: {count}",
+      "changedFields": "Changed fields: {fields}"
+    },
+    "editableFields": {
+      "title": "Title",
+      "teacherId": "Teacher",
+      "branchId": "Branch",
+      "classroomId": "Classroom",
+      "capacity": "Capacity",
+      "deliveryMode": "Delivery mode",
+      "daysOfWeek": "Class days",
+      "startTime": "Start time",
+      "endTime": "End time"
+    },
+    "days": "Class days",
+    "time": "Class time",
+    "timeRange": "{start} to {end}",
+    "location": "Location",
+    "capacity": "Capacity",
+    "people": "{count} people",
+    "deliveryMode": "Delivery mode",
+    "deliveryModes": {
+      "IN_PERSON": "In person",
+      "ONLINE": "Online"
+    },
+    "sessions": "Sessions",
+    "selectionReasons": "Why it was suggested:",
+    "states": {
+      "locked": "Locked",
+      "edited": "Edited"
+    },
+    "weekDays": {
+      "SATURDAY": "Saturday",
+      "SUNDAY": "Sunday",
+      "MONDAY": "Monday",
+      "TUESDAY": "Tuesday",
+      "WEDNESDAY": "Wednesday",
+      "THURSDAY": "Thursday",
+      "FRIDAY": "Friday"
+    },
+    "daySeparator": ", ",
+    "reasons": {
+      "MAXIMIZES_STUDENT_COVERAGE": "Maximizes student coverage",
+      "IMPROVES_TIME_DIVERSITY": "Improves time diversity",
+      "MATCHES_TEACHER_QUALIFICATION": "Matches teacher qualification",
+      "MATCHES_TEACHER_AVAILABILITY": "Matches teacher availability",
+      "BALANCES_TEACHER_LOAD": "Balances teacher load",
+      "ONLY_FEASIBLE_HARD_CONSTRAINT_OPTION": "Only conflict-free option",
+      "MANUALLY_SELECTED": "Manually selected"
+    },
+    "unresolvedReasons": {
+      "INVALID_REQUIREMENT": "The class requirement is incomplete or invalid.",
+      "NO_VALID_TEACHER": "No active valid teacher was found.",
+      "NO_QUALIFIED_TEACHER": "No teacher is qualified for this course.",
+      "NO_TEACHER_AVAILABILITY": "No compatible teacher availability was found.",
+      "TEACHER_TIME_CONFLICT": "Available times conflict with the teacher schedule.",
+      "NO_COMPATIBLE_CLASSROOM": "No compatible classroom was found.",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "Available classrooms do not have enough capacity.",
+      "CLASSROOM_TIME_CONFLICT": "The classroom is unavailable at feasible times.",
+      "NO_FEASIBLE_TIME_SLOT": "No feasible time slot was found.",
+      "INSUFFICIENT_FEASIBLE_CANDIDATES": "There were not enough feasible candidates.",
+      "PLAN_COMBINATION_CONFLICT": "This class conflicted with the final plan combination."
+    },
+    "unknownCourse": "Unknown course",
+    "notSpecified": "Not specified",
+    "close": "Close"
   }
 }
