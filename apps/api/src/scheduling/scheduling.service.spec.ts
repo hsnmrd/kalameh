@@ -6,6 +6,7 @@ import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SchedulingPreflightService } from './scheduling-preflight.service';
+import { SchedulingGenerationDispatcherService } from './scheduling-generation-dispatcher.service';
 import { SchedulingService } from './scheduling.service';
 
 describe('MVP-015 SchedulingService', () => {
@@ -13,6 +14,7 @@ describe('MVP-015 SchedulingService', () => {
   let prisma: any;
   let auditLogs: any;
   let preflight: any;
+  let dispatcher: any;
 
   const ids = {
     institute: '00000000-0000-4000-8000-000000000001',
@@ -64,6 +66,7 @@ describe('MVP-015 SchedulingService', () => {
         issues: [],
       }),
     };
+    dispatcher = { wake: jest.fn() };
 
     prisma.term.findFirst.mockResolvedValue({
       id: ids.term,
@@ -148,6 +151,10 @@ describe('MVP-015 SchedulingService', () => {
         },
         { provide: AuditLogsService, useValue: auditLogs },
         { provide: SchedulingPreflightService, useValue: preflight },
+        {
+          provide: SchedulingGenerationDispatcherService,
+          useValue: dispatcher,
+        },
       ],
     }).compile();
 
@@ -189,6 +196,7 @@ describe('MVP-015 SchedulingService', () => {
         entityId: ids.run,
       }),
     );
+    expect(dispatcher.wake).toHaveBeenCalledTimes(1);
   });
 
   it('captures reproducible tenant-scoped inputs and default settings', async () => {
@@ -315,5 +323,6 @@ describe('MVP-015 SchedulingService', () => {
     expect(auditLogs.log).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'PREFLIGHT_FAILED' }),
     );
+    expect(dispatcher.wake).not.toHaveBeenCalled();
   });
 });

@@ -13,6 +13,7 @@ import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SchedulingPreflightService } from './scheduling-preflight.service';
+import { SchedulingGenerationDispatcherService } from './scheduling-generation-dispatcher.service';
 
 @Injectable()
 export class SchedulingService {
@@ -21,6 +22,7 @@ export class SchedulingService {
     private readonly i18n: I18nService,
     private readonly auditLogsService: AuditLogsService,
     private readonly preflightService: SchedulingPreflightService,
+    private readonly generationDispatcher: SchedulingGenerationDispatcherService,
   ) {}
 
   async generate(
@@ -363,6 +365,10 @@ export class SchedulingService {
         planId: run.plans[0]?.id,
       },
     });
+
+    if (preflightReport.passed) {
+      this.generationDispatcher.wake();
+    }
 
     return SchedulingRunSchema.parse(run);
   }

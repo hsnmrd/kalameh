@@ -15,6 +15,7 @@ import {
   SchedulingUnresolvedEvaluationSchema,
   SchedulingTimeGroupSettingsSchema,
   SchedulingScoreCriterionSchema,
+  SchedulingDispatchResultSchema,
 } from "../src/index.js"
 
 const ids = {
@@ -513,6 +514,32 @@ describe("MVP-011 scheduling schemas", () => {
         ...result,
         startTime: "11:00",
         endTime: "10:30",
+      }).success
+    ).toBe(false)
+  })
+})
+
+describe("MVP-027 scheduling dispatch result schema", () => {
+  it("accepts balanced worker counters", () => {
+    expect(
+      SchedulingDispatchResultSchema.safeParse({
+        discoveredRunCount: 3,
+        completedRunCount: 1,
+        failedRunCount: 1,
+        skippedRunCount: 1,
+        requeuedStaleRunCount: 2,
+      }).success
+    ).toBe(true)
+  })
+
+  it("rejects counters that do not match discovered runs", () => {
+    expect(
+      SchedulingDispatchResultSchema.safeParse({
+        discoveredRunCount: 2,
+        completedRunCount: 1,
+        failedRunCount: 0,
+        skippedRunCount: 0,
+        requeuedStaleRunCount: 0,
       }).success
     ).toBe(false)
   })
