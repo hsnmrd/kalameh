@@ -275,6 +275,11 @@
       "edit": "ویرایش کلاس پیشنهادی",
       "lock": "قفل برای تولید مجدد",
       "unlock": "بازکردن قفل"
+    },
+    "validation": {
+      "validate": "اعتبارسنجی برنامه",
+      "validateAgain": "اعتبارسنجی دوباره",
+      "validating": "در حال اعتبارسنجی..."
     }
   },
   "proposalEdit": {
@@ -328,5 +333,38 @@
   "proposalLock": {
     "lockedSuccess": "پیشنهاد قفل شد و در تولید مجدد برنامه حفظ می‌شود.",
     "unlockedSuccess": "قفل پیشنهاد باز شد."
+  },
+  "planValidation": {
+    "validTitle": "برنامه آماده انتشار است",
+    "invalidTitle": "برنامه نیاز به اصلاح دارد",
+    "validBadge": "معتبر",
+    "invalidBadge": "نامعتبر",
+    "validatedAt": "بررسی‌شده در {date}",
+    "validToast": "اعتبارسنجی با موفقیت انجام شد؛ برنامه آماده انتشار است.",
+    "invalidToast": "اعتبارسنجی انجام شد؛ موارد مشخص‌شده را اصلاح کنید.",
+    "wholePlan": "کل برنامه",
+    "unknownProposal": "کلاس پیشنهادی نامشخص",
+    "relatedConflicts": "{count} مورد تداخل مرتبط شناسایی شد.",
+    "summary": {
+      "proposals": "کلاس‌های بررسی‌شده",
+      "violations": "تخلف‌ها",
+      "invalidProposals": "کلاس‌های نیازمند اصلاح"
+    },
+    "violations": {
+      "CROSS_INSTITUTE_REFERENCE": "مرجع متعلق به آموزشگاه دیگری است",
+      "INVALID_OR_INACTIVE_REFERENCE": "یکی از مراجع غیرفعال یا نامعتبر است",
+      "INCOMPLETE_CLASS_REQUIREMENT": "نیاز کلاسی ناقص یا ناسازگار است",
+      "INVALID_TIME_RANGE": "بازه یا مدت زمان کلاس نامعتبر است",
+      "SESSION_OUTSIDE_TERM": "جلسه‌ای خارج از بازه ترم قرار دارد",
+      "INVALID_TEACHER": "استاد غیرفعال یا نامعتبر است",
+      "TEACHER_NOT_QUALIFIED": "استاد صلاحیت تدریس این سطح را ندارد",
+      "OUTSIDE_TEACHER_AVAILABILITY": "زمان کلاس خارج از برنامه حضور استاد است",
+      "TEACHER_TIME_CONFLICT": "برنامه استاد تداخل دارد",
+      "INVALID_DELIVERY_LOCATION": "محل برگزاری با شیوه کلاس سازگار نیست",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "ظرفیت کلاس‌درس کافی نیست",
+      "CLASSROOM_TIME_CONFLICT": "برنامه کلاس‌درس تداخل دارد",
+      "REQUIREMENT_CADENCE_MISMATCH": "تعداد یا توالی جلسات با نیاز کلاسی سازگار نیست",
+      "INVALID_SESSION_DATES": "تاریخ یا ساعت جلسات نامعتبر است"
+    }
   }
 }

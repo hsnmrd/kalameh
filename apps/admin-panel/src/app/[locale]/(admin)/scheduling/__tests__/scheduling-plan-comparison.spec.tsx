@@ -216,7 +216,9 @@ describe("MVP-036 scheduling plan comparison", () => {
       screen.getByRole("button", { name: "انتخاب این برنامه" })
     ).toBeInTheDocument()
     expect(
-      screen.queryByRole("button", { name: /ویرایش|قفل|انتشار/ })
+      screen.queryByRole("button", {
+        name: /ویرایش|قفل|اعتبارسنجی|انتشار/,
+      })
     ).not.toBeInTheDocument()
   })
 

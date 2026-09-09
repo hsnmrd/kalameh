@@ -275,6 +275,11 @@
       "edit": "Edit suggested class",
       "lock": "Lock for regeneration",
       "unlock": "Unlock"
+    },
+    "validation": {
+      "validate": "Validate plan",
+      "validateAgain": "Validate again",
+      "validating": "Validating..."
     }
   },
   "proposalEdit": {
@@ -328,5 +333,38 @@
   "proposalLock": {
     "lockedSuccess": "The suggestion was locked and will be preserved during regeneration.",
     "unlockedSuccess": "The suggestion was unlocked."
+  },
+  "planValidation": {
+    "validTitle": "The plan is ready to publish",
+    "invalidTitle": "The plan needs corrections",
+    "validBadge": "Valid",
+    "invalidBadge": "Invalid",
+    "validatedAt": "Checked at {date}",
+    "validToast": "Validation passed. The plan is ready to publish.",
+    "invalidToast": "Validation finished. Correct the listed issues before publishing.",
+    "wholePlan": "Entire plan",
+    "unknownProposal": "Unknown suggested class",
+    "relatedConflicts": "{count} related conflicts were detected.",
+    "summary": {
+      "proposals": "Classes checked",
+      "violations": "Violations",
+      "invalidProposals": "Classes requiring changes"
+    },
+    "violations": {
+      "CROSS_INSTITUTE_REFERENCE": "A reference belongs to another institute",
+      "INVALID_OR_INACTIVE_REFERENCE": "A reference is inactive or invalid",
+      "INCOMPLETE_CLASS_REQUIREMENT": "The class requirement is incomplete or incompatible",
+      "INVALID_TIME_RANGE": "The class time range or duration is invalid",
+      "SESSION_OUTSIDE_TERM": "A session falls outside the term",
+      "INVALID_TEACHER": "The teacher is inactive or invalid",
+      "TEACHER_NOT_QUALIFIED": "The teacher is not qualified for this course",
+      "OUTSIDE_TEACHER_AVAILABILITY": "The class is outside the teacher's availability",
+      "TEACHER_TIME_CONFLICT": "The teacher has a scheduling conflict",
+      "INVALID_DELIVERY_LOCATION": "The location does not match the delivery mode",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "The classroom capacity is insufficient",
+      "CLASSROOM_TIME_CONFLICT": "The classroom has a scheduling conflict",
+      "REQUIREMENT_CADENCE_MISMATCH": "The session cadence does not match the requirement",
+      "INVALID_SESSION_DATES": "The session dates or times are invalid"
+    }
   }
 }

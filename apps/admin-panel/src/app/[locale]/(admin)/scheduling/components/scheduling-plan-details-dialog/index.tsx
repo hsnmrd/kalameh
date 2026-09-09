@@ -4,21 +4,17 @@ import { useLocale, useTranslations } from "next-intl"
 import {
   BookOpenCheck,
   CalendarRange,
-  Check,
   CircleAlert,
   ListChecks,
   MapPin,
-  MousePointerClick,
 } from "lucide-react"
-import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
+import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
 import {
   ResponsiveDialog,
   ResponsiveDialogCloseButton,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
-  ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@workspace/ui/components/dialog"
@@ -30,9 +26,10 @@ import {
   EmptyTitle,
 } from "@workspace/ui/components/empty"
 import { Separator } from "@workspace/ui/components/separator"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { formatDate, formatNumber } from "@workspace/ui/lib/utils"
-import { PermissionGuard } from "@/components/permission-guard"
+import { useSchedulingPlanValidation } from "../../hooks/use-scheduling-plan-validation"
+import { SchedulingPlanDetailsFooter } from "../scheduling-plan-details-footer"
+import { SchedulingPlanValidationResult } from "../scheduling-plan-validation-result"
 import { SchedulingProposalDetailsItem } from "../scheduling-proposal-details-item"
 import { SchedulingUnresolvedRequirementItem } from "../scheduling-unresolved-requirement-item"
 import { SchedulingWarningList } from "../scheduling-warning-list"
@@ -62,6 +59,7 @@ export function SchedulingPlanDetailsDialog({
     (sum, requirement) => sum + requirement.missingClassCount,
     0
   )
+  const validation = useSchedulingPlanValidation(plan.id, plan.updatedAt)
 
   return (
     <ResponsiveDialog open onOpenChange={(open) => !open && onClose()}>
@@ -122,6 +120,13 @@ export function SchedulingPlanDetailsDialog({
               </dd>
             </div>
           </dl>
+
+          {validation.result && (
+            <SchedulingPlanValidationResult
+              result={validation.result}
+              proposals={plan.proposals}
+            />
+          )}
 
           {plan.warnings.length > 0 && (
             <section aria-labelledby="plan-warnings-title">
@@ -210,36 +215,17 @@ export function SchedulingPlanDetailsDialog({
           )}
         </div>
 
-        <ResponsiveDialogFooter className="px-6 pb-6">
-          <Button type="button" variant="outline" onClick={onClose}>
-            {t("close")}
-          </Button>
-          <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
-            <Button
-              type="button"
-              variant={isSelected ? "secondary" : "default"}
-              disabled={
-                isSelectionPending ||
-                isSelected ||
-                !["DRAFT", "SELECTED"].includes(plan.status)
-              }
-              onClick={onSelect}
-            >
-              {isSelecting ? (
-                <Spinner data-icon="inline-start" />
-              ) : isSelected ? (
-                <Check aria-hidden data-icon="inline-start" />
-              ) : (
-                <MousePointerClick aria-hidden data-icon="inline-start" />
-              )}
-              {isSelecting
-                ? t("selection.selecting")
-                : isSelected
-                  ? t("selection.selected")
-                  : t("selection.select")}
-            </Button>
-          </PermissionGuard>
-        </ResponsiveDialogFooter>
+        <SchedulingPlanDetailsFooter
+          canValidate={isSelected && plan.status === "SELECTED"}
+          canSelect={["DRAFT", "SELECTED"].includes(plan.status)}
+          hasValidationResult={Boolean(validation.result)}
+          isSelectionPending={isSelectionPending}
+          isSelecting={isSelecting}
+          isValidationPending={validation.isPending}
+          onClose={onClose}
+          onSelect={onSelect}
+          onValidate={validation.validate}
+        />
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   )
