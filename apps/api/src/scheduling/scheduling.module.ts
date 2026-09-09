@@ -9,6 +9,7 @@ import { SchedulingHardConstraintService } from './scheduling-hard-constraint.se
 import { SchedulingPlanCompositionService } from './scheduling-plan-composition.service';
 import { SchedulingPlanPersistenceService } from './scheduling-plan-persistence.service';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
+import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
 import { SchedulingStudentCoverageService } from './scheduling-student-coverage.service';
 import { SchedulingTimeDistributionService } from './scheduling-time-distribution.service';
 import { SchedulingUnresolvedRequirementService } from './scheduling-unresolved-requirement.service';
@@ -32,6 +33,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingPlanCompositionService,
     SchedulingPlanPersistenceService,
     SchedulingPlanQueryService,
+    SchedulingPlanReviewService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
     SchedulingUnresolvedRequirementService,
@@ -49,6 +51,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingPlanCompositionService,
     SchedulingPlanPersistenceService,
     SchedulingPlanQueryService,
+    SchedulingPlanReviewService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
     SchedulingUnresolvedRequirementService,

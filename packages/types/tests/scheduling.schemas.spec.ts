@@ -19,6 +19,9 @@ import {
   SchedulingDispatchResultSchema,
   SchedulingRunQuerySchema,
   SchedulingRunStatusSchema,
+  SchedulingPlanSelectionResultSchema,
+  SetSchedulingProposalLockSchema,
+  UpdateSchedulingProposalSchema,
 } from "../src/index.js"
 
 const ids = {
@@ -622,5 +625,39 @@ describe("MVP-028 scheduling run query schemas", () => {
         },
       }).success
     ).toBe(false)
+  })
+})
+
+describe("MVP-030 scheduling review schemas", () => {
+  it("validates manual proposal edits", () => {
+    expect(
+      UpdateSchedulingProposalSchema.safeParse({
+        teacherId: ids.teacher,
+        daysOfWeek: ["SUNDAY", "TUESDAY"],
+        startTime: "09:00",
+        endTime: "10:30",
+      }).success
+    ).toBe(true)
+    expect(UpdateSchedulingProposalSchema.safeParse({}).success).toBe(false)
+    expect(
+      UpdateSchedulingProposalSchema.safeParse({
+        deliveryMode: "ONLINE",
+        classroomId: ids.institute,
+      }).success
+    ).toBe(false)
+  })
+
+  it("validates lock and selection results", () => {
+    expect(SetSchedulingProposalLockSchema.parse({ isLocked: true })).toEqual({
+      isLocked: true,
+    })
+    expect(
+      SchedulingPlanSelectionResultSchema.safeParse({
+        planId: ids.plan,
+        runId: ids.requirement,
+        status: "SELECTED",
+        selectedAt: "2026-09-09T15:00:00.000Z",
+      }).success
+    ).toBe(true)
   })
 })

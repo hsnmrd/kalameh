@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -21,8 +22,11 @@ import { ModulesGuard } from '../auth/guards/modules.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { CurrentLocale } from '../i18n';
 import { GenerateSchedulingPlanDto } from './dto/generate-scheduling-plan.dto';
+import { SetSchedulingProposalLockDto } from './dto/set-scheduling-proposal-lock.dto';
 import { SchedulingRunQueryDto } from './dto/scheduling-run-query.dto';
+import { UpdateSchedulingProposalDto } from './dto/update-scheduling-proposal.dto';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
+import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
 import { SchedulingService } from './scheduling.service';
 
 @Controller('scheduling/plans')
@@ -32,6 +36,7 @@ export class SchedulingController {
   constructor(
     private readonly schedulingService: SchedulingService,
     private readonly schedulingPlanQueryService: SchedulingPlanQueryService,
+    private readonly schedulingPlanReviewService: SchedulingPlanReviewService,
   ) {}
 
   @Get(':planId')
@@ -45,6 +50,62 @@ export class SchedulingController {
     return this.schedulingPlanQueryService.findOne(
       currentUser,
       planId,
+      query.instituteId,
+      locale,
+    );
+  }
+
+  @Post(':planId/select')
+  @RequirePermissions(PERMISSIONS.MANAGE_CLASSES)
+  selectPlan(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('planId') planId: string,
+    @Query() query: SchedulingRunQueryDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.schedulingPlanReviewService.selectPlan(
+      currentUser,
+      planId,
+      query.instituteId,
+      locale,
+    );
+  }
+
+  @Patch(':planId/proposals/:proposalId')
+  @RequirePermissions(PERMISSIONS.MANAGE_CLASSES)
+  updateProposal(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('planId') planId: string,
+    @Param('proposalId') proposalId: string,
+    @Body() dto: UpdateSchedulingProposalDto,
+    @Query() query: SchedulingRunQueryDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.schedulingPlanReviewService.updateProposal(
+      currentUser,
+      planId,
+      proposalId,
+      dto,
+      query.instituteId,
+      locale,
+    );
+  }
+
+  @Patch(':planId/proposals/:proposalId/lock')
+  @RequirePermissions(PERMISSIONS.MANAGE_CLASSES)
+  setProposalLock(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('planId') planId: string,
+    @Param('proposalId') proposalId: string,
+    @Body() dto: SetSchedulingProposalLockDto,
+    @Query() query: SchedulingRunQueryDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.schedulingPlanReviewService.setProposalLock(
+      currentUser,
+      planId,
+      proposalId,
+      dto,
       query.instituteId,
       locale,
     );
