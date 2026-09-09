@@ -14,6 +14,7 @@ export type NavItemKey =
   | "dashboard"
   | "institutes"
   | "classes"
+  | "scheduling"
   | "classrooms"
   | "branches"
   | "terms"

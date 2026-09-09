@@ -1,0 +1,35 @@
+{
+  "title": "Smart Class Scheduling",
+  "subtitle": "Prepare inputs, review suggested plans, and publish the final schedule",
+  "workflow": {
+    "title": "Scheduling workflow",
+    "description": "The system checks term data, creates valid alternatives, and keeps the final decision with the supervisor.",
+    "steps": {
+      "prepare": {
+        "title": "Prepare",
+        "description": "Complete class requirements and availability data."
+      },
+      "generate": {
+        "title": "Generate",
+        "description": "The engine creates and ranks conflict-free alternatives."
+      },
+      "review": {
+        "title": "Supervisor review",
+        "description": "Compare suggestions and adjust details when needed."
+      },
+      "publish": {
+        "title": "Publish classes",
+        "description": "Validate the selected plan and convert it into real classes."
+      }
+    }
+  },
+  "ready": {
+    "title": "Your scheduling workspace is ready",
+    "description": "Before creating the first plan, review the active term, teacher qualifications and availability, and student time profiles.",
+    "links": {
+      "terms": "Review terms",
+      "teachers": "Review teachers",
+      "students": "Review students"
+    }
+  }
+}

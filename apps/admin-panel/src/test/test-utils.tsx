@@ -18,6 +18,7 @@ import branchesMessagesFa from "../messages/fa/branches.json"
 import classroomsMessagesFa from "../messages/fa/classrooms.json"
 import teachersMessagesFa from "../messages/fa/teachers.json"
 import transactionsMessagesFa from "../messages/fa/transactions.json"
+import schedulingMessagesFa from "../messages/fa/scheduling.json"
 
 const defaultMessages = {
   auth: authMessagesFa,
@@ -34,6 +35,7 @@ const defaultMessages = {
   institutes: institutesMessagesFa,
   rolePermissions: rolePermissionsMessagesFa,
   transactions: transactionsMessagesFa,
+  scheduling: schedulingMessagesFa,
 }
 
 export const defaultTestUser: AuthUser = {
