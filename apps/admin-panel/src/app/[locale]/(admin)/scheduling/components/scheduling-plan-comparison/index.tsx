@@ -3,6 +3,8 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { GitCompareArrows, RefreshCw } from "lucide-react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import {
   Empty,
@@ -13,6 +15,9 @@ import {
   EmptyTitle,
 } from "@workspace/ui/components/empty"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/sonner"
+import { schedulingResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import { useSchedulingPlanDetails } from "../../hooks/use-scheduling-plan-details"
 import { SchedulingPlanCard } from "../scheduling-plan-card"
 import { SchedulingPlanDetailsDialog } from "../scheduling-plan-details-dialog"
@@ -27,6 +32,8 @@ export function SchedulingPlanComparison({
   recommendedPlanId,
 }: SchedulingPlanComparisonProps) {
   const t = useTranslations("scheduling.comparison")
+  const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
   const [selectedPlanId, setSelectedPlanId] = React.useState<string | null>(
     null
   )
@@ -37,6 +44,32 @@ export function SchedulingPlanComparison({
     .flatMap((query) => (query.data ? [query.data] : []))
     .sort((first, second) => first.rank - second.rank)
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId)
+  const selectionMutation = useMutation({
+    ...schedulingResource.selectPlan.toMutation(),
+    onSuccess: (result) => {
+      queryClient.setQueriesData<SchedulingPlanDetailsDto>(
+        { queryKey: schedulingResource.planDetail.baseKey() },
+        (current) => {
+          if (!current || current.runId !== result.runId) return current
+          const isSelected = current.id === result.planId
+          return {
+            ...current,
+            status: isSelected ? "SELECTED" : "DRAFT",
+            selectedAt: isSelected ? result.selectedAt : null,
+            firstReviewStartedAt:
+              isSelected && !current.firstReviewStartedAt
+                ? result.selectedAt
+                : current.firstReviewStartedAt,
+          }
+        }
+      )
+      toast.success(t("selection.success"))
+    },
+  })
+
+  const selectPlan = (planId: string) => {
+    selectionMutation.mutate({ planId, instituteId: activeInstituteId })
+  }
 
   if (isLoading) {
     return (
@@ -105,6 +138,13 @@ export function SchedulingPlanComparison({
             key={plan.id}
             plan={plan}
             isRecommended={plan.id === recommendedPlanId || plan.isRecommended}
+            isSelected={plan.status === "SELECTED"}
+            isSelectionPending={selectionMutation.isPending}
+            isSelecting={
+              selectionMutation.isPending &&
+              selectionMutation.variables?.planId === plan.id
+            }
+            onSelect={() => selectPlan(plan.id)}
             onViewDetails={() => setSelectedPlanId(plan.id)}
           />
         ))}
@@ -116,6 +156,13 @@ export function SchedulingPlanComparison({
           isRecommended={
             selectedPlan.id === recommendedPlanId || selectedPlan.isRecommended
           }
+          isSelected={selectedPlan.status === "SELECTED"}
+          isSelectionPending={selectionMutation.isPending}
+          isSelecting={
+            selectionMutation.isPending &&
+            selectionMutation.variables?.planId === selectedPlan.id
+          }
+          onSelect={() => selectPlan(selectedPlan.id)}
           onClose={() => setSelectedPlanId(null)}
         />
       )}

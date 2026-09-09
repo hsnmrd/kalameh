@@ -147,6 +147,13 @@
     "missingClasses": "{count} unfilled classes",
     "warnings": "{count} warnings",
     "viewDetails": "View details",
+    "selection": {
+      "badge": "Supervisor selection",
+      "select": "Select this plan",
+      "selecting": "Selecting...",
+      "selected": "Selected plan",
+      "success": "The plan was selected successfully."
+    },
     "loading": {
       "title": "Preparing the comparison",
       "description": "Loading the details of the generated plans."
@@ -161,6 +168,12 @@
     "title": "Plan {rank} details",
     "description": "Review the suggested classes and unresolved requirements before making a final decision.",
     "recommended": "Engine pick",
+    "selected": "Supervisor selection",
+    "selection": {
+      "select": "Select this plan",
+      "selecting": "Selecting...",
+      "selected": "Selected plan"
+    },
     "term": "Term",
     "branch": "Branch scope",
     "allBranches": "All branches",

@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { fireEvent, render, screen } from "../../../../../test/test-utils"
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "../../../../../test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"
@@ -8,6 +13,7 @@ import { SchedulingPlanComparison } from "../components/scheduling-plan-comparis
 const instituteId = "11111111-1111-4111-8111-111111111111"
 const firstPlanId = "22222222-2222-4222-8222-222222222222"
 const secondPlanId = "33333333-3333-4333-8333-333333333333"
+const runId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
 const timestamp = "2026-09-09T10:00:00.000Z"
 
 const plan = (
@@ -18,6 +24,8 @@ const plan = (
   ({
     id,
     instituteId,
+    runId,
+    status: "DRAFT",
     rank,
     isRecommended: false,
     qualityIndex: 84,
@@ -102,7 +110,7 @@ describe("MVP-036 scheduling plan comparison", () => {
     const detailSpy = vi
       .spyOn(schedulingResource.planDetail, "toQuery")
       .mockImplementation(({ planId }) => ({
-        queryKey: ["scheduling", "plan", planId],
+        queryKey: schedulingResource.planDetail.key({ planId, instituteId }),
         queryFn: async () =>
           planId === firstPlanId
             ? plan(firstPlanId, 2, { qualityIndex: 78 })
@@ -148,7 +156,10 @@ describe("MVP-036 scheduling plan comparison", () => {
       activeInstituteId: instituteId,
     } as ReturnType<typeof stores.useActiveInstitute>)
     vi.spyOn(schedulingResource.planDetail, "toQuery").mockReturnValue({
-      queryKey: ["scheduling", "plan", "failed"],
+      queryKey: schedulingResource.planDetail.key({
+        planId: firstPlanId,
+        instituteId,
+      }),
       queryFn: async () => Promise.reject(new Error("offline")),
     } as never)
 
@@ -172,7 +183,10 @@ describe("MVP-036 scheduling plan comparison", () => {
       activeInstituteId: instituteId,
     } as ReturnType<typeof stores.useActiveInstitute>)
     vi.spyOn(schedulingResource.planDetail, "toQuery").mockReturnValue({
-      queryKey: ["scheduling", "plan", firstPlanId, "details"],
+      queryKey: schedulingResource.planDetail.key({
+        planId: firstPlanId,
+        instituteId,
+      }),
       queryFn: async () => plan(firstPlanId, 1),
     } as never)
 
@@ -199,7 +213,81 @@ describe("MVP-036 scheduling plan comparison", () => {
     ).toBeInTheDocument()
     expect(screen.getByText("فیلدهای تغییرکرده: استاد")).toBeInTheDocument()
     expect(
-      screen.queryByRole("button", { name: /انتخاب/ })
+      screen.getByRole("button", { name: "انتخاب این برنامه" })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /ویرایش|قفل|انتشار/ })
     ).not.toBeInTheDocument()
+  })
+
+  it("selects one plan at a time and replaces the previous selection", async () => {
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.planDetail, "toQuery").mockImplementation(
+      ({ planId }) => ({
+        queryKey: schedulingResource.planDetail.key({ planId, instituteId }),
+        queryFn: async () =>
+          planId === firstPlanId ? plan(firstPlanId, 2) : plan(secondPlanId, 1),
+      })
+    )
+    const select = vi.fn(async ({ planId }: { planId: string }) => ({
+      planId,
+      runId,
+      status: "SELECTED" as const,
+      selectedAt: timestamp,
+    }))
+    vi.spyOn(schedulingResource.selectPlan, "toMutation").mockReturnValue({
+      mutationFn: select,
+    })
+
+    render(
+      <SchedulingPlanComparison
+        planIds={[firstPlanId, secondPlanId]}
+        recommendedPlanId={secondPlanId}
+      />
+    )
+
+    const initialButtons = await screen.findAllByRole("button", {
+      name: "انتخاب این برنامه",
+    })
+    fireEvent.click(initialButtons[0]!)
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "برنامه انتخاب‌شده" })
+      ).toBeDisabled()
+    )
+    expect(
+      screen
+        .getByRole("button", { name: "برنامه انتخاب‌شده" })
+        .closest("article")
+    ).toHaveTextContent("برنامه ۱")
+
+    fireEvent.click(screen.getByRole("button", { name: "انتخاب این برنامه" }))
+
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole("button", { name: "برنامه انتخاب‌شده" })
+          .closest("article")
+      ).toHaveTextContent("برنامه ۲")
+    )
+    expect(select).toHaveBeenNthCalledWith(
+      1,
+      {
+        planId: secondPlanId,
+        instituteId,
+      },
+      expect.any(Object)
+    )
+    expect(select).toHaveBeenNthCalledWith(
+      2,
+      {
+        planId: firstPlanId,
+        instituteId,
+      },
+      expect.any(Object)
+    )
   })
 })

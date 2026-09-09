@@ -3,23 +3,31 @@
 import { useLocale, useTranslations } from "next-intl"
 import {
   BookOpenCheck,
+  Check,
   CircleAlert,
   Clock3,
   Gauge,
   ListTree,
+  MousePointerClick,
   Sparkles,
   TriangleAlert,
   UsersRound,
 } from "lucide-react"
-import type { SchedulingPlanDetailsDto } from "@workspace/types"
+import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { formatNumber } from "@workspace/ui/lib/utils"
+import { PermissionGuard } from "@/components/permission-guard"
 
 interface SchedulingPlanCardProps {
   plan: SchedulingPlanDetailsDto
   isRecommended: boolean
+  isSelected: boolean
+  isSelectionPending: boolean
+  isSelecting: boolean
+  onSelect: () => void
   onViewDetails: () => void
 }
 
@@ -34,6 +42,10 @@ const percent = (value: number | null | undefined, locale: string) =>
 export function SchedulingPlanCard({
   plan,
   isRecommended,
+  isSelected,
+  isSelectionPending,
+  isSelecting,
+  onSelect,
   onViewDetails,
 }: SchedulingPlanCardProps) {
   const t = useTranslations("scheduling.comparison")
@@ -88,12 +100,20 @@ export function SchedulingPlanCard({
             {t("plan", { rank: formatNumber(plan.rank, locale) })}
           </h3>
         </div>
-        {isRecommended && (
-          <Badge variant="success">
-            <Sparkles aria-hidden data-icon="inline-start" />
-            {t("recommended")}
-          </Badge>
-        )}
+        <div className="flex flex-wrap justify-end gap-2">
+          {isSelected && (
+            <Badge>
+              <Check aria-hidden data-icon="inline-start" />
+              {t("selection.badge")}
+            </Badge>
+          )}
+          {isRecommended && (
+            <Badge variant="success">
+              <Sparkles aria-hidden data-icon="inline-start" />
+              {t("recommended")}
+            </Badge>
+          )}
+        </div>
       </div>
 
       <div className="bg-muted/50 px-5 py-5">
@@ -137,10 +157,36 @@ export function SchedulingPlanCard({
             {t("warnings", { count: formatNumber(warningCount, locale) })}
           </Badge>
         </div>
+        <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
+          <Button
+            type="button"
+            variant={isSelected ? "secondary" : "default"}
+            className="mt-4 w-full"
+            disabled={
+              isSelectionPending ||
+              isSelected ||
+              !["DRAFT", "SELECTED"].includes(plan.status)
+            }
+            onClick={onSelect}
+          >
+            {isSelecting ? (
+              <Spinner data-icon="inline-start" />
+            ) : isSelected ? (
+              <Check aria-hidden data-icon="inline-start" />
+            ) : (
+              <MousePointerClick aria-hidden data-icon="inline-start" />
+            )}
+            {isSelecting
+              ? t("selection.selecting")
+              : isSelected
+                ? t("selection.selected")
+                : t("selection.select")}
+          </Button>
+        </PermissionGuard>
         <Button
           type="button"
           variant="outline"
-          className="mt-4 w-full"
+          className="mt-2 w-full"
           onClick={onViewDetails}
         >
           <ListTree aria-hidden data-icon="inline-start" />

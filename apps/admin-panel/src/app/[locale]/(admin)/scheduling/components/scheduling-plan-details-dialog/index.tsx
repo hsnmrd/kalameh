@@ -4,11 +4,13 @@ import { useLocale, useTranslations } from "next-intl"
 import {
   BookOpenCheck,
   CalendarRange,
+  Check,
   CircleAlert,
   ListChecks,
   MapPin,
+  MousePointerClick,
 } from "lucide-react"
-import type { SchedulingPlanDetailsDto } from "@workspace/types"
+import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -28,7 +30,9 @@ import {
   EmptyTitle,
 } from "@workspace/ui/components/empty"
 import { Separator } from "@workspace/ui/components/separator"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { formatDate, formatNumber } from "@workspace/ui/lib/utils"
+import { PermissionGuard } from "@/components/permission-guard"
 import { SchedulingProposalDetailsItem } from "../scheduling-proposal-details-item"
 import { SchedulingUnresolvedRequirementItem } from "../scheduling-unresolved-requirement-item"
 import { SchedulingWarningList } from "../scheduling-warning-list"
@@ -36,12 +40,20 @@ import { SchedulingWarningList } from "../scheduling-warning-list"
 interface SchedulingPlanDetailsDialogProps {
   plan: SchedulingPlanDetailsDto
   isRecommended: boolean
+  isSelected: boolean
+  isSelectionPending: boolean
+  isSelecting: boolean
+  onSelect: () => void
   onClose: () => void
 }
 
 export function SchedulingPlanDetailsDialog({
   plan,
   isRecommended,
+  isSelected,
+  isSelectionPending,
+  isSelecting,
+  onSelect,
   onClose,
 }: SchedulingPlanDetailsDialogProps) {
   const t = useTranslations("scheduling.planDetails")
@@ -63,6 +75,7 @@ export function SchedulingPlanDetailsDialog({
               {isRecommended && (
                 <Badge variant="success">{t("recommended")}</Badge>
               )}
+              {isSelected && <Badge>{t("selected")}</Badge>}
             </div>
             <ResponsiveDialogDescription>
               {t("description")}
@@ -200,6 +213,31 @@ export function SchedulingPlanDetailsDialog({
           <Button type="button" variant="outline" onClick={onClose}>
             {t("close")}
           </Button>
+          <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
+            <Button
+              type="button"
+              variant={isSelected ? "secondary" : "default"}
+              disabled={
+                isSelectionPending ||
+                isSelected ||
+                !["DRAFT", "SELECTED"].includes(plan.status)
+              }
+              onClick={onSelect}
+            >
+              {isSelecting ? (
+                <Spinner data-icon="inline-start" />
+              ) : isSelected ? (
+                <Check aria-hidden data-icon="inline-start" />
+              ) : (
+                <MousePointerClick aria-hidden data-icon="inline-start" />
+              )}
+              {isSelecting
+                ? t("selection.selecting")
+                : isSelected
+                  ? t("selection.selected")
+                  : t("selection.select")}
+            </Button>
+          </PermissionGuard>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
