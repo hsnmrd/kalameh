@@ -9,6 +9,8 @@ import {
   SchedulingCoverageEvaluationSchema,
   SchedulingDeterministicPlanCandidateSchema,
   SchedulingDeterministicRankingSchema,
+  SchedulingEngineInputSnapshotSchema,
+  SchedulingEngineSettingsSnapshotSchema,
   SchedulingTimeDistributionScoreSchema,
   SchedulingUnresolvedEvaluationSchema,
   SchedulingTimeGroupSettingsSchema,
@@ -408,6 +410,66 @@ describe("MVP-011 scheduling schemas", () => {
         maximumTeacherLoadRatio: 0,
         warningCount: 0,
         assignments: [assignment, assignment],
+      }).success
+    ).toBe(false)
+  })
+
+  it("validates engine snapshots and defaults legacy classroom activity", () => {
+    const input = SchedulingEngineInputSnapshotSchema.parse({
+      schemaVersion: "1",
+      request: {
+        termId: ids.plan,
+        branchId: null,
+        requirementIds: [ids.requirement],
+        alternativePlanCount: 3,
+      },
+      term: {
+        id: ids.plan,
+        startDate: "2026-09-01T00:00:00.000Z",
+        endDate: "2026-12-31T00:00:00.000Z",
+      },
+      requirements: [
+        {
+          id: ids.requirement,
+          courseId: ids.course,
+          branchId: null,
+          requiredClassCount: 1,
+          capacity: 12,
+          sessionDurationMinutes: 90,
+          deliveryMode: "IN_PERSON",
+        },
+      ],
+      teachers: [],
+      students: [],
+      existingClasses: [],
+      classrooms: [
+        {
+          id: ids.institute,
+          branchId: null,
+          capacity: 12,
+        },
+      ],
+    })
+    const settings = SchedulingEngineSettingsSnapshotSchema.safeParse({
+      schemaVersion: "1",
+      formulaVersion: "1",
+      weights: { studentCoverage: 50, timeDiversity: 25 },
+      timeGroups: {
+        oddDays: ["SUNDAY", "TUESDAY"],
+        evenDays: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        neutralDays: ["THURSDAY", "FRIDAY"],
+        eveningStartsAt: "14:00",
+        timeZone: "Asia/Tehran",
+      },
+      generation: { candidateStepMinutes: 30 },
+    })
+
+    expect(input.classrooms[0]?.isActive).toBe(true)
+    expect(settings.success).toBe(true)
+    expect(
+      SchedulingEngineInputSnapshotSchema.safeParse({
+        ...input,
+        request: { ...input.request, alternativePlanCount: 4 },
       }).success
     ).toBe(false)
   })

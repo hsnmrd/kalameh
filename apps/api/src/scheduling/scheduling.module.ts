@@ -3,6 +3,7 @@ import { SchedulingController } from './scheduling.controller';
 import { SchedulingAlternativePlanService } from './scheduling-alternative-plan.service';
 import { SchedulingCandidateSlotService } from './scheduling-candidate-slot.service';
 import { SchedulingDeterministicRankingService } from './scheduling-deterministic-ranking.service';
+import { SchedulingGenerationEngineService } from './scheduling-generation-engine.service';
 import { SchedulingHardConstraintService } from './scheduling-hard-constraint.service';
 import { SchedulingPlanCompositionService } from './scheduling-plan-composition.service';
 import { SchedulingPlanPersistenceService } from './scheduling-plan-persistence.service';
@@ -20,6 +21,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingPreflightService,
     SchedulingCandidateSlotService,
     SchedulingDeterministicRankingService,
+    SchedulingGenerationEngineService,
     SchedulingHardConstraintService,
     SchedulingPlanCompositionService,
     SchedulingPlanPersistenceService,
@@ -33,6 +35,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingPreflightService,
     SchedulingCandidateSlotService,
     SchedulingDeterministicRankingService,
+    SchedulingGenerationEngineService,
     SchedulingHardConstraintService,
     SchedulingPlanCompositionService,
     SchedulingPlanPersistenceService,

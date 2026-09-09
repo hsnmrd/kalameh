@@ -214,6 +214,7 @@ export class SchedulingService {
             branchId: true,
             name: true,
             capacity: true,
+            isActive: true,
             updatedAt: true,
           },
           orderBy: { id: 'asc' },
