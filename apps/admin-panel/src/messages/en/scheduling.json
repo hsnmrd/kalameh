@@ -81,20 +81,53 @@
     "instituteRequired": {
       "title": "Select an institute",
       "description": "Choose an institute from the header before starting a scheduling run."
-    },
-    "created": {
-      "title": "Scheduling has started",
-      "description": "The request was accepted. Run progress and generated plans will be available in the next scheduling step.",
-      "runId": "Run ID: {id}",
-      "another": "Create another run",
-      "statuses": {
-        "QUEUED": "Queued",
-        "PREFLIGHT_FAILED": "Preflight failed",
-        "GENERATING": "Generating",
-        "COMPLETED": "Completed",
-        "FAILED": "Failed",
-        "CANCELLED": "Cancelled"
-      }
     }
+  },
+  "runStatus": {
+    "statuses": {
+      "QUEUED": {
+        "title": "Waiting to start",
+        "badge": "Queued",
+        "description": "The request is queued and will start automatically. You can keep this page open."
+      },
+      "GENERATING": {
+        "title": "Generating scheduling suggestions",
+        "badge": "Generating",
+        "description": "The engine is checking constraints and ranking the available scheduling options."
+      },
+      "COMPLETED": {
+        "title": "Suggestions are ready",
+        "badge": "Completed",
+        "description": "Generation finished successfully and the plans are ready for supervisor review."
+      },
+      "PREFLIGHT_FAILED": {
+        "title": "Inputs need attention",
+        "badge": "Preflight failed",
+        "description": "Generation could not start because one or more required inputs are incomplete or incompatible."
+      },
+      "FAILED": {
+        "title": "Generation failed",
+        "badge": "Failed",
+        "description": "The engine could not finish this run. Review the message below and try again."
+      },
+      "CANCELLED": {
+        "title": "Generation was cancelled",
+        "badge": "Cancelled",
+        "description": "This run stopped before producing scheduling suggestions."
+      }
+    },
+    "connectionError": {
+      "title": "Status could not be refreshed",
+      "description": "The run is still preserved. Check your connection and try refreshing its status."
+    },
+    "result": {
+      "title": "{count} scheduling suggestions generated",
+      "recommended": "The engine has also identified a recommended plan for review.",
+      "noRecommendation": "Review the generated alternatives and choose the best fit."
+    },
+    "runId": "Run ID: {id}",
+    "updatedAt": "Last update: {value}",
+    "refresh": "Refresh status",
+    "another": "Create another run"
   }
 }

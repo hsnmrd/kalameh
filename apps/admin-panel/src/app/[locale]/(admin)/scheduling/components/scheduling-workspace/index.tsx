@@ -22,8 +22,9 @@ import { AdminPageHeader } from "@/components/admin-page-header"
 import { ModuleGuard } from "@/components/module-guard"
 import { PermissionGuard } from "@/components/permission-guard"
 import { Link } from "@/i18n/routing"
+import { useActiveInstitute } from "@/lib/stores"
 import { SchedulingGenerationForm } from "../scheduling-generation-form"
-import { SchedulingRunCreated } from "../scheduling-run-created"
+import { SchedulingRunStatusPanel } from "../scheduling-run-status-panel"
 
 const workflowSteps = [
   { key: "prepare", icon: BookOpenCheck },
@@ -58,9 +59,13 @@ const prerequisiteLinks = [
 
 export function SchedulingWorkspace() {
   const t = useTranslations("scheduling")
+  const { activeInstituteId } = useActiveInstitute()
   const [createdRun, setCreatedRun] = React.useState<SchedulingRunDto | null>(
     null
   )
+
+  const activeRun =
+    createdRun?.instituteId === activeInstituteId ? createdRun : null
 
   return (
     <div className="flex flex-col gap-8">
@@ -135,9 +140,9 @@ export function SchedulingWorkspace() {
           </div>
         </aside>
 
-        {createdRun ? (
-          <SchedulingRunCreated
-            run={createdRun}
+        {activeRun ? (
+          <SchedulingRunStatusPanel
+            run={activeRun}
             onReset={() => setCreatedRun(null)}
           />
         ) : (
