@@ -107,6 +107,15 @@ export function SchedulingPlanCard({
               {t("selection.badge")}
             </Badge>
           )}
+          {plan.status === "PUBLISHED" && (
+            <Badge variant="success">
+              <Check aria-hidden data-icon="inline-start" />
+              {t("statuses.published")}
+            </Badge>
+          )}
+          {plan.status === "REJECTED" && (
+            <Badge variant="secondary">{t("statuses.rejected")}</Badge>
+          )}
           {isRecommended && (
             <Badge variant="success">
               <Sparkles aria-hidden data-icon="inline-start" />
@@ -157,32 +166,30 @@ export function SchedulingPlanCard({
             {t("warnings", { count: formatNumber(warningCount, locale) })}
           </Badge>
         </div>
-        <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
-          <Button
-            type="button"
-            variant={isSelected ? "secondary" : "default"}
-            className="mt-4 w-full"
-            disabled={
-              isSelectionPending ||
-              isSelected ||
-              !["DRAFT", "SELECTED"].includes(plan.status)
-            }
-            onClick={onSelect}
-          >
-            {isSelecting ? (
-              <Spinner data-icon="inline-start" />
-            ) : isSelected ? (
-              <Check aria-hidden data-icon="inline-start" />
-            ) : (
-              <MousePointerClick aria-hidden data-icon="inline-start" />
-            )}
-            {isSelecting
-              ? t("selection.selecting")
-              : isSelected
-                ? t("selection.selected")
-                : t("selection.select")}
-          </Button>
-        </PermissionGuard>
+        {["DRAFT", "SELECTED"].includes(plan.status) && (
+          <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
+            <Button
+              type="button"
+              variant={isSelected ? "secondary" : "default"}
+              className="mt-4 w-full"
+              disabled={isSelectionPending || isSelected}
+              onClick={onSelect}
+            >
+              {isSelecting ? (
+                <Spinner data-icon="inline-start" />
+              ) : isSelected ? (
+                <Check aria-hidden data-icon="inline-start" />
+              ) : (
+                <MousePointerClick aria-hidden data-icon="inline-start" />
+              )}
+              {isSelecting
+                ? t("selection.selecting")
+                : isSelected
+                  ? t("selection.selected")
+                  : t("selection.select")}
+            </Button>
+          </PermissionGuard>
+        )}
         <Button
           type="button"
           variant="outline"

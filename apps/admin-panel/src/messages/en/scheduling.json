@@ -147,6 +147,10 @@
     "missingClasses": "{count} unfilled classes",
     "warnings": "{count} warnings",
     "viewDetails": "View details",
+    "statuses": {
+      "published": "Published",
+      "rejected": "Rejected"
+    },
     "selection": {
       "badge": "Supervisor selection",
       "select": "Select this plan",
@@ -167,8 +171,11 @@
   "planDetails": {
     "title": "Plan {rank} details",
     "description": "Review the suggested classes and unresolved requirements before making a final decision.",
+    "publishedDescription": "This plan is published and its operational classes have been created.",
     "recommended": "Engine pick",
     "selected": "Supervisor selection",
+    "published": "Published",
+    "rejected": "Rejected",
     "selection": {
       "select": "Select this plan",
       "selecting": "Selecting...",
@@ -280,6 +287,9 @@
       "validate": "Validate plan",
       "validateAgain": "Validate again",
       "validating": "Validating..."
+    },
+    "publication": {
+      "publish": "Publish plan"
     }
   },
   "proposalEdit": {
@@ -365,6 +375,25 @@
       "CLASSROOM_TIME_CONFLICT": "The classroom has a scheduling conflict",
       "REQUIREMENT_CADENCE_MISMATCH": "The session cadence does not match the requirement",
       "INVALID_SESSION_DATES": "The session dates or times are invalid"
+    }
+  },
+  "planPublication": {
+    "success": "The plan was published and {count} operational classes were created.",
+    "confirmation": {
+      "title": "Publish final plan",
+      "description": "Publishing converts {count} suggested classes into operational classes.",
+      "term": "Term",
+      "classes": "Classes",
+      "consequence": "If any class cannot be created, no classes are created. The other plans in this run are rejected; create a new scheduling run to revise the schedule.",
+      "cancel": "Cancel",
+      "confirm": "Publish and create {count} classes",
+      "publishing": "Publishing..."
+    },
+    "published": {
+      "title": "The plan was published successfully",
+      "description": "This plan created {count} operational classes.",
+      "at": "Published on {date}",
+      "badge": "Published"
     }
   }
 }

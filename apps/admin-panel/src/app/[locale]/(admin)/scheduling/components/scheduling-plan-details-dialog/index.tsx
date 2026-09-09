@@ -29,6 +29,7 @@ import { Separator } from "@workspace/ui/components/separator"
 import { formatDate, formatNumber } from "@workspace/ui/lib/utils"
 import { useSchedulingPlanValidation } from "../../hooks/use-scheduling-plan-validation"
 import { SchedulingPlanDetailsFooter } from "../scheduling-plan-details-footer"
+import { SchedulingPlanPublicationStatus } from "../scheduling-plan-publication-status"
 import { SchedulingPlanValidationResult } from "../scheduling-plan-validation-result"
 import { SchedulingProposalDetailsItem } from "../scheduling-proposal-details-item"
 import { SchedulingUnresolvedRequirementItem } from "../scheduling-unresolved-requirement-item"
@@ -74,9 +75,17 @@ export function SchedulingPlanDetailsDialog({
                 <Badge variant="success">{t("recommended")}</Badge>
               )}
               {isSelected && <Badge>{t("selected")}</Badge>}
+              {plan.status === "PUBLISHED" && (
+                <Badge variant="success">{t("published")}</Badge>
+              )}
+              {plan.status === "REJECTED" && (
+                <Badge variant="secondary">{t("rejected")}</Badge>
+              )}
             </div>
             <ResponsiveDialogDescription>
-              {t("description")}
+              {plan.status === "PUBLISHED"
+                ? t("publishedDescription")
+                : t("description")}
             </ResponsiveDialogDescription>
           </div>
           <ResponsiveDialogCloseButton aria-label={t("close")} />
@@ -121,7 +130,11 @@ export function SchedulingPlanDetailsDialog({
             </div>
           </dl>
 
-          {validation.result && (
+          {plan.status === "PUBLISHED" && (
+            <SchedulingPlanPublicationStatus plan={plan} />
+          )}
+
+          {plan.status === "SELECTED" && validation.result && (
             <SchedulingPlanValidationResult
               result={validation.result}
               proposals={plan.proposals}
@@ -216,14 +229,15 @@ export function SchedulingPlanDetailsDialog({
         </div>
 
         <SchedulingPlanDetailsFooter
-          canValidate={isSelected && plan.status === "SELECTED"}
-          canSelect={["DRAFT", "SELECTED"].includes(plan.status)}
+          plan={plan}
+          validationResult={validation.result}
           hasValidationResult={Boolean(validation.result)}
           isSelectionPending={isSelectionPending}
           isSelecting={isSelecting}
           isValidationPending={validation.isPending}
           onClose={onClose}
           onSelect={onSelect}
+          onValidationBlocked={validation.setResult}
           onValidate={validation.validate}
         />
       </ResponsiveDialogContent>
