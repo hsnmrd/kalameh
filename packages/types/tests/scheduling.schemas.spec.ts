@@ -23,6 +23,7 @@ import {
   SetSchedulingProposalLockSchema,
   UpdateSchedulingProposalSchema,
   SchedulingPlanValidationSchema,
+  SchedulingPlanPublicationResultSchema,
 } from "../src/index.js"
 
 const ids = {
@@ -690,6 +691,35 @@ describe("MVP-031 scheduling plan validation schema", () => {
       SchedulingPlanValidationSchema.safeParse({
         ...result,
         isValid: true,
+      }).success
+    ).toBe(false)
+  })
+})
+
+describe("MVP-032 scheduling publication result schema", () => {
+  it("requires a published class for every non-empty result", () => {
+    const result = {
+      planId: ids.plan,
+      runId: ids.requirement,
+      status: "PUBLISHED",
+      classIds: [ids.course],
+      proposalCount: 1,
+      publishedAt: "2026-09-09T17:00:00.000Z",
+    }
+
+    expect(
+      SchedulingPlanPublicationResultSchema.safeParse(result).success
+    ).toBe(true)
+    expect(
+      SchedulingPlanPublicationResultSchema.safeParse({
+        ...result,
+        classIds: [],
+      }).success
+    ).toBe(false)
+    expect(
+      SchedulingPlanPublicationResultSchema.safeParse({
+        ...result,
+        proposalCount: 2,
       }).success
     ).toBe(false)
   })

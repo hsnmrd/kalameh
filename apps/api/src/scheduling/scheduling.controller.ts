@@ -26,6 +26,7 @@ import { SetSchedulingProposalLockDto } from './dto/set-scheduling-proposal-lock
 import { SchedulingRunQueryDto } from './dto/scheduling-run-query.dto';
 import { UpdateSchedulingProposalDto } from './dto/update-scheduling-proposal.dto';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
+import { SchedulingPlanPublicationService } from './scheduling-plan-publication.service';
 import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
 import { SchedulingPlanValidationService } from './scheduling-plan-validation.service';
 import { SchedulingService } from './scheduling.service';
@@ -37,6 +38,7 @@ export class SchedulingController {
   constructor(
     private readonly schedulingService: SchedulingService,
     private readonly schedulingPlanQueryService: SchedulingPlanQueryService,
+    private readonly schedulingPlanPublicationService: SchedulingPlanPublicationService,
     private readonly schedulingPlanReviewService: SchedulingPlanReviewService,
     private readonly schedulingPlanValidationService: SchedulingPlanValidationService,
   ) {}
@@ -50,6 +52,22 @@ export class SchedulingController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.schedulingPlanQueryService.findOne(
+      currentUser,
+      planId,
+      query.instituteId,
+      locale,
+    );
+  }
+
+  @Post(':planId/publish')
+  @RequirePermissions(PERMISSIONS.MANAGE_CLASSES)
+  publishPlan(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('planId') planId: string,
+    @Query() query: SchedulingRunQueryDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.schedulingPlanPublicationService.publish(
       currentUser,
       planId,
       query.instituteId,

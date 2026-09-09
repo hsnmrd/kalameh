@@ -8,6 +8,7 @@ import { SchedulingGenerationDispatcherService } from './scheduling-generation-d
 import { SchedulingHardConstraintService } from './scheduling-hard-constraint.service';
 import { SchedulingPlanCompositionService } from './scheduling-plan-composition.service';
 import { SchedulingPlanPersistenceService } from './scheduling-plan-persistence.service';
+import { SchedulingPlanPublicationService } from './scheduling-plan-publication.service';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
 import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
 import { SchedulingPlanValidationService } from './scheduling-plan-validation.service';
@@ -33,6 +34,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingHardConstraintService,
     SchedulingPlanCompositionService,
     SchedulingPlanPersistenceService,
+    SchedulingPlanPublicationService,
     SchedulingPlanQueryService,
     SchedulingPlanReviewService,
     SchedulingPlanValidationService,
@@ -52,6 +54,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingHardConstraintService,
     SchedulingPlanCompositionService,
     SchedulingPlanPersistenceService,
+    SchedulingPlanPublicationService,
     SchedulingPlanQueryService,
     SchedulingPlanReviewService,
     SchedulingPlanValidationService,

@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '@workspace/database';
 import {
   ROLES,
   SchedulingPlanValidationSchema,
@@ -22,6 +23,11 @@ type Schedule = {
   endTime: string | null;
 };
 
+type ValidationDatabase = Pick<
+  Prisma.TransactionClient,
+  'schedulingPlan' | 'class'
+>;
+
 @Injectable()
 export class SchedulingPlanValidationService {
   constructor(
@@ -36,6 +42,8 @@ export class SchedulingPlanValidationService {
     requestedInstituteId?: string,
     locale: SupportedLocale = 'fa',
     validatedAt = new Date(),
+    database: ValidationDatabase = this.prisma,
+    writeAuditLog = true,
   ): Promise<SchedulingPlanValidation> {
     if (Number.isNaN(validatedAt.getTime())) {
       throw new RangeError('validation timestamp must be valid');
@@ -45,7 +53,7 @@ export class SchedulingPlanValidationService {
       requestedInstituteId,
       locale,
     );
-    const plan = await this.prisma.schedulingPlan.findFirstOrThrow({
+    const plan = await database.schedulingPlan.findFirstOrThrow({
       where: {
         id: planId,
         instituteId,
@@ -145,7 +153,7 @@ export class SchedulingPlanValidationService {
         },
       },
     });
-    const existingClasses = await this.prisma.class.findMany({
+    const existingClasses = await database.class.findMany({
       where: { instituteId, termId: plan.run.termId },
       select: {
         id: true,
@@ -180,6 +188,11 @@ export class SchedulingPlanValidationService {
 
     if (!plan.run.term.isActive || plan.run.term.instituteId !== instituteId) {
       add('INVALID_OR_INACTIVE_REFERENCE', null);
+    }
+    if (plan.proposals.length === 0) {
+      add('INCOMPLETE_CLASS_REQUIREMENT', null, [], {
+        reason: 'PLAN_HAS_NO_PROPOSALS',
+      });
     }
     for (const proposal of plan.proposals) {
       const relationInstituteIds = [
@@ -375,16 +388,18 @@ export class SchedulingPlanValidationService {
         ).size,
       },
     });
-    await this.auditLogsService.log({
-      instituteId,
-      userId: currentUser.sub,
-      module: 'SCHEDULING',
-      entityId: planId,
-      action: result.isValid
-        ? 'PLAN_VALIDATION_PASSED'
-        : 'PLAN_VALIDATION_FAILED',
-      metadata: result.summary,
-    });
+    if (writeAuditLog) {
+      await this.auditLogsService.log({
+        instituteId,
+        userId: currentUser.sub,
+        module: 'SCHEDULING',
+        entityId: planId,
+        action: result.isValid
+          ? 'PLAN_VALIDATION_PASSED'
+          : 'PLAN_VALIDATION_FAILED',
+        metadata: result.summary,
+      });
+    }
     return result;
   }
 
