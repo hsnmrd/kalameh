@@ -75,6 +75,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return prisma.schedulingRun;
   }
 
+  get schedulingPlan(): typeof prisma.schedulingPlan {
+    return prisma.schedulingPlan;
+  }
+
   get schedulingProposal(): typeof prisma.schedulingProposal {
     return prisma.schedulingProposal;
   }

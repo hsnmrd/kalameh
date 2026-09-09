@@ -3,6 +3,7 @@ import {
   ClassRequirementInputSchema,
   GenerateSchedulingPlanSchema,
   SchedulingProposalSchema,
+  SchedulingProposalDetailsSchema,
   SchedulingPreflightReportSchema,
   SchedulingCandidateSlotSchema,
   SchedulingHardConstraintEvaluationSchema,
@@ -511,6 +512,29 @@ describe("MVP-011 scheduling schemas", () => {
 
     expect(result.warnings).toEqual([])
     expect(result.scoreBreakdown.criteria).toEqual([])
+    expect(
+      SchedulingProposalDetailsSchema.safeParse({
+        ...result,
+        course: { id: ids.course, title: "A2" },
+        teacher: {
+          id: ids.teacher,
+          firstName: "Sara",
+          lastName: "Ahmadi",
+          avatarUrl: null,
+        },
+        branch: null,
+        classroom: null,
+        classRequirement: {
+          id: ids.requirement,
+          courseId: ids.course,
+          requiredClassCount: 1,
+          capacity: 12,
+          deliveryMode: "ONLINE",
+          course: { id: ids.course, title: "A2" },
+        },
+        lockedBy: null,
+      }).success
+    ).toBe(true)
     expect(
       SchedulingProposalSchema.safeParse({
         ...result,
