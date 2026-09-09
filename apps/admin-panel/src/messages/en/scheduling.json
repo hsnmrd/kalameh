@@ -129,5 +129,31 @@
     "updatedAt": "Last update: {value}",
     "refresh": "Refresh status",
     "another": "Create another run"
+  },
+  "comparison": {
+    "title": "Compare suggested plans",
+    "description": "Review every option against the same criteria. The engine recommendation is guidance; the supervisor keeps the final decision.",
+    "rank": "Rank {rank}",
+    "plan": "Plan {rank}",
+    "recommended": "Engine pick",
+    "qualityIndex": "Quality index",
+    "weightedPoints": "{earned} of {applicable} applicable points",
+    "metrics": {
+      "coverage": "Student coverage",
+      "minimumCoverage": "Lowest course coverage",
+      "timeDiversity": "Time diversity",
+      "proposals": "Suggested classes"
+    },
+    "missingClasses": "{count} unfilled classes",
+    "warnings": "{count} warnings",
+    "loading": {
+      "title": "Preparing the comparison",
+      "description": "Loading the details of the generated plans."
+    },
+    "error": {
+      "title": "Plan comparison could not be loaded",
+      "description": "The run result is safe. Try loading the plan details again.",
+      "retry": "Try again"
+    }
   }
 }

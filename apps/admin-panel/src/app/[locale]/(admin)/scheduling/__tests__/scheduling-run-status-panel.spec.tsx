@@ -70,6 +70,10 @@ describe("MVP-035 scheduling run status panel", () => {
         queryKey: ["scheduling", "run-status", runId],
         queryFn,
       } as never)
+    vi.spyOn(schedulingResource.planDetail, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "plan-detail", planId],
+      queryFn: async () => Promise.reject(new Error("not needed here")),
+    } as never)
 
     render(<SchedulingRunStatusPanel run={queuedRun} onReset={onReset} />)
 
