@@ -30,6 +30,7 @@ export type ComposeSchedulingPlanInput = {
   feasibleCandidates: SchedulingFeasibleCandidate[];
   coverageEvaluation: SchedulingCoverageEvaluation;
   weights?: Partial<CompositionWeights>;
+  excludedAssignmentKeys?: string[];
 };
 
 type RankedOption = {
@@ -74,6 +75,13 @@ export class SchedulingPlanCompositionService {
       coverageEvaluation,
       requirementById,
     );
+    const excludedAssignmentKeys = this.validateExclusions(
+      input.excludedAssignmentKeys ?? [],
+      candidates,
+    );
+    const eligibleCandidates = candidates.filter(
+      ({ assignmentKey }) => !excludedAssignmentKeys.has(assignmentKey),
+    );
     const { knownStudentCountByCourse, unknownStudentsByCourse } =
       this.studentPopulations(coverageRecords, coverageEvaluation);
     const selected: SchedulingSelectedAssignment[] = [];
@@ -81,7 +89,7 @@ export class SchedulingPlanCompositionService {
     const selectedCountByRequirement = new Map<string, number>();
 
     while (true) {
-      const viable = candidates.filter((candidate) => {
+      const viable = eligibleCandidates.filter((candidate) => {
         const requirement = requirementById.get(candidate.requirementId);
         return (
           requirement !== undefined &&
@@ -521,6 +529,25 @@ export class SchedulingPlanCompositionService {
         'requirements must have unique ids and positive class counts',
       );
     }
+  }
+
+  private validateExclusions(
+    assignmentKeys: string[],
+    candidates: SchedulingFeasibleCandidate[],
+  ): Set<string> {
+    const excluded = new Set(assignmentKeys);
+    const feasibleKeys = new Set(
+      candidates.map(({ assignmentKey }) => assignmentKey),
+    );
+    if (
+      excluded.size !== assignmentKeys.length ||
+      assignmentKeys.some((assignmentKey) => !feasibleKeys.has(assignmentKey))
+    ) {
+      throw new RangeError(
+        'excluded assignment keys must be unique feasible assignments',
+      );
+    }
+    return excluded;
   }
 
   private resolveWeights(
