@@ -270,7 +270,12 @@
     "unknownCourse": "Unknown course",
     "notSpecified": "Not specified",
     "close": "Close",
-    "editProposal": "Edit suggested class"
+    "actions": {
+      "title": "Suggested class actions",
+      "edit": "Edit suggested class",
+      "lock": "Lock for regeneration",
+      "unlock": "Unlock"
+    }
   },
   "proposalEdit": {
     "title": "Edit suggested class",
@@ -319,5 +324,9 @@
       "time": "Enter a valid time.",
       "endTime": "End time must be after start time."
     }
+  },
+  "proposalLock": {
+    "lockedSuccess": "The suggestion was locked and will be preserved during regeneration.",
+    "unlockedSuccess": "The suggestion was unlocked."
   }
 }

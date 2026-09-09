@@ -146,7 +146,10 @@ describe("MVP-039 scheduling proposal editing", () => {
       await screen.findByRole("button", { name: "مشاهده جزئیات" })
     )
     fireEvent.click(
-      screen.getByRole("button", { name: "ویرایش کلاس پیشنهادی" })
+      screen.getByRole("button", { name: "اقدامات کلاس پیشنهادی" })
+    )
+    fireEvent.click(
+      await screen.findByRole("menuitem", { name: "ویرایش کلاس پیشنهادی" })
     )
 
     expect(

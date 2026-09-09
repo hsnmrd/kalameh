@@ -48,7 +48,7 @@ describe("MVP-039 scheduling proposal edit access", () => {
     )
 
     expect(
-      screen.queryByRole("button", { name: "ویرایش کلاس پیشنهادی" })
+      screen.queryByRole("button", { name: "اقدامات کلاس پیشنهادی" })
     ).not.toBeInTheDocument()
   })
 
@@ -64,7 +64,7 @@ describe("MVP-039 scheduling proposal edit access", () => {
     )
 
     expect(
-      screen.queryByRole("button", { name: "ویرایش کلاس پیشنهادی" })
+      screen.queryByRole("button", { name: "اقدامات کلاس پیشنهادی" })
     ).not.toBeInTheDocument()
   })
 
@@ -78,7 +78,7 @@ describe("MVP-039 scheduling proposal edit access", () => {
     render(<SchedulingProposalDetailsItem proposal={proposal} canEdit />)
 
     expect(
-      screen.queryByRole("button", { name: "ویرایش کلاس پیشنهادی" })
+      screen.queryByRole("button", { name: "اقدامات کلاس پیشنهادی" })
     ).not.toBeInTheDocument()
   })
 })

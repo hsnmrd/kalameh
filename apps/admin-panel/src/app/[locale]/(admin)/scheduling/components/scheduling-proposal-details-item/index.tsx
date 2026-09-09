@@ -8,14 +8,13 @@ import {
   Clock3,
   GraduationCap,
   MapPin,
-  Pencil,
   UsersRound,
 } from "lucide-react"
 import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
+import { SchedulingProposalActions } from "../scheduling-proposal-actions"
 import { SchedulingProposalEditDialog } from "../scheduling-proposal-edit-dialog"
 import { SchedulingWarningList } from "../scheduling-warning-list"
 
@@ -62,16 +61,10 @@ export function SchedulingProposalDetailsItem({
               permission={PERMISSIONS.MANAGE_CLASSES}
               mode="hide"
             >
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="min-h-10"
-                onClick={() => setIsEditOpen(true)}
-              >
-                <Pencil aria-hidden data-icon="inline-start" />
-                {t("editProposal")}
-              </Button>
+              <SchedulingProposalActions
+                proposal={proposal}
+                onEdit={() => setIsEditOpen(true)}
+              />
             </PermissionGuard>
           )}
         </div>
