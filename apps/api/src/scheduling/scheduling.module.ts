@@ -3,6 +3,7 @@ import { SchedulingController } from './scheduling.controller';
 import { SchedulingCandidateSlotService } from './scheduling-candidate-slot.service';
 import { SchedulingDeterministicRankingService } from './scheduling-deterministic-ranking.service';
 import { SchedulingHardConstraintService } from './scheduling-hard-constraint.service';
+import { SchedulingPlanCompositionService } from './scheduling-plan-composition.service';
 import { SchedulingStudentCoverageService } from './scheduling-student-coverage.service';
 import { SchedulingTimeDistributionService } from './scheduling-time-distribution.service';
 import { SchedulingUnresolvedRequirementService } from './scheduling-unresolved-requirement.service';
@@ -17,6 +18,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingCandidateSlotService,
     SchedulingDeterministicRankingService,
     SchedulingHardConstraintService,
+    SchedulingPlanCompositionService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
     SchedulingUnresolvedRequirementService,
@@ -27,6 +29,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingCandidateSlotService,
     SchedulingDeterministicRankingService,
     SchedulingHardConstraintService,
+    SchedulingPlanCompositionService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
     SchedulingUnresolvedRequirementService,
