@@ -163,6 +163,7 @@ export function SchedulingPlanDetailsDialog({
                   <SchedulingProposalDetailsItem
                     key={proposal.id}
                     proposal={proposal}
+                    canEdit={isSelected && plan.status === "SELECTED"}
                   />
                 ))}
               </ul>

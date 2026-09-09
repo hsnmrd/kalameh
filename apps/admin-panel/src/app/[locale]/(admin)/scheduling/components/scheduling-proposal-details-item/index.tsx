@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
   Building2,
@@ -7,24 +8,31 @@ import {
   Clock3,
   GraduationCap,
   MapPin,
+  Pencil,
   UsersRound,
 } from "lucide-react"
-import type { SchedulingPlanDetailsDto } from "@workspace/types"
+import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 import { formatNumber } from "@workspace/ui/lib/utils"
+import { PermissionGuard } from "@/components/permission-guard"
+import { SchedulingProposalEditDialog } from "../scheduling-proposal-edit-dialog"
 import { SchedulingWarningList } from "../scheduling-warning-list"
 
 type SchedulingProposalDetails = SchedulingPlanDetailsDto["proposals"][number]
 
 interface SchedulingProposalDetailsItemProps {
   proposal: SchedulingProposalDetails
+  canEdit: boolean
 }
 
 export function SchedulingProposalDetailsItem({
   proposal,
+  canEdit,
 }: SchedulingProposalDetailsItemProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
+  const [isEditOpen, setIsEditOpen] = React.useState(false)
   const teacherName = `${proposal.teacher.firstName} ${proposal.teacher.lastName}`
   const location =
     proposal.deliveryMode === "ONLINE"
@@ -48,6 +56,23 @@ export function SchedulingProposalDetailsItem({
           )}
           {proposal.isManuallyEdited && (
             <Badge variant="warning">{t("states.edited")}</Badge>
+          )}
+          {canEdit && !proposal.publishedClassId && (
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSES}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="min-h-10"
+                onClick={() => setIsEditOpen(true)}
+              >
+                <Pencil aria-hidden data-icon="inline-start" />
+                {t("editProposal")}
+              </Button>
+            </PermissionGuard>
           )}
         </div>
       </div>
@@ -148,6 +173,14 @@ export function SchedulingProposalDetailsItem({
             ariaLabel={t("proposalWarnings")}
           />
         </div>
+      )}
+
+      {isEditOpen && (
+        <SchedulingProposalEditDialog
+          proposal={proposal}
+          open
+          onClose={() => setIsEditOpen(false)}
+        />
       )}
     </li>
   )

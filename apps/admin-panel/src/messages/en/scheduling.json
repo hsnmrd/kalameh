@@ -269,6 +269,55 @@
     },
     "unknownCourse": "Unknown course",
     "notSpecified": "Not specified",
-    "close": "Close"
+    "close": "Close",
+    "editProposal": "Edit suggested class"
+  },
+  "proposalEdit": {
+    "title": "Edit suggested class",
+    "description": "Adjust the assignment and schedule for the {course} class.",
+    "titleField": "Class title",
+    "titlePlaceholder": "Enter the class title",
+    "teacher": "Teacher",
+    "teacherPlaceholder": "Select a qualified teacher",
+    "noQualifiedTeachers": "No qualified teacher was found for this course.",
+    "capacity": "Capacity",
+    "deliveryMode": "Delivery mode",
+    "deliveryModes": {
+      "IN_PERSON": "In person",
+      "ONLINE": "Online"
+    },
+    "branch": "Branch",
+    "branchPlaceholder": "Select a branch",
+    "classroom": "Classroom",
+    "classroomPlaceholder": "Select a compatible classroom",
+    "onlineClassroom": "Not required for online classes",
+    "classroomOption": "{name}, capacity {capacity}",
+    "days": "Class days",
+    "weekDays": {
+      "SATURDAY": "Saturday",
+      "SUNDAY": "Sunday",
+      "MONDAY": "Monday",
+      "TUESDAY": "Tuesday",
+      "WEDNESDAY": "Wednesday",
+      "THURSDAY": "Thursday",
+      "FRIDAY": "Friday"
+    },
+    "startTime": "Start time",
+    "endTime": "End time",
+    "save": "Save changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "close": "Close",
+    "success": "The suggested class was updated and the plan must be validated again.",
+    "validation": {
+      "title": "The class title must contain at least 2 characters.",
+      "teacher": "Select a qualified teacher.",
+      "capacity": "Capacity must be a positive number.",
+      "classroom": "Select a classroom for an in-person class.",
+      "classroomCapacity": "The classroom does not have enough capacity.",
+      "days": "Select at least one class day.",
+      "time": "Enter a valid time.",
+      "endTime": "End time must be after start time."
+    }
   }
 }

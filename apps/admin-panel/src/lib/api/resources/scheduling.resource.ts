@@ -12,12 +12,12 @@ import type {
 } from "@workspace/types"
 import { api } from "../client"
 
-interface SchedulingPlanRequest {
+export interface SchedulingPlanRequest {
   planId: string
   instituteId?: string
 }
 
-interface SchedulingProposalRequest extends SchedulingPlanRequest {
+export interface SchedulingProposalRequest extends SchedulingPlanRequest {
   proposalId: string
 }
 

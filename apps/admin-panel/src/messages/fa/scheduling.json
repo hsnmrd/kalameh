@@ -269,6 +269,55 @@
     },
     "unknownCourse": "سطح نامشخص",
     "notSpecified": "مشخص نشده",
-    "close": "بستن"
+    "close": "بستن",
+    "editProposal": "ویرایش کلاس پیشنهادی"
+  },
+  "proposalEdit": {
+    "title": "ویرایش کلاس پیشنهادی",
+    "description": "تخصیص و زمان‌بندی کلاس سطح {course} را اصلاح کنید.",
+    "titleField": "عنوان کلاس",
+    "titlePlaceholder": "عنوان کلاس را وارد کنید",
+    "teacher": "استاد",
+    "teacherPlaceholder": "استاد واجد صلاحیت را انتخاب کنید",
+    "noQualifiedTeachers": "استاد واجد صلاحیتی برای این سطح یافت نشد.",
+    "capacity": "ظرفیت",
+    "deliveryMode": "شیوه برگزاری",
+    "deliveryModes": {
+      "IN_PERSON": "حضوری",
+      "ONLINE": "آنلاین"
+    },
+    "branch": "شعبه",
+    "branchPlaceholder": "شعبه را انتخاب کنید",
+    "classroom": "کلاس‌درس",
+    "classroomPlaceholder": "کلاس‌درس سازگار را انتخاب کنید",
+    "onlineClassroom": "برای کلاس آنلاین نیاز نیست",
+    "classroomOption": "{name}، ظرفیت {capacity} نفر",
+    "days": "روزهای برگزاری",
+    "weekDays": {
+      "SATURDAY": "شنبه",
+      "SUNDAY": "یکشنبه",
+      "MONDAY": "دوشنبه",
+      "TUESDAY": "سه‌شنبه",
+      "WEDNESDAY": "چهارشنبه",
+      "THURSDAY": "پنجشنبه",
+      "FRIDAY": "جمعه"
+    },
+    "startTime": "ساعت شروع",
+    "endTime": "ساعت پایان",
+    "save": "ذخیره تغییرات",
+    "saving": "در حال ذخیره...",
+    "cancel": "انصراف",
+    "close": "بستن",
+    "success": "کلاس پیشنهادی با موفقیت ویرایش شد و برنامه نیازمند اعتبارسنجی مجدد است.",
+    "validation": {
+      "title": "عنوان کلاس باید حداقل ۲ نویسه باشد.",
+      "teacher": "انتخاب استاد واجد صلاحیت الزامی است.",
+      "capacity": "ظرفیت باید یک عدد مثبت باشد.",
+      "classroom": "برای کلاس حضوری انتخاب کلاس‌درس الزامی است.",
+      "classroomCapacity": "ظرفیت کلاس‌درس برای این کلاس کافی نیست.",
+      "days": "حداقل یک روز برگزاری انتخاب کنید.",
+      "time": "ساعت معتبر وارد کنید.",
+      "endTime": "ساعت پایان باید بعد از ساعت شروع باشد."
+    }
   }
 }
