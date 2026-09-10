@@ -22,6 +22,7 @@ import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exce
 import { TransactionsModule } from './transactions/transactions.module';
 import { ClassRequirementsModule } from './class-requirements/class-requirements.module';
 import { SchedulingModule } from './scheduling/scheduling.module';
+import { OperatingPhasesModule } from './operating-phases/operating-phases.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { SchedulingModule } from './scheduling/scheduling.module';
     TransactionsModule,
     ClassRequirementsModule,
     SchedulingModule,
+    OperatingPhasesModule,
   ],
   controllers: [AppController],
   providers: [

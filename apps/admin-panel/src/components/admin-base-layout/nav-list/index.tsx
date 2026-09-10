@@ -24,6 +24,7 @@ export type NavItemKey =
   | "staff"
   | "rolePermissions"
   | "finance"
+  | "operatingPhases"
 
 export interface NavItem {
   key: NavItemKey

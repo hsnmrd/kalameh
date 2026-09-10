@@ -19,6 +19,7 @@ import classroomsMessagesFa from "../messages/fa/classrooms.json"
 import teachersMessagesFa from "../messages/fa/teachers.json"
 import transactionsMessagesFa from "../messages/fa/transactions.json"
 import schedulingMessagesFa from "../messages/fa/scheduling.json"
+import operatingPhasesMessagesFa from "../messages/fa/operating-phases.json"
 
 const defaultMessages = {
   auth: authMessagesFa,
@@ -36,6 +37,7 @@ const defaultMessages = {
   rolePermissions: rolePermissionsMessagesFa,
   transactions: transactionsMessagesFa,
   scheduling: schedulingMessagesFa,
+  "operating-phases": operatingPhasesMessagesFa,
 }
 
 export const defaultTestUser: AuthUser = {

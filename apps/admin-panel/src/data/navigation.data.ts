@@ -12,6 +12,7 @@ import {
   DoorOpen,
   UserCheck,
   CalendarClock,
+  Clock,
 } from "lucide-react"
 import { PERMISSIONS, APP_MODULES } from "@workspace/types"
 import type { NavItem } from "@/components/admin-base-layout/nav-list"
@@ -65,6 +66,13 @@ export const INSTITUTE_NAV_ITEMS: NavItem[] = [
     href: "/scheduling",
     icon: CalendarClock,
     permission: PERMISSIONS.VIEW_CLASSES,
+    module: APP_MODULES.CLASSES_COURSES,
+  },
+  {
+    key: "operatingPhases",
+    href: "/operating-phases",
+    icon: Clock,
+    permission: PERMISSIONS.VIEW_OPERATING_PHASES,
     module: APP_MODULES.CLASSES_COURSES,
   },
   {

@@ -83,6 +83,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return prisma.schedulingProposal;
   }
 
+  get instituteOperatingPhase(): typeof prisma.instituteOperatingPhase {
+    return prisma.instituteOperatingPhase;
+  }
+
   get client(): typeof prisma {
     return prisma;
   }
@@ -92,6 +96,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
       | ((tx: Prisma.TransactionClient) => Promise<T>)
       | Prisma.PrismaPromise<any>[],
   ): Promise<T> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return (prisma.$transaction as any)(arg);
   }
 

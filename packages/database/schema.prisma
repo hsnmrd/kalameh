@@ -44,6 +44,7 @@ model Institute {
   schedulingProposals         SchedulingProposal[]
   schedulingProposalSessions  SchedulingProposalSession[]
   schedulingUnresolvedItems   SchedulingUnresolvedRequirement[]
+  operatingPhases             InstituteOperatingPhase[]
 }
 
 model Branch {
@@ -671,4 +672,28 @@ model AuditLog {
   @@index([module, entityId])
   @@index([userId])
   @@index([createdAt])
+}
+
+model InstituteOperatingPhase {
+  id                  String   @id @default(uuid())
+  instituteId         String
+  title               String
+  months              Int[] // 1 to 12 (Farvardin to Esfand)
+  startTime           String // HH:mm
+  endTime             String // HH:mm
+  slotDurationMinutes Int      @default(90)
+  daysOfWeek          String[] @default(["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY"])
+  hasBreak            Boolean  @default(false)
+  breakStartTime      String? // HH:mm
+  breakEndTime        String? // HH:mm
+  isActive            Boolean  @default(true)
+  order               Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+
+  @@index([instituteId])
+  @@index([instituteId, isActive])
 }

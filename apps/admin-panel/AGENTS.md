@@ -63,6 +63,58 @@
 - **Input & Form Modals (`ResponsiveDialog` / `FormDialog`):** Use `ResponsiveDialog` or `FormDialog` from `@workspace/ui/components/dialog` for user inputs, form sheets, details inspectors, and wizards.
 - **File Length:** Keep files under 250 lines. Decompose large tables, dialogs, and forms into dedicated subcomponents.
 
+## Admin List Page Layout & Filter Standard (Unified UX)
+
+All entity management and list pages (e.g. `courses/`, `classes/`, `terms/`, `branches/`, `operating-phases/`) must strictly adhere to this layout standard:
+
+### 1. Root Header Title Routing (No In-Page Title or Description)
+
+- **NEVER** render an in-page title (`<h1>`), subtitle, icon, or description inside list page containers.
+- The page title must **ALWAYS** be rendered dynamically in the root header (`AdminHeader`) by registering the route in `getPageTitle(pathname, t)` (`components/admin-base-layout/admin-header/index.tsx`) and mapped to `t("nav.<routeKey>")` in `messages/[locale]/common.json`.
+
+### 2. Mandatory Filter Bar & Search Input
+
+- Every list page must pass a dedicated, collocated filter component (`*Filter/index.tsx`) into the `filters` prop of `<AdminPageShell>`.
+- The filter component must use `<AdminFilterBar>` and include at least an `<AdminSearchInput>` for search filtering.
+- Additional dropdown filters (status, category, etc.) must use `<ResponsiveCombobox>` inside the `filters` prop of `<AdminFilterBar>`.
+
+### 3. Desktop Add Button Location (Inside Filter Bar Actions)
+
+- The primary "Add / Create" button on desktop (`sm:` and above) must **ALWAYS** be rendered inside the `actions` prop of `<AdminFilterBar>`, wrapped in `<PermissionGuard mode="hide">`.
+- Use the standard button style:
+  ```tsx
+  <Button
+    type="button"
+    onClick={onAddClick}
+    className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
+  >
+    <Plus className="size-5" />
+    <span>{t("addItem")}</span>
+  </Button>
+  ```
+- **NEVER** place this creation button in an in-page header or in the root header `actions` slot for list pages.
+
+### 4. Mobile Floating Action Button (FAB)
+
+- `<AdminFilterBar>` automatically hides the desktop `actions` slot on screens `< sm`.
+- On mobile, creation is exclusively triggered via `<FABSingle>` (or `<FABMenuTrigger>`) passed to the `fab` prop of `<AdminPageShell>`, wrapped in `<PermissionGuard mode="hide">`.
+
+### 5. FormDialog Internal Padding Standard
+
+- When using `<FormDialog>` / `<FormDialogContent>`, the form content between `<FormDialogHeader>` and `<FormDialogFooter>` must be wrapped in a scrollable, padded container:
+  ```tsx
+  <form
+    onSubmit={handleSubmit(onSubmit)}
+    className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
+  >
+    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+      {/* Form Fields */}
+    </div>
+    <FormDialogFooter>{/* Actions */}</FormDialogFooter>
+  </form>
+  ```
+- **NEVER** omit horizontal padding (`px-4 sm:px-6`) or let input controls touch the modal borders.
+
 ## Mobile UX Standard
 
 All admin-panel list pages and overlays must follow these mobile-specific rules for screens **< `lg` (1024px)**:

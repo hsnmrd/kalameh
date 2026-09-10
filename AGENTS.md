@@ -51,6 +51,8 @@
   - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying tabular data.
   - Define columns using TanStack Table `ColumnDef` to ensure consistent typography, responsive design, empty states, and accessibility across all dashboards.
   - Never render raw `<table>` or custom HTML table markups in application pages.
+- **Admin List Page & Filter Standard:**
+  - Follow the unified list page standard in `apps/admin-panel/AGENTS.md`: never render in-page titles or descriptions (page title is routed via root `AdminHeader`), always provide a filter bar with at least a search input, place the desktop Add button inside `AdminFilterBar`'s `actions` slot, use `FABSingle` on mobile, and ensure form dialogs wrap inputs in a scrollable container with proper padding (`px-4 py-4 sm:px-6 sm:py-5`).
 - **Price & Currency Standard:**
   - Always use `<Price amount={value} />` from `@workspace/ui/components/price` (or `formatCurrency` from `@workspace/ui/lib/utils`) to format prices.
   - **Always format price numbers with `toLocaleString("en-US")` (English digits e.g. `1,500,000 تومان`) even when the active locale is `fa`.**
