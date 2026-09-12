@@ -21,6 +21,7 @@ export type CalendarProps = DistributiveOmit<DayPickerProps, "locale"> & {
   locale?: CalendarLocale
   calendarType?: "jalali" | "gregorian"
   showOffDays?: boolean
+  observeOfficialHolidays?: boolean
   isOffDay?: (date: Date) => boolean
   offDays?: (Date | string)[]
 }
@@ -33,6 +34,7 @@ export function Calendar({
   calendarType,
   dir,
   showOffDays = false,
+  observeOfficialHolidays = true,
   isOffDay: customIsOffDay,
   offDays,
   modifiers,
@@ -44,36 +46,43 @@ export function Calendar({
   const dateLib = isJalali ? (dateFnsJalali as any) : (dateFns as any)
   const activeLocale = isJalali ? faIR : enUS
 
-  const defaultIsOffDay = React.useCallback(
+  const isCustomOffDay = React.useCallback(
     (date: Date): boolean => {
-      if (customIsOffDay) {
-        return customIsOffDay(date)
-      }
-      if (offDays && offDays.length > 0) {
-        const y = date.getFullYear()
-        const m = (date.getMonth() + 1).toString().padStart(2, "0")
-        const d = date.getDate().toString().padStart(2, "0")
-        const dateStr = `${y}-${m}-${d}`
-        return offDays.some((item) => {
-          if (item instanceof Date) {
-            const iy = item.getFullYear()
-            const im = (item.getMonth() + 1).toString().padStart(2, "0")
-            const id = item.getDate().toString().padStart(2, "0")
-            return `${iy}-${im}-${id}` === dateStr
-          }
-          return item === dateStr || item.startsWith(dateStr)
-        })
-      }
-      if (isJalali) {
-        // Friday is weekly off-day in Iranian calendar
-        if (date.getDay() === 5) return true
-        // Official holidays in Iran
-        return isJalaliHoliday(date).isHoliday
-      }
-      // In Gregorian calendar: Sunday (0) is weekly off-day
-      return date.getDay() === 0
+      if (!offDays || offDays.length === 0) return false
+      const y = date.getFullYear()
+      const m = (date.getMonth() + 1).toString().padStart(2, "0")
+      const d = date.getDate().toString().padStart(2, "0")
+      const dateStr = `${y}-${m}-${d}`
+      return offDays.some((item) => {
+        if (item instanceof Date) {
+          const iy = item.getFullYear()
+          const im = (item.getMonth() + 1).toString().padStart(2, "0")
+          const id = item.getDate().toString().padStart(2, "0")
+          return `${iy}-${im}-${id}` === dateStr
+        }
+        return item === dateStr || item.startsWith(dateStr)
+      })
     },
-    [customIsOffDay, offDays, isJalali]
+    [offDays]
+  )
+
+  const isOfficialHoliday = React.useCallback(
+    (date: Date): boolean => {
+      if (!observeOfficialHolidays) return false
+      if (!isJalali) return false
+      return isJalaliHoliday(date).isHoliday
+    },
+    [observeOfficialHolidays, isJalali]
+  )
+
+  const isWeeklyOffDay = React.useCallback(
+    (date: Date): boolean => {
+      if (isJalali) {
+        return date.getDay() === 5 // Friday
+      }
+      return date.getDay() === 0 // Sunday
+    },
+    [isJalali]
   )
 
   const derivedDefaultMonth = React.useMemo(() => {
@@ -99,15 +108,37 @@ export function Calendar({
   const combinedModifiers = React.useMemo(() => {
     const result: Record<string, any> = { ...modifiers }
     if (showOffDays) {
-      result.offDay = defaultIsOffDay
+      // 1. Holidays (official holidays and custom off-days): red text + small dot below day number
+      result.holiday = (date: Date) => {
+        return isOfficialHoliday(date) || isCustomOffDay(date)
+      }
+      // 2. Off days (weekly off-days like Friday that are NOT holidays): red text, no dot
+      result.offDay = (date: Date) => {
+        if (customIsOffDay) {
+          return customIsOffDay(date)
+        }
+        if (isOfficialHoliday(date) || isCustomOffDay(date)) {
+          return false
+        }
+        return isWeeklyOffDay(date)
+      }
     }
     return result
-  }, [modifiers, showOffDays, defaultIsOffDay])
+  }, [
+    modifiers,
+    showOffDays,
+    isOfficialHoliday,
+    isCustomOffDay,
+    customIsOffDay,
+    isWeeklyOffDay,
+  ])
 
   const combinedModifiersClassNames = React.useMemo(() => {
     return {
       offDay:
         "[&>button]:!text-destructive [&>button]:font-semibold hover:[&>button]:!text-destructive hover:[&>button]:bg-destructive/10 data-[selected]:[&>button]:!bg-primary data-[selected]:[&>button]:!text-primary-foreground",
+      holiday:
+        "[&>button]:!text-destructive [&>button]:font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-destructive hover:[&>button]:!bg-destructive/10 data-[selected]:[&>button]:!bg-primary data-[selected]:[&>button]:!text-primary-foreground data-[selected]:[&>button]:after:!bg-primary-foreground",
       ...modifiersClassNames,
     }
   }, [modifiersClassNames])
@@ -155,6 +186,12 @@ export function Calendar({
         ),
         selected:
           "!bg-primary !text-primary-foreground rounded-xl font-semibold shadow-xs hover:!bg-primary hover:!text-primary-foreground",
+        range_start:
+          "!bg-primary !text-primary-foreground rounded-s-xl rounded-e-none font-semibold shadow-xs hover:!bg-primary hover:!text-primary-foreground",
+        range_end:
+          "!bg-primary !text-primary-foreground rounded-e-xl rounded-s-none font-semibold shadow-xs hover:!bg-primary hover:!text-primary-foreground",
+        range_middle:
+          "!bg-primary/15 !text-primary rounded-none font-medium hover:!bg-primary/25 [&>button]:!bg-transparent [&>button]:!text-primary [&>button]:!rounded-none",
         today: "border border-primary/50 text-foreground font-bold rounded-xl",
         outside: "text-muted-foreground/35 opacity-40 hover:opacity-100",
         disabled:

@@ -87,6 +87,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return prisma.instituteOperatingPhase;
   }
 
+  get instituteCustomOffDay(): typeof prisma.instituteCustomOffDay {
+    return prisma.instituteCustomOffDay;
+  }
+
   get client(): typeof prisma {
     return prisma;
   }

@@ -43,6 +43,8 @@ export function GeneratePhaseTermsModal({
     previewQuery,
     batchCreateMutation,
     isLoadingExisting,
+    observeOfficialHolidays,
+    customOffDays,
     handleProceedToPreview,
     handleTitleChange,
     handleStartDateChange,
@@ -93,6 +95,8 @@ export function GeneratePhaseTermsModal({
                 onViewModeChange={setViewMode}
                 onTitleChange={handleTitleChange}
                 onStartDateChange={handleStartDateChange}
+                observeOfficialHolidays={observeOfficialHolidays}
+                customOffDays={customOffDays}
               />
             )}
           </div>

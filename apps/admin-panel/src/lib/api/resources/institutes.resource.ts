@@ -2,6 +2,8 @@ import type {
   InstituteWithStats,
   CreateInstituteInput,
   UpdateInstituteInput,
+  InstituteCustomOffDay,
+  CreateInstituteCustomOffDayInput,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -26,4 +28,17 @@ export const institutesResource = api.resource("institutes", {
   delete: api.delete<{ success: boolean; message?: string }, string>(
     (id) => `/institutes/${id}`
   ),
+  customOffDays: api.get<InstituteCustomOffDay[], string>(
+    (id) => `/institutes/${id}/custom-off-days`
+  ),
+  createCustomOffDay: api.post<
+    InstituteCustomOffDay | InstituteCustomOffDay[],
+    { id: string; body: CreateInstituteCustomOffDayInput }
+  >(({ id }) => `/institutes/${id}/custom-off-days`, {
+    body: ({ body }) => body,
+  }),
+  deleteCustomOffDay: api.delete<
+    { id: string },
+    { id: string; offDayId: string }
+  >(({ id, offDayId }) => `/institutes/${id}/custom-off-days/${offDayId}`),
 })

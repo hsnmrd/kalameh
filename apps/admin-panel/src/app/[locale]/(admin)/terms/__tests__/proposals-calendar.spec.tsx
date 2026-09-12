@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "../../../../../test/test-utils"
-import { toast } from "@workspace/ui/components/sonner"
 import type { GeneratedTermProposal } from "@workspace/types"
 import { ProposalsCalendar } from "../components/generate-phase-terms-modal/proposals-calendar"
 
@@ -316,5 +315,40 @@ describe("ProposalsCalendar Component", () => {
     expect(modifiers.term_0_end(new Date("2026-10-10T00:00:00.000Z"))).toBe(
       false
     )
+  })
+
+  it("applies term_customOffDay modifier when customOffDays are passed", async () => {
+    const { buildTermCalendarModifiers } =
+      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+
+    const { modifiers, modifiersClassNames } = buildTermCalendarModifiers(
+      mockProposals,
+      true,
+      {
+        customOffDays: ["2026-10-05"],
+      }
+    )
+
+    expect(modifiers.term_customOffDay).toBeDefined()
+    expect(modifiersClassNames.term_customOffDay).toContain(
+      "after:rounded-full"
+    )
+    expect(modifiers.term_customOffDay(new Date("2026-10-05T12:00:00"))).toBe(
+      true
+    )
+    expect(modifiers.term_customOffDay(new Date("2026-10-06T12:00:00"))).toBe(
+      false
+    )
+  })
+
+  it("omits term_officialHoliday modifier when observeOfficialHolidays is false", async () => {
+    const { buildTermCalendarModifiers } =
+      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+
+    const { modifiers } = buildTermCalendarModifiers(mockProposals, true, {
+      observeOfficialHolidays: false,
+    })
+
+    expect(modifiers.term_officialHoliday).toBeUndefined()
   })
 })

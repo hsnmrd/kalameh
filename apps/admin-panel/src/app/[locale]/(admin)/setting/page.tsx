@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { SettingThemeCard } from "./components/setting-theme-card"
 import { SettingLanguageCard } from "./components/setting-language-card"
+import { SettingOffDaysCard } from "./components/setting-off-days-card"
 
 export default function SettingPage() {
   const t = useTranslations("setting")
@@ -21,6 +22,7 @@ export default function SettingPage() {
       <div className="flex flex-col gap-6">
         <SettingThemeCard />
         <SettingLanguageCard />
+        <SettingOffDaysCard />
       </div>
     </AdminPageShell>
   )

@@ -37,6 +37,15 @@ describe('InstitutesService', () => {
       branch: {
         create: jest.fn(),
       },
+      instituteCustomOffDay: {
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        findFirstOrThrow: jest.fn(),
+        create: jest.fn(),
+        upsert: jest.fn(),
+        delete: jest.fn(),
+      },
+      $transaction: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -319,6 +328,122 @@ describe('InstitutesService', () => {
       await expect(
         service.delete('inst-tehran', mockInstituteAdmin, 'en'),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('custom off-days', () => {
+    it('should return all custom off-days for an institute', async () => {
+      const mockDays = [
+        {
+          id: 'off-1',
+          instituteId: 'inst-tehran',
+          date: '2024-10-01',
+          title: 'روز پژوهش',
+        },
+      ];
+      prismaService.instituteCustomOffDay.findMany.mockResolvedValue(mockDays);
+
+      const result = await service.findCustomOffDays(
+        'inst-tehran',
+        mockInstituteAdmin,
+      );
+      expect(result).toEqual(mockDays);
+      expect(prismaService.instituteCustomOffDay.findMany).toHaveBeenCalledWith(
+        {
+          where: { instituteId: 'inst-tehran' },
+          orderBy: { date: 'asc' },
+        },
+      );
+    });
+
+    it('should allow creating a custom off-day', async () => {
+      prismaService.instituteCustomOffDay.findUnique.mockResolvedValue(null);
+      prismaService.instituteCustomOffDay.create.mockResolvedValue({
+        id: 'off-1',
+        instituteId: 'inst-tehran',
+        date: '2024-10-01',
+        title: 'روز پژوهش',
+      });
+
+      const result = await service.createCustomOffDay(
+        'inst-tehran',
+        { date: '2024-10-01', title: 'روز پژوهش' },
+        mockInstituteAdmin,
+      );
+
+      expect((result as any).id).toBe('off-1');
+      expect(prismaService.instituteCustomOffDay.create).toHaveBeenCalledWith({
+        data: {
+          instituteId: 'inst-tehran',
+          date: '2024-10-01',
+          title: 'روز پژوهش',
+        },
+      });
+    });
+
+    it('should throw ConflictException on duplicate date for custom off-day', async () => {
+      prismaService.instituteCustomOffDay.findUnique.mockResolvedValue({
+        id: 'off-1',
+        date: '2024-10-01',
+      });
+
+      await expect(
+        service.createCustomOffDay(
+          'inst-tehran',
+          { date: '2024-10-01', title: 'تکراری' },
+          mockInstituteAdmin,
+          'fa',
+        ),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should create multiple custom off-days for a date range', async () => {
+      const mockRecords = [
+        {
+          id: 'off-1',
+          instituteId: 'inst-tehran',
+          date: '2024-10-01',
+          title: 'تعطیلات',
+        },
+        {
+          id: 'off-2',
+          instituteId: 'inst-tehran',
+          date: '2024-10-02',
+          title: 'تعطیلات',
+        },
+      ];
+      prismaService.$transaction.mockResolvedValue(mockRecords);
+
+      const result = await service.createCustomOffDay(
+        'inst-tehran',
+        { startDate: '2024-10-01', endDate: '2024-10-02', title: 'تعطیلات' },
+        mockInstituteAdmin,
+      );
+
+      expect(Array.isArray(result)).toBe(true);
+      expect((result as any[]).length).toBe(2);
+      expect(prismaService.$transaction).toHaveBeenCalled();
+    });
+
+    it('should allow deleting a custom off-day', async () => {
+      prismaService.instituteCustomOffDay.findFirstOrThrow.mockResolvedValue({
+        id: 'off-1',
+        instituteId: 'inst-tehran',
+      });
+      prismaService.instituteCustomOffDay.delete.mockResolvedValue({
+        id: 'off-1',
+      });
+
+      const result = await service.deleteCustomOffDay(
+        'inst-tehran',
+        'off-1',
+        mockInstituteAdmin,
+      );
+
+      expect(result.id).toBe('off-1');
+      expect(prismaService.instituteCustomOffDay.delete).toHaveBeenCalledWith({
+        where: { id: 'off-1' },
+      });
     });
   });
 });

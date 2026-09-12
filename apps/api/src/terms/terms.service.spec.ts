@@ -36,6 +36,12 @@ describe('TermsService', () => {
       instituteOperatingPhase: {
         findFirstOrThrow: jest.fn(),
       },
+      institute: {
+        findFirstOrThrow: jest.fn().mockResolvedValue({
+          observeOfficialHolidays: true,
+          customOffDays: [],
+        }),
+      },
       $transaction: jest.fn((cb: any) =>
         typeof cb === 'function' ? cb(prismaService) : Promise.all(cb),
       ),

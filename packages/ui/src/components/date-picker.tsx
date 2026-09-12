@@ -27,6 +27,7 @@ export interface DatePickerProps {
   maxDate?: Date
   drawerTitle?: string
   showOffDays?: boolean
+  observeOfficialHolidays?: boolean
   isOffDay?: (date: Date) => boolean
   offDays?: (Date | string)[]
   variant?: "default" | "inline"
@@ -47,6 +48,7 @@ export function DatePicker({
   maxDate,
   drawerTitle,
   showOffDays = false,
+  observeOfficialHolidays = true,
   isOffDay,
   offDays,
   variant = "default",
@@ -150,6 +152,7 @@ export function DatePicker({
           locale={locale}
           calendarType={calendarType}
           showOffDays={showOffDays}
+          observeOfficialHolidays={observeOfficialHolidays}
           isOffDay={isOffDay}
           offDays={offDays}
           disabled={
@@ -227,6 +230,7 @@ export function DatePicker({
           locale={locale}
           calendarType={calendarType}
           showOffDays={showOffDays}
+          observeOfficialHolidays={observeOfficialHolidays}
           isOffDay={isOffDay}
           offDays={offDays}
           disabled={

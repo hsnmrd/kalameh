@@ -24,6 +24,8 @@ model Institute {
   bankAccountName String?
   bankShaba       String?
 
+  observeOfficialHolidays Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -45,6 +47,7 @@ model Institute {
   schedulingProposalSessions  SchedulingProposalSession[]
   schedulingUnresolvedItems   SchedulingUnresolvedRequirement[]
   operatingPhases             InstituteOperatingPhase[]
+  customOffDays               InstituteCustomOffDay[]
 }
 
 model Branch {
@@ -700,4 +703,19 @@ model InstituteOperatingPhase {
 
   @@index([instituteId])
   @@index([instituteId, isActive])
+}
+
+model InstituteCustomOffDay {
+  id          String   @id @default(uuid())
+  instituteId String
+  date        String // "YYYY-MM-DD"
+  title       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+
+  @@unique([instituteId, date])
+  @@index([instituteId])
+  @@index([instituteId, date])
 }

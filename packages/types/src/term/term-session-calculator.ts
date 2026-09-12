@@ -16,6 +16,8 @@ export interface CalculateTermEndDateInput {
   targetSessions?: number
   daysOfWeek?: WeekDay[]
   skipHolidays?: boolean
+  observeOfficialHolidays?: boolean
+  customOffDays?: (string | { date: string; title?: string })[]
 }
 
 export interface HolidayEncountered {
@@ -24,6 +26,7 @@ export interface HolidayEncountered {
   titleFa: string
   titleEn: string
   dayOfWeek: WeekDay
+  isCustomOffDay?: boolean
 }
 
 export interface CalculatedTermSchedule {
@@ -77,10 +80,24 @@ export function calculateTermEndDate(
   input: CalculateTermEndDateInput
 ): CalculatedTermSchedule {
   const targetCount = input.targetDays ?? input.targetSessions ?? 45
-  const { daysOfWeek, skipHolidays = true } = input
+  const {
+    daysOfWeek,
+    skipHolidays = true,
+    observeOfficialHolidays = true,
+    customOffDays = [],
+  } = input
 
   if (targetCount <= 0) {
     throw new Error("Target count must be greater than 0")
+  }
+
+  const customOffDayMap = new Map<string, string>()
+  for (const item of customOffDays) {
+    if (typeof item === "string") {
+      customOffDayMap.set(item, "تعطیلی موسسه")
+    } else if (item && typeof item === "object") {
+      customOffDayMap.set(item.date, item.title || "تعطیلی موسسه")
+    }
   }
 
   const startDateObj = parseInputDate(input.startDate)
@@ -111,21 +128,31 @@ export function calculateTermEndDate(
     const dayOfWeek = getWeekDay(current)
 
     if (!useSpecificDaysOfWeek || daysOfWeek.includes(dayOfWeek)) {
+      const isoDate = toIsoDate(current)
+      const customOffTitle = customOffDayMap.get(isoDate)
+      const isCustomOff = customOffTitle !== undefined
       const holidayCheck = isJalaliHoliday(current)
+      const isOfficialHoliday =
+        observeOfficialHolidays && holidayCheck.isHoliday
 
-      if (skipHolidays && holidayCheck.isHoliday && holidayCheck.holiday) {
+      if (skipHolidays && (isCustomOff || isOfficialHoliday)) {
         const j = gregorianToJalali(current)
         holidaysEncountered.push({
-          date: toIsoDate(current),
+          date: isoDate,
           dateJalali: formatJalali(j.year, j.month, j.day),
-          titleFa: holidayCheck.holiday.titleFa,
-          titleEn: holidayCheck.holiday.titleEn,
+          titleFa: isCustomOff
+            ? customOffTitle
+            : (holidayCheck.holiday?.titleFa ?? "تعطیل رسمی"),
+          titleEn: isCustomOff
+            ? "Institute Off-Day"
+            : (holidayCheck.holiday?.titleEn ?? "Official Holiday"),
           dayOfWeek,
+          isCustomOffDay: isCustomOff,
         })
       } else {
         completedDays++
         const j = gregorianToJalali(current)
-        sessionDates.push(toIsoDate(current))
+        sessionDates.push(isoDate)
         sessionDatesJalali.push(formatJalali(j.year, j.month, j.day))
         lastDate = new Date(current)
       }
@@ -176,6 +203,8 @@ export interface GeneratePhaseTermsInput {
   sessionsPerTerm?: number // backward compatibility alias
   daysOfWeek?: WeekDay[] // e.g. ["SATURDAY", "MONDAY", "WEDNESDAY"]
   gapDaysBetweenTerms?: number // default 2
+  observeOfficialHolidays?: boolean
+  customOffDays?: (string | { date: string; title?: string })[]
 }
 
 export interface GeneratedTermProposal {
@@ -295,6 +324,8 @@ export function generatePhaseTerms(
         ? phase.daysOfWeek
         : undefined),
     gapDaysBetweenTerms = 2,
+    observeOfficialHolidays = true,
+    customOffDays = [],
   } = input
 
   const targetDaysCount = daysPerTerm ?? sessionsPerTerm ?? 45
@@ -335,6 +366,8 @@ export function generatePhaseTerms(
       targetDays: targetDaysCount,
       daysOfWeek,
       skipHolidays: true,
+      observeOfficialHolidays,
+      customOffDays,
     })
 
     const endGDate = new Date(schedule.endDate + "T12:00:00")
@@ -396,6 +429,8 @@ export interface RecalculatePhaseTermsInput {
   daysOfWeek?: WeekDay[]
   gapDaysBetweenTerms?: number
   userCustomTitles?: Record<number, string>
+  observeOfficialHolidays?: boolean
+  customOffDays?: (string | { date: string; title?: string })[]
 }
 
 /**
@@ -414,6 +449,8 @@ export function recalculatePhaseTerms(
     daysOfWeek,
     gapDaysBetweenTerms = 2,
     userCustomTitles = {},
+    observeOfficialHolidays = true,
+    customOffDays = [],
   } = input
 
   const targetDaysCount =
@@ -461,6 +498,8 @@ export function recalculatePhaseTerms(
       targetDays: targetDaysCount,
       daysOfWeek,
       skipHolidays: true,
+      observeOfficialHolidays,
+      customOffDays,
     })
 
     const coveredMonthSet = new Set<number>()

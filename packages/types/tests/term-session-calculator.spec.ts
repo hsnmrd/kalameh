@@ -65,6 +65,57 @@ describe("Term Session Calculator & Batch Phase Terms Generator", () => {
       // 45 days from 1st Mehr ends around mid-Aban
       expect(result.endDateJalali.startsWith("1403/08/")).toBe(true)
     })
+
+    it("respects observeOfficialHolidays = false and does not skip official Jalali holidays", () => {
+      // 1403/06/04 is Arbaeen (Sunday)
+      const withObservance = calculateTermEndDate({
+        startDate: "1403/06/01",
+        targetDays: 10,
+        daysOfWeek: ["SUNDAY"],
+        skipHolidays: true,
+        observeOfficialHolidays: true,
+      })
+
+      const withoutObservance = calculateTermEndDate({
+        startDate: "1403/06/01",
+        targetDays: 10,
+        daysOfWeek: ["SUNDAY"],
+        skipHolidays: true,
+        observeOfficialHolidays: false,
+      })
+
+      // Without holiday observance, Arbaeen is included as a regular class day, so term finishes sooner
+      expect(withoutObservance.endDate < withObservance.endDate).toBe(true)
+      expect(withoutObservance.holidaysEncountered).toHaveLength(0)
+      expect(withObservance.holidaysEncountered.length).toBeGreaterThan(0)
+    })
+
+    it("skips custom institute off-days when provided", () => {
+      // 1403/07/01 is 2024-09-22
+      // Let's add a custom off-day on 2024-09-23 (1403/07/02)
+      const normalResult = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetDays: 5,
+        daysOfWeek: ["SUNDAY", "MONDAY", "TUESDAY"],
+        skipHolidays: true,
+      })
+
+      const customOffResult = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetDays: 5,
+        daysOfWeek: ["SUNDAY", "MONDAY", "TUESDAY"],
+        skipHolidays: true,
+        customOffDays: [{ date: "2024-09-23", title: "اردوی درون‌استانی" }],
+      })
+
+      expect(customOffResult.endDate > normalResult.endDate).toBe(true)
+      expect(
+        customOffResult.holidaysEncountered.some(
+          (h) => h.isCustomOffDay && h.titleFa === "اردوی درون‌استانی"
+        )
+      ).toBe(true)
+      expect(customOffResult.sessionDates).not.toContain("2024-09-23")
+    })
   })
 
   describe("generateTermTitleFromMonths", () => {

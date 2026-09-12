@@ -371,6 +371,16 @@ export class TermsService {
       );
     }
 
+    const institute = await this.prisma.institute.findFirstOrThrow({
+      where: { id: phase.instituteId },
+      select: {
+        observeOfficialHolidays: true,
+        customOffDays: {
+          select: { date: true, title: true },
+        },
+      },
+    });
+
     return generatePhaseTerms({
       phase: {
         id: phase.id,
@@ -386,6 +396,8 @@ export class TermsService {
           ? daysOfWeek
           : (phase.daysOfWeek as WeekDay[]),
       gapDaysBetweenTerms: gapDays ?? 2,
+      observeOfficialHolidays: institute.observeOfficialHolidays,
+      customOffDays: institute.customOffDays,
     });
   }
 

@@ -6,11 +6,15 @@ import { useTranslations } from "next-intl"
 export interface CalendarLegendProps {
   accentColor?: string
   locale?: "fa" | "en"
+  observeOfficialHolidays?: boolean
+  hasCustomOffDays?: boolean
 }
 
 export function CalendarLegend({
   accentColor = "#2563eb",
   locale = "fa",
+  observeOfficialHolidays = true,
+  hasCustomOffDays = false,
 }: CalendarLegendProps) {
   const t = useTranslations("terms")
 
@@ -39,12 +43,24 @@ export function CalendarLegend({
       </div>
 
       {/* Official Iranian Holidays */}
-      <div className="flex items-center gap-2">
-        <span className="relative flex size-6 items-center justify-center rounded-md bg-destructive/15 text-[11px] font-bold text-destructive after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-destructive">
-          {locale === "fa" ? "۱۷" : "17"}
-        </span>
-        <span>{t("batchModal.legendOfficialHolidays")}</span>
-      </div>
+      {observeOfficialHolidays && (
+        <div className="flex items-center gap-2">
+          <span className="relative flex size-6 items-center justify-center rounded-md bg-destructive/15 text-[11px] font-bold text-destructive after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-destructive">
+            {locale === "fa" ? "۱۷" : "17"}
+          </span>
+          <span>{t("batchModal.legendOfficialHolidays")}</span>
+        </div>
+      )}
+
+      {/* Custom Institute Off-Days */}
+      {hasCustomOffDays && (
+        <div className="flex items-center gap-2">
+          <span className="relative flex size-6 items-center justify-center rounded-md bg-destructive/15 text-[11px] font-bold text-destructive after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-destructive">
+            {locale === "fa" ? "۱۸" : "18"}
+          </span>
+          <span>{t("batchModal.legendCustomOffDays")}</span>
+        </div>
+      )}
     </div>
   )
 }

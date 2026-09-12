@@ -139,6 +139,7 @@
     "legendClassDays": "Scheduled Days",
     "legendFridays": "Fridays (Weekend)",
     "legendOfficialHolidays": "Official Holidays (Skipped)",
+    "legendCustomOffDays": "Institute Off-Days (Skipped)",
     "holidayStartDateWarning": "Term start date cannot fall on an official holiday or weekend."
   }
 }

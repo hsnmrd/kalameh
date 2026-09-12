@@ -15,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { InstitutesService } from './institutes.service';
 import { CreateInstituteDto } from './dto/create-institute.dto';
 import { UpdateInstituteDto } from './dto/update-institute.dto';
+import { CreateInstituteCustomOffDayDto } from './dto/create-institute-custom-off-day.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
@@ -87,5 +88,47 @@ export class InstitutesController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.institutesService.delete(id, currentUser, locale);
+  }
+
+  @Get(':id/custom-off-days')
+  @RequirePermissions(PERMISSIONS.VIEW_INSTITUTES)
+  async findCustomOffDays(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.institutesService.findCustomOffDays(id, currentUser, locale);
+  }
+
+  @Post(':id/custom-off-days')
+  @RequirePermissions(PERMISSIONS.MANAGE_INSTITUTE_SETTINGS)
+  async createCustomOffDay(
+    @Param('id') id: string,
+    @Body() dto: CreateInstituteCustomOffDayDto,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.institutesService.createCustomOffDay(
+      id,
+      dto,
+      currentUser,
+      locale,
+    );
+  }
+
+  @Delete(':id/custom-off-days/:offDayId')
+  @RequirePermissions(PERMISSIONS.MANAGE_INSTITUTE_SETTINGS)
+  async deleteCustomOffDay(
+    @Param('id') id: string,
+    @Param('offDayId') offDayId: string,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.institutesService.deleteCustomOffDay(
+      id,
+      offDayId,
+      currentUser,
+      locale,
+    );
   }
 }

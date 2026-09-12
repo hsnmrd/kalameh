@@ -11,12 +11,16 @@ export interface ProposalsCalendarProps {
   proposals: GeneratedTermProposal[]
   onStartDateChange: (index: number, newStartDate: string) => void
   locale?: "fa" | "en"
+  observeOfficialHolidays?: boolean
+  customOffDays?: string[]
 }
 
 export function ProposalsCalendar({
   proposals,
   onStartDateChange,
   locale,
+  observeOfficialHolidays,
+  customOffDays,
 }: ProposalsCalendarProps) {
   const t = useTranslations("terms")
   const defaultLocale = useLocale() as "fa" | "en"
@@ -50,6 +54,8 @@ export function ProposalsCalendar({
         selectedTermIndex={selectedTermIndex}
         onStartDateChange={onStartDateChange}
         locale={activeLocale}
+        observeOfficialHolidays={observeOfficialHolidays}
+        customOffDays={customOffDays}
       />
     </div>
   )

@@ -11,7 +11,11 @@ import {
   type GeneratedTermProposal,
   type WeekDay,
 } from "@workspace/types"
-import { operatingPhasesResource, termsResource } from "@/lib/api"
+import {
+  operatingPhasesResource,
+  termsResource,
+  institutesResource,
+} from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 
 export interface UseGeneratePhaseTermsProps {
@@ -51,6 +55,24 @@ export function useGeneratePhaseTerms({
     }),
     enabled: Boolean(activeInstituteId && open),
   })
+
+  // Fetch institute details for holiday observance preference
+  const { data: institute } = useQuery({
+    ...institutesResource.detail.toQuery(activeInstituteId!),
+    enabled: Boolean(activeInstituteId && open),
+  })
+
+  // Fetch custom institute off-days
+  const { data: rawCustomOffDays = [] } = useQuery({
+    ...institutesResource.customOffDays.toQuery(activeInstituteId!),
+    enabled: Boolean(activeInstituteId && open),
+  })
+
+  const customOffDays = React.useMemo(() => {
+    return rawCustomOffDays.map((d) => d.date)
+  }, [rawCustomOffDays])
+
+  const observeOfficialHolidays = institute?.observeOfficialHolidays ?? true
 
   const phaseOptions: ComboboxOption[] = React.useMemo(() => {
     return phases.map((phase) => ({
@@ -150,6 +172,8 @@ export function useGeneratePhaseTerms({
         daysOfWeek,
         gapDaysBetweenTerms: gapDays,
         userCustomTitles: customTitles,
+        observeOfficialHolidays,
+        customOffDays,
       })
       setProposals(updated)
     } catch (err: unknown) {
@@ -227,6 +251,8 @@ export function useGeneratePhaseTerms({
     previewQuery,
     batchCreateMutation,
     isLoadingExisting,
+    observeOfficialHolidays,
+    customOffDays,
     handleProceedToPreview,
     handleTitleChange,
     handleStartDateChange,

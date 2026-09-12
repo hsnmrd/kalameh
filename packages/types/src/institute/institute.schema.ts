@@ -43,6 +43,7 @@ export const InstituteSchema = z.object({
   bankCardNumber: z.string().nullable().optional(),
   bankAccountName: z.string().nullable().optional(),
   bankShaba: z.string().nullable().optional(),
+  observeOfficialHolidays: z.boolean().default(true),
   deletedAt: z.date().or(z.string()).nullable().optional(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
@@ -202,6 +203,13 @@ export const createUpdateInstituteSchema = (msg?: {
     bankCardNumber: z.string().trim().optional().nullable(),
     bankAccountName: z.string().trim().optional().nullable(),
     bankShaba: z.string().trim().optional().nullable(),
+    observeOfficialHolidays: z
+      .preprocess((val) => {
+        if (val === "true" || val === true) return true
+        if (val === "false" || val === false) return false
+        return val
+      }, z.boolean())
+      .optional(),
   })
 
 export const UpdateInstituteSchema = createUpdateInstituteSchema()

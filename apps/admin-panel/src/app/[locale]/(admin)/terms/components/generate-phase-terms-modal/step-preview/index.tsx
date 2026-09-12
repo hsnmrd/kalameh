@@ -19,6 +19,8 @@ export interface StepPreviewProps {
   onTitleChange: (index: number, newTitle: string) => void
   onStartDateChange: (index: number, newStartDate: string) => void
   locale?: "fa" | "en"
+  observeOfficialHolidays?: boolean
+  customOffDays?: string[]
 }
 
 export function StepPreview({
@@ -28,6 +30,8 @@ export function StepPreview({
   onTitleChange,
   onStartDateChange,
   locale,
+  observeOfficialHolidays,
+  customOffDays,
 }: StepPreviewProps) {
   const t = useTranslations("terms")
 
@@ -67,6 +71,8 @@ export function StepPreview({
             proposals={proposals}
             onStartDateChange={onStartDateChange}
             locale={locale}
+            observeOfficialHolidays={observeOfficialHolidays}
+            customOffDays={customOffDays}
           />
         ) : (
           <div className="flex flex-col gap-3">

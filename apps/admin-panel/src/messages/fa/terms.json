@@ -139,6 +139,7 @@
     "legendClassDays": "روزهای برگزاری",
     "legendFridays": "جمعه‌ها (پایان هفته)",
     "legendOfficialHolidays": "تعطیلات رسمی (کسرشده)",
+    "legendCustomOffDays": "تعطیلات موسسه (کسرشده)",
     "holidayStartDateWarning": "تاریخ شروع ترم نمی‌تواند در روزهای تعطیل یا پایان هفته باشد."
   }
 }

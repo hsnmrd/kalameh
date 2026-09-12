@@ -18,6 +18,8 @@ export interface CalendarGridProps {
   selectedTermIndex: number
   onStartDateChange: (index: number, newStartDate: string) => void
   locale?: "fa" | "en"
+  observeOfficialHolidays?: boolean
+  customOffDays?: string[]
 }
 
 export function CalendarGrid({
@@ -25,6 +27,8 @@ export function CalendarGrid({
   selectedTermIndex,
   onStartDateChange,
   locale = "fa",
+  observeOfficialHolidays = true,
+  customOffDays = [],
 }: CalendarGridProps) {
   const t = useTranslations("terms")
 
@@ -49,16 +53,24 @@ export function CalendarGrid({
   }
 
   const isRtl = locale === "fa"
+  const customOffDaysSet = React.useMemo(
+    () => new Set(customOffDays),
+    [customOffDays]
+  )
 
   const { modifiers, modifiersClassNames } = React.useMemo(() => {
-    return buildTermCalendarModifiers(proposals, isRtl)
-  }, [proposals, isRtl])
+    return buildTermCalendarModifiers(proposals, isRtl, {
+      observeOfficialHolidays,
+      customOffDays,
+    })
+  }, [proposals, isRtl, observeOfficialHolidays, customOffDays])
 
   // Cache the initial start date of the first term so Term 1 cannot be picked earlier than initial start
-  const initialStartRef = React.useRef<string | null>(null)
-  if (!initialStartRef.current && proposals[0]?.startDate) {
-    initialStartRef.current = normalizeDateToYmd(proposals[0].startDate)
-  }
+  const [initialStart] = React.useState<string | null>(() => {
+    return proposals[0]?.startDate
+      ? normalizeDateToYmd(proposals[0].startDate)
+      : null
+  })
 
   const isDateDisabled = React.useCallback(
     (date: Date): boolean => {
@@ -72,29 +84,45 @@ export function CalendarGrid({
           const prevEndYmd = normalizeDateToYmd(prevTerm.endDate)
           if (ymd <= prevEndYmd) return true
         }
-      } else if (selectedTermIndex === 0 && initialStartRef.current) {
+      } else if (selectedTermIndex === 0 && initialStart) {
         // First term cannot be shifted before its initial start date
-        if (ymd < initialStartRef.current) return true
+        if (ymd < initialStart) return true
       }
 
       // 2. Cannot start a term on Friday (weekend)
       const isFriday = isRtl ? date.getDay() === 5 : date.getDay() === 0
       if (isFriday) return true
 
-      // 3. Cannot start a term on an official Jalali holiday
-      if (isJalaliHoliday(date).isHoliday) return true
+      // 3. Cannot start a term on an official Jalali holiday (if observed)
+      if (observeOfficialHolidays && isJalaliHoliday(date).isHoliday)
+        return true
+
+      // 4. Cannot start a term on a custom institute off-day
+      if (customOffDaysSet.has(ymd)) return true
 
       return false
     },
-    [selectedTerm, selectedTermIndex, proposals, isRtl]
+    [
+      selectedTerm,
+      selectedTermIndex,
+      proposals,
+      initialStart,
+      isRtl,
+      observeOfficialHolidays,
+      customOffDaysSet,
+    ]
   )
 
   const handleDayClick = (date: Date) => {
     if (!selectedTerm) return
 
+    const clickedYmd = normalizeDateToYmd(date)
     if (isDateDisabled(date)) {
       const isFriday = isRtl ? date.getDay() === 5 : date.getDay() === 0
-      if (isFriday || isJalaliHoliday(date).isHoliday) {
+      const isHoliday =
+        observeOfficialHolidays && isJalaliHoliday(date).isHoliday
+      const isCustomOff = customOffDaysSet.has(clickedYmd)
+      if (isFriday || isHoliday || isCustomOff) {
         toast.error(t("batchModal.holidayStartDateWarning"))
       } else {
         toast.error(t("batchModal.minDateWarning"))
@@ -102,7 +130,6 @@ export function CalendarGrid({
       return
     }
 
-    const clickedYmd = normalizeDateToYmd(date)
     onStartDateChange(selectedTermIndex, clickedYmd)
   }
 
@@ -153,6 +180,8 @@ export function CalendarGrid({
       <CalendarLegend
         accentColor={selectedTheme?.accentColor}
         locale={locale}
+        observeOfficialHolidays={observeOfficialHolidays}
+        hasCustomOffDays={customOffDays.length > 0}
       />
     </div>
   )

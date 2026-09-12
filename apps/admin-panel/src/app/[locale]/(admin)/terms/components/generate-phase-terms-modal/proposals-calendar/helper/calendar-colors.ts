@@ -269,10 +269,26 @@ export interface TermCalendarModifiersResult {
   modifiersClassNames: Record<string, string>
 }
 
+export interface BuildTermCalendarModifiersOptions {
+  observeOfficialHolidays?: boolean
+  customOffDays?: string[]
+}
+
 export function buildTermCalendarModifiers(
   proposals: GeneratedTermProposal[],
-  isRtl: boolean = true
+  isRtl: boolean = true,
+  options?: BuildTermCalendarModifiersOptions
 ): TermCalendarModifiersResult {
+  const { observeOfficialHolidays = true, customOffDays = [] } = options ?? {}
+  const customOffDaysSet = new Set(customOffDays)
+
+  const isDateAnOffDay = (date: Date): boolean => {
+    const ymd = normalizeDateToYmd(date)
+    if (customOffDaysSet.has(ymd)) return true
+    if (observeOfficialHolidays && isJalaliHoliday(date).isHoliday) return true
+    return false
+  }
+
   const modifiers: Record<string, (date: Date) => boolean> = {}
   const modifiersClassNames: Record<string, string> = {}
 
@@ -311,12 +327,12 @@ export function buildTermCalendarModifiers(
         ? theme.startPillRtl
         : theme.startPillLtr
 
-    // Start day button: filled color button ONLY if NOT a holiday.
-    // If holiday, holiday style overrides the button styling.
+    // Start day button: filled color button ONLY if NOT an off day / holiday.
+    // If off day / holiday, off-day style overrides the button styling.
     modifiers[startKey] = (date: Date) => {
       const ymd = normalizeDateToYmd(date)
       if (ymd !== startYmd) return false
-      return !isJalaliHoliday(date).isHoliday
+      return !isDateAnOffDay(date)
     }
     modifiersClassNames[startKey] = isSingleDay ? theme.singleClass : startClass
 
@@ -330,34 +346,43 @@ export function buildTermCalendarModifiers(
       ? theme.endPillRtl
       : theme.endPillLtr
 
-    // End day button: normal end day typography ONLY if NOT a holiday.
+    // End day button: normal end day typography ONLY if NOT an off day / holiday.
     modifiers[endKey] = (date: Date) => {
       if (isSingleDay) return false
       const ymd = normalizeDateToYmd(date)
-      return ymd === endYmd && !isJalaliHoliday(date).isHoliday
+      return ymd === endYmd && !isDateAnOffDay(date)
     }
     modifiersClassNames[endKey] = isSingleDay ? "" : endClass
   })
 
-  // 2. Off days (Only Fridays that are NOT official holidays)
+  // 2. Off days (Only Fridays that are NOT holidays or custom off-days)
   modifiers.term_offDay = (date: Date) => {
     const isFriday = isRtl ? date.getDay() === 5 : date.getDay() === 0
     if (!isFriday) return false
-    // If Friday is also an official holiday, holiday style overrides Friday style
-    return !isJalaliHoliday(date).isHoliday
+    return !isDateAnOffDay(date)
   }
 
   modifiersClassNames.term_offDay =
     "[&>button]:!text-destructive [&>button]:!font-bold hover:[&>button]:!bg-destructive/15"
 
   // 3. Official Jalali holidays (Red text and small red dot below day number, no border)
-  // Overrides Friday style, range day style, and start/end day button style
-  modifiers.term_officialHoliday = (date: Date) => {
-    return isJalaliHoliday(date).isHoliday
+  if (observeOfficialHolidays) {
+    modifiers.term_officialHoliday = (date: Date) => {
+      return isJalaliHoliday(date).isHoliday
+    }
+    modifiersClassNames.term_officialHoliday =
+      "[&>button]:!text-destructive [&>button]:!font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-destructive hover:[&>button]:!bg-destructive/15 [&>button]:!bg-transparent"
   }
 
-  modifiersClassNames.term_officialHoliday =
-    "[&>button]:!text-destructive [&>button]:!font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-destructive hover:[&>button]:!bg-destructive/15 [&>button]:!bg-transparent"
+  // 4. Custom institute off-days (Red text and small red dot below day number)
+  if (customOffDaysSet.size > 0) {
+    modifiers.term_customOffDay = (date: Date) => {
+      const ymd = normalizeDateToYmd(date)
+      return customOffDaysSet.has(ymd)
+    }
+    modifiersClassNames.term_customOffDay =
+      "[&>button]:!text-destructive [&>button]:!font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-destructive hover:[&>button]:!bg-destructive/15 [&>button]:!bg-transparent"
+  }
 
   return { modifiers, modifiersClassNames }
 }
