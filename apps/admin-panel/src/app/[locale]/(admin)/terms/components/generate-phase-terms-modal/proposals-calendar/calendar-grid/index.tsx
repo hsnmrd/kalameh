@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { Info } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import { Calendar } from "@workspace/ui/components/calendar"
-import type { GeneratedTermProposal } from "@workspace/types"
+import { isJalaliHoliday, type GeneratedTermProposal } from "@workspace/types"
 import {
   buildTermCalendarModifiers,
   normalizeDateToYmd,
@@ -54,23 +54,55 @@ export function CalendarGrid({
     return buildTermCalendarModifiers(proposals, isRtl)
   }, [proposals, isRtl])
 
+  // Cache the initial start date of the first term so Term 1 cannot be picked earlier than initial start
+  const initialStartRef = React.useRef<string | null>(null)
+  if (!initialStartRef.current && proposals[0]?.startDate) {
+    initialStartRef.current = normalizeDateToYmd(proposals[0].startDate)
+  }
+
+  const isDateDisabled = React.useCallback(
+    (date: Date): boolean => {
+      if (!selectedTerm) return false
+      const ymd = normalizeDateToYmd(date)
+
+      // 1. Cannot choose any date on or before previous term's end date
+      if (selectedTermIndex > 0) {
+        const prevTerm = proposals[selectedTermIndex - 1]
+        if (prevTerm) {
+          const prevEndYmd = normalizeDateToYmd(prevTerm.endDate)
+          if (ymd <= prevEndYmd) return true
+        }
+      } else if (selectedTermIndex === 0 && initialStartRef.current) {
+        // First term cannot be shifted before its initial start date
+        if (ymd < initialStartRef.current) return true
+      }
+
+      // 2. Cannot start a term on Friday (weekend)
+      const isFriday = isRtl ? date.getDay() === 5 : date.getDay() === 0
+      if (isFriday) return true
+
+      // 3. Cannot start a term on an official Jalali holiday
+      if (isJalaliHoliday(date).isHoliday) return true
+
+      return false
+    },
+    [selectedTerm, selectedTermIndex, proposals, isRtl]
+  )
+
   const handleDayClick = (date: Date) => {
     if (!selectedTerm) return
 
-    const clickedYmd = normalizeDateToYmd(date)
-
-    // Check minimum allowed date (must be after previous term's end date)
-    if (selectedTermIndex > 0) {
-      const prevTerm = proposals[selectedTermIndex - 1]
-      if (prevTerm) {
-        const prevEndYmd = normalizeDateToYmd(prevTerm.endDate)
-        if (clickedYmd <= prevEndYmd) {
-          toast.error(t("batchModal.minDateWarning"))
-          return
-        }
+    if (isDateDisabled(date)) {
+      const isFriday = isRtl ? date.getDay() === 5 : date.getDay() === 0
+      if (isFriday || isJalaliHoliday(date).isHoliday) {
+        toast.error(t("batchModal.holidayStartDateWarning"))
+      } else {
+        toast.error(t("batchModal.minDateWarning"))
       }
+      return
     }
 
+    const clickedYmd = normalizeDateToYmd(date)
     onStartDateChange(selectedTermIndex, clickedYmd)
   }
 
@@ -83,6 +115,7 @@ export function CalendarGrid({
           month={currentMonth}
           onMonthChange={setCurrentMonth}
           onDayClick={handleDayClick}
+          disabled={isDateDisabled}
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
           className="mx-auto w-fit border border-border bg-card shadow-xs"
@@ -100,6 +133,8 @@ export function CalendarGrid({
             range_start: "!bg-transparent",
             range_end: "!bg-transparent",
             range_middle: "!bg-transparent",
+            disabled:
+              "opacity-40 cursor-not-allowed pointer-events-none [&>button]:!cursor-not-allowed [&>button]:pointer-events-none [&>button]:hover:!bg-transparent",
           }}
         />
       </div>

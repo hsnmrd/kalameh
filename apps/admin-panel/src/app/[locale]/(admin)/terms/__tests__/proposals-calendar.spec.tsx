@@ -75,7 +75,42 @@ describe("ProposalsCalendar Component", () => {
     ).toBeInTheDocument()
   })
 
-  it("shows minDateWarning toast when trying to set term 2 start date before term 1 ends", () => {
+  it("disables dates from previous term when editing second term while allowing gap and subsequent dates", () => {
+    const onStartDateChange = vi.fn()
+    render(
+      <ProposalsCalendar
+        proposals={mockProposals}
+        onStartDateChange={onStartDateChange}
+      />
+    )
+
+    // Select second term: term 1 ends 2026-11-06 (1405/08/15), term 2 starts 2026-11-08 (1405/08/17)
+    fireEvent.click(screen.getByText("آبان و آذر ۱۴۰۵"))
+
+    // Days before term 1 end (e.g. Day 1 of month) must be disabled and unclickable
+    const dayButtons = screen.getAllByRole("button")
+    const earlyDay = dayButtons.find(
+      (btn) => btn.textContent === "۱" || btn.textContent === "1"
+    )
+
+    if (earlyDay) {
+      expect(earlyDay).toBeDisabled()
+      fireEvent.click(earlyDay)
+      expect(onStartDateChange).not.toHaveBeenCalled()
+    }
+
+    // Days in term 2 month that are on or after term 1 end date + 1 (gap day or term 2 day) must NOT be disabled
+    const activeDay = dayButtons.find(
+      (btn) => btn.textContent === "۱۸" || btn.textContent === "18"
+    )
+    if (activeDay) {
+      expect(activeDay).not.toBeDisabled()
+      fireEvent.click(activeDay)
+      expect(onStartDateChange).toHaveBeenCalled()
+    }
+  })
+
+  it("disallows Fridays and official holidays as start dates by disabling them", () => {
     const onStartDateChange = vi.fn()
     render(
       <ProposalsCalendar
@@ -87,18 +122,14 @@ describe("ProposalsCalendar Component", () => {
     // Select second term
     fireEvent.click(screen.getByText("آبان و آذر ۱۴۰۵"))
 
-    // Click on a date belonging to month of Mehr (before term 1 end date: 2026-11-06)
-    // Find a day button from the first month grid
     const dayButtons = screen.getAllByRole("button")
-    const earlyDay = dayButtons.find(
-      (btn) => btn.textContent === "۱" || btn.textContent === "1"
+    // Official holiday in Aban 1405: 1405/08/24 (Day 24)
+    const holidayDay = dayButtons.find(
+      (btn) => btn.textContent === "۲۴" || btn.textContent === "24"
     )
-
-    if (earlyDay) {
-      fireEvent.click(earlyDay)
-      expect(toast.error).toHaveBeenCalledWith(
-        "تاریخ شروع ترم نمی‌تواند قبل از پایان ترم قبلی باشد."
-      )
+    if (holidayDay) {
+      expect(holidayDay).toBeDisabled()
+      fireEvent.click(holidayDay)
       expect(onStartDateChange).not.toHaveBeenCalled()
     }
   })

@@ -138,6 +138,7 @@
     "recalculateError": "Error recalculating term schedule.",
     "legendClassDays": "Scheduled Days",
     "legendFridays": "Fridays (Weekend)",
-    "legendOfficialHolidays": "Official Holidays (Skipped)"
+    "legendOfficialHolidays": "Official Holidays (Skipped)",
+    "holidayStartDateWarning": "Term start date cannot fall on an official holiday or weekend."
   }
 }
