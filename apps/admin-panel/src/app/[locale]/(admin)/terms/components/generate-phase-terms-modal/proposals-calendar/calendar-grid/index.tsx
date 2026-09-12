@@ -48,9 +48,11 @@ export function CalendarGrid({
     }
   }
 
+  const isRtl = locale === "fa"
+
   const { modifiers, modifiersClassNames } = React.useMemo(() => {
-    return buildTermCalendarModifiers(proposals)
-  }, [proposals])
+    return buildTermCalendarModifiers(proposals, isRtl)
+  }, [proposals, isRtl])
 
   const handleDayClick = (date: Date) => {
     if (!selectedTerm) return
@@ -77,15 +79,28 @@ export function CalendarGrid({
       {/* Centered Calendar Card */}
       <div className="flex w-full justify-center overflow-x-auto p-1">
         <Calendar
-          mode="single"
           locale={locale}
           month={currentMonth}
           onMonthChange={setCurrentMonth}
           onDayClick={handleDayClick}
-          showOffDays
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
           className="mx-auto w-fit border border-border bg-card shadow-xs"
+
+          classNames={{
+            month_grid:
+              "w-full border-separate border-spacing-y-1 border-spacing-x-0",
+            weekdays: "grid grid-cols-7 w-full justify-items-center mb-1",
+            week: "grid grid-cols-7 w-full my-0.5 justify-items-stretch",
+            day: "relative p-0 flex items-center justify-center h-9 w-full text-center text-sm focus-within:relative focus-within:z-20 overflow-hidden",
+            day_button:
+              "size-full h-9 p-0 text-sm font-medium transition-colors select-none flex items-center justify-center rounded-none hover:bg-muted/40 active:scale-95 focus-visible:outline-hidden",
+            selected:
+              "!bg-transparent !text-inherit !shadow-none !rounded-none hover:!bg-transparent hover:!text-inherit",
+            range_start: "!bg-transparent",
+            range_end: "!bg-transparent",
+            range_middle: "!bg-transparent",
+          }}
         />
       </div>
 

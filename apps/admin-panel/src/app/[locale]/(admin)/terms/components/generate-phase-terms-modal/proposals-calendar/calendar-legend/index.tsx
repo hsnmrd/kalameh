@@ -32,7 +32,7 @@ export function CalendarLegend({
 
       {/* Weekend (Fridays) */}
       <div className="flex items-center gap-2">
-        <span className="flex size-6 items-center justify-center rounded-md border border-dashed border-destructive/60 text-[11px] font-bold text-destructive">
+        <span className="flex size-6 items-center justify-center rounded-md bg-destructive/15 text-[11px] font-bold text-destructive">
           {locale === "fa" ? "۱۶" : "16"}
         </span>
         <span>{t("batchModal.legendFridays")}</span>
@@ -40,7 +40,7 @@ export function CalendarLegend({
 
       {/* Official Iranian Holidays */}
       <div className="flex items-center gap-2">
-        <span className="relative flex size-6 items-center justify-center rounded-md border border-dashed border-destructive/60 text-[11px] font-black text-destructive after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-destructive">
+        <span className="relative flex size-6 items-center justify-center rounded-md bg-destructive/15 text-[11px] font-bold text-destructive after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-destructive">
           {locale === "fa" ? "۱۷" : "17"}
         </span>
         <span>{t("batchModal.legendOfficialHolidays")}</span>
