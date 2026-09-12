@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import type { TermDto } from "@workspace/types"
 import {
@@ -10,7 +9,6 @@ import {
   ROLES,
   parseStatusFilter,
 } from "@workspace/types"
-import { FABSingle } from "@workspace/ui/components/fab"
 import { termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions } from "@/lib/hooks"
@@ -20,13 +18,13 @@ import { ModuleGuard } from "@/components/module-guard"
 import { TermsTable } from "./components/terms-table"
 import { TermsList } from "./components/terms-list"
 import { TermsFilter } from "./components/terms-filter"
+import { TermsFabDrawer } from "./components/terms-fab-drawer"
 import { CreateTermModal } from "./components/create-term-modal"
 import { EditTermModal } from "./components/edit-term-modal"
 import { GeneratePhaseTermsModal } from "./components/generate-phase-terms-modal"
 import { DeleteTermModal } from "./components/delete-term-modal"
 
 export default function TermsPage() {
-  const t = useTranslations("terms")
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [batchModalOpen, setBatchModalOpen] = React.useState(false)
   const [editingTerm, setEditingTerm] = React.useState<TermDto | null>(null)
@@ -93,12 +91,10 @@ export default function TermsPage() {
             </>
           }
           fab={
-            <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
-              <FABSingle
-                onClick={() => setCreateModalOpen(true)}
-                aria-label={t("addTerm")}
-              />
-            </PermissionGuard>
+            <TermsFabDrawer
+              onAddClick={() => setCreateModalOpen(true)}
+              onBatchClick={() => setBatchModalOpen(true)}
+            />
           }
         >
           {/* Desktop: DataTable */}

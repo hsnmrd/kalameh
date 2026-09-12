@@ -1,8 +1,5 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Plus, Sparkles } from "lucide-react"
-import { PERMISSIONS } from "@workspace/types"
-import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   ResponsiveCombobox,
@@ -10,7 +7,7 @@ import {
 } from "@workspace/ui/components/combobox"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { AdminSearchInput } from "@/components/admin-search-input"
-import { PermissionGuard } from "@/components/permission-guard"
+import { TermsActionButton } from "../terms-action-button"
 
 export interface TermsFilterProps {
   search: string
@@ -53,34 +50,7 @@ export function TermsFilter({
   }, [onStatusChange])
 
   const desktopActions = actions ?? (
-    <div className="flex items-center gap-2">
-      {onBatchClick && (
-        <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onBatchClick}
-            className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl border-border px-5 text-sm font-semibold shadow-xs"
-          >
-            <Sparkles className="size-5 text-foreground" />
-            <span>{t("generatePhaseTerms")}</span>
-          </Button>
-        </PermissionGuard>
-      )}
-
-      {onAddClick && (
-        <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
-          <Button
-            type="button"
-            onClick={onAddClick}
-            className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
-          >
-            <Plus className="size-5" />
-            <span>{t("addTerm")}</span>
-          </Button>
-        </PermissionGuard>
-      )}
-    </div>
+    <TermsActionButton onAddClick={onAddClick} onBatchClick={onBatchClick} />
   )
 
   return (

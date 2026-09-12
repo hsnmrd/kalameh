@@ -46,12 +46,14 @@ export interface FABMenuTriggerProps {
   onClick: () => void
   "aria-label": string
   className?: string
+  children?: React.ReactNode
 }
 
 export function FABMenuTrigger({
   onClick,
   "aria-label": ariaLabel,
   className,
+  children,
 }: FABMenuTriggerProps) {
   return (
     <button
@@ -63,7 +65,7 @@ export function FABMenuTrigger({
         className
       )}
     >
-      <MoreVertical className="size-6" aria-hidden />
+      {children ?? <MoreVertical className="size-6" aria-hidden />}
     </button>
   )
 }

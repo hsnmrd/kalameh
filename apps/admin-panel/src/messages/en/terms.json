@@ -2,7 +2,10 @@
   "title": "Academic Terms Management",
   "subtitle": "Define, schedule and manage active/archived academic terms of the institute",
   "addTerm": "Add New Term",
+  "manualAdd": "Add Term Manually",
   "generatePhaseTerms": "Smart Phase Terms",
+  "actions": "Term Actions",
+  "cancel": "Cancel",
   "searchPlaceholder": "Search academic terms...",
   "filter": {
     "title": "Filter Terms",
