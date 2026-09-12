@@ -230,6 +230,9 @@ export class InstitutesService {
         ...(dto.observeOfficialHolidays !== undefined
           ? { observeOfficialHolidays: dto.observeOfficialHolidays }
           : {}),
+        ...(dto.dismissedHolidays !== undefined
+          ? { dismissedHolidays: dto.dismissedHolidays }
+          : {}),
       },
       include: {
         _count: {

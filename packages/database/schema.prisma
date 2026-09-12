@@ -24,7 +24,8 @@ model Institute {
   bankAccountName String?
   bankShaba       String?
 
-  observeOfficialHolidays Boolean @default(true)
+  observeOfficialHolidays Boolean  @default(true)
+  dismissedHolidays       String[] @default([])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

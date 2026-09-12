@@ -375,6 +375,7 @@ export class TermsService {
       where: { id: phase.instituteId },
       select: {
         observeOfficialHolidays: true,
+        dismissedHolidays: true,
         customOffDays: {
           select: { date: true, title: true },
         },
@@ -398,6 +399,7 @@ export class TermsService {
       gapDaysBetweenTerms: gapDays ?? 2,
       observeOfficialHolidays: institute.observeOfficialHolidays,
       customOffDays: institute.customOffDays,
+      dismissedHolidays: institute.dismissedHolidays,
     });
   }
 

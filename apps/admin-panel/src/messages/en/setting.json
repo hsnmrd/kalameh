@@ -44,6 +44,16 @@
     "dateRangePlaceholder": "Select date range",
     "dateRangeLabel": "Date Range",
     "daysCount": "{count} off-days will be registered",
-    "singleDayCount": "1 off-day will be registered"
+    "singleDayCount": "1 off-day will be registered",
+    "calendarTitle": "Work Calendar & Day Status",
+    "calendarDescription": "Click on any day to toggle its status (open or closed during occasions), then save your changes.",
+    "legendOfficialHoliday": "Official Holiday",
+    "legendDismissedHoliday": "Open on Holiday",
+    "legendCustomOff": "Institute Off-Day",
+    "legendWorkingDay": "Working Day",
+    "unsavedChanges": "{count} unsaved change(s)",
+    "saveChanges": "Save",
+    "discardChanges": "Cancel",
+    "successUpdateCalendar": "Calendar changes saved successfully."
   }
 }

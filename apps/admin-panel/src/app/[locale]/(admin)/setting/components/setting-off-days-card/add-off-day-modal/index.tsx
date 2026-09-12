@@ -32,6 +32,7 @@ export interface AddOffDayModalProps {
   instituteId: string
   observeOfficialHolidays?: boolean
   existingOffDays?: string[]
+  defaultDate?: string
 }
 
 export function AddOffDayModal({
@@ -40,6 +41,7 @@ export function AddOffDayModal({
   instituteId,
   observeOfficialHolidays = true,
   existingOffDays = [],
+  defaultDate,
 }: AddOffDayModalProps) {
   const t = useTranslations("setting.offDays")
   const queryClient = useQueryClient()
@@ -55,12 +57,23 @@ export function AddOffDayModal({
   } = useForm<CreateInstituteCustomOffDayInput>({
     resolver: zodResolver(CreateInstituteCustomOffDaySchema),
     defaultValues: {
-      date: "",
-      startDate: "",
-      endDate: "",
+      date: defaultDate || "",
+      startDate: defaultDate || "",
+      endDate: defaultDate || "",
       title: "",
     },
   })
+
+  React.useEffect(() => {
+    if (open) {
+      reset({
+        date: defaultDate || "",
+        startDate: defaultDate || "",
+        endDate: defaultDate || "",
+        title: "",
+      })
+    }
+  }, [open, defaultDate, reset])
 
   const startDate = watch("startDate")
   const endDate = watch("endDate")

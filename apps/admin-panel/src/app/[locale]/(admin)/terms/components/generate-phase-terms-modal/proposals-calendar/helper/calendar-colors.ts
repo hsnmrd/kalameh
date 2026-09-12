@@ -374,14 +374,14 @@ export function buildTermCalendarModifiers(
       "[&>button]:!text-destructive [&>button]:!font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-destructive hover:[&>button]:!bg-destructive/15 [&>button]:!bg-transparent"
   }
 
-  // 4. Custom institute off-days (Red text and small red dot below day number)
+  // 4. Custom institute off-days (Warning/orange text and small dot below day number)
   if (customOffDaysSet.size > 0) {
     modifiers.term_customOffDay = (date: Date) => {
       const ymd = normalizeDateToYmd(date)
       return customOffDaysSet.has(ymd)
     }
     modifiersClassNames.term_customOffDay =
-      "[&>button]:!text-destructive [&>button]:!font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-destructive hover:[&>button]:!bg-destructive/15 [&>button]:!bg-transparent"
+      "[&>button]:!text-warning [&>button]:!font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-warning hover:[&>button]:!bg-warning/15 [&>button]:!bg-transparent"
   }
 
   return { modifiers, modifiersClassNames }

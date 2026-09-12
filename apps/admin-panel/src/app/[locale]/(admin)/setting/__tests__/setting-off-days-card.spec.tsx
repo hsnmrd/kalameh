@@ -235,14 +235,42 @@ describe("SettingOffDaysCard Component", () => {
     })
 
     // Day buttons are interactive and picker stays open
-    const dayButtons = document.querySelectorAll("td button")
+    const confirmButton = screen.getByRole("button", { name: "تأیید" })
+    const tables = document.querySelectorAll("table")
+    const pickerTable = tables[tables.length - 1]
+    const dayButtons = pickerTable?.querySelectorAll("td button") || []
     expect(dayButtons.length).toBeGreaterThan(0)
-    fireEvent.click(dayButtons[10])
+    const activeDayButton = dayButtons[10] || dayButtons[0]
+    expect(activeDayButton).toBeDefined()
+    fireEvent.click(activeDayButton!)
 
     // Picker is still open
-    expect(screen.getByRole("button", { name: "تأیید" })).not.toBeDisabled()
+    expect(confirmButton).not.toBeDisabled()
 
     // Confirm selection
     fireEvent.click(screen.getByRole("button", { name: "تأیید" }))
+  })
+
+  it("renders the interactive work calendar and legend", async () => {
+    queryClient.setQueryData(
+      institutesResource.detail.toQuery(mockInstituteId).queryKey,
+      {
+        id: mockInstituteId,
+        name: "موسسه تست",
+        observeOfficialHolidays: true,
+        dismissedHolidays: [],
+      }
+    )
+    queryClient.setQueryData(
+      institutesResource.customOffDays.toQuery(mockInstituteId).queryKey,
+      []
+    )
+
+    renderWithClient(<SettingOffDaysCard />, queryClient)
+
+    expect(screen.getByText("تقویم کاری و وضعیت روزها")).toBeInTheDocument()
+    expect(screen.getByText("تعطیل رسمی")).toBeInTheDocument()
+    expect(screen.getByText("دایر در تعطیلی رسمی")).toBeInTheDocument()
+    expect(screen.getByText("تعطیلی موسسه")).toBeInTheDocument()
   })
 })

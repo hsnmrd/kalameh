@@ -24,6 +24,7 @@ export type CalendarProps = DistributiveOmit<DayPickerProps, "locale"> & {
   observeOfficialHolidays?: boolean
   isOffDay?: (date: Date) => boolean
   offDays?: (Date | string)[]
+  dismissedHolidays?: (Date | string)[]
 }
 
 export function Calendar({
@@ -37,6 +38,7 @@ export function Calendar({
   observeOfficialHolidays = true,
   isOffDay: customIsOffDay,
   offDays,
+  dismissedHolidays,
   modifiers,
   modifiersClassNames,
   ...props
@@ -66,13 +68,34 @@ export function Calendar({
     [offDays]
   )
 
+  const isDismissedHoliday = React.useCallback(
+    (date: Date): boolean => {
+      if (!dismissedHolidays || dismissedHolidays.length === 0) return false
+      const y = date.getFullYear()
+      const m = (date.getMonth() + 1).toString().padStart(2, "0")
+      const d = date.getDate().toString().padStart(2, "0")
+      const dateStr = `${y}-${m}-${d}`
+      return dismissedHolidays.some((item) => {
+        if (item instanceof Date) {
+          const iy = item.getFullYear()
+          const im = (item.getMonth() + 1).toString().padStart(2, "0")
+          const id = item.getDate().toString().padStart(2, "0")
+          return `${iy}-${im}-${id}` === dateStr
+        }
+        return item === dateStr || item.startsWith(dateStr)
+      })
+    },
+    [dismissedHolidays]
+  )
+
   const isOfficialHoliday = React.useCallback(
     (date: Date): boolean => {
       if (!observeOfficialHolidays) return false
       if (!isJalali) return false
+      if (isDismissedHoliday(date)) return false
       return isJalaliHoliday(date).isHoliday
     },
-    [observeOfficialHolidays, isJalali]
+    [observeOfficialHolidays, isJalali, isDismissedHoliday]
   )
 
   const isWeeklyOffDay = React.useCallback(
@@ -108,11 +131,15 @@ export function Calendar({
   const combinedModifiers = React.useMemo(() => {
     const result: Record<string, any> = { ...modifiers }
     if (showOffDays) {
-      // 1. Holidays (official holidays and custom off-days): red text + small dot below day number
+      // 1. Official holidays: red text + small red dot below day number
       result.holiday = (date: Date) => {
-        return isOfficialHoliday(date) || isCustomOffDay(date)
+        return isOfficialHoliday(date)
       }
-      // 2. Off days (weekly off-days like Friday that are NOT holidays): red text, no dot
+      // 2. Custom institute off-days: orange/warning text + small orange dot below day number
+      result.customOffDay = (date: Date) => {
+        return isCustomOffDay(date) && !isOfficialHoliday(date)
+      }
+      // 3. Off days (weekly off-days like Friday that are NOT holidays): red text, no dot
       result.offDay = (date: Date) => {
         if (customIsOffDay) {
           return customIsOffDay(date)
@@ -122,6 +149,10 @@ export function Calendar({
         }
         return isWeeklyOffDay(date)
       }
+      // 4. Dismissed holidays (official holidays marked open by institute): green dot
+      result.dismissedHoliday = (date: Date) => {
+        return isDismissedHoliday(date)
+      }
     }
     return result
   }, [
@@ -129,6 +160,7 @@ export function Calendar({
     showOffDays,
     isOfficialHoliday,
     isCustomOffDay,
+    isDismissedHoliday,
     customIsOffDay,
     isWeeklyOffDay,
   ])
@@ -139,6 +171,10 @@ export function Calendar({
         "[&>button]:!text-destructive [&>button]:font-semibold hover:[&>button]:!text-destructive hover:[&>button]:bg-destructive/10 data-[selected]:[&>button]:!bg-primary data-[selected]:[&>button]:!text-primary-foreground",
       holiday:
         "[&>button]:!text-destructive [&>button]:font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-destructive hover:[&>button]:!bg-destructive/10 data-[selected]:[&>button]:!bg-primary data-[selected]:[&>button]:!text-primary-foreground data-[selected]:[&>button]:after:!bg-primary-foreground",
+      customOffDay:
+        "[&>button]:!text-warning [&>button]:font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-warning hover:[&>button]:!bg-warning/10 data-[selected]:[&>button]:!bg-primary data-[selected]:[&>button]:!text-primary-foreground data-[selected]:[&>button]:after:!bg-primary-foreground",
+      dismissedHoliday:
+        "[&>button]:!text-success [&>button]:font-semibold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-success hover:[&>button]:!bg-success/10 data-[selected]:[&>button]:!bg-primary data-[selected]:[&>button]:!text-primary-foreground data-[selected]:[&>button]:after:!bg-primary-foreground",
       ...modifiersClassNames,
     }
   }, [modifiersClassNames])

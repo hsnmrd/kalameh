@@ -44,6 +44,16 @@
     "dateRangePlaceholder": "انتخاب بازه تاریخ",
     "dateRangeLabel": "بازه تاریخ",
     "daysCount": "{count} روز تعطیلی ثبت خواهد شد",
-    "singleDayCount": "۱ روز تعطیلی ثبت خواهد شد"
+    "singleDayCount": "۱ روز تعطیلی ثبت خواهد شد",
+    "calendarTitle": "تقویم کاری و وضعیت روزها",
+    "calendarDescription": "برای تغییر وضعیت روزها (دایر یا تعطیل بودن در مناسبت‌ها)، روی روز مورد نظر کلیک کرده و تغییرات را ذخیره کنید.",
+    "legendOfficialHoliday": "تعطیل رسمی",
+    "legendDismissedHoliday": "دایر در تعطیلی رسمی",
+    "legendCustomOff": "تعطیلی موسسه",
+    "legendWorkingDay": "روز کاری",
+    "unsavedChanges": "{count} تغییر ذخیره‌نشده",
+    "saveChanges": "ذخیره",
+    "discardChanges": "انصراف",
+    "successUpdateCalendar": "تغییرات تقویم کاری با موفقیت ذخیره شد."
   }
 }

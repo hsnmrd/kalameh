@@ -276,6 +276,37 @@ describe('InstitutesService', () => {
       );
     });
 
+    it('should update institute dismissedHolidays array', async () => {
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Tehran Institute',
+      });
+      prismaService.institute.update.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Tehran Institute',
+        dismissedHolidays: ['2024-08-25'],
+        _count: { classes: 0, users: 1 },
+      });
+
+      const result = await service.update(
+        'inst-tehran',
+        { dismissedHolidays: ['2024-08-25'] },
+        undefined,
+        mockInstituteAdmin,
+        'en',
+      );
+
+      expect(result.dismissedHolidays).toEqual(['2024-08-25']);
+      expect(prismaService.institute.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'inst-tehran' },
+          data: expect.objectContaining({
+            dismissedHolidays: ['2024-08-25'],
+          }),
+        }),
+      );
+    });
+
     it('should throw ForbiddenException if institute admin tries to update different institute', async () => {
       await expect(
         service.update(

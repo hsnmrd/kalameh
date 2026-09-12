@@ -18,6 +18,7 @@ export interface CalculateTermEndDateInput {
   skipHolidays?: boolean
   observeOfficialHolidays?: boolean
   customOffDays?: (string | { date: string; title?: string })[]
+  dismissedHolidays?: string[]
 }
 
 export interface HolidayEncountered {
@@ -85,12 +86,14 @@ export function calculateTermEndDate(
     skipHolidays = true,
     observeOfficialHolidays = true,
     customOffDays = [],
+    dismissedHolidays = [],
   } = input
 
   if (targetCount <= 0) {
     throw new Error("Target count must be greater than 0")
   }
 
+  const dismissedHolidaysSet = new Set(dismissedHolidays)
   const customOffDayMap = new Map<string, string>()
   for (const item of customOffDays) {
     if (typeof item === "string") {
@@ -133,7 +136,9 @@ export function calculateTermEndDate(
       const isCustomOff = customOffTitle !== undefined
       const holidayCheck = isJalaliHoliday(current)
       const isOfficialHoliday =
-        observeOfficialHolidays && holidayCheck.isHoliday
+        observeOfficialHolidays &&
+        holidayCheck.isHoliday &&
+        !dismissedHolidaysSet.has(isoDate)
 
       if (skipHolidays && (isCustomOff || isOfficialHoliday)) {
         const j = gregorianToJalali(current)
@@ -205,6 +210,7 @@ export interface GeneratePhaseTermsInput {
   gapDaysBetweenTerms?: number // default 2
   observeOfficialHolidays?: boolean
   customOffDays?: (string | { date: string; title?: string })[]
+  dismissedHolidays?: string[]
 }
 
 export interface GeneratedTermProposal {
@@ -326,6 +332,7 @@ export function generatePhaseTerms(
     gapDaysBetweenTerms = 2,
     observeOfficialHolidays = true,
     customOffDays = [],
+    dismissedHolidays = [],
   } = input
 
   const targetDaysCount = daysPerTerm ?? sessionsPerTerm ?? 45
@@ -368,6 +375,7 @@ export function generatePhaseTerms(
       skipHolidays: true,
       observeOfficialHolidays,
       customOffDays,
+      dismissedHolidays,
     })
 
     const endGDate = new Date(schedule.endDate + "T12:00:00")
@@ -431,6 +439,7 @@ export interface RecalculatePhaseTermsInput {
   userCustomTitles?: Record<number, string>
   observeOfficialHolidays?: boolean
   customOffDays?: (string | { date: string; title?: string })[]
+  dismissedHolidays?: string[]
 }
 
 /**
@@ -451,6 +460,7 @@ export function recalculatePhaseTerms(
     userCustomTitles = {},
     observeOfficialHolidays = true,
     customOffDays = [],
+    dismissedHolidays = [],
   } = input
 
   const targetDaysCount =
@@ -500,6 +510,7 @@ export function recalculatePhaseTerms(
       skipHolidays: true,
       observeOfficialHolidays,
       customOffDays,
+      dismissedHolidays,
     })
 
     const coveredMonthSet = new Set<number>()

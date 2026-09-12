@@ -44,6 +44,7 @@ export const InstituteSchema = z.object({
   bankAccountName: z.string().nullable().optional(),
   bankShaba: z.string().nullable().optional(),
   observeOfficialHolidays: z.boolean().default(true),
+  dismissedHolidays: z.array(z.string()).default([]),
   deletedAt: z.date().or(z.string()).nullable().optional(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
@@ -209,6 +210,35 @@ export const createUpdateInstituteSchema = (msg?: {
         if (val === "false" || val === false) return false
         return val
       }, z.boolean())
+      .optional(),
+    dismissedHolidays: z
+      .preprocess((val) => {
+        if (val === undefined || val === null) return undefined
+        if (val === "") return []
+        if (typeof val === "string") {
+          const trimmed = val.trim()
+          if (!trimmed) return []
+          try {
+            const parsed = JSON.parse(trimmed)
+            if (Array.isArray(parsed)) {
+              return parsed.map((x) => String(x).trim()).filter(Boolean)
+            }
+          } catch {
+            // not JSON
+          }
+          if (trimmed.includes(",")) {
+            return trimmed
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          }
+          return [trimmed]
+        }
+        if (Array.isArray(val)) {
+          return val.map((x) => String(x).trim()).filter(Boolean)
+        }
+        return val
+      }, z.array(z.string().trim()))
       .optional(),
   })
 

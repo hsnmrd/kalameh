@@ -23,6 +23,7 @@ import { institutesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { AddOffDayModal } from "./add-off-day-modal"
 import { DeleteOffDayModal } from "./delete-off-day-modal"
+import { HolidaysCalendar } from "./holidays-calendar"
 
 function formatDisplayDate(isoDate: string): string {
   try {
@@ -40,6 +41,9 @@ export function SettingOffDaysCard() {
   const { activeInstituteId } = useActiveInstitute()
 
   const [isAddOpen, setIsAddOpen] = React.useState(false)
+  const [selectedDateForAdd, setSelectedDateForAdd] = React.useState<
+    string | undefined
+  >(undefined)
   const [deletingOffDay, setDeletingOffDay] =
     React.useState<InstituteCustomOffDay | null>(null)
 
@@ -54,6 +58,10 @@ export function SettingOffDaysCard() {
     ...institutesResource.customOffDays.toQuery(activeInstituteId!),
     enabled: Boolean(activeInstituteId),
   })
+
+  const customOffDaysDates = React.useMemo(() => {
+    return customOffDays.map((d) => d.date)
+  }, [customOffDays])
 
   // Mutation to toggle observeOfficialHolidays
   const updateMutation = useMutation({
@@ -114,6 +122,18 @@ export function SettingOffDaysCard() {
         />
       </div>
 
+      {/* Interactive Holiday & Off-Days Calendar */}
+      <HolidaysCalendar
+        instituteId={activeInstituteId}
+        observeOfficialHolidays={observeOfficialHolidays}
+        dismissedHolidays={institute?.dismissedHolidays}
+        customOffDays={customOffDaysDates}
+        onOpenAddModalWithDate={(dateIso) => {
+          setSelectedDateForAdd(dateIso)
+          setIsAddOpen(true)
+        }}
+      />
+
       {/* Custom Off-Days Section */}
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -128,7 +148,10 @@ export function SettingOffDaysCard() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => setIsAddOpen(true)}
+            onClick={() => {
+              setSelectedDateForAdd(undefined)
+              setIsAddOpen(true)
+            }}
             className="h-10 cursor-pointer gap-2 rounded-xl px-3.5 text-xs font-semibold"
           >
             <Plus className="size-4" />
@@ -191,10 +214,14 @@ export function SettingOffDaysCard() {
       {/* Modals */}
       <AddOffDayModal
         open={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
+        onClose={() => {
+          setIsAddOpen(false)
+          setSelectedDateForAdd(undefined)
+        }}
         instituteId={activeInstituteId}
         observeOfficialHolidays={observeOfficialHolidays}
         existingOffDays={customOffDays.map((d) => d.date)}
+        defaultDate={selectedDateForAdd}
       />
       <DeleteOffDayModal
         open={Boolean(deletingOffDay)}

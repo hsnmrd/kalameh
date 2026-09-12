@@ -73,6 +73,7 @@ export function useGeneratePhaseTerms({
   }, [rawCustomOffDays])
 
   const observeOfficialHolidays = institute?.observeOfficialHolidays ?? true
+  const dismissedHolidays = institute?.dismissedHolidays ?? []
 
   const phaseOptions: ComboboxOption[] = React.useMemo(() => {
     return phases.map((phase) => ({
@@ -174,6 +175,7 @@ export function useGeneratePhaseTerms({
         userCustomTitles: customTitles,
         observeOfficialHolidays,
         customOffDays,
+        dismissedHolidays,
       })
       setProposals(updated)
     } catch (err: unknown) {
@@ -253,6 +255,7 @@ export function useGeneratePhaseTerms({
     isLoadingExisting,
     observeOfficialHolidays,
     customOffDays,
+    dismissedHolidays,
     handleProceedToPreview,
     handleTitleChange,
     handleStartDateChange,
