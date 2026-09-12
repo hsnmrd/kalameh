@@ -39,22 +39,28 @@
   "modules": {
     "dashboard": "پیشخوان",
     "institutes": "آموزشگاه‌ها",
+    "operating_phases": "فازهای عملیاتی",
     "branches": "شعب",
     "terms": "دوره‌ها و ترم‌ها",
     "courses": "برنامه‌های آموزشی",
     "classes": "کلاس‌ها",
+    "classrooms": "کلاس‌های فیزیکی",
     "users": "پرسنل و کاربران",
+    "teachers": "اساتید و مدرسین",
     "students": "زبان‌آموزان",
     "enrollments": "ثبت‌نام و کلاس‌بندی",
     "grades": "نمرات و سطح‌بندی",
     "transactions": "امور مالی و تراکنش‌ها",
-    "role_permissions": "مدیریت دسترسی‌ها"
+    "role_permissions": "مدیریت دسترسی‌ها",
+    "audit_logs": "لاگ‌ها و رویدادهای سیستمی"
   },
   "permissions": {
     "dashboard:view": "مشاهده پیشخوان و آمار",
     "institutes:manage": "ایجاد و حذف آموزشگاه‌ها (ادمین ارشد)",
     "institutes:view": "مشاهده اطلاعات آموزشگاه",
     "institutes:settings": "ویرایش مشخصات و تنظیمات آموزشگاه",
+    "operating_phases:manage": "ایجاد و ویرایش فازهای عملیاتی",
+    "operating_phases:view": "مشاهده لیست فازهای عملیاتی",
     "branches:manage": "ایجاد و ویرایش شعب",
     "branches:view": "مشاهده لیست شعب",
     "terms:manage": "ایجاد و مدیریت دوره‌ها و ترم‌ها",
@@ -63,9 +69,13 @@
     "courses:view": "مشاهده دوره‌ها و برنامه‌های آموزشی",
     "classes:manage": "ایجاد و مدیریت کلاس‌ها",
     "classes:view": "مشاهده کلاس‌ها و ظرفیت‌ها",
+    "classrooms:manage": "تعریف و مدیریت کلاس‌های فیزیکی",
+    "classrooms:view": "مشاهده لیست کلاس‌های فیزیکی",
     "users:manage": "ایجاد و مدیریت پرسنل",
     "users:view": "مشاهده لیست پرسنل",
     "users:delete": "حذف حساب کاربری پرسنل",
+    "teachers:manage": "مدیریت پرونده و صلاحیت‌های اساتید",
+    "teachers:view": "مشاهده لیست اساتید",
     "students:manage": "ثبت‌نام و ویرایش مشخصات فراگیران",
     "students:notes": "ثبت و پیگیری یادداشت پرونده فراگیران",
     "students:view": "مشاهده پرونده فراگیران",
@@ -80,6 +90,7 @@
     "transactions:view": "مشاهده لیست تراکنش‌ها",
     "transactions:submit_receipt": "ارسال فیش واریزی",
     "role_permissions:manage": "تغییر و تخصیص دسترسی‌های نقش‌ها",
-    "role_permissions:view": "مشاهده تنظیمات دسترسی‌ها"
+    "role_permissions:view": "مشاهده تنظیمات دسترسی‌ها",
+    "audit_logs:view": "مشاهده لاگ‌ها و رویدادهای سیستم"
   }
 }

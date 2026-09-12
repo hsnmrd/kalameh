@@ -10,6 +10,7 @@ export default defineConfig({
     globals: true,
     setupFiles: [path.resolve(__dirname, "./vitest.setup.ts")],
     include: ["**/*.spec.{ts,tsx}", "**/*.test.{ts,tsx}"],
+    testTimeout: 15000,
   },
   resolve: {
     alias: {

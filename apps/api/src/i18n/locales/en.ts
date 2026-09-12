@@ -83,6 +83,12 @@ export const en: TranslationDictionary = {
     termAlreadyExists:
       'A term with this title already exists in this institute',
     invalidDateRange: 'End date must be after start date',
+    cannotDeleteActiveTerm:
+      'Only upcoming terms whose start date has not reached yet can be deleted',
+    cannotDeleteWithClasses:
+      'This term has associated classes and cannot be deleted',
+    duplicatePhaseYear:
+      'Terms for this phase have already been created for the selected academic year',
   },
   courses: {
     courseNotFound: 'Requested course was not found',

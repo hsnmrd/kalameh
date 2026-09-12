@@ -62,6 +62,9 @@ export interface TranslationDictionary {
     termNotFound: string;
     termAlreadyExists: string;
     invalidDateRange: string;
+    cannotDeleteActiveTerm: string;
+    cannotDeleteWithClasses: string;
+    duplicatePhaseYear: string;
   };
   courses: {
     courseNotFound: string;

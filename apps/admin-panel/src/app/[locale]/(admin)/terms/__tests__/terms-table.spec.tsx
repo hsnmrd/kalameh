@@ -46,4 +46,46 @@ describe("TermsTable Component", () => {
     fireEvent.click(editBtn)
     expect(handleEdit).toHaveBeenCalledWith(mockTerms[0])
   })
+
+  it("should render delete button only for deletable terms and trigger onDelete", () => {
+    const handleDelete = vi.fn()
+    const pastTerm: TermDto = {
+      id: "term-past",
+      instituteId: "inst-1",
+      title: "تابستان ۱۴۰۱",
+      startDate: "2022-06-22",
+      endDate: "2022-09-22",
+      isActive: true,
+      classesCount: 0,
+      createdAt: "",
+      updatedAt: "",
+    }
+    const upcomingTerm: TermDto = {
+      id: "term-upcoming",
+      instituteId: "inst-1",
+      title: "تابستان ۱۴۱۵",
+      startDate: "2036-06-22",
+      endDate: "2036-09-22",
+      isActive: true,
+      classesCount: 0,
+      createdAt: "",
+      updatedAt: "",
+    }
+
+    render(
+      <TermsTable
+        terms={[pastTerm, upcomingTerm]}
+        isLoading={false}
+        onEdit={vi.fn()}
+        onDelete={handleDelete}
+      />
+    )
+
+    // Only 1 delete button should exist (for upcomingTerm, not pastTerm)
+    const deleteBtns = screen.getAllByLabelText(/حذف ترم|delete term/i)
+    expect(deleteBtns).toHaveLength(1)
+
+    fireEvent.click(deleteBtns[0])
+    expect(handleDelete).toHaveBeenCalledWith(upcomingTerm)
+  })
 })

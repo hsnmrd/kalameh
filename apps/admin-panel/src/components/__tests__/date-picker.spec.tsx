@@ -22,6 +22,18 @@ describe("Calendar & DatePicker Components", () => {
       expect(screen.getByText(/شهریور|1405/i)).toBeInTheDocument()
     })
 
+    it("should open to the month of the selected date in Jalali calendar", () => {
+      render(
+        <Calendar
+          mode="single"
+          locale="fa"
+          selected={new Date("2027-03-16T00:00:00Z")}
+        />
+      )
+
+      expect(screen.getByText(/اسفند/i)).toBeInTheDocument()
+    })
+
     it("should render in Gregorian calendar mode when locale is en", () => {
       render(
         <Calendar
@@ -93,6 +105,49 @@ describe("Calendar & DatePicker Components", () => {
       render(<DatePicker value="2026-08-23" onChange={vi.fn()} locale="en" />)
 
       expect(screen.getByText("2026-08-23")).toBeInTheDocument()
+    })
+
+    it("should open calendar popover on the month and year of the selected date (e.g. Esfand 1405)", () => {
+      render(<DatePicker value="2027-03-16" onChange={vi.fn()} locale="fa" />)
+
+      fireEvent.click(screen.getByRole("button", { name: /1405\/12\/25/i }))
+
+      expect(screen.getByText("اسفند 1405")).toBeInTheDocument()
+    })
+
+    it("should pass showOffDays to internal calendar and highlight off days", () => {
+      render(
+        <DatePicker
+          value="2027-03-16"
+          onChange={vi.fn()}
+          locale="fa"
+          showOffDays={true}
+        />
+      )
+
+      fireEvent.click(screen.getByRole("button", { name: /1405\/12\/25/i }))
+
+      expect(screen.getByText("اسفند 1405")).toBeInTheDocument()
+      const offDayCells = document.querySelectorAll(
+        "td[class*='text-destructive']"
+      )
+      expect(offDayCells.length).toBeGreaterThan(0)
+    })
+
+    it("should render compact clickable trigger when variant is inline", () => {
+      render(
+        <DatePicker
+          variant="inline"
+          value="2026-09-23"
+          onChange={vi.fn()}
+          locale="fa"
+        />
+      )
+
+      const trigger = screen.getByRole("button")
+      expect(trigger).toHaveClass("inline-flex")
+      expect(trigger).toHaveClass("h-8")
+      expect(screen.getByText(/1405\/07\/01/)).toBeInTheDocument()
     })
   })
 })

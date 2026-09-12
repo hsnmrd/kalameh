@@ -107,4 +107,36 @@ describe("RolePermissions Components", () => {
       expect(handleReset).toHaveBeenCalled()
     })
   })
+
+  describe("i18n message completeness", () => {
+    it("should have translations for all PERMISSION_MODULES and permissions in fa and en", async () => {
+      const { PERMISSION_MODULES } = await import("@workspace/types")
+      const faMessages = (await import("@/messages/fa/role-permissions.json"))
+        .default
+      const enMessages = (await import("@/messages/en/role-permissions.json"))
+        .default
+
+      for (const mod of PERMISSION_MODULES) {
+        expect(
+          (faMessages.modules as Record<string, string>)[mod.id],
+          `Missing Persian translation for module: ${mod.id}`
+        ).toBeDefined()
+        expect(
+          (enMessages.modules as Record<string, string>)[mod.id],
+          `Missing English translation for module: ${mod.id}`
+        ).toBeDefined()
+
+        for (const item of mod.permissions) {
+          expect(
+            (faMessages.permissions as Record<string, string>)[item.permission],
+            `Missing Persian translation for permission: ${item.permission}`
+          ).toBeDefined()
+          expect(
+            (enMessages.permissions as Record<string, string>)[item.permission],
+            `Missing English translation for permission: ${item.permission}`
+          ).toBeDefined()
+        }
+      }
+    })
+  })
 })

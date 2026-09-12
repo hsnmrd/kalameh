@@ -39,22 +39,28 @@
   "modules": {
     "dashboard": "Dashboard",
     "institutes": "Institutes",
+    "operating_phases": "Operating Phases",
     "branches": "Branches",
     "terms": "Terms & Semesters",
     "courses": "Courses & Syllabi",
     "classes": "Classes",
+    "classrooms": "Classrooms",
     "users": "Staff & Users",
+    "teachers": "Teachers & Instructors",
     "students": "Students",
     "enrollments": "Enrollments",
     "grades": "Grades & Levels",
     "transactions": "Financial & Receipts",
-    "role_permissions": "Role Permissions"
+    "role_permissions": "Role Permissions",
+    "audit_logs": "Audit Logs"
   },
   "permissions": {
     "dashboard:view": "View dashboard overview and analytics",
     "institutes:manage": "Create and manage institutes (Super Admin)",
     "institutes:view": "View institute details",
     "institutes:settings": "Edit institute profile and settings",
+    "operating_phases:manage": "Create and manage operating phases",
+    "operating_phases:view": "View operating phases list",
     "branches:manage": "Create and manage branches",
     "branches:view": "View branches list",
     "terms:manage": "Create and manage terms",
@@ -63,9 +69,13 @@
     "courses:view": "View courses and syllabus",
     "classes:manage": "Create and manage classes",
     "classes:view": "View classes and rosters",
+    "classrooms:manage": "Create and manage physical classrooms",
+    "classrooms:view": "View classrooms list",
     "users:manage": "Create and manage staff accounts",
     "users:view": "View staff list",
     "users:delete": "Delete staff accounts",
+    "teachers:manage": "Manage teachers and qualifications",
+    "teachers:view": "View teachers list",
     "students:manage": "Register and manage student profiles",
     "students:notes": "Add and append student notes history",
     "students:view": "View student profiles",
@@ -80,6 +90,7 @@
     "transactions:view": "View financial transactions",
     "transactions:submit_receipt": "Submit payment receipt",
     "role_permissions:manage": "Modify role permission assignments",
-    "role_permissions:view": "View role permission settings"
+    "role_permissions:view": "View role permission settings",
+    "audit_logs:view": "View system audit logs"
   }
 }

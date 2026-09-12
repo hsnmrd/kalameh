@@ -26,12 +26,19 @@ describe('TermsService', () => {
   beforeEach(async () => {
     prismaService = {
       term: {
-        findMany: jest.fn(),
+        findMany: jest.fn().mockResolvedValue([]),
         findFirst: jest.fn(),
         findFirstOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
+        delete: jest.fn(),
       },
+      instituteOperatingPhase: {
+        findFirstOrThrow: jest.fn(),
+      },
+      $transaction: jest.fn((cb: any) =>
+        typeof cb === 'function' ? cb(prismaService) : Promise.all(cb),
+      ),
     };
 
     i18nService = {
@@ -180,6 +187,187 @@ describe('TermsService', () => {
       await expect(
         service.update('invalid-id', { title: 'نام جدید' }, mockAdmin),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('previewSchedule', () => {
+    it('calculates end date and returns completed sessions and holidays', () => {
+      const result = service.previewSchedule({
+        startDate: '1403/07/01',
+        targetSessions: 18,
+        daysOfWeek: ['SATURDAY', 'MONDAY', 'WEDNESDAY'],
+        skipHolidays: true,
+      });
+
+      expect(result.completedSessions).toBe(18);
+      expect(result.sessionDates).toHaveLength(18);
+      expect(result.startDateJalali).toBe('1403/07/01');
+    });
+  });
+
+  describe('previewPhaseTerms', () => {
+    it('generates term proposals for given operating phase', async () => {
+      prismaService.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-1',
+        title: 'نیمسال اول',
+        months: [7, 8, 9, 10],
+        daysOfWeek: ['SATURDAY', 'MONDAY', 'WEDNESDAY'],
+      });
+
+      const proposals = await service.previewPhaseTerms(
+        mockAdmin,
+        'phase-1',
+        1403,
+        18,
+      );
+
+      expect(proposals.length).toBeGreaterThan(0);
+      expect(proposals[0].title).toBeDefined();
+    });
+
+    it('should throw ConflictException when terms already exist for this operating phase and academic year', async () => {
+      prismaService.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-1',
+        title: 'فاز پاییز',
+        months: [7, 8, 9],
+        daysOfWeek: ['SATURDAY', 'MONDAY', 'WEDNESDAY'],
+      });
+      prismaService.term.findMany.mockResolvedValue([
+        {
+          id: 'term-existing',
+          title: 'مهر ۱۴۰۵',
+          startDate: new Date('2026-09-23'), // Jalali year 1405
+        },
+      ]);
+
+      await expect(
+        service.previewPhaseTerms(mockAdmin, 'phase-1', 1405, 45),
+      ).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('batchCreatePhaseTerms', () => {
+    it('creates multiple terms in transaction', async () => {
+      prismaService.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-1',
+        title: 'نیمسال اول',
+        instituteId: 'inst-1',
+      });
+      prismaService.term.findMany.mockResolvedValue([]);
+      prismaService.term.create.mockImplementation((args: any) =>
+        Promise.resolve({
+          id: 'term-id',
+          ...args.data,
+          _count: { classes: 0 },
+        }),
+      );
+
+      const result = await service.batchCreatePhaseTerms(
+        {
+          operatingPhaseId: 'phase-1',
+          jalaliYear: 1403,
+          sessionsPerTerm: 18,
+          gapDaysBetweenTerms: 2,
+          terms: [
+            {
+              title: 'ترم ۱',
+              startDate: '2026-09-23',
+              endDate: '2026-11-10',
+              isActive: true,
+            },
+            {
+              title: 'ترم ۲',
+              startDate: '2026-11-12',
+              endDate: '2027-01-15',
+              isActive: true,
+            },
+          ],
+        },
+        mockAdmin,
+      );
+
+      expect(result).toHaveLength(2);
+      expect(prismaService.$transaction).toHaveBeenCalled();
+    });
+  });
+
+  describe('remove', () => {
+    it('should successfully delete an upcoming term without classes', async () => {
+      const termData = {
+        id: 'term-upcoming',
+        title: 'ترم پیش‌رو',
+        instituteId: 'inst-1',
+        startDate: new Date('2099-01-01'),
+        endDate: new Date('2099-02-28'),
+        isActive: true,
+        _count: { classes: 0 },
+      };
+      prismaService.term.findFirstOrThrow.mockResolvedValue(termData);
+      prismaService.term.findMany.mockResolvedValue([termData]);
+      prismaService.term.delete.mockResolvedValue({ id: 'term-upcoming' });
+
+      const result = await service.remove('term-upcoming', mockAdmin);
+      expect(result).toEqual({ success: true });
+      expect(prismaService.term.delete).toHaveBeenCalledWith({
+        where: { id: 'term-upcoming' },
+      });
+    });
+
+    it('should throw BadRequestException when trying to delete a passed term', async () => {
+      const termData = {
+        id: 'term-past',
+        title: 'ترم گذشته',
+        instituteId: 'inst-1',
+        startDate: new Date('2020-01-01'),
+        endDate: new Date('2020-02-28'),
+        isActive: true,
+        _count: { classes: 0 },
+      };
+      prismaService.term.findFirstOrThrow.mockResolvedValue(termData);
+      prismaService.term.findMany.mockResolvedValue([termData]);
+
+      await expect(service.remove('term-past', mockAdmin)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException when trying to delete an ongoing active term', async () => {
+      const now = new Date();
+      const pastMonth = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
+      const futureMonth = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
+      const termData = {
+        id: 'term-active',
+        title: 'ترم فعال جاری',
+        instituteId: 'inst-1',
+        startDate: pastMonth,
+        endDate: futureMonth,
+        isActive: true,
+        _count: { classes: 0 },
+      };
+      prismaService.term.findFirstOrThrow.mockResolvedValue(termData);
+      prismaService.term.findMany.mockResolvedValue([termData]);
+
+      await expect(service.remove('term-active', mockAdmin)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw ConflictException when upcoming term has associated classes', async () => {
+      const termData = {
+        id: 'term-with-classes',
+        title: 'ترم دارای کلاس',
+        instituteId: 'inst-1',
+        startDate: new Date('2099-01-01'),
+        endDate: new Date('2099-02-28'),
+        isActive: true,
+        _count: { classes: 3 },
+      };
+      prismaService.term.findFirstOrThrow.mockResolvedValue(termData);
+      prismaService.term.findMany.mockResolvedValue([termData]);
+
+      await expect(
+        service.remove('term-with-classes', mockAdmin),
+      ).rejects.toThrow(ConflictException);
     });
   });
 });

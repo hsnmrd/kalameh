@@ -76,6 +76,12 @@ export const fa: TranslationDictionary = {
     termNotFound: 'ترم تحصیلی مورد نظر یافت نشد',
     termAlreadyExists: 'ترمی با این عنوان قبلاً در آموزشگاه ثبت شده است',
     invalidDateRange: 'تاریخ پایان ترم باید پس از تاریخ شروع باشد',
+    cannotDeleteActiveTerm:
+      'فقط ترم‌های پیش‌رو (که تاریخ شروع آن‌ها نرسیده است) قابل حذف هستند',
+    cannotDeleteWithClasses:
+      'این ترم دارای کلاس‌های وابسته است و نمی‌تواند حذف شود',
+    duplicatePhaseYear:
+      'ترم‌های این فاز برای سال تحصیلی انتخاب‌شده قبلاً ایجاد شده‌اند',
   },
   courses: {
     courseNotFound: 'سطح/دوره آموزشی مورد نظر یافت نشد',

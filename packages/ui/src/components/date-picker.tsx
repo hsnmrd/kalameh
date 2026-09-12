@@ -26,6 +26,10 @@ export interface DatePickerProps {
   minDate?: Date
   maxDate?: Date
   drawerTitle?: string
+  showOffDays?: boolean
+  isOffDay?: (date: Date) => boolean
+  offDays?: (Date | string)[]
+  variant?: "default" | "inline"
 }
 
 export function DatePicker({
@@ -42,6 +46,10 @@ export function DatePicker({
   minDate,
   maxDate,
   drawerTitle,
+  showOffDays = false,
+  isOffDay,
+  offDays,
+  variant = "default",
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -85,10 +93,84 @@ export function DatePicker({
     onChange?.(undefined)
   }
 
+  if (variant === "inline") {
+    return (
+      <ResponsivePopover
+        open={open}
+        onOpenChange={setOpen}
+        drawerTitle={
+          drawerTitle ?? (locale === "fa" ? "انتخاب تاریخ" : "Select date")
+        }
+        onClear={
+          clearable && selectedDate
+            ? () => {
+                onChange?.(undefined)
+                setOpen(false)
+              }
+            : undefined
+        }
+        clearLabel={locale === "fa" ? "پاک کردن" : "Clear"}
+        className="w-auto border-0 bg-transparent p-0 shadow-none"
+        drawerBodyClassName="flex justify-center px-4"
+        trigger={
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={disabled}
+            className={cn(
+              "group inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-foreground transition-colors select-none hover:bg-muted hover:text-primary disabled:cursor-not-allowed",
+              dataInvalid && "text-destructive",
+              className
+            )}
+          >
+            <span
+              className={cn(
+                locale === "fa" ? "font-sans" : "font-mono",
+                !formattedDisplay && "text-muted-foreground/35"
+              )}
+            >
+              {formattedDisplay || placeholder}
+            </span>
+            <CalendarIcon className="size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+          </Button>
+        }
+      >
+        <Calendar
+          key={
+            open
+              ? selectedDate
+                ? selectedDate.toISOString()
+                : "open"
+              : "closed"
+          }
+          mode="single"
+          selected={selectedDate}
+          defaultMonth={selectedDate || minDate || new Date()}
+          onSelect={handleSelect}
+          locale={locale}
+          calendarType={calendarType}
+          showOffDays={showOffDays}
+          isOffDay={isOffDay}
+          offDays={offDays}
+          disabled={
+            minDate || maxDate
+              ? (date: Date) => {
+                  if (minDate && date < minDate) return true
+                  if (maxDate && date > maxDate) return true
+                  return false
+                }
+              : undefined
+          }
+          autoFocus
+        />
+      </ResponsivePopover>
+    )
+  }
+
   return (
     <div
       className={cn(
-        "relative flex h-10 w-full items-center justify-between rounded-xl border border-border bg-background px-3 text-sm text-foreground shadow-2xs transition-colors focus-within:border-primary disabled:cursor-not-allowed disabled:opacity-50",
+        "relative flex h-14 w-full items-center justify-between rounded-2xl border border-border bg-background px-4 text-base text-foreground shadow-2xs transition-colors focus-within:border-2 focus-within:border-ring focus-within:ring-0 disabled:cursor-not-allowed disabled:opacity-50",
         dataInvalid && "border-destructive focus-within:border-destructive",
         className
       )}
@@ -115,13 +197,14 @@ export function DatePicker({
             type="button"
             variant="ghost"
             disabled={disabled}
-            className="flex h-full min-w-0 flex-1 cursor-pointer items-center justify-start gap-2 p-0 text-start text-sm font-normal outline-hidden select-none hover:bg-transparent disabled:cursor-not-allowed"
+            className="flex h-full min-w-0 flex-1 cursor-pointer items-center justify-start gap-2.5 p-0 text-start text-base font-normal outline-hidden select-none hover:bg-transparent disabled:cursor-not-allowed"
           >
-            <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
+            <CalendarIcon className="size-5 shrink-0 text-muted-foreground" />
             <span
               className={cn(
-                "flex-1 font-mono text-sm",
-                !formattedDisplay && "font-sans text-muted-foreground/35"
+                "flex-1 text-base",
+                locale === "fa" ? "font-sans" : "font-mono",
+                !formattedDisplay && "text-muted-foreground/35"
               )}
             >
               {formattedDisplay || placeholder}
@@ -130,11 +213,22 @@ export function DatePicker({
         }
       >
         <Calendar
+          key={
+            open
+              ? selectedDate
+                ? selectedDate.toISOString()
+                : "open"
+              : "closed"
+          }
           mode="single"
           selected={selectedDate}
+          defaultMonth={selectedDate || minDate || new Date()}
           onSelect={handleSelect}
           locale={locale}
           calendarType={calendarType}
+          showOffDays={showOffDays}
+          isOffDay={isOffDay}
+          offDays={offDays}
           disabled={
             minDate || maxDate
               ? (date: Date) => {
@@ -155,10 +249,10 @@ export function DatePicker({
           variant="ghost"
           size="icon"
           onClick={handleClear}
-          className="size-6 rounded-md p-0 text-muted-foreground hover:text-foreground"
+          className="size-7 rounded-lg p-0 text-muted-foreground hover:text-foreground"
           aria-label="Clear date"
         >
-          <X className="size-3.5" />
+          <X className="size-4" />
         </Button>
       )}
     </div>

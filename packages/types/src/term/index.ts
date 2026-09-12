@@ -1,3 +1,6 @@
 export * from "./create-term.schema.js"
 export * from "./update-term.schema.js"
 export * from "./term.schema.js"
+export * from "./batch-terms.schema.js"
+export * from "./term-session-calculator.js"
+export * from "./term-lifecycle-status.js"

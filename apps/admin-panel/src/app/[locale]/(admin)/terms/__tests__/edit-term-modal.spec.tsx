@@ -24,7 +24,7 @@ vi.mock("@workspace/ui/components/date-picker", () => ({
 
 // Mock terms update mutation while keeping authResource intact
 vi.mock("@/lib/api", async (importOriginal) => {
-  const actual = await importOriginal<Record<string, any>>()
+  const actual = await importOriginal<typeof import("@/lib/api")>()
   return {
     ...actual,
     termsResource: {

@@ -31,6 +31,7 @@ import {
   useUpdateTermSchema,
   type UpdateTermInput,
 } from "../../hooks/use-term-schemas"
+import { PhaseSelectField } from "../phase-select-field"
 
 export interface EditTermModalProps {
   term: TermDto | null
@@ -46,8 +47,8 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
 
   const statusOptions: ComboboxOption[] = React.useMemo(
     () => [
-      { value: "true", label: t("status.active") },
-      { value: "false", label: t("status.inactive") },
+      { value: "true", label: t("editModal.statusActive") },
+      { value: "false", label: t("editModal.statusInactive") },
     ],
     [t]
   )
@@ -71,6 +72,7 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
       startDate: "",
       endDate: "",
       isActive: true,
+      operatingPhaseId: undefined,
     },
   })
 
@@ -102,6 +104,7 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
         startDate: formatDateForInput(term.startDate),
         endDate: formatDateForInput(term.endDate),
         isActive: term.isActive,
+        operatingPhaseId: term.operatingPhaseId || undefined,
       })
     }
   }, [term, reset])
@@ -133,7 +136,7 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="sm:max-w-md">
+      <FormDialogContent className="sm:max-w-lg">
         <FormDialogHeader>
           <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
@@ -150,6 +153,17 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
               <FieldError>{errors.title?.message}</FieldError>
             </Field>
 
+            <Controller
+              control={control}
+              name="operatingPhaseId"
+              render={({ field }) => (
+                <PhaseSelectField
+                  value={field.value}
+                  onChange={(id) => field.onChange(id)}
+                />
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={Boolean(errors.startDate)}>
                 <FieldLabel>{t("editModal.startDate")}</FieldLabel>
@@ -163,6 +177,7 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
                       locale={locale}
                       placeholder={t("editModal.startDate")}
                       data-invalid={Boolean(errors.startDate)}
+                      showOffDays
                     />
                   )}
                 />
@@ -181,6 +196,7 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
                       locale={locale}
                       placeholder={t("editModal.endDate")}
                       data-invalid={Boolean(errors.endDate)}
+                      showOffDays
                     />
                   )}
                 />
@@ -209,7 +225,7 @@ export function EditTermModal({ term, open, onClose }: EditTermModalProps) {
                     items={statusOptions}
                     value={String(field.value ?? true)}
                     onValueChange={(val) => field.onChange(val === "true")}
-                    placeholder={t("status.active")}
+                    placeholder={t("editModal.statusActive")}
                     drawerTitle={t("editModal.isActive")}
                     searchable={false}
                     clearable={false}

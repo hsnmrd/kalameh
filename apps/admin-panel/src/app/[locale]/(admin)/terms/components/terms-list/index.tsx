@@ -1,8 +1,6 @@
-"use client"
-
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Calendar, Edit2 } from "lucide-react"
+import { Calendar, Edit2, Trash2 } from "lucide-react"
 import {
   MobileList,
   MobileListItem,
@@ -24,7 +22,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from "@workspace/ui/components/empty"
-import { PERMISSIONS, type TermDto } from "@workspace/types"
+import { PERMISSIONS, isTermDeletable, type TermDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { TermStatusBadge } from "../term-status-badge"
 
@@ -32,9 +30,15 @@ export interface TermsListProps {
   terms: TermDto[] | undefined
   isLoading: boolean
   onEdit: (term: TermDto) => void
+  onDelete?: (term: TermDto) => void
 }
 
-export function TermsList({ terms, isLoading, onEdit }: TermsListProps) {
+export function TermsList({
+  terms,
+  isLoading,
+  onEdit,
+  onDelete,
+}: TermsListProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
 
@@ -95,7 +99,7 @@ export function TermsList({ terms, isLoading, onEdit }: TermsListProps) {
               />
 
               <MobileListItemTrailing>
-                <TermStatusBadge isActive={term.isActive} />
+                <TermStatusBadge term={term} allTerms={terms} />
               </MobileListItemTrailing>
             </MobileListItem>
           </ContextMenuTrigger>
@@ -107,6 +111,21 @@ export function TermsList({ terms, isLoading, onEdit }: TermsListProps) {
                 {t("table.actions")}
               </ContextMenuItem>
             </PermissionGuard>
+
+            {onDelete && isTermDeletable(term, terms) && (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_TERMS}
+                mode="hide"
+              >
+                <ContextMenuItem
+                  onClick={() => onDelete(term)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="me-2 size-4 text-destructive" />
+                  {t("deleteModal.deleteAction")}
+                </ContextMenuItem>
+              </PermissionGuard>
+            )}
           </ContextMenuContent>
         </ContextMenu>
       ))}

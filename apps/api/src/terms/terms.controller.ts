@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   Query,
@@ -11,6 +12,8 @@ import {
 import { TermsService } from './terms.service';
 import { CreateTermDto } from './dto/create-term.dto';
 import { UpdateTermDto } from './dto/update-term.dto';
+import { PreviewTermScheduleDto } from './dto/preview-term-schedule.dto';
+import { BatchCreatePhaseTermsDto } from './dto/batch-create-phase-terms.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { ModulesGuard } from '../auth/guards/modules.guard';
@@ -24,6 +27,7 @@ import {
   parseStatusFilter,
   type JwtPayload,
   type SupportedLocale,
+  type WeekDay,
 } from '@workspace/types';
 
 @Controller('terms')
@@ -39,6 +43,8 @@ export class TermsController {
     @Query('instituteId') targetInstituteId?: string,
     @Query('search') search?: string,
     @Query('isActive') isActive?: string,
+    @Query('operatingPhaseId') operatingPhaseId?: string,
+    @Query('status') status?: string,
   ) {
     const parsedIsActive = parseStatusFilter(isActive);
     return this.termsService.findAll(
@@ -46,7 +52,52 @@ export class TermsController {
       targetInstituteId,
       search,
       parsedIsActive,
+      operatingPhaseId,
+      status,
     );
+  }
+
+  @Post('preview-schedule')
+  @RequirePermissions(PERMISSIONS.VIEW_TERMS)
+  previewSchedule(@Body() dto: PreviewTermScheduleDto) {
+    return this.termsService.previewSchedule(dto);
+  }
+
+  @Get('preview-phase')
+  @RequirePermissions(PERMISSIONS.VIEW_TERMS)
+  async previewPhaseTerms(
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+    @Query('operatingPhaseId') operatingPhaseId: string,
+    @Query('jalaliYear') jalaliYear: string,
+    @Query('daysPerTerm') daysPerTerm?: string,
+    @Query('sessionsPerTerm') sessionsPerTerm?: string,
+    @Query('daysOfWeek') daysOfWeek?: string,
+    @Query('gapDays') gapDays?: string,
+  ) {
+    const parsedDays = daysOfWeek
+      ? (daysOfWeek.split(',').map((d) => d.trim()) as WeekDay[])
+      : undefined;
+    const durationDays = Number(daysPerTerm) || Number(sessionsPerTerm) || 45;
+    return this.termsService.previewPhaseTerms(
+      currentUser,
+      operatingPhaseId,
+      Number(jalaliYear) || 1403,
+      durationDays,
+      parsedDays,
+      gapDays ? Number(gapDays) : undefined,
+      locale,
+    );
+  }
+
+  @Post('batch-phase')
+  @RequirePermissions(PERMISSIONS.MANAGE_TERMS)
+  async batchCreatePhaseTerms(
+    @Body() dto: BatchCreatePhaseTermsDto,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.termsService.batchCreatePhaseTerms(dto, currentUser, locale);
   }
 
   @Get(':id')
@@ -78,5 +129,15 @@ export class TermsController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.termsService.update(id, dto, currentUser, locale);
+  }
+
+  @Delete(':id')
+  @RequirePermissions(PERMISSIONS.MANAGE_TERMS)
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.termsService.remove(id, currentUser, locale);
   }
 }

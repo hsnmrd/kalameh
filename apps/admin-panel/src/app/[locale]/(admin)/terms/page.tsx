@@ -22,11 +22,15 @@ import { TermsList } from "./components/terms-list"
 import { TermsFilter } from "./components/terms-filter"
 import { CreateTermModal } from "./components/create-term-modal"
 import { EditTermModal } from "./components/edit-term-modal"
+import { GeneratePhaseTermsModal } from "./components/generate-phase-terms-modal"
+import { DeleteTermModal } from "./components/delete-term-modal"
 
 export default function TermsPage() {
   const t = useTranslations("terms")
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
+  const [batchModalOpen, setBatchModalOpen] = React.useState(false)
   const [editingTerm, setEditingTerm] = React.useState<TermDto | null>(null)
+  const [deletingTerm, setDeletingTerm] = React.useState<TermDto | null>(null)
   const [search, setSearch] = React.useState("")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
 
@@ -43,6 +47,7 @@ export default function TermsPage() {
       instituteId: activeInstituteId,
       search: search.trim() || undefined,
       isActive: parseStatusFilter(selectedStatus),
+      status: selectedStatus !== "ALL" ? selectedStatus : undefined,
     }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
@@ -58,6 +63,7 @@ export default function TermsPage() {
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
               onAddClick={() => setCreateModalOpen(true)}
+              onBatchClick={() => setBatchModalOpen(true)}
             />
           }
           modals={
@@ -67,10 +73,22 @@ export default function TermsPage() {
                 onClose={() => setCreateModalOpen(false)}
               />
 
+              <GeneratePhaseTermsModal
+                key={String(batchModalOpen)}
+                open={batchModalOpen}
+                onClose={() => setBatchModalOpen(false)}
+              />
+
               <EditTermModal
                 term={editingTerm}
                 open={Boolean(editingTerm)}
                 onClose={() => setEditingTerm(null)}
+              />
+
+              <DeleteTermModal
+                term={deletingTerm}
+                open={Boolean(deletingTerm)}
+                onClose={() => setDeletingTerm(null)}
               />
             </>
           }
@@ -89,6 +107,7 @@ export default function TermsPage() {
               terms={terms}
               isLoading={isLoading}
               onEdit={(term) => setEditingTerm(term)}
+              onDelete={(term) => setDeletingTerm(term)}
             />
           </div>
 
@@ -98,6 +117,7 @@ export default function TermsPage() {
               terms={terms}
               isLoading={isLoading}
               onEdit={(term) => setEditingTerm(term)}
+              onDelete={(term) => setDeletingTerm(term)}
             />
           </div>
         </AdminPageShell>

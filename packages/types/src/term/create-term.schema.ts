@@ -23,6 +23,7 @@ export const createCreateTermSchema = (msg?: {
         msg?.endDateRequired ? { message: msg.endDateRequired } : undefined
       ),
     isActive: z.boolean().default(true),
+    operatingPhaseId: z.string().uuid().optional().nullable(),
     instituteId: z.string().uuid().optional(),
   })
 

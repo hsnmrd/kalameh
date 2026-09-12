@@ -62,6 +62,15 @@
 - **Confirmation Modals (`AlertDialog`):** For all actions asking the user to confirm (e.g. `delete-*-modal`, reset permissions, "are you sure?"), ALWAYS use `<AlertDialog />` from `@workspace/ui/components/alert-dialog`. Do NOT use `ResponsiveDialog` or `Dialog` for confirmation prompts.
 - **Input & Form Modals (`ResponsiveDialog` / `FormDialog`):** Use `ResponsiveDialog` or `FormDialog` from `@workspace/ui/components/dialog` for user inputs, form sheets, details inspectors, and wizards.
 - **File Length:** Keep files under 250 lines. Decompose large tables, dialogs, and forms into dedicated subcomponents.
+- **Concise Button Labels Standard (Short Titles over Verbose Phrases):**
+  - Buttons, submit actions, step transitions, and dialog triggers must **ALWAYS** use concise, succinct action titles (e.g. `ادامه` / `Continue`, `تأیید` / `Confirm`, `ذخیره` / `Save`, `انصراف` / `Cancel`, `بازگشت` / `Back`).
+  - **NEVER** use long, descriptive, or verbose phrases in button titles (e.g. avoid `ادامه و مشاهده پیش‌نمایش`, `ذخیره تغییرات و بازگشت به صفحه قبل`, `تأیید اطلاعات و رفتن به مرحله بعد`).
+  - Place descriptive context, explanations, or guidance in headers, descriptions, callouts, or form helper text — never inside the button text.
+- **Form Input Height & Touch Target Standard (Unified 56px / h-14 & rounded-2xl):**
+  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`, `ResponsiveCombobox`), password inputs (`PasswordInput`), and price inputs (`PriceInput`) must strictly use the standard height of **`h-14` (56px)**, **`rounded-2xl`**, **`px-4`**, and **`text-base`** typography.
+  - **NEVER use arbitrary smaller heights (such as `h-9`, `h-10`, `h-11`, `h-12`) for inputs, date pickers, or selects in forms, dialogs, modals, drawers, or sheets.**
+  - **Rationale:** 56px (`h-14`) ensures an ergonomic, easily clickable touch target (> 48px WCAG recommendation) on mobile devices and accessible clickability on desktop, while guaranteeing perfect visual alignment across sibling form fields (such as title input next to or above date pickers and dropdowns).
+  - Compact heights (`h-9` / `h-10`) are strictly restricted to inline table-cell editing inside dense data tables.
 
 ## Admin List Page Layout & Filter Standard (Unified UX)
 

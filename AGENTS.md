@@ -62,6 +62,11 @@
   - **Always separate the input value with commas `","` 3 by 3 from the right** (e.g. `1,500,000`) for maximum user readability.
   - **Always place the currency unit (`تومان` / `Toman`) inside the input at the end of the input.**
   - **NEVER put the currency unit in the label of the input** (e.g. use "شهریه کلاس" or "Class Tuition" instead of "شهریه کلاس (تومان)").
+- **Form Input Height & Touch Target Standard (Unified 56px / h-14 & rounded-2xl):**
+  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`, `ResponsiveCombobox`), password inputs (`PasswordInput`), and price inputs (`PriceInput`) must strictly follow the standard height of **`h-14` (56px)**, **`rounded-2xl`**, **`px-4`**, and **`text-base`** typography.
+  - **NEVER use arbitrary smaller heights (such as `h-9`, `h-10`, `h-11`, `h-12`) for standard inputs, date pickers, or selects in forms, dialogs, modals, drawers, or sheets.**
+  - **Rationale:** 56px (`h-14`) ensures an ergonomic, accessible touch target (> 48px WCAG recommendation) across mobile devices and effortless clickability on desktop, while guaranteeing perfect visual alignment across sibling form fields.
+  - Compact heights (`h-9` / `h-10`) are strictly reserved for inline table-cell editing inside data tables where standard heights would break row density.
 - **General Number Formatting Standard:**
   - Use `formatNumber` from `@workspace/ui/lib/utils` for counts, indexes, and statistical numbers, which formats digits dynamically based on the active locale (`fa-IR` vs `en-US`).
 - **Theme & Dark Mode Standard (Semantic CSS Variables Only):**
@@ -79,6 +84,10 @@
 - **Automated Database Migrations & Migration Immutability:**
   - Whenever modifying `packages/database/schema.prisma` or altering database models, the agent MUST automatically create and execute the development migration via `pnpm run db:migrate:dev --name <descriptive_snake_case_name>` and regenerate Prisma Client types (`pnpm run db:generate`) without requiring manual prompting from the user.
   - **NEVER edit or modify an existing `migration.sql` file once created, applied, or committed.** Modifying existing migration files corrupts the SHA-256 checksum recorded in `_prisma_migrations` and breaks builds and deployments in both development and production (`db:migrate:deploy`). Always generate a new incremental migration for any subsequent schema modifications, index updates, or data transformations.
+- **Concise Button Labels & Action Titles Standard (Short Titles over Verbose Phrases):**
+  - Buttons, submit actions, step transitions, and dialog triggers must **ALWAYS** use concise, succinct action titles (e.g. `ادامه` / `Continue`, `تأیید` / `Confirm`, `ذخیره` / `Save`, `انصراف` / `Cancel`, `بازگشت` / `Back`).
+  - **NEVER** use long, descriptive, or verbose phrases in button titles (e.g. avoid `ادامه و مشاهده پیش‌نمایش`, `ذخیره تغییرات و بازگشت به صفحه قبل`, `تأیید اطلاعات و رفتن به مرحله بعد`).
+  - Place descriptive context, explanations, or guidance in headers, descriptions, callouts, or form helper text — never inside the button text.
 
 ## Context Routing
 

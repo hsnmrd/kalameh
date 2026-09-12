@@ -531,6 +531,9 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@workspace/types':
+        specifier: workspace:*
+        version: link:../types
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

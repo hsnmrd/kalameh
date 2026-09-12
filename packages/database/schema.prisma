@@ -228,14 +228,16 @@ model TeacherAvailability {
 }
 
 model Term {
-  id          String   @id @default(uuid())
-  instituteId String
-  title       String
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean  @default(true)
+  id               String   @id @default(uuid())
+  instituteId      String
+  title            String
+  startDate        DateTime
+  endDate          DateTime
+  isActive         Boolean  @default(true)
+  operatingPhaseId String?
 
-  institute         Institute          @relation(fields: [instituteId], references: [id])
+  institute         Institute                @relation(fields: [instituteId], references: [id])
+  operatingPhase    InstituteOperatingPhase? @relation(fields: [operatingPhaseId], references: [id], onDelete: SetNull)
   classes           Class[]
   classRequirements ClassRequirement[]
   schedulingRuns    SchedulingRun[]
@@ -244,6 +246,7 @@ model Term {
   updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
+  @@index([operatingPhaseId])
 }
 
 model Course {
@@ -693,6 +696,7 @@ model InstituteOperatingPhase {
   updatedAt DateTime @updatedAt
 
   institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  terms     Term[]
 
   @@index([instituteId])
   @@index([instituteId, isActive])

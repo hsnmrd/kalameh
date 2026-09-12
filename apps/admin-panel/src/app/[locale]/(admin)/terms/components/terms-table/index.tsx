@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Calendar, Edit2 } from "lucide-react"
+import { Calendar, Edit2, Trash2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
@@ -15,7 +15,7 @@ import {
   EmptyDescription,
 } from "@workspace/ui/components/empty"
 import { formatNumber } from "@workspace/ui/lib/utils"
-import { PERMISSIONS, type TermDto } from "@workspace/types"
+import { PERMISSIONS, isTermDeletable, type TermDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { TermStatusBadge } from "../term-status-badge"
 
@@ -23,27 +23,36 @@ export interface TermsTableProps {
   terms: TermDto[] | undefined
   isLoading: boolean
   onEdit: (term: TermDto) => void
+  onDelete?: (term: TermDto) => void
 }
 
-export function TermsTable({ terms, isLoading, onEdit }: TermsTableProps) {
+export function TermsTable({
+  terms,
+  isLoading,
+  onEdit,
+  onDelete,
+}: TermsTableProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
 
-  const formatDate = (dateVal: string | Date) => {
-    try {
-      const d = new Date(dateVal)
-      return new Intl.DateTimeFormat(
-        locale === "fa" ? "fa-IR-u-ca-persian" : "en-US",
-        {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        }
-      ).format(d)
-    } catch {
-      return String(dateVal)
-    }
-  }
+  const formatDate = React.useCallback(
+    (dateVal: string | Date) => {
+      try {
+        const d = new Date(dateVal)
+        return new Intl.DateTimeFormat(
+          locale === "fa" ? "fa-IR-u-ca-persian" : "en-US",
+          {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          }
+        ).format(d)
+      } catch {
+        return String(dateVal)
+      }
+    },
+    [locale]
+  )
 
   const columns = React.useMemo<ColumnDef<TermDto>[]>(
     () => [
@@ -91,32 +100,55 @@ export function TermsTable({ terms, isLoading, onEdit }: TermsTableProps) {
       {
         accessorKey: "status",
         header: t("table.status"),
-        cell: ({ row }) => <TermStatusBadge isActive={row.original.isActive} />,
+        cell: ({ row }) => (
+          <TermStatusBadge term={row.original} allTerms={terms} />
+        ),
       },
       {
         id: "actions",
         header: t("table.actions"),
-        cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-2">
-            <PermissionGuard
-              permission={PERMISSIONS.MANAGE_TERMS}
-              mode="disable"
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onEdit(row.original)}
-                className="size-8 p-0 text-muted-foreground hover:text-foreground"
-                aria-label={t("table.actions")}
+        cell: ({ row }) => {
+          const canDelete = isTermDeletable(row.original, terms)
+
+          return (
+            <div className="flex items-center justify-end gap-1">
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_TERMS}
+                mode="disable"
               >
-                <Edit2 className="size-4" />
-              </Button>
-            </PermissionGuard>
-          </div>
-        ),
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(row.original)}
+                  className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                  aria-label={t("table.actions")}
+                >
+                  <Edit2 className="size-4" />
+                </Button>
+              </PermissionGuard>
+
+              {onDelete && canDelete && (
+                <PermissionGuard
+                  permission={PERMISSIONS.MANAGE_TERMS}
+                  mode="hide"
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(row.original)}
+                    className="size-8 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    aria-label={t("deleteModal.deleteAction")}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </PermissionGuard>
+              )}
+            </div>
+          )
+        },
       },
     ],
-    [t, locale, onEdit]
+    [t, formatDate, locale, onEdit, onDelete, terms]
   )
 
   if (isLoading) {

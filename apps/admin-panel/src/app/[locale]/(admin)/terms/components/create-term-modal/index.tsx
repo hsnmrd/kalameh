@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
@@ -26,6 +26,8 @@ import {
   useCreateTermSchema,
   type CreateTermInput,
 } from "../../hooks/use-term-schemas"
+import { PhaseSelectField } from "../phase-select-field"
+import { TermCalculatorSection } from "./term-calculator-section"
 
 export interface CreateTermModalProps {
   open: boolean
@@ -44,6 +46,7 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
     handleSubmit,
     control,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<CreateTermInput>({
     resolver: zodResolver(createTermSchema),
@@ -52,8 +55,11 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
       startDate: "",
       endDate: "",
       isActive: true,
+      operatingPhaseId: undefined,
     },
   })
+
+  const watchedStartDate = useWatch({ control, name: "startDate" })
 
   React.useEffect(() => {
     if (open) {
@@ -62,6 +68,7 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
         startDate: "",
         endDate: "",
         isActive: true,
+        operatingPhaseId: undefined,
       })
     }
   }, [open, reset])
@@ -92,7 +99,7 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="sm:max-w-md">
+      <FormDialogContent className="sm:max-w-lg">
         <FormDialogHeader>
           <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
@@ -112,6 +119,19 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
               <FieldError>{errors.title?.message}</FieldError>
             </Field>
 
+            <Controller
+              control={control}
+              name="operatingPhaseId"
+              render={({ field }) => (
+                <PhaseSelectField
+                  value={field.value}
+                  onChange={(id) => {
+                    field.onChange(id)
+                  }}
+                />
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={Boolean(errors.startDate)}>
                 <FieldLabel>{t("createModal.startDate")}</FieldLabel>
@@ -125,6 +145,7 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
                       locale={locale}
                       placeholder={t("createModal.startDate")}
                       data-invalid={Boolean(errors.startDate)}
+                      showOffDays
                     />
                   )}
                 />
@@ -143,12 +164,18 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
                       locale={locale}
                       placeholder={t("createModal.endDate")}
                       data-invalid={Boolean(errors.endDate)}
+                      showOffDays
                     />
                   )}
                 />
                 <FieldError>{errors.endDate?.message}</FieldError>
               </Field>
             </div>
+
+            <TermCalculatorSection
+              startDate={watchedStartDate || ""}
+              onApplyDate={(date) => setValue("endDate", date)}
+            />
           </div>
 
           <FormDialogFooter>
