@@ -21,6 +21,7 @@
     "finance": "Financial Transactions",
     "operatingPhases": "Operating Phases",
     "offDays": "Off-Days & Calendar",
+    "customOffDays": "Custom Institute Off-Days",
     "superAdminSection": "Platform Management",
     "instituteSection": "Institute Management",
     "academicSection": "Academic Operations",

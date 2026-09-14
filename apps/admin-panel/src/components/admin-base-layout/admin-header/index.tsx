@@ -66,6 +66,9 @@ function getPageTitle(pathname: string, t: (key: string) => string): string {
   if (pathname.startsWith("/transactions")) {
     return t("nav.finance")
   }
+  if (pathname.startsWith("/off-days/custom")) {
+    return t("nav.customOffDays")
+  }
   if (pathname.startsWith("/off-days")) {
     return t("nav.offDays")
   }

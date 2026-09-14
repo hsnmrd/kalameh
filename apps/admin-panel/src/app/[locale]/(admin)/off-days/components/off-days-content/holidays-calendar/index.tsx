@@ -9,15 +9,17 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Calendar } from "@workspace/ui/components/calendar"
 import { toast } from "@workspace/ui/components/sonner"
+import { cn } from "@workspace/ui/lib/utils"
 import { isJalaliHoliday } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
+import { CalendarMobileActions } from "./calendar-mobile-actions"
+import { PendingHolidayChanges } from "./pending-holiday-changes"
 
 export interface HolidaysCalendarProps {
   instituteId: string
   observeOfficialHolidays: boolean
   dismissedHolidays?: string[]
   customOffDays?: string[]
-  onOpenAddModalWithDate?: (dateIso: string) => void
 }
 
 function toIsoDate(d: Date): string {
@@ -32,7 +34,6 @@ export function HolidaysCalendar({
   observeOfficialHolidays,
   dismissedHolidays = [],
   customOffDays = [],
-  onOpenAddModalWithDate,
 }: HolidaysCalendarProps) {
   const t = useTranslations("setting.offDays")
   const locale = useLocale() as "fa" | "en"
@@ -65,15 +66,11 @@ export function HolidaysCalendar({
     return false
   }, [stagedDismissed, initialSet])
 
-  const changesCount = React.useMemo(() => {
-    let diff = 0
-    for (const d of stagedDismissed) {
-      if (!initialSet.has(d)) diff++
-    }
-    for (const d of initialSet) {
-      if (!stagedDismissed.has(d)) diff++
-    }
-    return diff
+  const pendingChanges = React.useMemo(() => {
+    return Array.from(new Set([...initialSet, ...stagedDismissed]))
+      .filter((date) => initialSet.has(date) !== stagedDismissed.has(date))
+      .sort()
+      .map((date) => ({ date, willBeOpen: stagedDismissed.has(date) }))
   }, [stagedDismissed, initialSet])
 
   const updateMutation = useMutation({
@@ -101,14 +98,6 @@ export function HolidaysCalendar({
         }
         return next
       })
-    } else {
-      // Normal day or custom off day
-      if (customOffDays.includes(isoDate)) {
-        // Already a custom off day
-        return
-      }
-      // If parent provided callback to open add modal with preselected date
-      onOpenAddModalWithDate?.(isoDate)
     }
   }
 
@@ -126,13 +115,27 @@ export function HolidaysCalendar({
     setStagedDismissed(new Set(initialSet))
   }
 
+  const handleUndoChange = (date: string) => {
+    setStagedDismissed((previous) => {
+      const next = new Set(previous)
+      if (initialSet.has(date)) next.add(date)
+      else next.delete(date)
+      return next
+    })
+  }
+
   const stagedArray = React.useMemo(
     () => Array.from(stagedDismissed),
     [stagedDismissed]
   )
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border/80 bg-background/60 p-4">
+    <div
+      className={cn(
+        "flex flex-col gap-4 rounded-xl border border-border/80 bg-background/60 p-4",
+        hasChanges && "pb-28 lg:pb-4"
+      )}
+    >
       {/* Calendar Header & Status */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5">
@@ -148,41 +151,47 @@ export function HolidaysCalendar({
         </div>
 
         {hasChanges && (
-          <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 lg:flex">
             <Badge
               variant="outline"
               className="h-7 border-warning/50 bg-warning/10 px-2.5 text-xs font-medium text-warning"
             >
-              {t("unsavedChanges", { count: changesCount })}
+              {t("unsavedChanges", { count: pendingChanges.length })}
             </Badge>
             <Button
               type="button"
               variant="ghost"
-              size="xs"
               onClick={handleDiscard}
               disabled={updateMutation.isPending}
-              className="h-8 cursor-pointer gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground hover:text-foreground"
+              className="h-14 cursor-pointer rounded-2xl px-4 text-base text-muted-foreground hover:text-foreground"
             >
-              <RotateCcw className="size-3.5" />
+              <RotateCcw data-icon="inline-start" />
               <span>{t("discardChanges")}</span>
             </Button>
             <Button
               type="button"
-              size="xs"
               onClick={handleSave}
               disabled={updateMutation.isPending}
-              className="h-8 cursor-pointer gap-1.5 rounded-lg px-3 text-xs font-medium shadow-xs"
+              className="h-14 cursor-pointer rounded-2xl px-5 text-base font-medium shadow-xs"
             >
               {updateMutation.isPending ? (
-                <Spinner className="size-3.5 text-foreground" />
+                <Spinner data-icon="inline-start" />
               ) : (
-                <Check className="size-3.5" />
+                <Check data-icon="inline-start" />
               )}
               <span>{t("saveChanges")}</span>
             </Button>
           </div>
         )}
       </div>
+
+      {hasChanges && (
+        <PendingHolidayChanges
+          changes={pendingChanges}
+          locale={locale}
+          onUndo={handleUndoChange}
+        />
+      )}
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
@@ -214,6 +223,14 @@ export function HolidaysCalendar({
           className="mx-auto w-fit border border-border bg-card shadow-xs"
         />
       </div>
+
+      {hasChanges && (
+        <CalendarMobileActions
+          isPending={updateMutation.isPending}
+          onReset={handleDiscard}
+          onSave={handleSave}
+        />
+      )}
     </div>
   )
 }
