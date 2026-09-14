@@ -39,7 +39,9 @@ export function CalendarToolbar({
   }
 
   const displayYear =
-    locale === "fa" ? formatNumber(selectedYear, "fa-IR") : String(selectedYear)
+    locale === "fa"
+      ? String(selectedYear).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)] ?? d)
+      : String(selectedYear)
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">

@@ -20,13 +20,21 @@ import { CalendarModals } from "./calendar-modals"
 import { PendingHolidayChanges } from "./pending-holiday-changes"
 import { CalendarToolbar } from "./calendar-toolbar"
 import { AnnualCalendar } from "./annual-calendar"
+import { ObserveHolidaysStickyBar } from "../observe-holidays-sticky-bar"
 
 export interface HolidaysCalendarProps {
   instituteId: string
   observeOfficialHolidays: boolean
+  onToggleObserve?: (checked: boolean) => void
+  isUpdatingSettings?: boolean
+  isLoadingInstitute?: boolean
   dismissedHolidays?: string[]
   customOffDays?: string[]
   customOffDaysList?: InstituteCustomOffDay[]
+  selectedYear?: number
+  onYearChange?: (year: number) => void
+  viewMode?: "year" | "month"
+  onViewModeChange?: (mode: "year" | "month") => void
 }
 
 function toIsoDate(d: Date): string {
@@ -39,9 +47,16 @@ function toIsoDate(d: Date): string {
 export function HolidaysCalendar({
   instituteId,
   observeOfficialHolidays,
+  onToggleObserve,
+  isUpdatingSettings = false,
+  isLoadingInstitute = false,
   dismissedHolidays = [],
   customOffDays = [],
   customOffDaysList = [],
+  selectedYear: externalSelectedYear,
+  onYearChange: externalOnYearChange,
+  viewMode: externalViewMode,
+  onViewModeChange: externalOnViewModeChange,
 }: HolidaysCalendarProps) {
   const t = useTranslations("setting.offDays")
   const locale = useLocale() as "fa" | "en"
@@ -54,12 +69,18 @@ export function HolidaysCalendar({
     [locale, today]
   )
 
-  const [selectedYear, setSelectedYear] = React.useState<number>(currentYear)
-  const [viewMode, setViewMode] = React.useState<"year" | "month">("year")
+  const [internalSelectedYear, setInternalSelectedYear] =
+    React.useState<number>(currentYear)
+  const [internalViewMode, setInternalViewMode] = React.useState<
+    "year" | "month"
+  >("year")
   const [currentMonth, setCurrentMonth] = React.useState<Date>(() => new Date())
   const [stagedDismissed, setStagedDismissed] = React.useState<Set<string>>(
     () => new Set(dismissedHolidays)
   )
+
+  const selectedYear = externalSelectedYear ?? internalSelectedYear
+  const viewMode = externalViewMode ?? internalViewMode
 
   const [addModalOpen, setAddModalOpen] = React.useState(false)
   const [selectedDateForAdd, setSelectedDateForAdd] = React.useState<
@@ -134,12 +155,24 @@ export function HolidaysCalendar({
   }
 
   const handleYearChange = (newYear: number) => {
-    setSelectedYear(newYear)
+    if (externalOnYearChange) {
+      externalOnYearChange(newYear)
+    } else {
+      setInternalSelectedYear(newYear)
+    }
     if (locale === "fa") {
       const currentJMonth = gregorianToJalali(currentMonth).month
       setCurrentMonth(jalaliToGregorian(newYear, currentJMonth, 1))
     } else {
       setCurrentMonth(new Date(newYear, currentMonth.getMonth(), 1))
+    }
+  }
+
+  const handleViewModeChange = (mode: "year" | "month") => {
+    if (externalOnViewModeChange) {
+      externalOnViewModeChange(mode)
+    } else {
+      setInternalViewMode(mode)
     }
   }
 
@@ -169,6 +202,8 @@ export function HolidaysCalendar({
     [stagedDismissed]
   )
 
+  const isControlled = externalSelectedYear !== undefined
+
   return (
     <div
       className={cn(
@@ -176,22 +211,27 @@ export function HolidaysCalendar({
         hasChanges && "pb-28 lg:pb-4"
       )}
     >
-      <CalendarHeader
-        hasChanges={hasChanges}
-        pendingChangesCount={pendingChanges.length}
-        isSaving={updateMutation.isPending}
-        onDiscard={handleDiscard}
-        onSave={handleSave}
-      />
+      {/* If not controlled by parent OffDaysFilter, render fallback header and toolbar */}
+      {!isControlled && (
+        <>
+          <CalendarHeader
+            hasChanges={hasChanges}
+            pendingChangesCount={pendingChanges.length}
+            isSaving={updateMutation.isPending}
+            onDiscard={handleDiscard}
+            onSave={handleSave}
+          />
 
-      <CalendarToolbar
-        selectedYear={selectedYear}
-        currentYear={currentYear}
-        onYearChange={handleYearChange}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        locale={locale}
-      />
+          <CalendarToolbar
+            selectedYear={selectedYear}
+            currentYear={currentYear}
+            onYearChange={handleYearChange}
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
+            locale={locale}
+          />
+        </>
+      )}
 
       {hasChanges && (
         <PendingHolidayChanges
@@ -203,6 +243,7 @@ export function HolidaysCalendar({
 
       <CalendarLegend />
 
+      {/* Interactive Calendar - Desktop Mode */}
       <div className="hidden lg:block">
         {viewMode === "year" ? (
           <AnnualCalendar
@@ -230,6 +271,7 @@ export function HolidaysCalendar({
         )}
       </div>
 
+      {/* Interactive Calendar - Mobile Mode (Single Month) */}
       <div className="flex w-full justify-center overflow-x-auto p-1 lg:hidden">
         <Calendar
           locale={locale}
@@ -269,6 +311,21 @@ export function HolidaysCalendar({
         }}
         selectedOffDayForDelete={selectedOffDayForDelete}
       />
+
+      {/* Sticky Bottom Bar for Observe Official Holidays setting */}
+      {onToggleObserve && (
+        <ObserveHolidaysStickyBar
+          observeOfficialHolidays={observeOfficialHolidays}
+          onToggleObserve={onToggleObserve}
+          isUpdatingSettings={isUpdatingSettings}
+          isLoadingInstitute={isLoadingInstitute}
+          hasChanges={hasChanges}
+          pendingChangesCount={pendingChanges.length}
+          isSavingCalendar={updateMutation.isPending}
+          onDiscardCalendar={handleDiscard}
+          onSaveCalendar={handleSave}
+        />
+      )}
     </div>
   )
 }
