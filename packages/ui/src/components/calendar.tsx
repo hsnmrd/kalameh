@@ -215,8 +215,8 @@ export function Calendar({
         week: "grid grid-cols-7 gap-1 w-full justify-items-center",
         day: "relative p-0 flex items-center justify-center size-9 text-center text-sm rounded-xl focus-within:relative focus-within:z-20",
         day_button: cn(
-          buttonVariants({ variant: "ghost" }),
-          "aspect-square size-9 rounded-xl p-0 text-sm font-medium transition-all select-none",
+          buttonVariants({ variant: "ghost", size: "icon" }),
+          "aspect-square size-9 min-w-0 rounded-xl p-0 text-sm font-medium transition-all select-none",
           "hover:bg-muted hover:text-foreground active:scale-95",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
         ),

@@ -220,7 +220,7 @@ export function InstituteSwitcher({
             type="button"
             variant="outline"
             onClick={() => setOpen(false)}
-            className="h-14 w-full rounded-2xl text-base font-medium sm:h-10 sm:w-auto sm:rounded-xl sm:px-5 sm:text-sm"
+            className="w-full sm:w-auto"
           >
             {t("switcher.close") || "بستن"}
           </Button>

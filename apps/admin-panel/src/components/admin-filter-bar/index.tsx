@@ -149,7 +149,7 @@ export function AdminFilterBar({
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-14 flex-1 rounded-2xl text-base font-medium sm:h-10 sm:flex-initial sm:rounded-xl sm:px-4 sm:text-sm"
+                  className="flex-1 sm:flex-initial"
                   onClick={() => {
                     onClearFilters()
                     setDialogOpen(false)
@@ -160,7 +160,7 @@ export function AdminFilterBar({
               )}
               <Button
                 type="button"
-                className="h-14 flex-1 rounded-2xl bg-primary text-base font-medium text-primary-foreground hover:bg-primary/90 sm:h-10 sm:flex-initial sm:rounded-xl sm:px-6 sm:text-sm"
+                className="flex-1 sm:flex-initial"
                 onClick={() => setDialogOpen(false)}
               >
                 {t("show")}

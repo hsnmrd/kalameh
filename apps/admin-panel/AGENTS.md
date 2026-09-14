@@ -66,11 +66,17 @@
   - Buttons, submit actions, step transitions, and dialog triggers must **ALWAYS** use concise, succinct action titles (e.g. `ادامه` / `Continue`, `تأیید` / `Confirm`, `ذخیره` / `Save`, `انصراف` / `Cancel`, `بازگشت` / `Back`).
   - **NEVER** use long, descriptive, or verbose phrases in button titles (e.g. avoid `ادامه و مشاهده پیش‌نمایش`, `ذخیره تغییرات و بازگشت به صفحه قبل`, `تأیید اطلاعات و رفتن به مرحله بعد`).
   - Place descriptive context, explanations, or guidance in headers, descriptions, callouts, or form helper text — never inside the button text.
-- **Form Input Height & Touch Target Standard (Unified 56px / h-14 & rounded-2xl):**
-  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`, `ResponsiveCombobox`), password inputs (`PasswordInput`), and price inputs (`PriceInput`) must strictly use the standard height of **`h-14` (56px)**, **`rounded-2xl`**, **`px-4`**, and **`text-base`** typography.
-  - **NEVER use arbitrary smaller heights (such as `h-9`, `h-10`, `h-11`, `h-12`) for inputs, date pickers, or selects in forms, dialogs, modals, drawers, or sheets.**
-  - **Rationale:** 56px (`h-14`) ensures an ergonomic, easily clickable touch target (> 48px WCAG recommendation) on mobile devices and accessible clickability on desktop, while guaranteeing perfect visual alignment across sibling form fields (such as title input next to or above date pickers and dropdowns).
-  - Compact heights (`h-9` / `h-10`) are strictly restricted to inline table-cell editing inside dense data tables.
+- **Form Input & Button Height Standard (Unified 56px / h-14 & rounded-2xl):**
+  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`, `ResponsiveCombobox`), password inputs (`PasswordInput`), price inputs (`PriceInput`), and buttons (`<Button />`) must strictly use the standard height of **`h-14` (56px)**, **`rounded-2xl`**, and **`text-base`** typography.
+  - `<Button />` defaults directly to **`h-14` / `rounded-2xl` (`size: "default"`)**. Do not write repetitive `h-14 rounded-2xl ...` utility classes in modal footers or forms.
+  - **NEVER use arbitrary smaller heights (such as `h-9`, `h-10`, `h-11`, `h-12`) for buttons, inputs, date pickers, or selects in forms, dialogs, modals, drawers, or sheets.**
+  - **Exception Policy (The "Small Parts"):** Smaller button sizes (`size="sm"` / `h-8`, `size="icon"`, `size="icon-sm"`, `size="icon-xs"`) are strictly restricted to:
+    1. Inline data table cell actions (e.g. edit/delete action buttons in table rows).
+    2. Internal input adornments (e.g. password eye toggle, clear buttons).
+    3. Calendar day cells and navigation arrows in date pickers.
+    4. Compact header/toolbar icons.
+  - **Rationale:** 56px (`h-14`) ensures an ergonomic, easily clickable touch target (> 48px WCAG recommendation) on mobile devices and accessible clickability on desktop, while guaranteeing perfect visual alignment across sibling form fields and action triggers.
+  - Compact heights (`h-8` / `h-9` / `h-10` / `size="sm"`) are strictly restricted to the above exceptions.
 
 ## Admin List Page Layout & Filter Standard (Unified UX)
 

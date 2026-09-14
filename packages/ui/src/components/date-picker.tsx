@@ -118,6 +118,7 @@ export function DatePicker({
           <Button
             type="button"
             variant="ghost"
+            size="sm"
             disabled={disabled}
             className={cn(
               "group inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-foreground transition-colors select-none hover:bg-muted hover:text-primary disabled:cursor-not-allowed",
@@ -199,6 +200,7 @@ export function DatePicker({
           <Button
             type="button"
             variant="ghost"
+            size="sm"
             disabled={disabled}
             className="flex h-full min-w-0 flex-1 cursor-pointer items-center justify-start gap-2.5 p-0 text-start text-base font-normal outline-hidden select-none hover:bg-transparent disabled:cursor-not-allowed"
           >

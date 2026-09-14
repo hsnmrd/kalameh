@@ -79,7 +79,7 @@ export function DeleteClassModal({
 
         <AlertDialogFooter className="mt-6 flex-row items-center gap-3 sm:justify-end sm:border-t sm:border-border/60 sm:pt-4">
           <AlertDialogCancel
-            className="h-14 flex-1 rounded-2xl text-base font-medium sm:h-10 sm:w-auto sm:flex-initial sm:rounded-xl sm:px-4 sm:text-sm"
+            className="flex-1 sm:w-auto sm:flex-initial"
             onClick={onClose}
             disabled={deleteMutation.isPending}
           >
@@ -88,7 +88,7 @@ export function DeleteClassModal({
 
           <AlertDialogAction
             variant="destructive"
-            className="h-14 flex-1 rounded-2xl text-base font-medium sm:h-10 sm:w-auto sm:flex-initial sm:rounded-xl sm:px-5 sm:text-sm"
+            className="flex-1 sm:w-auto sm:flex-initial"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
           >

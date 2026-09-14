@@ -47,6 +47,26 @@ describe("Calendar & DatePicker Components", () => {
       // In Gregorian, August 2026
       expect(screen.getByText(/August|2026/i)).toBeInTheDocument()
     })
+
+    it("should render day buttons as compact size-9 square buttons without wide min-w", () => {
+      render(
+        <Calendar
+          mode="single"
+          locale="fa"
+          selected={new Date("2026-08-23T00:00:00Z")}
+        />
+      )
+
+      const dayButtons = screen.getAllByRole("button")
+      const dayOneButton = dayButtons.find(
+        (btn) =>
+          btn.textContent?.trim() === "۱" || btn.textContent?.trim() === "1"
+      )
+      expect(dayOneButton).toBeDefined()
+      expect(dayOneButton).toHaveClass("size-9")
+      expect(dayOneButton).toHaveClass("min-w-0")
+      expect(dayOneButton).not.toHaveClass("min-w-[6.5rem]")
+    })
   })
 
   describe("DatePicker", () => {

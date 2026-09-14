@@ -17,9 +17,11 @@
   - **Always separate the input value with commas `","` 3 by 3 from the right** for optimal user readability.
   - **Always place the currency unit (`تومان` / `Toman`) inside the input at the end of the input.**
   - **NEVER put the currency unit in the label of the input** (e.g. use "شهریه کلاس" instead of "شهریه کلاس (تومان)").
-- **Form Input Height & Touch Target Standard (Unified 56px / h-14 & rounded-2xl):**
-  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`), password inputs (`PasswordInput`), and price inputs (`PriceInput`) must strictly default to **`h-14` (56px)** height, **`rounded-2xl`**, **`px-4`**, and **`text-base`** typography.
-  - Do not hardcode smaller heights (such as `h-10`) into base UI form primitives.
+- **Form Input & Button Height Standard (Unified 56px / h-14 & rounded-2xl):**
+  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`), password inputs (`PasswordInput`), price inputs (`PriceInput`), and primary/action buttons (`<Button />`) must strictly default to **`h-14` (56px)** height, **`rounded-2xl`**, and **`text-base`** typography.
+  - `<Button />` defaults directly to **`h-14` / `rounded-2xl` (`size: "default"`)**.
+  - Smaller sizes (`size="sm"` / `h-8`, `size="icon"`, `size="icon-sm"`, `size="icon-xs"`) are strictly reserved for inline table cell actions, internal input adornments, date picker calendar days, and compact header/toolbar icons.
+  - Do not hardcode smaller heights (such as `h-10`) into base UI form primitives or standard dialog actions.
 - **General Number Formatting Standard:**
   - `formatNumber` (`src/lib/utils.ts`) dynamically applies active locale (`fa-IR` vs `en-US`) for count badges, pagination, and statistical totals.
 - **Theme & Dark Mode Standard (Semantic CSS Variables Only):**

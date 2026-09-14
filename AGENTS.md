@@ -62,11 +62,17 @@
   - **Always separate the input value with commas `","` 3 by 3 from the right** (e.g. `1,500,000`) for maximum user readability.
   - **Always place the currency unit (`تومان` / `Toman`) inside the input at the end of the input.**
   - **NEVER put the currency unit in the label of the input** (e.g. use "شهریه کلاس" or "Class Tuition" instead of "شهریه کلاس (تومان)").
-- **Form Input Height & Touch Target Standard (Unified 56px / h-14 & rounded-2xl):**
-  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`, `ResponsiveCombobox`), password inputs (`PasswordInput`), and price inputs (`PriceInput`) must strictly follow the standard height of **`h-14` (56px)**, **`rounded-2xl`**, **`px-4`**, and **`text-base`** typography.
-  - **NEVER use arbitrary smaller heights (such as `h-9`, `h-10`, `h-11`, `h-12`) for standard inputs, date pickers, or selects in forms, dialogs, modals, drawers, or sheets.**
-  - **Rationale:** 56px (`h-14`) ensures an ergonomic, accessible touch target (> 48px WCAG recommendation) across mobile devices and effortless clickability on desktop, while guaranteeing perfect visual alignment across sibling form fields.
-  - Compact heights (`h-9` / `h-10`) are strictly reserved for inline table-cell editing inside data tables where standard heights would break row density.
+- **Form Input & Button Height Standard (Unified 56px / h-14 & rounded-2xl):**
+  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`, `ResponsiveCombobox`), password inputs (`PasswordInput`), price inputs (`PriceInput`), and primary/form/dialog/action buttons (`<Button />`) must strictly follow the standard height of **`h-14` (56px)**, **`rounded-2xl`**, and **`text-base`** typography.
+  - `<Button />` defaults directly to **`h-14` / `rounded-2xl` (`size: "default"`)**. Never handcraft repetitive `h-14 rounded-2xl ...` utility classes in callsites.
+  - **NEVER use arbitrary smaller heights (such as `h-9`, `h-10`, `h-11`, `h-12`) for standard buttons, inputs, date pickers, or selects in forms, dialogs, modals, drawers, or sheets.**
+  - **Exception Policy (The "Small Parts"):** Smaller button sizes (`size="sm"` / `h-8`, `size="icon"`, `size="icon-sm"`, `size="icon-xs"`) are strictly reserved for:
+    1. Inline data table cell actions (e.g. edit/delete row actions to preserve row density).
+    2. Internal input adornments (e.g. password visibility toggle, clear buttons).
+    3. Calendar day buttons and month navigation inside date pickers.
+    4. Compact header/toolbar icons (e.g. theme toggle, back navigation icon).
+  - **Rationale:** 56px (`h-14`) ensures an ergonomic, accessible touch target (> 48px WCAG recommendation) across mobile devices and effortless clickability on desktop, while guaranteeing perfect visual alignment between inputs and action buttons.
+  - Compact heights (`h-8` / `h-9` / `h-10` / `size="sm"`) are strictly reserved for inline table-cell editing and the above exceptions.
 - **General Number Formatting Standard:**
   - Use `formatNumber` from `@workspace/ui/lib/utils` for counts, indexes, and statistical numbers, which formats digits dynamically based on the active locale (`fa-IR` vs `en-US`).
 - **Theme & Dark Mode Standard (Semantic CSS Variables Only):**

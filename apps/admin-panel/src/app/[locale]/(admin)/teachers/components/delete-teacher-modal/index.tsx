@@ -97,7 +97,7 @@ export function DeleteTeacherModal({
           <AlertDialogCancel
             onClick={onClose}
             disabled={deleteMutation.isPending}
-            className="h-14 flex-1 rounded-2xl text-base font-medium sm:h-10 sm:w-auto sm:flex-initial sm:rounded-xl sm:px-4 sm:text-sm"
+            className="flex-1 sm:w-auto sm:flex-initial"
           >
             {t("deleteDialog.cancel")}
           </AlertDialogCancel>
@@ -106,7 +106,7 @@ export function DeleteTeacherModal({
             variant="destructive"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="h-14 flex-1 rounded-2xl text-base font-medium sm:h-10 sm:w-auto sm:flex-initial sm:rounded-xl sm:px-5 sm:text-sm"
+            className="flex-1 sm:w-auto sm:flex-initial"
           >
             {deleteMutation.isPending ? (
               <>
