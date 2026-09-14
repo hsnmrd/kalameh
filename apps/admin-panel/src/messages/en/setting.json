@@ -63,6 +63,15 @@
     "saveChanges": "Save",
     "discardChanges": "Reset",
     "calendarActionsLabel": "Calendar change actions",
-    "successUpdateCalendar": "Calendar changes saved successfully."
+    "successUpdateCalendar": "Calendar changes saved successfully.",
+    "yearView": "Annual",
+    "monthView": "Monthly",
+    "currentYear": "Current Year",
+    "previousYear": "Previous Year",
+    "nextYear": "Next Year",
+    "holidaysCount": "{count} holiday(s)",
+    "currentMonth": "Current Month",
+    "dismissedInInstitute": "Open in institute",
+    "customInstituteOffDay": "Institute Off-Day"
   }
 }

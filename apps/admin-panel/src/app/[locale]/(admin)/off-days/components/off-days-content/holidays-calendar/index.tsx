@@ -3,23 +3,30 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Check, RotateCcw, CalendarDays } from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { Calendar } from "@workspace/ui/components/calendar"
 import { toast } from "@workspace/ui/components/sonner"
 import { cn } from "@workspace/ui/lib/utils"
-import { isJalaliHoliday } from "@workspace/types"
+import {
+  isJalaliHoliday,
+  gregorianToJalali,
+  jalaliToGregorian,
+  type InstituteCustomOffDay,
+} from "@workspace/types"
 import { institutesResource } from "@/lib/api"
+import { CalendarHeader } from "./calendar-header"
+import { CalendarLegend } from "./calendar-legend"
 import { CalendarMobileActions } from "./calendar-mobile-actions"
+import { CalendarModals } from "./calendar-modals"
 import { PendingHolidayChanges } from "./pending-holiday-changes"
+import { CalendarToolbar } from "./calendar-toolbar"
+import { AnnualCalendar } from "./annual-calendar"
 
 export interface HolidaysCalendarProps {
   instituteId: string
   observeOfficialHolidays: boolean
   dismissedHolidays?: string[]
   customOffDays?: string[]
+  customOffDaysList?: InstituteCustomOffDay[]
 }
 
 function toIsoDate(d: Date): string {
@@ -34,17 +41,34 @@ export function HolidaysCalendar({
   observeOfficialHolidays,
   dismissedHolidays = [],
   customOffDays = [],
+  customOffDaysList = [],
 }: HolidaysCalendarProps) {
   const t = useTranslations("setting.offDays")
   const locale = useLocale() as "fa" | "en"
   const queryClient = useQueryClient()
 
+  const today = React.useMemo(() => new Date(), [])
+  const currentYear = React.useMemo(
+    () =>
+      locale === "fa" ? gregorianToJalali(today).year : today.getFullYear(),
+    [locale, today]
+  )
+
+  const [selectedYear, setSelectedYear] = React.useState<number>(currentYear)
+  const [viewMode, setViewMode] = React.useState<"year" | "month">("year")
   const [currentMonth, setCurrentMonth] = React.useState<Date>(() => new Date())
   const [stagedDismissed, setStagedDismissed] = React.useState<Set<string>>(
     () => new Set(dismissedHolidays)
   )
 
-  // Sync staged with prop when props change and no unsaved local changes exist
+  const [addModalOpen, setAddModalOpen] = React.useState(false)
+  const [selectedDateForAdd, setSelectedDateForAdd] = React.useState<
+    string | undefined
+  >(undefined)
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
+  const [selectedOffDayForDelete, setSelectedOffDayForDelete] =
+    React.useState<InstituteCustomOffDay | null>(null)
+
   const initialSet = React.useMemo(
     () => new Set(dismissedHolidays),
     [dismissedHolidays]
@@ -57,7 +81,6 @@ export function HolidaysCalendar({
     setStagedDismissed(new Set(dismissedHolidays))
   }
 
-  // Calculate differences / unsaved changes
   const hasChanges = React.useMemo(() => {
     if (stagedDismissed.size !== initialSet.size) return true
     for (const d of stagedDismissed) {
@@ -87,17 +110,36 @@ export function HolidaysCalendar({
     const isoDate = toIsoDate(date)
     const holidayCheck = isJalaliHoliday(date)
 
-    if (holidayCheck.isHoliday) {
-      // Toggle dismissed status
+    if (observeOfficialHolidays && holidayCheck.isHoliday) {
       setStagedDismissed((prev) => {
         const next = new Set(prev)
-        if (next.has(isoDate)) {
-          next.delete(isoDate)
-        } else {
-          next.add(isoDate)
-        }
+        if (next.has(isoDate)) next.delete(isoDate)
+        else next.add(isoDate)
         return next
       })
+      return
+    }
+
+    const existingCustom = customOffDaysList.find(
+      (item) => item.date === isoDate
+    )
+    if (existingCustom) {
+      setSelectedOffDayForDelete(existingCustom)
+      setDeleteModalOpen(true)
+      return
+    }
+
+    setSelectedDateForAdd(isoDate)
+    setAddModalOpen(true)
+  }
+
+  const handleYearChange = (newYear: number) => {
+    setSelectedYear(newYear)
+    if (locale === "fa") {
+      const currentJMonth = gregorianToJalali(currentMonth).month
+      setCurrentMonth(jalaliToGregorian(newYear, currentJMonth, 1))
+    } else {
+      setCurrentMonth(new Date(newYear, currentMonth.getMonth(), 1))
     }
   }
 
@@ -105,9 +147,7 @@ export function HolidaysCalendar({
     if (!instituteId || !hasChanges) return
     updateMutation.mutate({
       id: instituteId,
-      body: {
-        dismissedHolidays: Array.from(stagedDismissed),
-      },
+      body: { dismissedHolidays: Array.from(stagedDismissed) },
     })
   }
 
@@ -136,54 +176,22 @@ export function HolidaysCalendar({
         hasChanges && "pb-28 lg:pb-4"
       )}
     >
-      {/* Calendar Header & Status */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-2">
-            <CalendarDays className="size-4 text-foreground" />
-            <span className="text-sm font-semibold text-foreground">
-              {t("calendarTitle")}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {t("calendarDescription")}
-          </p>
-        </div>
+      <CalendarHeader
+        hasChanges={hasChanges}
+        pendingChangesCount={pendingChanges.length}
+        isSaving={updateMutation.isPending}
+        onDiscard={handleDiscard}
+        onSave={handleSave}
+      />
 
-        {hasChanges && (
-          <div className="hidden items-center gap-2 lg:flex">
-            <Badge
-              variant="outline"
-              className="h-7 border-warning/50 bg-warning/10 px-2.5 text-xs font-medium text-warning"
-            >
-              {t("unsavedChanges", { count: pendingChanges.length })}
-            </Badge>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleDiscard}
-              disabled={updateMutation.isPending}
-              className="h-14 cursor-pointer rounded-2xl px-4 text-base text-muted-foreground hover:text-foreground"
-            >
-              <RotateCcw data-icon="inline-start" />
-              <span>{t("discardChanges")}</span>
-            </Button>
-            <Button
-              type="button"
-              onClick={handleSave}
-              disabled={updateMutation.isPending}
-              className="h-14 cursor-pointer rounded-2xl px-5 text-base font-medium shadow-xs"
-            >
-              {updateMutation.isPending ? (
-                <Spinner data-icon="inline-start" />
-              ) : (
-                <Check data-icon="inline-start" />
-              )}
-              <span>{t("saveChanges")}</span>
-            </Button>
-          </div>
-        )}
-      </div>
+      <CalendarToolbar
+        selectedYear={selectedYear}
+        currentYear={currentYear}
+        onYearChange={handleYearChange}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        locale={locale}
+      />
 
       {hasChanges && (
         <PendingHolidayChanges
@@ -193,24 +201,36 @@ export function HolidaysCalendar({
         />
       )}
 
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-destructive" />
-          <span>{t("legendOfficialHoliday")}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-success" />
-          <span>{t("legendDismissedHoliday")}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-warning" />
-          <span>{t("legendCustomOff")}</span>
-        </div>
+      <CalendarLegend />
+
+      <div className="hidden lg:block">
+        {viewMode === "year" ? (
+          <AnnualCalendar
+            selectedYear={selectedYear}
+            locale={locale}
+            observeOfficialHolidays={observeOfficialHolidays}
+            customOffDays={customOffDays}
+            dismissedHolidays={stagedArray}
+            onDayClick={handleDayClick}
+          />
+        ) : (
+          <div className="flex w-full justify-center p-1">
+            <Calendar
+              locale={locale}
+              month={currentMonth}
+              onMonthChange={setCurrentMonth}
+              onDayClick={handleDayClick}
+              showOffDays={true}
+              observeOfficialHolidays={observeOfficialHolidays}
+              offDays={customOffDays}
+              dismissedHolidays={stagedArray}
+              className="mx-auto w-fit border border-border bg-card shadow-xs"
+            />
+          </div>
+        )}
       </div>
 
-      {/* Interactive Calendar */}
-      <div className="flex w-full justify-center overflow-x-auto p-1">
+      <div className="flex w-full justify-center overflow-x-auto p-1 lg:hidden">
         <Calendar
           locale={locale}
           month={currentMonth}
@@ -231,6 +251,24 @@ export function HolidaysCalendar({
           onSave={handleSave}
         />
       )}
+
+      <CalendarModals
+        instituteId={instituteId}
+        observeOfficialHolidays={observeOfficialHolidays}
+        existingOffDays={customOffDays}
+        addModalOpen={addModalOpen}
+        onAddModalClose={() => {
+          setAddModalOpen(false)
+          setSelectedDateForAdd(undefined)
+        }}
+        selectedDateForAdd={selectedDateForAdd}
+        deleteModalOpen={deleteModalOpen}
+        onDeleteModalClose={() => {
+          setDeleteModalOpen(false)
+          setSelectedOffDayForDelete(null)
+        }}
+        selectedOffDayForDelete={selectedOffDayForDelete}
+      />
     </div>
   )
 }

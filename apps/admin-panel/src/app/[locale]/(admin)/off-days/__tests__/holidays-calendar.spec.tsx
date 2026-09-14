@@ -12,12 +12,14 @@ import settingMessagesFa from "../../../../../messages/fa/setting.json"
 import commonMessagesFa from "../../../../../messages/fa/common.json"
 import * as React from "react"
 
+const mockIsJalaliHoliday = vi.fn(() => ({ isHoliday: true }))
+
 vi.mock("@workspace/types", async () => {
   const actual =
     await vi.importActual<typeof import("@workspace/types")>("@workspace/types")
   return {
     ...actual,
-    isJalaliHoliday: () => ({ isHoliday: true }),
+    isJalaliHoliday: (date: Date) => mockIsJalaliHoliday(date),
   }
 })
 
@@ -43,6 +45,7 @@ describe("HolidaysCalendar Component", () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockIsJalaliHoliday.mockReturnValue({ isHoliday: true })
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -128,5 +131,85 @@ describe("HolidaysCalendar Component", () => {
     expect(
       screen.queryByRole("group", { name: "عملیات تغییرات تقویم" })
     ).not.toBeInTheDocument()
+  })
+
+  it("renders the year toolbar and allows year navigation and resetting", () => {
+    renderWithClient(
+      <HolidaysCalendar
+        instituteId={mockInstituteId}
+        observeOfficialHolidays={true}
+        dismissedHolidays={[]}
+        customOffDays={[]}
+      />,
+      queryClient
+    )
+
+    // Verify annual and monthly view buttons are present
+    expect(screen.getByRole("button", { name: "سالانه" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "ماهانه" })).toBeInTheDocument()
+
+    // Next year and previous year buttons
+    const nextYearButton = screen.getByRole("button", { name: "سال بعد" })
+    const prevYearButton = screen.getByRole("button", { name: "سال قبل" })
+    expect(nextYearButton).toBeInTheDocument()
+    expect(prevYearButton).toBeInTheDocument()
+
+    // Initially "سال جاری" button is not shown
+    expect(
+      screen.queryByRole("button", { name: "سال جاری" })
+    ).not.toBeInTheDocument()
+
+    // Navigate to next year
+    fireEvent.click(nextYearButton)
+
+    // Now "سال جاری" button appears
+    const resetYearButton = screen.getByRole("button", { name: "سال جاری" })
+    expect(resetYearButton).toBeInTheDocument()
+
+    // Reset back to current year
+    fireEvent.click(resetYearButton)
+    expect(
+      screen.queryByRole("button", { name: "سال جاری" })
+    ).not.toBeInTheDocument()
+  })
+
+  it("switches between annual and monthly view on desktop", () => {
+    renderWithClient(
+      <HolidaysCalendar
+        instituteId={mockInstituteId}
+        observeOfficialHolidays={true}
+        dismissedHolidays={[]}
+        customOffDays={[]}
+      />,
+      queryClient
+    )
+
+    const monthViewButton = screen.getByRole("button", { name: "ماهانه" })
+    const yearViewButton = screen.getByRole("button", { name: "سالانه" })
+
+    // Switch to monthly view
+    fireEvent.click(monthViewButton)
+    // Switch back to annual view
+    fireEvent.click(yearViewButton)
+  })
+
+  it("opens the create off-day modal when clicking a not-off day", () => {
+    mockIsJalaliHoliday.mockReturnValue({ isHoliday: false })
+
+    renderWithClient(
+      <HolidaysCalendar
+        instituteId={mockInstituteId}
+        observeOfficialHolidays={true}
+        dismissedHolidays={[]}
+        customOffDays={[]}
+      />,
+      queryClient
+    )
+
+    const dayButtons = document.querySelectorAll("td button")
+    expect(dayButtons.length).toBeGreaterThan(0)
+    fireEvent.click(dayButtons[0]!)
+
+    expect(screen.getByText("افزودن تعطیلی جدید")).toBeInTheDocument()
   })
 })

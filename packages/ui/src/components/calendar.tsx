@@ -1,7 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { DayPicker, type DayPickerProps } from "react-day-picker"
+import {
+  DayPicker,
+  DayButton,
+  type DayPickerProps,
+  type DayButtonProps,
+} from "react-day-picker"
 import * as dateFns from "date-fns"
 import * as dateFnsJalali from "date-fns-jalali"
 import { faIR } from "date-fns-jalali/locale"
@@ -25,6 +30,7 @@ export type CalendarProps = DistributiveOmit<DayPickerProps, "locale"> & {
   isOffDay?: (date: Date) => boolean
   offDays?: (Date | string)[]
   dismissedHolidays?: (Date | string)[]
+  compact?: boolean
 }
 
 export function Calendar({
@@ -39,6 +45,7 @@ export function Calendar({
   isOffDay: customIsOffDay,
   offDays,
   dismissedHolidays,
+  compact = false,
   modifiers,
   modifiersClassNames,
   ...props
@@ -179,6 +186,32 @@ export function Calendar({
     }
   }, [modifiersClassNames])
 
+  const getHolidayTitle = React.useCallback(
+    (date: Date): string | undefined => {
+      if (!showOffDays) return undefined
+      if (isJalali) {
+        const holidayInfo = isJalaliHoliday(date)
+        if (holidayInfo.isHoliday && holidayInfo.holiday) {
+          const baseTitle =
+            activeLocale === faIR
+              ? holidayInfo.holiday.titleFa
+              : holidayInfo.holiday.titleEn
+          if (isDismissedHoliday(date)) {
+            return `${baseTitle} (${activeLocale === faIR ? "دایر در موسسه" : "Open in institute"})`
+          }
+          return `${baseTitle} (${activeLocale === faIR ? "تعطیل رسمی" : "Official Holiday"})`
+        }
+      }
+      if (isCustomOffDay(date)) {
+        return activeLocale === faIR
+          ? "تعطیلی اختصاصی موسسه"
+          : "Custom Institute Off-Day"
+      }
+      return undefined
+    },
+    [showOffDays, isJalali, activeLocale, isDismissedHoliday, isCustomOffDay]
+  )
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -189,15 +222,20 @@ export function Calendar({
       modifiers={combinedModifiers}
       modifiersClassNames={combinedModifiersClassNames}
       className={cn(
-        "relative rounded-2xl border border-border bg-card p-4",
+        "relative border border-border bg-card",
+        compact ? "rounded-xl p-3" : "rounded-2xl p-4",
         className
       )}
       classNames={{
         months:
           "relative flex flex-col sm:flex-row gap-4 justify-center items-center",
         month: "relative flex flex-col gap-3 items-center w-full",
-        month_caption: "relative flex h-8 items-center justify-center px-8",
-        caption_label: "text-sm font-semibold text-foreground",
+        month_caption: compact
+          ? "relative flex h-7 items-center justify-center px-2"
+          : "relative flex h-8 items-center justify-center px-8",
+        caption_label: compact
+          ? "text-xs font-semibold text-foreground"
+          : "text-sm font-semibold text-foreground",
         nav: "flex items-center justify-between absolute inset-x-0 top-0.5 z-10 w-full pointer-events-none",
         button_previous: cn(
           buttonVariants({ variant: "outline", size: "icon-xs" }),
@@ -209,17 +247,27 @@ export function Calendar({
         ),
         month_grid: "w-full border-separate border-spacing-y-1",
         weekdays: "grid grid-cols-7 gap-1 w-full justify-items-center mb-1",
-        weekday:
-          "size-9 rounded-xl font-medium text-xs text-muted-foreground flex items-center justify-center select-none",
+        weekday: compact
+          ? "size-8 rounded-lg font-medium text-xs text-muted-foreground flex items-center justify-center select-none"
+          : "size-9 rounded-xl font-medium text-xs text-muted-foreground flex items-center justify-center select-none",
         weeks: "flex flex-col gap-1 w-full",
         week: "grid grid-cols-7 gap-1 w-full justify-items-center",
-        day: "relative p-0 flex items-center justify-center size-9 text-center text-sm rounded-xl focus-within:relative focus-within:z-20",
-        day_button: cn(
-          buttonVariants({ variant: "ghost", size: "icon" }),
-          "aspect-square size-9 min-w-0 rounded-xl p-0 text-sm font-medium transition-all select-none",
-          "hover:bg-muted hover:text-foreground active:scale-95",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
-        ),
+        day: compact
+          ? "relative p-0 flex items-center justify-center size-8 text-center text-xs rounded-lg focus-within:relative focus-within:z-20"
+          : "relative p-0 flex items-center justify-center size-9 text-center text-sm rounded-xl focus-within:relative focus-within:z-20",
+        day_button: compact
+          ? cn(
+              buttonVariants({ variant: "ghost", size: "icon-xs" }),
+              "aspect-square size-8 min-w-0 rounded-lg p-0 text-xs font-medium transition-all select-none",
+              "hover:bg-muted hover:text-foreground active:scale-95",
+              "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
+            )
+          : cn(
+              buttonVariants({ variant: "ghost", size: "icon" }),
+              "aspect-square size-9 min-w-0 rounded-xl p-0 text-sm font-medium transition-all select-none",
+              "hover:bg-muted hover:text-foreground active:scale-95",
+              "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
+            ),
         selected:
           "!bg-primary !text-primary-foreground rounded-xl font-semibold shadow-xs hover:!bg-primary hover:!text-primary-foreground",
         range_start:
@@ -248,6 +296,15 @@ export function Calendar({
             <ChevronLeft className="size-4" />
           ) : (
             <ChevronRight className="size-4" />
+          )
+        },
+        DayButton: (dayButtonProps: DayButtonProps) => {
+          const holidayTitle = getHolidayTitle(dayButtonProps.day.date)
+          return (
+            <DayButton
+              {...dayButtonProps}
+              title={holidayTitle || dayButtonProps.title}
+            />
           )
         },
       }}

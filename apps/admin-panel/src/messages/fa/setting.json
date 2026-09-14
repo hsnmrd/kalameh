@@ -63,6 +63,15 @@
     "saveChanges": "ذخیره",
     "discardChanges": "بازنشانی",
     "calendarActionsLabel": "عملیات تغییرات تقویم",
-    "successUpdateCalendar": "تغییرات تقویم کاری با موفقیت ذخیره شد."
+    "successUpdateCalendar": "تغییرات تقویم کاری با موفقیت ذخیره شد.",
+    "yearView": "سالانه",
+    "monthView": "ماهانه",
+    "currentYear": "سال جاری",
+    "previousYear": "سال قبل",
+    "nextYear": "سال بعد",
+    "holidaysCount": "{count} روز تعطیل",
+    "currentMonth": "ماه جاری",
+    "dismissedInInstitute": "دایر در موسسه",
+    "customInstituteOffDay": "تعطیلی اختصاصی موسسه"
   }
 }

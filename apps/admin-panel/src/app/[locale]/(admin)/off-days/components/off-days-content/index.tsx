@@ -96,6 +96,7 @@ export function OffDaysContent() {
         observeOfficialHolidays={observeOfficialHolidays}
         dismissedHolidays={institute?.dismissedHolidays}
         customOffDays={customOffDaysDates}
+        customOffDaysList={customOffDays}
       />
     </div>
   )
