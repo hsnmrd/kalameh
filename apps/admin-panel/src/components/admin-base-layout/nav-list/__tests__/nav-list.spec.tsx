@@ -76,6 +76,31 @@ describe("NavList Component", () => {
     expect(activeLink.className).toContain("text-primary")
   })
 
+  it("keeps every item visible inside its labeled group", () => {
+    const groupedSections: NavSection[] = [
+      {
+        id: "academic",
+        title: "امور آموزشی",
+        items: [{ key: "branches", href: "/branches", icon: Building2 }],
+      },
+      {
+        id: "finance",
+        title: "امور مالی",
+        items: [{ key: "finance", href: "/transactions", icon: CreditCard }],
+      },
+    ]
+
+    render(<NavList sections={groupedSections} pathname="/branches" />)
+
+    expect(screen.getByText("امور آموزشی")).toBeVisible()
+    expect(screen.getByText("امور مالی")).toBeVisible()
+    expect(screen.getByRole("link", { name: /شعب/i })).toBeVisible()
+    expect(screen.getByRole("link", { name: /تراکنش‌های مالی/i })).toBeVisible()
+    expect(
+      screen.queryByRole("button", { name: /امور آموزشی|امور مالی/i })
+    ).not.toBeInTheDocument()
+  })
+
   it("should render lock icon on modules not enabled for the active institute", () => {
     vi.spyOn(hooks, "usePermissions").mockReturnValue({
       user: {
@@ -96,7 +121,7 @@ describe("NavList Component", () => {
       isInstituteAdmin: true,
       isClerk: false,
       isTeacher: false,
-    } as any)
+    } as unknown as ReturnType<typeof hooks.usePermissions>)
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstitute: {
@@ -112,7 +137,7 @@ describe("NavList Component", () => {
       selectInstitute: vi.fn(),
       clearActiveInstitute: vi.fn(),
       setActiveInstitute: vi.fn(),
-    } as any)
+    } as unknown as ReturnType<typeof stores.useActiveInstitute>)
 
     render(<NavList sections={mockSections} pathname="/transactions" />)
 

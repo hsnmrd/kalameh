@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, useWatch, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Info } from "lucide-react"
@@ -52,7 +52,6 @@ export function AddOffDayModal({
     control,
     reset,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<CreateInstituteCustomOffDayInput>({
     resolver: zodResolver(CreateInstituteCustomOffDaySchema),
@@ -75,8 +74,8 @@ export function AddOffDayModal({
     }
   }, [open, defaultDate, reset])
 
-  const startDate = watch("startDate")
-  const endDate = watch("endDate")
+  const startDate = useWatch({ control, name: "startDate" })
+  const endDate = useWatch({ control, name: "endDate" })
 
   const rangeDaysCount = React.useMemo(() => {
     if (!startDate) return 0

@@ -13,17 +13,20 @@ import {
   UserCheck,
   CalendarClock,
   Clock,
+  CalendarOff,
 } from "lucide-react"
 import { PERMISSIONS, APP_MODULES } from "@workspace/types"
 import type { NavItem } from "@/components/admin-base-layout/nav-list"
 
+export const DASHBOARD_NAV_ITEM: NavItem = {
+  key: "dashboard",
+  href: "/",
+  icon: LayoutDashboard,
+  permission: PERMISSIONS.VIEW_DASHBOARD,
+}
+
 export const SUPER_ADMIN_PLATFORM_NAV: NavItem[] = [
-  {
-    key: "dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-    permission: PERMISSIONS.VIEW_DASHBOARD,
-  },
+  DASHBOARD_NAV_ITEM,
   {
     key: "institutes",
     href: "/institutes",
@@ -32,7 +35,7 @@ export const SUPER_ADMIN_PLATFORM_NAV: NavItem[] = [
   },
 ]
 
-export const INSTITUTE_NAV_ITEMS: NavItem[] = [
+export const ACADEMIC_NAV_ITEMS: NavItem[] = [
   {
     key: "branches",
     href: "/branches",
@@ -83,6 +86,15 @@ export const INSTITUTE_NAV_ITEMS: NavItem[] = [
     module: APP_MODULES.CLASSES_COURSES,
   },
   {
+    key: "offDays",
+    href: "/off-days",
+    icon: CalendarOff,
+    permission: PERMISSIONS.MANAGE_INSTITUTE_SETTINGS,
+  },
+]
+
+export const PEOPLE_NAV_ITEMS: NavItem[] = [
+  {
     key: "teachers",
     href: "/teachers",
     icon: UserCheck,
@@ -96,6 +108,9 @@ export const INSTITUTE_NAV_ITEMS: NavItem[] = [
     permission: PERMISSIONS.VIEW_STUDENTS,
     module: APP_MODULES.STUDENTS,
   },
+]
+
+export const ADMINISTRATION_NAV_ITEMS: NavItem[] = [
   {
     key: "staff",
     href: "/users",
@@ -110,6 +125,9 @@ export const INSTITUTE_NAV_ITEMS: NavItem[] = [
     permission: PERMISSIONS.VIEW_ROLE_PERMISSIONS,
     module: APP_MODULES.USERS_STAFF,
   },
+]
+
+export const FINANCE_NAV_ITEMS: NavItem[] = [
   {
     key: "finance",
     href: "/transactions",
@@ -119,12 +137,11 @@ export const INSTITUTE_NAV_ITEMS: NavItem[] = [
   },
 ]
 
-export const ADMIN_NAV: NavItem[] = [
-  {
-    key: "dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-    permission: PERMISSIONS.VIEW_DASHBOARD,
-  },
-  ...INSTITUTE_NAV_ITEMS,
+export const INSTITUTE_NAV_ITEMS: NavItem[] = [
+  ...ACADEMIC_NAV_ITEMS,
+  ...PEOPLE_NAV_ITEMS,
+  ...FINANCE_NAV_ITEMS,
+  ...ADMINISTRATION_NAV_ITEMS,
 ]
+
+export const ADMIN_NAV: NavItem[] = [DASHBOARD_NAV_ITEM, ...INSTITUTE_NAV_ITEMS]

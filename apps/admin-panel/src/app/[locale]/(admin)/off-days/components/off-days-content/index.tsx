@@ -35,7 +35,7 @@ function formatDisplayDate(isoDate: string): string {
   }
 }
 
-export function SettingOffDaysCard() {
+export function OffDaysContent() {
   const t = useTranslations("setting")
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
@@ -91,16 +91,10 @@ export function SettingOffDaysCard() {
   }
 
   return (
-    <div className="flex flex-col gap-6 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xs">
-      {/* Header */}
-      <div className="flex flex-col gap-1">
-        <h3 className="text-base font-semibold text-foreground">
-          {t("offDays.title")}
-        </h3>
-        <p className="text-xs text-muted-foreground">
-          {t("offDays.description")}
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+        {t("offDays.description")}
+      </p>
 
       {/* Official Holidays Toggle Row */}
       <div className="flex items-center justify-between gap-4 rounded-xl border border-border/80 bg-background/60 p-4">

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "../../../../../test/test-utils"
-import { HolidaysCalendar } from "../components/setting-off-days-card/holidays-calendar"
+import { HolidaysCalendar } from "../components/off-days-content/holidays-calendar"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NextIntlClientProvider } from "next-intl"
 import settingMessagesFa from "../../../../../messages/fa/setting.json"

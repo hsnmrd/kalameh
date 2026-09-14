@@ -37,6 +37,7 @@ describe("Admin SettingPage", () => {
       screen.getAllByText(/setting\.language\.title|زبان سامانه|language/i)
         .length
     ).toBeGreaterThan(0)
+    expect(screen.queryByText("تعطیلات و تقویم موسسه")).not.toBeInTheDocument()
   })
 
   it("should allow changing theme", () => {

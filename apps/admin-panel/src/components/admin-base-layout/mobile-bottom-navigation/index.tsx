@@ -162,10 +162,20 @@ export function MobileBottomNavigation({
               <div className="flex flex-col gap-5">
                 {overflowSections.map((section) => (
                   <section key={section.id} className="flex flex-col gap-2">
+                    {section.contextTitle && (
+                      <div className="flex items-center justify-between px-2 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                        <span className="truncate">{section.contextTitle}</span>
+                        {section.badge && (
+                          <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+                            {section.badge}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {section.title && (
                       <div className="flex items-center justify-between px-2 text-xs font-semibold text-muted-foreground">
                         <span className="truncate">{section.title}</span>
-                        {section.badge && (
+                        {section.badge && !section.contextTitle && (
                           <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
                             {section.badge}
                           </span>

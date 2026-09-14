@@ -5,7 +5,7 @@ import {
   fireEvent,
   waitFor,
 } from "../../../../../test/test-utils"
-import { SettingOffDaysCard } from "../components/setting-off-days-card"
+import { OffDaysContent } from "../components/off-days-content"
 import { institutesResource } from "@/lib/api"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NextIntlClientProvider } from "next-intl"
@@ -37,7 +37,7 @@ function renderWithClient(ui: React.ReactElement, queryClient: QueryClient) {
   )
 }
 
-describe("SettingOffDaysCard Component", () => {
+describe("OffDaysContent Component", () => {
   let queryClient: QueryClient
 
   beforeEach(() => {
@@ -64,9 +64,13 @@ describe("SettingOffDaysCard Component", () => {
       []
     )
 
-    renderWithClient(<SettingOffDaysCard />, queryClient)
+    renderWithClient(<OffDaysContent />, queryClient)
 
-    expect(screen.getByText("تعطیلات و تقویم موسسه")).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "مدیریت رعایت تعطیلات رسمی کشور و ثبت تعطیلات اختصاصی موسسه آموزشی"
+      )
+    ).toBeInTheDocument()
     expect(
       screen.getByText("رعایت تعطیلات رسمی تقویم ایران")
     ).toBeInTheDocument()
@@ -100,7 +104,7 @@ describe("SettingOffDaysCard Component", () => {
       ]
     )
 
-    renderWithClient(<SettingOffDaysCard />, queryClient)
+    renderWithClient(<OffDaysContent />, queryClient)
 
     expect(screen.getByText("اردوی درون‌استانی")).toBeInTheDocument()
   })
@@ -128,7 +132,7 @@ describe("SettingOffDaysCard Component", () => {
       ]
     )
 
-    renderWithClient(<SettingOffDaysCard />, queryClient)
+    renderWithClient(<OffDaysContent />, queryClient)
 
     const buttons = screen.getAllByRole("button")
     // Find button containing svg/trash
@@ -165,7 +169,7 @@ describe("SettingOffDaysCard Component", () => {
       ]
     )
 
-    renderWithClient(<SettingOffDaysCard />, queryClient)
+    renderWithClient(<OffDaysContent />, queryClient)
 
     const addBtn = screen.getByRole("button", { name: /افزودن روز تعطیل/i })
     fireEvent.click(addBtn)
@@ -209,7 +213,7 @@ describe("SettingOffDaysCard Component", () => {
       []
     )
 
-    renderWithClient(<SettingOffDaysCard />, queryClient)
+    renderWithClient(<OffDaysContent />, queryClient)
 
     const addBtn = screen.getByRole("button", { name: /افزودن روز تعطیل/i })
     fireEvent.click(addBtn)
@@ -266,7 +270,7 @@ describe("SettingOffDaysCard Component", () => {
       []
     )
 
-    renderWithClient(<SettingOffDaysCard />, queryClient)
+    renderWithClient(<OffDaysContent />, queryClient)
 
     expect(screen.getByText("تقویم کاری و وضعیت روزها")).toBeInTheDocument()
     expect(screen.getByText("تعطیل رسمی")).toBeInTheDocument()

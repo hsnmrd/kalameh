@@ -16,8 +16,11 @@ import { AdminHeader } from "./admin-header"
 import { HeaderActionsProvider } from "./header-actions-context"
 import {
   SUPER_ADMIN_PLATFORM_NAV,
-  INSTITUTE_NAV_ITEMS,
-  ADMIN_NAV,
+  DASHBOARD_NAV_ITEM,
+  ACADEMIC_NAV_ITEMS,
+  PEOPLE_NAV_ITEMS,
+  FINANCE_NAV_ITEMS,
+  ADMINISTRATION_NAV_ITEMS,
 } from "@/data"
 
 export interface AdminBaseLayoutProps {
@@ -38,6 +41,29 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   const effectiveRole = role ?? user?.role ?? ROLES.ADMIN
 
   const navSections = React.useMemo<NavSection[]>(() => {
+    const instituteSections: NavSection[] = [
+      {
+        id: "academic",
+        title: t("academicSection"),
+        items: ACADEMIC_NAV_ITEMS,
+      },
+      {
+        id: "people",
+        title: t("peopleSection"),
+        items: PEOPLE_NAV_ITEMS,
+      },
+      {
+        id: "finance",
+        title: t("financeSection"),
+        items: FINANCE_NAV_ITEMS,
+      },
+      {
+        id: "administration",
+        title: t("administrationSection"),
+        items: ADMINISTRATION_NAV_ITEMS,
+      },
+    ]
+
     if (effectiveRole === ROLES.SUPER_ADMIN) {
       if (activeInstitute) {
         return [
@@ -46,12 +72,12 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
             title: t("superAdminSection"),
             items: SUPER_ADMIN_PLATFORM_NAV,
           },
-          {
-            id: `institute-${activeInstitute.id}`,
-            title: activeInstitute.name,
-            badge: activeInstitute.subdomain,
-            items: INSTITUTE_NAV_ITEMS,
-          },
+          ...instituteSections.map((section, index) => ({
+            ...section,
+            id: `institute-${activeInstitute.id}-${section.id}`,
+            contextTitle: index === 0 ? activeInstitute.name : undefined,
+            badge: index === 0 ? activeInstitute.subdomain : undefined,
+          })),
         ]
       }
 
@@ -66,9 +92,10 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
 
     return [
       {
-        id: "institute-nav",
-        items: ADMIN_NAV,
+        id: "overview",
+        items: [DASHBOARD_NAV_ITEM],
       },
+      ...instituteSections,
     ]
   }, [effectiveRole, activeInstitute, t])
 
