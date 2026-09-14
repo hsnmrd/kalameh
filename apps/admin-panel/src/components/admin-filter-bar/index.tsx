@@ -131,20 +131,20 @@ export function AdminFilterBar({
       {/* Filter Modal (Desktop) / Bottom-Sheet Drawer (Mobile) */}
       {hasFilters && (
         <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <ResponsiveDialogContent className="sm:max-w-md">
-            <ResponsiveDialogHeader>
+          <ResponsiveDialogContent className="overflow-hidden p-0 sm:max-w-md">
+            <ResponsiveDialogHeader className="border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
               <ResponsiveDialogTitle>
                 {resolvedDialogTitle}
               </ResponsiveDialogTitle>
               <ResponsiveDialogCloseButton />
             </ResponsiveDialogHeader>
 
-            <div className="flex flex-col gap-4 overflow-y-auto px-4 py-3 sm:px-0">
+            <div className="flex flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
               {filters}
               {children}
             </div>
 
-            <ResponsiveDialogFooter className="flex-row items-center gap-3 pt-2 sm:justify-end">
+            <ResponsiveDialogFooter className="flex-row items-center gap-3 border-t border-border/60 bg-muted/20 px-4 py-3 sm:justify-end sm:px-6 sm:py-4">
               {onClearFilters && (
                 <Button
                   type="button"
