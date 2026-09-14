@@ -52,7 +52,9 @@ describe("OffDaysContent", () => {
     expect(
       screen.getByText("رعایت تعطیلات رسمی تقویم ایران")
     ).toBeInTheDocument()
-    expect(screen.getByText("تقویم کاری و وضعیت روزها")).toBeInTheDocument()
+    expect(
+      screen.queryByText("تقویم کاری و وضعیت روزها")
+    ).not.toBeInTheDocument()
     expect(
       screen.getByRole("link", { name: "تعطیلات اختصاصی" })
     ).toHaveAttribute("href", "/off-days/custom")

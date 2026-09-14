@@ -2,13 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import {
-  CalendarDays,
-  CalendarOff,
-  ChevronLeft,
-  ChevronRight,
-  RotateCcw,
-} from "lucide-react"
+import { CalendarOff, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { Link } from "@/i18n/routing"
@@ -70,19 +64,9 @@ export function OffDaysFilter({
     <AdminFilterBar
       actions={desktopActions}
       search={
-        <div className="flex h-14 w-full min-w-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-background/60 px-3 sm:px-4">
-          {/* Page Title & Year Switcher */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="size-5 text-foreground" />
-              <span className="text-sm font-bold text-foreground sm:text-base">
-                {t("calendarTitle")}
-              </span>
-            </div>
-
-            <div className="h-5 w-px bg-border/80" />
-
-            {/* Year Switcher without commas */}
+        <div className="flex h-14 w-full min-w-0 items-center justify-between gap-3 rounded-2xl border border-border/80 bg-background/60 px-3 sm:px-4">
+          {/* Year Switcher without commas */}
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 rounded-xl border border-border/70 bg-card/70 p-0.5">
               <Button
                 type="button"
