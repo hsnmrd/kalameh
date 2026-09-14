@@ -5,6 +5,8 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useHeaderActions } from "../admin-base-layout/header-actions-context"
 
 export interface AdminPageShellProps {
+  /** Optional breadcrumb navigation displayed on top of the filter section (standard for inner/sub-pages) */
+  breadcrumb?: React.ReactNode
   /** Optional actions (e.g. three-dot action menu) rendered dynamically in the header next to the page title */
   actions?: React.ReactNode
   filter?: React.ReactNode
@@ -17,6 +19,7 @@ export interface AdminPageShellProps {
 }
 
 export function AdminPageShell({
+  breadcrumb,
   actions,
   filter,
   filters,
@@ -36,6 +39,7 @@ export function AdminPageShell({
 
   return (
     <div className={cn("w-full", className)}>
+      {breadcrumb && <div className="mb-4">{breadcrumb}</div>}
       {resolvedFilter}
       {children}
       {modals}

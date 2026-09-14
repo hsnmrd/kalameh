@@ -25,6 +25,7 @@
     "backToCalendar": "Holiday Calendar",
     "addOffDay": "Add Off-Day",
     "noCustomOffDays": "No custom off-days registered for this institute.",
+    "searchCustomOffDaysPlaceholder": "Search off-day title or date...",
     "date": "Date",
     "offDayTitle": "Occasion Title",
     "actions": "Actions",

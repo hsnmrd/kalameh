@@ -130,6 +130,32 @@ All entity management and list pages (e.g. `courses/`, `classes/`, `terms/`, `br
   ```
 - **NEVER** omit horizontal padding (`px-4 sm:px-6`) or let input controls touch the modal borders.
 
+## Admin Inner Page Standard (Breadcrumb & Sub-Page Navigation)
+
+All inner pages, sub-pages, or nested resource views (e.g. `/off-days/custom`, `/classes/[id]/grades`, `/teachers/[id]/classes`) must follow this unified sub-page standard:
+
+### 1. Breadcrumb Position (On Top of Filter Section)
+
+- Always render `<AdminBreadcrumb />` from `@/components/admin-breadcrumb` passed directly into the `breadcrumb` prop of `<AdminPageShell>`.
+- The breadcrumb sits directly on top of the filter bar with unified spacing (`mb-4`).
+
+### 2. Back Navigation & Trail Hierarchy
+
+- Inner breadcrumbs must include:
+  - `backHref`: URL string navigating back to the parent section (e.g. `/off-days`, `/classes`).
+  - `backLabel`: Localized concise text for the back target (e.g. `t("backToCalendar")`, `t("backToClasses")`).
+  - `items`: Hierarchical trail array `[{ label: t("parentTitle"), href: "/parent" }, { label: t("currentPageTitle") }]`.
+- Back and trail icons are automatically RTL/LTR-aware (`ArrowRight` for back in RTL / `ArrowLeft` in LTR; `ChevronLeft` in RTL / `ChevronRight` in LTR).
+
+### 3. No In-Page Description or Title
+
+- Like root list pages, **NEVER** render an in-page `<h1>` or description banner. The page title is dynamically resolved and rendered in `AdminHeader` via `getPageTitle(pathname, t)` and `messages/[locale]/common.json`.
+
+### 4. Filter Bar & Search Standard
+
+- Inner pages follow the list layout standard: render `<AdminFilterBar>` with at least `<AdminSearchInput>` in the `filter` prop of `<AdminPageShell>`.
+- Primary desktop action button sits in `<AdminFilterBar actions={...}>`, and mobile action uses `<FABSingle>` passed to `AdminPageShell` `fab` prop.
+
 ## Mobile UX Standard
 
 All admin-panel list pages and overlays must follow these mobile-specific rules for screens **< `lg` (1024px)**:

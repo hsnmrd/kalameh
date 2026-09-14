@@ -50,10 +50,10 @@ describe("CustomOffDaysContent", () => {
 
     renderContent()
 
-    expect(screen.getByText("افزودن روز تعطیل")).toBeInTheDocument()
+    expect(screen.getAllByText("افزودن روز تعطیل")[0]).toBeInTheDocument()
     expect(
-      screen.getByText("هیچ تعطیلی اختصاصی برای موسسه ثبت نشده است.")
-    ).toBeInTheDocument()
+      screen.getAllByText("هیچ تعطیلی اختصاصی برای موسسه ثبت نشده است.")
+    ).toHaveLength(2)
     expect(screen.getByRole("link", { name: "تقویم تعطیلات" })).toHaveAttribute(
       "href",
       "/off-days"
@@ -77,7 +77,7 @@ describe("CustomOffDaysContent", () => {
 
     renderContent()
     fireEvent.click(
-      screen.getByRole("button", { name: "حذف اردوی درون‌استانی" })
+      screen.getAllByRole("button", { name: "حذف اردوی درون‌استانی" })[0]
     )
 
     await waitFor(() => {
@@ -92,11 +92,52 @@ describe("CustomOffDaysContent", () => {
     )
 
     renderContent()
-    fireEvent.click(screen.getByRole("button", { name: "افزودن روز تعطیل" }))
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "افزودن روز تعطیل" })[0]
+    )
 
     await waitFor(() => {
       expect(screen.getByText("افزودن تعطیلی جدید")).toBeInTheDocument()
       expect(screen.getByText("عنوان مناسبت")).toBeInTheDocument()
+    })
+  })
+
+  it("filters custom off-days using the search input", async () => {
+    queryClient.setQueryData(
+      institutesResource.customOffDays.toQuery(mockInstituteId).queryKey,
+      [
+        {
+          id: "off-1",
+          instituteId: mockInstituteId,
+          date: "2024-10-01",
+          title: "اردوی درون‌استانی",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: "off-2",
+          instituteId: mockInstituteId,
+          date: "2024-11-15",
+          title: "جشن فارغ‌التحصیلی",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]
+    )
+
+    renderContent()
+
+    expect(screen.getAllByText("اردوی درون‌استانی").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("جشن فارغ‌التحصیلی").length).toBeGreaterThan(0)
+
+    const searchInput = screen.getByPlaceholderText(
+      "جستجوی عنوان یا تاریخ تعطیلی..."
+    )
+    fireEvent.change(searchInput, { target: { value: "فارغ‌التحصیلی" } })
+
+    await waitFor(() => {
+      expect(screen.queryByText("اردوی درون‌استانی")).not.toBeInTheDocument()
+      expect(screen.getAllByText("جشن فارغ‌التحصیلی").length).toBeGreaterThan(0)
     })
   })
 })

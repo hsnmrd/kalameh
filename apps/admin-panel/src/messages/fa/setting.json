@@ -25,6 +25,7 @@
     "backToCalendar": "تقویم تعطیلات",
     "addOffDay": "افزودن روز تعطیل",
     "noCustomOffDays": "هیچ تعطیلی اختصاصی برای موسسه ثبت نشده است.",
+    "searchCustomOffDaysPlaceholder": "جستجوی عنوان یا تاریخ تعطیلی...",
     "date": "تاریخ",
     "offDayTitle": "عنوان مناسبت",
     "actions": "عملیات",
