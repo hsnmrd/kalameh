@@ -32,6 +32,7 @@ export interface CompensatorySessionModalProps {
   targetDate: string
   termIndex: number
   termProposal?: GeneratedTermProposal
+  defaultTrack?: "ODD" | "EVEN"
   onSave: (termIndex: number, session: CompensatorySession) => void
   locale?: "fa" | "en"
 }
@@ -42,13 +43,28 @@ export function CompensatorySessionModal({
   targetDate,
   termIndex,
   termProposal,
+  defaultTrack,
   onSave,
   locale = "fa",
 }: CompensatorySessionModalProps) {
   const t = useTranslations("terms")
 
-  const [patternTrack, setPatternTrack] = React.useState<"ODD" | "EVEN">("ODD")
+  const [prevOpen, setPrevOpen] = React.useState(open)
+  const [prevTargetDate, setPrevTargetDate] = React.useState(targetDate)
+
+  const [patternTrack, setPatternTrack] = React.useState<"ODD" | "EVEN">(
+    defaultTrack || "ODD"
+  )
   const [replacesDate, setReplacesDate] = React.useState<string>("NONE")
+
+  if (open !== prevOpen || targetDate !== prevTargetDate) {
+    setPrevOpen(open)
+    setPrevTargetDate(targetDate)
+    if (open) {
+      setPatternTrack(defaultTrack || "ODD")
+      setReplacesDate("NONE")
+    }
+  }
 
   // Format the target date nicely in Jalali
   const formattedTargetDate = React.useMemo(() => {

@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl"
 import {
   Calendar as CalendarIcon,
   Table as TableIcon,
-  Info,
   AlertTriangle,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
@@ -86,12 +85,12 @@ export function StepPreview({
         </div>
       </div>
 
-      {/* Session Imbalance Warning Alert */}
+      {/* Session Imbalance Error Alert */}
       {imbalanceProposals.length > 0 && (
-        <div className="flex items-start gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-xs text-warning">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
+        <div className="flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
           <div className="flex flex-col gap-1">
-            <span className="font-bold text-foreground">
+            <span className="font-bold text-destructive">
               {t("batchModal.sessionImbalanceWarning")}
             </span>
             <span className="leading-relaxed text-muted-foreground">
@@ -130,18 +129,12 @@ export function StepPreview({
             compensatorySessions={compensatorySessions}
           />
         ) : (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-start gap-2.5 rounded-xl border border-border/80 bg-muted/40 p-3.5 text-xs leading-relaxed text-muted-foreground">
-              <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-              <span>{t("batchModal.dateShiftHint")}</span>
-            </div>
-            <ProposalsTable
-              proposals={proposals}
-              onTitleChange={onTitleChange}
-              onStartDateChange={onStartDateChange}
-              locale={locale}
-            />
-          </div>
+          <ProposalsTable
+            proposals={proposals}
+            onTitleChange={onTitleChange}
+            onStartDateChange={onStartDateChange}
+            locale={locale}
+          />
         )
       ) : (
         <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">

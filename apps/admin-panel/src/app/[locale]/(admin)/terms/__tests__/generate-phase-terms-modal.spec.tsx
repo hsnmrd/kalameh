@@ -20,6 +20,20 @@ vi.mock("@/lib/stores", () => ({
 
 const mockBatchCreate = vi.fn().mockResolvedValue({})
 let mockExistingTerms: unknown[] = []
+const defaultMockProposals = [
+  {
+    title: "مهر و آبان ۱۴۰۳",
+    startDate: "2024-09-22",
+    startDateJalali: "1403/07/01",
+    endDate: "2024-11-05",
+    endDateJalali: "1403/08/15",
+    daysCount: 45,
+    sessionsCount: 18,
+    holidaysCount: 2,
+    monthNamesFa: "مهر، آبان",
+  },
+]
+let mockPreviewProposals: unknown[] = defaultMockProposals
 
 vi.mock("@/lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/api")>()
@@ -50,20 +64,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
       previewPhase: {
         toQuery: () => ({
           queryKey: ["terms", "preview-phase"],
-          queryFn: () =>
-            Promise.resolve([
-              {
-                title: "مهر و آبان ۱۴۰۳",
-                startDate: "2024-09-22",
-                startDateJalali: "1403/07/01",
-                endDate: "2024-11-05",
-                endDateJalali: "1403/08/15",
-                daysCount: 45,
-                sessionsCount: 18,
-                holidaysCount: 2,
-                monthNamesFa: "مهر، آبان",
-              },
-            ]),
+          queryFn: () => Promise.resolve(mockPreviewProposals),
         }),
       },
       batchCreatePhase: {
@@ -85,6 +86,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
 describe("GeneratePhaseTermsModal", () => {
   beforeEach(() => {
     mockExistingTerms = []
+    mockPreviewProposals = defaultMockProposals
     vi.clearAllMocks()
   })
 
@@ -222,5 +224,62 @@ describe("GeneratePhaseTermsModal", () => {
         ]),
       })
     )
+  })
+
+  it("disables submit button and displays error banner when terms have session imbalance", async () => {
+    mockPreviewProposals = [
+      {
+        title: "مهر و آبان ۱۴۰۳",
+        startDate: "2024-09-22",
+        startDateJalali: "1403/07/01",
+        endDate: "2024-11-05",
+        endDateJalali: "1403/08/15",
+        daysCount: 45,
+        sessionsCount: 18,
+        holidaysCount: 2,
+        monthNamesFa: "مهر، آبان",
+        hasSessionImbalance: true,
+        patternDetails: [
+          {
+            track: "EVEN",
+            days: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            completedSessions: 20,
+            targetSessions: 18,
+            compensatoryCount: 0,
+            hasExcess: true,
+          },
+          {
+            track: "ODD",
+            days: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            completedSessions: 18,
+            targetSessions: 18,
+            compensatoryCount: 0,
+            hasExcess: false,
+          },
+        ],
+      },
+    ]
+
+    render(<GeneratePhaseTermsModal open={true} onClose={vi.fn()} />)
+
+    const continueBtn = screen.getByText("ادامه")
+    await waitFor(() => {
+      expect(continueBtn.closest("button")).not.toBeDisabled()
+    })
+
+    await act(async () => {
+      continueBtn.click()
+    })
+
+    // Shows session imbalance warning and details
+    expect(await screen.findByText(/هشدار ناهماهنگی جلسات/)).toBeInTheDocument()
+    expect(screen.getByText(/تعداد جلسات روزهای زوج و فرد/)).toBeInTheDocument()
+    expect(
+      screen.queryByText(/امکان ایجاد ترم به دلیل ناهمخوانی جلسات/)
+    ).not.toBeInTheDocument()
+
+    // Submit button must be disabled
+    const submitBtn = screen.getByText("تأیید").closest("button")
+    expect(submitBtn).toBeDisabled()
   })
 })

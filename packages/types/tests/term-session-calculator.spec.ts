@@ -450,5 +450,66 @@ describe("Term Session Calculator & Batch Phase Terms Generator", () => {
       const odd = result.patternDetails?.find((p) => p.track === "ODD")
       expect(odd?.compensatoryCount).toBe(2)
     })
+
+    it("tracks excess session dates when a faster track exceeds targetSessions while waiting for a slower track", () => {
+      // Starting 1403/07/01 (Sunday)
+      // Even: Sat, Mon, Wed (3/week)
+      // Odd: Sun, Tue (2/week)
+      // Target: 6 sessions
+      // Odd completes 6 sessions in 3 weeks (Sun 07/01, Tue 07/03, Sun 07/08, Tue 07/10, Sun 07/15, Tue 07/17)
+      // Even during this period: Mon 07/02, Wed 07/04, Sat 07/07, Mon 07/09, Wed 07/11, Sat 07/14, Mon 07/16 (7 sessions!)
+      const result = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetSessions: 6,
+        daysOfWeek: ["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY"],
+        skipHolidays: true,
+      })
+
+      expect(result.hasSessionImbalance).toBe(true)
+      const even = result.patternDetails?.find((p) => p.track === "EVEN")
+      const odd = result.patternDetails?.find((p) => p.track === "ODD")
+
+      expect(even?.hasExcess).toBe(true)
+      expect(even?.completedSessions).toBeGreaterThan(6)
+      expect(even?.excessDates?.length).toBeGreaterThan(0)
+      expect(odd?.completedSessions).toBe(6)
+      expect(odd?.hasExcess).toBe(false)
+    })
+
+    it("allows compensating on an excess day of the faster track to balance both tracks back to targetSessions", () => {
+      // Using the same 6-session scenario:
+      const initial = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetSessions: 6,
+        daysOfWeek: ["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY"],
+        skipHolidays: true,
+      })
+
+      const even = initial.patternDetails?.find((p) => p.track === "EVEN")
+      const firstExcessDate = even?.excessDates?.[0]
+      expect(firstExcessDate).toBeDefined()
+
+      // Assign a compensatory session for ODD on the first excess date of EVEN
+      const balanced = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetSessions: 6,
+        daysOfWeek: ["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY"],
+        skipHolidays: true,
+        compensatorySessions: [
+          {
+            date: firstExcessDate!,
+            patternTrack: "ODD",
+            title: "جبرانی روزهای فرد روی روز مازاد زوج",
+          },
+        ],
+      })
+
+      // Term ends earlier or with fewer excess sessions
+      expect(balanced.endDate <= initial.endDate).toBe(true)
+      const balancedOdd = balanced.patternDetails?.find(
+        (p) => p.track === "ODD"
+      )
+      expect(balancedOdd?.compensatoryCount).toBe(1)
+    })
   })
 })

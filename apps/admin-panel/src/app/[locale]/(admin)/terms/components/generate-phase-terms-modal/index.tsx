@@ -42,6 +42,7 @@ export function GeneratePhaseTermsModal({
     setGapDays,
     proposals,
     setProposals,
+    hasAnySessionImbalance,
     phaseOptions,
     previewQuery,
     batchCreateMutation,
@@ -128,7 +129,9 @@ export function GeneratePhaseTermsModal({
             }
             isProceedLoading={previewQuery.isFetching || isLoadingExisting}
             isSubmitDisabled={
-              proposals.length === 0 || batchCreateMutation.isPending
+              proposals.length === 0 ||
+              batchCreateMutation.isPending ||
+              hasAnySessionImbalance
             }
             isSubmitLoading={batchCreateMutation.isPending}
           />

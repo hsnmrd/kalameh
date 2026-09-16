@@ -188,8 +188,7 @@ export function Calendar({
 
   const getHolidayTitle = React.useCallback(
     (date: Date): string | undefined => {
-      if (!showOffDays) return undefined
-      if (isJalali) {
+      if (isJalali && observeOfficialHolidays) {
         const holidayInfo = isJalaliHoliday(date)
         if (holidayInfo.isHoliday && holidayInfo.holiday) {
           const baseTitle =
@@ -207,9 +206,20 @@ export function Calendar({
           ? "تعطیلی اختصاصی موسسه"
           : "Custom Institute Off-Day"
       }
+      if (showOffDays && isWeeklyOffDay(date)) {
+        return activeLocale === faIR ? "جمعه" : "Weekend"
+      }
       return undefined
     },
-    [showOffDays, isJalali, activeLocale, isDismissedHoliday, isCustomOffDay]
+    [
+      observeOfficialHolidays,
+      isJalali,
+      activeLocale,
+      isDismissedHoliday,
+      isCustomOffDay,
+      showOffDays,
+      isWeeklyOffDay,
+    ]
   )
 
   const getHolidayTitleRef = React.useRef(getHolidayTitle)

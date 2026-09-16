@@ -39,6 +39,8 @@ export interface PatternSessionDetail {
   targetSessions: number
   compensatoryCount: number
   hasExcess: boolean
+  sessionDates?: string[]
+  excessDates?: string[]
 }
 
 export interface HolidayEncountered {
@@ -254,35 +256,32 @@ export function calculateTermEndDate(
       }
 
       // 2. Process regular teaching days (skip if already compensated on this day)
-      for (const p of patternProgressList) {
-        if (
-          p.completedSessions < targetCount &&
-          p.pattern.includes(dayOfWeek)
-        ) {
-          if (isHoliday) {
-            const j = gregorianToJalali(simDate)
-            p.holidaysEncountered.push({
-              date: isoDate,
-              dateJalali: formatJalali(j.year, j.month, j.day),
-              titleFa: isCustomOff
-                ? customOffTitle
-                : (holidayCheck.holiday?.titleFa ?? "تعطیل رسمی"),
-              titleEn: isCustomOff
-                ? "Institute Off-Day"
-                : (holidayCheck.holiday?.titleEn ?? "Official Holiday"),
-              dayOfWeek,
-              isCustomOffDay: isCustomOff,
-            })
-          } else if (
-            !compForDate.some(
-              (cs) => cs.patternTrack === "ALL" || cs.patternTrack === p.track
-            )
-          ) {
-            p.completedSessions++
-            const j = gregorianToJalali(simDate)
-            p.sessionDates.push(isoDate)
-            p.sessionDatesJalali.push(formatJalali(j.year, j.month, j.day))
-            p.lastDate = new Date(simDate)
+      // If ANY compensatory session is scheduled on this date, this date is dedicated to that compensatory session,
+      // so regular classes of other tracks are not held on this date.
+      if (compForDate.length === 0) {
+        for (const p of patternProgressList) {
+          if (p.pattern.includes(dayOfWeek)) {
+            if (isHoliday) {
+              const j = gregorianToJalali(simDate)
+              p.holidaysEncountered.push({
+                date: isoDate,
+                dateJalali: formatJalali(j.year, j.month, j.day),
+                titleFa: isCustomOff
+                  ? customOffTitle
+                  : (holidayCheck.holiday?.titleFa ?? "تعطیل رسمی"),
+                titleEn: isCustomOff
+                  ? "Institute Off-Day"
+                  : (holidayCheck.holiday?.titleEn ?? "Official Holiday"),
+                dayOfWeek,
+                isCustomOffDay: isCustomOff,
+              })
+            } else {
+              p.completedSessions++
+              const j = gregorianToJalali(simDate)
+              p.sessionDates.push(isoDate)
+              p.sessionDatesJalali.push(formatJalali(j.year, j.month, j.day))
+              p.lastDate = new Date(simDate)
+            }
           }
         }
       }
@@ -334,6 +333,11 @@ export function calculateTermEndDate(
         targetSessions: targetCount,
         compensatoryCount: p.compensatoryCount,
         hasExcess: p.completedSessions > targetCount,
+        sessionDates: p.sessionDates,
+        excessDates:
+          p.completedSessions > targetCount
+            ? p.sessionDates.slice(targetCount)
+            : [],
       })
     )
 
@@ -464,6 +468,9 @@ export function calculateTermEndDate(
         targetSessions: targetCount,
         compensatoryCount,
         hasExcess: completedDays > targetCount,
+        sessionDates,
+        excessDates:
+          completedDays > targetCount ? sessionDates.slice(targetCount) : [],
       },
     ],
     hasSessionImbalance: completedDays > targetCount,

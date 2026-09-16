@@ -26,6 +26,7 @@ import {
   type CompensatorySession,
 } from "@workspace/types"
 import { normalizeDateToYmd } from "../../helper/calendar-colors"
+import { formatNumber } from "@workspace/ui/lib/utils"
 
 export interface DayActionsPopoverProps {
   open: boolean
@@ -37,7 +38,11 @@ export interface DayActionsPopoverProps {
   proposals: GeneratedTermProposal[]
   onSetStartDate: (termIndex: number, dateYmd: string) => void
   onToggleHoliday: (dateYmd: string) => void
-  onOpenCompensatoryModal: (termIndex: number, dateYmd: string) => void
+  onOpenCompensatoryModal: (
+    termIndex: number,
+    dateYmd: string,
+    defaultTrack?: "ODD" | "EVEN"
+  ) => void
   onRemoveCompensatorySession: (termIndex: number, dateYmd: string) => void
   locale?: "fa" | "en"
   observeOfficialHolidays?: boolean
@@ -167,11 +172,24 @@ export function DayActionsPopover({
     }
   }
 
+  // Excess session check:
+  // If this date is an excess date for a pattern in this proposal
+  const excessPattern = termProposal?.patternDetails?.find((p) =>
+    p.excessDates?.includes(ymd)
+  )
+  const isExcessSessionDay = excessPattern !== undefined
+  const excessSessionNum =
+    excessPattern && excessPattern.sessionDates
+      ? excessPattern.sessionDates.indexOf(ymd) + 1
+      : undefined
+  const oppositeTrack: "ODD" | "EVEN" =
+    excessPattern?.track === "EVEN" ? "ODD" : "EVEN"
+
   // Can add compensatory session check:
-  // Only show on Fridays and official holidays that have not been dismissed.
-  // Regular term days must NOT show the option to add a compensatory session.
+  // Only show on Fridays, official holidays that have not been dismissed, or excess session days.
+  // Regular term days must NOT show the option to add a compensatory session unless they are excess session days.
   const isEligibleForCompensatory =
-    isFriday || (isOfficialHoliday && !isDismissed)
+    isFriday || (isOfficialHoliday && !isDismissed) || isExcessSessionDay
   const canShowCompensatory = hasCompensatory || isEligibleForCompensatory
 
   let canAddCompensatory = isEligibleForCompensatory && !hasCompensatory
@@ -209,7 +227,9 @@ export function DayActionsPopover({
           )}
           {isOfficialHoliday && isDismissed && (
             <span className="inline-flex items-center rounded-md bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-              {t("batchModal.statusDismissedHoliday")}
+              {t("batchModal.statusDismissedHoliday", {
+                title: holidayTitle || "",
+              })}
             </span>
           )}
           {isCustomOff && (
@@ -229,15 +249,31 @@ export function DayActionsPopover({
               {t("batchModal.statusCompensatory", {
                 track:
                   currentCompensatory.patternTrack === "EVEN"
-                    ? t("batchModal.patternSelectEven")
-                    : t("batchModal.patternSelectOdd"),
+                    ? t("batchModal.patternEvenShort")
+                    : t("batchModal.patternOddShort"),
+              })}
+            </span>
+          )}
+          {isExcessSessionDay && !hasCompensatory && (
+            <span className="inline-flex items-center rounded-md bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
+              {t("batchModal.statusExcessSession", {
+                track:
+                  excessPattern?.track === "EVEN"
+                    ? t("batchModal.patternEvenShort")
+                    : t("batchModal.patternOddShort"),
+                num: formatNumber(excessSessionNum ?? 0, locale),
+                target: formatNumber(
+                  excessPattern?.targetSessions ?? 18,
+                  locale
+                ),
               })}
             </span>
           )}
           {!isOfficialHoliday &&
             !isCustomOff &&
             !isFriday &&
-            !hasCompensatory && (
+            !hasCompensatory &&
+            !isExcessSessionDay && (
               <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                 {t("batchModal.statusRegularDay")}
               </span>
@@ -317,12 +353,25 @@ export function DayActionsPopover({
               disabled={!canAddCompensatory}
               onClick={() => {
                 onOpenChange(false)
-                onOpenCompensatoryModal(selectedTermIndex, ymd)
+                onOpenCompensatoryModal(
+                  selectedTermIndex,
+                  ymd,
+                  isExcessSessionDay ? oppositeTrack : undefined
+                )
               }}
               className="h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium"
             >
               <CalendarPlus className="size-4 text-foreground" />
-              <span>{t("batchModal.actionAddCompensatory")}</span>
+              <span className="truncate">
+                {isExcessSessionDay
+                  ? t("batchModal.actionAddCompensatoryForOpposite", {
+                      track:
+                        oppositeTrack === "EVEN"
+                          ? t("batchModal.patternEvenShort")
+                          : t("batchModal.patternOddShort"),
+                    })
+                  : t("batchModal.actionAddCompensatory")}
+              </span>
             </Button>
           ))}
       </div>

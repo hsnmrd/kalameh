@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, AlertTriangle } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   Carousel,
@@ -37,19 +37,44 @@ export function TermRangesLegend({
   }, [api, selectedIndex])
 
   return (
-    <div className="relative w-full px-6 sm:px-9">
+    <div className="relative w-full">
       <Carousel
         setApi={setApi}
         opts={{
           align: "start",
           containScroll: "trimSnaps",
         }}
-        className="w-full"
+        className="flex w-full flex-col gap-2.5"
       >
+        {/* Header: Title and navigation controls across each other */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="size-4 text-muted-foreground" />
+            <h4 className="text-sm font-semibold text-foreground">
+              {t("batchModal.carouselTitle")}
+            </h4>
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              {formatNumber(proposals.length, locale)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <CarouselPrevious className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
+            <CarouselNext className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
+          </div>
+        </div>
+
         <CarouselContent className="-ms-2 items-stretch sm:-ms-2.5">
           {proposals.map((term, idx) => {
             const theme = getTermColorTheme(idx)
             const isSelected = idx === selectedIndex
+            const hasImbalance = Boolean(term.hasSessionImbalance)
+            const evenDetail = term.patternDetails?.find(
+              (p) => p.track === "EVEN"
+            )
+            const oddDetail = term.patternDetails?.find(
+              (p) => p.track === "ODD"
+            )
 
             return (
               <CarouselItem
@@ -62,9 +87,13 @@ export function TermRangesLegend({
                   onClick={() => onSelectIndex(idx)}
                   className={cn(
                     "group relative flex h-full w-full cursor-pointer flex-col items-start justify-between gap-2 rounded-xl border-2 p-2.5 text-start font-normal whitespace-normal shadow-none transition-all select-none sm:rounded-2xl sm:p-3",
-                    isSelected
-                      ? "border-primary bg-primary/5 shadow-xs ring-1 ring-primary/30 hover:bg-primary/10"
-                      : "border-border/70 bg-card hover:border-primary/40 hover:bg-muted/30"
+                    hasImbalance
+                      ? isSelected
+                        ? "border-destructive bg-destructive/10 shadow-xs ring-1 ring-destructive/40 hover:bg-destructive/15"
+                        : "border-destructive/60 bg-destructive/5 hover:border-destructive hover:bg-destructive/10"
+                      : isSelected
+                        ? "border-primary bg-primary/5 shadow-xs ring-1 ring-primary/30 hover:bg-primary/10"
+                        : "border-border/70 bg-card hover:border-primary/40 hover:bg-muted/30"
                   )}
                 >
                   <div className="flex w-full items-center justify-between gap-1.5">
@@ -72,15 +101,17 @@ export function TermRangesLegend({
                       <span
                         className={cn(
                           "size-2 shrink-0 rounded-full sm:size-2.5",
-                          theme.dotColor
+                          hasImbalance ? "bg-destructive" : theme.dotColor
                         )}
                       />
                       <span
                         className={cn(
                           "truncate text-[11px] font-bold sm:text-xs",
-                          isSelected
-                            ? "font-extrabold text-primary"
-                            : "text-foreground"
+                          hasImbalance
+                            ? "font-extrabold text-destructive"
+                            : isSelected
+                              ? "font-extrabold text-primary"
+                              : "text-foreground"
                         )}
                       >
                         {term.title}
@@ -90,9 +121,11 @@ export function TermRangesLegend({
                     <span
                       className={cn(
                         "shrink-0 text-[10px] font-semibold transition-colors sm:text-xs",
-                        isSelected
-                          ? "font-bold text-primary"
-                          : "text-muted-foreground group-hover:text-foreground"
+                        hasImbalance
+                          ? "font-bold text-destructive"
+                          : isSelected
+                            ? "font-bold text-primary"
+                            : "text-muted-foreground group-hover:text-foreground"
                       )}
                     >
                       {t("batchModal.sessionsBadge", {
@@ -131,14 +164,32 @@ export function TermRangesLegend({
                         </span>
                       )}
                     </div>
+
+                    {hasImbalance && (
+                      <div className="mt-1 flex w-full items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-2 py-1 text-[10px] font-semibold text-destructive sm:text-[11px]">
+                        <AlertTriangle className="size-3 shrink-0 text-destructive" />
+                        <span className="truncate">
+                          {evenDetail && oddDetail
+                            ? t("batchModal.cardImbalanceNotice", {
+                                even: formatNumber(
+                                  evenDetail.completedSessions,
+                                  locale
+                                ),
+                                odd: formatNumber(
+                                  oddDetail.completedSessions,
+                                  locale
+                                ),
+                              })
+                            : t("batchModal.sessionImbalanceWarning")}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </Button>
               </CarouselItem>
             )
           })}
         </CarouselContent>
-        <CarouselPrevious className="-start-5 size-7 sm:-start-8 sm:size-8" />
-        <CarouselNext className="-end-5 size-7 sm:-end-8 sm:size-8" />
       </Carousel>
     </div>
   )

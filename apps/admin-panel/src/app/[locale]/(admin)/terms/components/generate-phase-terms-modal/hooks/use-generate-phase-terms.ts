@@ -406,6 +406,10 @@ export function useGeneratePhaseTerms({
     }
   }
 
+  const hasAnySessionImbalance = React.useMemo(() => {
+    return proposals.some((p) => p.hasSessionImbalance)
+  }, [proposals])
+
   return {
     t,
     step,
@@ -426,6 +430,7 @@ export function useGeneratePhaseTerms({
     setGapDays,
     proposals,
     setProposals,
+    hasAnySessionImbalance,
     phaseOptions,
     previewQuery,
     batchCreateMutation,

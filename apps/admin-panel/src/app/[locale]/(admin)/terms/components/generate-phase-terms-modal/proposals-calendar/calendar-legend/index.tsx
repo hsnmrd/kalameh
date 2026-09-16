@@ -5,37 +5,57 @@ import { useTranslations } from "next-intl"
 
 export interface CalendarLegendProps {
   accentColor?: string
+  evenColorHex?: string
+  oddColorHex?: string
   locale?: "fa" | "en"
   observeOfficialHolidays?: boolean
   hasCustomOffDays?: boolean
   hasCompensatorySessions?: boolean
   hasDismissedHolidays?: boolean
+  hasExcessSessions?: boolean
 }
 
 export function CalendarLegend({
   accentColor = "#2563eb",
+  evenColorHex,
+  oddColorHex,
   locale = "fa",
   observeOfficialHolidays = true,
   hasCustomOffDays = false,
   hasCompensatorySessions = false,
   hasDismissedHolidays = false,
+  hasExcessSessions = false,
 }: CalendarLegendProps) {
   const t = useTranslations("terms")
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 rounded-xl border border-border/60 bg-muted/25 px-4 py-2 text-xs text-muted-foreground">
-      {/* Scheduled Term Days */}
+    <div className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-2 rounded-xl border border-border/60 bg-muted/25 px-4 py-2.5 text-xs text-muted-foreground">
+      {/* Even Sessions */}
+      <div className="flex items-center gap-2">
+        <span
+          className="flex size-6 items-center justify-center rounded-md text-[11px] font-bold"
+          style={{
+            backgroundColor: evenColorHex || `${accentColor}40`,
+            color: accentColor,
+          }}
+        >
+          {locale === "fa" ? "۱۴" : "14"}
+        </span>
+        <span>{t("batchModal.legendEvenSessions")}</span>
+      </div>
+
+      {/* Odd Sessions */}
       <div className="flex items-center gap-2">
         <span
           className="flex size-6 items-center justify-center rounded-md text-[11px] font-medium"
           style={{
-            backgroundColor: `${accentColor}35`,
+            backgroundColor: oddColorHex || `${accentColor}18`,
             color: accentColor,
           }}
         >
           {locale === "fa" ? "۱۵" : "15"}
         </span>
-        <span>{t("batchModal.legendClassDays")}</span>
+        <span>{t("batchModal.legendOddSessions")}</span>
       </div>
 
       {/* Weekend (Fridays) */}
@@ -82,7 +102,17 @@ export function CalendarLegend({
           <span className="relative flex size-6 items-center justify-center rounded-md border-2 border-primary text-[11px] font-bold text-primary after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-primary">
             {locale === "fa" ? "۲۰" : "20"}
           </span>
-          <span>{t("batchModal.compensatoryModalTitle")}</span>
+          <span>{t("batchModal.legendCompensatorySession")}</span>
+        </div>
+      )}
+
+      {/* Excess Sessions */}
+      {hasExcessSessions && (
+        <div className="flex items-center gap-2">
+          <span className="flex size-6 items-center justify-center rounded-md border-2 border-dashed border-warning text-[11px] font-bold text-warning">
+            {locale === "fa" ? "۲۱" : "21"}
+          </span>
+          <span>{t("batchModal.legendExcessSession")}</span>
         </div>
       )}
     </div>

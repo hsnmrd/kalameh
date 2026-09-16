@@ -1,8 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations, useLocale } from "next-intl"
-import { Info } from "lucide-react"
+import { useLocale } from "next-intl"
 import type {
   GeneratedTermProposal,
   CompensatorySession,
@@ -24,6 +23,7 @@ export interface ProposalsCalendarProps {
   customOffDays?: string[]
   activeDismissedHolidays?: string[]
   compensatorySessions?: Record<number, CompensatorySession[]>
+  numberOfMonths?: number
 }
 
 export function ProposalsCalendar({
@@ -33,12 +33,12 @@ export function ProposalsCalendar({
   onAddCompensatorySession,
   onRemoveCompensatorySession,
   locale,
-  observeOfficialHolidays,
-  customOffDays,
-  activeDismissedHolidays,
+  observeOfficialHolidays = true,
+  customOffDays = [],
+  activeDismissedHolidays = [],
   compensatorySessions,
+  numberOfMonths,
 }: ProposalsCalendarProps) {
-  const t = useTranslations("terms")
   const defaultLocale = useLocale() as "fa" | "en"
   const activeLocale = locale || defaultLocale
 
@@ -51,12 +51,6 @@ export function ProposalsCalendar({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Informative helper hint */}
-      <div className="flex items-start gap-2.5 rounded-xl border border-border/80 bg-muted/40 p-3.5 text-xs leading-relaxed text-muted-foreground">
-        <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-        <span>{t("batchModal.dateShiftHint")}</span>
-      </div>
-
       {/* Legend & Term Selection Chips */}
       <TermRangesLegend
         proposals={proposals}
@@ -77,6 +71,7 @@ export function ProposalsCalendar({
         customOffDays={customOffDays}
         activeDismissedHolidays={activeDismissedHolidays}
         compensatorySessions={compensatorySessions}
+        numberOfMonths={numberOfMonths}
       />
     </div>
   )
