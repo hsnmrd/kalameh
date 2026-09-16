@@ -273,7 +273,9 @@ describe("GeneratePhaseTermsModal", () => {
 
     // Shows session imbalance warning and details
     expect(await screen.findByText(/هشدار ناهماهنگی جلسات/)).toBeInTheDocument()
-    expect(screen.getByText(/تعداد جلسات روزهای زوج و فرد/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/جلسات زوج .* و فرد .* برابر نیستند/)
+    ).toBeInTheDocument()
     expect(
       screen.queryByText(/امکان ایجاد ترم به دلیل ناهمخوانی جلسات/)
     ).not.toBeInTheDocument()
@@ -281,5 +283,106 @@ describe("GeneratePhaseTermsModal", () => {
     // Submit button must be disabled
     const submitBtn = screen.getByText("تأیید").closest("button")
     expect(submitBtn).toBeDisabled()
+  })
+
+  it("only shows session imbalance warning for the active term and hides when selecting a balanced term", async () => {
+    mockPreviewProposals = [
+      {
+        title: "ترم اول نامتعادل",
+        startDate: "2024-09-22",
+        startDateJalali: "1403/07/01",
+        endDate: "2024-11-05",
+        endDateJalali: "1403/08/15",
+        daysCount: 45,
+        sessionsCount: 18,
+        holidaysCount: 2,
+        monthNamesFa: "مهر، آبان",
+        hasSessionImbalance: true,
+        patternDetails: [
+          {
+            track: "EVEN",
+            days: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            completedSessions: 20,
+            targetSessions: 18,
+            compensatoryCount: 0,
+            hasExcess: true,
+          },
+          {
+            track: "ODD",
+            days: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            completedSessions: 18,
+            targetSessions: 18,
+            compensatoryCount: 0,
+            hasExcess: false,
+          },
+        ],
+      },
+      {
+        title: "ترم دوم متعادل",
+        startDate: "2024-11-07",
+        startDateJalali: "1403/08/17",
+        endDate: "2024-12-21",
+        endDateJalali: "1403/09/30",
+        daysCount: 45,
+        sessionsCount: 18,
+        holidaysCount: 0,
+        monthNamesFa: "آبان، آذر",
+        hasSessionImbalance: false,
+        patternDetails: [
+          {
+            track: "EVEN",
+            days: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            completedSessions: 18,
+            targetSessions: 18,
+            compensatoryCount: 0,
+            hasExcess: false,
+          },
+          {
+            track: "ODD",
+            days: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            completedSessions: 18,
+            targetSessions: 18,
+            compensatoryCount: 0,
+            hasExcess: false,
+          },
+        ],
+      },
+    ]
+
+    render(<GeneratePhaseTermsModal open={true} onClose={vi.fn()} />)
+
+    const continueBtn = screen.getByText("ادامه")
+    await waitFor(() => {
+      expect(continueBtn.closest("button")).not.toBeDisabled()
+    })
+
+    await act(async () => {
+      continueBtn.click()
+    })
+
+    // Active term is Term 1 (imbalanced): warning must be shown
+    expect(
+      await screen.findByText(/هشدار ناهماهنگی جلسات: ترم اول نامتعادل/)
+    ).toBeInTheDocument()
+
+    // Switch to Term 2 (balanced)
+    const term2Chip = screen.getByText("ترم دوم متعادل")
+    await act(async () => {
+      term2Chip.click()
+    })
+
+    // Warning should no longer be visible
+    expect(screen.queryByText(/هشدار ناهماهنگی جلسات/)).not.toBeInTheDocument()
+
+    // Switch back to Term 1 (imbalanced)
+    const term1Chip = screen.getByText("ترم اول نامتعادل")
+    await act(async () => {
+      term1Chip.click()
+    })
+
+    // Warning should reappear
+    expect(
+      screen.getByText(/هشدار ناهماهنگی جلسات: ترم اول نامتعادل/)
+    ).toBeInTheDocument()
   })
 })

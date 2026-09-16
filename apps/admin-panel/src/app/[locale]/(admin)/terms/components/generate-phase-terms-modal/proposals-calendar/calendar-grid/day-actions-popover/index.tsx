@@ -10,6 +10,7 @@ import {
   CalendarOff,
   Trash2,
   Play,
+  Star,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
@@ -26,7 +27,10 @@ import {
   type GeneratedTermProposal,
   type CompensatorySession,
 } from "@workspace/types"
-import { normalizeDateToYmd } from "../../helper/calendar-colors"
+import {
+  normalizeDateToYmd,
+  getTermExamDates,
+} from "../../helper/calendar-colors"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
 
 export interface DayActionsPopoverProps {
@@ -216,6 +220,14 @@ export function DayActionsPopover({
         : "Institute Off-Day"
       : undefined
 
+  // Exam session check (final two sessions of the term)
+  const { evenDate, oddDate, examDates } = termProposal
+    ? getTermExamDates(termProposal)
+    : { evenDate: undefined, oddDate: undefined, examDates: [] }
+  const isExamDay = examDates.includes(ymd)
+  const isEvenExam = evenDate === ymd
+  const isOddExam = oddDate === ymd
+
   const renderContent = () => (
     <div className="flex flex-col gap-3.5">
       {/* Date header & status badges */}
@@ -275,11 +287,24 @@ export function DayActionsPopover({
               })}
             </span>
           )}
+          {isExamDay && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
+              <Star className="size-3 fill-warning text-warning" />
+              <span>
+                {isEvenExam
+                  ? t("batchModal.statusEvenExamSession")
+                  : isOddExam
+                    ? t("batchModal.statusOddExamSession")
+                    : t("batchModal.statusExamSession")}
+              </span>
+            </span>
+          )}
           {!isOfficialHoliday &&
             !isCustomOff &&
             !isFriday &&
             !hasCompensatory &&
-            !isExcessSessionDay && (
+            !isExcessSessionDay &&
+            !isExamDay && (
               <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                 {t("batchModal.statusRegularDay")}
               </span>

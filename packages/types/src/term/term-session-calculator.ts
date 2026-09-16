@@ -68,6 +68,7 @@ export interface CalculatedTermSchedule {
   patternDetails?: PatternSessionDetail[]
   hasSessionImbalance?: boolean
   compensatorySessionsApplied?: CompensatorySession[]
+  examDates?: string[]
 }
 
 function toIsoDate(d: Date): string {
@@ -356,6 +357,25 @@ export function calculateTermEndDate(
         (latestEndDate.getTime() - startDateObj.getTime()) / (1000 * 3600 * 24)
       ) + 1
 
+    const evenProgress = patternProgressList.find((p) => p.track === "EVEN")
+    const oddProgress = patternProgressList.find((p) => p.track === "ODD")
+    const examDatesList: string[] = []
+
+    if (evenProgress && evenProgress.sessionDates.length > 0) {
+      examDatesList.push(
+        evenProgress.sessionDates[evenProgress.sessionDates.length - 1]!
+      )
+    }
+    if (oddProgress && oddProgress.sessionDates.length > 0) {
+      examDatesList.push(
+        oddProgress.sessionDates[oddProgress.sessionDates.length - 1]!
+      )
+    }
+    if (examDatesList.length === 0 && allSessionDates.length > 0) {
+      examDatesList.push(...allSessionDates.slice(-2))
+    }
+    const examDates = Array.from(new Set(examDatesList)).sort()
+
     return {
       startDate: toIsoDate(startDateObj),
       startDateJalali: formatJalali(startJ.year, startJ.month, startJ.day),
@@ -371,6 +391,7 @@ export function calculateTermEndDate(
       patternDetails,
       hasSessionImbalance,
       compensatorySessionsApplied: validCompensatory,
+      examDates,
     }
   }
 
@@ -475,6 +496,7 @@ export function calculateTermEndDate(
     ],
     hasSessionImbalance: completedDays > targetCount,
     compensatorySessionsApplied: validCompensatory,
+    examDates: sessionDates.slice(-2),
   }
 }
 
@@ -515,6 +537,7 @@ export interface GeneratedTermProposal {
   patternDetails?: PatternSessionDetail[]
   hasSessionImbalance?: boolean
   holidaysEncountered?: HolidayEncountered[]
+  examDates?: string[]
 }
 
 export function toPersianDigits(n: number | string): string {
@@ -710,6 +733,7 @@ export function generatePhaseTerms(
       patternDetails: schedule.patternDetails,
       hasSessionImbalance: schedule.hasSessionImbalance,
       holidaysEncountered: schedule.holidaysEncountered,
+      examDates: schedule.examDates,
     })
 
     // Advance to next term: end date + gapDaysBetweenTerms
@@ -868,6 +892,7 @@ export function recalculatePhaseTerms(
       patternDetails: schedule.patternDetails,
       hasSessionImbalance: schedule.hasSessionImbalance,
       holidaysEncountered: schedule.holidaysEncountered,
+      examDates: schedule.examDates,
     }
 
     // Determine start date for next term
@@ -893,4 +918,60 @@ export function recalculatePhaseTerms(
   }
 
   return updated
+}
+
+/**
+ * Resolves the final exam session dates for a term proposal.
+ * Typically consists of the last session of the Even track and the last session of the Odd track.
+ */
+export function getTermExamDates(term: GeneratedTermProposal): {
+  evenDate?: string
+  oddDate?: string
+  examDates: string[]
+} {
+  if (term.examDates && term.examDates.length > 0) {
+    const evenPattern = term.patternDetails?.find((p) => p.track === "EVEN")
+    const oddPattern = term.patternDetails?.find((p) => p.track === "ODD")
+    const evenDate = evenPattern?.sessionDates?.find((d) =>
+      term.examDates!.includes(d)
+    )
+    const oddDate = oddPattern?.sessionDates?.find((d) =>
+      term.examDates!.includes(d)
+    )
+    return {
+      evenDate,
+      oddDate,
+      examDates: term.examDates,
+    }
+  }
+
+  const evenPattern = term.patternDetails?.find((p) => p.track === "EVEN")
+  const oddPattern = term.patternDetails?.find((p) => p.track === "ODD")
+
+  const evenDate =
+    evenPattern &&
+    evenPattern.sessionDates &&
+    evenPattern.sessionDates.length > 0
+      ? evenPattern.sessionDates[evenPattern.sessionDates.length - 1]
+      : undefined
+
+  const oddDate =
+    oddPattern && oddPattern.sessionDates && oddPattern.sessionDates.length > 0
+      ? oddPattern.sessionDates[oddPattern.sessionDates.length - 1]
+      : undefined
+
+  const examDates: string[] = []
+  if (evenDate) examDates.push(evenDate)
+  if (oddDate) examDates.push(oddDate)
+
+  if (examDates.length === 0 && term.endDate) {
+    const rawEnd = term.endDate.split("T")[0]!
+    examDates.push(rawEnd)
+  }
+
+  return {
+    evenDate,
+    oddDate,
+    examDates: Array.from(new Set(examDates)).sort(),
+  }
 }

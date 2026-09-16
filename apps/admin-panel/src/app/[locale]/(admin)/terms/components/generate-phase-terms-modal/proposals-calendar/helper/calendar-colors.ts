@@ -2,7 +2,10 @@ import {
   isJalaliHoliday,
   type GeneratedTermProposal,
   type CompensatorySession,
+  getTermExamDates,
 } from "@workspace/types"
+
+export { getTermExamDates }
 
 export interface TermColorTheme {
   id: string
@@ -567,7 +570,39 @@ export function buildTermCalendarModifiers(
     }
     modifiersClassNames[oddSessionKey] = oddSessionClass
 
-    // 1c. Continuous range bar (light background tint for non-session days inside term)
+    // 1c. Final Exam Sessions (one odd session and one even session per term)
+    const examDatesForTerm = new Set<string>()
+    if (term.examDates && term.examDates.length > 0) {
+      term.examDates.forEach((d) => examDatesForTerm.add(d))
+    } else {
+      const { examDates } = getTermExamDates(term)
+      if (examDates.length > 0) {
+        examDates.forEach((d) => examDatesForTerm.add(d))
+      } else {
+        const sortedEven = Array.from(evenDates).sort()
+        const sortedOdd = Array.from(oddDates).sort()
+        if (sortedEven.length > 0) {
+          examDatesForTerm.add(sortedEven[sortedEven.length - 1]!)
+        }
+        if (sortedOdd.length > 0) {
+          examDatesForTerm.add(sortedOdd[sortedOdd.length - 1]!)
+        }
+        if (examDatesForTerm.size === 0 && term.endDate) {
+          examDatesForTerm.add(normalizeDateToYmd(term.endDate))
+        }
+      }
+    }
+
+    const examSessionKey = `term_${index}_exam_session`
+    modifiers[examSessionKey] = (date: Date) => {
+      const ymd = normalizeDateToYmd(date)
+      return examDatesForTerm.has(ymd)
+    }
+    modifiersClassNames[examSessionKey] = isSelected
+      ? "[&>button]:relative [&>button]:before:content-['★'] [&>button]:before:absolute [&>button]:before:bottom-0.5 [&>button]:before:left-1/2 [&>button]:before:-translate-x-1/2 [&>button]:before:text-[9px] [&>button]:before:leading-none [&>button]:before:!text-current [&>button]:before:pointer-events-none [&>button]:before:z-10"
+      : "[&>button]:relative [&>button]:before:content-['★'] [&>button]:before:absolute [&>button]:before:bottom-0.5 [&>button]:before:left-1/2 [&>button]:before:-translate-x-1/2 [&>button]:before:text-[9px] [&>button]:before:leading-none [&>button]:before:!text-current/60 [&>button]:before:pointer-events-none [&>button]:before:z-10"
+
+    // 1d. Continuous range bar (light background tint for non-session days inside term)
     modifiers[rangeKey] = (date: Date) => {
       const ymd = normalizeDateToYmd(date)
       if (ymd < startYmd || ymd > endYmd) return false

@@ -8,6 +8,7 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import type {
   GeneratedTermProposal,
   CompensatorySession,
@@ -53,9 +54,12 @@ export function StepPreview({
 }: StepPreviewProps) {
   const t = useTranslations("terms")
 
-  const imbalanceProposals = React.useMemo(() => {
-    return proposals.filter((p) => p.hasSessionImbalance)
-  }, [proposals])
+  const [selectedTermIndex, setSelectedTermIndex] = React.useState<number>(0)
+  const safeSelectedTermIndex =
+    selectedTermIndex >= proposals.length && proposals.length > 0
+      ? 0
+      : selectedTermIndex
+  const activeTerm = proposals[safeSelectedTermIndex]
 
   return (
     <div className="flex flex-col gap-4">
@@ -87,30 +91,31 @@ export function StepPreview({
         </div>
       </div>
 
-      {/* Session Imbalance Error Alert */}
-      {imbalanceProposals.length > 0 && (
+      {/* Active Term Session Imbalance Warning Alert */}
+      {activeTerm?.hasSessionImbalance && (
         <div className="flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
           <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
           <div className="flex flex-col gap-1">
             <span className="font-bold text-destructive">
-              {t("batchModal.sessionImbalanceWarning")}
+              {t("batchModal.sessionImbalanceWarning")}: {activeTerm.title}
             </span>
             <span className="leading-relaxed text-muted-foreground">
-              {imbalanceProposals
-                .map((p) => {
-                  const even =
-                    p.patternDetails?.find((d) => d.track === "EVEN")
-                      ?.completedSessions ?? 0
-                  const odd =
-                    p.patternDetails?.find((d) => d.track === "ODD")
-                      ?.completedSessions ?? 0
-                  return `${p.title}: ${t("batchModal.sessionImbalanceDesc", {
-                    even,
-                    odd,
-                    target: p.sessionsCount ?? 18,
-                  })}`
+              {(() => {
+                const even =
+                  activeTerm.patternDetails?.find((d) => d.track === "EVEN")
+                    ?.completedSessions ?? 0
+                const odd =
+                  activeTerm.patternDetails?.find((d) => d.track === "ODD")
+                    ?.completedSessions ?? 0
+                return t("batchModal.sessionImbalanceDesc", {
+                  even: formatNumber(even, locale || "fa"),
+                  odd: formatNumber(odd, locale || "fa"),
+                  target: formatNumber(
+                    activeTerm.sessionsCount ?? 18,
+                    locale || "fa"
+                  ),
                 })
-                .join(" | ")}
+              })()}
             </span>
           </div>
         </div>
@@ -120,6 +125,8 @@ export function StepPreview({
         viewMode === "calendar" ? (
           <ProposalsCalendar
             proposals={proposals}
+            selectedTermIndex={safeSelectedTermIndex}
+            onSelectTermIndex={setSelectedTermIndex}
             onStartDateChange={onStartDateChange}
             onToggleHoliday={onToggleHoliday}
             onToggleCustomOffDay={onToggleCustomOffDay}

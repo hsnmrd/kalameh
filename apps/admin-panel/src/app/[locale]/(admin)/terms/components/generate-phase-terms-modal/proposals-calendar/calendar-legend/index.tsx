@@ -115,6 +115,14 @@ export function CalendarLegend({
           <span>{t("batchModal.legendExcessSession")}</span>
         </div>
       )}
+
+      {/* Final Exam Sessions */}
+      <div className="flex items-center gap-2">
+        <span className="relative flex size-6 items-center justify-center rounded-md border border-border/60 bg-muted/30 text-[11px] font-bold text-foreground before:absolute before:bottom-0.5 before:left-1/2 before:-translate-x-1/2 before:text-[9px] before:leading-none before:text-current before:content-['★']">
+          {locale === "fa" ? "۲۲" : "22"}
+        </span>
+        <span>{t("batchModal.legendExamSession")}</span>
+      </div>
     </div>
   )
 }

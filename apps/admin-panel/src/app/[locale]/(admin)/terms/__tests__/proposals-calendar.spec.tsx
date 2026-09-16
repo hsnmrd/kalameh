@@ -1119,4 +1119,153 @@ describe("ProposalsCalendar Component", () => {
       ).not.toBeInTheDocument()
     }
   })
+
+  it("identifies final exam sessions (one odd and one even) and applies term_0_exam_session modifier with star before element", async () => {
+    const { buildTermCalendarModifiers, getTermExamDates } =
+      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+
+    const termWithPatterns: GeneratedTermProposal = {
+      title: "مهر ۱۴۰۵",
+      startDate: "2026-09-23",
+      startDateJalali: "1405/07/01",
+      endDate: "2026-10-06",
+      endDateJalali: "1405/07/14",
+      daysCount: 14,
+      sessionsCount: 12,
+      holidaysCount: 0,
+      monthNamesFa: "مهر",
+      patternDetails: [
+        {
+          track: "EVEN",
+          days: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          completedSessions: 6,
+          targetSessions: 6,
+          compensatoryCount: 0,
+          hasExcess: false,
+          sessionDates: [
+            "2026-09-23",
+            "2026-09-26",
+            "2026-09-28",
+            "2026-09-30",
+            "2026-10-03",
+            "2026-10-05",
+          ],
+        },
+        {
+          track: "ODD",
+          days: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          completedSessions: 6,
+          targetSessions: 6,
+          compensatoryCount: 0,
+          hasExcess: false,
+          sessionDates: [
+            "2026-09-24",
+            "2026-09-27",
+            "2026-09-29",
+            "2026-10-01",
+            "2026-10-04",
+            "2026-10-06",
+          ],
+        },
+      ],
+    }
+
+    const { evenDate, oddDate, examDates } = getTermExamDates(termWithPatterns)
+    expect(evenDate).toBe("2026-10-05")
+    expect(oddDate).toBe("2026-10-06")
+    expect(examDates).toEqual(["2026-10-05", "2026-10-06"])
+
+    const res = buildTermCalendarModifiers([termWithPatterns], true, {
+      selectedTermIndex: 0,
+    })
+
+    expect(res.modifiers.term_0_exam_session).toBeDefined()
+    expect(
+      res.modifiers.term_0_exam_session(new Date("2026-10-05T12:00:00.000Z"))
+    ).toBe(true)
+    expect(
+      res.modifiers.term_0_exam_session(new Date("2026-10-06T12:00:00.000Z"))
+    ).toBe(true)
+    // Non-exam session date should be false
+    expect(
+      res.modifiers.term_0_exam_session(new Date("2026-09-23T12:00:00.000Z"))
+    ).toBe(false)
+
+    // Verify star styling in modifier className
+    expect(res.modifiersClassNames.term_0_exam_session).toContain(
+      "before:content-['★']"
+    )
+    expect(res.modifiersClassNames.term_0_exam_session).toContain(
+      "before:!text-current"
+    )
+    expect(res.modifiersClassNames.term_0_exam_session).toContain(
+      "before:bottom-0.5"
+    )
+  })
+
+  it("renders final exam session legend item in CalendarLegend", () => {
+    render(
+      <ProposalsCalendar
+        proposals={mockProposals}
+        onStartDateChange={vi.fn()}
+      />
+    )
+
+    expect(
+      screen.getByText("امتحان پایانی (جلسات فرد و زوج)")
+    ).toBeInTheDocument()
+  })
+
+  it("renders exam badge in DayActionsPopover when clicking an exam day", () => {
+    const termWithExam: GeneratedTermProposal[] = [
+      {
+        title: "مهر ۱۴۰۵",
+        startDate: "2026-09-23",
+        startDateJalali: "1405/07/01",
+        endDate: "2026-09-24",
+        endDateJalali: "1405/07/02",
+        daysCount: 2,
+        sessionsCount: 2,
+        holidaysCount: 0,
+        monthNamesFa: "مهر",
+        examDates: ["2026-09-23", "2026-09-24"],
+        patternDetails: [
+          {
+            track: "EVEN",
+            days: ["WEDNESDAY"],
+            completedSessions: 1,
+            targetSessions: 1,
+            compensatoryCount: 0,
+            hasExcess: false,
+            sessionDates: ["2026-09-23"],
+          },
+          {
+            track: "ODD",
+            days: ["THURSDAY"],
+            completedSessions: 1,
+            targetSessions: 1,
+            compensatoryCount: 0,
+            hasExcess: false,
+            sessionDates: ["2026-09-24"],
+          },
+        ],
+      },
+    ]
+
+    render(
+      <ProposalsCalendar proposals={termWithExam} onStartDateChange={vi.fn()} />
+    )
+
+    const dayButtons = screen.getAllByRole("button")
+    // Day 1 (1405/07/01)
+    const day1Btn = dayButtons.find(
+      (btn) => btn.textContent === "۱" || btn.textContent === "1"
+    )
+
+    expect(day1Btn).toBeDefined()
+    if (day1Btn) {
+      fireEvent.click(day1Btn)
+      expect(screen.getByText("امتحان پایانی (جلسه زوج)")).toBeInTheDocument()
+    }
+  })
 })

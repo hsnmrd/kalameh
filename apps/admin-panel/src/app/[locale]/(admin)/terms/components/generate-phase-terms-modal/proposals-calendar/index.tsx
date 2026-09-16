@@ -11,6 +11,8 @@ import { CalendarGrid } from "./calendar-grid"
 
 export interface ProposalsCalendarProps {
   proposals: GeneratedTermProposal[]
+  selectedTermIndex?: number
+  onSelectTermIndex?: (index: number) => void
   onStartDateChange: (index: number, newStartDate: string) => void
   onToggleHoliday?: (dateYmd: string) => void
   onToggleCustomOffDay?: (dateYmd: string) => void
@@ -29,6 +31,8 @@ export interface ProposalsCalendarProps {
 
 export function ProposalsCalendar({
   proposals,
+  selectedTermIndex: propSelectedTermIndex,
+  onSelectTermIndex,
   onStartDateChange,
   onToggleHoliday,
   onToggleCustomOffDay,
@@ -44,12 +48,17 @@ export function ProposalsCalendar({
   const defaultLocale = useLocale() as "fa" | "en"
   const activeLocale = locale || defaultLocale
 
-  const [rawSelectedTermIndex, setSelectedTermIndex] = React.useState<number>(0)
+  const [rawSelectedTermIndex, setRawSelectedTermIndex] =
+    React.useState<number>(0)
 
   const selectedTermIndex =
-    rawSelectedTermIndex >= proposals.length && proposals.length > 0
-      ? 0
-      : rawSelectedTermIndex
+    propSelectedTermIndex !== undefined
+      ? propSelectedTermIndex
+      : rawSelectedTermIndex >= proposals.length && proposals.length > 0
+        ? 0
+        : rawSelectedTermIndex
+
+  const handleSelectIndex = onSelectTermIndex ?? setRawSelectedTermIndex
 
   return (
     <div className="flex flex-col gap-4">
@@ -57,7 +66,7 @@ export function ProposalsCalendar({
       <TermRangesLegend
         proposals={proposals}
         selectedIndex={selectedTermIndex}
-        onSelectIndex={setSelectedTermIndex}
+        onSelectIndex={handleSelectIndex}
       />
 
       {/* Range Calendar Grid */}

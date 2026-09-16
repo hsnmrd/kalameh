@@ -511,5 +511,27 @@ describe("Term Session Calculator & Batch Phase Terms Generator", () => {
       )
       expect(balancedOdd?.compensatoryCount).toBe(1)
     })
+
+    it("calculates examDates as the final session of EVEN and ODD tracks", () => {
+      const result = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetSessions: 6,
+        daysOfWeek: ["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY"],
+        skipHolidays: true,
+      })
+
+      expect(result.examDates).toBeDefined()
+      expect(result.examDates?.length).toBe(2)
+
+      const evenPattern = result.patternDetails?.find((p) => p.track === "EVEN")
+      const oddPattern = result.patternDetails?.find((p) => p.track === "ODD")
+      const lastEvenDate =
+        evenPattern?.sessionDates[evenPattern.sessionDates.length - 1]
+      const lastOddDate =
+        oddPattern?.sessionDates[oddPattern.sessionDates.length - 1]
+
+      expect(result.examDates).toContain(lastEvenDate)
+      expect(result.examDates).toContain(lastOddDate)
+    })
   })
 })
