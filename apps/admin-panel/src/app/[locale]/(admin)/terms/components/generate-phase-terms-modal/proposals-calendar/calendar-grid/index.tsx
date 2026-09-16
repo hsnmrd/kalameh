@@ -3,32 +3,48 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Info } from "lucide-react"
-import { toast } from "@workspace/ui/components/sonner"
 import { Calendar } from "@workspace/ui/components/calendar"
-import { isJalaliHoliday, type GeneratedTermProposal } from "@workspace/types"
+import type {
+  GeneratedTermProposal,
+  CompensatorySession,
+} from "@workspace/types"
 import {
   buildTermCalendarModifiers,
-  normalizeDateToYmd,
   getTermColorTheme,
 } from "../helper/calendar-colors"
 import { CalendarLegend } from "../calendar-legend"
+import { DayActionsPopover } from "./day-actions-popover"
+import { CompensatorySessionModal } from "../../compensatory-session-modal"
 
 export interface CalendarGridProps {
   proposals: GeneratedTermProposal[]
   selectedTermIndex: number
   onStartDateChange: (index: number, newStartDate: string) => void
+  onToggleHoliday?: (dateYmd: string) => void
+  onAddCompensatorySession?: (
+    termIndex: number,
+    session: CompensatorySession
+  ) => void
+  onRemoveCompensatorySession?: (termIndex: number, dateYmd: string) => void
   locale?: "fa" | "en"
   observeOfficialHolidays?: boolean
   customOffDays?: string[]
+  activeDismissedHolidays?: string[]
+  compensatorySessions?: Record<number, CompensatorySession[]>
 }
 
 export function CalendarGrid({
   proposals,
   selectedTermIndex,
   onStartDateChange,
+  onToggleHoliday,
+  onAddCompensatorySession,
+  onRemoveCompensatorySession,
   locale = "fa",
   observeOfficialHolidays = true,
   customOffDays = [],
+  activeDismissedHolidays = [],
+  compensatorySessions = {},
 }: CalendarGridProps) {
   const t = useTranslations("terms")
 
@@ -36,6 +52,19 @@ export function CalendarGrid({
   const selectedTheme = selectedTerm
     ? getTermColorTheme(selectedTermIndex)
     : null
+
+  // Popover state
+  const [popoverOpen, setPopoverOpen] = React.useState(false)
+  const [selectedDay, setSelectedDay] = React.useState<Date | null>(null)
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
+
+  // Compensatory modal state
+  const [compensatoryModalOpen, setCompensatoryModalOpen] =
+    React.useState(false)
+  const [compensatoryTargetDate, setCompensatoryTargetDate] =
+    React.useState<string>("")
+  const [compensatoryTermIndex, setCompensatoryTermIndex] =
+    React.useState<number>(selectedTermIndex)
 
   // Track previous term index to jump calendar month without useEffect
   const [prevTermIndex, setPrevTermIndex] =
@@ -53,85 +82,43 @@ export function CalendarGrid({
   }
 
   const isRtl = locale === "fa"
-  const customOffDaysSet = React.useMemo(
-    () => new Set(customOffDays),
-    [customOffDays]
-  )
 
   const { modifiers, modifiersClassNames } = React.useMemo(() => {
     return buildTermCalendarModifiers(proposals, isRtl, {
       observeOfficialHolidays,
       customOffDays,
+      dismissedHolidays: activeDismissedHolidays,
+      compensatorySessions,
     })
-  }, [proposals, isRtl, observeOfficialHolidays, customOffDays])
+  }, [
+    proposals,
+    isRtl,
+    observeOfficialHolidays,
+    customOffDays,
+    activeDismissedHolidays,
+    compensatorySessions,
+  ])
 
-  // Cache the initial start date of the first term so Term 1 cannot be picked earlier than initial start
-  const [initialStart] = React.useState<string | null>(() => {
-    return proposals[0]?.startDate
-      ? normalizeDateToYmd(proposals[0].startDate)
-      : null
-  })
-
-  const isDateDisabled = React.useCallback(
-    (date: Date): boolean => {
-      if (!selectedTerm) return false
-      const ymd = normalizeDateToYmd(date)
-
-      // 1. Cannot choose any date on or before previous term's end date
-      if (selectedTermIndex > 0) {
-        const prevTerm = proposals[selectedTermIndex - 1]
-        if (prevTerm) {
-          const prevEndYmd = normalizeDateToYmd(prevTerm.endDate)
-          if (ymd <= prevEndYmd) return true
-        }
-      } else if (selectedTermIndex === 0 && initialStart) {
-        // First term cannot be shifted before its initial start date
-        if (ymd < initialStart) return true
-      }
-
-      // 2. Cannot start a term on Friday (weekend)
-      const isFriday = isRtl ? date.getDay() === 5 : date.getDay() === 0
-      if (isFriday) return true
-
-      // 3. Cannot start a term on an official Jalali holiday (if observed)
-      if (observeOfficialHolidays && isJalaliHoliday(date).isHoliday)
-        return true
-
-      // 4. Cannot start a term on a custom institute off-day
-      if (customOffDaysSet.has(ymd)) return true
-
-      return false
-    },
-    [
-      selectedTerm,
-      selectedTermIndex,
-      proposals,
-      initialStart,
-      isRtl,
-      observeOfficialHolidays,
-      customOffDaysSet,
-    ]
-  )
-
-  const handleDayClick = (date: Date) => {
-    if (!selectedTerm) return
-
-    const clickedYmd = normalizeDateToYmd(date)
-    if (isDateDisabled(date)) {
-      const isFriday = isRtl ? date.getDay() === 5 : date.getDay() === 0
-      const isHoliday =
-        observeOfficialHolidays && isJalaliHoliday(date).isHoliday
-      const isCustomOff = customOffDaysSet.has(clickedYmd)
-      if (isFriday || isHoliday || isCustomOff) {
-        toast.error(t("batchModal.holidayStartDateWarning"))
-      } else {
-        toast.error(t("batchModal.minDateWarning"))
-      }
-      return
-    }
-
-    onStartDateChange(selectedTermIndex, clickedYmd)
+  const handleDayClick = (
+    date: Date,
+    _modifiers: unknown,
+    e: React.MouseEvent
+  ) => {
+    setSelectedDay(date)
+    setAnchorEl((e.currentTarget as HTMLElement) || null)
+    setPopoverOpen(true)
   }
+
+  const handleOpenCompensatoryModal = (termIndex: number, dateYmd: string) => {
+    setCompensatoryTermIndex(termIndex)
+    setCompensatoryTargetDate(dateYmd)
+    setCompensatoryModalOpen(true)
+  }
+
+  const hasDismissed = activeDismissedHolidays.length > 0
+  const hasCompensatory = Object.values(compensatorySessions).some(
+    (l) => l && l.length > 0
+  )
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-3">
@@ -142,26 +129,22 @@ export function CalendarGrid({
           month={currentMonth}
           onMonthChange={setCurrentMonth}
           onDayClick={handleDayClick}
-          disabled={isDateDisabled}
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
           className="mx-auto w-fit border border-border bg-card shadow-xs"
-
           classNames={{
             month_grid:
-              "w-full border-separate border-spacing-y-1 border-spacing-x-0",
+              "w-full border-separate border-spacing-y-1.5 border-spacing-x-0.5",
             weekdays: "grid grid-cols-7 w-full justify-items-center mb-1",
             week: "grid grid-cols-7 w-full my-0.5 justify-items-stretch",
-            day: "relative p-0 flex items-center justify-center h-9 w-full text-center text-sm focus-within:relative focus-within:z-20 overflow-hidden",
+            day: "relative p-0 flex items-center justify-center aspect-square min-h-[44px] sm:min-h-[48px] w-full text-center text-sm sm:text-base focus-within:relative focus-within:z-20 overflow-hidden",
             day_button:
-              "size-full h-9 p-0 text-sm font-medium transition-colors select-none flex items-center justify-center rounded-none hover:bg-muted/40 active:scale-95 focus-visible:outline-hidden",
+              "size-full aspect-square min-h-[44px] sm:min-h-[48px] p-0 text-sm sm:text-base font-semibold transition-colors select-none flex items-center justify-center rounded-none hover:bg-muted/40 active:scale-95 focus-visible:outline-hidden",
             selected:
               "!bg-transparent !text-inherit !shadow-none !rounded-none hover:!bg-transparent hover:!text-inherit",
             range_start: "!bg-transparent",
             range_end: "!bg-transparent",
             range_middle: "!bg-transparent",
-            disabled:
-              "opacity-40 cursor-not-allowed pointer-events-none [&>button]:!cursor-not-allowed [&>button]:pointer-events-none [&>button]:hover:!bg-transparent",
           }}
         />
       </div>
@@ -182,6 +165,41 @@ export function CalendarGrid({
         locale={locale}
         observeOfficialHolidays={observeOfficialHolidays}
         hasCustomOffDays={customOffDays.length > 0}
+        hasDismissedHolidays={hasDismissed}
+        hasCompensatorySessions={hasCompensatory}
+      />
+
+      {/* Contextual Day Actions Popover */}
+      <DayActionsPopover
+        open={popoverOpen}
+        onOpenChange={setPopoverOpen}
+        anchorEl={anchorEl}
+        date={selectedDay}
+        termProposal={selectedTerm}
+        selectedTermIndex={selectedTermIndex}
+        proposals={proposals}
+        onSetStartDate={onStartDateChange}
+        onToggleHoliday={onToggleHoliday ?? (() => {})}
+        onOpenCompensatoryModal={handleOpenCompensatoryModal}
+        onRemoveCompensatorySession={onRemoveCompensatorySession ?? (() => {})}
+        locale={locale}
+        observeOfficialHolidays={observeOfficialHolidays}
+        customOffDays={customOffDays}
+        activeDismissedHolidays={activeDismissedHolidays}
+        compensatorySessions={compensatorySessions}
+      />
+
+      {/* Compensatory Session Creation Modal */}
+      <CompensatorySessionModal
+        open={compensatoryModalOpen}
+        onOpenChange={setCompensatoryModalOpen}
+        targetDate={compensatoryTargetDate}
+        termIndex={compensatoryTermIndex}
+        termProposal={proposals[compensatoryTermIndex]}
+        onSave={(termIdx, session) => {
+          onAddCompensatorySession?.(termIdx, session)
+        }}
+        locale={locale}
       />
     </div>
   )

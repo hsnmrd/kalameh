@@ -15,10 +15,30 @@ export interface CalculateTermEndDateInput {
   targetDays?: number
   targetSessions?: number
   daysOfWeek?: WeekDay[]
+  classPatterns?: WeekDay[][]
   skipHolidays?: boolean
   observeOfficialHolidays?: boolean
   customOffDays?: (string | { date: string; title?: string })[]
   dismissedHolidays?: string[]
+  compensatorySessions?: CompensatorySession[]
+}
+
+export interface CompensatorySession {
+  date: string // ISO YYYY-MM-DD
+  dateJalali?: string
+  replacesDate?: string // ISO date of missed holiday session
+  replacesDateJalali?: string
+  patternTrack: "EVEN" | "ODD" | "ALL"
+  title?: string
+}
+
+export interface PatternSessionDetail {
+  track: "EVEN" | "ODD" | "CUSTOM"
+  days: WeekDay[]
+  completedSessions: number
+  targetSessions: number
+  compensatoryCount: number
+  hasExcess: boolean
 }
 
 export interface HolidayEncountered {
@@ -43,6 +63,9 @@ export interface CalculatedTermSchedule {
   completedSessions: number
   sessionDates: string[] // ISO dates
   sessionDatesJalali: string[]
+  patternDetails?: PatternSessionDetail[]
+  hasSessionImbalance?: boolean
+  compensatorySessionsApplied?: CompensatorySession[]
 }
 
 function toIsoDate(d: Date): string {
@@ -73,9 +96,44 @@ function parseInputDate(input: string | Date): Date {
   return g
 }
 
+export const EVEN_CLASS_DAYS: readonly WeekDay[] = [
+  "SATURDAY",
+  "MONDAY",
+  "WEDNESDAY",
+]
+export const ODD_CLASS_DAYS: readonly WeekDay[] = [
+  "SUNDAY",
+  "TUESDAY",
+  "THURSDAY",
+]
+export const NEUTRAL_CLASS_DAYS: readonly WeekDay[] = ["FRIDAY"]
+
+export function resolveClassPatterns(
+  daysOfWeek?: WeekDay[],
+  explicitPatterns?: WeekDay[][]
+): WeekDay[][] {
+  if (explicitPatterns && explicitPatterns.length > 0) {
+    return explicitPatterns.filter((p) => p.length > 0)
+  }
+  if (!daysOfWeek || daysOfWeek.length === 0) {
+    return []
+  }
+  const even = EVEN_CLASS_DAYS.filter((d) => daysOfWeek.includes(d))
+  const odd = ODD_CLASS_DAYS.filter((d) => daysOfWeek.includes(d))
+
+  // If daysOfWeek has both even and odd days, decompose into distinct class patterns
+  if (even.length > 0 && odd.length > 0) {
+    return [even, odd]
+  }
+  return [daysOfWeek]
+}
+
 /**
  * Calculates the exact end date of an academic term based on day/session count,
  * optional teaching days of the week, and skipping official Jalali holidays.
+ * When multiple class patterns are present (e.g. Even days and Odd days),
+ * the term end date is the latest date when all class patterns have completed
+ * their required session count.
  */
 export function calculateTermEndDate(
   input: CalculateTermEndDateInput
@@ -83,10 +141,12 @@ export function calculateTermEndDate(
   const targetCount = input.targetDays ?? input.targetSessions ?? 45
   const {
     daysOfWeek,
+    classPatterns,
     skipHolidays = true,
     observeOfficialHolidays = true,
     customOffDays = [],
     dismissedHolidays = [],
+    compensatorySessions = [],
   } = input
 
   if (targetCount <= 0) {
@@ -104,6 +164,11 @@ export function calculateTermEndDate(
   }
 
   const startDateObj = parseInputDate(input.startDate)
+  const startIso = toIsoDate(startDateObj)
+  const validCompensatory = compensatorySessions.filter(
+    (cs) => cs.date >= startIso
+  )
+
   const current = new Date(
     startDateObj.getFullYear(),
     startDateObj.getMonth(),
@@ -114,11 +179,203 @@ export function calculateTermEndDate(
     0
   )
 
+  const resolvedPatterns = resolveClassPatterns(daysOfWeek, classPatterns)
+
+  if (resolvedPatterns.length > 1) {
+    interface PatternProgress {
+      pattern: WeekDay[]
+      track: "EVEN" | "ODD" | "CUSTOM"
+      completedSessions: number
+      compensatoryCount: number
+      lastDate: Date
+      sessionDates: string[]
+      sessionDatesJalali: string[]
+      holidaysEncountered: HolidayEncountered[]
+    }
+
+    const patternProgressList: PatternProgress[] = resolvedPatterns.map((p) => {
+      const isEven =
+        p.includes("SATURDAY") ||
+        p.includes("MONDAY") ||
+        p.includes("WEDNESDAY")
+      const isOdd =
+        p.includes("SUNDAY") || p.includes("TUESDAY") || p.includes("THURSDAY")
+      const track: "EVEN" | "ODD" | "CUSTOM" = isEven
+        ? "EVEN"
+        : isOdd
+          ? "ODD"
+          : "CUSTOM"
+
+      return {
+        pattern: p,
+        track,
+        completedSessions: 0,
+        compensatoryCount: 0,
+        lastDate: current,
+        sessionDates: [],
+        sessionDatesJalali: [],
+        holidaysEncountered: [],
+      }
+    })
+
+    let simDate = new Date(current)
+    let safetyLoop = 0
+    const maxDays = 365 * 3 // safety cap
+
+    while (
+      patternProgressList.some((p) => p.completedSessions < targetCount) &&
+      safetyLoop < maxDays
+    ) {
+      safetyLoop++
+      const dayOfWeek = getWeekDay(simDate)
+      const isoDate = toIsoDate(simDate)
+      const customOffTitle = customOffDayMap.get(isoDate)
+      const isCustomOff = customOffTitle !== undefined
+      const holidayCheck = isJalaliHoliday(simDate)
+      const isOfficialHoliday =
+        observeOfficialHolidays &&
+        holidayCheck.isHoliday &&
+        !dismissedHolidaysSet.has(isoDate)
+      const isHoliday = skipHolidays && (isCustomOff || isOfficialHoliday)
+
+      // 1. Process compensatory sessions matching this date
+      const compForDate = validCompensatory.filter((cs) => cs.date === isoDate)
+      for (const cs of compForDate) {
+        for (const p of patternProgressList) {
+          if (cs.patternTrack === "ALL" || cs.patternTrack === p.track) {
+            p.completedSessions++
+            p.compensatoryCount++
+            const j = gregorianToJalali(simDate)
+            p.sessionDates.push(isoDate)
+            p.sessionDatesJalali.push(formatJalali(j.year, j.month, j.day))
+            p.lastDate = new Date(simDate)
+          }
+        }
+      }
+
+      // 2. Process regular teaching days (skip if already compensated on this day)
+      for (const p of patternProgressList) {
+        if (
+          p.completedSessions < targetCount &&
+          p.pattern.includes(dayOfWeek)
+        ) {
+          if (isHoliday) {
+            const j = gregorianToJalali(simDate)
+            p.holidaysEncountered.push({
+              date: isoDate,
+              dateJalali: formatJalali(j.year, j.month, j.day),
+              titleFa: isCustomOff
+                ? customOffTitle
+                : (holidayCheck.holiday?.titleFa ?? "تعطیل رسمی"),
+              titleEn: isCustomOff
+                ? "Institute Off-Day"
+                : (holidayCheck.holiday?.titleEn ?? "Official Holiday"),
+              dayOfWeek,
+              isCustomOffDay: isCustomOff,
+            })
+          } else if (
+            !compForDate.some(
+              (cs) => cs.patternTrack === "ALL" || cs.patternTrack === p.track
+            )
+          ) {
+            p.completedSessions++
+            const j = gregorianToJalali(simDate)
+            p.sessionDates.push(isoDate)
+            p.sessionDatesJalali.push(formatJalali(j.year, j.month, j.day))
+            p.lastDate = new Date(simDate)
+          }
+        }
+      }
+
+      simDate.setDate(simDate.getDate() + 1)
+    }
+
+    // Latest date among all patterns is when ALL classes finish!
+    let latestEndDate = patternProgressList[0]!.lastDate
+    for (const p of patternProgressList) {
+      if (p.lastDate.getTime() > latestEndDate.getTime()) {
+        latestEndDate = p.lastDate
+      }
+    }
+
+    // Aggregate unique holidays encountered across all patterns
+    const holidayMap = new Map<string, HolidayEncountered>()
+    for (const p of patternProgressList) {
+      for (const h of p.holidaysEncountered) {
+        if (!holidayMap.has(h.date)) {
+          holidayMap.set(h.date, h)
+        }
+      }
+    }
+    const allHolidays = Array.from(holidayMap.values()).sort((a, b) =>
+      a.date.localeCompare(b.date)
+    )
+
+    // Aggregate unique session dates across all patterns
+    const sessionDateSet = new Set<string>()
+    for (const p of patternProgressList) {
+      for (const s of p.sessionDates) {
+        sessionDateSet.add(s)
+      }
+    }
+    const allSessionDates = Array.from(sessionDateSet).sort()
+    const allSessionDatesJalali = allSessionDates.map((iso) => {
+      const parts = iso.split("-").map(Number)
+      const d = new Date(parts[0]!, parts[1]! - 1, parts[2]!, 12, 0, 0)
+      const j = gregorianToJalali(d)
+      return formatJalali(j.year, j.month, j.day)
+    })
+
+    const patternDetails: PatternSessionDetail[] = patternProgressList.map(
+      (p) => ({
+        track: p.track,
+        days: p.pattern,
+        completedSessions: p.completedSessions,
+        targetSessions: targetCount,
+        compensatoryCount: p.compensatoryCount,
+        hasExcess: p.completedSessions > targetCount,
+      })
+    )
+
+    const distinctCounts = new Set(
+      patternProgressList.map((p) => p.completedSessions)
+    )
+    const hasAnyExcess = patternProgressList.some(
+      (p) => p.completedSessions > targetCount
+    )
+    const hasSessionImbalance = distinctCounts.size > 1 || hasAnyExcess
+
+    const startJ = gregorianToJalali(startDateObj)
+    const endJ = gregorianToJalali(latestEndDate)
+    const totalDaysSpan =
+      Math.round(
+        (latestEndDate.getTime() - startDateObj.getTime()) / (1000 * 3600 * 24)
+      ) + 1
+
+    return {
+      startDate: toIsoDate(startDateObj),
+      startDateJalali: formatJalali(startJ.year, startJ.month, startJ.day),
+      endDate: toIsoDate(latestEndDate),
+      endDateJalali: formatJalali(endJ.year, endJ.month, endJ.day),
+      targetDays: targetCount,
+      totalDaysSpan,
+      holidaysEncountered: allHolidays,
+      targetSessions: targetCount,
+      completedSessions: targetCount,
+      sessionDates: allSessionDates,
+      sessionDatesJalali: allSessionDatesJalali,
+      patternDetails,
+      hasSessionImbalance,
+      compensatorySessionsApplied: validCompensatory,
+    }
+  }
+
   const sessionDates: string[] = []
   const sessionDatesJalali: string[] = []
   const holidaysEncountered: HolidayEncountered[] = []
 
   let completedDays = 0
+  let compensatoryCount = 0
   let safetyLoop = 0
   const maxDays = 365 * 2 // safety cap
 
@@ -129,9 +386,17 @@ export function calculateTermEndDate(
   while (completedDays < targetCount && safetyLoop < maxDays) {
     safetyLoop++
     const dayOfWeek = getWeekDay(current)
+    const isoDate = toIsoDate(current)
+    const compForDay = validCompensatory.filter((cs) => cs.date === isoDate)
 
-    if (!useSpecificDaysOfWeek || daysOfWeek.includes(dayOfWeek)) {
-      const isoDate = toIsoDate(current)
+    if (compForDay.length > 0) {
+      completedDays++
+      compensatoryCount++
+      const j = gregorianToJalali(current)
+      sessionDates.push(isoDate)
+      sessionDatesJalali.push(formatJalali(j.year, j.month, j.day))
+      lastDate = new Date(current)
+    } else if (!useSpecificDaysOfWeek || daysOfWeek.includes(dayOfWeek)) {
       const customOffTitle = customOffDayMap.get(isoDate)
       const isCustomOff = customOffTitle !== undefined
       const holidayCheck = isJalaliHoliday(current)
@@ -191,6 +456,18 @@ export function calculateTermEndDate(
     completedSessions: completedDays,
     sessionDates,
     sessionDatesJalali,
+    patternDetails: [
+      {
+        track: "CUSTOM",
+        days: daysOfWeek || [],
+        completedSessions: completedDays,
+        targetSessions: targetCount,
+        compensatoryCount,
+        hasExcess: completedDays > targetCount,
+      },
+    ],
+    hasSessionImbalance: completedDays > targetCount,
+    compensatorySessionsApplied: validCompensatory,
   }
 }
 
@@ -204,13 +481,15 @@ export interface GeneratePhaseTermsInput {
     daysOfWeek?: WeekDay[]
   }
   jalaliYear: number // e.g. 1403
-  daysPerTerm?: number // e.g. 45
-  sessionsPerTerm?: number // backward compatibility alias
+  sessionsPerTerm?: number // e.g. 18 (number of sessions per term)
+  daysPerTerm?: number // backward compatibility alias
   daysOfWeek?: WeekDay[] // e.g. ["SATURDAY", "MONDAY", "WEDNESDAY"]
+  classPatterns?: WeekDay[][] // e.g. [["SATURDAY", "MONDAY", "WEDNESDAY"], ["SUNDAY", "TUESDAY"]]
   gapDaysBetweenTerms?: number // default 2
   observeOfficialHolidays?: boolean
   customOffDays?: (string | { date: string; title?: string })[]
   dismissedHolidays?: string[]
+  compensatorySessions?: Record<number, CompensatorySession[]>
 }
 
 export interface GeneratedTermProposal {
@@ -220,11 +499,15 @@ export interface GeneratedTermProposal {
   endDate: string // ISO
   endDateJalali: string
   daysCount: number
-  sessionsCount: number // backward compatibility alias
+  sessionsCount: number
   holidaysCount: number
   monthsCovered: number[]
   monthNamesFa: string
   operatingPhaseId?: string
+  compensatorySessions?: CompensatorySession[]
+  patternDetails?: PatternSessionDetail[]
+  hasSessionImbalance?: boolean
+  holidaysEncountered?: HolidayEncountered[]
 }
 
 export function toPersianDigits(n: number | string): string {
@@ -316,6 +599,7 @@ export function generateTermTitleFromMonths(
 /**
  * Generates all consecutive terms for an operating phase based on covered months,
  * required sessions per term, and Jalali holidays.
+ * A term finishes when all of its class patterns complete their required session count.
  */
 export function generatePhaseTerms(
   input: GeneratePhaseTermsInput
@@ -329,13 +613,14 @@ export function generatePhaseTerms(
       (phase.daysOfWeek && phase.daysOfWeek.length > 0
         ? phase.daysOfWeek
         : undefined),
+    classPatterns = input.classPatterns,
     gapDaysBetweenTerms = 2,
     observeOfficialHolidays = true,
     customOffDays = [],
     dismissedHolidays = [],
   } = input
 
-  const targetDaysCount = daysPerTerm ?? sessionsPerTerm ?? 45
+  const targetSessionsCount = sessionsPerTerm ?? daysPerTerm ?? 18
 
   if (!phase.months || phase.months.length === 0) {
     return []
@@ -368,14 +653,20 @@ export function generatePhaseTerms(
       break
     }
 
+    const termCompensatory =
+      input.compensatorySessions?.[proposals.length] ?? []
+
     const schedule = calculateTermEndDate({
       startDate: termStartGDate,
-      targetDays: targetDaysCount,
+      targetSessions: targetSessionsCount,
+      targetDays: targetSessionsCount,
       daysOfWeek,
+      classPatterns,
       skipHolidays: true,
       observeOfficialHolidays,
       customOffDays,
       dismissedHolidays,
+      compensatorySessions: termCompensatory,
     })
 
     const endGDate = new Date(schedule.endDate + "T12:00:00")
@@ -408,15 +699,25 @@ export function generatePhaseTerms(
       monthsCovered,
       monthNamesFa,
       operatingPhaseId: phase.id,
+      compensatorySessions: termCompensatory,
+      patternDetails: schedule.patternDetails,
+      hasSessionImbalance: schedule.hasSessionImbalance,
+      holidaysEncountered: schedule.holidaysEncountered,
     })
 
     // Advance to next term: end date + gapDaysBetweenTerms
     const nextStart = new Date(endGDate)
     nextStart.setDate(nextStart.getDate() + gapDaysBetweenTerms + 1)
 
-    // If specific daysOfWeek are provided, snap to next matching day
-    if (daysOfWeek && daysOfWeek.length > 0) {
-      while (!daysOfWeek.includes(getWeekDay(nextStart))) {
+    // Snap to next matching class day
+    const activePatterns = resolveClassPatterns(daysOfWeek, classPatterns)
+    const validDays =
+      activePatterns.length > 0
+        ? Array.from(new Set(activePatterns.flat()))
+        : daysOfWeek
+
+    if (validDays && validDays.length > 0) {
+      while (!validDays.includes(getWeekDay(nextStart))) {
         nextStart.setDate(nextStart.getDate() + 1)
       }
     }
@@ -435,11 +736,13 @@ export interface RecalculatePhaseTermsInput {
   daysPerTerm?: number
   sessionsPerTerm?: number
   daysOfWeek?: WeekDay[]
+  classPatterns?: WeekDay[][]
   gapDaysBetweenTerms?: number
   userCustomTitles?: Record<number, string>
   observeOfficialHolidays?: boolean
   customOffDays?: (string | { date: string; title?: string })[]
   dismissedHolidays?: string[]
+  compensatorySessions?: Record<number, CompensatorySession[]>
 }
 
 /**
@@ -456,6 +759,7 @@ export function recalculatePhaseTerms(
     daysPerTerm,
     sessionsPerTerm,
     daysOfWeek,
+    classPatterns,
     gapDaysBetweenTerms = 2,
     userCustomTitles = {},
     observeOfficialHolidays = true,
@@ -463,8 +767,11 @@ export function recalculatePhaseTerms(
     dismissedHolidays = [],
   } = input
 
-  const targetDaysCount =
-    daysPerTerm ?? sessionsPerTerm ?? proposals[changedIndex]?.daysCount ?? 45
+  const targetSessionsCount =
+    sessionsPerTerm ??
+    daysPerTerm ??
+    proposals[changedIndex]?.sessionsCount ??
+    18
 
   if (!proposals || proposals.length === 0) {
     return []
@@ -503,14 +810,20 @@ export function recalculatePhaseTerms(
     const existing = updated[i]
     if (!existing) break
 
+    const termCompensatory =
+      input.compensatorySessions?.[i] ?? existing.compensatorySessions ?? []
+
     const schedule = calculateTermEndDate({
       startDate: currentStart,
-      targetDays: targetDaysCount,
+      targetSessions: targetSessionsCount,
+      targetDays: targetSessionsCount,
       daysOfWeek,
+      classPatterns,
       skipHolidays: true,
       observeOfficialHolidays,
       customOffDays,
       dismissedHolidays,
+      compensatorySessions: termCompensatory,
     })
 
     const coveredMonthSet = new Set<number>()
@@ -544,6 +857,10 @@ export function recalculatePhaseTerms(
       holidaysCount: schedule.holidaysEncountered.length,
       monthsCovered,
       monthNamesFa,
+      compensatorySessions: termCompensatory,
+      patternDetails: schedule.patternDetails,
+      hasSessionImbalance: schedule.hasSessionImbalance,
+      holidaysEncountered: schedule.holidaysEncountered,
     }
 
     // Determine start date for next term
@@ -552,8 +869,14 @@ export function recalculatePhaseTerms(
       const nextStart = new Date(endGDate)
       nextStart.setDate(nextStart.getDate() + gapDaysBetweenTerms + 1)
 
-      if (daysOfWeek && daysOfWeek.length > 0) {
-        while (!daysOfWeek.includes(getWeekDay(nextStart))) {
+      const activePatterns = resolveClassPatterns(daysOfWeek, classPatterns)
+      const validDays =
+        activePatterns.length > 0
+          ? Array.from(new Set(activePatterns.flat()))
+          : daysOfWeek
+
+      if (validDays && validDays.length > 0) {
+        while (!validDays.includes(getWeekDay(nextStart))) {
           nextStart.setDate(nextStart.getDate() + 1)
         }
       }

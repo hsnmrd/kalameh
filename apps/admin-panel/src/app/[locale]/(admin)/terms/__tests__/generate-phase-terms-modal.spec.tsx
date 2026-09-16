@@ -59,7 +59,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
                 endDate: "2024-11-05",
                 endDateJalali: "1403/08/15",
                 daysCount: 45,
-                sessionsCount: 45,
+                sessionsCount: 18,
                 holidaysCount: 2,
                 monthNamesFa: "مهر، آبان",
               },

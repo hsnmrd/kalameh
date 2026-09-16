@@ -18,20 +18,24 @@ const Popover = PopoverPrimitive.Root
 const PopoverTrigger = PopoverPrimitive.Trigger
 const PopoverPortal = PopoverPrimitive.Portal
 const PopoverClose = PopoverPrimitive.Close
+const PopoverPositioner = PopoverPrimitive.Positioner
 
 function PopoverPopup({
   className,
   children,
   sideOffset = 4,
   align = "center",
+  anchor,
   ...props
 }: PopoverPrimitive.Popup.Props & {
   sideOffset?: number
   align?: "start" | "center" | "end"
+  anchor?: PopoverPrimitive.Positioner.Props["anchor"]
 }) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
+        anchor={anchor}
         sideOffset={sideOffset}
         align={align}
         className="z-50"
@@ -55,6 +59,7 @@ export {
   PopoverTrigger,
   PopoverPortal,
   PopoverClose,
+  PopoverPositioner,
   PopoverPopup,
   PopoverPopup as PopoverContent,
 }

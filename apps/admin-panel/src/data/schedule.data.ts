@@ -25,12 +25,12 @@ export const PRESETS: SchedulePreset[] = [
   {
     id: "ODD",
     titleKey: "presetOdd",
-    days: ["SUNDAY", "TUESDAY"],
+    days: ["SUNDAY", "TUESDAY", "THURSDAY"],
   },
   {
     id: "WEEKEND",
     titleKey: "presetWeekend",
-    days: ["THURSDAY", "FRIDAY"],
+    days: ["FRIDAY"],
   },
 ]
 

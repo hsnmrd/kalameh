@@ -33,8 +33,11 @@ export function GeneratePhaseTermsModal({
     activePhaseId,
     jalaliYear,
     setJalaliYear,
+    sessionsPerTerm,
+    setSessionsPerTerm,
     daysPerTerm,
     setDaysPerTerm,
+    activeClassPatterns,
     gapDays,
     setGapDays,
     proposals,
@@ -45,9 +48,14 @@ export function GeneratePhaseTermsModal({
     isLoadingExisting,
     observeOfficialHolidays,
     customOffDays,
+    activeDismissedHolidays,
+    compensatorySessions,
     handleProceedToPreview,
     handleTitleChange,
     handleStartDateChange,
+    handleToggleHoliday,
+    handleAddCompensatorySession,
+    handleRemoveCompensatorySession,
     handleSubmit,
     handleOpenChange,
   } = useGeneratePhaseTerms({ open, onClose })
@@ -81,10 +89,13 @@ export function GeneratePhaseTermsModal({
                 }}
                 jalaliYear={jalaliYear}
                 onJalaliYearChange={setJalaliYear}
+                sessionsPerTerm={sessionsPerTerm}
+                onSessionsPerTermChange={setSessionsPerTerm}
                 daysPerTerm={daysPerTerm}
                 onDaysPerTermChange={setDaysPerTerm}
                 gapDays={gapDays}
                 onGapDaysChange={setGapDays}
+                activeClassPatterns={activeClassPatterns}
               />
             )}
 
@@ -95,8 +106,13 @@ export function GeneratePhaseTermsModal({
                 onViewModeChange={setViewMode}
                 onTitleChange={handleTitleChange}
                 onStartDateChange={handleStartDateChange}
+                onToggleHoliday={handleToggleHoliday}
+                onAddCompensatorySession={handleAddCompensatorySession}
+                onRemoveCompensatorySession={handleRemoveCompensatorySession}
                 observeOfficialHolidays={observeOfficialHolidays}
                 customOffDays={customOffDays}
+                activeDismissedHolidays={activeDismissedHolidays}
+                compensatorySessions={compensatorySessions}
               />
             )}
           </div>

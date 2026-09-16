@@ -42,6 +42,7 @@ export const termsResource = api.resource("terms", {
       daysPerTerm?: number
       sessionsPerTerm?: number
       daysOfWeek?: string
+      classPatterns?: string
       gapDays?: number
     }
   >("/terms/preview-phase", {

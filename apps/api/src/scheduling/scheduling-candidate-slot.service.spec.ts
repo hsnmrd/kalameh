@@ -109,7 +109,7 @@ describe('MVP-017 SchedulingCandidateSlotService', () => {
             availabilities: [
               {
                 ...baseInput.qualifications[0].teacherProfile.availabilities[0],
-                dayOfWeek: 'THURSDAY',
+                dayOfWeek: 'FRIDAY',
                 startTime: '14:00',
                 endTime: '15:00',
               },

@@ -334,8 +334,9 @@ export class TermsService {
     currentUser: JwtPayload,
     operatingPhaseId: string,
     jalaliYear: number,
-    daysPerTerm: number,
+    sessionsPerTerm: number,
     daysOfWeek?: WeekDay[],
+    classPatterns?: WeekDay[][],
     gapDays?: number,
     locale: SupportedLocale = 'fa',
   ) {
@@ -390,12 +391,13 @@ export class TermsService {
         daysOfWeek: phase.daysOfWeek as WeekDay[],
       },
       jalaliYear,
-      daysPerTerm,
-      sessionsPerTerm: daysPerTerm,
+      sessionsPerTerm,
+      daysPerTerm: sessionsPerTerm,
       daysOfWeek:
         daysOfWeek && daysOfWeek.length > 0
           ? daysOfWeek
           : (phase.daysOfWeek as WeekDay[]),
+      classPatterns,
       gapDaysBetweenTerms: gapDays ?? 2,
       observeOfficialHolidays: institute.observeOfficialHolidays,
       customOffDays: institute.customOffDays,

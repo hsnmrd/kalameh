@@ -74,7 +74,7 @@ describe("ProposalsCalendar Component", () => {
     ).toBeInTheDocument()
   })
 
-  it("disables dates from previous term when editing second term while allowing gap and subsequent dates", () => {
+  it("opens day actions popover on day click and controls start date action availability", () => {
     const onStartDateChange = vi.fn()
     render(
       <ProposalsCalendar
@@ -86,35 +86,51 @@ describe("ProposalsCalendar Component", () => {
     // Select second term: term 1 ends 2026-11-06 (1405/08/15), term 2 starts 2026-11-08 (1405/08/17)
     fireEvent.click(screen.getByText("آبان و آذر ۱۴۰۵"))
 
-    // Days before term 1 end (e.g. Day 1 of month) must be disabled and unclickable
     const dayButtons = screen.getAllByRole("button")
-    const earlyDay = dayButtons.find(
-      (btn) => btn.textContent === "۱" || btn.textContent === "1"
-    )
 
+    // 1. Days before term 1 end (e.g. Day 1): click opens popover where "شروع ترم" is disabled
+    const earlyDay = screen
+      .getAllByRole("button")
+      .find(
+        (btn) =>
+          btn.getAttribute("aria-label")?.includes(" 1-ام") ||
+          btn.textContent?.trim() === "۱" ||
+          btn.textContent?.trim() === "1"
+      )
     if (earlyDay) {
-      expect(earlyDay).toBeDisabled()
       fireEvent.click(earlyDay)
+      const setStartBtn = screen.getByRole("button", { name: /شروع ترم/ })
+      expect(setStartBtn).toBeDisabled()
+      fireEvent.click(setStartBtn)
       expect(onStartDateChange).not.toHaveBeenCalled()
     }
 
-    // Days in term 2 month that are on or after term 1 end date + 1 (gap day or term 2 day) must NOT be disabled
-    const activeDay = dayButtons.find(
-      (btn) => btn.textContent === "۱۸" || btn.textContent === "18"
-    )
+    // 2. Valid days in term 2 month: click opens popover and allows setting start date
+    const activeDay = screen
+      .getAllByRole("button")
+      .find(
+        (btn) =>
+          btn.getAttribute("aria-label")?.includes("18-ام") ||
+          btn.textContent?.trim() === "۱۸" ||
+          btn.textContent?.trim() === "18"
+      )
     if (activeDay) {
-      expect(activeDay).not.toBeDisabled()
       fireEvent.click(activeDay)
+      const setStartBtn = screen.getByRole("button", { name: /شروع ترم/ })
+      expect(setStartBtn).not.toBeDisabled()
+      fireEvent.click(setStartBtn)
       expect(onStartDateChange).toHaveBeenCalled()
     }
   })
 
-  it("disallows Fridays and official holidays as start dates by disabling them", () => {
+  it("disallows official holidays as start dates in popover and provides holiday toggle", () => {
     const onStartDateChange = vi.fn()
+    const onToggleHoliday = vi.fn()
     render(
       <ProposalsCalendar
         proposals={mockProposals}
         onStartDateChange={onStartDateChange}
+        onToggleHoliday={onToggleHoliday}
       />
     )
 
@@ -127,9 +143,48 @@ describe("ProposalsCalendar Component", () => {
       (btn) => btn.textContent === "۲۴" || btn.textContent === "24"
     )
     if (holidayDay) {
-      expect(holidayDay).toBeDisabled()
       fireEvent.click(holidayDay)
-      expect(onStartDateChange).not.toHaveBeenCalled()
+      const setStartBtn = screen.getByRole("button", { name: /شروع ترم/ })
+      expect(setStartBtn).toBeDisabled()
+
+      // Popover provides option to dismiss holiday
+      const toggleHolidayBtn = screen.getByRole("button", {
+        name: /لغو تعطیلی/,
+      })
+      expect(toggleHolidayBtn).toBeInTheDocument()
+      fireEvent.click(toggleHolidayBtn)
+      expect(onToggleHoliday).toHaveBeenCalledWith("2026-11-15")
+    }
+  })
+
+  it("opens compensatory modal when clicking compensatory action in popover", () => {
+    render(
+      <ProposalsCalendar
+        proposals={mockProposals}
+        onStartDateChange={vi.fn()}
+      />
+    )
+
+    // Select second term
+    fireEvent.click(screen.getByText("آبان و آذر ۱۴۰۵"))
+
+    const dayButtons = screen.getAllByRole("button")
+    // Click Day 20
+    const day20 = dayButtons.find(
+      (btn) => btn.textContent === "۲۰" || btn.textContent === "20"
+    )
+    if (day20) {
+      fireEvent.click(day20)
+      const addCompBtn = screen.getByRole("button", {
+        name: /افزودن کلاس جبرانی/,
+      })
+      expect(addCompBtn).toBeInTheDocument()
+      fireEvent.click(addCompBtn)
+
+      // Compensatory session modal opens
+      expect(screen.getAllByText("افزودن کلاس جبرانی").length).toBeGreaterThan(
+        0
+      )
     }
   })
 

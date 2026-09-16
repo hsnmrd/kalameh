@@ -1,4 +1,8 @@
-import { isJalaliHoliday, type GeneratedTermProposal } from "@workspace/types"
+import {
+  isJalaliHoliday,
+  type GeneratedTermProposal,
+  type CompensatorySession,
+} from "@workspace/types"
 
 export interface TermColorTheme {
   id: string
@@ -272,6 +276,8 @@ export interface TermCalendarModifiersResult {
 export interface BuildTermCalendarModifiersOptions {
   observeOfficialHolidays?: boolean
   customOffDays?: string[]
+  dismissedHolidays?: string[]
+  compensatorySessions?: Record<number, CompensatorySession[]>
 }
 
 export function buildTermCalendarModifiers(
@@ -279,13 +285,31 @@ export function buildTermCalendarModifiers(
   isRtl: boolean = true,
   options?: BuildTermCalendarModifiersOptions
 ): TermCalendarModifiersResult {
-  const { observeOfficialHolidays = true, customOffDays = [] } = options ?? {}
+  const {
+    observeOfficialHolidays = true,
+    customOffDays = [],
+    dismissedHolidays = [],
+    compensatorySessions = {},
+  } = options ?? {}
   const customOffDaysSet = new Set(customOffDays)
+  const dismissedHolidaysSet = new Set(dismissedHolidays)
+
+  const compensatoryDatesSet = new Set(
+    Object.values(compensatorySessions).flatMap((list) =>
+      list.map((cs) => cs.date)
+    )
+  )
 
   const isDateAnOffDay = (date: Date): boolean => {
     const ymd = normalizeDateToYmd(date)
     if (customOffDaysSet.has(ymd)) return true
-    if (observeOfficialHolidays && isJalaliHoliday(date).isHoliday) return true
+    if (
+      observeOfficialHolidays &&
+      isJalaliHoliday(date).isHoliday &&
+      !dismissedHolidaysSet.has(ymd)
+    ) {
+      return true
+    }
     return false
   }
 
@@ -368,10 +392,18 @@ export function buildTermCalendarModifiers(
   // 3. Official Jalali holidays (Red text and small red dot below day number, no border)
   if (observeOfficialHolidays) {
     modifiers.term_officialHoliday = (date: Date) => {
-      return isJalaliHoliday(date).isHoliday
+      const ymd = normalizeDateToYmd(date)
+      return isJalaliHoliday(date).isHoliday && !dismissedHolidaysSet.has(ymd)
     }
     modifiersClassNames.term_officialHoliday =
       "[&>button]:!text-destructive [&>button]:!font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-destructive hover:[&>button]:!bg-destructive/15 [&>button]:!bg-transparent"
+
+    modifiers.term_dismissedHoliday = (date: Date) => {
+      const ymd = normalizeDateToYmd(date)
+      return isJalaliHoliday(date).isHoliday && dismissedHolidaysSet.has(ymd)
+    }
+    modifiersClassNames.term_dismissedHoliday =
+      "[&>button]:!text-emerald-700 [&>button]:!font-semibold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-emerald-600 hover:[&>button]:!bg-emerald-500/15"
   }
 
   // 4. Custom institute off-days (Warning/orange text and small dot below day number)
@@ -382,6 +414,16 @@ export function buildTermCalendarModifiers(
     }
     modifiersClassNames.term_customOffDay =
       "[&>button]:!text-warning [&>button]:!font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-warning hover:[&>button]:!bg-warning/15 [&>button]:!bg-transparent"
+  }
+
+  // 5. Compensatory sessions (primary border and primary dot)
+  if (compensatoryDatesSet.size > 0) {
+    modifiers.term_compensatory = (date: Date) => {
+      const ymd = normalizeDateToYmd(date)
+      return compensatoryDatesSet.has(ymd)
+    }
+    modifiersClassNames.term_compensatory =
+      "[&>button]:!border-2 [&>button]:!border-primary [&>button]:!font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1.5 [&>button]:after:rounded-full [&>button]:after:bg-primary hover:[&>button]:!bg-primary/15"
   }
 
   return { modifiers, modifiersClassNames }

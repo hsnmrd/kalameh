@@ -6,9 +6,13 @@ import {
   Calendar as CalendarIcon,
   Table as TableIcon,
   Info,
+  AlertTriangle,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import type { GeneratedTermProposal } from "@workspace/types"
+import type {
+  GeneratedTermProposal,
+  CompensatorySession,
+} from "@workspace/types"
 import { ProposalsCalendar } from "../proposals-calendar"
 import { ProposalsTable } from "../proposals-table"
 
@@ -18,9 +22,17 @@ export interface StepPreviewProps {
   onViewModeChange: (mode: "calendar" | "table") => void
   onTitleChange: (index: number, newTitle: string) => void
   onStartDateChange: (index: number, newStartDate: string) => void
+  onToggleHoliday?: (dateYmd: string) => void
+  onAddCompensatorySession?: (
+    termIndex: number,
+    session: CompensatorySession
+  ) => void
+  onRemoveCompensatorySession?: (termIndex: number, dateYmd: string) => void
   locale?: "fa" | "en"
   observeOfficialHolidays?: boolean
   customOffDays?: string[]
+  activeDismissedHolidays?: string[]
+  compensatorySessions?: Record<number, CompensatorySession[]>
 }
 
 export function StepPreview({
@@ -29,11 +41,20 @@ export function StepPreview({
   onViewModeChange,
   onTitleChange,
   onStartDateChange,
+  onToggleHoliday,
+  onAddCompensatorySession,
+  onRemoveCompensatorySession,
   locale,
   observeOfficialHolidays,
   customOffDays,
+  activeDismissedHolidays,
+  compensatorySessions,
 }: StepPreviewProps) {
   const t = useTranslations("terms")
+
+  const imbalanceProposals = React.useMemo(() => {
+    return proposals.filter((p) => p.hasSessionImbalance)
+  }, [proposals])
 
   return (
     <div className="flex flex-col gap-4">
@@ -65,14 +86,48 @@ export function StepPreview({
         </div>
       </div>
 
+      {/* Session Imbalance Warning Alert */}
+      {imbalanceProposals.length > 0 && (
+        <div className="flex items-start gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-xs text-warning">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
+          <div className="flex flex-col gap-1">
+            <span className="font-bold text-foreground">
+              {t("batchModal.sessionImbalanceWarning")}
+            </span>
+            <span className="leading-relaxed text-muted-foreground">
+              {imbalanceProposals
+                .map((p) => {
+                  const even =
+                    p.patternDetails?.find((d) => d.track === "EVEN")
+                      ?.completedSessions ?? 0
+                  const odd =
+                    p.patternDetails?.find((d) => d.track === "ODD")
+                      ?.completedSessions ?? 0
+                  return `${p.title}: ${t("batchModal.sessionImbalanceDesc", {
+                    even,
+                    odd,
+                    target: p.sessionsCount ?? 18,
+                  })}`
+                })
+                .join(" | ")}
+            </span>
+          </div>
+        </div>
+      )}
+
       {proposals.length > 0 ? (
         viewMode === "calendar" ? (
           <ProposalsCalendar
             proposals={proposals}
             onStartDateChange={onStartDateChange}
+            onToggleHoliday={onToggleHoliday}
+            onAddCompensatorySession={onAddCompensatorySession}
+            onRemoveCompensatorySession={onRemoveCompensatorySession}
             locale={locale}
             observeOfficialHolidays={observeOfficialHolidays}
             customOffDays={customOffDays}
+            activeDismissedHolidays={activeDismissedHolidays}
+            compensatorySessions={compensatorySessions}
           />
         ) : (
           <div className="flex flex-col gap-3">

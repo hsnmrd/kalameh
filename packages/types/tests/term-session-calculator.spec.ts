@@ -284,4 +284,171 @@ describe("Term Session Calculator & Batch Phase Terms Generator", () => {
       expect(updated[0].title).toBe("ترم فشرده پاییزی")
     })
   })
+
+  describe("Multi-pattern term completion rule: term finishes when all classes finish", () => {
+    it("ensures term end date accommodates 2-day-per-week classes even when 3-day-per-week classes finish sooner", () => {
+      // Starting 1403/07/01 (Sunday)
+      // Even days: Sat, Mon, Wed (3 sessions/week)
+      // Odd days: Sun, Tue (2 sessions/week)
+      // 18 sessions required for all classes
+      const result = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetSessions: 18,
+        daysOfWeek: ["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY"],
+        skipHolidays: true,
+      })
+
+      // Even-only class:
+      const evenOnly = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetSessions: 18,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        skipHolidays: true,
+      })
+
+      // Odd-only class:
+      const oddOnly = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetSessions: 18,
+        daysOfWeek: ["SUNDAY", "TUESDAY"],
+        skipHolidays: true,
+      })
+
+      // Even-only finishes in ~6 weeks (around mid-Aban 1403)
+      expect(evenOnly.endDateJalali.startsWith("1403/08/")).toBe(true)
+      // Odd-only finishes in ~9 weeks (late Aban 1403)
+      expect(oddOnly.endDateJalali).toBe("1403/08/29")
+
+      // The full term MUST finish when ALL classes finish, so endDate must equal oddOnly.endDate!
+      expect(result.endDate).toBe(oddOnly.endDate)
+      expect(result.endDate > evenOnly.endDate).toBe(true)
+      expect(result.completedSessions).toBe(18)
+    })
+
+    it("generates phase terms for 6-day week (with Thursday) where both Even and Odd have 3 sessions/week", () => {
+      const proposals = generatePhaseTerms({
+        phase: {
+          id: "phase-6-days",
+          title: "سال تحصیلی ۶ روزه",
+          months: [7, 8, 9, 10, 11, 12],
+          daysOfWeek: [
+            "SATURDAY",
+            "SUNDAY",
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+          ],
+        },
+        jalaliYear: 1403,
+        sessionsPerTerm: 18,
+        gapDaysBetweenTerms: 2,
+      })
+
+      expect(proposals.length).toBeGreaterThanOrEqual(2)
+      // Both Even (Sat, Mon, Wed) and Odd (Sun, Tue, Thu) have 3 sessions/week
+      expect(proposals[0]?.sessionsCount).toBe(18)
+      expect(proposals[0]?.daysCount).toBe(42)
+      expect(proposals[0]?.endDateJalali).toBe("1403/08/12")
+    })
+
+    it("generates phase terms for 5-day week (without Thursday) where Odd has 2 sessions/week and Even has 3", () => {
+      const proposals = generatePhaseTerms({
+        phase: {
+          id: "phase-5-days",
+          title: "سال تحصیلی ۵ روزه",
+          months: [7, 8, 9, 10, 11, 12],
+          daysOfWeek: ["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY"],
+        },
+        jalaliYear: 1403,
+        sessionsPerTerm: 18,
+        gapDaysBetweenTerms: 2,
+      })
+
+      expect(proposals.length).toBeGreaterThanOrEqual(2)
+      // Odd classes have 2 sessions/week (Sun, Tue), so term extends to ~9 weeks (59 days)
+      expect(proposals[0]?.sessionsCount).toBe(18)
+      expect(proposals[0]?.daysCount).toBeGreaterThanOrEqual(55)
+      expect(proposals[0]?.endDateJalali).toBe("1403/08/29")
+    })
+
+    it("allows dismissing an official holiday to hold classes and finish earlier", () => {
+      // 1403/03/15 (2024-06-04) is Tuesday and an official Jalali holiday (قیام ۱۵ خرداد)
+      const withHoliday = calculateTermEndDate({
+        startDate: "1403/03/01",
+        targetSessions: 6,
+        daysOfWeek: ["SUNDAY", "TUESDAY"],
+        skipHolidays: true,
+      })
+
+      const withDismissedHoliday = calculateTermEndDate({
+        startDate: "1403/03/01",
+        targetSessions: 6,
+        daysOfWeek: ["SUNDAY", "TUESDAY"],
+        skipHolidays: true,
+        dismissedHolidays: ["2024-06-04"],
+      })
+
+      // When 1403/03/15 holiday is dismissed, that session is held on 2024-06-04, so term ends earlier!
+      expect(withDismissedHoliday.endDate < withHoliday.endDate).toBe(true)
+      expect(withDismissedHoliday.sessionDates).toContain("2024-06-04")
+    })
+
+    it("applies compensatory sessions, advancing completion and calculating pattern details", () => {
+      const initial = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetSessions: 18,
+        daysOfWeek: ["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY"],
+        skipHolidays: true,
+      })
+
+      // Add a compensatory session for Odd days on a Friday: 1403/07/06 (2024-09-27)
+      const withCompensatory = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetSessions: 18,
+        daysOfWeek: ["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY"],
+        skipHolidays: true,
+        compensatorySessions: [
+          {
+            date: "2024-09-27",
+            patternTrack: "ODD",
+            title: "جبرانی روزهای فرد",
+          },
+        ],
+      })
+
+      expect(withCompensatory.patternDetails).toBeDefined()
+      const oddDetail = withCompensatory.patternDetails?.find(
+        (p) => p.track === "ODD"
+      )
+      expect(oddDetail?.compensatoryCount).toBe(1)
+      expect(withCompensatory.sessionDates).toContain("2024-09-27")
+      // Term finishes earlier because Odd classes completed 1 session on Friday
+      expect(withCompensatory.endDate < initial.endDate).toBe(true)
+    })
+
+    it("detects session imbalance when tracks have unequal session counts", () => {
+      const result = calculateTermEndDate({
+        startDate: "1403/07/01",
+        targetSessions: 6,
+        daysOfWeek: ["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY"],
+        skipHolidays: true,
+        compensatorySessions: [
+          {
+            date: "2024-09-27",
+            patternTrack: "ODD",
+          },
+          {
+            date: "2024-10-04",
+            patternTrack: "ODD",
+          },
+        ],
+      })
+
+      expect(result.patternDetails).toBeDefined()
+      // Because 2 compensatory sessions were added to Odd, check pattern details
+      const odd = result.patternDetails?.find((p) => p.track === "ODD")
+      expect(odd?.compensatoryCount).toBe(2)
+    })
+  })
 })

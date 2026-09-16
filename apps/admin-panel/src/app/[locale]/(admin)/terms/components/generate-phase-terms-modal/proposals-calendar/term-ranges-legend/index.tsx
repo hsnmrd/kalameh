@@ -95,17 +95,26 @@ export function TermRangesLegend({
                           : "text-muted-foreground group-hover:text-foreground"
                       )}
                     >
-                      {t("batchModal.daysBadge", {
-                        count: formatNumber(term.daysCount, locale),
+                      {t("batchModal.sessionsBadge", {
+                        count: formatNumber(term.sessionsCount ?? 18, locale),
                       })}
                     </span>
                   </div>
 
                   <div className="flex w-full flex-col gap-1 text-[11px] text-muted-foreground sm:text-xs">
-                    <div className="flex items-center gap-1 font-medium sm:gap-1.5">
-                      <CalendarIcon className="size-3 shrink-0 text-muted-foreground sm:size-3.5" />
-                      <span className="truncate">
-                        {term.startDateJalali} تا {term.endDateJalali}
+                    <div className="flex items-center justify-between gap-1 font-medium sm:gap-1.5">
+                      <div className="flex min-w-0 items-center gap-1 sm:gap-1.5">
+                        <CalendarIcon className="size-3 shrink-0 text-muted-foreground sm:size-3.5" />
+                        <span className="truncate">
+                          {term.startDateJalali} تا {term.endDateJalali}
+                        </span>
+                      </div>
+                      <span className="shrink-0 text-[10px] text-muted-foreground sm:text-[11px]">
+                        (
+                        {t("batchModal.daysBadge", {
+                          count: formatNumber(term.daysCount, locale),
+                        })}
+                        )
                       </span>
                     </div>
 

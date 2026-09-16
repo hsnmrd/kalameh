@@ -3,24 +3,40 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { Info } from "lucide-react"
-import type { GeneratedTermProposal } from "@workspace/types"
+import type {
+  GeneratedTermProposal,
+  CompensatorySession,
+} from "@workspace/types"
 import { TermRangesLegend } from "./term-ranges-legend"
 import { CalendarGrid } from "./calendar-grid"
 
 export interface ProposalsCalendarProps {
   proposals: GeneratedTermProposal[]
   onStartDateChange: (index: number, newStartDate: string) => void
+  onToggleHoliday?: (dateYmd: string) => void
+  onAddCompensatorySession?: (
+    termIndex: number,
+    session: CompensatorySession
+  ) => void
+  onRemoveCompensatorySession?: (termIndex: number, dateYmd: string) => void
   locale?: "fa" | "en"
   observeOfficialHolidays?: boolean
   customOffDays?: string[]
+  activeDismissedHolidays?: string[]
+  compensatorySessions?: Record<number, CompensatorySession[]>
 }
 
 export function ProposalsCalendar({
   proposals,
   onStartDateChange,
+  onToggleHoliday,
+  onAddCompensatorySession,
+  onRemoveCompensatorySession,
   locale,
   observeOfficialHolidays,
   customOffDays,
+  activeDismissedHolidays,
+  compensatorySessions,
 }: ProposalsCalendarProps) {
   const t = useTranslations("terms")
   const defaultLocale = useLocale() as "fa" | "en"
@@ -53,9 +69,14 @@ export function ProposalsCalendar({
         proposals={proposals}
         selectedTermIndex={selectedTermIndex}
         onStartDateChange={onStartDateChange}
+        onToggleHoliday={onToggleHoliday}
+        onAddCompensatorySession={onAddCompensatorySession}
+        onRemoveCompensatorySession={onRemoveCompensatorySession}
         locale={activeLocale}
         observeOfficialHolidays={observeOfficialHolidays}
         customOffDays={customOffDays}
+        activeDismissedHolidays={activeDismissedHolidays}
+        compensatorySessions={compensatorySessions}
       />
     </div>
   )

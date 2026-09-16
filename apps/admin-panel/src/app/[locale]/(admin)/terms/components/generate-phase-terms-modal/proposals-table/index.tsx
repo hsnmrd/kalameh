@@ -77,6 +77,9 @@ export function ProposalsTable({
               <TableHead>{t("batchModal.colStart")}</TableHead>
               <TableHead>{t("batchModal.colEnd")}</TableHead>
               <TableHead className="text-center">
+                {t("batchModal.colSessions")}
+              </TableHead>
+              <TableHead className="text-center">
                 {t("batchModal.colDays")}
               </TableHead>
               <TableHead className="text-center">
@@ -121,7 +124,10 @@ export function ProposalsTable({
                   </span>
                 </TableCell>
                 <TableCell className="text-center text-xs font-semibold">
-                  {item.daysCount ?? item.sessionsCount}
+                  {item.sessionsCount ?? 18}
+                </TableCell>
+                <TableCell className="text-center text-xs text-muted-foreground">
+                  {item.daysCount}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge

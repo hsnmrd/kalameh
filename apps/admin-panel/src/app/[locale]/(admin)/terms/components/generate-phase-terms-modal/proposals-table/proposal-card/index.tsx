@@ -58,11 +58,16 @@ export function ProposalCard({
             variant="secondary"
             className="rounded-lg px-2 py-0.5 text-xs font-semibold"
           >
+            {t("batchModal.sessionsBadge", {
+              count: formatNumber(proposal.sessionsCount ?? 18, activeLocale),
+            })}
+          </Badge>
+          <Badge
+            variant="outline"
+            className="rounded-lg px-2 py-0.5 text-xs font-medium text-muted-foreground"
+          >
             {t("batchModal.daysBadge", {
-              count: formatNumber(
-                proposal.daysCount ?? proposal.sessionsCount,
-                activeLocale
-              ),
+              count: formatNumber(proposal.daysCount, activeLocale),
             })}
           </Badge>
           {proposal.holidaysCount > 0 && (

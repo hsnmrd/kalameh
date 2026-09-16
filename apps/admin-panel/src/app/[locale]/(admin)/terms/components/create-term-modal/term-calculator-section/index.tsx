@@ -24,7 +24,7 @@ export function TermCalculatorSection({
 }: TermCalculatorSectionProps) {
   const t = useTranslations("terms")
   const [isOpen, setIsOpen] = React.useState(false)
-  const [targetDays, setTargetDays] = React.useState(45)
+  const [targetSessions, setTargetSessions] = React.useState(18)
   const [skipHolidays, setSkipHolidays] = React.useState(true)
   const [result, setResult] = React.useState<CalculatedTermSchedule | null>(
     null
@@ -38,11 +38,11 @@ export function TermCalculatorSection({
   })
 
   const handleCalculate = () => {
-    if (!startDate || targetDays <= 0) return
+    if (!startDate || targetSessions <= 0) return
     calculateMutation.mutate({
       startDate,
-      targetDays,
-      targetSessions: targetDays,
+      targetSessions,
+      targetDays: targetSessions,
       skipHolidays,
     })
   }
@@ -74,14 +74,14 @@ export function TermCalculatorSection({
         <div className="mt-4 flex flex-col gap-4 border-t border-border/50 pt-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field>
-              <FieldLabel>{t("createModal.targetDays")}</FieldLabel>
+              <FieldLabel>{t("createModal.targetSessions")}</FieldLabel>
               <Input
                 type="number"
                 min={1}
-                max={365}
-                value={targetDays}
-                onChange={(e) => setTargetDays(Number(e.target.value) || 1)}
-                placeholder={t("createModal.targetDaysPlaceholder")}
+                max={100}
+                value={targetSessions}
+                onChange={(e) => setTargetSessions(Number(e.target.value) || 1)}
+                placeholder={t("createModal.targetSessionsPlaceholder")}
               />
             </Field>
 
@@ -105,7 +105,7 @@ export function TermCalculatorSection({
               type="button"
               variant="outline"
               disabled={
-                !startDate || targetDays <= 0 || calculateMutation.isPending
+                !startDate || targetSessions <= 0 || calculateMutation.isPending
               }
               onClick={handleCalculate}
               className="h-10 cursor-pointer gap-2 rounded-xl text-xs font-semibold"

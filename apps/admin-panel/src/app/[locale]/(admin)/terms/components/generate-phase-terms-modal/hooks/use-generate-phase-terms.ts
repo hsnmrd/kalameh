@@ -8,8 +8,10 @@ import type { ComboboxOption } from "@workspace/ui/components/combobox"
 import {
   gregorianToJalali,
   recalculatePhaseTerms,
+  resolveClassPatterns,
   type GeneratedTermProposal,
   type WeekDay,
+  type CompensatorySession,
 } from "@workspace/types"
 import {
   operatingPhasesResource,
@@ -18,7 +20,7 @@ import {
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 
-export interface UseGeneratePhaseTermsProps {
+export interface UseGeneratePhaseTermsOptions {
   open: boolean
   onClose: () => void
 }
@@ -26,10 +28,10 @@ export interface UseGeneratePhaseTermsProps {
 export function useGeneratePhaseTerms({
   open,
   onClose,
-}: UseGeneratePhaseTermsProps) {
+}: UseGeneratePhaseTermsOptions) {
   const t = useTranslations("terms")
-  const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
+  const queryClient = useQueryClient()
 
   const currentJYear = React.useMemo(() => {
     return gregorianToJalali(new Date()).year
@@ -41,7 +43,7 @@ export function useGeneratePhaseTerms({
   )
   const [selectedPhaseId, setSelectedPhaseId] = React.useState<string>("")
   const [jalaliYear, setJalaliYear] = React.useState<number>(currentJYear)
-  const [daysPerTerm, setDaysPerTerm] = React.useState<number>(45)
+  const [sessionsPerTerm, setSessionsPerTerm] = React.useState<number>(18)
   const [gapDays, setGapDays] = React.useState<number>(2)
   const [proposals, setProposals] = React.useState<GeneratedTermProposal[]>([])
   const [customTitles, setCustomTitles] = React.useState<
@@ -68,12 +70,25 @@ export function useGeneratePhaseTerms({
     enabled: Boolean(activeInstituteId && open),
   })
 
+  const [activeDismissedHolidays, setActiveDismissedHolidays] = React.useState<
+    string[]
+  >([])
+  const [compensatorySessions, setCompensatorySessions] = React.useState<
+    Record<number, CompensatorySession[]>
+  >({})
+
+  React.useEffect(() => {
+    if (institute?.dismissedHolidays) {
+      setActiveDismissedHolidays(institute.dismissedHolidays)
+    }
+  }, [institute?.dismissedHolidays])
+
   const customOffDays = React.useMemo(() => {
     return rawCustomOffDays.map((d) => d.date)
   }, [rawCustomOffDays])
 
   const observeOfficialHolidays = institute?.observeOfficialHolidays ?? true
-  const dismissedHolidays = institute?.dismissedHolidays ?? []
+  const dismissedHolidays = activeDismissedHolidays
 
   const phaseOptions: ComboboxOption[] = React.useMemo(() => {
     return phases.map((phase) => ({
@@ -83,6 +98,13 @@ export function useGeneratePhaseTerms({
   }, [phases])
 
   const activePhaseId = selectedPhaseId || phases[0]?.id || ""
+  const selectedPhase = phases.find((p) => p.id === activePhaseId)
+
+  const activeClassPatterns = React.useMemo(() => {
+    return resolveClassPatterns(
+      selectedPhase?.daysOfWeek as WeekDay[] | undefined
+    )
+  }, [selectedPhase?.daysOfWeek])
 
   // Fetch existing terms for checking duplicate phase & academic year
   const { data: existingPhaseTerms = [], isLoading: isLoadingExisting } =
@@ -99,8 +121,8 @@ export function useGeneratePhaseTerms({
     ...termsResource.previewPhase.toQuery({
       operatingPhaseId: activePhaseId,
       jalaliYear,
-      daysPerTerm,
-      sessionsPerTerm: daysPerTerm,
+      sessionsPerTerm,
+      daysPerTerm: sessionsPerTerm,
       gapDays,
     }),
     enabled: false,
@@ -168,16 +190,166 @@ export function useGeneratePhaseTerms({
         proposals,
         changedIndex: index,
         newStartDate,
-        daysPerTerm,
-        sessionsPerTerm: daysPerTerm,
+        sessionsPerTerm,
+        daysPerTerm: sessionsPerTerm,
         daysOfWeek,
+        classPatterns: activeClassPatterns,
         gapDaysBetweenTerms: gapDays,
         userCustomTitles: customTitles,
         observeOfficialHolidays,
         customOffDays,
-        dismissedHolidays,
+        dismissedHolidays: activeDismissedHolidays,
+        compensatorySessions,
       })
       setProposals(updated)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message)
+      } else {
+        toast.error(t("batchModal.recalculateError"))
+      }
+    }
+  }
+
+  const handleToggleHoliday = (dateYmd: string) => {
+    try {
+      const isCurrentlyDismissed = activeDismissedHolidays.includes(dateYmd)
+      const nextDismissed = isCurrentlyDismissed
+        ? activeDismissedHolidays.filter((d) => d !== dateYmd)
+        : [...activeDismissedHolidays, dateYmd]
+
+      setActiveDismissedHolidays(nextDismissed)
+
+      if (proposals.length > 0) {
+        const selectedPhase = phases.find((p) => p.id === activePhaseId)
+        const daysOfWeek = (
+          selectedPhase?.daysOfWeek && selectedPhase.daysOfWeek.length > 0
+            ? selectedPhase.daysOfWeek
+            : ["SATURDAY", "MONDAY", "WEDNESDAY"]
+        ) as WeekDay[]
+
+        const updated = recalculatePhaseTerms({
+          proposals,
+          changedIndex: 0,
+          newStartDate: proposals[0]!.startDate,
+          sessionsPerTerm,
+          daysPerTerm: sessionsPerTerm,
+          daysOfWeek,
+          classPatterns: activeClassPatterns,
+          gapDaysBetweenTerms: gapDays,
+          userCustomTitles: customTitles,
+          observeOfficialHolidays,
+          customOffDays,
+          dismissedHolidays: nextDismissed,
+          compensatorySessions,
+        })
+        setProposals(updated)
+        toast.success(t("batchModal.holidayToggled"))
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message)
+      } else {
+        toast.error(t("batchModal.recalculateError"))
+      }
+    }
+  }
+
+  const handleAddCompensatorySession = (
+    termIndex: number,
+    session: CompensatorySession
+  ) => {
+    try {
+      const existingForTerm = compensatorySessions[termIndex] ?? []
+      if (
+        existingForTerm.some(
+          (s) =>
+            s.date === session.date && s.patternTrack === session.patternTrack
+        )
+      ) {
+        return
+      }
+      const nextForTerm = [...existingForTerm, session]
+      const nextCompensatory = {
+        ...compensatorySessions,
+        [termIndex]: nextForTerm,
+      }
+      setCompensatorySessions(nextCompensatory)
+
+      if (proposals.length > termIndex) {
+        const selectedPhase = phases.find((p) => p.id === activePhaseId)
+        const daysOfWeek = (
+          selectedPhase?.daysOfWeek && selectedPhase.daysOfWeek.length > 0
+            ? selectedPhase.daysOfWeek
+            : ["SATURDAY", "MONDAY", "WEDNESDAY"]
+        ) as WeekDay[]
+
+        const updated = recalculatePhaseTerms({
+          proposals,
+          changedIndex: termIndex,
+          newStartDate: proposals[termIndex]!.startDate,
+          sessionsPerTerm,
+          daysPerTerm: sessionsPerTerm,
+          daysOfWeek,
+          classPatterns: activeClassPatterns,
+          gapDaysBetweenTerms: gapDays,
+          userCustomTitles: customTitles,
+          observeOfficialHolidays,
+          customOffDays,
+          dismissedHolidays: activeDismissedHolidays,
+          compensatorySessions: nextCompensatory,
+        })
+        setProposals(updated)
+        toast.success(t("batchModal.compensatorySessionAdded"))
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message)
+      } else {
+        toast.error(t("batchModal.recalculateError"))
+      }
+    }
+  }
+
+  const handleRemoveCompensatorySession = (
+    termIndex: number,
+    dateYmd: string
+  ) => {
+    try {
+      const existingForTerm = compensatorySessions[termIndex] ?? []
+      const nextForTerm = existingForTerm.filter((s) => s.date !== dateYmd)
+      const nextCompensatory = {
+        ...compensatorySessions,
+        [termIndex]: nextForTerm,
+      }
+      setCompensatorySessions(nextCompensatory)
+
+      if (proposals.length > termIndex) {
+        const selectedPhase = phases.find((p) => p.id === activePhaseId)
+        const daysOfWeek = (
+          selectedPhase?.daysOfWeek && selectedPhase.daysOfWeek.length > 0
+            ? selectedPhase.daysOfWeek
+            : ["SATURDAY", "MONDAY", "WEDNESDAY"]
+        ) as WeekDay[]
+
+        const updated = recalculatePhaseTerms({
+          proposals,
+          changedIndex: termIndex,
+          newStartDate: proposals[termIndex]!.startDate,
+          sessionsPerTerm,
+          daysPerTerm: sessionsPerTerm,
+          daysOfWeek,
+          classPatterns: activeClassPatterns,
+          gapDaysBetweenTerms: gapDays,
+          userCustomTitles: customTitles,
+          observeOfficialHolidays,
+          customOffDays,
+          dismissedHolidays: activeDismissedHolidays,
+          compensatorySessions: nextCompensatory,
+        })
+        setProposals(updated)
+        toast.success(t("batchModal.compensatorySessionRemoved"))
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast.error(err.message)
@@ -206,8 +378,8 @@ export function useGeneratePhaseTerms({
       instituteId: activeInstituteId || undefined,
       operatingPhaseId: activePhaseId,
       jalaliYear,
-      daysPerTerm,
-      sessionsPerTerm: daysPerTerm,
+      sessionsPerTerm,
+      daysPerTerm: sessionsPerTerm,
       gapDaysBetweenTerms: gapDays,
       terms: proposals.map((p) => ({
         title: p.title.trim(),
@@ -223,6 +395,8 @@ export function useGeneratePhaseTerms({
     setViewMode("calendar")
     setProposals([])
     setCustomTitles({})
+    setCompensatorySessions({})
+    setActiveDismissedHolidays(institute?.dismissedHolidays ?? [])
     onClose()
   }
 
@@ -243,8 +417,11 @@ export function useGeneratePhaseTerms({
     activePhaseId,
     jalaliYear,
     setJalaliYear,
-    daysPerTerm,
-    setDaysPerTerm,
+    sessionsPerTerm,
+    setSessionsPerTerm,
+    daysPerTerm: sessionsPerTerm,
+    setDaysPerTerm: setSessionsPerTerm,
+    activeClassPatterns,
     gapDays,
     setGapDays,
     proposals,
@@ -255,10 +432,15 @@ export function useGeneratePhaseTerms({
     isLoadingExisting,
     observeOfficialHolidays,
     customOffDays,
-    dismissedHolidays,
+    dismissedHolidays: activeDismissedHolidays,
+    activeDismissedHolidays,
+    compensatorySessions,
     handleProceedToPreview,
     handleTitleChange,
     handleStartDateChange,
+    handleToggleHoliday,
+    handleAddCompensatorySession,
+    handleRemoveCompensatorySession,
     handleSubmit,
     handleClose,
     handleOpenChange,

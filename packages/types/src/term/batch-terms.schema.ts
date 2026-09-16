@@ -6,6 +6,7 @@ export const PreviewTermScheduleSchema = z.object({
   targetDays: z.coerce.number().int().min(1).max(365).optional(),
   targetSessions: z.coerce.number().int().min(1).max(365).optional(),
   daysOfWeek: z.array(z.enum(WEEK_DAYS)).optional(),
+  classPatterns: z.array(z.array(z.enum(WEEK_DAYS))).optional(),
   skipHolidays: z
     .preprocess((val) => val === "true" || val === true, z.boolean())
     .default(true),
@@ -20,6 +21,7 @@ export const BatchCreatePhaseTermsSchema = z.object({
   daysPerTerm: z.coerce.number().int().min(1).max(365).optional(),
   sessionsPerTerm: z.coerce.number().int().min(1).max(365).optional(),
   daysOfWeek: z.array(z.enum(WEEK_DAYS)).optional(),
+  classPatterns: z.array(z.array(z.enum(WEEK_DAYS))).optional(),
   gapDaysBetweenTerms: z.coerce.number().int().min(0).max(30).default(2),
   terms: z
     .array(

@@ -247,7 +247,7 @@ describe('TermsService', () => {
       ]);
 
       await expect(
-        service.previewPhaseTerms(mockAdmin, 'phase-1', 1405, 45),
+        service.previewPhaseTerms(mockAdmin, 'phase-1', 1405, 18),
       ).rejects.toThrow(ConflictException);
     });
   });

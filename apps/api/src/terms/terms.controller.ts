@@ -73,18 +73,28 @@ export class TermsController {
     @Query('daysPerTerm') daysPerTerm?: string,
     @Query('sessionsPerTerm') sessionsPerTerm?: string,
     @Query('daysOfWeek') daysOfWeek?: string,
+    @Query('classPatterns') classPatterns?: string,
     @Query('gapDays') gapDays?: string,
   ) {
     const parsedDays = daysOfWeek
       ? (daysOfWeek.split(',').map((d) => d.trim()) as WeekDay[])
       : undefined;
-    const durationDays = Number(daysPerTerm) || Number(sessionsPerTerm) || 45;
+    let parsedPatterns: WeekDay[][] | undefined;
+    if (classPatterns) {
+      try {
+        parsedPatterns = JSON.parse(classPatterns);
+      } catch {
+        // ignore invalid json
+      }
+    }
+    const sessionCount = Number(sessionsPerTerm) || Number(daysPerTerm) || 18;
     return this.termsService.previewPhaseTerms(
       currentUser,
       operatingPhaseId,
       Number(jalaliYear) || 1403,
-      durationDays,
+      sessionCount,
       parsedDays,
+      parsedPatterns,
       gapDays ? Number(gapDays) : undefined,
       locale,
     );

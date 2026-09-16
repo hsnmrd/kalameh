@@ -8,6 +8,8 @@ export interface CalendarLegendProps {
   locale?: "fa" | "en"
   observeOfficialHolidays?: boolean
   hasCustomOffDays?: boolean
+  hasCompensatorySessions?: boolean
+  hasDismissedHolidays?: boolean
 }
 
 export function CalendarLegend({
@@ -15,6 +17,8 @@ export function CalendarLegend({
   locale = "fa",
   observeOfficialHolidays = true,
   hasCustomOffDays = false,
+  hasCompensatorySessions = false,
+  hasDismissedHolidays = false,
 }: CalendarLegendProps) {
   const t = useTranslations("terms")
 
@@ -55,10 +59,30 @@ export function CalendarLegend({
       {/* Custom Institute Off-Days */}
       {hasCustomOffDays && (
         <div className="flex items-center gap-2">
-          <span className="relative flex size-6 items-center justify-center rounded-md bg-destructive/15 text-[11px] font-bold text-destructive after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-destructive">
+          <span className="relative flex size-6 items-center justify-center rounded-md bg-warning/15 text-[11px] font-bold text-warning after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-warning">
             {locale === "fa" ? "۱۸" : "18"}
           </span>
           <span>{t("batchModal.legendCustomOffDays")}</span>
+        </div>
+      )}
+
+      {/* Dismissed Holidays */}
+      {hasDismissedHolidays && (
+        <div className="flex items-center gap-2">
+          <span className="relative flex size-6 items-center justify-center rounded-md bg-emerald-500/15 text-[11px] font-bold text-emerald-700 after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-emerald-600">
+            {locale === "fa" ? "۱۹" : "19"}
+          </span>
+          <span>{t("batchModal.statusDismissedHoliday")}</span>
+        </div>
+      )}
+
+      {/* Compensatory Sessions */}
+      {hasCompensatorySessions && (
+        <div className="flex items-center gap-2">
+          <span className="relative flex size-6 items-center justify-center rounded-md border-2 border-primary text-[11px] font-bold text-primary after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-primary">
+            {locale === "fa" ? "۲۰" : "20"}
+          </span>
+          <span>{t("batchModal.compensatoryModalTitle")}</span>
         </div>
       )}
     </div>

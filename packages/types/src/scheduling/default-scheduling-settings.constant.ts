@@ -8,9 +8,9 @@ export const DEFAULT_SCHEDULING_SETTINGS = {
     studentTimePreference: 5,
   },
   timeGroups: {
-    oddDays: ["SUNDAY", "TUESDAY"],
+    oddDays: ["SUNDAY", "TUESDAY", "THURSDAY"],
     evenDays: ["SATURDAY", "MONDAY", "WEDNESDAY"],
-    neutralDays: ["THURSDAY", "FRIDAY"],
+    neutralDays: ["FRIDAY"],
     eveningStartsAt: "14:00",
     timeZone: "Asia/Tehran",
   },
