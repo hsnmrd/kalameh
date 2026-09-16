@@ -186,9 +186,9 @@ describe("ProposalsCalendar Component", () => {
     ).toBeGreaterThan(0)
 
     const dayButtons = screen.getAllByRole("button")
-    // Official holiday in Aban 1405: 1405/08/24 (Day 24)
+    // Official holiday in Aban 1405: 1405/08/23 (Day 23)
     const holidayDay = dayButtons.find(
-      (btn) => btn.textContent === "۲۴" || btn.textContent === "24"
+      (btn) => btn.textContent === "۲۳" || btn.textContent === "23"
     )
     if (holidayDay) {
       expect(holidayDay).toHaveAttribute(
@@ -211,7 +211,7 @@ describe("ProposalsCalendar Component", () => {
       })
       expect(toggleHolidayBtn).toBeInTheDocument()
       fireEvent.click(toggleHolidayBtn)
-      expect(onToggleHoliday).toHaveBeenCalledWith("2026-11-15")
+      expect(onToggleHoliday).toHaveBeenCalledWith("2026-11-14")
     }
   })
 
@@ -323,8 +323,8 @@ describe("ProposalsCalendar Component", () => {
     expect(modifiers.term_0_even_session(wednesdayDate)).toBe(true)
     expect(modifiers.term_0_odd_session(wednesdayDate)).toBe(false)
 
-    // 3. Official midweek holiday inside term 2 (Sunday 1405/08/24: 2026-11-15)
-    const holidayDate = new Date("2026-11-15T12:00:00.000Z")
+    // 3. Official midweek holiday inside term 2 (Saturday 1405/08/23: 2026-11-14)
+    const holidayDate = new Date("2026-11-14T12:00:00.000Z")
     expect(modifiers.term_offDay(holidayDate)).toBe(false)
     expect(modifiers.term_officialHoliday(holidayDate)).toBe(true)
 
@@ -464,6 +464,44 @@ describe("ProposalsCalendar Component", () => {
     // because that corrupts the start day's button corner radius!
     expect(modifiersClassNames.term_0_range).not.toContain("[&>button]:first")
     expect(modifiersClassNames.term_0_range).not.toContain("[&>button]:last")
+  })
+
+  it("ensures end date on Saturday in RTL has rounded-full so it never looks like range start", async () => {
+    const { buildTermCalendarModifiers } =
+      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+
+    // Term ending on Saturday (2026-10-24 is Saturday: getDay() === 6)
+    const saturdayEndProposal: GeneratedTermProposal[] = [
+      {
+        title: "ترم خاتمه‌یافته در شنبه",
+        startDate: "2026-09-23T00:00:00.000Z",
+        startDateJalali: "1405/07/01",
+        endDate: "2026-10-24T00:00:00.000Z",
+        endDateJalali: "1405/08/02",
+        daysCount: 32,
+        sessionsCount: 32,
+        holidaysCount: 0,
+        monthNamesFa: "مهر، آبان",
+      },
+    ]
+
+    const { modifiers, modifiersClassNames } = buildTermCalendarModifiers(
+      saturdayEndProposal,
+      true // RTL
+    )
+
+    const satDate = new Date("2026-10-24T00:00:00.000Z")
+    expect(modifiers.term_0_end_pill_standalone(satDate)).toBe(true)
+    expect(modifiers.term_0_end_pill_regular(satDate)).toBe(false)
+    expect(modifiersClassNames.term_0_end_pill_standalone).toContain(
+      "!rounded-full"
+    )
+    expect(modifiersClassNames.term_0_end_pill_standalone).toContain(
+      "first:!rounded-full"
+    )
+    expect(modifiersClassNames.term_0_end_pill_standalone).toContain(
+      "[&>button]:!rounded-full"
+    )
   })
 
   it("applies singleClass when proposal is only 1 day", async () => {
@@ -962,5 +1000,104 @@ describe("ProposalsCalendar Component", () => {
     expect(resRtl.modifiersClassNames.term_compensatory).toContain(
       "first:[&>button]:!rounded-tr-full"
     )
+  })
+
+  it("shows option to add to institute off-days on non-holiday and triggers onToggleCustomOffDay", () => {
+    const onToggleCustomOffDay = vi.fn()
+    render(
+      <ProposalsCalendar
+        proposals={mockProposals}
+        onStartDateChange={vi.fn()}
+        onToggleCustomOffDay={onToggleCustomOffDay}
+      />
+    )
+
+    fireEvent.click(screen.getByText("مهر و آبان ۱۴۰۵"))
+
+    const dayButtons = screen.getAllByRole("button")
+    const regularDay = dayButtons.find(
+      (btn) =>
+        btn.getAttribute("aria-label")?.includes(" 1-ام") ||
+        btn.textContent?.trim() === "۱" ||
+        btn.textContent?.trim() === "1"
+    )
+
+    expect(regularDay).toBeDefined()
+    if (regularDay) {
+      fireEvent.click(regularDay)
+
+      const addCustomOffBtn = screen.getByRole("button", {
+        name: /افزودن به تعطیلات موسسه/,
+      })
+      expect(addCustomOffBtn).toBeInTheDocument()
+
+      fireEvent.click(addCustomOffBtn)
+      expect(onToggleCustomOffDay).toHaveBeenCalledWith("2026-09-23")
+    }
+  })
+
+  it("shows option to remove from institute off-days when day is already a custom off-day", () => {
+    const onToggleCustomOffDay = vi.fn()
+    render(
+      <ProposalsCalendar
+        proposals={mockProposals}
+        onStartDateChange={vi.fn()}
+        onToggleCustomOffDay={onToggleCustomOffDay}
+        customOffDays={["2026-09-23"]}
+      />
+    )
+
+    fireEvent.click(screen.getByText("مهر و آبان ۱۴۰۵"))
+
+    const dayButtons = screen.getAllByRole("button")
+    const customOffDay = dayButtons.find(
+      (btn) =>
+        btn.getAttribute("aria-label")?.includes(" 1-ام") ||
+        btn.textContent?.trim() === "۱" ||
+        btn.textContent?.trim() === "1"
+    )
+
+    expect(customOffDay).toBeDefined()
+    if (customOffDay) {
+      fireEvent.click(customOffDay)
+
+      const removeCustomOffBtn = screen.getByRole("button", {
+        name: /حذف از تعطیلات موسسه/,
+      })
+      expect(removeCustomOffBtn).toBeInTheDocument()
+
+      fireEvent.click(removeCustomOffBtn)
+      expect(onToggleCustomOffDay).toHaveBeenCalledWith("2026-09-23")
+    }
+  })
+
+  it("does not show institute off-day options on official holidays", () => {
+    const onToggleCustomOffDay = vi.fn()
+    render(
+      <ProposalsCalendar
+        proposals={mockProposals}
+        onStartDateChange={vi.fn()}
+        onToggleCustomOffDay={onToggleCustomOffDay}
+      />
+    )
+
+    fireEvent.click(screen.getByText("آبان و آذر ۱۴۰۵"))
+
+    const dayButtons = screen.getAllByRole("button")
+    const holidayDay = dayButtons.find(
+      (btn) => btn.textContent === "۲۳" || btn.textContent === "23"
+    )
+
+    expect(holidayDay).toBeDefined()
+    if (holidayDay) {
+      fireEvent.click(holidayDay)
+
+      expect(
+        screen.queryByRole("button", { name: /افزودن به تعطیلات موسسه/ })
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole("button", { name: /حذف از تعطیلات موسسه/ })
+      ).not.toBeInTheDocument()
+    }
   })
 })

@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   CalendarX,
   CalendarPlus,
+  CalendarOff,
   Trash2,
   Play,
 } from "lucide-react"
@@ -26,7 +27,7 @@ import {
   type CompensatorySession,
 } from "@workspace/types"
 import { normalizeDateToYmd } from "../../helper/calendar-colors"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 
 export interface DayActionsPopoverProps {
   open: boolean
@@ -38,6 +39,7 @@ export interface DayActionsPopoverProps {
   proposals: GeneratedTermProposal[]
   onSetStartDate: (termIndex: number, dateYmd: string) => void
   onToggleHoliday: (dateYmd: string) => void
+  onToggleCustomOffDay?: (dateYmd: string) => void
   onOpenCompensatoryModal: (
     termIndex: number,
     dateYmd: string,
@@ -86,6 +88,7 @@ export function DayActionsPopover({
   proposals,
   onSetStartDate,
   onToggleHoliday,
+  onToggleCustomOffDay,
   onOpenCompensatoryModal,
   onRemoveCompensatorySession,
   locale = "fa",
@@ -189,7 +192,10 @@ export function DayActionsPopover({
   // Only show on Fridays, official holidays that have not been dismissed, or excess session days.
   // Regular term days must NOT show the option to add a compensatory session unless they are excess session days.
   const isEligibleForCompensatory =
-    isFriday || (isOfficialHoliday && !isDismissed) || isExcessSessionDay
+    isFriday ||
+    (isOfficialHoliday && !isDismissed) ||
+    isCustomOff ||
+    isExcessSessionDay
   const canShowCompensatory = hasCompensatory || isEligibleForCompensatory
 
   let canAddCompensatory = isEligibleForCompensatory && !hasCompensatory
@@ -321,6 +327,35 @@ export function DayActionsPopover({
               <>
                 <CalendarX className="size-4 text-foreground" />
                 <span>{t("batchModal.actionDismissHoliday")}</span>
+              </>
+            )}
+          </Button>
+        )}
+
+        {/* Action 2b: Add to or Remove from Institute Off-Days */}
+        {!isOfficialHoliday && onToggleCustomOffDay && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              onToggleCustomOffDay(ymd)
+              onOpenChange(false)
+            }}
+            className={cn(
+              "h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium",
+              isCustomOff &&
+                "border-destructive/30 text-destructive hover:bg-destructive/10"
+            )}
+          >
+            {isCustomOff ? (
+              <>
+                <Trash2 className="size-4 text-destructive" />
+                <span>{t("batchModal.actionRemoveCustomOffDay")}</span>
+              </>
+            ) : (
+              <>
+                <CalendarOff className="size-4 text-foreground" />
+                <span>{t("batchModal.actionAddCustomOffDay")}</span>
               </>
             )}
           </Button>

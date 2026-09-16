@@ -26,6 +26,7 @@ export interface CalendarGridProps {
   selectedTermIndex: number
   onStartDateChange: (index: number, newStartDate: string) => void
   onToggleHoliday?: (dateYmd: string) => void
+  onToggleCustomOffDay?: (dateYmd: string) => void
   onAddCompensatorySession?: (
     termIndex: number,
     session: CompensatorySession
@@ -44,6 +45,7 @@ export function CalendarGrid({
   selectedTermIndex,
   onStartDateChange,
   onToggleHoliday,
+  onToggleCustomOffDay,
   onAddCompensatorySession,
   onRemoveCompensatorySession,
   locale = "fa",
@@ -301,6 +303,7 @@ export function CalendarGrid({
         proposals={proposals}
         onSetStartDate={onStartDateChange}
         onToggleHoliday={onToggleHoliday ?? (() => {})}
+        onToggleCustomOffDay={onToggleCustomOffDay}
         onOpenCompensatoryModal={handleOpenCompensatoryModal}
         onRemoveCompensatorySession={onRemoveCompensatorySession ?? (() => {})}
         locale={locale}

@@ -92,7 +92,7 @@ export function CalendarLegend({
           <span className="relative flex size-6 items-center justify-center rounded-md bg-emerald-500/15 text-[11px] font-bold text-emerald-700 after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-emerald-600">
             {locale === "fa" ? "۱۹" : "19"}
           </span>
-          <span>{t("batchModal.statusDismissedHoliday")}</span>
+          <span>{t("batchModal.legendDismissedHolidays")}</span>
         </div>
       )}
 

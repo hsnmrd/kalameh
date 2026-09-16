@@ -65,7 +65,7 @@ export function useGeneratePhaseTerms({
   })
 
   // Fetch custom institute off-days
-  const { data: rawCustomOffDays = [] } = useQuery({
+  const { data: rawCustomOffDays } = useQuery({
     ...institutesResource.customOffDays.toQuery(activeInstituteId!),
     enabled: Boolean(activeInstituteId && open),
   })
@@ -73,6 +73,9 @@ export function useGeneratePhaseTerms({
   const [activeDismissedHolidays, setActiveDismissedHolidays] = React.useState<
     string[]
   >([])
+  const [localCustomOffDays, setLocalCustomOffDays] = React.useState<
+    string[] | null
+  >(null)
   const [compensatorySessions, setCompensatorySessions] = React.useState<
     Record<number, CompensatorySession[]>
   >({})
@@ -84,11 +87,10 @@ export function useGeneratePhaseTerms({
   }, [institute?.dismissedHolidays])
 
   const customOffDays = React.useMemo(() => {
-    return rawCustomOffDays.map((d) => d.date)
-  }, [rawCustomOffDays])
-
+    if (localCustomOffDays !== null) return localCustomOffDays
+    return rawCustomOffDays?.map((d) => d.date) ?? []
+  }, [localCustomOffDays, rawCustomOffDays])
   const observeOfficialHolidays = institute?.observeOfficialHolidays ?? true
-  const dismissedHolidays = activeDismissedHolidays
 
   const phaseOptions: ComboboxOption[] = React.useMemo(() => {
     return phases.map((phase) => ({
@@ -255,6 +257,71 @@ export function useGeneratePhaseTerms({
     }
   }
 
+  const handleToggleCustomOffDay = (dateYmd: string) => {
+    try {
+      const isCurrentlyOff = customOffDays.includes(dateYmd)
+      const nextCustomOffDays = isCurrentlyOff
+        ? customOffDays.filter((d) => d !== dateYmd)
+        : [...customOffDays, dateYmd]
+
+      setLocalCustomOffDays(nextCustomOffDays)
+
+      if (proposals.length > 0) {
+        const selectedPhase = phases.find((p) => p.id === activePhaseId)
+        const daysOfWeek = (
+          selectedPhase?.daysOfWeek && selectedPhase.daysOfWeek.length > 0
+            ? selectedPhase.daysOfWeek
+            : ["SATURDAY", "MONDAY", "WEDNESDAY"]
+        ) as WeekDay[]
+
+        const updated = recalculatePhaseTerms({
+          proposals,
+          changedIndex: 0,
+          newStartDate: proposals[0]!.startDate,
+          sessionsPerTerm,
+          daysPerTerm: sessionsPerTerm,
+          daysOfWeek,
+          classPatterns: activeClassPatterns,
+          gapDaysBetweenTerms: gapDays,
+          userCustomTitles: customTitles,
+          observeOfficialHolidays,
+          customOffDays: nextCustomOffDays,
+          dismissedHolidays: activeDismissedHolidays,
+          compensatorySessions,
+        })
+        setProposals(updated)
+      }
+
+      if (activeInstituteId) {
+        if (isCurrentlyOff) {
+          const existing = rawCustomOffDays?.find((d) => d.date === dateYmd)
+          if (existing) {
+            deleteCustomOffDayMutation.mutate({
+              id: activeInstituteId,
+              offDayId: existing.id,
+            })
+          }
+          toast.success(t("batchModal.customOffDayRemoved"))
+        } else {
+          createCustomOffDayMutation.mutate({
+            id: activeInstituteId,
+            body: {
+              date: dateYmd,
+              title: t("batchModal.defaultCustomOffDayTitle"),
+            },
+          })
+          toast.success(t("batchModal.customOffDayAdded"))
+        }
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message)
+      } else {
+        toast.error(t("batchModal.recalculateError"))
+      }
+    }
+  }
+
   const handleAddCompensatorySession = (
     termIndex: number,
     session: CompensatorySession
@@ -359,6 +426,27 @@ export function useGeneratePhaseTerms({
     }
   }
 
+  // Custom off-day mutations
+  const createCustomOffDayMutation = useMutation({
+    ...institutesResource.createCustomOffDay.toMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: institutesResource.customOffDays.baseKey(),
+      })
+      setLocalCustomOffDays(null)
+    },
+  })
+
+  const deleteCustomOffDayMutation = useMutation({
+    ...institutesResource.deleteCustomOffDay.toMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: institutesResource.customOffDays.baseKey(),
+      })
+      setLocalCustomOffDays(null)
+    },
+  })
+
   // Batch create mutation
   const batchCreateMutation = useMutation({
     ...termsResource.batchCreatePhase.toMutation(),
@@ -397,6 +485,7 @@ export function useGeneratePhaseTerms({
     setCustomTitles({})
     setCompensatorySessions({})
     setActiveDismissedHolidays(institute?.dismissedHolidays ?? [])
+    setLocalCustomOffDays(null)
     onClose()
   }
 
@@ -444,6 +533,7 @@ export function useGeneratePhaseTerms({
     handleTitleChange,
     handleStartDateChange,
     handleToggleHoliday,
+    handleToggleCustomOffDay,
     handleAddCompensatorySession,
     handleRemoveCompensatorySession,
     handleSubmit,

@@ -65,26 +65,26 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     oddSessionClass:
       "!bg-blue-400/12 text-foreground first:rounded-tl-full first:rounded-bl-full first:rounded-tr-none first:rounded-br-none last:rounded-tr-full last:rounded-br-full last:rounded-tl-none last:rounded-bl-none [&>button]:!rounded-none [&>button]:!font-medium [&>button]:hover:!bg-blue-400/20",
     startPillRtl:
-      "!bg-blue-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-blue-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full",
     startPillLtr:
-      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
     endPillLtr:
-      "!bg-blue-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-blue-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
     singlePill: "!bg-blue-500/15 rounded-full",
     startClassRtl:
-      "!bg-blue-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-blue-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-blue-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-blue-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     startClassLtr:
-      "!bg-blue-600/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!bg-blue-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:shadow-xs",
+      "!bg-blue-600/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full [&>button]:!bg-blue-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full [&>button]:shadow-xs",
     startClass:
-      "!bg-blue-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-blue-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-blue-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-blue-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-blue-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-blue-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
     endClass:
-      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-blue-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -116,26 +116,26 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     oddSessionClass:
       "!bg-emerald-400/12 text-foreground first:rounded-tl-full first:rounded-bl-full first:rounded-tr-none first:rounded-br-none last:rounded-tr-full last:rounded-br-full last:rounded-tl-none last:rounded-bl-none [&>button]:!rounded-none [&>button]:!font-medium [&>button]:hover:!bg-emerald-400/20",
     startPillRtl:
-      "!bg-emerald-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-emerald-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full",
     startPillLtr:
-      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
     endPillLtr:
-      "!bg-emerald-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-emerald-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
     singlePill: "!bg-emerald-500/15 rounded-full",
     startClassRtl:
-      "!bg-emerald-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-emerald-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-emerald-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-emerald-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     startClassLtr:
-      "!bg-emerald-600/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!bg-emerald-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:shadow-xs",
+      "!bg-emerald-600/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full [&>button]:!bg-emerald-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full [&>button]:shadow-xs",
     startClass:
-      "!bg-emerald-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-emerald-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-emerald-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-emerald-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-emerald-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-emerald-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
     endClass:
-      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-emerald-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -167,26 +167,26 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     oddSessionClass:
       "!bg-purple-400/12 text-foreground first:rounded-tl-full first:rounded-bl-full first:rounded-tr-none first:rounded-br-none last:rounded-tr-full last:rounded-br-full last:rounded-tl-none last:rounded-bl-none [&>button]:!rounded-none [&>button]:!font-medium [&>button]:hover:!bg-purple-400/20",
     startPillRtl:
-      "!bg-purple-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-purple-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full",
     startPillLtr:
-      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
     endPillLtr:
-      "!bg-purple-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-purple-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
     singlePill: "!bg-purple-500/15 rounded-full",
     startClassRtl:
-      "!bg-purple-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-purple-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-purple-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-purple-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     startClassLtr:
-      "!bg-purple-600/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!bg-purple-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:shadow-xs",
+      "!bg-purple-600/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full [&>button]:!bg-purple-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full [&>button]:shadow-xs",
     startClass:
-      "!bg-purple-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-purple-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-purple-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-purple-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-purple-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-purple-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
     endClass:
-      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-purple-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -218,26 +218,26 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     oddSessionClass:
       "!bg-amber-400/12 text-foreground first:rounded-tl-full first:rounded-bl-full first:rounded-tr-none first:rounded-br-none last:rounded-tr-full last:rounded-br-full last:rounded-tl-none last:rounded-bl-none [&>button]:!rounded-none [&>button]:!font-medium [&>button]:hover:!bg-amber-400/20",
     startPillRtl:
-      "!bg-amber-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-amber-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full",
     startPillLtr:
-      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
     endPillLtr:
-      "!bg-amber-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-amber-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
     singlePill: "!bg-amber-500/15 rounded-full",
     startClassRtl:
-      "!bg-amber-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-amber-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-amber-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-amber-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     startClassLtr:
-      "!bg-amber-600/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!bg-amber-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:shadow-xs",
+      "!bg-amber-600/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full [&>button]:!bg-amber-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full [&>button]:shadow-xs",
     startClass:
-      "!bg-amber-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-amber-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-amber-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-amber-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-amber-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-amber-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
     endClass:
-      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-amber-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -269,26 +269,26 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     oddSessionClass:
       "!bg-cyan-400/12 text-foreground first:rounded-tl-full first:rounded-bl-full first:rounded-tr-none first:rounded-br-none last:rounded-tr-full last:rounded-br-full last:rounded-tl-none last:rounded-bl-none [&>button]:!rounded-none [&>button]:!font-medium [&>button]:hover:!bg-cyan-400/20",
     startPillRtl:
-      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full",
     startPillLtr:
-      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
     endPillLtr:
-      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
     singlePill: "!bg-cyan-500/15 rounded-full",
     startClassRtl:
-      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     startClassLtr:
-      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:shadow-xs",
+      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-br-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
     startClass:
-      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClass:
-      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -320,26 +320,26 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     oddSessionClass:
       "!bg-rose-400/12 text-foreground first:rounded-tl-full first:rounded-bl-full first:rounded-tr-none first:rounded-br-none last:rounded-tr-full last:rounded-br-full last:rounded-tl-none last:rounded-bl-none [&>button]:!rounded-none [&>button]:!font-medium [&>button]:hover:!bg-rose-400/20",
     startPillRtl:
-      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full",
     startPillLtr:
-      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
     endPillLtr:
-      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
     singlePill: "!bg-rose-500/15 rounded-full",
     startClassRtl:
-      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     startClassLtr:
-      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:shadow-xs",
+      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-br-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
     startClass:
-      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:shadow-xs",
+      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClass:
-      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -373,26 +373,26 @@ export const DIMMED_TERM_COLOR_THEME: TermColorTheme = {
   oddSessionClass:
     "!bg-muted/20 text-muted-foreground/75 first:rounded-tl-full first:rounded-bl-full first:rounded-tr-none first:rounded-br-none last:rounded-tr-full last:rounded-br-full last:rounded-tl-none last:rounded-bl-none [&>button]:!rounded-none [&>button]:!font-normal [&>button]:!text-muted-foreground/75 [&>button]:hover:!bg-muted/30",
   startPillRtl:
-    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full",
   startPillLtr:
-    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
   endPillRtl:
-    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none",
+    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
   endPillLtr:
-    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none",
+    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
   singlePill: "!bg-muted/25 rounded-full",
   startClassRtl:
-    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-muted [&>button]:!text-muted-foreground [&>button]:!font-medium [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none",
+    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-muted [&>button]:!text-muted-foreground [&>button]:!font-medium [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full",
   startClassLtr:
-    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!bg-muted [&>button]:!text-muted-foreground [&>button]:!font-medium [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none",
+    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full [&>button]:!bg-muted [&>button]:!text-muted-foreground [&>button]:!font-medium [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full",
   startClass:
-    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!bg-muted [&>button]:!text-muted-foreground [&>button]:!font-medium [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none",
+    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-muted [&>button]:!text-muted-foreground [&>button]:!font-medium [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full",
   endClassRtl:
-    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-medium [&>button]:!text-muted-foreground",
+    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-medium [&>button]:!text-muted-foreground",
   endClassLtr:
-    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none [&>button]:!font-medium [&>button]:!text-muted-foreground",
+    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-medium [&>button]:!text-muted-foreground",
   endClass:
-    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none [&>button]:!font-medium [&>button]:!text-muted-foreground",
+    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-medium [&>button]:!text-muted-foreground",
   singleClass:
     "rounded-full [&>button]:!bg-muted [&>button]:!text-muted-foreground [&>button]:!font-medium [&>button]:!rounded-full",
 }
@@ -617,6 +617,56 @@ export function buildTermCalendarModifiers(
     }
     modifiersClassNames[endKey] = isSingleDay ? "" : endClass
 
+    // Dedicated high-priority radius modifiers ensuring start and end days NEVER have broken/inverted radii:
+    // When a term ends on Saturday (in RTL) or Sunday (in LTR), it is at the start of that week row with no following days,
+    // so it MUST be a full standalone rounded pill and NEVER flat on the left!
+    const endPillStandaloneKey = `term_${index}_end_pill_standalone`
+    const endPillRegularKey = `term_${index}_end_pill_regular`
+    const startPillStandaloneKey = `term_${index}_start_pill_standalone`
+    const startPillRegularKey = `term_${index}_start_pill_regular`
+    const singlePillOverrideKey = `term_${index}_single_pill_override`
+
+    if (isSingleDay) {
+      modifiers[singlePillOverrideKey] = (date: Date) =>
+        normalizeDateToYmd(date) === startYmd
+      modifiersClassNames[singlePillOverrideKey] =
+        "!rounded-full first:!rounded-full last:!rounded-full [&>button]:!rounded-full first:[&>button]:!rounded-full last:[&>button]:!rounded-full"
+    } else {
+      modifiers[endPillStandaloneKey] = (date: Date) => {
+        const ymd = normalizeDateToYmd(date)
+        if (ymd !== endYmd) return false
+        return isRtl ? date.getDay() === 6 : date.getDay() === 0
+      }
+      modifiersClassNames[endPillStandaloneKey] =
+        "!rounded-full first:!rounded-full last:!rounded-full [&>button]:!rounded-full first:[&>button]:!rounded-full last:[&>button]:!rounded-full"
+
+      modifiers[endPillRegularKey] = (date: Date) => {
+        const ymd = normalizeDateToYmd(date)
+        if (ymd !== endYmd) return false
+        return isRtl ? date.getDay() !== 6 : date.getDay() !== 0
+      }
+      modifiersClassNames[endPillRegularKey] = isRtl
+        ? "!rounded-tl-full !rounded-bl-full !rounded-tr-none !rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none"
+        : "!rounded-tr-full !rounded-br-full !rounded-tl-none !rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full first:[&>button]:!rounded-tl-none first:[&>button]:!rounded-bl-none last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full last:[&>button]:!rounded-tl-none last:[&>button]:!rounded-bl-none"
+
+      modifiers[startPillStandaloneKey] = (date: Date) => {
+        const ymd = normalizeDateToYmd(date)
+        if (ymd !== startYmd) return false
+        return isRtl ? date.getDay() === 5 : date.getDay() === 6
+      }
+      modifiersClassNames[startPillStandaloneKey] =
+        "!rounded-full first:!rounded-full last:!rounded-full [&>button]:!rounded-full first:[&>button]:!rounded-full last:[&>button]:!rounded-full"
+
+      modifiers[startPillRegularKey] = (date: Date) => {
+        const ymd = normalizeDateToYmd(date)
+        if (ymd !== startYmd) return false
+        return isRtl ? date.getDay() !== 5 : date.getDay() !== 6
+      }
+      modifiersClassNames[startPillRegularKey] = isRtl
+        ? "!rounded-tr-full !rounded-br-full !rounded-tl-none !rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full first:[&>button]:!rounded-tl-none first:[&>button]:!rounded-bl-none last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full last:[&>button]:!rounded-tl-none last:[&>button]:!rounded-bl-none"
+        : "!rounded-tl-full !rounded-bl-full !rounded-tr-none !rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none"
+    }
+
     // 1d. Holidays inside this specific term
     if (observeOfficialHolidays) {
       const termHolidayKey = `term_${index}_holiday`
@@ -824,30 +874,30 @@ export function buildTermCalendarModifiers(
       return isDayStartSide(date) && isDayEndSide(date)
     }
     modifiersClassNames.term_compensatory_both =
-      "rounded-full [&>button]:!rounded-full"
+      "!rounded-full first:!rounded-full last:!rounded-full [&>button]:!rounded-full first:[&>button]:!rounded-full last:[&>button]:!rounded-full"
 
     modifiers.term_compensatory_start = (date: Date) => {
       if (!isCompensatory(date)) return false
       return isDayStartSide(date) && !isDayEndSide(date)
     }
     modifiersClassNames.term_compensatory_start = isRtl
-      ? "rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none"
-      : "rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none"
+      ? "!rounded-tr-full !rounded-br-full !rounded-tl-none !rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none"
+      : "!rounded-tl-full !rounded-bl-full !rounded-tr-none !rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none"
 
     modifiers.term_compensatory_end = (date: Date) => {
       if (!isCompensatory(date)) return false
       return !isDayStartSide(date) && isDayEndSide(date)
     }
     modifiersClassNames.term_compensatory_end = isRtl
-      ? "rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none"
-      : "rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none"
+      ? "!rounded-tl-full !rounded-bl-full !rounded-tr-none !rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none"
+      : "!rounded-tr-full !rounded-br-full !rounded-tl-none !rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none"
 
     modifiers.term_compensatory_none = (date: Date) => {
       if (!isCompensatory(date)) return false
       return !isDayStartSide(date) && !isDayEndSide(date)
     }
     modifiersClassNames.term_compensatory_none =
-      "rounded-none [&>button]:!rounded-none"
+      "!rounded-none [&>button]:!rounded-none"
   }
 
   // 6. Excess sessions (Warning/amber dashed border for days exceeding target count) - ONLY for the selected term
@@ -877,30 +927,30 @@ export function buildTermCalendarModifiers(
       return isDayStartSide(date) && isDayEndSide(date)
     }
     modifiersClassNames.term_excessSession_both =
-      "rounded-full [&>button]:!rounded-full"
+      "!rounded-full first:!rounded-full last:!rounded-full [&>button]:!rounded-full first:[&>button]:!rounded-full last:[&>button]:!rounded-full"
 
     modifiers.term_excessSession_start = (date: Date) => {
       if (!isExcess(date)) return false
       return isDayStartSide(date) && !isDayEndSide(date)
     }
     modifiersClassNames.term_excessSession_start = isRtl
-      ? "rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none"
-      : "rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none"
+      ? "!rounded-tr-full !rounded-br-full !rounded-tl-none !rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none"
+      : "!rounded-tl-full !rounded-bl-full !rounded-tr-none !rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none"
 
     modifiers.term_excessSession_end = (date: Date) => {
       if (!isExcess(date)) return false
       return !isDayStartSide(date) && isDayEndSide(date)
     }
     modifiersClassNames.term_excessSession_end = isRtl
-      ? "rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none"
-      : "rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none"
+      ? "!rounded-tl-full !rounded-bl-full !rounded-tr-none !rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none"
+      : "!rounded-tr-full !rounded-br-full !rounded-tl-none !rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none"
 
     modifiers.term_excessSession_none = (date: Date) => {
       if (!isExcess(date)) return false
       return !isDayStartSide(date) && !isDayEndSide(date)
     }
     modifiersClassNames.term_excessSession_none =
-      "rounded-none [&>button]:!rounded-none"
+      "!rounded-none [&>button]:!rounded-none"
   }
 
   return { modifiers, modifiersClassNames }

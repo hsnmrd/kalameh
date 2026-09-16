@@ -22,6 +22,7 @@ export interface StepPreviewProps {
   onTitleChange: (index: number, newTitle: string) => void
   onStartDateChange: (index: number, newStartDate: string) => void
   onToggleHoliday?: (dateYmd: string) => void
+  onToggleCustomOffDay?: (dateYmd: string) => void
   onAddCompensatorySession?: (
     termIndex: number,
     session: CompensatorySession
@@ -41,6 +42,7 @@ export function StepPreview({
   onTitleChange,
   onStartDateChange,
   onToggleHoliday,
+  onToggleCustomOffDay,
   onAddCompensatorySession,
   onRemoveCompensatorySession,
   locale,
@@ -120,6 +122,7 @@ export function StepPreview({
             proposals={proposals}
             onStartDateChange={onStartDateChange}
             onToggleHoliday={onToggleHoliday}
+            onToggleCustomOffDay={onToggleCustomOffDay}
             onAddCompensatorySession={onAddCompensatorySession}
             onRemoveCompensatorySession={onRemoveCompensatorySession}
             locale={locale}

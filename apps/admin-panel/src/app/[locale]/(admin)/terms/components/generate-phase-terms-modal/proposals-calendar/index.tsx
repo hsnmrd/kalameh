@@ -13,6 +13,7 @@ export interface ProposalsCalendarProps {
   proposals: GeneratedTermProposal[]
   onStartDateChange: (index: number, newStartDate: string) => void
   onToggleHoliday?: (dateYmd: string) => void
+  onToggleCustomOffDay?: (dateYmd: string) => void
   onAddCompensatorySession?: (
     termIndex: number,
     session: CompensatorySession
@@ -30,6 +31,7 @@ export function ProposalsCalendar({
   proposals,
   onStartDateChange,
   onToggleHoliday,
+  onToggleCustomOffDay,
   onAddCompensatorySession,
   onRemoveCompensatorySession,
   locale,
@@ -64,6 +66,7 @@ export function ProposalsCalendar({
         selectedTermIndex={selectedTermIndex}
         onStartDateChange={onStartDateChange}
         onToggleHoliday={onToggleHoliday}
+        onToggleCustomOffDay={onToggleCustomOffDay}
         onAddCompensatorySession={onAddCompensatorySession}
         onRemoveCompensatorySession={onRemoveCompensatorySession}
         locale={activeLocale}

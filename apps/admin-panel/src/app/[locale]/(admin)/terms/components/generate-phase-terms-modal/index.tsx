@@ -55,6 +55,7 @@ export function GeneratePhaseTermsModal({
     handleTitleChange,
     handleStartDateChange,
     handleToggleHoliday,
+    handleToggleCustomOffDay,
     handleAddCompensatorySession,
     handleRemoveCompensatorySession,
     handleSubmit,
@@ -108,6 +109,7 @@ export function GeneratePhaseTermsModal({
                 onTitleChange={handleTitleChange}
                 onStartDateChange={handleStartDateChange}
                 onToggleHoliday={handleToggleHoliday}
+                onToggleCustomOffDay={handleToggleCustomOffDay}
                 onAddCompensatorySession={handleAddCompensatorySession}
                 onRemoveCompensatorySession={handleRemoveCompensatorySession}
                 observeOfficialHolidays={observeOfficialHolidays}
