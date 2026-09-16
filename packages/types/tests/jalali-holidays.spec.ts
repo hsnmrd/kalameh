@@ -55,6 +55,34 @@ describe("Jalali Calendar & Holidays Engine", () => {
     expect(reza.holiday?.titleFa).toContain("امام رضا")
   })
 
+  it("accurately identifies lunar holidays for year 1405 and 1406", () => {
+    // 1405/08/22 is Martyrdom of Hazrat Fatemeh (3 Jumada al-Thani), 1405/08/23 is not a holiday
+    const fatemeh1405 = isJalaliHoliday("1405/08/22")
+    expect(fatemeh1405.isHoliday).toBe(true)
+    expect(fatemeh1405.holiday?.titleFa).toContain("حضرت فاطمه")
+
+    const notHoliday1405 = isJalaliHoliday("1405/08/23")
+    expect(notHoliday1405.isHoliday).toBe(false)
+
+    // 1405/04/03 is Tasu'a, 1405/04/04 is Ashura
+    const tasua1405 = isJalaliHoliday("1405/04/03")
+    expect(tasua1405.isHoliday).toBe(true)
+    expect(tasua1405.holiday?.titleFa).toContain("تاسوعا")
+
+    const ashura1405 = isJalaliHoliday("1405/04/04")
+    expect(ashura1405.isHoliday).toBe(true)
+    expect(ashura1405.holiday?.titleFa).toContain("عاشورا")
+
+    // 1406/03/24 is Tasu'a, 1406/03/25 is Ashura
+    const tasua1406 = isJalaliHoliday("1406/03/24")
+    expect(tasua1406.isHoliday).toBe(true)
+    expect(tasua1406.holiday?.titleFa).toContain("تاسوعا")
+
+    const ashura1406 = isJalaliHoliday("1406/03/25")
+    expect(ashura1406.isHoliday).toBe(true)
+    expect(ashura1406.holiday?.titleFa).toContain("عاشورا")
+  })
+
   it("returns holidays within a date range", () => {
     // Shahrivar 1403 has multiple holidays
     const holidays = getJalaliHolidaysInRange("1403/06/01", "1403/06/31")

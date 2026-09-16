@@ -186,9 +186,9 @@ describe("ProposalsCalendar Component", () => {
     ).toBeGreaterThan(0)
 
     const dayButtons = screen.getAllByRole("button")
-    // Official holiday in Aban 1405: 1405/08/23 (Day 23)
+    // Official holiday in Aban 1405: 1405/08/22 (Day 22)
     const holidayDay = dayButtons.find(
-      (btn) => btn.textContent === "۲۳" || btn.textContent === "23"
+      (btn) => btn.textContent === "۲۲" || btn.textContent === "22"
     )
     if (holidayDay) {
       expect(holidayDay).toHaveAttribute(
@@ -211,7 +211,7 @@ describe("ProposalsCalendar Component", () => {
       })
       expect(toggleHolidayBtn).toBeInTheDocument()
       fireEvent.click(toggleHolidayBtn)
-      expect(onToggleHoliday).toHaveBeenCalledWith("2026-11-14")
+      expect(onToggleHoliday).toHaveBeenCalledWith("2026-11-13")
     }
   })
 
@@ -323,8 +323,8 @@ describe("ProposalsCalendar Component", () => {
     expect(modifiers.term_0_even_session(wednesdayDate)).toBe(true)
     expect(modifiers.term_0_odd_session(wednesdayDate)).toBe(false)
 
-    // 3. Official midweek holiday inside term 2 (Saturday 1405/08/23: 2026-11-14)
-    const holidayDate = new Date("2026-11-14T12:00:00.000Z")
+    // 3. Official holiday inside term 2 (Friday 1405/08/22: 2026-11-13)
+    const holidayDate = new Date("2026-11-13T12:00:00.000Z")
     expect(modifiers.term_offDay(holidayDate)).toBe(false)
     expect(modifiers.term_officialHoliday(holidayDate)).toBe(true)
 
@@ -1104,7 +1104,7 @@ describe("ProposalsCalendar Component", () => {
 
     const dayButtons = screen.getAllByRole("button")
     const holidayDay = dayButtons.find(
-      (btn) => btn.textContent === "۲۳" || btn.textContent === "23"
+      (btn) => btn.textContent === "۲۲" || btn.textContent === "22"
     )
 
     expect(holidayDay).toBeDefined()
