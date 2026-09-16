@@ -89,7 +89,7 @@ export default async function LocaleLayout({
       className={cn("font-sans antialiased", monoVariable, fontVariable)}
     >
       <body className="min-h-screen bg-background text-foreground">
-        <Providers>{children}</Providers>
+        <Providers direction={dir}>{children}</Providers>
       </body>
     </html>
   )

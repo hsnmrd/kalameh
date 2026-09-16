@@ -4,7 +4,6 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Popover, PopoverContent } from "@workspace/ui/components/popover"
 import {
-  Calendar,
   CalendarCheck,
   CalendarX,
   CalendarPlus,
@@ -22,7 +21,6 @@ import {
 } from "@workspace/ui/components/drawer"
 import {
   gregorianToJalali,
-  formatJalali,
   isJalaliHoliday,
   type GeneratedTermProposal,
   type CompensatorySession,
@@ -94,6 +92,34 @@ export function DayActionsPopover({
   const t = useTranslations("terms")
   const isMobile = useIsMobile()
 
+  const resolvedAnchor = React.useCallback(() => {
+    if (anchorEl && anchorEl.isConnected) {
+      return anchorEl
+    }
+    if (typeof document !== "undefined" && date) {
+      const ymdStr = normalizeDateToYmd(date)
+      // 1. Gregorian date match
+      const cell = document.querySelector(`[data-day="${ymdStr}"]`)
+      const btn = (
+        cell?.matches("button") ? cell : cell?.querySelector("button")
+      ) as HTMLElement | null
+      if (btn && btn.isConnected) return btn
+
+      // 2. Jalali date match
+      const jDate = gregorianToJalali(date)
+      const jy = jDate.year.toString()
+      const jm = jDate.month.toString().padStart(2, "0")
+      const jd = jDate.day.toString().padStart(2, "0")
+      const jalaliYmd = `${jy}-${jm}-${jd}`
+      const jCell = document.querySelector(`[data-day="${jalaliYmd}"]`)
+      const jBtn = (
+        jCell?.matches("button") ? jCell : jCell?.querySelector("button")
+      ) as HTMLElement | null
+      if (jBtn && jBtn.isConnected) return jBtn
+    }
+    return anchorEl
+  }, [anchorEl, date])
+
   if (!date) return null
 
   const ymd = normalizeDateToYmd(date)
@@ -127,7 +153,9 @@ export function DayActionsPopover({
   const currentCompensatory = allCompensatory.find((cs) => cs.date === ymd)
   const hasCompensatory = currentCompensatory !== undefined
 
-  // Can set as start date check
+  // Can set as start date check:
+  // Cannot start on a Friday or an active holiday.
+  // For subsequent terms (index > 0), cannot start on or before the previous term's end date.
   let canSetStart = !isHolidayActive && !isFriday
   if (selectedTermIndex > 0) {
     const prevTerm = proposals[selectedTermIndex - 1]
@@ -137,15 +165,16 @@ export function DayActionsPopover({
         canSetStart = false
       }
     }
-  } else if (selectedTermIndex === 0 && proposals[0]?.startDate) {
-    const initialStart = normalizeDateToYmd(proposals[0].startDate)
-    if (ymd < initialStart) {
-      canSetStart = false
-    }
   }
 
-  // Can add compensatory session check
-  let canAddCompensatory = !hasCompensatory
+  // Can add compensatory session check:
+  // Only show on Fridays and official holidays that have not been dismissed.
+  // Regular term days must NOT show the option to add a compensatory session.
+  const isEligibleForCompensatory =
+    isFriday || (isOfficialHoliday && !isDismissed)
+  const canShowCompensatory = hasCompensatory || isEligibleForCompensatory
+
+  let canAddCompensatory = isEligibleForCompensatory && !hasCompensatory
   if (termProposal?.startDate) {
     const termStartYmd = normalizeDateToYmd(termProposal.startDate)
     if (ymd < termStartYmd) {
@@ -262,36 +291,40 @@ export function DayActionsPopover({
         )}
 
         {/* Action 3: Compensatory Session */}
-        {hasCompensatory ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              if (currentCompensatory) {
-                onRemoveCompensatorySession(currentCompensatory.termIndex, ymd)
-              }
-              onOpenChange(false)
-            }}
-            className="h-11 w-full justify-start gap-2.5 rounded-xl border-destructive/30 px-3 text-sm font-medium text-destructive hover:bg-destructive/10"
-          >
-            <Trash2 className="size-4 text-destructive" />
-            <span>{t("batchModal.actionRemoveCompensatory")}</span>
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            disabled={!canAddCompensatory}
-            onClick={() => {
-              onOpenChange(false)
-              onOpenCompensatoryModal(selectedTermIndex, ymd)
-            }}
-            className="h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium"
-          >
-            <CalendarPlus className="size-4 text-foreground" />
-            <span>{t("batchModal.actionAddCompensatory")}</span>
-          </Button>
-        )}
+        {canShowCompensatory &&
+          (hasCompensatory ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (currentCompensatory) {
+                  onRemoveCompensatorySession(
+                    currentCompensatory.termIndex,
+                    ymd
+                  )
+                }
+                onOpenChange(false)
+              }}
+              className="h-11 w-full justify-start gap-2.5 rounded-xl border-destructive/30 px-3 text-sm font-medium text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="size-4 text-destructive" />
+              <span>{t("batchModal.actionRemoveCompensatory")}</span>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!canAddCompensatory}
+              onClick={() => {
+                onOpenChange(false)
+                onOpenCompensatoryModal(selectedTermIndex, ymd)
+              }}
+              className="h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium"
+            >
+              <CalendarPlus className="size-4 text-foreground" />
+              <span>{t("batchModal.actionAddCompensatory")}</span>
+            </Button>
+          ))}
       </div>
     </div>
   )
@@ -315,8 +348,10 @@ export function DayActionsPopover({
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverContent
-        anchor={anchorEl}
-        sideOffset={8}
+        anchor={resolvedAnchor}
+        side="bottom"
+        align="center"
+        sideOffset={6}
         className="w-80 rounded-2xl border border-border bg-popover p-4 text-popover-foreground shadow-xl"
       >
         {renderContent()}

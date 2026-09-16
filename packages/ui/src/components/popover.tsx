@@ -19,25 +19,44 @@ const PopoverTrigger = PopoverPrimitive.Trigger
 const PopoverPortal = PopoverPrimitive.Portal
 const PopoverClose = PopoverPrimitive.Close
 const PopoverPositioner = PopoverPrimitive.Positioner
+const PopoverArrow = PopoverPrimitive.Arrow
 
 function PopoverPopup({
   className,
   children,
+  side = "bottom",
   sideOffset = 4,
   align = "center",
+  alignOffset,
   anchor,
+  positionMethod,
+  collisionBoundary,
+  collisionPadding,
+  sticky,
   ...props
 }: PopoverPrimitive.Popup.Props & {
-  sideOffset?: number
-  align?: "start" | "center" | "end"
+  side?: PopoverPrimitive.Positioner.Props["side"]
+  sideOffset?: PopoverPrimitive.Positioner.Props["sideOffset"]
+  align?: PopoverPrimitive.Positioner.Props["align"]
+  alignOffset?: PopoverPrimitive.Positioner.Props["alignOffset"]
   anchor?: PopoverPrimitive.Positioner.Props["anchor"]
+  positionMethod?: PopoverPrimitive.Positioner.Props["positionMethod"]
+  collisionBoundary?: PopoverPrimitive.Positioner.Props["collisionBoundary"]
+  collisionPadding?: PopoverPrimitive.Positioner.Props["collisionPadding"]
+  sticky?: PopoverPrimitive.Positioner.Props["sticky"]
 }) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
         anchor={anchor}
+        side={side}
         sideOffset={sideOffset}
         align={align}
+        alignOffset={alignOffset}
+        positionMethod={positionMethod}
+        collisionBoundary={collisionBoundary}
+        collisionPadding={collisionPadding}
+        sticky={sticky}
         className="z-50"
       >
         <PopoverPrimitive.Popup
@@ -60,6 +79,7 @@ export {
   PopoverPortal,
   PopoverClose,
   PopoverPositioner,
+  PopoverArrow,
   PopoverPopup,
   PopoverPopup as PopoverContent,
 }

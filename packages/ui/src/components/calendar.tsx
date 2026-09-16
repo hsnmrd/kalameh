@@ -212,6 +212,52 @@ export function Calendar({
     [showOffDays, isJalali, activeLocale, isDismissedHoliday, isCustomOffDay]
   )
 
+  const getHolidayTitleRef = React.useRef(getHolidayTitle)
+  getHolidayTitleRef.current = getHolidayTitle
+
+  const resolvedDirRef = React.useRef(resolvedDir)
+  resolvedDirRef.current = resolvedDir
+
+  const CustomChevron = React.useCallback(
+    ({ orientation }: { orientation?: "left" | "right" | "up" | "down" }) => {
+      const isRtl = resolvedDirRef.current === "rtl"
+      if (orientation === "left") {
+        return isRtl ? (
+          <ChevronRight className="size-4" />
+        ) : (
+          <ChevronLeft className="size-4" />
+        )
+      }
+      return isRtl ? (
+        <ChevronLeft className="size-4" />
+      ) : (
+        <ChevronRight className="size-4" />
+      )
+    },
+    []
+  )
+
+  const CustomDayButton = React.useCallback(
+    (dayButtonProps: DayButtonProps) => {
+      const holidayTitle = getHolidayTitleRef.current(dayButtonProps.day.date)
+      return (
+        <DayButton
+          {...dayButtonProps}
+          title={holidayTitle || dayButtonProps.title}
+        />
+      )
+    },
+    []
+  )
+
+  const defaultComponents = React.useMemo(
+    () => ({
+      Chevron: CustomChevron,
+      DayButton: CustomDayButton,
+    }),
+    [CustomChevron, CustomDayButton]
+  )
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -284,29 +330,8 @@ export function Calendar({
         ...classNames,
       }}
       components={{
-        Chevron: ({ orientation }) => {
-          if (orientation === "left") {
-            return resolvedDir === "rtl" ? (
-              <ChevronRight className="size-4" />
-            ) : (
-              <ChevronLeft className="size-4" />
-            )
-          }
-          return resolvedDir === "rtl" ? (
-            <ChevronLeft className="size-4" />
-          ) : (
-            <ChevronRight className="size-4" />
-          )
-        },
-        DayButton: (dayButtonProps: DayButtonProps) => {
-          const holidayTitle = getHolidayTitle(dayButtonProps.day.date)
-          return (
-            <DayButton
-              {...dayButtonProps}
-              title={holidayTitle || dayButtonProps.title}
-            />
-          )
-        },
+        ...defaultComponents,
+        ...props.components,
       }}
       {...(props as any)}
     />

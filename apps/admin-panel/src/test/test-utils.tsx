@@ -14,6 +14,7 @@ import institutesMessagesFa from "../messages/fa/institutes.json"
 import rolePermissionsMessagesFa from "../messages/fa/role-permissions.json"
 import { ROLES, type AuthUser } from "@workspace/types"
 import { authResource } from "../lib/api"
+import { DirectionProvider } from "@workspace/ui/components/direction-provider"
 import branchesMessagesFa from "../messages/fa/branches.json"
 import classroomsMessagesFa from "../messages/fa/classrooms.json"
 import teachersMessagesFa from "../messages/fa/teachers.json"
@@ -85,11 +86,13 @@ export function AllTheProviders({
   const queryClient = React.useMemo(() => createTestQueryClient(), [])
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <NextIntlClientProvider locale={locale} messages={messages}>
-        {children}
-      </NextIntlClientProvider>
-    </QueryClientProvider>
+    <DirectionProvider direction={locale === "fa" ? "rtl" : "ltr"}>
+      <QueryClientProvider client={queryClient}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+        </NextIntlClientProvider>
+      </QueryClientProvider>
+    </DirectionProvider>
   )
 }
 

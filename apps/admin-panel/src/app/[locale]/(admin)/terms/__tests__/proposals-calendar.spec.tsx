@@ -123,6 +123,47 @@ describe("ProposalsCalendar Component", () => {
     }
   })
 
+  it("allows setting start date for the first term to earlier days even after start date was shifted forward", () => {
+    const onStartDateChange = vi.fn()
+    // Term 0 starting on Day 3 (2026-09-25)
+    const proposalsWithLaterStart: GeneratedTermProposal[] = [
+      {
+        ...mockProposals[0]!,
+        startDate: "2026-09-25T00:00:00.000Z",
+        startDateJalali: "1405/07/03",
+      },
+      ...mockProposals.slice(1),
+    ]
+
+    render(
+      <ProposalsCalendar
+        proposals={proposalsWithLaterStart}
+        onStartDateChange={onStartDateChange}
+      />
+    )
+
+    // Select first term
+    fireEvent.click(screen.getByText("مهر و آبان ۱۴۰۵"))
+
+    const dayButtons = screen.getAllByRole("button")
+    // Day 1 (1405/07/01) - Wednesday (earlier than current start date 1405/07/03)
+    const day1 = dayButtons.find(
+      (btn) =>
+        btn.getAttribute("aria-label")?.includes(" 1-ام") ||
+        btn.textContent?.trim() === "۱" ||
+        btn.textContent?.trim() === "1"
+    )
+
+    expect(day1).toBeDefined()
+    if (day1) {
+      fireEvent.click(day1)
+      const setStartBtn = screen.getByRole("button", { name: /شروع ترم/ })
+      expect(setStartBtn).not.toBeDisabled()
+      fireEvent.click(setStartBtn)
+      expect(onStartDateChange).toHaveBeenCalledWith(0, "2026-09-23")
+    }
+  })
+
   it("disallows official holidays as start dates in popover and provides holiday toggle", () => {
     const onStartDateChange = vi.fn()
     const onToggleHoliday = vi.fn()
@@ -157,7 +198,7 @@ describe("ProposalsCalendar Component", () => {
     }
   })
 
-  it("opens compensatory modal when clicking compensatory action in popover", () => {
+  it("does not show compensatory action on regular term days and allows it on Fridays or official holidays", () => {
     render(
       <ProposalsCalendar
         proposals={mockProposals}
@@ -165,16 +206,28 @@ describe("ProposalsCalendar Component", () => {
       />
     )
 
-    // Select second term
+    // Select second term (1405/08/17 to 1405/09/30)
     fireEvent.click(screen.getByText("آبان و آذر ۱۴۰۵"))
 
     const dayButtons = screen.getAllByRole("button")
-    // Click Day 20
+
+    // 1. Regular term day (Day 20 - Wednesday): should NOT show "افزودن کلاس جبرانی"
     const day20 = dayButtons.find(
       (btn) => btn.textContent === "۲۰" || btn.textContent === "20"
     )
     if (day20) {
       fireEvent.click(day20)
+      expect(
+        screen.queryByRole("button", { name: /افزودن کلاس جبرانی/ })
+      ).not.toBeInTheDocument()
+    }
+
+    // 2. Friday (Day 22 - Friday 1405/08/22): SHOULD show "افزودن کلاس جبرانی"
+    const day22 = dayButtons.find(
+      (btn) => btn.textContent === "۲۲" || btn.textContent === "22"
+    )
+    if (day22) {
+      fireEvent.click(day22)
       const addCompBtn = screen.getByRole("button", {
         name: /افزودن کلاس جبرانی/,
       })

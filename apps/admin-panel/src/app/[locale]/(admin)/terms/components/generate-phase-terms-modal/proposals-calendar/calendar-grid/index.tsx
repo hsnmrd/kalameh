@@ -11,6 +11,7 @@ import type {
 import {
   buildTermCalendarModifiers,
   getTermColorTheme,
+  normalizeDateToYmd,
 } from "../helper/calendar-colors"
 import { CalendarLegend } from "../calendar-legend"
 import { DayActionsPopover } from "./day-actions-popover"
@@ -84,12 +85,22 @@ export function CalendarGrid({
   const isRtl = locale === "fa"
 
   const { modifiers, modifiersClassNames } = React.useMemo(() => {
-    return buildTermCalendarModifiers(proposals, isRtl, {
+    const base = buildTermCalendarModifiers(proposals, isRtl, {
       observeOfficialHolidays,
       customOffDays,
       dismissedHolidays: activeDismissedHolidays,
       compensatorySessions,
     })
+
+    if (popoverOpen && selectedDay) {
+      const selectedYmd = normalizeDateToYmd(selectedDay)
+      base.modifiers.activePopoverDay = (d: Date) =>
+        normalizeDateToYmd(d) === selectedYmd
+      base.modifiersClassNames.activePopoverDay =
+        "[&>button]:ring-2 [&>button]:ring-primary [&>button]:ring-offset-2 [&>button]:ring-offset-background [&>button]:z-20"
+    }
+
+    return base
   }, [
     proposals,
     isRtl,
@@ -97,6 +108,8 @@ export function CalendarGrid({
     customOffDays,
     activeDismissedHolidays,
     compensatorySessions,
+    popoverOpen,
+    selectedDay,
   ])
 
   const handleDayClick = (
@@ -105,7 +118,10 @@ export function CalendarGrid({
     e: React.MouseEvent
   ) => {
     setSelectedDay(date)
-    setAnchorEl((e.currentTarget as HTMLElement) || null)
+    const targetEl =
+      (e.currentTarget as HTMLElement) ||
+      ((e.target as HTMLElement)?.closest("button") as HTMLElement | null)
+    setAnchorEl(targetEl)
     setPopoverOpen(true)
   }
 
@@ -123,7 +139,7 @@ export function CalendarGrid({
   return (
     <div className="flex w-full flex-col items-center justify-center gap-3">
       {/* Centered Calendar Card */}
-      <div className="flex w-full justify-center overflow-x-auto p-1">
+      <div className="flex w-full justify-center overflow-x-auto p-1 sm:overflow-visible">
         <Calendar
           locale={locale}
           month={currentMonth}

@@ -6,8 +6,15 @@ import { Toaster } from "@workspace/ui/components/sonner"
 import { ThemeProvider } from "@workspace/ui/components/theme-provider"
 
 import { MicroApiError } from "micro-rq"
+import { DirectionProvider } from "@workspace/ui/components/direction-provider"
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  direction = "rtl",
+}: {
+  children: React.ReactNode
+  direction?: "rtl" | "ltr"
+}) {
   const [queryClient] = React.useState(
     () =>
       new QueryClient({
@@ -35,10 +42,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        {children}
-        <Toaster />
-      </QueryClientProvider>
+      <DirectionProvider direction={direction}>
+        <QueryClientProvider client={queryClient}>
+          {children}
+          <Toaster />
+        </QueryClientProvider>
+      </DirectionProvider>
     </ThemeProvider>
   )
 }
