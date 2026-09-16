@@ -69,9 +69,9 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     startPillLtr:
       "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
+      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none",
     endPillLtr:
-      "!bg-blue-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
+      "!bg-blue-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-bl-none",
     singlePill: "!bg-blue-500/15 rounded-full",
     startClassRtl:
       "!bg-blue-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-blue-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
@@ -80,11 +80,11 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     startClass:
       "!bg-blue-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-blue-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-blue-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-blue-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-bl-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full first:[&>button]:!rounded-tl-none first:[&>button]:!rounded-bl-none last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full last:[&>button]:!rounded-tl-none last:[&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
     endClass:
-      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-blue-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-blue-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -120,9 +120,9 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     startPillLtr:
       "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
+      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none",
     endPillLtr:
-      "!bg-emerald-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
+      "!bg-emerald-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none",
     singlePill: "!bg-emerald-500/15 rounded-full",
     startClassRtl:
       "!bg-emerald-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-emerald-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
@@ -131,11 +131,11 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     startClass:
       "!bg-emerald-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-emerald-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-emerald-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-emerald-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full first:[&>button]:!rounded-tl-none first:[&>button]:!rounded-bl-none last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full last:[&>button]:!rounded-tl-none last:[&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
     endClass:
-      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-emerald-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-emerald-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -171,9 +171,9 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     startPillLtr:
       "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
+      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none",
     endPillLtr:
-      "!bg-purple-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
+      "!bg-purple-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none",
     singlePill: "!bg-purple-500/15 rounded-full",
     startClassRtl:
       "!bg-purple-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-purple-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
@@ -182,11 +182,11 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     startClass:
       "!bg-purple-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-purple-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-purple-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-purple-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full first:[&>button]:!rounded-tl-none first:[&>button]:!rounded-bl-none last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full last:[&>button]:!rounded-tl-none last:[&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
     endClass:
-      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-purple-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-purple-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -222,9 +222,9 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     startPillLtr:
       "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
+      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none",
     endPillLtr:
-      "!bg-amber-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
+      "!bg-amber-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none",
     singlePill: "!bg-amber-500/15 rounded-full",
     startClassRtl:
       "!bg-amber-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-amber-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
@@ -233,11 +233,11 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     startClass:
       "!bg-amber-600/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-amber-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-amber-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-amber-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full first:[&>button]:!rounded-tl-none first:[&>button]:!rounded-bl-none last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full last:[&>button]:!rounded-tl-none last:[&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
     endClass:
-      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-amber-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-amber-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -273,22 +273,22 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     startPillLtr:
       "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
+      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none",
     endPillLtr:
-      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
+      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none",
     singlePill: "!bg-cyan-500/15 rounded-full",
     startClassRtl:
       "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     startClassLtr:
       "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full first:[&>button]:!rounded-tl-none first:[&>button]:!rounded-bl-none last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full last:[&>button]:!rounded-tl-none last:[&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
     startClass:
       "!bg-cyan-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClass:
-      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-cyan-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-cyan-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -324,22 +324,22 @@ export const TERM_COLOR_PALETTES: TermColorTheme[] = [
     startPillLtr:
       "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
     endPillRtl:
-      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
+      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none",
     endPillLtr:
-      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
+      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none",
     singlePill: "!bg-rose-500/15 rounded-full",
     startClassRtl:
       "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     startClassLtr:
       "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full [&>button]:shadow-xs",
     endClassRtl:
-      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     endClassLtr:
-      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full first:[&>button]:!rounded-tl-none first:[&>button]:!rounded-bl-none last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full last:[&>button]:!rounded-tl-none last:[&>button]:!rounded-bl-none [&>button]:!font-bold [&>button]:text-foreground",
     startClass:
       "!bg-rose-500/15 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full [&>button]:shadow-xs",
     endClass:
-      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-bold [&>button]:text-foreground",
+      "!bg-rose-500/15 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-bold [&>button]:text-foreground",
     singleClass:
       "rounded-full [&>button]:!bg-rose-600 [&>button]:!text-white [&>button]:!font-bold [&>button]:!rounded-full [&>button]:shadow-xs",
   },
@@ -377,9 +377,9 @@ export const DIMMED_TERM_COLOR_THEME: TermColorTheme = {
   startPillLtr:
     "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none last:!rounded-full first:rounded-tl-full first:rounded-bl-full",
   endPillRtl:
-    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full",
+    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none",
   endPillLtr:
-    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full",
+    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none",
   singlePill: "!bg-muted/25 rounded-full",
   startClassRtl:
     "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-muted [&>button]:!text-muted-foreground [&>button]:!font-medium [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full",
@@ -388,11 +388,11 @@ export const DIMMED_TERM_COLOR_THEME: TermColorTheme = {
   startClass:
     "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none last:!rounded-full first:rounded-tr-full first:rounded-br-full [&>button]:!bg-muted [&>button]:!text-muted-foreground [&>button]:!font-medium [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none last:[&>button]:!rounded-full first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full",
   endClassRtl:
-    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-medium [&>button]:!text-muted-foreground",
+    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-medium [&>button]:!text-muted-foreground",
   endClassLtr:
-    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-full last:!rounded-tr-full last:!rounded-br-full [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full [&>button]:!font-medium [&>button]:!text-muted-foreground",
+    "!bg-muted/25 rounded-tr-full rounded-br-full rounded-tl-none rounded-bl-none first:!rounded-tr-full first:!rounded-br-full first:!rounded-tl-none first:!rounded-bl-none last:!rounded-tr-full last:!rounded-br-full last:!rounded-tl-none last:!rounded-br-none [&>button]:!rounded-tr-full [&>button]:!rounded-br-full [&>button]:!rounded-tl-none [&>button]:!rounded-bl-none first:[&>button]:!rounded-tr-full first:[&>button]:!rounded-br-full first:[&>button]:!rounded-tl-none first:[&>button]:!rounded-bl-none last:[&>button]:!rounded-tr-full last:[&>button]:!rounded-br-full last:[&>button]:!rounded-tl-none last:[&>button]:!rounded-bl-none [&>button]:!font-medium [&>button]:!text-muted-foreground",
   endClass:
-    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-full last:!rounded-tl-full last:!rounded-bl-full [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-full last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full [&>button]:!font-medium [&>button]:!text-muted-foreground",
+    "!bg-muted/25 rounded-tl-full rounded-bl-full rounded-tr-none rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none [&>button]:!font-medium [&>button]:!text-muted-foreground",
   singleClass:
     "rounded-full [&>button]:!bg-muted [&>button]:!text-muted-foreground [&>button]:!font-medium [&>button]:!rounded-full",
 }
@@ -618,8 +618,9 @@ export function buildTermCalendarModifiers(
     modifiersClassNames[endKey] = isSingleDay ? "" : endClass
 
     // Dedicated high-priority radius modifiers ensuring start and end days NEVER have broken/inverted radii:
-    // When a term ends on Saturday (in RTL) or Sunday (in LTR), it is at the start of that week row with no following days,
-    // so it MUST be a full standalone rounded pill and NEVER flat on the left!
+    // When a term ends on any weekday (including Saturday in RTL or Sunday in LTR), it is the end of the term ribbon
+    // and must ALWAYS display as an end cap (flat on start side, fully rounded on end side), exactly matching
+    // the visual standard of term ending without inheriting weekday row-start pill styling.
     const endPillStandaloneKey = `term_${index}_end_pill_standalone`
     const endPillRegularKey = `term_${index}_end_pill_regular`
     const startPillStandaloneKey = `term_${index}_start_pill_standalone`
@@ -632,18 +633,12 @@ export function buildTermCalendarModifiers(
       modifiersClassNames[singlePillOverrideKey] =
         "!rounded-full first:!rounded-full last:!rounded-full [&>button]:!rounded-full first:[&>button]:!rounded-full last:[&>button]:!rounded-full"
     } else {
-      modifiers[endPillStandaloneKey] = (date: Date) => {
-        const ymd = normalizeDateToYmd(date)
-        if (ymd !== endYmd) return false
-        return isRtl ? date.getDay() === 6 : date.getDay() === 0
-      }
-      modifiersClassNames[endPillStandaloneKey] =
-        "!rounded-full first:!rounded-full last:!rounded-full [&>button]:!rounded-full first:[&>button]:!rounded-full last:[&>button]:!rounded-full"
+      modifiers[endPillStandaloneKey] = () => false
+      modifiersClassNames[endPillStandaloneKey] = ""
 
       modifiers[endPillRegularKey] = (date: Date) => {
         const ymd = normalizeDateToYmd(date)
-        if (ymd !== endYmd) return false
-        return isRtl ? date.getDay() !== 6 : date.getDay() !== 0
+        return ymd === endYmd
       }
       modifiersClassNames[endPillRegularKey] = isRtl
         ? "!rounded-tl-full !rounded-bl-full !rounded-tr-none !rounded-br-none first:!rounded-tl-full first:!rounded-bl-full first:!rounded-tr-none first:!rounded-br-none last:!rounded-tl-full last:!rounded-bl-full last:!rounded-tr-none last:!rounded-br-none [&>button]:!rounded-tl-full [&>button]:!rounded-bl-full [&>button]:!rounded-tr-none [&>button]:!rounded-br-none first:[&>button]:!rounded-tl-full first:[&>button]:!rounded-bl-full first:[&>button]:!rounded-tr-none first:[&>button]:!rounded-br-none last:[&>button]:!rounded-tl-full last:[&>button]:!rounded-bl-full last:[&>button]:!rounded-tr-none last:[&>button]:!rounded-br-none"
@@ -835,6 +830,9 @@ export function buildTermCalendarModifiers(
 
   const isDayStartSide = (date: Date): boolean => {
     const ymd = normalizeDateToYmd(date)
+    if (!!selEndYmd && ymd === selEndYmd && selStartYmd !== selEndYmd) {
+      return false
+    }
     if (isRtl) {
       return date.getDay() === 6 || (!!selStartYmd && ymd === selStartYmd)
     }

@@ -466,7 +466,7 @@ describe("ProposalsCalendar Component", () => {
     expect(modifiersClassNames.term_0_range).not.toContain("[&>button]:last")
   })
 
-  it("ensures end date on Saturday in RTL has rounded-full so it never looks like range start", async () => {
+  it("ensures end date on Saturday in RTL has rounded-tl-full/bl-full and flat right corners regardless of weekday", async () => {
     const { buildTermCalendarModifiers } =
       await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
 
@@ -491,17 +491,36 @@ describe("ProposalsCalendar Component", () => {
     )
 
     const satDate = new Date("2026-10-24T00:00:00.000Z")
-    expect(modifiers.term_0_end_pill_standalone(satDate)).toBe(true)
-    expect(modifiers.term_0_end_pill_regular(satDate)).toBe(false)
-    expect(modifiersClassNames.term_0_end_pill_standalone).toContain(
+    expect(modifiers.term_0_end_pill_regular(satDate)).toBe(true)
+    expect(modifiersClassNames.term_0_end_pill_regular).toContain(
+      "!rounded-tl-full"
+    )
+    expect(modifiersClassNames.term_0_end_pill_regular).toContain(
+      "!rounded-bl-full"
+    )
+    expect(modifiersClassNames.term_0_end_pill_regular).toContain(
+      "!rounded-tr-none"
+    )
+    expect(modifiersClassNames.term_0_end_pill_regular).toContain(
+      "!rounded-br-none"
+    )
+    expect(modifiersClassNames.term_0_end_pill_regular).toContain(
+      "first:!rounded-tl-full"
+    )
+    expect(modifiersClassNames.term_0_end_pill_regular).toContain(
+      "first:!rounded-tr-none"
+    )
+    expect(modifiersClassNames.term_0_end_pill_regular).toContain(
+      "[&>button]:!rounded-tl-full"
+    )
+    expect(modifiersClassNames.term_0_end_pill_regular).toContain(
+      "[&>button]:!rounded-tr-none"
+    )
+    expect(modifiersClassNames.term_0_end_pill_regular).not.toContain(
       "!rounded-full"
     )
-    expect(modifiersClassNames.term_0_end_pill_standalone).toContain(
-      "first:!rounded-full"
-    )
-    expect(modifiersClassNames.term_0_end_pill_standalone).toContain(
-      "[&>button]:!rounded-full"
-    )
+    expect(modifiersClassNames.term_0_end).toContain("first:!rounded-tl-full")
+    expect(modifiersClassNames.term_0_end).toContain("first:!rounded-tr-none")
   })
 
   it("applies singleClass when proposal is only 1 day", async () => {
