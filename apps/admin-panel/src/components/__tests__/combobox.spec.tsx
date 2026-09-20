@@ -164,6 +164,12 @@ describe("Combobox Component", () => {
       screen.getByRole("heading", { name: "انتخاب وضعیت" })
     ).toBeInTheDocument()
 
+    // Backdrop overlay should be rendered with z-[60] and backdrop-blur even when nested inside a dialog
+    const overlay = document.querySelector('[data-slot="drawer-overlay"]')
+    expect(overlay).toBeInTheDocument()
+    expect(overlay).toHaveClass("z-[60]")
+    expect(overlay).toHaveClass("backdrop-blur-xs")
+
     // Close the top drawer by clicking close
     const closeButtons = screen.getAllByRole("button", { name: "بستن" })
     const topCloseButton = closeButtons[closeButtons.length - 1]!
