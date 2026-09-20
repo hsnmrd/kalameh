@@ -20,12 +20,14 @@ export interface TermRangesLegendProps {
   proposals: GeneratedTermProposal[]
   selectedIndex: number
   onSelectIndex: (index: number) => void
+  lockedTermIndex?: number
 }
 
 export function TermRangesLegend({
   proposals,
   selectedIndex,
   onSelectIndex,
+  lockedTermIndex,
 }: TermRangesLegendProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
@@ -68,6 +70,8 @@ export function TermRangesLegend({
           {proposals.map((term, idx) => {
             const theme = getTermColorTheme(idx)
             const isSelected = idx === selectedIndex
+            const isLockedOut =
+              lockedTermIndex !== undefined && idx !== lockedTermIndex
             const hasImbalance = Boolean(term.hasSessionImbalance)
             const evenDetail = term.patternDetails?.find(
               (p) => p.track === "EVEN"
@@ -84,16 +88,22 @@ export function TermRangesLegend({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => onSelectIndex(idx)}
+                  onClick={() => {
+                    if (!isLockedOut) {
+                      onSelectIndex(idx)
+                    }
+                  }}
                   className={cn(
-                    "group relative flex h-full w-full cursor-pointer flex-col items-start justify-between gap-2 rounded-xl border-2 p-2.5 text-start font-normal whitespace-normal shadow-none transition-all select-none sm:rounded-2xl sm:p-3",
-                    hasImbalance
-                      ? isSelected
-                        ? "border-destructive bg-destructive/10 shadow-xs ring-1 ring-destructive/40 hover:bg-destructive/15"
-                        : "border-destructive/60 bg-destructive/5 hover:border-destructive hover:bg-destructive/10"
-                      : isSelected
-                        ? "border-primary bg-primary/5 shadow-xs ring-1 ring-primary/30 hover:bg-primary/10"
-                        : "border-border/70 bg-card hover:border-primary/40 hover:bg-muted/30"
+                    "group relative flex h-full w-full flex-col items-start justify-between gap-2 rounded-xl border-2 p-2.5 text-start font-normal whitespace-normal shadow-none transition-all select-none sm:rounded-2xl sm:p-3",
+                    isLockedOut
+                      ? "cursor-default border-dashed border-border/60 bg-muted/20 opacity-60 hover:border-border/60 hover:bg-muted/20"
+                      : hasImbalance
+                        ? isSelected
+                          ? "cursor-pointer border-destructive bg-destructive/10 shadow-xs ring-1 ring-destructive/40 hover:bg-destructive/15"
+                          : "cursor-pointer border-destructive/60 bg-destructive/5 hover:border-destructive hover:bg-destructive/10"
+                        : isSelected
+                          ? "cursor-pointer border-primary bg-primary/5 shadow-xs ring-1 ring-primary/30 hover:bg-primary/10"
+                          : "cursor-pointer border-border/70 bg-card hover:border-primary/40 hover:bg-muted/30"
                   )}
                 >
                   <div className="flex w-full items-center justify-between gap-1.5">
@@ -151,7 +161,7 @@ export function TermRangesLegend({
                       </span>
                     </div>
 
-                    <div className="flex min-h-[16px] items-center sm:min-h-[18px]">
+                    <div className="flex min-h-[16px] items-center justify-between gap-1.5 sm:min-h-[18px]">
                       {term.holidaysCount > 0 ? (
                         <span className="text-[10px] font-medium text-destructive sm:text-[11px]">
                           {t("batchModal.holidaysCountBadge", {
@@ -161,6 +171,11 @@ export function TermRangesLegend({
                       ) : (
                         <span className="pointer-events-none invisible text-[10px] select-none sm:text-[11px]">
                           &nbsp;
+                        </span>
+                      )}
+                      {isLockedOut && (
+                        <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground sm:text-[10px]">
+                          {t("batchModal.referenceTermBadge")}
                         </span>
                       )}
                     </div>

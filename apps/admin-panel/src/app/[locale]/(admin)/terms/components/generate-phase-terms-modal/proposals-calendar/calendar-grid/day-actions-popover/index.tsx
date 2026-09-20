@@ -11,6 +11,7 @@ import {
   Trash2,
   Play,
   Star,
+  Info,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
@@ -41,20 +42,22 @@ export interface DayActionsPopoverProps {
   termProposal?: GeneratedTermProposal
   selectedTermIndex: number
   proposals: GeneratedTermProposal[]
-  onSetStartDate: (termIndex: number, dateYmd: string) => void
-  onToggleHoliday: (dateYmd: string) => void
+  onSetStartDate?: (termIndex: number, dateYmd: string) => void
+  onToggleHoliday?: (dateYmd: string) => void
   onToggleCustomOffDay?: (dateYmd: string) => void
-  onOpenCompensatoryModal: (
+  onOpenCompensatoryModal?: (
     termIndex: number,
     dateYmd: string,
     defaultTrack?: "ODD" | "EVEN"
   ) => void
-  onRemoveCompensatorySession: (termIndex: number, dateYmd: string) => void
+  onRemoveCompensatorySession?: (termIndex: number, dateYmd: string) => void
   locale?: "fa" | "en"
   observeOfficialHolidays?: boolean
   customOffDays?: string[]
   activeDismissedHolidays?: string[]
   compensatorySessions?: Record<number, CompensatorySession[]>
+  lockedTermIndex?: number
+  readOnly?: boolean
 }
 
 const FA_WEEKDAY_NAMES = [
@@ -90,16 +93,18 @@ export function DayActionsPopover({
   termProposal,
   selectedTermIndex,
   proposals,
-  onSetStartDate,
-  onToggleHoliday,
+  onSetStartDate = () => {},
+  onToggleHoliday = () => {},
   onToggleCustomOffDay,
-  onOpenCompensatoryModal,
-  onRemoveCompensatorySession,
+  onOpenCompensatoryModal = () => {},
+  onRemoveCompensatorySession = () => {},
   locale = "fa",
   observeOfficialHolidays = true,
   customOffDays = [],
   activeDismissedHolidays = [],
   compensatorySessions = {},
+  lockedTermIndex,
+  readOnly = false,
 }: DayActionsPopoverProps) {
   const t = useTranslations("terms")
   const isMobile = useIsMobile()
@@ -165,15 +170,55 @@ export function DayActionsPopover({
   const currentCompensatory = allCompensatory.find((cs) => cs.date === ymd)
   const hasCompensatory = currentCompensatory !== undefined
 
+  const activeTermIndex =
+    lockedTermIndex !== undefined ? lockedTermIndex : selectedTermIndex
+  const activeProposal = proposals[activeTermIndex] ?? termProposal
+
+  // Check if clicked date falls inside any term in proposals
+  const clickedTermIndex = proposals.findIndex((p) => {
+    if (!p.startDate || !p.endDate) return false
+    const s = normalizeDateToYmd(p.startDate)
+    const e = normalizeDateToYmd(p.endDate)
+    return ymd >= s && ymd <= e
+  })
+  const clickedProposal =
+    clickedTermIndex !== -1 ? proposals[clickedTermIndex] : undefined
+  const isBelongingToOtherTerm =
+    lockedTermIndex !== undefined &&
+    clickedTermIndex !== -1 &&
+    clickedTermIndex !== lockedTermIndex
+
+  // Check if clicked date is the start date of the active proposal or any proposal
+  const isCurrentTermStart =
+    activeProposal?.startDate !== undefined &&
+    normalizeDateToYmd(activeProposal.startDate) === ymd
+
+  const isAnyTermStart = proposals.some(
+    (p) => p.startDate && normalizeDateToYmd(p.startDate) === ymd
+  )
+
+  const isStartDate = isCurrentTermStart || isAnyTermStart
+
   // Can set as start date check:
-  // Cannot start on a Friday or an active holiday.
+  // Cannot start on a Friday, an active holiday, inside another term, or if already a start date.
   // For subsequent terms (index > 0), cannot start on or before the previous term's end date.
-  let canSetStart = !isHolidayActive && !isFriday
-  if (selectedTermIndex > 0) {
-    const prevTerm = proposals[selectedTermIndex - 1]
-    if (prevTerm) {
+  // Cannot start on or after the next term's start date (if next term exists).
+  let canSetStart =
+    !isHolidayActive && !isFriday && !isBelongingToOtherTerm && !isStartDate
+  if (activeTermIndex > 0) {
+    const prevTerm = proposals[activeTermIndex - 1]
+    if (prevTerm && prevTerm.endDate) {
       const prevEndYmd = normalizeDateToYmd(prevTerm.endDate)
       if (ymd <= prevEndYmd) {
+        canSetStart = false
+      }
+    }
+  }
+  if (activeTermIndex < proposals.length - 1) {
+    const nextTerm = proposals[activeTermIndex + 1]
+    if (nextTerm && nextTerm.startDate) {
+      const nextStartYmd = normalizeDateToYmd(nextTerm.startDate)
+      if (ymd >= nextStartYmd) {
         canSetStart = false
       }
     }
@@ -181,7 +226,7 @@ export function DayActionsPopover({
 
   // Excess session check:
   // If this date is an excess date for a pattern in this proposal
-  const excessPattern = termProposal?.patternDetails?.find((p) =>
+  const excessPattern = activeProposal?.patternDetails?.find((p) =>
     p.excessDates?.includes(ymd)
   )
   const isExcessSessionDay = excessPattern !== undefined
@@ -200,11 +245,12 @@ export function DayActionsPopover({
     (isOfficialHoliday && !isDismissed) ||
     isCustomOff ||
     isExcessSessionDay
-  const canShowCompensatory = hasCompensatory || isEligibleForCompensatory
+  const canShowCompensatory =
+    !isBelongingToOtherTerm && (hasCompensatory || isEligibleForCompensatory)
 
   let canAddCompensatory = isEligibleForCompensatory && !hasCompensatory
-  if (termProposal?.startDate) {
-    const termStartYmd = normalizeDateToYmd(termProposal.startDate)
+  if (activeProposal?.startDate) {
+    const termStartYmd = normalizeDateToYmd(activeProposal.startDate)
     if (ymd < termStartYmd) {
       canAddCompensatory = false
     }
@@ -221,12 +267,35 @@ export function DayActionsPopover({
       : undefined
 
   // Exam session check (final two sessions of the term)
-  const { evenDate, oddDate, examDates } = termProposal
-    ? getTermExamDates(termProposal)
+  const { evenDate, oddDate, examDates } = activeProposal
+    ? getTermExamDates(activeProposal)
     : { evenDate: undefined, oddDate: undefined, examDates: [] }
   const isExamDay = examDates.includes(ymd)
   const isEvenExam = evenDate === ymd
   const isOddExam = oddDate === ymd
+
+  const isCurrentTermEnd =
+    activeProposal?.endDate !== undefined &&
+    normalizeDateToYmd(activeProposal.endDate) === ymd
+
+  const isEvenSession = Boolean(
+    activeProposal?.patternDetails
+      ?.find((p) => p.track === "EVEN")
+      ?.sessionDates?.includes(ymd)
+  )
+  const isOddSession = Boolean(
+    activeProposal?.patternDetails
+      ?.find((p) => p.track === "ODD")
+      ?.sessionDates?.includes(ymd)
+  )
+  const isTermSessionDay = isEvenSession || isOddSession
+
+  const hasActions =
+    !readOnly &&
+    (!isStartDate ||
+      isOfficialHoliday ||
+      (!isOfficialHoliday && Boolean(onToggleCustomOffDay)) ||
+      canShowCompensatory)
 
   const renderContent = () => (
     <div className="flex flex-col gap-3.5">
@@ -236,6 +305,23 @@ export function DayActionsPopover({
           {dateFormatted}
         </span>
         <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+          {isBelongingToOtherTerm && (
+            <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+              {t("batchModal.statusReferenceTerm", {
+                title: clickedProposal?.title || "",
+              })}
+            </span>
+          )}
+          {isCurrentTermStart && (
+            <span className="inline-flex items-center rounded-md bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
+              {t("batchModal.statusTermStart")}
+            </span>
+          )}
+          {isCurrentTermEnd && (
+            <span className="inline-flex items-center rounded-md bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
+              {t("batchModal.statusTermEnd")}
+            </span>
+          )}
           {isOfficialHoliday && !isDismissed && (
             <span className="inline-flex items-center rounded-md bg-destructive/15 px-2 py-0.5 text-xs font-semibold text-destructive">
               {t("batchModal.statusOfficialHoliday", {
@@ -299,12 +385,28 @@ export function DayActionsPopover({
               </span>
             </span>
           )}
+          {isTermSessionDay &&
+            !isCurrentTermStart &&
+            !isCurrentTermEnd &&
+            !isExamDay &&
+            !isExcessSessionDay &&
+            !hasCompensatory && (
+              <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-foreground">
+                {isEvenSession
+                  ? t("batchModal.patternEvenShort")
+                  : t("batchModal.patternOddShort")}
+              </span>
+            )}
           {!isOfficialHoliday &&
             !isCustomOff &&
             !isFriday &&
             !hasCompensatory &&
             !isExcessSessionDay &&
-            !isExamDay && (
+            !isExamDay &&
+            !isBelongingToOtherTerm &&
+            !isCurrentTermStart &&
+            !isCurrentTermEnd &&
+            !isTermSessionDay && (
               <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                 {t("batchModal.statusRegularDay")}
               </span>
@@ -313,128 +415,141 @@ export function DayActionsPopover({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col gap-2">
-        {/* Action 1: Set Term Start Date */}
-        <Button
-          type="button"
-          variant="outline"
-          disabled={!canSetStart}
-          onClick={() => {
-            onSetStartDate(selectedTermIndex, ymd)
-            onOpenChange(false)
-          }}
-          className="h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium"
-        >
-          <Play className="size-4 text-foreground" />
+      {readOnly ? null : isBelongingToOtherTerm ? (
+        <div className="flex items-center gap-2 rounded-xl border border-muted-foreground/20 bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground">
+          <Info className="size-4 shrink-0 text-muted-foreground" />
           <span>
-            {t("batchModal.actionSetStart")}{" "}
-            {termProposal?.title ? `(${termProposal.title})` : ""}
+            {t("batchModal.referenceTermNotice", {
+              title: clickedProposal?.title || "",
+            })}
           </span>
-        </Button>
-
-        {/* Action 2: Dismiss or Restore Holiday */}
-        {isOfficialHoliday && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              onToggleHoliday(ymd)
-              onOpenChange(false)
-            }}
-            className="h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium"
-          >
-            {isDismissed ? (
-              <>
-                <CalendarCheck className="size-4 text-foreground" />
-                <span>{t("batchModal.actionRestoreHoliday")}</span>
-              </>
-            ) : (
-              <>
-                <CalendarX className="size-4 text-foreground" />
-                <span>{t("batchModal.actionDismissHoliday")}</span>
-              </>
-            )}
-          </Button>
-        )}
-
-        {/* Action 2b: Add to or Remove from Institute Off-Days */}
-        {!isOfficialHoliday && onToggleCustomOffDay && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              onToggleCustomOffDay(ymd)
-              onOpenChange(false)
-            }}
-            className={cn(
-              "h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium",
-              isCustomOff &&
-                "border-destructive/30 text-destructive hover:bg-destructive/10"
-            )}
-          >
-            {isCustomOff ? (
-              <>
-                <Trash2 className="size-4 text-destructive" />
-                <span>{t("batchModal.actionRemoveCustomOffDay")}</span>
-              </>
-            ) : (
-              <>
-                <CalendarOff className="size-4 text-foreground" />
-                <span>{t("batchModal.actionAddCustomOffDay")}</span>
-              </>
-            )}
-          </Button>
-        )}
-
-        {/* Action 3: Compensatory Session */}
-        {canShowCompensatory &&
-          (hasCompensatory ? (
+        </div>
+      ) : hasActions ? (
+        <div className="flex flex-col gap-2">
+          {/* Action 1: Set Term Start Date */}
+          {!isStartDate && (
             <Button
               type="button"
               variant="outline"
+              disabled={!canSetStart}
               onClick={() => {
-                if (currentCompensatory) {
-                  onRemoveCompensatorySession(
-                    currentCompensatory.termIndex,
-                    ymd
-                  )
-                }
+                onSetStartDate(activeTermIndex, ymd)
                 onOpenChange(false)
-              }}
-              className="h-11 w-full justify-start gap-2.5 rounded-xl border-destructive/30 px-3 text-sm font-medium text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="size-4 text-destructive" />
-              <span>{t("batchModal.actionRemoveCompensatory")}</span>
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={!canAddCompensatory}
-              onClick={() => {
-                onOpenChange(false)
-                onOpenCompensatoryModal(
-                  selectedTermIndex,
-                  ymd,
-                  isExcessSessionDay ? oppositeTrack : undefined
-                )
               }}
               className="h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium"
             >
-              <CalendarPlus className="size-4 text-foreground" />
-              <span className="truncate">
-                {isExcessSessionDay
-                  ? t("batchModal.actionAddCompensatoryForOpposite", {
-                      track:
-                        oppositeTrack === "EVEN"
-                          ? t("batchModal.patternEvenShort")
-                          : t("batchModal.patternOddShort"),
-                    })
-                  : t("batchModal.actionAddCompensatory")}
+              <Play className="size-4 text-foreground" />
+              <span>
+                {t("batchModal.actionSetStart")}{" "}
+                {activeProposal?.title ? `(${activeProposal.title})` : ""}
               </span>
             </Button>
-          ))}
-      </div>
+          )}
+
+          {/* Action 2: Dismiss or Restore Holiday */}
+          {isOfficialHoliday && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                onToggleHoliday(ymd)
+                onOpenChange(false)
+              }}
+              className="h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium"
+            >
+              {isDismissed ? (
+                <>
+                  <CalendarCheck className="size-4 text-foreground" />
+                  <span>{t("batchModal.actionRestoreHoliday")}</span>
+                </>
+              ) : (
+                <>
+                  <CalendarX className="size-4 text-foreground" />
+                  <span>{t("batchModal.actionDismissHoliday")}</span>
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* Action 2b: Add to or Remove from Institute Off-Days */}
+          {!isOfficialHoliday && onToggleCustomOffDay && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                onToggleCustomOffDay(ymd)
+                onOpenChange(false)
+              }}
+              className={cn(
+                "h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium",
+                isCustomOff &&
+                  "border-destructive/30 text-destructive hover:bg-destructive/10"
+              )}
+            >
+              {isCustomOff ? (
+                <>
+                  <Trash2 className="size-4 text-destructive" />
+                  <span>{t("batchModal.actionRemoveCustomOffDay")}</span>
+                </>
+              ) : (
+                <>
+                  <CalendarOff className="size-4 text-foreground" />
+                  <span>{t("batchModal.actionAddCustomOffDay")}</span>
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* Action 3: Compensatory Session */}
+          {canShowCompensatory &&
+            (hasCompensatory ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  if (currentCompensatory) {
+                    onRemoveCompensatorySession(
+                      currentCompensatory.termIndex,
+                      ymd
+                    )
+                  }
+                  onOpenChange(false)
+                }}
+                className="h-11 w-full justify-start gap-2.5 rounded-xl border-destructive/30 px-3 text-sm font-medium text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="size-4 text-destructive" />
+                <span>{t("batchModal.actionRemoveCompensatory")}</span>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!canAddCompensatory}
+                onClick={() => {
+                  onOpenChange(false)
+                  onOpenCompensatoryModal(
+                    activeTermIndex,
+                    ymd,
+                    isExcessSessionDay ? oppositeTrack : undefined
+                  )
+                }}
+                className="h-11 w-full justify-start gap-2.5 rounded-xl px-3 text-sm font-medium"
+              >
+                <CalendarPlus className="size-4 text-foreground" />
+                <span className="truncate">
+                  {isExcessSessionDay
+                    ? t("batchModal.actionAddCompensatoryForOpposite", {
+                        track:
+                          oppositeTrack === "EVEN"
+                            ? t("batchModal.patternEvenShort")
+                            : t("batchModal.patternOddShort"),
+                      })
+                    : t("batchModal.actionAddCompensatory")}
+                </span>
+              </Button>
+            ))}
+        </div>
+      ) : null}
     </div>
   )
 

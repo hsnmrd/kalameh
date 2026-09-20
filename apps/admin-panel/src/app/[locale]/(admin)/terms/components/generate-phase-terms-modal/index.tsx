@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { Sparkles } from "lucide-react"
 import {
   FormDialog,
   FormDialogContent,
@@ -67,13 +66,8 @@ export function GeneratePhaseTermsModal({
       <FormDialogContent className="sm:max-w-4xl">
         <FormDialogHeader>
           <div className="flex items-center justify-between gap-3 pe-8">
-            <FormDialogTitle className="flex items-center gap-2">
-              {step === 1 && <Sparkles className="size-5 text-foreground" />}
-              <span>
-                {step === 1
-                  ? t("batchModal.title")
-                  : t("batchModal.step2Title")}
-              </span>
+            <FormDialogTitle>
+              {step === 1 ? t("batchModal.title") : t("batchModal.step2Title")}
             </FormDialogTitle>
           </div>
           <FormDialogCloseButton />
@@ -97,7 +91,6 @@ export function GeneratePhaseTermsModal({
                 onDaysPerTermChange={setDaysPerTerm}
                 gapDays={gapDays}
                 onGapDaysChange={setGapDays}
-                activeClassPatterns={activeClassPatterns}
               />
             )}
 

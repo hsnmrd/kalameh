@@ -975,3 +975,448 @@ export function getTermExamDates(term: GeneratedTermProposal): {
     examDates: Array.from(new Set(examDates)).sort(),
   }
 }
+
+export interface CalculateTermScheduleFromDateRangeInput {
+  startDate: string | Date
+  endDate: string | Date
+  daysOfWeek?: WeekDay[]
+  classPatterns?: WeekDay[][]
+  skipHolidays?: boolean
+  observeOfficialHolidays?: boolean
+  customOffDays?: (string | { date: string; title?: string })[]
+  dismissedHolidays?: string[]
+  compensatorySessions?: CompensatorySession[]
+}
+
+/**
+ * Calculates session dates, pattern details, exam dates, and holidays
+ * for an existing or user-specified academic term date range [startDate, endDate].
+ */
+export function calculateTermScheduleFromDateRange(
+  input: CalculateTermScheduleFromDateRangeInput
+): CalculatedTermSchedule {
+  const {
+    daysOfWeek,
+    classPatterns,
+    skipHolidays = true,
+    observeOfficialHolidays = true,
+    customOffDays = [],
+    dismissedHolidays = [],
+    compensatorySessions = [],
+  } = input
+
+  const dismissedHolidaysSet = new Set(dismissedHolidays)
+  const customOffDayMap = new Map<string, string>()
+  for (const item of customOffDays) {
+    if (typeof item === "string") {
+      customOffDayMap.set(item, "تعطیلی موسسه")
+    } else if (item && typeof item === "object") {
+      customOffDayMap.set(item.date, item.title || "تعطیلی موسسه")
+    }
+  }
+
+  const startDateObj = parseInputDate(input.startDate)
+  const endDateObj = parseInputDate(input.endDate)
+  const startIso = toIsoDate(startDateObj)
+  const endIso = toIsoDate(endDateObj)
+  const validCompensatory = compensatorySessions.filter(
+    (cs) => cs.date >= startIso && cs.date <= endIso
+  )
+
+  const current = new Date(
+    startDateObj.getFullYear(),
+    startDateObj.getMonth(),
+    startDateObj.getDate(),
+    12,
+    0,
+    0,
+    0
+  )
+
+  const resolvedPatterns = resolveClassPatterns(daysOfWeek, classPatterns)
+
+  if (resolvedPatterns.length > 1) {
+    interface PatternProgress {
+      pattern: WeekDay[]
+      track: "EVEN" | "ODD" | "CUSTOM"
+      completedSessions: number
+      compensatoryCount: number
+      lastDate: Date
+      sessionDates: string[]
+      sessionDatesJalali: string[]
+      holidaysEncountered: HolidayEncountered[]
+    }
+
+    const patternProgressList: PatternProgress[] = resolvedPatterns.map((p) => {
+      const isEven =
+        p.includes("SATURDAY") ||
+        p.includes("MONDAY") ||
+        p.includes("WEDNESDAY")
+      const isOdd =
+        p.includes("SUNDAY") || p.includes("TUESDAY") || p.includes("THURSDAY")
+      const track: "EVEN" | "ODD" | "CUSTOM" = isEven
+        ? "EVEN"
+        : isOdd
+          ? "ODD"
+          : "CUSTOM"
+
+      return {
+        pattern: p,
+        track,
+        completedSessions: 0,
+        compensatoryCount: 0,
+        lastDate: current,
+        sessionDates: [],
+        sessionDatesJalali: [],
+        holidaysEncountered: [],
+      }
+    })
+
+    const simDate = new Date(current)
+    const endTimestamp = endDateObj.getTime()
+    const maxDays = 365 * 3
+    let safetyLoop = 0
+
+    while (simDate.getTime() <= endTimestamp && safetyLoop < maxDays) {
+      safetyLoop++
+      const dayOfWeek = getWeekDay(simDate)
+      const isoDate = toIsoDate(simDate)
+      const customOffTitle = customOffDayMap.get(isoDate)
+      const isCustomOff = customOffTitle !== undefined
+      const holidayCheck = isJalaliHoliday(simDate)
+      const isOfficialHoliday =
+        observeOfficialHolidays &&
+        holidayCheck.isHoliday &&
+        !dismissedHolidaysSet.has(isoDate)
+      const isHoliday = skipHolidays && (isCustomOff || isOfficialHoliday)
+
+      // 1. Process compensatory sessions matching this date
+      const compForDate = validCompensatory.filter((cs) => cs.date === isoDate)
+      for (const cs of compForDate) {
+        for (const p of patternProgressList) {
+          if (cs.patternTrack === "ALL" || cs.patternTrack === p.track) {
+            p.completedSessions++
+            p.compensatoryCount++
+            if (!p.sessionDates.includes(isoDate)) {
+              p.sessionDates.push(isoDate)
+              const j = gregorianToJalali(simDate)
+              p.sessionDatesJalali.push(formatJalali(j.year, j.month, j.day))
+            }
+            p.lastDate = new Date(simDate)
+          }
+        }
+      }
+
+      // 2. Process regular pattern sessions
+      for (const p of patternProgressList) {
+        if (p.pattern.includes(dayOfWeek)) {
+          if (isHoliday) {
+            const j = gregorianToJalali(simDate)
+            const hEncountered: HolidayEncountered = {
+              date: isoDate,
+              dateJalali: formatJalali(j.year, j.month, j.day),
+              titleFa: isCustomOff
+                ? (customOffTitle ?? "تعطیلی موسسه")
+                : (holidayCheck.holiday?.titleFa ?? "تعطیل رسمی"),
+              titleEn: isCustomOff
+                ? "Institute Off-day"
+                : (holidayCheck.holiday?.titleEn ?? "Official Holiday"),
+              dayOfWeek,
+              isCustomOffDay: isCustomOff,
+            }
+            p.holidaysEncountered.push(hEncountered)
+          } else {
+            p.completedSessions++
+            p.sessionDates.push(isoDate)
+            const j = gregorianToJalali(simDate)
+            p.sessionDatesJalali.push(formatJalali(j.year, j.month, j.day))
+            p.lastDate = new Date(simDate)
+          }
+        }
+      }
+
+      simDate.setDate(simDate.getDate() + 1)
+    }
+
+    const allSessionDates = Array.from(
+      new Set(patternProgressList.flatMap((p) => p.sessionDates))
+    ).sort()
+    const allSessionDatesJalali = Array.from(
+      new Set(patternProgressList.flatMap((p) => p.sessionDatesJalali))
+    ).sort()
+
+    const holidayMap = new Map<string, HolidayEncountered>()
+    for (const p of patternProgressList) {
+      for (const h of p.holidaysEncountered) {
+        if (!holidayMap.has(h.date)) {
+          holidayMap.set(h.date, h)
+        }
+      }
+    }
+    const allHolidays = Array.from(holidayMap.values()).sort((a, b) =>
+      a.date.localeCompare(b.date)
+    )
+
+    const minCompleted = Math.min(
+      ...patternProgressList.map((p) => p.completedSessions)
+    )
+    const maxCompleted = Math.max(
+      ...patternProgressList.map((p) => p.completedSessions)
+    )
+
+    const patternDetails: PatternSessionDetail[] = patternProgressList.map(
+      (p) => {
+        const hasExcess = p.completedSessions > minCompleted
+        const excessDates = hasExcess ? p.sessionDates.slice(minCompleted) : []
+
+        return {
+          track: p.track,
+          days: p.pattern,
+          completedSessions: p.completedSessions,
+          targetSessions: maxCompleted,
+          compensatoryCount: p.compensatoryCount,
+          hasExcess,
+          sessionDates: p.sessionDates,
+          excessDates,
+        }
+      }
+    )
+
+    const hasSessionImbalance = minCompleted !== maxCompleted
+
+    const startJ = gregorianToJalali(startDateObj)
+    const endJ = gregorianToJalali(endDateObj)
+    const totalDaysSpan =
+      Math.round(
+        (endDateObj.getTime() - startDateObj.getTime()) / (1000 * 3600 * 24)
+      ) + 1
+
+    const evenProgress = patternProgressList.find((p) => p.track === "EVEN")
+    const oddProgress = patternProgressList.find((p) => p.track === "ODD")
+    const examDatesList: string[] = []
+
+    if (evenProgress && evenProgress.sessionDates.length > 0) {
+      examDatesList.push(
+        evenProgress.sessionDates[evenProgress.sessionDates.length - 1]!
+      )
+    }
+    if (oddProgress && oddProgress.sessionDates.length > 0) {
+      examDatesList.push(
+        oddProgress.sessionDates[oddProgress.sessionDates.length - 1]!
+      )
+    }
+    if (examDatesList.length === 0 && allSessionDates.length > 0) {
+      examDatesList.push(...allSessionDates.slice(-2))
+    }
+    const examDates = Array.from(new Set(examDatesList)).sort()
+
+    return {
+      startDate: toIsoDate(startDateObj),
+      startDateJalali: formatJalali(startJ.year, startJ.month, startJ.day),
+      endDate: toIsoDate(endDateObj),
+      endDateJalali: formatJalali(endJ.year, endJ.month, endJ.day),
+      targetDays: maxCompleted,
+      totalDaysSpan,
+      holidaysEncountered: allHolidays,
+      targetSessions: maxCompleted,
+      completedSessions: maxCompleted,
+      sessionDates: allSessionDates,
+      sessionDatesJalali: allSessionDatesJalali,
+      patternDetails,
+      hasSessionImbalance,
+      compensatorySessionsApplied: validCompensatory,
+      examDates,
+    }
+  }
+
+  // Single pattern / default days
+  const validDays = resolvedPatterns[0] ??
+    daysOfWeek ?? [
+      "SATURDAY",
+      "SUNDAY",
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+    ]
+
+  const sessionDates: string[] = []
+  const sessionDatesJalali: string[] = []
+  const holidaysEncountered: HolidayEncountered[] = []
+
+  const simDate = new Date(current)
+  const endTimestamp = endDateObj.getTime()
+  let safetyLoop = 0
+  const maxDays = 365 * 3
+
+  while (simDate.getTime() <= endTimestamp && safetyLoop < maxDays) {
+    safetyLoop++
+    const dayOfWeek = getWeekDay(simDate)
+    const isoDate = toIsoDate(simDate)
+    const customOffTitle = customOffDayMap.get(isoDate)
+    const isCustomOff = customOffTitle !== undefined
+    const holidayCheck = isJalaliHoliday(simDate)
+    const isOfficialHoliday =
+      observeOfficialHolidays &&
+      holidayCheck.isHoliday &&
+      !dismissedHolidaysSet.has(isoDate)
+    const isHoliday = skipHolidays && (isCustomOff || isOfficialHoliday)
+
+    const isCompensatory = validCompensatory.some((cs) => cs.date === isoDate)
+
+    if (isCompensatory) {
+      if (!sessionDates.includes(isoDate)) {
+        sessionDates.push(isoDate)
+        const j = gregorianToJalali(simDate)
+        sessionDatesJalali.push(formatJalali(j.year, j.month, j.day))
+      }
+    }
+
+    if (validDays.includes(dayOfWeek)) {
+      if (isHoliday) {
+        const j = gregorianToJalali(simDate)
+        holidaysEncountered.push({
+          date: isoDate,
+          dateJalali: formatJalali(j.year, j.month, j.day),
+          titleFa: isCustomOff
+            ? (customOffTitle ?? "تعطیلی موسسه")
+            : (holidayCheck.holiday?.titleFa ?? "تعطیل رسمی"),
+          titleEn: isCustomOff
+            ? "Institute Off-day"
+            : (holidayCheck.holiday?.titleEn ?? "Official Holiday"),
+          dayOfWeek,
+          isCustomOffDay: isCustomOff,
+        })
+      } else if (!isCompensatory) {
+        sessionDates.push(isoDate)
+        const j = gregorianToJalali(simDate)
+        sessionDatesJalali.push(formatJalali(j.year, j.month, j.day))
+      }
+    }
+
+    simDate.setDate(simDate.getDate() + 1)
+  }
+
+  const startJ = gregorianToJalali(startDateObj)
+  const endJ = gregorianToJalali(endDateObj)
+  const totalDaysSpan =
+    Math.round(
+      (endDateObj.getTime() - startDateObj.getTime()) / (1000 * 3600 * 24)
+    ) + 1
+
+  const examDates = sessionDates.slice(-2)
+
+  return {
+    startDate: toIsoDate(startDateObj),
+    startDateJalali: formatJalali(startJ.year, startJ.month, startJ.day),
+    endDate: toIsoDate(endDateObj),
+    endDateJalali: formatJalali(endJ.year, endJ.month, endJ.day),
+    targetDays: sessionDates.length,
+    totalDaysSpan,
+    holidaysEncountered,
+    targetSessions: sessionDates.length,
+    completedSessions: sessionDates.length,
+    sessionDates,
+    sessionDatesJalali,
+    patternDetails: [
+      {
+        track: "CUSTOM",
+        days: validDays,
+        completedSessions: sessionDates.length,
+        targetSessions: sessionDates.length,
+        compensatoryCount: validCompensatory.length,
+        hasExcess: false,
+        sessionDates,
+        excessDates: [],
+      },
+    ],
+    hasSessionImbalance: false,
+    compensatorySessionsApplied: validCompensatory,
+    examDates,
+  }
+}
+
+export interface ConvertTermDtoToProposalOptions {
+  daysOfWeek?: WeekDay[]
+  classPatterns?: WeekDay[][]
+  observeOfficialHolidays?: boolean
+  customOffDays?: (string | { date: string; title?: string })[]
+  dismissedHolidays?: string[]
+  compensatorySessions?: CompensatorySession[]
+}
+
+/**
+ * Converts a saved TermDto (or term draft object) into a complete
+ * GeneratedTermProposal for rich calendar rendering.
+ */
+export function convertTermDtoToProposal(
+  term: {
+    id?: string
+    title: string
+    startDate: string | Date
+    endDate: string | Date
+    operatingPhaseId?: string | null
+    operatingPhase?: {
+      months?: number[]
+      daysOfWeek?: string[]
+    } | null
+  },
+  options: ConvertTermDtoToProposalOptions = {}
+): GeneratedTermProposal {
+  const phaseDays = term.operatingPhase?.daysOfWeek
+    ? (term.operatingPhase.daysOfWeek as WeekDay[])
+    : undefined
+
+  const daysOfWeek = options.daysOfWeek ?? phaseDays
+
+  const schedule = calculateTermScheduleFromDateRange({
+    startDate: term.startDate,
+    endDate: term.endDate,
+    daysOfWeek,
+    classPatterns: options.classPatterns,
+    skipHolidays: true,
+    observeOfficialHolidays: options.observeOfficialHolidays ?? true,
+    customOffDays: options.customOffDays ?? [],
+    dismissedHolidays: options.dismissedHolidays ?? [],
+    compensatorySessions: options.compensatorySessions ?? [],
+  })
+
+  // Determine Jalali months covered by this term
+  const coveredMonthSet = new Set<number>()
+  for (const sessionIso of schedule.sessionDates) {
+    const sDate = new Date(sessionIso + "T12:00:00")
+    const sJ = gregorianToJalali(sDate)
+    coveredMonthSet.add(sJ.month)
+  }
+  if (coveredMonthSet.size === 0) {
+    const sJ = parseJalaliString(schedule.startDateJalali)
+    const eJ = parseJalaliString(schedule.endDateJalali)
+    if (sJ) coveredMonthSet.add(sJ.month)
+    if (eJ) coveredMonthSet.add(eJ.month)
+  }
+
+  const monthsCovered = Array.from(coveredMonthSet).sort((a, b) => a - b)
+  const monthNamesFa = monthsCovered
+    .map((mId) => JALALI_MONTHS.find((m) => m.id === mId)?.nameFa)
+    .filter(Boolean)
+    .join("، ")
+
+  return {
+    title: term.title,
+    startDate: schedule.startDate,
+    startDateJalali: schedule.startDateJalali,
+    endDate: schedule.endDate,
+    endDateJalali: schedule.endDateJalali,
+    daysCount: schedule.totalDaysSpan,
+    sessionsCount: schedule.completedSessions,
+    holidaysCount: schedule.holidaysEncountered.length,
+    monthsCovered,
+    monthNamesFa,
+    operatingPhaseId: term.operatingPhaseId ?? undefined,
+    compensatorySessions: options.compensatorySessions ?? [],
+    patternDetails: schedule.patternDetails,
+    hasSessionImbalance: schedule.hasSessionImbalance,
+    holidaysEncountered: schedule.holidaysEncountered,
+    examDates: schedule.examDates,
+  }
+}

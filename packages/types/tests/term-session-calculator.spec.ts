@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest"
 import {
   calculateTermEndDate,
+  calculateTermScheduleFromDateRange,
+  convertTermDtoToProposal,
   generatePhaseTerms,
   generateTermTitleFromMonths,
   recalculatePhaseTerms,
@@ -532,6 +534,62 @@ describe("Term Session Calculator & Batch Phase Terms Generator", () => {
 
       expect(result.examDates).toContain(lastEvenDate)
       expect(result.examDates).toContain(lastOddDate)
+    })
+  })
+
+  describe("calculateTermScheduleFromDateRange & convertTermDtoToProposal", () => {
+    it("calculates accurate schedule details from fixed start and end dates", () => {
+      // 1403/07/01 to 1403/08/20
+      const schedule = calculateTermScheduleFromDateRange({
+        startDate: "1403/07/01",
+        endDate: "1403/08/20",
+        daysOfWeek: ["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY"],
+        skipHolidays: true,
+      })
+
+      expect(schedule.startDateJalali).toBe("1403/07/01")
+      expect(schedule.endDateJalali).toBe("1403/08/20")
+      expect(schedule.sessionDates.length).toBeGreaterThan(0)
+      expect(schedule.patternDetails?.length).toBe(2) // EVEN and ODD
+      expect(schedule.examDates?.length).toBe(2)
+
+      const even = schedule.patternDetails?.find((p) => p.track === "EVEN")
+      const odd = schedule.patternDetails?.find((p) => p.track === "ODD")
+      expect(even?.completedSessions).toBeGreaterThan(0)
+      expect(odd?.completedSessions).toBeGreaterThan(0)
+      expect(schedule.examDates).toContain(
+        even?.sessionDates[even.sessionDates.length - 1]
+      )
+      expect(schedule.examDates).toContain(
+        odd?.sessionDates[odd.sessionDates.length - 1]
+      )
+    })
+
+    it("converts a TermDto object into a complete GeneratedTermProposal", () => {
+      const termDto = {
+        id: "term-123",
+        title: "مهر و آبان ۱۴۰۴",
+        startDate: "2025-09-23", // 1404/07/01
+        endDate: "2025-11-15",
+        operatingPhaseId: "phase-1",
+        operatingPhase: {
+          months: [7, 8],
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY", "SUNDAY", "TUESDAY"],
+        },
+      }
+
+      const proposal = convertTermDtoToProposal(termDto, {
+        observeOfficialHolidays: true,
+      })
+
+      expect(proposal.title).toBe("مهر و آبان ۱۴۰۴")
+      expect(proposal.startDate).toBe("2025-09-23")
+      expect(proposal.startDateJalali).toBe("1404/07/01")
+      expect(proposal.operatingPhaseId).toBe("phase-1")
+      expect(proposal.sessionsCount).toBeGreaterThan(0)
+      expect(proposal.patternDetails).toBeDefined()
+      expect(proposal.examDates?.length).toBe(2)
+      expect(proposal.monthsCovered).toContain(7)
     })
   })
 })

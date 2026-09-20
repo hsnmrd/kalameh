@@ -13,7 +13,7 @@ export interface ProposalsCalendarProps {
   proposals: GeneratedTermProposal[]
   selectedTermIndex?: number
   onSelectTermIndex?: (index: number) => void
-  onStartDateChange: (index: number, newStartDate: string) => void
+  onStartDateChange?: (index: number, newStartDate: string) => void
   onToggleHoliday?: (dateYmd: string) => void
   onToggleCustomOffDay?: (dateYmd: string) => void
   onAddCompensatorySession?: (
@@ -27,13 +27,16 @@ export interface ProposalsCalendarProps {
   activeDismissedHolidays?: string[]
   compensatorySessions?: Record<number, CompensatorySession[]>
   numberOfMonths?: number
+  lockedTermIndex?: number
+  readOnly?: boolean
+  showLegend?: boolean
 }
 
 export function ProposalsCalendar({
   proposals,
   selectedTermIndex: propSelectedTermIndex,
   onSelectTermIndex,
-  onStartDateChange,
+  onStartDateChange = () => {},
   onToggleHoliday,
   onToggleCustomOffDay,
   onAddCompensatorySession,
@@ -44,6 +47,9 @@ export function ProposalsCalendar({
   activeDismissedHolidays = [],
   compensatorySessions,
   numberOfMonths,
+  lockedTermIndex,
+  readOnly = false,
+  showLegend = true,
 }: ProposalsCalendarProps) {
   const defaultLocale = useLocale() as "fa" | "en"
   const activeLocale = locale || defaultLocale
@@ -52,22 +58,39 @@ export function ProposalsCalendar({
     React.useState<number>(0)
 
   const selectedTermIndex =
-    propSelectedTermIndex !== undefined
-      ? propSelectedTermIndex
-      : rawSelectedTermIndex >= proposals.length && proposals.length > 0
-        ? 0
-        : rawSelectedTermIndex
+    lockedTermIndex !== undefined
+      ? lockedTermIndex
+      : propSelectedTermIndex !== undefined
+        ? propSelectedTermIndex
+        : rawSelectedTermIndex >= proposals.length && proposals.length > 0
+          ? 0
+          : rawSelectedTermIndex
 
-  const handleSelectIndex = onSelectTermIndex ?? setRawSelectedTermIndex
+  const handleSelectIndex = React.useCallback(
+    (index: number) => {
+      if (lockedTermIndex !== undefined) {
+        return
+      }
+      if (onSelectTermIndex) {
+        onSelectTermIndex(index)
+      } else {
+        setRawSelectedTermIndex(index)
+      }
+    },
+    [lockedTermIndex, onSelectTermIndex]
+  )
 
   return (
     <div className="flex flex-col gap-4">
       {/* Legend & Term Selection Chips */}
-      <TermRangesLegend
-        proposals={proposals}
-        selectedIndex={selectedTermIndex}
-        onSelectIndex={handleSelectIndex}
-      />
+      {showLegend && (
+        <TermRangesLegend
+          proposals={proposals}
+          selectedIndex={selectedTermIndex}
+          onSelectIndex={handleSelectIndex}
+          lockedTermIndex={lockedTermIndex}
+        />
+      )}
 
       {/* Range Calendar Grid */}
       <CalendarGrid
@@ -84,6 +107,8 @@ export function ProposalsCalendar({
         activeDismissedHolidays={activeDismissedHolidays}
         compensatorySessions={compensatorySessions}
         numberOfMonths={numberOfMonths}
+        lockedTermIndex={lockedTermIndex}
+        readOnly={readOnly}
       />
     </div>
   )

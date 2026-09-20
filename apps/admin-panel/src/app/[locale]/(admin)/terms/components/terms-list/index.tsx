@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Calendar, Edit2, Trash2 } from "lucide-react"
+import { Calendar, Edit2, Trash2, Eye } from "lucide-react"
 import {
   MobileList,
   MobileListItem,
@@ -29,6 +29,7 @@ import { TermStatusBadge } from "../term-status-badge"
 export interface TermsListProps {
   terms: TermDto[] | undefined
   isLoading: boolean
+  onView: (term: TermDto) => void
   onEdit: (term: TermDto) => void
   onDelete?: (term: TermDto) => void
 }
@@ -36,6 +37,7 @@ export interface TermsListProps {
 export function TermsList({
   terms,
   isLoading,
+  onView,
   onEdit,
   onDelete,
 }: TermsListProps) {
@@ -86,7 +88,7 @@ export function TermsList({
         <ContextMenu key={term.id}>
           <ContextMenuTrigger>
             <MobileListItem
-              onClick={() => onEdit(term)}
+              onClick={() => onView(term)}
               isLast={index === terms.length - 1}
             >
               <MobileListItemIcon>
@@ -105,6 +107,11 @@ export function TermsList({
           </ContextMenuTrigger>
 
           <ContextMenuContent>
+            <ContextMenuItem onClick={() => onView(term)}>
+              <Eye className="me-2 size-4 text-muted-foreground" />
+              {t("table.view")}
+            </ContextMenuItem>
+
             <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
               <ContextMenuItem onClick={() => onEdit(term)}>
                 <Edit2 className="me-2 size-4 text-muted-foreground" />

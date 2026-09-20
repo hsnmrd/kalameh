@@ -122,7 +122,7 @@ export function ResponsivePopover({
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+        <DrawerTrigger render={trigger} />
         <DrawerContent className={drawerClassName}>
           <DrawerHeader className="flex flex-row items-center justify-between">
             <DrawerTitle>{drawerTitle}</DrawerTitle>

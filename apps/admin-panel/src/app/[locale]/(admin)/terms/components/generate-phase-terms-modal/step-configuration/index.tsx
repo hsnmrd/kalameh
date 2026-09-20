@@ -38,34 +38,28 @@ export function StepConfiguration({
   onDaysPerTermChange,
   gapDays,
   onGapDaysChange,
-  activeClassPatterns,
 }: StepConfigurationProps) {
   const t = useTranslations("terms")
   const currentSessions = sessionsPerTerm ?? daysPerTerm ?? 18
 
   return (
-    <div className="flex flex-col gap-5">
-      <p className="text-sm text-muted-foreground">
-        {t("batchModal.description")}
-      </p>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* Row 1: Phase and Academic Year */}
+      <Field>
+        <FieldLabel>{t("batchModal.phaseLabel")}</FieldLabel>
+        <ResponsiveCombobox
+          items={phaseOptions}
+          value={activePhaseId}
+          onValueChange={(val) => onPhaseChange(val || "")}
+          placeholder={t("batchModal.phasePlaceholder")}
+          drawerTitle={t("batchModal.phaseLabel")}
+          clearable={false}
+        />
+      </Field>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <Field>
-            <FieldLabel>{t("batchModal.phaseLabel")}</FieldLabel>
-            <ResponsiveCombobox
-              items={phaseOptions}
-              value={activePhaseId}
-              onValueChange={(val) => onPhaseChange(val || "")}
-              placeholder={t("batchModal.phasePlaceholder")}
-              drawerTitle={t("batchModal.phaseLabel")}
-              clearable={false}
-            />
-          </Field>
-        </div>
-
-        <Field>
-          <FieldLabel>{t("batchModal.jalaliYear")}</FieldLabel>
+      <Field>
+        <FieldLabel>{t("batchModal.jalaliYear")}</FieldLabel>
+        <div className="relative w-full">
           <Input
             type="number"
             min={1400}
@@ -74,27 +68,37 @@ export function StepConfiguration({
             onChange={(e) => {
               onJalaliYearChange(Number(e.target.value) || jalaliYear)
             }}
+            className="pe-16"
           />
-        </Field>
+          <span
+            className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 font-sans text-xs font-normal text-muted-foreground select-none sm:text-sm"
+            aria-hidden="true"
+          >
+            {t("batchModal.jalaliYearUnit")}
+          </span>
+        </div>
+      </Field>
 
-        <Field>
-          <FieldLabel>{t("batchModal.sessionsPerTerm")}</FieldLabel>
-          <Input
-            type="number"
-            min={1}
-            max={100}
-            value={currentSessions}
-            onChange={(e) => {
-              const val = Number(e.target.value) || 18
-              onSessionsPerTermChange?.(val)
-              onDaysPerTermChange?.(val)
-            }}
-            placeholder={t("batchModal.sessionsPlaceholder")}
-          />
-        </Field>
+      {/* Row 2: Sessions Per Term and Gap Days */}
+      <Field>
+        <FieldLabel>{t("batchModal.sessionsPerTerm")}</FieldLabel>
+        <Input
+          type="number"
+          min={1}
+          max={100}
+          value={currentSessions}
+          onChange={(e) => {
+            const val = Number(e.target.value) || 18
+            onSessionsPerTermChange?.(val)
+            onDaysPerTermChange?.(val)
+          }}
+          placeholder={t("batchModal.sessionsPlaceholder")}
+        />
+      </Field>
 
-        <Field>
-          <FieldLabel>{t("batchModal.gapDays")}</FieldLabel>
+      <Field>
+        <FieldLabel>{t("batchModal.gapDays")}</FieldLabel>
+        <div className="relative w-full">
           <Input
             type="number"
             min={0}
@@ -103,44 +107,16 @@ export function StepConfiguration({
             onChange={(e) => {
               onGapDaysChange(Number(e.target.value) || 0)
             }}
+            className="pe-14"
           />
-        </Field>
-      </div>
-
-      {activeClassPatterns && activeClassPatterns.length > 0 && (
-        <div className="flex flex-col gap-2.5 rounded-2xl border border-border/70 bg-muted/40 p-4">
-          <span className="text-xs font-semibold text-foreground">
-            {t("batchModal.classPatternsLabel")}
+          <span
+            className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 font-sans text-xs font-normal text-muted-foreground select-none sm:text-sm"
+            aria-hidden="true"
+          >
+            {t("batchModal.gapDaysUnit")}
           </span>
-          <div className="flex flex-wrap gap-2">
-            {activeClassPatterns.map((pattern, idx) => {
-              const hasEven =
-                pattern.includes("SATURDAY") ||
-                pattern.includes("MONDAY") ||
-                pattern.includes("WEDNESDAY")
-              const hasOdd =
-                pattern.includes("SUNDAY") ||
-                pattern.includes("TUESDAY") ||
-                pattern.includes("THURSDAY")
-              const label = hasEven
-                ? t("batchModal.patternEven")
-                : hasOdd
-                  ? t("batchModal.patternOdd")
-                  : t("batchModal.patternWeekend")
-
-              return (
-                <div
-                  key={idx}
-                  className="flex items-center gap-1.5 rounded-xl border border-border/60 bg-background px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs"
-                >
-                  <span className="size-2 rounded-full bg-primary" />
-                  <span>{label}</span>
-                </div>
-              )
-            })}
-          </div>
         </div>
-      )}
+      </Field>
     </div>
   )
 }

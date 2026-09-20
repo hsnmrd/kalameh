@@ -21,26 +21,65 @@ describe("TermsTable Component", () => {
 
   it("should render loading spinner when isLoading is true", () => {
     const { container } = render(
-      <TermsTable terms={undefined} isLoading={true} onEdit={vi.fn()} />
+      <TermsTable
+        terms={undefined}
+        isLoading={true}
+        onView={vi.fn()}
+        onEdit={vi.fn()}
+      />
     )
     expect(container.querySelector("svg.animate-spin")).toBeInTheDocument()
   })
 
   it("should render empty state message when terms array is empty", () => {
-    render(<TermsTable terms={[]} isLoading={false} onEdit={vi.fn()} />)
+    render(
+      <TermsTable
+        terms={[]}
+        isLoading={false}
+        onView={vi.fn()}
+        onEdit={vi.fn()}
+      />
+    )
     expect(screen.getByText(/هیچ ترم/i)).toBeInTheDocument()
   })
 
   it("should render term row with title and class count", () => {
-    render(<TermsTable terms={mockTerms} isLoading={false} onEdit={vi.fn()} />)
+    render(
+      <TermsTable
+        terms={mockTerms}
+        isLoading={false}
+        onView={vi.fn()}
+        onEdit={vi.fn()}
+      />
+    )
     expect(screen.getByText("پاییز ۱۴۰۵")).toBeInTheDocument()
     expect(screen.getByText(formatNumber(4, "fa"))).toBeInTheDocument()
+  })
+
+  it("should render view button and trigger onView when clicked", () => {
+    const handleView = vi.fn()
+    render(
+      <TermsTable
+        terms={mockTerms}
+        isLoading={false}
+        onView={handleView}
+        onEdit={vi.fn()}
+      />
+    )
+    const viewBtn = screen.getByLabelText(/مشاهده|view/i)
+    fireEvent.click(viewBtn)
+    expect(handleView).toHaveBeenCalledWith(mockTerms[0])
   })
 
   it("should trigger onEdit when edit button is clicked", () => {
     const handleEdit = vi.fn()
     render(
-      <TermsTable terms={mockTerms} isLoading={false} onEdit={handleEdit} />
+      <TermsTable
+        terms={mockTerms}
+        isLoading={false}
+        onView={vi.fn()}
+        onEdit={handleEdit}
+      />
     )
     const editBtn = screen.getByLabelText(/عملیات|actions/i)
     fireEvent.click(editBtn)
@@ -76,6 +115,7 @@ describe("TermsTable Component", () => {
       <TermsTable
         terms={[pastTerm, upcomingTerm]}
         isLoading={false}
+        onView={vi.fn()}
         onEdit={vi.fn()}
         onDelete={handleDelete}
       />

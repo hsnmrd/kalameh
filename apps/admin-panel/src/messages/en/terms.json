@@ -24,6 +24,7 @@
     "status": "Status",
     "classesCount": "Classes Count",
     "actions": "Actions",
+    "view": "View",
     "empty": "No academic terms registered in this institute."
   },
   "status": {
@@ -103,11 +104,13 @@
     "description": "Select an operating phase and academic year to automatically generate consecutive terms with proper month names and accurate holiday-adjusted dates.",
     "phaseLabel": "Phase",
     "phasePlaceholder": "Select phase...",
-    "jalaliYear": "Academic Year (Jalali)",
+    "jalaliYear": "Academic Year",
+    "jalaliYearUnit": "Jalali",
     "daysPerTerm": "Sessions Per Term",
     "sessionsPerTerm": "Sessions Per Term",
     "sessionsPlaceholder": "e.g. 18 or 24",
-    "gapDays": "Gap Between Terms (days)",
+    "gapDays": "Gap Between Terms",
+    "gapDaysUnit": "Days",
     "classPatternsLabel": "Class Schedule Patterns",
     "patternEven": "Even Days (Sat, Mon, Wed)",
     "patternOdd": "Odd Days (Sun, Tue, Thu)",
@@ -166,6 +169,8 @@
     "customOffDayAdded": "Day added to institute custom off-days.",
     "customOffDayRemoved": "Day removed from institute custom off-days.",
     "defaultCustomOffDayTitle": "Institute Off-Day",
+    "statusTermStart": "Term Start",
+    "statusTermEnd": "Term End",
     "statusOfficialHoliday": "Official Holiday: {title}",
     "statusDismissedHoliday": "Dismissed Holiday: {title} (Class held)",
     "statusDismissedBadge": "Open in this term",
@@ -203,6 +208,27 @@
     "patternEvenShort": "Even Days",
     "patternOddShort": "Odd Days",
     "patternEvenCount": "Even Days: {count} sessions",
-    "patternOddCount": "Odd Days: {count} sessions"
+    "patternOddCount": "Odd Days: {count} sessions",
+    "statusReferenceTerm": "Reference term: {title} (Read-only)",
+    "referenceTermBadge": "Read-only",
+    "referenceTermNotice": "This date belongs to \"{title}\". Only the active term can be edited here.",
+    "calendarPhaseTitle": "Phase Terms & Calendar",
+    "calendarSingleTitle": "Term Sessions Calendar Preview"
+  },
+  "viewModal": {
+    "title": "View Term Details",
+    "close": "Close",
+    "termInfo": "Term Information",
+    "operatingPhase": "Academic Phase",
+    "noPhase": "No Academic Phase (Standalone)",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "classesCount": "Classes Count",
+    "sessionsCount": "Sessions Count",
+    "daysCount": "Duration",
+    "holidaysCount": "Holidays Deducted",
+    "status": "Term Status",
+    "statusActive": "Active",
+    "statusInactive": "Inactive"
   }
 }

@@ -125,6 +125,43 @@ describe("ProposalsCalendar Component", () => {
     }
   })
 
+  it("does not show 'شروع ترم' action option in popover when clicking on the term start date", () => {
+    const onStartDateChange = vi.fn()
+    render(
+      <ProposalsCalendar
+        proposals={mockProposals}
+        onStartDateChange={onStartDateChange}
+      />
+    )
+
+    // Select second term (Term 1): starts on 1405/08/17 (Day 17)
+    fireEvent.click(screen.getByText("آبان و آذر ۱۴۰۵"))
+
+    const dayButtons = screen.getAllByRole("button")
+
+    // Find Day 17 (the start date of the active term)
+    const startDay = dayButtons.find(
+      (btn) =>
+        btn.getAttribute("aria-label")?.includes("17-ام") ||
+        btn.textContent?.trim() === "۱۷" ||
+        btn.textContent?.trim() === "17"
+    )
+
+    expect(startDay).toBeDefined()
+    if (startDay) {
+      fireEvent.click(startDay)
+
+      // The popover should show the start status badge
+      expect(screen.getByText("شروع ترم")).toBeInTheDocument()
+
+      // But should NOT show the 'شروع ترم' action button
+      const setStartBtn = screen.queryByRole("button", {
+        name: /شروع ترم/,
+      })
+      expect(setStartBtn).toBeNull()
+    }
+  })
+
   it("allows setting start date for the first term to earlier days even after start date was shifted forward", () => {
     const onStartDateChange = vi.fn()
     // Term 0 starting on Day 3 (2026-09-25)
@@ -1266,6 +1303,76 @@ describe("ProposalsCalendar Component", () => {
     if (day1Btn) {
       fireEvent.click(day1Btn)
       expect(screen.getByText("امتحان پایانی (جلسه زوج)")).toBeInTheDocument()
+    }
+  })
+
+  it("renders read-only badge on non-locked terms in carousel cards", () => {
+    render(
+      <ProposalsCalendar
+        proposals={mockProposals}
+        lockedTermIndex={0}
+        onStartDateChange={vi.fn()}
+      />
+    )
+
+    // The second term (index 1) is locked out, so it displays the read-only badge
+    expect(screen.getByText("فقط خواندنی")).toBeInTheDocument()
+  })
+
+  it("renders term end badge and hides action buttons in DayActionsPopover when readOnly is true", async () => {
+    const { DayActionsPopover } =
+      await import("../components/generate-phase-terms-modal/proposals-calendar/calendar-grid/day-actions-popover")
+
+    const endDate = new Date("2026-11-06T12:00:00Z")
+    render(
+      <DayActionsPopover
+        open={true}
+        onOpenChange={vi.fn()}
+        anchorEl={document.body}
+        date={endDate}
+        termProposal={mockProposals[0]}
+        selectedTermIndex={0}
+        proposals={mockProposals}
+        readOnly={true}
+      />
+    )
+
+    // Should display 'پایان ترم' badge
+    expect(screen.getByText("پایان ترم")).toBeInTheDocument()
+
+    // Should NOT display any action buttons like 'شروع ترم', 'افزودن کلاس جبرانی', etc.
+    expect(
+      screen.queryByRole("button", { name: /شروع ترم/ })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /کلاس جبرانی/ })
+    ).not.toBeInTheDocument()
+  })
+
+  it("suppresses proposed terms legend when showLegend is false", () => {
+    render(
+      <ProposalsCalendar
+        proposals={mockProposals}
+        showLegend={false}
+        onStartDateChange={vi.fn()}
+      />
+    )
+
+    expect(screen.queryByText("ترم‌های پیشنهادی")).not.toBeInTheDocument()
+  })
+
+  it("does not use red or rose palettes for terms to avoid collision with holidays and off-days", async () => {
+    const { TERM_COLOR_PALETTES } =
+      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+
+    expect(TERM_COLOR_PALETTES.length).toBeGreaterThanOrEqual(6)
+    for (const palette of TERM_COLOR_PALETTES) {
+      expect(palette.id).not.toBe("rose")
+      expect(palette.id).not.toBe("red")
+      expect(palette.badgeBg).not.toMatch(/bg-(red|rose)/)
+      expect(palette.dotColor).not.toMatch(/bg-(red|rose)/)
+      expect(palette.accentColor.toLowerCase()).not.toBe("#e11d48")
+      expect(palette.rangeClass).not.toMatch(/bg-(red|rose)/)
     }
   })
 })

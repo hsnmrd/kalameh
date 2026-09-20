@@ -39,7 +39,7 @@ describe("UserBadge", () => {
     )
 
     const onLogout = vi.fn()
-    render(
+    const { container } = render(
       <UserBadge
         user={{
           firstName: "علی",
@@ -51,6 +51,14 @@ describe("UserBadge", () => {
         onLogout={onLogout}
       />
     )
+
+    // Verify there is no nested button anti-pattern or invalid asChild prop in DOM
+    expect(container.querySelector("button button")).toBeNull()
+    expect(container.querySelector("[aschild]")).toBeNull()
+    expect(container.querySelector("[asChild]")).toBeNull()
+    expect(
+      screen.getAllByRole("button", { name: "اطلاعات کاربری" })
+    ).toHaveLength(1)
 
     fireEvent.click(screen.getByRole("button", { name: "اطلاعات کاربری" }))
 

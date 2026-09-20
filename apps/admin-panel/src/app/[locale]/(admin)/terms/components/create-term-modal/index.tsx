@@ -4,7 +4,8 @@ import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Calendar as CalendarIcon } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
   FormDialog,
@@ -19,22 +20,38 @@ import { Input } from "@workspace/ui/components/input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { termsResource } from "@/lib/api"
+import {
+  type SupportedLocale,
+  type TermDto,
+  type GeneratedTermProposal,
+  type CompensatorySession,
+  convertTermDtoToProposal,
+} from "@workspace/types"
+import {
+  termsResource,
+  institutesResource,
+  operatingPhasesResource,
+} from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import type { SupportedLocale } from "@workspace/types"
 import {
   useCreateTermSchema,
   type CreateTermInput,
 } from "../../hooks/use-term-schemas"
 import { PhaseSelectField } from "../phase-select-field"
 import { TermCalculatorSection } from "./term-calculator-section"
+import { ProposalsCalendar } from "../generate-phase-terms-modal/proposals-calendar"
 
 export interface CreateTermModalProps {
   open: boolean
   onClose: () => void
+  allTerms?: TermDto[]
 }
 
-export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
+export function CreateTermModal({
+  open,
+  onClose,
+  allTerms,
+}: CreateTermModalProps) {
   const t = useTranslations("terms")
   const locale = useLocale() as SupportedLocale
   const queryClient = useQueryClient()
@@ -59,7 +76,56 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
     },
   })
 
+  const watchedTitle = useWatch({ control, name: "title" })
   const watchedStartDate = useWatch({ control, name: "startDate" })
+  const watchedEndDate = useWatch({ control, name: "endDate" })
+  const watchedPhaseId = useWatch({ control, name: "operatingPhaseId" })
+
+  // Fetch institute details for holiday observance preference
+  const { data: institute } = useQuery({
+    ...institutesResource.detail.toQuery(activeInstituteId!),
+    enabled: Boolean(activeInstituteId && open),
+  })
+
+  // Fetch custom institute off-days
+  const { data: rawCustomOffDays } = useQuery({
+    ...institutesResource.customOffDays.toQuery(activeInstituteId!),
+    enabled: Boolean(activeInstituteId && open),
+  })
+
+  // Fetch operating phases for day-of-week metadata
+  const { data: phases = [] } = useQuery({
+    ...operatingPhasesResource.list.toQuery({
+      instituteId: activeInstituteId,
+    }),
+    enabled: Boolean(activeInstituteId && open),
+  })
+
+  // Fetch sibling terms of the selected phase
+  const { data: phaseTerms = [] } = useQuery({
+    ...termsResource.list.toQuery({
+      instituteId: activeInstituteId,
+      operatingPhaseId: watchedPhaseId || undefined,
+    }),
+    enabled: Boolean(activeInstituteId && watchedPhaseId && open),
+  })
+
+  // Calendar off-days & compensatory state
+  const [activeDismissedHolidays, setActiveDismissedHolidays] = React.useState<
+    string[]
+  >([])
+  const [localCustomOffDays, setLocalCustomOffDays] = React.useState<
+    string[] | null
+  >(null)
+  const [compensatorySessions, setCompensatorySessions] = React.useState<
+    Record<number, CompensatorySession[]>
+  >({})
+
+  React.useEffect(() => {
+    if (institute?.dismissedHolidays) {
+      setActiveDismissedHolidays(institute.dismissedHolidays)
+    }
+  }, [institute?.dismissedHolidays])
 
   React.useEffect(() => {
     if (open) {
@@ -70,8 +136,227 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
         isActive: true,
         operatingPhaseId: undefined,
       })
+      setCompensatorySessions({})
+      setLocalCustomOffDays(null)
     }
   }, [open, reset])
+
+  const customOffDays = React.useMemo(() => {
+    if (localCustomOffDays !== null) return localCustomOffDays
+    return rawCustomOffDays?.map((d) => d.date) ?? []
+  }, [localCustomOffDays, rawCustomOffDays])
+  const observeOfficialHolidays = institute?.observeOfficialHolidays ?? true
+
+  const createCustomOffDayMutation = useMutation({
+    ...institutesResource.createCustomOffDay.toMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: institutesResource.customOffDays.baseKey(),
+      })
+    },
+  })
+
+  const deleteCustomOffDayMutation = useMutation({
+    ...institutesResource.deleteCustomOffDay.toMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: institutesResource.customOffDays.baseKey(),
+      })
+    },
+  })
+
+  // Build proposals for ProposalsCalendar
+  const proposals: GeneratedTermProposal[] = React.useMemo(() => {
+    const rawSiblings = watchedPhaseId
+      ? (phaseTerms && phaseTerms.length > 0
+          ? phaseTerms
+          : (allTerms?.filter((t) => t.operatingPhaseId === watchedPhaseId) ??
+            [])
+        ).filter(Boolean)
+      : []
+
+    const currentPhase = phases.find((p) => p.id === watchedPhaseId)
+    const hasValidDraftDates = Boolean(
+      watchedStartDate && watchedEndDate && watchedStartDate <= watchedEndDate
+    )
+
+    if (!hasValidDraftDates) {
+      // If dates not entered yet, show phase sibling terms if any
+      if (rawSiblings.length > 0) {
+        return rawSiblings
+          .sort((a, b) => {
+            const aDate = a.startDate ? new Date(a.startDate).getTime() : 0
+            const bDate = b.startDate ? new Date(b.startDate).getTime() : 0
+            return aDate - bDate
+          })
+          .map((t) =>
+            convertTermDtoToProposal(t, {
+              observeOfficialHolidays,
+              customOffDays,
+            })
+          )
+      }
+      return []
+    }
+
+    const draftTermData = {
+      id: "draft-new-term",
+      title: watchedTitle || t("createModal.titlePlaceholder"),
+      startDate: watchedStartDate,
+      endDate: watchedEndDate,
+      operatingPhaseId: watchedPhaseId || undefined,
+      operatingPhase: currentPhase
+        ? { months: currentPhase.months, daysOfWeek: currentPhase.daysOfWeek }
+        : undefined,
+    }
+
+    if (!watchedPhaseId) {
+      // Standalone new term
+      const singleProposal = convertTermDtoToProposal(draftTermData, {
+        observeOfficialHolidays,
+        customOffDays,
+        dismissedHolidays: activeDismissedHolidays,
+        compensatorySessions: compensatorySessions[0] ?? [],
+      })
+      return [singleProposal]
+    }
+
+    // Merge siblings and draft term, sort chronologically
+    const allCombined = [...rawSiblings, draftTermData].sort((a, b) => {
+      const aDate = a.startDate ? new Date(a.startDate).getTime() : 0
+      const bDate = b.startDate ? new Date(b.startDate).getTime() : 0
+      return aDate - bDate
+    })
+
+    return allCombined.map((t, idx) => {
+      const isDraft = t.id === "draft-new-term"
+      return convertTermDtoToProposal(t, {
+        observeOfficialHolidays,
+        customOffDays,
+        dismissedHolidays: isDraft ? activeDismissedHolidays : undefined,
+        compensatorySessions: isDraft
+          ? (compensatorySessions[idx] ?? [])
+          : undefined,
+      })
+    })
+  }, [
+    watchedStartDate,
+    watchedEndDate,
+    watchedTitle,
+    watchedPhaseId,
+    phases,
+    observeOfficialHolidays,
+    customOffDays,
+    activeDismissedHolidays,
+    compensatorySessions,
+    phaseTerms,
+    allTerms,
+    t,
+  ])
+
+  const lockedTermIndex = React.useMemo(() => {
+    if (proposals.length === 0) return 0
+    const draftTitle = watchedTitle || t("createModal.titlePlaceholder")
+    const found = proposals.findIndex(
+      (p) => p.title === draftTitle || p.startDate === watchedStartDate
+    )
+    return found !== -1 ? found : 0
+  }, [proposals, watchedTitle, watchedStartDate, t])
+
+  const handleStartDateChange = (_index: number, newStartDate: string) => {
+    if (watchedStartDate && watchedEndDate) {
+      const oldStart = new Date(watchedStartDate + "T00:00:00").getTime()
+      const oldEnd = new Date(watchedEndDate + "T00:00:00").getTime()
+      const duration = Math.max(0, oldEnd - oldStart)
+      const newEnd = new Date(
+        new Date(newStartDate + "T00:00:00").getTime() + duration
+      )
+      setValue("endDate", newEnd.toISOString().split("T")[0]!, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+    }
+    setValue("startDate", newStartDate, {
+      shouldValidate: true,
+      shouldDirty: true,
+    })
+  }
+
+  const handleToggleHoliday = (dateYmd: string) => {
+    setActiveDismissedHolidays((prev) => {
+      const next = prev.includes(dateYmd)
+        ? prev.filter((d) => d !== dateYmd)
+        : [...prev, dateYmd]
+      return next
+    })
+    toast.success(t("batchModal.holidayToggled"))
+  }
+
+  const handleToggleCustomOffDay = (dateYmd: string) => {
+    const isCurrentlyOff = customOffDays.includes(dateYmd)
+    const nextCustomOffDays = isCurrentlyOff
+      ? customOffDays.filter((d) => d !== dateYmd)
+      : [...customOffDays, dateYmd]
+    setLocalCustomOffDays(nextCustomOffDays)
+
+    if (activeInstituteId) {
+      if (isCurrentlyOff) {
+        const existing = rawCustomOffDays?.find((d) => d.date === dateYmd)
+        if (existing) {
+          deleteCustomOffDayMutation.mutate({
+            id: activeInstituteId,
+            offDayId: existing.id,
+          })
+        }
+        toast.success(t("batchModal.customOffDayRemoved"))
+      } else {
+        createCustomOffDayMutation.mutate({
+          id: activeInstituteId,
+          body: {
+            date: dateYmd,
+            title: t("batchModal.defaultCustomOffDayTitle"),
+          },
+        })
+        toast.success(t("batchModal.customOffDayAdded"))
+      }
+    }
+  }
+
+  const handleAddCompensatorySession = (
+    termIndex: number,
+    session: CompensatorySession
+  ) => {
+    setCompensatorySessions((prev) => {
+      const existing = prev[termIndex] ?? []
+      if (
+        existing.some(
+          (s) =>
+            s.date === session.date && s.patternTrack === session.patternTrack
+        )
+      ) {
+        return prev
+      }
+      return {
+        ...prev,
+        [termIndex]: [...existing, session],
+      }
+    })
+    toast.success(t("batchModal.compensatorySessionAdded"))
+  }
+
+  const handleRemoveCompensatorySession = (
+    termIndex: number,
+    dateYmd: string
+  ) => {
+    setCompensatorySessions((prev) => {
+      const existing = prev[termIndex] ?? []
+      return {
+        ...prev,
+        [termIndex]: existing.filter((s) => s.date !== dateYmd),
+      }
+    })
+    toast.success(t("batchModal.compensatorySessionRemoved"))
+  }
 
   const createMutation = useMutation({
     ...termsResource.create.toMutation(),
@@ -99,7 +384,7 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="sm:max-w-lg">
+      <FormDialogContent className="sm:h-[90dvh] sm:max-w-4xl">
         <FormDialogHeader>
           <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
@@ -107,32 +392,36 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
+          className="flex min-h-0 flex-1 flex-col justify-between gap-0 overflow-hidden"
         >
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-            <Field data-invalid={Boolean(errors.title)}>
-              <FieldLabel>{t("createModal.termTitle")}</FieldLabel>
-              <Input
-                {...register("title")}
-                placeholder={t("createModal.titlePlaceholder")}
-              />
-              <FieldError>{errors.title?.message}</FieldError>
-            </Field>
-
-            <Controller
-              control={control}
-              name="operatingPhaseId"
-              render={({ field }) => (
-                <PhaseSelectField
-                  value={field.value}
-                  onChange={(id) => {
-                    field.onChange(id)
-                  }}
+            {/* Top row: Title and Operating Phase */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field data-invalid={Boolean(errors.title)}>
+                <FieldLabel>{t("createModal.termTitle")}</FieldLabel>
+                <Input
+                  {...register("title")}
+                  placeholder={t("createModal.titlePlaceholder")}
                 />
-              )}
-            />
+                <FieldError>{errors.title?.message}</FieldError>
+              </Field>
 
-            <div className="grid grid-cols-2 gap-3">
+              <Controller
+                control={control}
+                name="operatingPhaseId"
+                render={({ field }) => (
+                  <PhaseSelectField
+                    value={field.value}
+                    onChange={(id) => {
+                      field.onChange(id)
+                    }}
+                  />
+                )}
+              />
+            </div>
+
+            {/* Second row: Start Date and End Date */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field data-invalid={Boolean(errors.startDate)}>
                 <FieldLabel>{t("createModal.startDate")}</FieldLabel>
                 <Controller
@@ -176,6 +465,35 @@ export function CreateTermModal({ open, onClose }: CreateTermModalProps) {
               startDate={watchedStartDate || ""}
               onApplyDate={(date) => setValue("endDate", date)}
             />
+
+            {/* Embedded Interactive Calendar Preview */}
+            {proposals.length > 0 && (
+              <div className="mt-2 flex flex-col gap-3">
+                <div className="flex items-center gap-2 border-t border-border/60 pt-4">
+                  <CalendarIcon className="size-4 text-muted-foreground" />
+                  <h4 className="text-sm font-semibold text-foreground">
+                    {watchedPhaseId
+                      ? t("batchModal.calendarPhaseTitle")
+                      : t("batchModal.calendarSingleTitle")}
+                  </h4>
+                </div>
+
+                <ProposalsCalendar
+                  proposals={proposals}
+                  lockedTermIndex={lockedTermIndex}
+                  onStartDateChange={handleStartDateChange}
+                  onToggleHoliday={handleToggleHoliday}
+                  onToggleCustomOffDay={handleToggleCustomOffDay}
+                  onAddCompensatorySession={handleAddCompensatorySession}
+                  onRemoveCompensatorySession={handleRemoveCompensatorySession}
+                  locale={locale}
+                  observeOfficialHolidays={observeOfficialHolidays}
+                  customOffDays={customOffDays}
+                  activeDismissedHolidays={activeDismissedHolidays}
+                  compensatorySessions={compensatorySessions}
+                />
+              </div>
+            )}
           </div>
 
           <FormDialogFooter>

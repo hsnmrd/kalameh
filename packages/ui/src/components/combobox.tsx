@@ -260,8 +260,12 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
           disabled={comboboxProps.disabled}
           value={selectedItem ? selectedItem.label : ""}
           placeholder={resolvedPlaceholder}
-          onFocus={() => {
-            if (!comboboxProps.disabled) {
+          onKeyDown={(e) => {
+            if (
+              (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") &&
+              !comboboxProps.disabled
+            ) {
+              e.preventDefault()
               setDrawerOpen(true)
             }
           }}

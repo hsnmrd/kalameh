@@ -24,6 +24,7 @@
     "status": "وضعیت",
     "classesCount": "تعداد کلاس‌ها",
     "actions": "عملیات",
+    "view": "مشاهده",
     "empty": "هیچ ترم تحصیلی در این آموزشگاه ثبت نشده است."
   },
   "status": {
@@ -103,11 +104,13 @@
     "description": "با انتخاب فاز و سال تحصیلی، کلیه ترم‌های متوالی به صورت خودکار با نام‌گذاری مناسب و کسر تعطیلات تولید می‌شوند.",
     "phaseLabel": "فاز",
     "phasePlaceholder": "انتخاب فاز...",
-    "jalaliYear": "سال تحصیلی (شمسی)",
+    "jalaliYear": "سال تحصیلی",
+    "jalaliYearUnit": "شمسی",
     "daysPerTerm": "تعداد جلسات هر ترم",
     "sessionsPerTerm": "تعداد جلسات هر ترم",
     "sessionsPlaceholder": "مثلاً ۱۸ یا ۲۴",
-    "gapDays": "فاصله بین ترم‌ها (روز)",
+    "gapDays": "فاصله بین ترم‌ها",
+    "gapDaysUnit": "روز",
     "classPatternsLabel": "الگوهای برگزاری کلاس‌ها",
     "patternEven": "روزهای زوج (شنبه، دوشنبه، چهارشنبه)",
     "patternOdd": "روزهای فرد (یکشنبه، سه‌شنبه، پنجشنبه)",
@@ -166,6 +169,8 @@
     "customOffDayAdded": "روز مورد نظر به تعطیلات اختصاصی موسسه اضافه شد.",
     "customOffDayRemoved": "روز مورد نظر از تعطیلات اختصاصی موسسه حذف شد.",
     "defaultCustomOffDayTitle": "تعطیلی موسسه",
+    "statusTermStart": "شروع ترم",
+    "statusTermEnd": "پایان ترم",
     "statusOfficialHoliday": "تعطیل رسمی: {title}",
     "statusDismissedHoliday": "تعطیلی لغوشده: {title} (دایر در این ترم)",
     "statusDismissedBadge": "دایر در این ترم",
@@ -203,6 +208,27 @@
     "patternEvenShort": "روزهای زوج",
     "patternOddShort": "روزهای فرد",
     "patternEvenCount": "روزهای زوج: {count} جلسه",
-    "patternOddCount": "روزهای فرد: {count} جلسه"
+    "patternOddCount": "روزهای فرد: {count} جلسه",
+    "statusReferenceTerm": "ترم مرجع: {title} (غیرقابل ویرایش)",
+    "referenceTermBadge": "فقط خواندنی",
+    "referenceTermNotice": "این تاریخ متعلق به «{title}» است. در این بخش فقط ترم فعال قابل ویرایش است.",
+    "calendarPhaseTitle": "تقویم و زنجیره ترم‌های فاز",
+    "calendarSingleTitle": "پیش‌نمایش تقویم جلسات ترم"
+  },
+  "viewModal": {
+    "title": "مشاهده اطلاعات ترم",
+    "close": "بستن",
+    "termInfo": "اطلاعات کلی ترم",
+    "operatingPhase": "فاز تحصیلی",
+    "noPhase": "بدون فاز تحصیلی (مستقل)",
+    "startDate": "تاریخ شروع",
+    "endDate": "تاریخ پایان",
+    "classesCount": "تعداد کلاس‌ها",
+    "sessionsCount": "تعداد جلسات",
+    "daysCount": "طول دوره",
+    "holidaysCount": "تعطیلات کسرشده",
+    "status": "وضعیت ترم",
+    "statusActive": "فعال",
+    "statusInactive": "غیرفعال"
   }
 }

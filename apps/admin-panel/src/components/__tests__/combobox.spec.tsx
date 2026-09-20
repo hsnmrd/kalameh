@@ -1,6 +1,12 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "../../test/test-utils"
-import { Combobox } from "@workspace/ui/components/combobox"
+import { Combobox, ResponsiveCombobox } from "@workspace/ui/components/combobox"
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@workspace/ui/components/dialog"
 
 describe("Combobox Component", () => {
   const statusOptions = [
@@ -57,5 +63,123 @@ describe("Combobox Component", () => {
     expect(reopenedOptions[0]).toHaveTextContent("همه وضعیت‌ها")
     expect(reopenedOptions[1]).toHaveTextContent("فقط ترم‌های فعال")
     expect(reopenedOptions[2]).toHaveTextContent("فقط ترم‌های بسته شده")
+  })
+
+  it("ResponsiveCombobox on mobile does not reopen drawer when closing and returning focus", async () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query) =>
+        ({
+          matches: true,
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as MediaQueryList
+    )
+
+    const handleValueChange = vi.fn()
+
+    render(
+      <ResponsiveCombobox
+        items={statusOptions}
+        value={undefined}
+        onValueChange={handleValueChange}
+        placeholder="انتخاب وضعیت"
+        drawerTitle="انتخاب وضعیت"
+      />
+    )
+
+    const triggerInput = screen.getByPlaceholderText("انتخاب وضعیت")
+
+    // Open mobile drawer by clicking
+    fireEvent.click(triggerInput)
+
+    // Drawer header should be present
+    expect(
+      screen.getByRole("heading", { name: "انتخاب وضعیت" })
+    ).toBeInTheDocument()
+
+    // Close the drawer by clicking close button
+    const closeButton = screen.getByRole("button", { name: "بستن" })
+    fireEvent.click(closeButton)
+
+    // Focus returns to the trigger input
+    fireEvent.focus(triggerInput)
+
+    // Verify the drawer is closed and did NOT reopen
+    expect(
+      screen.queryByRole("heading", { name: "انتخاب وضعیت" })
+    ).not.toBeInTheDocument()
+  })
+
+  it("ResponsiveCombobox nested inside ResponsiveDialog on mobile does not reopen when closing the top drawer", async () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query) =>
+        ({
+          matches: true,
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as MediaQueryList
+    )
+
+    const handleValueChange = vi.fn()
+
+    render(
+      <ResponsiveDialog open={true} onOpenChange={() => {}}>
+        <ResponsiveDialogContent>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>فیلترهای جدول</ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
+          <ResponsiveCombobox
+            items={statusOptions}
+            value={undefined}
+            onValueChange={handleValueChange}
+            placeholder="انتخاب وضعیت"
+            drawerTitle="انتخاب وضعیت"
+          />
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+    )
+
+    // First drawer (parent) should be open
+    expect(
+      screen.getByRole("heading", { name: "فیلترهای جدول" })
+    ).toBeInTheDocument()
+
+    const triggerInput = screen.getByPlaceholderText("انتخاب وضعیت")
+
+    // Open second (child) drawer by clicking
+    fireEvent.click(triggerInput)
+
+    // Second drawer should now be open on top
+    expect(
+      screen.getByRole("heading", { name: "انتخاب وضعیت" })
+    ).toBeInTheDocument()
+
+    // Close the top drawer by clicking close
+    const closeButtons = screen.getAllByRole("button", { name: "بستن" })
+    const topCloseButton = closeButtons[closeButtons.length - 1]!
+    fireEvent.click(topCloseButton)
+
+    // Simulate focus return to the combobox trigger input
+    fireEvent.focus(triggerInput)
+
+    // Verify the top drawer is closed and did not reopen
+    expect(
+      screen.queryByRole("heading", { name: "انتخاب وضعیت" })
+    ).not.toBeInTheDocument()
+
+    // And parent drawer remains open
+    expect(
+      screen.getByRole("heading", { name: "فیلترهای جدول" })
+    ).toBeInTheDocument()
   })
 })

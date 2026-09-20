@@ -24,7 +24,7 @@ import { CompensatorySessionModal } from "../../compensatory-session-modal"
 export interface CalendarGridProps {
   proposals: GeneratedTermProposal[]
   selectedTermIndex: number
-  onStartDateChange: (index: number, newStartDate: string) => void
+  onStartDateChange?: (index: number, newStartDate: string) => void
   onToggleHoliday?: (dateYmd: string) => void
   onToggleCustomOffDay?: (dateYmd: string) => void
   onAddCompensatorySession?: (
@@ -38,12 +38,14 @@ export interface CalendarGridProps {
   activeDismissedHolidays?: string[]
   compensatorySessions?: Record<number, CompensatorySession[]>
   numberOfMonths?: number
+  lockedTermIndex?: number
+  readOnly?: boolean
 }
 
 export function CalendarGrid({
   proposals,
   selectedTermIndex,
-  onStartDateChange,
+  onStartDateChange = () => {},
   onToggleHoliday,
   onToggleCustomOffDay,
   onAddCompensatorySession,
@@ -54,6 +56,8 @@ export function CalendarGrid({
   activeDismissedHolidays = [],
   compensatorySessions = {},
   numberOfMonths,
+  lockedTermIndex,
+  readOnly = false,
 }: CalendarGridProps) {
   const t = useTranslations("terms")
   const isMobile = useIsMobile()
@@ -311,6 +315,8 @@ export function CalendarGrid({
         customOffDays={customOffDays}
         activeDismissedHolidays={activeDismissedHolidays}
         compensatorySessions={compensatorySessions}
+        lockedTermIndex={lockedTermIndex}
+        readOnly={readOnly}
       />
 
       {/* Compensatory Session Creation Modal */}

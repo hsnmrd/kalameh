@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Calendar, Edit2, Trash2 } from "lucide-react"
+import { Calendar, Edit2, Trash2, Eye } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
@@ -22,6 +22,7 @@ import { TermStatusBadge } from "../term-status-badge"
 export interface TermsTableProps {
   terms: TermDto[] | undefined
   isLoading: boolean
+  onView: (term: TermDto) => void
   onEdit: (term: TermDto) => void
   onDelete?: (term: TermDto) => void
 }
@@ -29,6 +30,7 @@ export interface TermsTableProps {
 export function TermsTable({
   terms,
   isLoading,
+  onView,
   onEdit,
   onDelete,
 }: TermsTableProps) {
@@ -112,6 +114,17 @@ export function TermsTable({
 
           return (
             <div className="flex items-center justify-end gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onView(row.original)}
+                className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                aria-label={t("table.view")}
+                title={t("table.view")}
+              >
+                <Eye className="size-4" />
+              </Button>
+
               <PermissionGuard
                 permission={PERMISSIONS.MANAGE_TERMS}
                 mode="disable"
@@ -148,7 +161,7 @@ export function TermsTable({
         },
       },
     ],
-    [t, formatDate, locale, onEdit, onDelete, terms]
+    [t, formatDate, locale, onView, onEdit, onDelete, terms]
   )
 
   if (isLoading) {
