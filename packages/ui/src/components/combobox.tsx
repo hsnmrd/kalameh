@@ -145,14 +145,12 @@ export function Combobox({
                   key={item.value}
                   value={item}
                   disabled={item.disabled}
-                  className="relative flex min-h-12 cursor-pointer items-center rounded-xl py-3 ps-10 pe-4 text-base font-medium outline-hidden transition-colors select-none hover:bg-muted focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  className="relative flex min-h-12 cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-base font-medium outline-hidden transition-colors select-none hover:bg-muted/60 focus:bg-muted/60 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted/60 data-[selected]:bg-primary/10 data-[selected]:font-semibold data-[selected]:text-primary data-[selected]:data-[highlighted]:bg-primary/15"
                 >
-                  <span className="absolute start-3.5 flex size-4.5 items-center justify-center">
-                    <ComboboxPrimitive.ItemIndicator>
-                      <Check className="size-4.5 text-primary" />
-                    </ComboboxPrimitive.ItemIndicator>
-                  </span>
                   <span className="truncate">{item.label}</span>
+                  <ComboboxPrimitive.ItemIndicator className="flex size-4.5 shrink-0 items-center justify-center text-primary">
+                    <Check className="size-4.5 text-primary" />
+                  </ComboboxPrimitive.ItemIndicator>
                 </ComboboxPrimitive.Item>
               )}
             </ComboboxPrimitive.List>

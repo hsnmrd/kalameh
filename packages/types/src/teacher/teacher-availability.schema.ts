@@ -25,3 +25,11 @@ export const TeacherAvailabilityInputSchema = z.object({
 export type TeacherAvailabilityInput = z.infer<
   typeof TeacherAvailabilityInputSchema
 >
+
+export const ReplaceTeacherAvailabilitiesSchema = z.object({
+  availabilities: z.array(TeacherAvailabilityInputSchema),
+})
+
+export type ReplaceTeacherAvailabilitiesInput = z.infer<
+  typeof ReplaceTeacherAvailabilitiesSchema
+>

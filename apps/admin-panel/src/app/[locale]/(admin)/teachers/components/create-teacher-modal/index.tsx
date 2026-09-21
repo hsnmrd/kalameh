@@ -87,11 +87,6 @@ export function CreateTeacherModal({
     if (data.bio) body.append("bio", data.bio)
     if (instituteId) body.append("instituteId", instituteId)
     body.append("courseIds", JSON.stringify(data.courseIds ?? []))
-    data.availabilities?.forEach((slot, index) => {
-      body.append(`availabilities[${index}][dayOfWeek]`, slot.dayOfWeek)
-      body.append(`availabilities[${index}][startTime]`, slot.startTime)
-      body.append(`availabilities[${index}][endTime]`, slot.endTime)
-    })
     createMutation.mutate(body as never)
   }
 

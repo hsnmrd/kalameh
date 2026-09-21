@@ -122,6 +122,7 @@ describe("TeachersTable & TeachersFilter Components", () => {
           isLoading={false}
           onViewProfile={onViewProfileMock}
           onEdit={vi.fn()}
+          onManageAvailability={vi.fn()}
           onResetPassword={vi.fn()}
           onDelete={vi.fn()}
         />
@@ -130,6 +131,28 @@ describe("TeachersTable & TeachersFilter Components", () => {
       const profileButtons = screen.getAllByTitle(/مشاهده پرونده|View Dossier/i)
       fireEvent.click(profileButtons[0]!)
       expect(onViewProfileMock).toHaveBeenCalledWith(mockTeachers[0])
+    })
+
+    it("should trigger onManageAvailability when availability slot button is clicked", () => {
+      const onManageAvailabilityMock = vi.fn()
+
+      render(
+        <TeachersTable
+          teachers={mockTeachers}
+          isLoading={false}
+          onViewProfile={vi.fn()}
+          onEdit={vi.fn()}
+          onManageAvailability={onManageAvailabilityMock}
+          onResetPassword={vi.fn()}
+          onDelete={vi.fn()}
+        />
+      )
+
+      const availButtons = screen.getAllByTitle(
+        /برنامه زمان‌های آزاد|Weekly Availability/i
+      )
+      fireEvent.click(availButtons[0]!)
+      expect(onManageAvailabilityMock).toHaveBeenCalledWith(mockTeachers[0])
     })
   })
 

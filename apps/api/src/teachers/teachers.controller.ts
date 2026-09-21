@@ -19,6 +19,7 @@ import { TeachersService } from './teachers.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { ReplaceTeacherCoursesDto } from './dto/replace-teacher-courses.dto';
+import { ReplaceTeacherAvailabilitiesDto } from './dto/replace-teacher-availabilities.dto';
 import { TeacherCourseQualificationsQueryDto } from './dto/teacher-course-qualifications-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -122,6 +123,22 @@ export class TeachersController {
       id,
       dto,
       query.instituteId,
+      locale,
+    );
+  }
+
+  @Put(':id/availabilities')
+  @RequirePermissions(PERMISSIONS.MANAGE_TEACHERS)
+  async replaceAvailabilities(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: ReplaceTeacherAvailabilitiesDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.teachersService.replaceAvailabilities(
+      currentUser,
+      id,
+      dto,
       locale,
     );
   }

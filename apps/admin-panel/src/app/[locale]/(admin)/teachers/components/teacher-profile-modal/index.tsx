@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import { GraduationCap, Clock, BookOpen, Calendar } from "lucide-react"
+import { GraduationCap, Clock, BookOpen, Calendar, Edit2 } from "lucide-react"
 import {
   FormDialog,
   FormDialogContent,
@@ -32,6 +32,7 @@ export interface TeacherProfileModalProps {
   open: boolean
   onClose: () => void
   onEdit?: (teacher: TeacherDto) => void
+  onManageAvailability?: (teacher: TeacherDto) => void
   onResetPassword?: (teacher: TeacherDto) => void
 }
 
@@ -40,6 +41,7 @@ export function TeacherProfileModal({
   open,
   onClose,
   onEdit,
+  onManageAvailability,
   onResetPassword,
 }: TeacherProfileModalProps) {
   const t = useTranslations("teachers")
@@ -73,6 +75,7 @@ export function TeacherProfileModal({
               fullName={fullName}
               onClose={onClose}
               onEdit={onEdit}
+              onManageAvailability={onManageAvailability}
               onResetPassword={onResetPassword}
             />
             <FormDialogTitle>{t("profileModal.title")}</FormDialogTitle>
@@ -132,10 +135,27 @@ export function TeacherProfileModal({
             <div className="flex flex-col gap-3">
               {availabilities.length === 0 ? (
                 <>
-                  <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                    <Clock className="size-4 text-muted-foreground" />
-                    <span>{t("profileModal.freeTimeSchedule")}</span>
-                  </h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                      <Clock className="size-4 text-muted-foreground" />
+                      <span>{t("profileModal.freeTimeSchedule")}</span>
+                    </h4>
+                    {onManageAvailability && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          onClose()
+                          onManageAvailability(currentTeacher)
+                        }}
+                        className="h-8 gap-1.5 px-2 text-xs text-primary hover:text-primary"
+                      >
+                        <Clock className="size-3.5 text-primary" />
+                        <span>{t("table.setAvailability")}</span>
+                      </Button>
+                    )}
+                  </div>
                   <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
                     {t("availabilities.noSlots")}
                   </div>
@@ -150,10 +170,28 @@ export function TeacherProfileModal({
                   className="flex w-full flex-col gap-3"
                 >
                   <div className="flex items-center justify-between">
-                    <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                      <Clock className="size-4 text-muted-foreground" />
-                      <span>{t("profileModal.freeTimeSchedule")}</span>
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                        <Clock className="size-4 text-muted-foreground" />
+                        <span>{t("profileModal.freeTimeSchedule")}</span>
+                      </h4>
+                      {onManageAvailability && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => {
+                            onClose()
+                            onManageAvailability(currentTeacher)
+                          }}
+                          className="text-muted-foreground hover:text-foreground"
+                          title={t("actions.manageAvailability")}
+                          aria-label={t("actions.manageAvailability")}
+                        >
+                          <Edit2 className="size-3.5 text-muted-foreground" />
+                        </Button>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1.5">
                       <CarouselPrevious className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
                       <CarouselNext className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />

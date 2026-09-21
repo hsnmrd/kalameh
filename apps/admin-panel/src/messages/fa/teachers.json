@@ -24,10 +24,12 @@
     "actions": "عملیات",
     "empty": "هیچ استادی یافت نشد",
     "classesUnit": "کلاس",
-    "noAvailability": "ثبت نشده"
+    "noAvailability": "ثبت نشده",
+    "setAvailability": "تعیین زمان‌های آزاد"
   },
   "actions": {
     "viewProfile": "مشاهده پرونده",
+    "manageAvailability": "برنامه زمان‌های آزاد",
     "edit": "ویرایش استاد",
     "resetPassword": "تغییر رمز عبور",
     "delete": "حذف استاد",
@@ -35,7 +37,7 @@
   },
   "createModal": {
     "title": "افزودن استاد جدید",
-    "description": "مشخصات فردی و زمان‌های آزاد هفتگی استاد را وارد کنید.",
+    "description": "مشخصات فردی و مدارک تحصیلی استاد را وارد کنید.",
     "firstName": "نام",
     "firstNamePlaceholder": "مثلاً علی",
     "lastName": "نام خانوادگی",
@@ -57,7 +59,7 @@
   },
   "editModal": {
     "title": "ویرایش استاد",
-    "description": "اطلاعات و زمان‌های آزاد استاد را ویرایش نمایید.",
+    "description": "اطلاعات فردی و مدارک تحصیلی استاد را ویرایش نمایید.",
     "status": "وضعیت حساب کاربری",
     "submit": "ذخیره تغییرات",
     "cancel": "انصراف",
@@ -66,6 +68,11 @@
   },
   "availabilities": {
     "title": "برنامه زمان‌های آزاد هفتگی",
+    "modalTitle": "برنامه زمان‌های آزاد هفتگی",
+    "modalDescription": "تعریف پارت‌های زمانی آزاد برای {name} در روزهای زوج و فرد جهت چینش کلاس‌ها",
+    "save": "ذخیره",
+    "updateSuccess": "برنامه زمان‌های آزاد استاد با موفقیت به‌روزرسانی شد",
+    "updateError": "خطا در به‌روزرسانی زمان‌های آزاد استاد",
     "description": "ساعات آزاد استاد را برای جلوگیری از تداخل در زمان تشکیل کلاس‌ها تعریف کنید.",
     "addSlot": "افزودن بازه زمانی آزاد",
     "day": "روز هفته",
@@ -73,7 +80,28 @@
     "endTime": "پایان",
     "removeSlot": "حذف",
     "noSlots": "زمان آزادی برای این استاد تعریف نشده است (امکان ثبت کلاس در هر ساعتی وجود دارد).",
-    "slotsCount": "{count} بازه زمانی آزاد"
+    "slotsCount": "{count} بازه زمانی آزاد",
+    "phaseLabel": "فاز زمانی آموزشگاه",
+    "phasePlaceholder": "انتخاب فاز زمانی...",
+    "noActivePhase": "هیچ فاز زمانی فعالی برای آموزشگاه تعریف نشده است. لطفاً ابتدا در بخش فازهای عملیاتی، فاز زمانی آموزشگاه را ایجاد کنید.",
+    "standardSlotsTitle": "پارت‌های زمانی فاز ({phaseTitle})",
+    "slotLabel": "پارت {slotNumber}",
+    "selectAllSlots": "انتخاب همه",
+    "clearAllSlots": "پاک کردن",
+    "evenDaysTitle": "روزهای زوج",
+    "evenDaysSubtitle": "شنبه، دوشنبه، چهارشنبه",
+    "oddDaysTitle": "روزهای فرد",
+    "oddDaysSubtitle": "یکشنبه، سه‌شنبه، پنج‌شنبه",
+    "fridayTitle": "جمعه",
+    "breakBanner": "استراحت و ناهار ({start} تا {end})",
+    "phaseCarouselTitle": "فازهای زمانی آموزشگاه",
+    "phaseCardClassesCount": "{count} کلاس آزاد",
+    "phaseCardNoClasses": "بدون کلاس آزاد",
+    "currentPhaseBadge": "فاز جاری",
+    "trackCollapsedCount": "{count} کلاس آزاد",
+    "trackCollapsedEmpty": "بدون کلاس آزاد",
+    "collapseTrack": "بستن بخش",
+    "expandTrack": "باز کردن بخش"
   },
   "qualifications": {
     "title": "سطح‌های قابل تدریس",

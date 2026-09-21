@@ -63,6 +63,7 @@ describe('TeachersService', () => {
       teacherAvailability: {
         deleteMany: jest.fn(),
         createMany: jest.fn(),
+        findMany: jest.fn(),
       },
       teacherCourseQualification: {
         deleteMany: jest.fn(),
@@ -403,6 +404,78 @@ describe('TeachersService', () => {
       expect(
         prisma.teacherCourseQualification.createMany,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('replaceAvailabilities', () => {
+    const existingTeacher = {
+      id: 'teacher-1',
+      instituteId: 'inst-1',
+      firstName: 'Ali',
+      lastName: 'Rezaei',
+      phone: '09123456789',
+      avatarUrl: null,
+      teacherProfile: { id: 'profile-1', availabilities: [] },
+    };
+
+    it('should replace weekly availability slots in a transaction and log audit', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);
+      prisma.teacherAvailability.deleteMany.mockResolvedValue({ count: 1 });
+      prisma.teacherAvailability.createMany.mockResolvedValue({ count: 2 });
+      prisma.teacherAvailability.findMany.mockResolvedValue([
+        {
+          id: 'avail-1',
+          teacherProfileId: 'profile-1',
+          dayOfWeek: 'SATURDAY',
+          startTime: '08:00',
+          endTime: '10:00',
+        },
+        {
+          id: 'avail-2',
+          teacherProfileId: 'profile-1',
+          dayOfWeek: 'MONDAY',
+          startTime: '08:00',
+          endTime: '10:00',
+        },
+      ]);
+
+      const result = await service.replaceAvailabilities(
+        mockAdmin,
+        'teacher-1',
+        {
+          availabilities: [
+            { dayOfWeek: 'SATURDAY', startTime: '08:00', endTime: '10:00' },
+            { dayOfWeek: 'MONDAY', startTime: '08:00', endTime: '10:00' },
+          ],
+        },
+      );
+
+      expect(prisma.teacherAvailability.deleteMany).toHaveBeenCalledWith({
+        where: { teacherProfileId: 'profile-1' },
+      });
+      expect(prisma.teacherAvailability.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            teacherProfileId: 'profile-1',
+            dayOfWeek: 'SATURDAY',
+            startTime: '08:00',
+            endTime: '10:00',
+          },
+          {
+            teacherProfileId: 'profile-1',
+            dayOfWeek: 'MONDAY',
+            startTime: '08:00',
+            endTime: '10:00',
+          },
+        ],
+      });
+      expect(result).toHaveLength(2);
+      expect(auditLogsService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'TEACHER_AVAILABILITY_UPDATED',
+          metadata: { count: 2 },
+        }),
+      );
     });
   });
 

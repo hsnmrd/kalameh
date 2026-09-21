@@ -2,163 +2,241 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Plus, Trash2, Clock } from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Field, FieldLabel } from "@workspace/ui/components/field"
+import { useQuery } from "@tanstack/react-query"
 import {
-  ResponsiveCombobox,
-  type ComboboxOption,
-} from "@workspace/ui/components/combobox"
-import {
+  calculatePhaseSlots,
+  EVEN_CLASS_DAYS,
+  isOperatingPhaseCurrent,
+  ODD_CLASS_DAYS,
   WEEK_DAYS,
-  type WeekDay,
+  type PhaseGeneratedSlot,
   type TeacherAvailabilityInput,
+  type WeekDay,
 } from "@workspace/types"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { operatingPhasesResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
+import { PhaseCarousel } from "./phase-carousel"
+import { TrackSlotRow } from "./track-slot-row"
 
 export interface AvailabilityEditorProps {
   value: TeacherAvailabilityInput[]
   onChange: (slots: TeacherAvailabilityInput[]) => void
+  instituteId?: string
+  disabled?: boolean
+}
+
+interface DayTrack {
+  id: string
+  title: string
+  subtitle?: string
+  days: WeekDay[]
 }
 
 export function AvailabilityEditor({
   value = [],
   onChange,
+  instituteId,
+  disabled = false,
 }: AvailabilityEditorProps) {
   const t = useTranslations("teachers")
+  const { activeInstituteId } = useActiveInstitute()
+  const effectiveInstituteId = instituteId || activeInstituteId
 
-  const [selectedDay, setSelectedDay] = React.useState<WeekDay>("SATURDAY")
-  const [startTime, setStartTime] = React.useState("16:00")
-  const [endTime, setEndTime] = React.useState("20:00")
+  const { data: phases = [], isLoading: isPhasesLoading } = useQuery({
+    ...operatingPhasesResource.list.toQuery(
+      effectiveInstituteId ? { instituteId: effectiveInstituteId } : undefined
+    ),
+    enabled: Boolean(effectiveInstituteId),
+  })
 
-  const dayOptions: ComboboxOption[] = React.useMemo(() => {
-    return WEEK_DAYS.map((d) => ({
-      value: d,
-      label: t(`days.${d}`),
-    }))
-  }, [t])
+  const activePhases = React.useMemo(
+    () => phases.filter((p) => p.isActive),
+    [phases]
+  )
 
-  const handleAdd = () => {
-    if (!startTime || !endTime) return
+  const defaultPhase = React.useMemo(() => {
+    return (
+      activePhases.find((p) => isOperatingPhaseCurrent(p)) ||
+      activePhases[0] ||
+      null
+    )
+  }, [activePhases])
 
-    const newSlot: TeacherAvailabilityInput = {
-      dayOfWeek: selectedDay,
-      startTime,
-      endTime,
+  const [selectedPhaseId, setSelectedPhaseId] = React.useState<string | null>(
+    null
+  )
+  const currentPhase = React.useMemo(() => {
+    const id = selectedPhaseId || defaultPhase?.id
+    return activePhases.find((p) => p.id === id) || null
+  }, [selectedPhaseId, defaultPhase, activePhases])
+
+  const phaseCalculation = React.useMemo(() => {
+    if (!currentPhase) return null
+    return calculatePhaseSlots(
+      currentPhase.startTime,
+      currentPhase.endTime,
+      currentPhase.slotDurationMinutes,
+      {
+        hasBreak: currentPhase.hasBreak,
+        breakStartTime: currentPhase.breakStartTime,
+        breakEndTime: currentPhase.breakEndTime,
+      }
+    )
+  }, [currentPhase])
+
+  const standardSlots: PhaseGeneratedSlot[] = React.useMemo(() => {
+    return phaseCalculation?.slots ?? []
+  }, [phaseCalculation])
+
+  const activeDays = React.useMemo<WeekDay[]>(() => {
+    if (currentPhase?.daysOfWeek && currentPhase.daysOfWeek.length > 0) {
+      return WEEK_DAYS.filter((d) => currentPhase.daysOfWeek.includes(d))
+    }
+    return WEEK_DAYS as unknown as WeekDay[]
+  }, [currentPhase])
+
+  // Split active days into Even, Odd, and weekend tracks
+  const tracks = React.useMemo<DayTrack[]>(() => {
+    const list: DayTrack[] = []
+
+    const evenDays = EVEN_CLASS_DAYS.filter((d) => activeDays.includes(d))
+    if (evenDays.length > 0) {
+      list.push({
+        id: "even",
+        title: t("availabilities.evenDaysTitle"),
+        subtitle: t("availabilities.evenDaysSubtitle"),
+        days: [...evenDays],
+      })
     }
 
-    onChange([...value, newSlot])
+    const oddDays = ODD_CLASS_DAYS.filter((d) => activeDays.includes(d))
+    if (oddDays.length > 0) {
+      list.push({
+        id: "odd",
+        title: t("availabilities.oddDaysTitle"),
+        subtitle: t("availabilities.oddDaysSubtitle"),
+        days: [...oddDays],
+      })
+    }
+
+    if (activeDays.includes("FRIDAY")) {
+      list.push({
+        id: "friday",
+        title: t("availabilities.fridayTitle"),
+        days: ["FRIDAY"],
+      })
+    }
+
+    return list
+  }, [activeDays, t])
+
+  const handleToggleSlot = (trackDays: WeekDay[], slot: PhaseGeneratedSlot) => {
+    const isAllSelected = trackDays.every((day) =>
+      value.some(
+        (s) =>
+          s.dayOfWeek === day &&
+          s.startTime === slot.startTime &&
+          s.endTime === slot.endTime
+      )
+    )
+
+    if (isAllSelected) {
+      // Remove this slot from all track days
+      onChange(
+        value.filter(
+          (s) =>
+            !(
+              trackDays.includes(s.dayOfWeek as WeekDay) &&
+              s.startTime === slot.startTime &&
+              s.endTime === slot.endTime
+            )
+        )
+      )
+    } else {
+      // Add this slot to all track days that don't already have it
+      const filtered = value.filter(
+        (s) =>
+          !(
+            trackDays.includes(s.dayOfWeek as WeekDay) &&
+            s.startTime === slot.startTime &&
+            s.endTime === slot.endTime
+          )
+      )
+      const additions: TeacherAvailabilityInput[] = trackDays.map((day) => ({
+        dayOfWeek: day,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+      }))
+      onChange([...filtered, ...additions])
+    }
   }
 
-  const handleRemove = (index: number) => {
-    const updated = value.filter((_, i) => i !== index)
-    onChange(updated)
+  const handleSelectAllTrack = (
+    trackDays: WeekDay[],
+    slots: PhaseGeneratedSlot[]
+  ) => {
+    const otherDaysSlots = value.filter(
+      (s) => !trackDays.includes(s.dayOfWeek as WeekDay)
+    )
+    const newTrackSlots: TeacherAvailabilityInput[] = []
+    for (const day of trackDays) {
+      for (const slot of slots) {
+        newTrackSlots.push({
+          dayOfWeek: day,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        })
+      }
+    }
+    onChange([...otherDaysSlots, ...newTrackSlots])
+  }
+
+  const handleClearTrack = (trackDays: WeekDay[]) => {
+    onChange(value.filter((s) => !trackDays.includes(s.dayOfWeek as WeekDay)))
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border/80 bg-muted/20 p-4">
-      <div className="flex items-center gap-2">
-        <Clock className="size-4 text-muted-foreground" />
-        <h4 className="text-sm font-semibold text-foreground">
-          {t("availabilities.title")}
-        </h4>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        {t("availabilities.description")}
-      </p>
-
-      {/* Add Slot Row */}
-      <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-7">
-        <div className="sm:col-span-3">
-          <Field>
-            <FieldLabel className="text-xs">
-              {t("availabilities.day")}
-            </FieldLabel>
-            <ResponsiveCombobox
-              items={dayOptions}
-              value={selectedDay}
-              onValueChange={(val) => {
-                if (val) setSelectedDay(val as WeekDay)
-              }}
-              drawerTitle={t("availabilities.day")}
-            />
-          </Field>
+    <div className="flex flex-col gap-4">
+      {/* Operating Phases Carousel */}
+      {isPhasesLoading ? (
+        <div className="flex items-center justify-center py-4">
+          <Spinner className="size-5 text-muted-foreground" />
         </div>
+      ) : activePhases.length > 0 ? (
+        <PhaseCarousel
+          phases={activePhases}
+          selectedPhaseId={currentPhase?.id ?? ""}
+          onSelectPhase={(id) => setSelectedPhaseId(id)}
+          value={value}
+          disabled={disabled}
+        />
+      ) : null}
 
-        <div className="grid grid-cols-2 gap-2 sm:col-span-3">
-          <Field>
-            <FieldLabel className="text-xs">
-              {t("availabilities.startTime")}
-            </FieldLabel>
-            <Input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="text-center"
+      {/* Standard Operating Phase Slots in Even / Odd tracks */}
+      {currentPhase && standardSlots.length > 0 ? (
+        <div className="flex flex-col gap-4">
+          {tracks.map((track) => (
+            <TrackSlotRow
+              key={track.id}
+              trackTitle={track.title}
+              trackSubtitle={track.subtitle}
+              days={track.days}
+              slots={standardSlots}
+              breakInfo={phaseCalculation?.breakInfo}
+              value={value}
+              onToggleSlot={handleToggleSlot}
+              onSelectAllTrack={handleSelectAllTrack}
+              onClearTrack={handleClearTrack}
+              disabled={disabled}
             />
-          </Field>
-
-          <Field>
-            <FieldLabel className="text-xs">
-              {t("availabilities.endTime")}
-            </FieldLabel>
-            <Input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="text-center"
-            />
-          </Field>
-        </div>
-
-        <div className="sm:col-span-1">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleAdd}
-            className="h-14 w-full cursor-pointer rounded-2xl p-0"
-            title={t("availabilities.addSlot")}
-            aria-label={t("availabilities.addSlot")}
-          >
-            <Plus className="size-5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Slots List */}
-      {value.length === 0 ? (
-        <p className="py-2 text-center text-xs text-muted-foreground">
-          {t("availabilities.noSlots")}
-        </p>
-      ) : (
-        <div className="flex flex-col gap-2 pt-2">
-          {value.map((slot, idx) => (
-            <div
-              key={`${slot.dayOfWeek}-${slot.startTime}-${slot.endTime}-${idx}`}
-              className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm"
-            >
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-foreground">
-                  {t(`days.${slot.dayOfWeek}`)}:
-                </span>
-                <span className="font-mono text-xs text-muted-foreground">
-                  {slot.startTime} - {slot.endTime}
-                </span>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => handleRemove(idx)}
-                className="size-8 text-muted-foreground hover:text-destructive"
-                aria-label={t("availabilities.removeSlot")}
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </div>
           ))}
         </div>
-      )}
+      ) : !isPhasesLoading ? (
+        <div className="rounded-2xl border border-dashed border-border/80 bg-background/50 p-6 text-center text-xs text-muted-foreground">
+          {t("availabilities.noActivePhase")}
+        </div>
+      ) : null}
     </div>
   )
 }

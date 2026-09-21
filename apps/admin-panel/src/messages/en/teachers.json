@@ -24,10 +24,12 @@
     "actions": "Actions",
     "empty": "No teachers found",
     "classesUnit": "Classes",
-    "noAvailability": "Not specified"
+    "noAvailability": "Not specified",
+    "setAvailability": "Set Availability"
   },
   "actions": {
     "viewProfile": "View Dossier",
+    "manageAvailability": "Weekly Availability",
     "edit": "Edit Teacher",
     "resetPassword": "Reset Password",
     "delete": "Delete Teacher",
@@ -35,7 +37,7 @@
   },
   "createModal": {
     "title": "Add New Teacher",
-    "description": "Enter personal information and weekly free-time availability slots.",
+    "description": "Enter personal information and credentials for the new teacher.",
     "firstName": "First Name",
     "firstNamePlaceholder": "e.g. John",
     "lastName": "Last Name",
@@ -57,7 +59,7 @@
   },
   "editModal": {
     "title": "Edit Teacher",
-    "description": "Modify teacher personal information and weekly availability.",
+    "description": "Modify teacher personal information and credentials.",
     "status": "Account Status",
     "submit": "Save Changes",
     "cancel": "Cancel",
@@ -66,6 +68,11 @@
   },
   "availabilities": {
     "title": "Weekly Free Time Schedule",
+    "modalTitle": "Weekly Availability Schedule",
+    "modalDescription": "Define available time slots for {name} across even and odd days for class scheduling",
+    "save": "Save",
+    "updateSuccess": "Teacher availability updated successfully",
+    "updateError": "Failed to update teacher availability",
     "description": "Define the teacher's available hours to avoid scheduling conflicts during class generation.",
     "addSlot": "Add Available Time Slot",
     "day": "Day of Week",
@@ -73,7 +80,28 @@
     "endTime": "End",
     "removeSlot": "Remove",
     "noSlots": "No availability slots defined (classes can be scheduled at any time).",
-    "slotsCount": "{count} free slots"
+    "slotsCount": "{count} free slots",
+    "phaseLabel": "Operating Phase",
+    "phasePlaceholder": "Select operating phase...",
+    "noActivePhase": "No active operating phase found for this institute. Please define an operating phase first.",
+    "standardSlotsTitle": "Operating Phase Slots ({phaseTitle})",
+    "slotLabel": "Slot {slotNumber}",
+    "selectAllSlots": "Select all",
+    "clearAllSlots": "Clear",
+    "evenDaysTitle": "Even Days",
+    "evenDaysSubtitle": "Saturday, Monday, Wednesday",
+    "oddDaysTitle": "Odd Days",
+    "oddDaysSubtitle": "Sunday, Tuesday, Thursday",
+    "fridayTitle": "Friday",
+    "breakBanner": "Break & Lunch ({start} - {end})",
+    "phaseCarouselTitle": "Operating Phases",
+    "phaseCardClassesCount": "{count} free classes",
+    "phaseCardNoClasses": "No free classes",
+    "currentPhaseBadge": "Current",
+    "trackCollapsedCount": "{count} free classes",
+    "trackCollapsedEmpty": "No free classes",
+    "collapseTrack": "Collapse track",
+    "expandTrack": "Expand track"
   },
   "qualifications": {
     "title": "Teachable courses",

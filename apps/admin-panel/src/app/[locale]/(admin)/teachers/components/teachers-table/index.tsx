@@ -26,6 +26,7 @@ export interface TeachersTableProps {
   isLoading: boolean
   onViewProfile: (teacher: TeacherDto) => void
   onEdit: (teacher: TeacherDto) => void
+  onManageAvailability: (teacher: TeacherDto) => void
   onResetPassword: (teacher: TeacherDto) => void
   onDelete: (teacher: TeacherDto) => void
 }
@@ -35,6 +36,7 @@ export function TeachersTable({
   isLoading,
   onViewProfile,
   onEdit,
+  onManageAvailability,
   onResetPassword,
   onDelete,
 }: TeachersTableProps) {
@@ -99,19 +101,24 @@ export function TeachersTable({
         accessorKey: "availabilities",
         header: t("table.availabilities"),
         cell: ({ row }) => {
-          const count = row.original.teacherProfile?.availabilities?.length || 0
-          if (count === 0) {
-            return (
-              <span className="text-xs text-muted-foreground">
-                {t("table.noAvailability")}
-              </span>
-            )
-          }
+          const teacher = row.original
+          const count = teacher.teacherProfile?.availabilities?.length || 0
           return (
-            <Badge variant="secondary" className="gap-1.5 font-normal">
-              <Clock className="size-3 text-muted-foreground" />
-              <span>{t("availabilities.slotsCount", { count })}</span>
-            </Badge>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onManageAvailability(teacher)}
+              className="h-8 gap-1.5 px-2.5 font-normal text-muted-foreground hover:text-foreground"
+              title={t("actions.manageAvailability")}
+            >
+              <Clock className="size-3.5 text-muted-foreground" />
+              <span>
+                {count > 0
+                  ? t("availabilities.slotsCount", { count })
+                  : t("table.setAvailability")}
+              </span>
+            </Button>
           )
         },
       },
@@ -182,6 +189,14 @@ export function TeachersTable({
                     mode="hide"
                   >
                     <DropdownMenuItem
+                      onClick={() => onManageAvailability(teacher)}
+                      className="gap-2"
+                    >
+                      <Clock className="size-4 text-muted-foreground" />
+                      <span>{t("actions.manageAvailability")}</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
                       onClick={() => onEdit(teacher)}
                       className="gap-2"
                     >
@@ -214,7 +229,7 @@ export function TeachersTable({
         },
       },
     ],
-    [t, onViewProfile, onEdit, onResetPassword, onDelete]
+    [t, onViewProfile, onEdit, onManageAvailability, onResetPassword, onDelete]
   )
 
   if (isLoading) {

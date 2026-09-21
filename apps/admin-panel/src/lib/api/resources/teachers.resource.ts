@@ -3,6 +3,8 @@ import type {
   CreateTeacherInput,
   UpdateTeacherInput,
   TeacherLookupResponse,
+  TeacherAvailability,
+  TeacherAvailabilityInput,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -35,6 +37,12 @@ export const teachersResource = api.resource("teachers", {
       bodyType: "form-data",
     }
   ),
+  updateAvailabilities: api.put<
+    TeacherAvailability[],
+    { id: string; availabilities: TeacherAvailabilityInput[] }
+  >(({ id }) => `/teachers/${id}/availabilities`, {
+    body: ({ availabilities }) => ({ availabilities }),
+  }),
   delete: api.delete<
     { success: boolean; deactivated?: boolean; deleted?: boolean },
     string

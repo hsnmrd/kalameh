@@ -3,7 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
-import { UserCheck, Eye, Edit, KeyRound, Trash2 } from "lucide-react"
+import { UserCheck, Eye, Edit, KeyRound, Trash2, Clock } from "lucide-react"
 import {
   MobileList,
   MobileListItem,
@@ -35,6 +35,7 @@ export interface TeachersListProps {
   isLoading: boolean
   onViewProfile: (teacher: TeacherDto) => void
   onEdit: (teacher: TeacherDto) => void
+  onManageAvailability: (teacher: TeacherDto) => void
   onResetPassword: (teacher: TeacherDto) => void
   onDelete: (teacher: TeacherDto) => void
 }
@@ -44,6 +45,7 @@ export function TeachersList({
   isLoading,
   onViewProfile,
   onEdit,
+  onManageAvailability,
   onResetPassword,
   onDelete,
 }: TeachersListProps) {
@@ -156,6 +158,14 @@ export function TeachersList({
                 permission={PERMISSIONS.MANAGE_TEACHERS}
                 mode="hide"
               >
+                <ContextMenuItem
+                  onClick={() => onManageAvailability(teacher)}
+                  className="gap-2"
+                >
+                  <Clock className="size-4 text-muted-foreground" />
+                  <span>{t("actions.manageAvailability")}</span>
+                </ContextMenuItem>
+
                 <ContextMenuItem
                   onClick={() => onEdit(teacher)}
                   className="gap-2"

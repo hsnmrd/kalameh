@@ -17,6 +17,7 @@ import { TeachersTable } from "./components/teachers-table"
 import { TeachersList } from "./components/teachers-list"
 import { CreateTeacherModal } from "./components/create-teacher-modal"
 import { EditTeacherModal } from "./components/edit-teacher-modal"
+import { TeacherAvailabilityModal } from "./components/teacher-availability-modal"
 import { TeacherProfileModal } from "./components/teacher-profile-modal"
 import { ResetPasswordModal } from "./components/reset-password-modal"
 import { DeleteTeacherModal } from "./components/delete-teacher-modal"
@@ -28,6 +29,8 @@ export default function TeachersPage() {
 
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [viewProfileTeacher, setViewProfileTeacher] =
+    React.useState<TeacherDto | null>(null)
+  const [availabilityTeacher, setAvailabilityTeacher] =
     React.useState<TeacherDto | null>(null)
   const [editTeacher, setEditTeacher] = React.useState<TeacherDto | null>(null)
   const [deleteTeacher, setDeleteTeacher] = React.useState<TeacherDto | null>(
@@ -91,10 +94,22 @@ export default function TeachersPage() {
                   setViewProfileTeacher(null)
                   setEditTeacher(teacher)
                 }}
+                onManageAvailability={(teacher) => {
+                  setViewProfileTeacher(null)
+                  setAvailabilityTeacher(teacher)
+                }}
                 onResetPassword={(teacher) => {
                   setViewProfileTeacher(null)
                   setResetPasswordTeacher(teacher)
                 }}
+              />
+
+              {/* Teacher Availability Modal */}
+              <TeacherAvailabilityModal
+                teacher={availabilityTeacher}
+                open={Boolean(availabilityTeacher)}
+                onClose={() => setAvailabilityTeacher(null)}
+                instituteId={activeInstituteId}
               />
 
               {/* Edit Teacher Modal */}
@@ -138,6 +153,9 @@ export default function TeachersPage() {
               isLoading={isLoading}
               onViewProfile={(teacher) => setViewProfileTeacher(teacher)}
               onEdit={(teacher) => setEditTeacher(teacher)}
+              onManageAvailability={(teacher) =>
+                setAvailabilityTeacher(teacher)
+              }
               onResetPassword={(teacher) => setResetPasswordTeacher(teacher)}
               onDelete={(teacher) => setDeleteTeacher(teacher)}
             />
@@ -150,6 +168,9 @@ export default function TeachersPage() {
               isLoading={isLoading}
               onViewProfile={(teacher) => setViewProfileTeacher(teacher)}
               onEdit={(teacher) => setEditTeacher(teacher)}
+              onManageAvailability={(teacher) =>
+                setAvailabilityTeacher(teacher)
+              }
               onResetPassword={(teacher) => setResetPasswordTeacher(teacher)}
               onDelete={(teacher) => setDeleteTeacher(teacher)}
             />

@@ -7,7 +7,6 @@ import { Input } from "@workspace/ui/components/input"
 import { PasswordInput } from "@workspace/ui/components/password-input"
 import type { CourseDto } from "@workspace/types"
 import type { CreateTeacherInput } from "../../../hooks/use-teacher-schemas"
-import { AvailabilityEditor } from "../../availability-editor"
 import { CourseQualificationsEditor } from "../../course-qualifications-editor"
 
 interface FormFieldsProps {
@@ -124,16 +123,6 @@ export function FormFields({
             value={field.value ?? []}
             onChange={field.onChange}
             isLoading={areCoursesLoading}
-          />
-        )}
-      />
-      <Controller
-        control={control}
-        name="availabilities"
-        render={({ field }) => (
-          <AvailabilityEditor
-            value={field.value || []}
-            onChange={field.onChange}
           />
         )}
       />

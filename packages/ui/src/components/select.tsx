@@ -62,17 +62,15 @@ function SelectItem({
   return (
     <SelectPrimitive.Item
       className={cn(
-        "relative flex w-full cursor-pointer items-center rounded-lg py-2 ps-8 pe-2 text-sm outline-hidden select-none hover:bg-muted focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex w-full cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-base font-medium outline-hidden transition-colors select-none hover:bg-muted/60 focus:bg-muted/60 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted/60 data-[selected]:bg-primary/10 data-[selected]:font-semibold data-[selected]:text-primary data-[selected]:data-[highlighted]:bg-primary/15",
         className
       )}
       {...props}
     >
-      <span className="absolute start-2 flex size-3.5 items-center justify-center">
-        <SelectPrimitive.ItemIndicator>
-          <Check className="size-4 text-foreground" />
-        </SelectPrimitive.ItemIndicator>
-      </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemIndicator className="flex size-4.5 shrink-0 items-center justify-center text-primary">
+        <Check className="size-4.5 text-primary" />
+      </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   )
 }

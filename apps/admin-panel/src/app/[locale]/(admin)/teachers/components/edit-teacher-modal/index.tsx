@@ -64,12 +64,6 @@ export function EditTeacherModal({
         degree: teacher.teacherProfile?.degree || "",
         bio: teacher.teacherProfile?.bio || "",
         isActive: teacher.isActive,
-        availabilities:
-          teacher.teacherProfile?.availabilities?.map((a) => ({
-            dayOfWeek: a.dayOfWeek,
-            startTime: a.startTime,
-            endTime: a.endTime,
-          })) || [],
         courseIds:
           teacher.teacherProfile?.teachableCourses?.map(
             (qualification) => qualification.courseId
@@ -103,14 +97,6 @@ export function EditTeacherModal({
     if (data.isActive !== undefined)
       formData.append("isActive", String(data.isActive))
     formData.append("courseIds", JSON.stringify(data.courseIds ?? []))
-
-    if (data.availabilities) {
-      data.availabilities.forEach((slot, index) => {
-        formData.append(`availabilities[${index}][dayOfWeek]`, slot.dayOfWeek)
-        formData.append(`availabilities[${index}][startTime]`, slot.startTime)
-        formData.append(`availabilities[${index}][endTime]`, slot.endTime)
-      })
-    }
 
     updateMutation.mutate({
       id: teacher.id,

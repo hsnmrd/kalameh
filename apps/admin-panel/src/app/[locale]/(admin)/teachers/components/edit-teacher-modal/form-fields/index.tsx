@@ -8,7 +8,6 @@ import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import type { UpdateTeacherInput } from "../../../hooks/use-teacher-schemas"
-import { AvailabilityEditor } from "../../availability-editor"
 import { CourseQualificationsEditor } from "../../course-qualifications-editor"
 
 interface FormFieldsProps {
@@ -117,16 +116,6 @@ export function FormFields({
             value={field.value ?? []}
             onChange={field.onChange}
             isLoading={areCoursesLoading}
-          />
-        )}
-      />
-      <Controller
-        control={control}
-        name="availabilities"
-        render={({ field }) => (
-          <AvailabilityEditor
-            value={field.value ?? []}
-            onChange={field.onChange}
           />
         )}
       />

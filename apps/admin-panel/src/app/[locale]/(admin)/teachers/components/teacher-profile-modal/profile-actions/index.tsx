@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { Edit2, KeyRound, MoreVertical } from "lucide-react"
+import { Edit2, KeyRound, MoreVertical, Clock } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,13 +16,21 @@ interface ProfileActionsProps {
   fullName: string
   onClose: () => void
   onEdit?: (teacher: TeacherDto) => void
+  onManageAvailability?: (teacher: TeacherDto) => void
   onResetPassword?: (teacher: TeacherDto) => void
 }
 
 export function ProfileActions(props: ProfileActionsProps) {
-  const { teacher, fullName, onClose, onEdit, onResetPassword } = props
+  const {
+    teacher,
+    fullName,
+    onClose,
+    onEdit,
+    onManageAvailability,
+    onResetPassword,
+  } = props
   const t = useTranslations("teachers")
-  if (!onEdit && !onResetPassword) return null
+  if (!onEdit && !onResetPassword && !onManageAvailability) return null
 
   const runAction = (action: (teacher: TeacherDto) => void) => {
     onClose()
@@ -42,6 +50,14 @@ export function ProfileActions(props: ProfileActionsProps) {
         drawerTitle={fullName}
         className="min-w-48"
       >
+        {onManageAvailability && (
+          <PermissionGuard permission={PERMISSIONS.MANAGE_TEACHERS} mode="hide">
+            <DropdownMenuItem onClick={() => runAction(onManageAvailability)}>
+              <Clock className="size-4 text-muted-foreground" />
+              <span>{t("actions.manageAvailability")}</span>
+            </DropdownMenuItem>
+          </PermissionGuard>
+        )}
         {onResetPassword && (
           <PermissionGuard permission={PERMISSIONS.MANAGE_TEACHERS} mode="hide">
             <DropdownMenuItem onClick={() => runAction(onResetPassword)}>

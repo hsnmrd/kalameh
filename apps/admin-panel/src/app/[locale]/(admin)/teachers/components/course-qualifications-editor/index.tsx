@@ -14,14 +14,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@workspace/ui/components/empty"
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@workspace/ui/components/field"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { ResponsivePopover } from "@workspace/ui/components/popover"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { cn } from "@workspace/ui/lib/utils"
 
 interface CourseQualificationsEditorProps {
   courses: CourseDto[]
@@ -94,19 +91,32 @@ export function CourseQualificationsEditor({
           <div className="flex flex-col gap-1">
             {filteredCourses.map((course) => {
               const checkboxId = `teacher-course-${course.id}`
+              const isChecked = value.includes(course.id)
               return (
                 <div
                   key={course.id}
-                  className="flex items-center gap-2 rounded-xl px-2.5 py-2 transition-colors hover:bg-muted/60"
+                  className={cn(
+                    "relative flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-base font-medium transition-colors select-none",
+                    isChecked
+                      ? "bg-primary/10 text-foreground hover:bg-primary/15"
+                      : "text-foreground hover:bg-muted/60"
+                  )}
+                  onClick={() => toggleCourse(course.id)}
                 >
-                  <Checkbox
-                    id={checkboxId}
-                    checked={value.includes(course.id)}
-                    onCheckedChange={() => toggleCourse(course.id)}
-                  />
+                  <div
+                    className="flex shrink-0 items-center justify-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Checkbox
+                      id={checkboxId}
+                      checked={isChecked}
+                      onCheckedChange={() => toggleCourse(course.id)}
+                    />
+                  </div>
                   <FieldLabel
                     htmlFor={checkboxId}
-                    className="min-w-0 flex-1 cursor-pointer font-medium"
+                    onClick={(e) => e.stopPropagation()}
+                    className="min-w-0 flex-1 cursor-pointer text-base font-medium text-foreground"
                   >
                     {course.title}
                   </FieldLabel>
@@ -122,7 +132,6 @@ export function CourseQualificationsEditor({
   return (
     <Field>
       <FieldLabel>{t("title")}</FieldLabel>
-      <FieldDescription>{t("description")}</FieldDescription>
       <ResponsivePopover
         open={open}
         onOpenChange={setOpen}
@@ -138,9 +147,16 @@ export function CourseQualificationsEditor({
             type="button"
             variant="outline"
             disabled={disabled}
-            className="h-11 w-full justify-between rounded-xl px-3 font-normal"
+            className="h-14 w-full justify-between rounded-2xl border-border px-4 text-base font-normal shadow-2xs hover:bg-muted/30"
           >
-            <span className="truncate text-muted-foreground">
+            <span
+              className={cn(
+                "truncate",
+                value.length > 0
+                  ? "text-foreground"
+                  : "text-muted-foreground/60"
+              )}
+            >
               {value.length > 0
                 ? t("selectedCount", { count: value.length })
                 : t("placeholder")}
