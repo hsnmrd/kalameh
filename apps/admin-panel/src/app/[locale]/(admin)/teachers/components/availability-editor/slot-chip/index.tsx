@@ -13,6 +13,7 @@ export interface SlotChipProps {
   isSelected: boolean
   onToggle: () => void
   disabled?: boolean
+  className?: string
 }
 
 export function SlotChip({
@@ -22,6 +23,7 @@ export function SlotChip({
   isSelected,
   onToggle,
   disabled = false,
+  className,
 }: SlotChipProps) {
   const t = useTranslations("teachers.availabilities")
 
@@ -32,10 +34,11 @@ export function SlotChip({
       disabled={disabled}
       onClick={onToggle}
       className={cn(
-        "flex h-auto cursor-pointer flex-col items-stretch justify-center gap-1.5 rounded-2xl border p-3 text-start transition-all",
+        "flex h-auto w-full cursor-pointer flex-col items-stretch justify-center gap-1.5 rounded-2xl border p-3 text-start transition-all",
         isSelected
           ? "border-primary bg-primary/10 text-primary shadow-2xs hover:bg-primary/15"
-          : "border-border bg-background text-foreground hover:border-border/80 hover:bg-muted/40"
+          : "border-border bg-background text-foreground hover:border-border/80 hover:bg-muted/40",
+        className
       )}
       aria-pressed={isSelected}
     >

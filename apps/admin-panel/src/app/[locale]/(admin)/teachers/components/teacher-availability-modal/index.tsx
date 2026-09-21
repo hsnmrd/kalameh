@@ -70,7 +70,7 @@ export function TeacherAvailabilityModal({
       })
       if (teacher?.id) {
         queryClient.invalidateQueries({
-          queryKey: teachersResource.detail.baseKey(teacher.id),
+          queryKey: teachersResource.detail.key(teacher.id),
         })
       }
       handleClose()

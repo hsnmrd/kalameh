@@ -216,8 +216,8 @@ export function TrackSlotRow({
                   <Coffee className="size-3 text-muted-foreground" />
                   <span>
                     {t("breakBanner", {
-                      start: breakInfo?.startTime,
-                      end: breakInfo?.endTime,
+                      start: breakInfo?.startTime ?? "",
+                      end: breakInfo?.endTime ?? "",
                     })}
                   </span>
                 </div>

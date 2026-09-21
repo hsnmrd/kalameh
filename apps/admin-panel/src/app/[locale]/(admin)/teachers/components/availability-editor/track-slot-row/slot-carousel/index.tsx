@@ -44,11 +44,11 @@ export function SlotCarousel({
           <CarouselPrevious className="static size-7 shrink-0 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 p-0 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
         )}
         <div className="min-w-0 flex-1">
-          <CarouselContent className="-ms-2.5">
+          <CarouselContent>
             {slots.map((slot) => (
               <CarouselItem
                 key={`${trackTitle}-${slot.slotNumber}-${slot.startTime}`}
-                className="basis-[48%] ps-2.5 sm:basis-[32%] md:basis-[24%]"
+                className="basis-1/2 sm:basis-1/3 md:basis-1/4"
               >
                 <SlotChip
                   slotNumber={slot.slotNumber}
