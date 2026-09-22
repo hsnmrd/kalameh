@@ -92,6 +92,8 @@ export class StudentsService {
           gender: dto.gender,
           emergencyPhone: dto.emergencyPhone,
           address: dto.address,
+          schoolShift: dto.schoolShift ?? 'FLEXIBLE',
+          dayPreference: dto.dayPreference ?? 'ANY',
         },
       });
 
@@ -386,6 +388,8 @@ export class StudentsService {
           gender: dto.gender,
           emergencyPhone: dto.emergencyPhone,
           address: dto.address,
+          schoolShift: dto.schoolShift ?? 'FLEXIBLE',
+          dayPreference: dto.dayPreference ?? 'ANY',
         },
         update: {
           ...(dto.fatherName !== undefined
@@ -399,6 +403,12 @@ export class StudentsService {
             ? { emergencyPhone: dto.emergencyPhone }
             : {}),
           ...(dto.address !== undefined ? { address: dto.address } : {}),
+          ...(dto.schoolShift !== undefined
+            ? { schoolShift: dto.schoolShift }
+            : {}),
+          ...(dto.dayPreference !== undefined
+            ? { dayPreference: dto.dayPreference }
+            : {}),
         },
       });
 

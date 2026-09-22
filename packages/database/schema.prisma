@@ -40,7 +40,6 @@ model Institute {
   rolePermissions             RolePermission[]
   auditLogs                   AuditLog[]
   teacherCourseQualifications TeacherCourseQualification[]
-  studentTimeConstraints      StudentTimeConstraint[]
   classRequirements           ClassRequirement[]
   schedulingRuns              SchedulingRun[]
   schedulingPlans             SchedulingPlan[]
@@ -125,21 +124,25 @@ model User {
 }
 
 model StudentProfile {
-  id              String                  @id @default(uuid())
-  userId          String                  @unique
-  fatherName      String?
-  birthDate       DateTime?
-  gender          String?
-  emergencyPhone  String?
-  address         String?
-  scheduleStatus  StudentScheduleStatus   @default(INCOMPLETE)
-  notes           StudentNote[]
-  timeConstraints StudentTimeConstraint[]
+  id             String                @id @default(uuid())
+  userId         String                @unique
+  fatherName     String?
+  birthDate      DateTime?
+  gender         String?
+  emergencyPhone String?
+  address        String?
+  scheduleStatus StudentScheduleStatus @default(INCOMPLETE)
+  schoolShift    StudentSchoolShift    @default(FLEXIBLE)
+  dayPreference  StudentDayPreference  @default(ANY)
+  notes          StudentNote[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([schoolShift])
+  @@index([dayPreference])
 }
 
 enum StudentScheduleStatus {
@@ -147,42 +150,16 @@ enum StudentScheduleStatus {
   COMPLETE
 }
 
-enum StudentTimeConstraintKind {
-  UNAVAILABLE
-  PREFERRED
+enum StudentSchoolShift {
+  MORNING
+  AFTERNOON
+  FLEXIBLE
 }
 
-enum StudentTimeConstraintSource {
-  SCHOOL
-  UNIVERSITY
-  WORK
-  PERSONAL
-  OTHER
-}
-
-model StudentTimeConstraint {
-  id               String                      @id @default(uuid())
-  instituteId      String
-  studentProfileId String
-  kind             StudentTimeConstraintKind
-  source           StudentTimeConstraintSource @default(OTHER)
-  dayOfWeek        String
-  startTime        String
-  endTime          String
-  label            String?
-  effectiveFrom    DateTime?
-  effectiveUntil   DateTime?
-
-  institute      Institute      @relation(fields: [instituteId], references: [id], onDelete: Cascade)
-  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([instituteId])
-  @@index([studentProfileId])
-  @@index([studentProfileId, kind])
-  @@index([studentProfileId, effectiveFrom, effectiveUntil])
+enum StudentDayPreference {
+  EVEN_DAYS
+  ODD_DAYS
+  ANY
 }
 
 model StudentNote {

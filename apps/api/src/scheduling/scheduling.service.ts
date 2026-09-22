@@ -112,7 +112,7 @@ export class SchedulingService {
     const courseIds = Array.from(
       new Set(requirements.map((requirement) => requirement.courseId)),
     );
-    const [teachers, students, existingClasses, classrooms, activeTeachers] =
+    const [teachers, rawStudents, existingClasses, classrooms, activeTeachers] =
       await Promise.all([
         this.prisma.teacherCourseQualification.findMany({
           where: {
@@ -165,21 +165,9 @@ export class SchedulingService {
             studentProfile: {
               select: {
                 scheduleStatus: true,
+                schoolShift: true,
+                dayPreference: true,
                 updatedAt: true,
-                timeConstraints: {
-                  select: {
-                    id: true,
-                    kind: true,
-                    source: true,
-                    dayOfWeek: true,
-                    startTime: true,
-                    endTime: true,
-                    effectiveFrom: true,
-                    effectiveUntil: true,
-                    updatedAt: true,
-                  },
-                  orderBy: { id: 'asc' },
-                },
               },
             },
           },
@@ -239,6 +227,16 @@ export class SchedulingService {
           orderBy: { id: 'asc' },
         }),
       ]);
+
+    const students = rawStudents.map((s) => ({
+      ...s,
+      studentProfile: s.studentProfile
+        ? {
+            ...s.studentProfile,
+            timeConstraints: [] as any[],
+          }
+        : null,
+    }));
 
     const capturedAt = new Date();
     const preflightReport = this.preflightService.evaluate({

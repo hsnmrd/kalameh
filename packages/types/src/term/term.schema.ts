@@ -27,6 +27,7 @@ export const TermSchema = z.object({
       startTime: z.string(),
       endTime: z.string(),
       slotDurationMinutes: z.number().int(),
+      daysOfWeek: z.array(z.string()).optional(),
     })
     .nullable()
     .optional(),

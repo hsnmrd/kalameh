@@ -1,5 +1,9 @@
 import { z } from "zod"
 import { PhoneRegex, emptyToNull } from "../common/index.js"
+import {
+  STUDENT_DAY_PREFERENCES,
+  STUDENT_SCHOOL_SHIFTS,
+} from "./student-profile.schema.js"
 
 export const createCreateStudentSchema = (msg?: {
   firstNameMin?: string
@@ -50,6 +54,8 @@ export const createCreateStudentSchema = (msg?: {
     currentAllowedCourseId: z
       .preprocess(emptyToNull, z.string().uuid().nullable())
       .optional(),
+    schoolShift: z.enum(STUDENT_SCHOOL_SHIFTS).optional(),
+    dayPreference: z.enum(STUDENT_DAY_PREFERENCES).optional(),
     instituteId: z.string().uuid().optional(),
   })
 

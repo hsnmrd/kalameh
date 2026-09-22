@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { WEEK_DAYS } from "../class/class.schema.js"
-import { STUDENT_SCHEDULE_STATUSES } from "../student/student-time-constraint.constants.js"
+import { STUDENT_SCHEDULE_STATUSES } from "../student/student-profile.schema.js"
 import {
   CLASS_DELIVERY_MODES,
   SCHEDULING_TIME_REGEX,

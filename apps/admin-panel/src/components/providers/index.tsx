@@ -22,7 +22,6 @@ export function Providers({
           queries: {
             staleTime: 60 * 1000,
             retry: (failureCount, error) => {
-              return false
               // Never retry client errors (401, 403, 404)
               if (
                 error instanceof MicroApiError &&

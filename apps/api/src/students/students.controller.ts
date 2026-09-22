@@ -33,17 +33,12 @@ import {
   type SupportedLocale,
 } from '@workspace/types';
 import { StudentFilterDto } from './dto/student-filter.dto';
-import { ReplaceStudentTimeProfileDto } from './dto/replace-student-time-profile.dto';
-import { StudentTimeProfilesService } from './student-time-profiles.service';
 
 @Controller('students')
 @UseGuards(JwtAuthGuard, PermissionsGuard, ModulesGuard)
 @RequireModules(APP_MODULES.STUDENTS)
 export class StudentsController {
-  constructor(
-    private readonly studentsService: StudentsService,
-    private readonly studentTimeProfilesService: StudentTimeProfilesService,
-  ) {}
+  constructor(private readonly studentsService: StudentsService) {}
 
   @Post()
   @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
@@ -85,25 +80,6 @@ export class StudentsController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.studentsService.findOne(currentUser, id, locale);
-  }
-
-  @Get(':id/time-profile')
-  @RequirePermissions(PERMISSIONS.VIEW_STUDENTS)
-  async findTimeProfile(
-    @CurrentUser() currentUser: JwtPayload,
-    @Param('id') id: string,
-  ) {
-    return this.studentTimeProfilesService.findOne(currentUser, id);
-  }
-
-  @Put(':id/time-profile')
-  @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
-  async replaceTimeProfile(
-    @CurrentUser() currentUser: JwtPayload,
-    @Param('id') id: string,
-    @Body() dto: ReplaceStudentTimeProfileDto,
-  ) {
-    return this.studentTimeProfilesService.replace(currentUser, id, dto);
   }
 
   @Patch(':id')
