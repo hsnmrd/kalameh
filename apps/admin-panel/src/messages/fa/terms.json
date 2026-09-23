@@ -23,6 +23,9 @@
     "endDate": "تاریخ پایان",
     "status": "وضعیت",
     "classesCount": "تعداد کلاس‌ها",
+    "requirements": "نیازهای کلاسی",
+    "requirementsCount": "{count} نیاز",
+    "noRequirements": "بدون نیاز",
     "actions": "عملیات",
     "view": "مشاهده",
     "empty": "هیچ ترم تحصیلی در این آموزشگاه ثبت نشده است."

@@ -18,12 +18,23 @@ import { SchedulingUnresolvedRequirementService } from './scheduling-unresolved-
 import { SchedulingPreflightService } from './scheduling-preflight.service';
 import { SchedulingRunQueryService } from './scheduling-run-query.service';
 import { SchedulingRunsController } from './scheduling-runs.controller';
+import { SchedulingDemandController } from './scheduling-demand.controller';
+import { SchedulingDemandService } from './scheduling-demand.service';
+import { SchedulingTermsController } from './scheduling-terms.controller';
+import { SchedulingTermsService } from './scheduling-terms.service';
 import { SchedulingService } from './scheduling.service';
 
 @Module({
-  controllers: [SchedulingController, SchedulingRunsController],
+  controllers: [
+    SchedulingController,
+    SchedulingRunsController,
+    SchedulingDemandController,
+    SchedulingTermsController,
+  ],
   providers: [
     SchedulingService,
+    SchedulingTermsService,
+    SchedulingDemandService,
     SchedulingAlternativePlanService,
     SchedulingPreflightService,
     SchedulingRunQueryService,
@@ -44,6 +55,7 @@ import { SchedulingService } from './scheduling.service';
   ],
   exports: [
     SchedulingService,
+    SchedulingDemandService,
     SchedulingAlternativePlanService,
     SchedulingPreflightService,
     SchedulingRunQueryService,

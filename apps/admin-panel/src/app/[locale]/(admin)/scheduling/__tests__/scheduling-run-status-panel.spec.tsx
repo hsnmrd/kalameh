@@ -117,4 +117,72 @@ describe("MVP-035 scheduling run status panel", () => {
       screen.getByText("هیچ استاد واجد شرایطی برای این دوره ثبت نشده است.")
     ).toBeInTheDocument()
   })
+
+  it("shows structured preflight blocking issues when preflight report is present", async () => {
+    const preflightFailureWithIssues: SchedulingRunStatusDto = {
+      ...completedStatus,
+      status: "PREFLIGHT_FAILED",
+      isTerminal: true,
+      result: null,
+      failureCode: "PREFLIGHT_BLOCKED",
+      failureMessage: "تولید برنامه متوقف شد",
+      preflightReport: {
+        schemaVersion: "1",
+        checkedAt: new Date().toISOString(),
+        passed: false,
+        summary: {
+          blockingIssueCount: 1,
+          warningCount: 0,
+          infoCount: 0,
+          requirementCount: 1,
+          courseCount: 1,
+          studentCount: 0,
+          completeStudentScheduleCount: 0,
+          activeTeacherCount: 1,
+          teacherWithoutQualificationCount: 0,
+        },
+        issues: [
+          {
+            code: "COURSE_WITHOUT_QUALIFIED_TEACHER",
+            severity: "BLOCKING",
+            scope: "COURSE",
+            entityId: "course-123",
+            context: {},
+          },
+        ],
+      },
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "failed-issues"],
+      queryFn: async () => preflightFailureWithIssues,
+    } as never)
+
+    const runWithSnapshot: SchedulingRunDto = {
+      ...queuedRun,
+      inputSnapshot: {
+        requirements: [
+          {
+            id: "req-1",
+            courseId: "course-123",
+            course: { id: "course-123", title: "دوره زبان آلمانی A2" },
+          },
+        ],
+      },
+    }
+
+    render(<SchedulingRunStatusPanel run={runWithSnapshot} onReset={vi.fn()} />)
+
+    expect(
+      await screen.findByText("علت توقف در پیش‌بررسی:")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        /دوره «دوره زبان آلمانی A2» استادی با صلاحیت تدریس فعال ندارد/i
+      )
+    ).toBeInTheDocument()
+  })
 })

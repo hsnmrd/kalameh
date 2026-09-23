@@ -282,12 +282,22 @@ export class SchedulingPlanValidationService {
         ]);
       }
       if (requirement) {
-        if (
-          (requirement.sessionsPerWeek !== null &&
-            proposal.daysOfWeek.length !== requirement.sessionsPerWeek) ||
-          (requirement.totalSessions !== null &&
-            proposal.sessions.length !== requirement.totalSessions)
-        ) {
+        const cadenceMatches =
+          requirement.sessionsPerWeek === null ||
+          proposal.daysOfWeek.length === requirement.sessionsPerWeek ||
+          plan.proposals.filter(
+            (p) => p.classRequirementId === proposal.classRequirementId,
+          ).length === requirement.sessionsPerWeek;
+
+        const totalSessionsMatches =
+          requirement.totalSessions === null ||
+          proposal.sessions.length === requirement.totalSessions ||
+          plan.proposals
+            .filter((p) => p.classRequirementId === proposal.classRequirementId)
+            .reduce((sum, p) => sum + p.sessions.length, 0) ===
+            requirement.totalSessions;
+
+        if (!cadenceMatches || !totalSessionsMatches) {
           add('REQUIREMENT_CADENCE_MISMATCH', proposal.id);
         }
         if (proposal.capacity !== requirement.capacity) {

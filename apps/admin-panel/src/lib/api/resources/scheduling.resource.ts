@@ -1,4 +1,7 @@
 import type {
+  ApplyTermDemandInput,
+  ApplyTermDemandResult,
+  CalculateTermDemandInput,
   GenerateSchedulingPlanInput,
   SchedulingPlanDetailsDto,
   SchedulingPlanPublicationResult,
@@ -7,7 +10,9 @@ import type {
   SchedulingProposalDto,
   SchedulingRunDto,
   SchedulingRunStatusDto,
+  SchedulingTermSummaryDto,
   SetSchedulingProposalLockInput,
+  TermDemandReportDto,
   UpdateSchedulingProposalInput,
 } from "@workspace/types"
 import { api } from "../client"
@@ -25,6 +30,21 @@ const toInstituteQuery = ({ instituteId }: { instituteId?: string }) =>
   instituteId ? { instituteId } : {}
 
 export const schedulingResource = api.resource("scheduling", {
+  terms: api.get<SchedulingTermSummaryDto[], { instituteId?: string } | void>(
+    "/scheduling/terms",
+    {
+      query: (params) =>
+        params && "instituteId" in params && params.instituteId
+          ? { instituteId: params.instituteId }
+          : {},
+    }
+  ),
+  calculateDemand: api.post<TermDemandReportDto, CalculateTermDemandInput>(
+    "/scheduling/demand/calculate"
+  ),
+  applyDemand: api.post<ApplyTermDemandResult, ApplyTermDemandInput>(
+    "/scheduling/demand/apply"
+  ),
   generate: api.post<SchedulingRunDto, GenerateSchedulingPlanInput>(
     "/scheduling/plans/generate"
   ),

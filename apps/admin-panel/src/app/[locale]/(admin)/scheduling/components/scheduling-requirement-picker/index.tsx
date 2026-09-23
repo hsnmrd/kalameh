@@ -20,6 +20,7 @@ interface SchedulingRequirementPickerProps {
   hasTerm: boolean
   error?: string
   onChange: (ids: string[]) => void
+  onNavigateToDemand?: () => void
 }
 
 export function SchedulingRequirementPicker({
@@ -29,6 +30,7 @@ export function SchedulingRequirementPicker({
   hasTerm,
   error,
   onChange,
+  onNavigateToDemand,
 }: SchedulingRequirementPickerProps) {
   const t = useTranslations("scheduling.generation.requirements")
   const locale = useLocale()
@@ -93,6 +95,17 @@ export function SchedulingRequirementPicker({
             <p className="text-xs leading-5 text-muted-foreground">
               {hasTerm ? t("emptyHint") : t("chooseTermHint")}
             </p>
+            {hasTerm && onNavigateToDemand && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onNavigateToDemand}
+                className="mt-1 h-8 rounded-xl px-3 text-xs font-semibold"
+              >
+                {t("goToDemand")}
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid gap-1 sm:grid-cols-2">

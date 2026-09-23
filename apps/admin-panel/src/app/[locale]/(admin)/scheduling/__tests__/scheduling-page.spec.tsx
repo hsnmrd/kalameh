@@ -8,7 +8,7 @@ import * as stores from "@/lib/stores"
 import { APP_MODULES, ROLES } from "@workspace/types"
 import SchedulingPage from "../page"
 
-describe("MVP-033 scheduling workspace", () => {
+describe("Unified scheduling workspace", () => {
   afterEach(() => vi.restoreAllMocks())
 
   it("exposes scheduling in institute navigation", () => {
@@ -22,29 +22,16 @@ describe("MVP-033 scheduling workspace", () => {
     )
   })
 
-  it("renders the localized workflow and working prerequisite links", () => {
+  it("renders the terms filter bar and table in Persian", () => {
     render(<SchedulingPage />)
 
     expect(
-      screen.getByRole("heading", { name: "زمان‌بندی هوشمند کلاس‌ها" })
+      screen.getByPlaceholderText("جست‌وجوی عنوان ترم...")
     ).toBeInTheDocument()
-    expect(screen.getByText("تولید پیشنهاد")).toBeInTheDocument()
-    expect(screen.getByText("بررسی سوپروایزر")).toBeInTheDocument()
-    expect(screen.getByText("انتشار کلاس‌ها")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: /بررسی ترم‌ها/ })).toHaveAttribute(
-      "href",
-      "/terms"
-    )
-    expect(screen.getByRole("link", { name: /بررسی استادان/ })).toHaveAttribute(
-      "href",
-      "/teachers"
-    )
-    expect(
-      screen.getByRole("link", { name: /بررسی فراگیران/ })
-    ).toHaveAttribute("href", "/students")
+    expect(screen.getAllByText("ترمی یافت نشد").length).toBeGreaterThan(0)
   })
 
-  it("renders the same workspace in English", () => {
+  it("renders the terms filter bar and table in English", () => {
     render(<SchedulingPage />, {
       locale: "en",
       messages: {
@@ -54,12 +41,9 @@ describe("MVP-033 scheduling workspace", () => {
     })
 
     expect(
-      screen.getByRole("heading", { name: "Smart Class Scheduling" })
+      screen.getByPlaceholderText("Search term title...")
     ).toBeInTheDocument()
-    expect(screen.getByText("Supervisor review")).toBeInTheDocument()
-    expect(
-      screen.getByRole("link", { name: /Review teachers/ })
-    ).toHaveAttribute("href", "/teachers")
+    expect(screen.getAllByText("No terms found").length).toBeGreaterThan(0)
   })
 
   it("shows the forbidden state without VIEW_CLASSES", () => {
@@ -75,9 +59,7 @@ describe("MVP-033 scheduling workspace", () => {
     render(<SchedulingPage />)
 
     expect(screen.getByText("دسترسی غیرمجاز")).toBeInTheDocument()
-    expect(
-      screen.queryByRole("heading", { name: "زمان‌بندی هوشمند کلاس‌ها" })
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText("تقاضای دوره‌ها")).not.toBeInTheDocument()
   })
 
   it("shows the module upgrade state when classes and courses are disabled", () => {
@@ -93,8 +75,6 @@ describe("MVP-033 scheduling workspace", () => {
     render(<SchedulingPage />)
 
     expect(screen.getByText("دوره‌ها و کلاس‌ها")).toBeInTheDocument()
-    expect(
-      screen.queryByRole("heading", { name: "زمان‌بندی هوشمند کلاس‌ها" })
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText("تقاضای دوره‌ها")).not.toBeInTheDocument()
   })
 })

@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { Controller } from "react-hook-form"
 import { useLocale, useTranslations } from "next-intl"
 import { CalendarClock, Sparkles } from "lucide-react"
@@ -26,10 +27,16 @@ const ALL_BRANCHES = "ALL_BRANCHES"
 
 interface SchedulingGenerationFormProps {
   onCreated: (run: SchedulingRunDto) => void
+  termOptions?: ComboboxOption[]
+  defaultTermId?: string
+  onNavigateToDemand?: () => void
 }
 
 export function SchedulingGenerationForm({
   onCreated,
+  termOptions: propTermOptions,
+  defaultTermId,
+  onNavigateToDemand,
 }: SchedulingGenerationFormProps) {
   const t = useTranslations("scheduling.generation")
   const locale = useLocale()
@@ -47,10 +54,22 @@ export function SchedulingGenerationForm({
     submit,
   } = useSchedulingGenerationForm(onCreated, t("success"))
 
-  const termOptions: ComboboxOption[] = terms.map((term) => ({
-    value: term.id,
-    label: term.title,
-  }))
+  const termOptions: ComboboxOption[] =
+    propTermOptions ??
+    terms.map((term) => ({
+      value: term.id,
+      label: term.title,
+    }))
+
+  // Auto-select default term or first term with requirements
+  React.useEffect(() => {
+    if (defaultTermId) {
+      form.setValue("termId", defaultTermId, { shouldValidate: true })
+    } else if (!termId && termOptions.length > 0 && termOptions[0]) {
+      form.setValue("termId", termOptions[0].value, { shouldValidate: true })
+    }
+  }, [defaultTermId, termId, termOptions, form])
+
   const branchOptions: ComboboxOption[] = [
     { value: ALL_BRANCHES, label: t("fields.branch.all") },
     ...branches.map((branch) => ({ value: branch.id, label: branch.name })),
@@ -187,6 +206,7 @@ export function SchedulingGenerationForm({
                   shouldValidate: true,
                 })
               }
+              onNavigateToDemand={onNavigateToDemand}
             />
 
             <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">

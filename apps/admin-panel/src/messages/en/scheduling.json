@@ -65,9 +65,10 @@
       "clear": "Clear",
       "loading": "Loading class requirements",
       "empty": "No active requirements match this scope",
-      "emptyHint": "Review class requirements or choose another branch.",
+      "emptyHint": "First calculate and save class requirements for this term from the Course Demand tab.",
       "chooseTerm": "Select a term first",
-      "chooseTermHint": "Its active class requirements will appear here.",
+      "chooseTermHint": "Active class requirements for that term will appear here.",
+      "goToDemand": "Go to Course Demand",
       "unnamed": "Untitled course",
       "summary": "{classes} classes · capacity {capacity}"
     },
@@ -128,7 +129,16 @@
     "runId": "Run ID: {id}",
     "updatedAt": "Last update: {value}",
     "refresh": "Refresh status",
-    "another": "Create another run"
+    "another": "Create another run",
+    "preflightIssues": {
+      "title": "Preflight blocking issues:",
+      "COURSE_WITHOUT_QUALIFIED_TEACHER": "Course \"{entity}\" does not have an active qualified teacher. Please assign course qualification to at least one teacher.",
+      "COURSE_WITHOUT_AVAILABLE_TEACHER": "None of the qualified teachers for course \"{entity}\" have submitted time availabilities.",
+      "NO_CLASSROOM_WITH_REQUIRED_CAPACITY": "No classroom meets the capacity requirement for one of the courses.",
+      "INCOMPLETE_STUDENT_SCHEDULE_DATA": "Some student schedules have incomplete availability data.",
+      "NO_ELIGIBLE_STUDENTS": "No eligible students found for this course.",
+      "TEACHERS_WITHOUT_COURSE_QUALIFICATION": "Some active teachers have no course qualifications assigned."
+    }
   },
   "comparison": {
     "title": "Compare suggested plans",
@@ -394,6 +404,181 @@
       "description": "This plan created {count} operational classes.",
       "at": "Published on {date}",
       "badge": "Published"
+    }
+  },
+  "demand": {
+    "tabTitle": "Course Demand",
+    "generationTabTitle": "Class Scheduling",
+    "calculateButton": "Calculate Demand",
+    "manageRequirementsButton": "Manage Requirements",
+    "recalculateButton": "Recalculate",
+    "calculating": "Calculating...",
+    "applyButton": "Apply Class Requirements",
+    "updateButton": "Update Class Requirements",
+    "applying": "Applying...",
+    "applySuccess": "{count} class requirements saved successfully.",
+    "noRequestsYet": "No requests",
+    "selectTermPrompt": "Please select a term to view course demand.",
+    "selectTermPromptDesc": "The system calculates student demand and required classes based on previous term passings and placement test results.",
+    "emptyDemand": "No eligible students found for this term.",
+    "emptyDemandDesc": "Students must have passed a prerequisite course or completed a placement test to be included.",
+    "stats": {
+      "totalStudents": "Total Applicants",
+      "passedStudents": "Previous Passings",
+      "placementStudents": "New Placements",
+      "suggestedClasses": "Suggested Classes",
+      "registeredClasses": "Registered Requirements"
+    },
+    "columns": {
+      "course": "Course",
+      "totalStudents": "Applicants",
+      "passed": "Passed",
+      "placement": "Placement",
+      "shifts": "School Shift",
+      "days": "Day Preference",
+      "suggestedClasses": "Suggested Classes",
+      "capacity": "Capacity",
+      "deliveryMode": "Delivery Mode",
+      "requirementStatus": "Registration Status",
+      "registeredCount": "Registered ({count} classes)",
+      "notRegistered": "Not registered",
+      "reviewNeeded": "New suggestion: {count}",
+      "actions": "Actions"
+    },
+    "shifts": {
+      "morning": "Morning: {count}",
+      "afternoon": "Afternoon: {count}",
+      "flexible": "Flexible: {count}"
+    },
+    "days": {
+      "evenDays": "Even: {count}",
+      "oddDays": "Odd: {count}",
+      "any": "Any: {count}"
+    },
+    "deliveryModes": {
+      "IN_PERSON": "In-Person",
+      "ONLINE": "Online"
+    },
+    "editModal": {
+      "title": "Edit Demand for {course}",
+      "description": "Adjust the suggested class count, capacity, and delivery mode before saving.",
+      "suggestedClasses": "Required Class Count",
+      "capacity": "Class Capacity",
+      "deliveryMode": "Delivery Mode",
+      "sessionsPerWeek": "Schedule Pattern & Sessions Per Week",
+      "cadence3": "3 sessions/week (Even Days: Sat, Mon, Wed)",
+      "cadence2": "2 sessions/week (Odd Days: Sun, Tue)",
+      "cadence1": "1 session/week",
+      "save": "Confirm",
+      "cancel": "Cancel",
+      "success": "Class requirement updated successfully."
+    },
+    "filters": {
+      "term": "Term",
+      "branch": "Branch",
+      "allBranches": "All Branches",
+      "allTerms": "All Terms",
+      "search": "Search course...",
+      "statusAll": "All Courses ({count})",
+      "statusRegistered": "With Requests ({count})",
+      "statusUnregistered": "No Requests ({count})",
+      "registeredSummary": "{courses} courses with {classes} classes registered.",
+      "termsWithRequests": "Terms with Requests",
+      "noRequestsForTerm": "No requests have been submitted for this term yet."
+    }
+  },
+  "termsList": {
+    "title": "Terms Scheduling",
+    "description": "Overview of institute terms, class requirement dependencies, and generated weekly schedules.",
+    "columns": {
+      "term": "Term Title",
+      "dateRange": "Schedule Period",
+      "operatingPhase": "Operating Phase",
+      "requirements": "Class Requirements",
+      "status": "Schedule Status",
+      "actions": "Actions"
+    },
+    "requirementsBadge": "{count} requirements ({classes} classes)",
+    "noRequirements": "No requirements",
+    "noPhase": "General",
+    "statuses": {
+      "PUBLISHED": "Schedule Published",
+      "SCHEDULED": "Proposals Available",
+      "GENERATING": "Generating Schedule",
+      "READY_TO_SCHEDULE": "Ready to Schedule",
+      "NO_REQUIREMENTS": "Demand Required"
+    },
+    "actions": {
+      "manageTerm": "Manage & Schedule",
+      "backToTerms": "Back to Terms"
+    },
+    "filters": {
+      "searchPlaceholder": "Search term title...",
+      "statusPlaceholder": "All Statuses",
+      "statusAll": "All Statuses"
+    },
+    "empty": {
+      "title": "No terms found",
+      "description": "Create academic terms in the Terms module to start scheduling."
+    },
+    "termWorkspace": {
+      "tabs": {
+        "demand": "Demand & Requirements",
+        "schedule": "Schedule Generation"
+      },
+      "termOverview": {
+        "title": "Term Overview",
+        "dates": "Academic Dates",
+        "classes": "Classes",
+        "requirements": "Requirements",
+        "phase": "Phase"
+      }
+    }
+  },
+  "requirementsPage": {
+    "title": "Term Class Requirements",
+    "description": "Define and manage required class counts, capacities, and scheduling patterns for this term.",
+    "syncDemand": "Load from Demand Analysis",
+    "syncDemandDesc": "Do you want to apply all suggested classes from student demand analysis as class requirements for this term? Existing requirements will be replaced.",
+    "syncDemandConfirm": "Confirm & Replace",
+    "syncDemandSuccess": "{count} class requirements applied from demand analysis successfully.",
+    "addRequirement": "Add Requirement",
+    "editRequirement": "Edit Requirement",
+    "deleteRequirement": "Delete Requirement",
+    "deleteConfirm": "Are you sure you want to delete this class requirement? This action cannot be undone.",
+    "createSuccess": "Class requirement created successfully.",
+    "updateSuccess": "Class requirement updated successfully.",
+    "deleteSuccess": "Class requirement deleted successfully.",
+    "empty": "No class requirements defined for this term yet.",
+    "emptyDesc": "You can add requirements manually or use 'Load from Demand Analysis' to auto-populate from student enrollment data.",
+    "columns": {
+      "course": "Course",
+      "branch": "Branch",
+      "requiredClassCount": "Classes",
+      "capacity": "Capacity",
+      "deliveryMode": "Delivery Mode",
+      "sessionsPerWeek": "Weekly Sessions",
+      "actions": "Actions"
+    },
+    "fields": {
+      "course": "Course",
+      "coursePlaceholder": "Select course...",
+      "branch": "Branch",
+      "branchPlaceholder": "All Branches",
+      "requiredClassCount": "Required Class Count",
+      "capacity": "Class Capacity",
+      "deliveryMode": "Delivery Mode",
+      "sessionsPerWeek": "Weekly Schedule Pattern",
+      "cadence3": "3 sessions per week (Even days)",
+      "cadence2": "2 sessions per week (Odd days)",
+      "cadence1": "1 session per week (Single session)"
+    },
+    "actions": {
+      "backToScheduling": "Back to Term Scheduling",
+      "cancel": "Cancel",
+      "save": "Save",
+      "confirm": "Confirm",
+      "delete": "Delete"
     }
   }
 }

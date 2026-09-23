@@ -98,9 +98,54 @@ export function SchedulingRunStatusPanel({
             </div>
           )}
 
-          {isFailed && result?.failureMessage && (
-            <div className="rounded-xl bg-destructive/10 p-4 text-sm leading-6 text-destructive">
-              {result.failureMessage}
+          {isFailed && (
+            <div className="flex flex-col gap-3 rounded-xl bg-destructive/10 p-4 text-sm leading-6 text-destructive">
+              {result?.failureMessage && (
+                <p className="font-semibold">{result.failureMessage}</p>
+              )}
+              {result?.preflightReport?.issues &&
+                result.preflightReport.issues.filter(
+                  (i) => i.severity === "BLOCKING"
+                ).length > 0 && (
+                  <div className="flex flex-col gap-2 border-t border-destructive/20 pt-3">
+                    <p className="text-xs font-medium text-destructive/80">
+                      {t("preflightIssues.title")}
+                    </p>
+                    <ul className="list-inside list-disc space-y-1">
+                      {result.preflightReport.issues
+                        .filter((issue) => issue.severity === "BLOCKING")
+                        .map((issue, idx) => {
+                          const reqs = (run.inputSnapshot as any)
+                            ?.requirements as
+                            | Array<{
+                                id: string
+                                courseId: string
+                                course?: { id: string; title: string }
+                              }>
+                            | undefined
+                          const matchedReq = reqs?.find(
+                            (r) =>
+                              r.courseId === issue.entityId ||
+                              r.course?.id === issue.entityId
+                          )
+                          const entityName =
+                            matchedReq?.course?.title || issue.entityId || ""
+                          const hasTranslation = t.has(
+                            `preflightIssues.${issue.code}`
+                          )
+                          return (
+                            <li key={idx} className="text-sm">
+                              {hasTranslation
+                                ? t(`preflightIssues.${issue.code}`, {
+                                    entity: entityName,
+                                  })
+                                : issue.code}
+                            </li>
+                          )
+                        })}
+                    </ul>
+                  </div>
+                )}
             </div>
           )}
 

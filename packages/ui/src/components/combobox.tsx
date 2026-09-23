@@ -9,6 +9,8 @@ import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
 export interface ComboboxOption {
   value: string
   label: string
+  description?: string
+  badge?: string
   disabled?: boolean
 }
 
@@ -39,7 +41,7 @@ export function Combobox({
   emptyMessage,
   locale,
   disabled = false,
-  searchable = true,
+  searchable,
   clearable = true,
   className,
   "data-invalid": dataInvalid,
@@ -107,14 +109,21 @@ export function Combobox({
       >
         <span
           className={cn(
-            "truncate text-start",
+            "flex flex-1 items-center justify-between gap-2 overflow-hidden text-start",
             !selectedItem && "text-muted-foreground/35"
           )}
         >
-          <ComboboxPrimitive.Value placeholder={resolvedPlaceholder} />
+          <span className="truncate">
+            {selectedItem ? selectedItem.label : resolvedPlaceholder}
+          </span>
+          {selectedItem?.badge && (
+            <span className="shrink-0 rounded-md bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
+              {selectedItem.badge}
+            </span>
+          )}
         </span>
 
-        <ComboboxPrimitive.Icon className="text-muted-foreground">
+        <ComboboxPrimitive.Icon className="ms-2 text-muted-foreground">
           <ChevronDown className="size-4" />
         </ComboboxPrimitive.Icon>
       </ComboboxPrimitive.Trigger>
@@ -145,12 +154,26 @@ export function Combobox({
                   key={item.value}
                   value={item}
                   disabled={item.disabled}
-                  className="relative flex min-h-12 cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-base font-medium outline-hidden transition-colors select-none hover:bg-muted/60 focus:bg-muted/60 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted/60 data-[selected]:bg-primary/10 data-[selected]:font-semibold data-[selected]:text-primary data-[selected]:data-[highlighted]:bg-primary/15"
+                  className="relative flex min-h-12 cursor-pointer items-center justify-between gap-2 rounded-xl px-4 py-3 text-base font-medium outline-hidden transition-colors select-none hover:bg-muted/60 focus:bg-muted/60 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted/60 data-[selected]:bg-primary/10 data-[selected]:font-semibold data-[selected]:text-primary data-[selected]:data-[highlighted]:bg-primary/15"
                 >
-                  <span className="truncate">{item.label}</span>
-                  <ComboboxPrimitive.ItemIndicator className="flex size-4.5 shrink-0 items-center justify-center text-primary">
-                    <Check className="size-4.5 text-primary" />
-                  </ComboboxPrimitive.ItemIndicator>
+                  <div className="flex min-w-0 flex-col gap-0.5 text-start">
+                    <span className="truncate">{item.label}</span>
+                    {item.description && (
+                      <span className="text-xs text-muted-foreground">
+                        {item.description}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {item.badge && (
+                      <span className="rounded-md bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
+                        {item.badge}
+                      </span>
+                    )}
+                    <ComboboxPrimitive.ItemIndicator className="flex size-4.5 shrink-0 items-center justify-center text-primary">
+                      <Check className="size-4.5 text-primary" />
+                    </ComboboxPrimitive.ItemIndicator>
+                  </div>
                 </ComboboxPrimitive.Item>
               )}
             </ComboboxPrimitive.List>
@@ -206,8 +229,15 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
   )
 
   const filtered = search.trim()
-    ? comboboxProps.items.filter((item) =>
-        item.label.toLowerCase().includes(search.trim().toLowerCase())
+    ? comboboxProps.items.filter(
+        (item) =>
+          item.label.toLowerCase().includes(search.trim().toLowerCase()) ||
+          (item.description &&
+            item.description
+              .toLowerCase()
+              .includes(search.trim().toLowerCase())) ||
+          (item.badge &&
+            item.badge.toLowerCase().includes(search.trim().toLowerCase()))
       )
     : comboboxProps.items
 
@@ -235,6 +265,10 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
   return (
     <>
       <div
+        role="button"
+        aria-label={comboboxProps["aria-label"] ?? resolvedPlaceholder}
+        aria-haspopup="listbox"
+        aria-expanded={drawerOpen}
         onClick={() => {
           if (!comboboxProps.disabled) {
             setDrawerOpen(true)
@@ -242,33 +276,25 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
         }}
         data-invalid={comboboxProps["data-invalid"]}
         className={cn(
-          "relative flex h-14 w-full cursor-pointer items-center justify-between rounded-2xl border border-border bg-background px-4 text-base text-foreground shadow-2xs transition-colors focus-within:border-2 focus-within:border-ring hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-50 data-[invalid=true]:border-destructive",
+          "relative flex h-14 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-border bg-background px-4 text-base text-foreground shadow-2xs transition-colors focus-within:border-2 focus-within:border-ring hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-50 data-[invalid=true]:border-destructive",
           comboboxProps.className
         )}
       >
-        <input
-          type="text"
-          readOnly
-          role="combobox"
-          aria-label={comboboxProps["aria-label"] ?? resolvedPlaceholder}
-          aria-expanded={drawerOpen}
-          aria-haspopup="dialog"
-          inputMode="none"
-          tabIndex={comboboxProps.disabled ? -1 : 0}
-          disabled={comboboxProps.disabled}
-          value={selectedItem ? selectedItem.label : ""}
-          placeholder={resolvedPlaceholder}
-          onKeyDown={(e) => {
-            if (
-              (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") &&
-              !comboboxProps.disabled
-            ) {
-              e.preventDefault()
-              setDrawerOpen(true)
-            }
-          }}
-          className="h-full w-full cursor-pointer bg-transparent text-start text-base text-foreground outline-hidden placeholder:text-muted-foreground/35 disabled:cursor-not-allowed"
-        />
+        <span
+          className={cn(
+            "flex flex-1 items-center justify-between gap-2 overflow-hidden text-start",
+            !selectedItem && "text-muted-foreground/35"
+          )}
+        >
+          <span className="truncate">
+            {selectedItem?.label ?? resolvedPlaceholder}
+          </span>
+          {selectedItem?.badge && (
+            <span className="shrink-0 rounded-md bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
+              {selectedItem.badge}
+            </span>
+          )}
+        </span>
         <ChevronDown className="pointer-events-none size-4 shrink-0 text-muted-foreground" />
       </div>
 
@@ -329,16 +355,30 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
                     disabled={item.disabled}
                     onClick={() => handleSelect(item)}
                     className={cn(
-                      "flex min-h-13 w-full cursor-pointer items-center justify-between rounded-xl px-4 py-3.5 text-base font-medium transition-colors disabled:opacity-50",
+                      "flex min-h-13 w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-4 py-3.5 text-base font-medium transition-colors disabled:opacity-50",
                       isSelected
                         ? "bg-primary/10 font-semibold text-primary hover:bg-primary/15 hover:text-primary"
                         : "text-foreground hover:bg-muted/60 active:bg-muted"
                     )}
                   >
-                    <span>{item.label}</span>
-                    {isSelected && (
-                      <Check className="size-5 shrink-0 text-primary" />
-                    )}
+                    <div className="flex min-w-0 flex-col gap-0.5 text-start">
+                      <span className="truncate">{item.label}</span>
+                      {item.description && (
+                        <span className="text-xs text-muted-foreground">
+                          {item.description}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {item.badge && (
+                        <span className="rounded-md bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
+                          {item.badge}
+                        </span>
+                      )}
+                      {isSelected && (
+                        <Check className="size-5 shrink-0 text-primary" />
+                      )}
+                    </div>
                   </Button>
                 )
               })

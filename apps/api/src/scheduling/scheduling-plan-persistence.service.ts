@@ -5,6 +5,7 @@ import {
   SchedulingAlternativePlanGenerationSchema,
   SchedulingPersistenceResultSchema,
   SchedulingUnresolvedEvaluationSchema,
+  calculateTermScheduleFromDateRange,
   type SchedulingAlternativePlanGeneration,
   type SchedulingPersistenceResult,
   type SchedulingScoreCriterion,
@@ -60,6 +61,7 @@ export class SchedulingPlanPersistenceService {
         requestedByUserId: true,
         status: true,
         startedAt: true,
+        term: { select: { startDate: true, endDate: true } },
         plans: {
           orderBy: { rank: 'asc' as const },
           select: {
@@ -135,6 +137,8 @@ export class SchedulingPlanPersistenceService {
           id: true,
           courseId: true,
           branchId: true,
+          sessionsPerWeek: true,
+          totalSessions: true,
           course: { select: { title: true } },
         },
         orderBy: { id: 'asc' },
@@ -203,6 +207,11 @@ export class SchedulingPlanPersistenceService {
       let proposalCount = 0;
       let unresolvedRequirementCount = 0;
 
+      // Compute session dates once per (dayOfWeek, startTime, endTime) combination
+      // using the term date range so proposals have accurate session counts.
+      const termStartDate = run.term?.startDate ?? input.completedAt;
+      const termEndDate = run.term?.endDate ?? input.completedAt;
+
       for (const plan of generation.plans) {
         const unresolved = unresolvedByPlanKey.get(plan.planKey)!;
         const warnings = this.planWarnings(plan.composition.requirements);
@@ -261,7 +270,12 @@ export class SchedulingPlanPersistenceService {
                   title: requirement.course.title,
                   capacity: candidate.capacity,
                   deliveryMode: candidate.deliveryMode,
-                  daysOfWeek: [candidate.dayOfWeek],
+                  daysOfWeek: this.resolveProposalDaysOfWeek(
+                    candidate.dayOfWeek,
+                    candidate.timeGroup,
+                    requirement.sessionsPerWeek,
+                    snapshotSource.timeGroupsSnapshot,
+                  ),
                   startTime: candidate.startTime,
                   endTime: candidate.endTime,
                   timeGroup: candidate.timeGroup,
@@ -286,8 +300,56 @@ export class SchedulingPlanPersistenceService {
               })),
             },
           },
-          select: { id: true },
+          select: {
+            id: true,
+            proposals: {
+              select: {
+                id: true,
+                daysOfWeek: true,
+                startTime: true,
+                endTime: true,
+              },
+            },
+          },
         });
+
+        // Generate and persist sessions for every proposal
+        const sessionRows: {
+          instituteId: string;
+          planId: string;
+          proposalId: string;
+          sessionDate: Date;
+          startTime: string;
+          endTime: string;
+        }[] = [];
+
+        for (const proposal of created.proposals ?? []) {
+          const schedule = calculateTermScheduleFromDateRange({
+            startDate: termStartDate,
+            endDate: termEndDate,
+            daysOfWeek: proposal.daysOfWeek as any,
+            skipHolidays: true,
+            observeOfficialHolidays: true,
+          });
+          for (const dateStr of schedule.sessionDates) {
+            sessionRows.push({
+              instituteId: input.instituteId,
+              planId: created.id,
+              proposalId: proposal.id,
+              sessionDate: new Date(dateStr),
+              startTime: proposal.startTime,
+              endTime: proposal.endTime,
+            });
+          }
+        }
+
+        if (sessionRows.length > 0) {
+          await transaction.schedulingProposalSession?.createMany?.({
+            data: sessionRows,
+            skipDuplicates: true,
+          });
+        }
+
         planIds.push(created.id);
         proposalCount += plan.composition.assignments.length;
         unresolvedRequirementCount += unresolved.items.length;
@@ -526,6 +588,44 @@ export class SchedulingPlanPersistenceService {
   private round(value: number, digits: number): number {
     const factor = 10 ** digits;
     return Math.round((value + Number.EPSILON) * factor) / factor;
+  }
+
+  private jsonRecord(value: Prisma.JsonValue): Record<string, unknown> {
+    return value && typeof value === 'object' && !Array.isArray(value)
+      ? value
+      : {};
+  }
+
+  private resolveProposalDaysOfWeek(
+    candidateDayOfWeek: string,
+    candidateTimeGroup: string | null,
+    sessionsPerWeek: number | null | undefined,
+    timeGroupsSnapshot: Prisma.JsonValue,
+  ): string[] {
+    const timeGroups = this.jsonRecord(timeGroupsSnapshot);
+    const evenDays: string[] = Array.isArray(timeGroups.evenDays)
+      ? (timeGroups.evenDays as string[])
+      : ['SATURDAY', 'MONDAY', 'WEDNESDAY'];
+    const oddDays: string[] = Array.isArray(timeGroups.oddDays)
+      ? (timeGroups.oddDays as string[])
+      : ['SUNDAY', 'TUESDAY', 'THURSDAY'];
+
+    const isEven =
+      candidateTimeGroup?.startsWith('EVEN') ||
+      evenDays.includes(candidateDayOfWeek);
+    const isOdd =
+      candidateTimeGroup?.startsWith('ODD') ||
+      oddDays.includes(candidateDayOfWeek);
+
+    if (sessionsPerWeek === 3) {
+      if (isEven) return ['SATURDAY', 'MONDAY', 'WEDNESDAY'];
+      if (isOdd) return ['SUNDAY', 'TUESDAY', 'THURSDAY'];
+    } else if (sessionsPerWeek === 2) {
+      if (isEven) return ['SATURDAY', 'WEDNESDAY'];
+      if (isOdd) return ['SUNDAY', 'TUESDAY'];
+    }
+
+    return [candidateDayOfWeek];
   }
 
   private toJson(value: unknown): Prisma.InputJsonValue {

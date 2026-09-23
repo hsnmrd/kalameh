@@ -10,6 +10,7 @@ import {
   ROLES,
   SetSchedulingProposalLockSchema,
   UpdateSchedulingProposalSchema,
+  calculateTermScheduleFromDateRange,
   type JwtPayload,
   type SchedulingPlanSelectionResult,
   type SchedulingProposalDto,
@@ -305,6 +306,41 @@ export class SchedulingPlanReviewService {
           'scheduling proposal is no longer editable',
         );
       }
+
+      // Rebuild sessions if schedule-affecting fields changed
+      const scheduleFieldsChanged =
+        input.daysOfWeek !== undefined ||
+        input.startTime !== undefined ||
+        input.endTime !== undefined;
+      if (scheduleFieldsChanged) {
+        await transaction.schedulingProposalSession?.deleteMany?.({
+          where: { proposalId, planId, instituteId },
+        });
+        const termDates = proposal.plan.run?.term;
+        if (termDates?.startDate && termDates?.endDate) {
+          const schedule = calculateTermScheduleFromDateRange({
+            startDate: termDates.startDate,
+            endDate: termDates.endDate,
+            daysOfWeek: merged.daysOfWeek as any,
+            skipHolidays: true,
+            observeOfficialHolidays: true,
+          });
+          if (schedule.sessionDates.length > 0) {
+            await transaction.schedulingProposalSession?.createMany?.({
+              data: schedule.sessionDates.map((dateStr) => ({
+                instituteId,
+                planId,
+                proposalId,
+                sessionDate: new Date(dateStr),
+                startTime: merged.startTime,
+                endTime: merged.endTime,
+              })),
+              skipDuplicates: true,
+            });
+          }
+        }
+      }
+
       return transaction.schedulingProposal.findFirstOrThrow({
         where: { id: proposalId, planId, instituteId },
         include: { sessions: { orderBy: { sessionDate: 'asc' } } },
@@ -352,7 +388,13 @@ export class SchedulingPlanReviewService {
         startTime: true,
         endTime: true,
         plan: {
-          select: { firstReviewStartedAt: true, metricsSnapshot: true },
+          select: {
+            firstReviewStartedAt: true,
+            metricsSnapshot: true,
+            run: {
+              select: { term: { select: { startDate: true, endDate: true } } },
+            },
+          },
         },
       },
     });

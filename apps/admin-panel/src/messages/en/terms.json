@@ -23,6 +23,9 @@
     "endDate": "End Date",
     "status": "Status",
     "classesCount": "Classes Count",
+    "requirements": "Class Requirements",
+    "requirementsCount": "{count} requirements",
+    "noRequirements": "None",
     "actions": "Actions",
     "view": "View",
     "empty": "No academic terms registered in this institute."

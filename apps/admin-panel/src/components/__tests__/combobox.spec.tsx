@@ -92,7 +92,7 @@ describe("Combobox Component", () => {
       />
     )
 
-    const triggerInput = screen.getByPlaceholderText("انتخاب وضعیت")
+    const triggerInput = screen.getByRole("button", { name: "انتخاب وضعیت" })
 
     // Open mobile drawer by clicking
     fireEvent.click(triggerInput)
@@ -154,7 +154,7 @@ describe("Combobox Component", () => {
       screen.getByRole("heading", { name: "فیلترهای جدول" })
     ).toBeInTheDocument()
 
-    const triggerInput = screen.getByPlaceholderText("انتخاب وضعیت")
+    const triggerInput = screen.getByRole("button", { name: "انتخاب وضعیت" })
 
     // Open second (child) drawer by clicking
     fireEvent.click(triggerInput)

@@ -55,7 +55,15 @@ export class ClassRequirementsService {
       ],
     });
 
-    return ClassRequirementSchema.array().parse(requirements);
+    const sanitized = requirements.map((req) => ({
+      ...req,
+      sessionsPerWeek:
+        req.sessionsPerWeek == null && req.totalSessions == null
+          ? 2
+          : req.sessionsPerWeek,
+    }));
+
+    return ClassRequirementSchema.array().parse(sanitized);
   }
 
   async findOne(
@@ -74,7 +82,15 @@ export class ClassRequirementsService {
       include: classRequirementRelations,
     });
 
-    return ClassRequirementSchema.parse(requirement);
+    const sanitized = {
+      ...requirement,
+      sessionsPerWeek:
+        requirement.sessionsPerWeek == null && requirement.totalSessions == null
+          ? 2
+          : requirement.sessionsPerWeek,
+    };
+
+    return ClassRequirementSchema.parse(sanitized);
   }
 
   async create(

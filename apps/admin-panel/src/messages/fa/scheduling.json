@@ -65,9 +65,10 @@
       "clear": "پاک کردن",
       "loading": "در حال دریافت نیازهای کلاسی",
       "empty": "نیاز فعالی در این محدوده پیدا نشد",
-      "emptyHint": "نیازهای کلاسی را بررسی کنید یا شعبه‌ی دیگری را انتخاب کنید.",
+      "emptyHint": "ابتدا از تب «تقاضای دوره‌ها»، نیازهای کلاسی این ترم را محاسبه و ثبت کنید.",
       "chooseTerm": "ابتدا یک ترم انتخاب کنید",
       "chooseTermHint": "نیازهای کلاسی فعال آن ترم اینجا نمایش داده می‌شوند.",
+      "goToDemand": "رفتن به تب تقاضای دوره‌ها",
       "unnamed": "دوره بدون عنوان",
       "summary": "{classes} کلاس · ظرفیت {capacity} نفر"
     },
@@ -128,7 +129,16 @@
     "runId": "شناسه اجرا: {id}",
     "updatedAt": "آخرین به‌روزرسانی: {value}",
     "refresh": "به‌روزرسانی وضعیت",
-    "another": "ساخت اجرای دیگر"
+    "another": "ساخت اجرای دیگر",
+    "preflightIssues": {
+      "title": "علت توقف در پیش‌بررسی:",
+      "COURSE_WITHOUT_QUALIFIED_TEACHER": "دوره «{entity}» استادی با صلاحیت تدریس فعال ندارد. لطفاً در بخش اساتید، صلاحیت تدریس این دوره را به حداقل یک استاد اختصاص دهید.",
+      "COURSE_WITHOUT_AVAILABLE_TEACHER": "هیچ‌یک از اساتید واجد شرایط برای دوره «{entity}» زمان حضور تعریف نکرده‌اند.",
+      "NO_CLASSROOM_WITH_REQUIRED_CAPACITY": "کلاس درس با ظرفیت کافی برای یکی از نیازها تعریف نشده است.",
+      "INCOMPLETE_STUDENT_SCHEDULE_DATA": "اطلاعات زمان حضور برخی زبان‌آموزان ناقص است.",
+      "NO_ELIGIBLE_STUDENTS": "زبان‌آموز واجد شرایطی برای این دوره یافت نشد.",
+      "TEACHERS_WITHOUT_COURSE_QUALIFICATION": "برخی از اساتید فعال آموزشگاه فاقد صلاحیت تدریس هستند."
+    }
   },
   "comparison": {
     "title": "مقایسه برنامه‌های پیشنهادی",
@@ -394,6 +404,181 @@
       "description": "از این برنامه {count} کلاس عملیاتی ساخته شده است.",
       "at": "تاریخ انتشار: {date}",
       "badge": "منتشرشده"
+    }
+  },
+  "demand": {
+    "tabTitle": "تقاضای دوره‌ها",
+    "generationTabTitle": "زمان‌بندی کلاس‌ها",
+    "calculateButton": "محاسبه تقاضا",
+    "manageRequirementsButton": "مدیریت نیازهای کلاسی",
+    "recalculateButton": "محاسبه مجدد",
+    "calculating": "در حال محاسبه...",
+    "applyButton": "ثبت نیازهای کلاسی",
+    "updateButton": "به‌روزرسانی نیازهای کلاسی",
+    "applying": "در حال ثبت...",
+    "applySuccess": "{count} نیاز کلاسی با موفقیت ثبت شد.",
+    "noRequestsYet": "بدون نیاز",
+    "selectTermPrompt": "برای مشاهده تقاضای دوره‌ها، ابتدا یک ترم انتخاب کنید.",
+    "selectTermPromptDesc": "سیستم بر اساس قبولی‌های ترم گذشته و نتایج تعیین‌سطح جدید، تقاضا و تعداد کلاس‌های مورد نیاز را محاسبه می‌کند.",
+    "emptyDemand": "هیچ فراگیر متقاضی دوره‌ای برای این ترم یافت نشد.",
+    "emptyDemandDesc": "فراگیران برای ورود به تقاضای ترم باید در ترم قبل قبول شده باشند یا تعیین‌سطح شده باشند.",
+    "stats": {
+      "totalStudents": "کل متقاضیان",
+      "passedStudents": "قبولی ترم قبل",
+      "placementStudents": "تعیین‌سطح جدید",
+      "suggestedClasses": "کلاس پیشنهادی",
+      "registeredClasses": "نیازهای ثبت‌شده"
+    },
+    "columns": {
+      "course": "نام دوره",
+      "totalStudents": "متقاضیان",
+      "passed": "قبولی",
+      "placement": "تعیین‌سطح",
+      "shifts": "شیفت مدرسه",
+      "days": "روزهای ترجیحی",
+      "suggestedClasses": "کلاس پیشنهادی",
+      "capacity": "ظرفیت",
+      "deliveryMode": "شیوه برگزاری",
+      "requirementStatus": "وضعیت ثبت نیاز",
+      "registeredCount": "ثبت‌شده ({count} کلاس)",
+      "notRegistered": "ثبت‌نشده",
+      "reviewNeeded": "پیشنهاد جدید: {count}",
+      "actions": "عملیات"
+    },
+    "shifts": {
+      "morning": "صبح: {count}",
+      "afternoon": "عصر: {count}",
+      "flexible": "شناور: {count}"
+    },
+    "days": {
+      "evenDays": "زوج: {count}",
+      "oddDays": "فرد: {count}",
+      "any": "شناور: {count}"
+    },
+    "deliveryModes": {
+      "IN_PERSON": "حضوری",
+      "ONLINE": "آنلاین"
+    },
+    "editModal": {
+      "title": "ویرایش تقاضای دوره {course}",
+      "description": "می‌توانید تعداد کلاس پیشنهادی، ظرفیت هر کلاس و شیوه برگزاری را پیش از ثبت تغییر دهید.",
+      "suggestedClasses": "تعداد کلاس‌های مورد نیاز",
+      "capacity": "ظرفیت هر کلاس",
+      "deliveryMode": "شیوه برگزاری",
+      "sessionsPerWeek": "الگوی برگزاری و جلسات هفتگی",
+      "cadence3": "۳ جلسه در هفته (روزهای زوج: شنبه، دوشنبه، چهارشنبه)",
+      "cadence2": "۲ جلسه در هفته (روزهای فرد: یکشنبه، سه‌شنبه)",
+      "cadence1": "۱ جلسه در هفته (تک جلسه)",
+      "save": "تأیید",
+      "cancel": "انصراف",
+      "success": "نیاز کلاسی با موفقیت به‌روزرسانی شد."
+    },
+    "filters": {
+      "term": "ترم",
+      "branch": "شعبه",
+      "allBranches": "همه شعبه‌ها",
+      "allTerms": "همه ترم‌ها",
+      "search": "جست‌وجوی دوره...",
+      "statusAll": "همه دوره‌ها ({count})",
+      "statusRegistered": "دارای درخواست ({count})",
+      "statusUnregistered": "بدون درخواست ({count})",
+      "registeredSummary": "{courses} دوره با مجموع {classes} کلاس ثبت شده است.",
+      "termsWithRequests": "ترم‌های دارای درخواست",
+      "noRequestsForTerm": "برای این ترم هنوز درخواستی ثبت نشده است."
+    }
+  },
+  "termsList": {
+    "title": "زمان‌بندی ترم‌ها",
+    "description": "فهرست ترم‌های آموزشی آموزشگاه به همراه وضعیت نیازهای کلاسی و برنامه‌های تولیدشده.",
+    "columns": {
+      "term": "عنوان ترم",
+      "dateRange": "بازه برگزاری",
+      "operatingPhase": "فاز عملیاتی",
+      "requirements": "نیازهای کلاسی",
+      "status": "وضعیت برنامه",
+      "actions": "عملیات"
+    },
+    "requirementsBadge": "{count} نیاز ({classes} کلاس)",
+    "noRequirements": "بدون نیاز کلاسی",
+    "noPhase": "عمومی",
+    "statuses": {
+      "PUBLISHED": "برنامه منتشر شده",
+      "SCHEDULED": "دارای پیشنهاد",
+      "GENERATING": "در حال تولید",
+      "READY_TO_SCHEDULE": "آماده تولید برنامه",
+      "NO_REQUIREMENTS": "نیازمند ثبت تقاضا"
+    },
+    "actions": {
+      "manageTerm": "مدیریت و زمان‌بندی",
+      "backToTerms": "بازگشت به فهرست ترم‌ها"
+    },
+    "filters": {
+      "searchPlaceholder": "جست‌وجوی عنوان ترم...",
+      "statusPlaceholder": "همه وضعیت‌ها",
+      "statusAll": "همه وضعیت‌ها"
+    },
+    "empty": {
+      "title": "ترمی یافت نشد",
+      "description": "برای استفاده از امکان زمان‌بندی، ابتدا از بخش مدیریت ترم‌ها ترم جدید ایجاد نمایید."
+    },
+    "termWorkspace": {
+      "tabs": {
+        "demand": "تقاضا و نیازهای کلاسی",
+        "schedule": "تولید و برنامه‌های هفتگی"
+      },
+      "termOverview": {
+        "title": "مشخصات ترم",
+        "dates": "تاریخ برگزاری",
+        "classes": "کلاس‌های تشکیل‌شده",
+        "requirements": "نیازهای کلاسی ثبت‌شده",
+        "phase": "فاز عملیاتی"
+      }
+    }
+  },
+  "requirementsPage": {
+    "title": "نیازهای کلاسی ترم",
+    "description": "فهرست و ویرایش حداقل کلاس‌های موردنیاز، ظرفیت‌ها و الگوهای تشکیل کلاس برای این ترم.",
+    "syncDemand": "دریافت از تحلیل تقاضا",
+    "syncDemandDesc": "آیا مایلید تمام پیشنهادهای تحلیل تقاضای این ترم به عنوان نیازهای کلاسی ثبت شوند؟ نیازهای موجود جایگزین خواهند شد.",
+    "syncDemandConfirm": "تأیید و جایگزینی",
+    "syncDemandSuccess": "{count} نیاز کلاسی بر اساس تحلیل تقاضا با موفقیت ثبت شد.",
+    "addRequirement": "ثبت نیاز جدید",
+    "editRequirement": "ویرایش نیاز کلاسی",
+    "deleteRequirement": "حذف نیاز کلاسی",
+    "deleteConfirm": "آیا از حذف این نیاز کلاسی اطمینان دارید؟ این عمل غیرقابل بازگشت است.",
+    "createSuccess": "نیاز کلاسی با موفقیت ایجاد شد.",
+    "updateSuccess": "نیاز کلاسی با موفقیت ویرایش شد.",
+    "deleteSuccess": "نیاز کلاسی با موفقیت حذف شد.",
+    "empty": "هیچ نیاز کلاسی برای این ترم ثبت نشده است.",
+    "emptyDesc": "می‌توانید به صورت دستی نیاز جدید ثبت کنید یا از دکمه «دریافت از تحلیل تقاضا» برای ثبت خودکار بر اساس آمار زبان‌آموزان استفاده نمایید.",
+    "columns": {
+      "course": "دوره آموزشی",
+      "branch": "شعبه",
+      "requiredClassCount": "تعداد کلاس",
+      "capacity": "ظرفیت هر کلاس",
+      "deliveryMode": "شیوه برگزاری",
+      "sessionsPerWeek": "جلسات هفتگی",
+      "actions": "عملیات"
+    },
+    "fields": {
+      "course": "دوره آموزشی",
+      "coursePlaceholder": "انتخاب دوره...",
+      "branch": "شعبه",
+      "branchPlaceholder": "همه شعبه‌ها",
+      "requiredClassCount": "تعداد کلاس‌های مورد نیاز",
+      "capacity": "ظرفیت هر کلاس",
+      "deliveryMode": "شیوه برگزاری",
+      "sessionsPerWeek": "الگوی برگزاری هفتگی",
+      "cadence3": "۳ جلسه در هفته (روزهای زوج)",
+      "cadence2": "۲ جلسه در هفته (روزهای فرد)",
+      "cadence1": "۱ جلسه در هفته (تک جلسه)"
+    },
+    "actions": {
+      "backToScheduling": "بازگشت به زمان‌بندی ترم",
+      "cancel": "انصراف",
+      "save": "ذخیره",
+      "confirm": "تأیید",
+      "delete": "حذف"
     }
   }
 }
