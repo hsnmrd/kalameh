@@ -364,8 +364,59 @@ export function EditTermModal({
     return proposals[lockedTermIndex]?.sessionsCount || 18
   }, [proposals, lockedTermIndex])
 
+  /**
+   * Merges a recalculated proposals array with the pre-recalculation snapshot,
+   * restoring every sibling (non-locked) term to its original data.
+   * Only the locked term's entry is taken from the recalculated result,
+   * ensuring sibling terms shown as context are never mutated by edits to
+   * the term currently being edited.
+   */
+  const mergeWithFrozenSiblings = React.useCallback(
+    (
+      recalculated: GeneratedTermProposal[],
+      snapshot: GeneratedTermProposal[]
+    ): GeneratedTermProposal[] =>
+      recalculated.map((entry, idx) =>
+        idx === lockedTermIndex ? entry : (snapshot[idx] ?? entry)
+      ),
+    [lockedTermIndex]
+  )
+
+  /**
+   * Validates that the recalculated term's end date does not collide with or
+   * exceed the next sibling term's start date (forward constraint).
+   * Since sibling terms are frozen, the current term must have enough calendar
+   * days to finish all required sessions before the next term starts.
+   */
+  const validateNextSiblingBoundary = React.useCallback(
+    (
+      recalculatedActive: GeneratedTermProposal | undefined,
+      snapshot: GeneratedTermProposal[]
+    ) => {
+      if (!recalculatedActive) return
+      const nextSibling = snapshot[lockedTermIndex + 1]
+      if (nextSibling && nextSibling.startDate) {
+        const activeEnd = new Date(recalculatedActive.endDate + "T12:00:00")
+        const nextStart = new Date(nextSibling.startDate + "T12:00:00")
+        if (activeEnd >= nextStart) {
+          throw new Error(
+            t("editModal.overlapNextTermError", {
+              title: nextSibling.title,
+            })
+          )
+        }
+      }
+    },
+    [lockedTermIndex, t]
+  )
+
   const handleStartDateChange = (index: number, newStartDate: string) => {
+    // Only the locked term's start date may be changed in the edit modal.
+    // Clicks on sibling term start-date tiles must be silently ignored.
+    if (index !== lockedTermIndex) return
+
     try {
+      const snapshot = proposals
       const { daysOfWeek, classPatterns } = getPhaseContext()
       const targetSessions = standardSessionsCount
 
@@ -377,7 +428,7 @@ export function EditTermModal({
             : p.title
       })
 
-      const updated = recalculatePhaseTerms({
+      const recalculated = recalculatePhaseTerms({
         proposals,
         changedIndex: index,
         newStartDate,
@@ -393,6 +444,9 @@ export function EditTermModal({
         compensatorySessions,
       })
 
+      validateNextSiblingBoundary(recalculated[lockedTermIndex], snapshot)
+
+      const updated = mergeWithFrozenSiblings(recalculated, snapshot)
       setProposals(updated)
 
       const activeUpdated = updated[lockedTermIndex]
@@ -422,9 +476,8 @@ export function EditTermModal({
         ? activeDismissedHolidays.filter((d) => d !== dateYmd)
         : [...activeDismissedHolidays, dateYmd]
 
-      setActiveDismissedHolidays(nextDismissed)
-
       if (proposals.length > 0) {
+        const snapshot = proposals
         const { daysOfWeek, classPatterns } = getPhaseContext()
         const targetSessions = standardSessionsCount
 
@@ -436,7 +489,7 @@ export function EditTermModal({
               : p.title
         })
 
-        const updated = recalculatePhaseTerms({
+        const recalculated = recalculatePhaseTerms({
           proposals,
           changedIndex: lockedTermIndex,
           newStartDate: proposals[lockedTermIndex]!.startDate,
@@ -452,6 +505,10 @@ export function EditTermModal({
           compensatorySessions,
         })
 
+        validateNextSiblingBoundary(recalculated[lockedTermIndex], snapshot)
+
+        setActiveDismissedHolidays(nextDismissed)
+        const updated = mergeWithFrozenSiblings(recalculated, snapshot)
         setProposals(updated)
 
         const activeUpdated = updated[lockedTermIndex]
@@ -461,6 +518,8 @@ export function EditTermModal({
             shouldDirty: true,
           })
         }
+      } else {
+        setActiveDismissedHolidays(nextDismissed)
       }
       toast.success(t("batchModal.holidayToggled"))
     } catch (err: unknown) {
@@ -475,14 +534,14 @@ export function EditTermModal({
     const nextCustomOffDays = isCurrentlyOff
       ? customOffDays.filter((d) => d !== dateYmd)
       : [...customOffDays, dateYmd]
-    setLocalCustomOffDays(nextCustomOffDays)
 
     if (proposals.length > 0) {
       try {
+        const snapshot = proposals
         const { daysOfWeek, classPatterns } = getPhaseContext()
         const targetSessions = proposals[lockedTermIndex]?.sessionsCount || 18
 
-        const updated = recalculatePhaseTerms({
+        const recalculated = recalculatePhaseTerms({
           proposals,
           changedIndex: lockedTermIndex,
           newStartDate: proposals[lockedTermIndex]!.startDate,
@@ -497,6 +556,10 @@ export function EditTermModal({
           compensatorySessions,
         })
 
+        validateNextSiblingBoundary(recalculated[lockedTermIndex], snapshot)
+
+        setLocalCustomOffDays(nextCustomOffDays)
+        const updated = mergeWithFrozenSiblings(recalculated, snapshot)
         setProposals(updated)
 
         const activeUpdated = updated[lockedTermIndex]
@@ -506,9 +569,14 @@ export function EditTermModal({
             shouldDirty: true,
           })
         }
-      } catch {
-        // ignore
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          toast.error(err.message)
+        }
+        return
       }
+    } else {
+      setLocalCustomOffDays(nextCustomOffDays)
     }
 
     if (activeInstituteId) {
@@ -555,6 +623,7 @@ export function EditTermModal({
 
     if (proposals.length > 0) {
       try {
+        const snapshot = proposals
         const { daysOfWeek, classPatterns } = getPhaseContext()
         const targetSessions = standardSessionsCount
 
@@ -566,7 +635,7 @@ export function EditTermModal({
               : p.title
         })
 
-        const updated = recalculatePhaseTerms({
+        const recalculated = recalculatePhaseTerms({
           proposals,
           changedIndex: lockedTermIndex,
           newStartDate: proposals[lockedTermIndex]!.startDate,
@@ -582,6 +651,7 @@ export function EditTermModal({
           compensatorySessions: nextCompensatory,
         })
 
+        const updated = mergeWithFrozenSiblings(recalculated, snapshot)
         setProposals(updated)
 
         const activeUpdated = updated[lockedTermIndex]
@@ -608,10 +678,10 @@ export function EditTermModal({
       ...compensatorySessions,
       [termIndex]: existing.filter((s) => s.date !== dateYmd),
     }
-    setCompensatorySessions(nextCompensatory)
 
     if (proposals.length > 0) {
       try {
+        const snapshot = proposals
         const { daysOfWeek, classPatterns } = getPhaseContext()
         const targetSessions = standardSessionsCount
 
@@ -623,7 +693,7 @@ export function EditTermModal({
               : p.title
         })
 
-        const updated = recalculatePhaseTerms({
+        const recalculated = recalculatePhaseTerms({
           proposals,
           changedIndex: lockedTermIndex,
           newStartDate: proposals[lockedTermIndex]!.startDate,
@@ -639,6 +709,10 @@ export function EditTermModal({
           compensatorySessions: nextCompensatory,
         })
 
+        validateNextSiblingBoundary(recalculated[lockedTermIndex], snapshot)
+
+        setCompensatorySessions(nextCompensatory)
+        const updated = mergeWithFrozenSiblings(recalculated, snapshot)
         setProposals(updated)
 
         const activeUpdated = updated[lockedTermIndex]
@@ -648,12 +722,16 @@ export function EditTermModal({
             shouldDirty: true,
           })
         }
-      } catch {
-        // ignore
+        toast.success(t("batchModal.compensatorySessionRemoved"))
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          toast.error(err.message)
+        }
       }
+    } else {
+      setCompensatorySessions(nextCompensatory)
+      toast.success(t("batchModal.compensatorySessionRemoved"))
     }
-
-    toast.success(t("batchModal.compensatorySessionRemoved"))
   }
 
   const updateMutation = useMutation({
@@ -723,6 +801,37 @@ export function EditTermModal({
               </Field>
             </div>
 
+            {proposals[lockedTermIndex]?.hasSessionImbalance && (
+              <div className="flex animate-in items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive fade-in-50">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                <div className="flex flex-col gap-1">
+                  <span className="font-bold text-destructive">
+                    {t("batchModal.sessionImbalanceWarning")}:{" "}
+                    {proposals[lockedTermIndex]?.title}
+                  </span>
+                  <span className="leading-relaxed text-muted-foreground">
+                    {(() => {
+                      const active = proposals[lockedTermIndex]
+                      const even =
+                        active?.patternDetails?.find((d) => d.track === "EVEN")
+                          ?.completedSessions ?? 0
+                      const odd =
+                        active?.patternDetails?.find((d) => d.track === "ODD")
+                          ?.completedSessions ?? 0
+                      return t("batchModal.sessionImbalanceDesc", {
+                        even: formatNumber(even, locale || "fa"),
+                        odd: formatNumber(odd, locale || "fa"),
+                        target: formatNumber(
+                          active?.sessionsCount ?? 18,
+                          locale || "fa"
+                        ),
+                      })
+                    })()}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {isDateChanged && (
               <div className="flex animate-in items-start gap-2.5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs leading-relaxed text-warning fade-in-50">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
@@ -776,7 +885,10 @@ export function EditTermModal({
             </Button>
             <Button
               type="submit"
-              disabled={updateMutation.isPending}
+              disabled={
+                updateMutation.isPending ||
+                Boolean(proposals[lockedTermIndex]?.hasSessionImbalance)
+              }
               className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
             >
               {updateMutation.isPending && (

@@ -88,6 +88,8 @@
     "statusActive": "Active",
     "statusInactive": "Inactive",
     "dateChangeWarning": "Warning: {count} classes are already associated with this term. Changing the term dates will not automatically recalculate existing class session dates, and their schedules may require manual review.",
+    "overlapNextTermError": "There are not enough days to complete term sessions before the next term ({title}) starts, resulting in a date overlap.",
+    "notEnoughDaysError": "There are not enough days from the selected start date to complete the required {count} sessions.",
     "submit": "Save",
     "cancel": "Cancel",
     "success": "Academic term updated successfully."
