@@ -774,6 +774,15 @@ export interface RecalculatePhaseTermsInput {
   customOffDays?: (string | { date: string; title?: string })[]
   dismissedHolidays?: string[]
   compensatorySessions?: Record<number, CompensatorySession[]>
+  /**
+   * Per-term user-pinned start dates (index → ISO YYYY-MM-DD).
+   * When provided, the cascade loop uses the pinned date for that term
+   * instead of the auto-computed gap date, preserving manual edits even
+   * when a global event (holiday toggle, custom off-day) forces a full
+   * recalculation from changedIndex 0.
+   * The backward-constraint guard is still enforced.
+   */
+  pinnedStartDates?: Record<number, string>
 }
 
 /**
@@ -796,6 +805,7 @@ export function recalculatePhaseTerms(
     observeOfficialHolidays = true,
     customOffDays = [],
     dismissedHolidays = [],
+    pinnedStartDates = {},
   } = input
 
   const targetSessionsCount =
@@ -840,6 +850,33 @@ export function recalculatePhaseTerms(
   for (let i = changedIndex; i < updated.length; i++) {
     const existing = updated[i]
     if (!existing) break
+
+    // If the user manually pinned a start date for this term (and it is
+    // NOT the term that triggered the recalculation), use it instead of
+    // the auto-computed gap date — but never allow it to overlap the
+    // previous term's end.
+    if (i > changedIndex && pinnedStartDates[i]) {
+      const pinnedDate = parseInputDate(pinnedStartDates[i]!)
+      const prevUpdated = updated[i - 1]
+      if (prevUpdated) {
+        const prevEnd = new Date(prevUpdated.endDate + "T12:00:00")
+        if (pinnedDate > prevEnd) {
+          // Pinned date is still valid — honour it
+          currentStart = new Date(
+            pinnedDate.getFullYear(),
+            pinnedDate.getMonth(),
+            pinnedDate.getDate(),
+            12,
+            0,
+            0,
+            0
+          )
+        }
+        // If the pinned date is now invalid (previous term grew and its end
+        // overtook the pin), silently fall through and use the auto-computed
+        // currentStart so the cascade remains consistent.
+      }
+    }
 
     const termCompensatory =
       input.compensatorySessions?.[i] ?? existing.compensatorySessions ?? []

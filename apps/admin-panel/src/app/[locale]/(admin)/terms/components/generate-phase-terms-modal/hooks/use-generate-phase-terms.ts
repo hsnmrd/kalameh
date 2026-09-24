@@ -79,6 +79,9 @@ export function useGeneratePhaseTerms({
   const [compensatorySessions, setCompensatorySessions] = React.useState<
     Record<number, CompensatorySession[]>
   >({})
+  const [pinnedStartDates, setPinnedStartDates] = React.useState<
+    Record<number, string>
+  >({})
 
   React.useEffect(() => {
     if (institute?.dismissedHolidays) {
@@ -202,8 +205,12 @@ export function useGeneratePhaseTerms({
         customOffDays,
         dismissedHolidays: activeDismissedHolidays,
         compensatorySessions,
+        pinnedStartDates,
       })
       setProposals(updated)
+      // Record the pin so subsequent global recalculations (holiday toggles,
+      // custom off-days) do not overwrite the user's manual choice.
+      setPinnedStartDates((prev) => ({ ...prev, [index]: newStartDate }))
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast.error(err.message)
@@ -244,6 +251,7 @@ export function useGeneratePhaseTerms({
           customOffDays,
           dismissedHolidays: nextDismissed,
           compensatorySessions,
+          pinnedStartDates,
         })
         setProposals(updated)
         toast.success(t("batchModal.holidayToggled"))
@@ -288,6 +296,7 @@ export function useGeneratePhaseTerms({
           customOffDays: nextCustomOffDays,
           dismissedHolidays: activeDismissedHolidays,
           compensatorySessions,
+          pinnedStartDates,
         })
         setProposals(updated)
       }
@@ -365,6 +374,7 @@ export function useGeneratePhaseTerms({
           customOffDays,
           dismissedHolidays: activeDismissedHolidays,
           compensatorySessions: nextCompensatory,
+          pinnedStartDates,
         })
         setProposals(updated)
         toast.success(t("batchModal.compensatorySessionAdded"))
@@ -413,6 +423,7 @@ export function useGeneratePhaseTerms({
           customOffDays,
           dismissedHolidays: activeDismissedHolidays,
           compensatorySessions: nextCompensatory,
+          pinnedStartDates,
         })
         setProposals(updated)
         toast.success(t("batchModal.compensatorySessionRemoved"))
@@ -484,6 +495,7 @@ export function useGeneratePhaseTerms({
     setProposals([])
     setCustomTitles({})
     setCompensatorySessions({})
+    setPinnedStartDates({})
     setActiveDismissedHolidays(institute?.dismissedHolidays ?? [])
     setLocalCustomOffDays(null)
     onClose()
