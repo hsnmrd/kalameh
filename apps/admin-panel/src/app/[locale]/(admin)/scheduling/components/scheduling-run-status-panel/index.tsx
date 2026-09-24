@@ -1,13 +1,7 @@
 "use client"
 
 import { useLocale, useTranslations } from "next-intl"
-import {
-  Ban,
-  CheckCircle2,
-  CircleAlert,
-  RefreshCw,
-  RotateCcw,
-} from "lucide-react"
+import { Ban, CheckCircle2, CircleAlert, RotateCcw } from "lucide-react"
 import type { SchedulingRunDto, SchedulingRunStatus } from "@workspace/types"
 import { Badge, type BadgeProps } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -180,22 +174,6 @@ export function SchedulingRunStatusPanel({
             </div>
 
             <div className="flex flex-col-reverse gap-2 sm:flex-row">
-              {(statusQuery.isError || isActive) && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  disabled={statusQuery.isFetching}
-                  onClick={() => statusQuery.refetch()}
-                >
-                  {statusQuery.isFetching ? (
-                    <Spinner data-icon="inline-start" />
-                  ) : (
-                    <RefreshCw aria-hidden data-icon="inline-start" />
-                  )}
-                  {t("refresh")}
-                </Button>
-              )}
               {isTerminal && (
                 <Button type="button" size="lg" onClick={onReset}>
                   <RotateCcw aria-hidden data-icon="inline-start" />

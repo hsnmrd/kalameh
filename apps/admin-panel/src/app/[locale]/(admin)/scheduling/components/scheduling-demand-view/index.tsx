@@ -25,7 +25,7 @@ export interface SchedulingDemandViewProps {
   termId: string
   demandData: TermDemandReportDto | null
   isLoading: boolean
-  search: string
+  search?: string
   termOptions?: { value: string; label: string }[]
   onTermChange?: (termId: string) => void
   onCalculateDemand?: () => void
@@ -36,7 +36,7 @@ export function SchedulingDemandView({
   termId,
   demandData,
   isLoading,
-  search,
+  search = "",
   termOptions = [],
   onTermChange,
   onCalculateDemand,
