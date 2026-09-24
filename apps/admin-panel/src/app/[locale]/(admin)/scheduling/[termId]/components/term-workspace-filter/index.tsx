@@ -1,11 +1,9 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
-import { useLocale, useTranslations } from "next-intl"
-import { Pencil, Plus } from "lucide-react"
+import { useTranslations } from "next-intl"
+import { Plus } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
-import { PERMISSIONS } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
@@ -14,7 +12,6 @@ import { useActiveInstitute } from "@/lib/stores"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { AdminSearchInput } from "@/components/admin-search-input"
 import { AdminFilterTabs } from "@/components/admin-filter-tabs"
-import { PermissionGuard } from "@/components/permission-guard"
 
 export type SchedulingWorkspaceTab = "demand" | "generation"
 
@@ -31,7 +28,6 @@ export interface TermWorkspaceFilterProps {
 }
 
 export function TermWorkspaceFilter({
-  termId,
   activeTab,
   onTabChange,
   branchId,
@@ -42,7 +38,6 @@ export function TermWorkspaceFilter({
   onResetRun,
 }: TermWorkspaceFilterProps) {
   const t = useTranslations("scheduling")
-  const locale = useLocale()
   const { activeInstituteId } = useActiveInstitute()
 
   const queryParams = activeInstituteId
@@ -87,23 +82,7 @@ export function TermWorkspaceFilter({
         onChange={onTabChange}
       />
 
-      {activeTab === "demand" ? (
-        <PermissionGuard permission={PERMISSIONS.VIEW_CLASSES} mode="hide">
-          <Button
-            nativeButton={false}
-            render={
-              <Link
-                href={`/${locale}/scheduling/${termId}/requirements`}
-                className="gap-2"
-              />
-            }
-            className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
-          >
-            <Pencil className="size-4" />
-            <span>{t("demand.manageRequirementsButton")}</span>
-          </Button>
-        </PermissionGuard>
-      ) : hasActiveRun && onResetRun ? (
+      {activeTab === "generation" && hasActiveRun && onResetRun ? (
         <Button
           type="button"
           variant="outline"
