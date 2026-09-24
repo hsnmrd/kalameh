@@ -12,6 +12,7 @@ describe('SchedulingDemandService', () => {
       findFirstOrThrow?: jest.Mock;
     };
     course: { findMany: jest.Mock };
+    enrollment: { findMany: jest.Mock };
     user: { findMany: jest.Mock };
     classRequirement: {
       findMany: jest.Mock;
@@ -49,6 +50,7 @@ describe('SchedulingDemandService', () => {
         }),
       },
       course: { findMany: jest.fn() },
+      enrollment: { findMany: jest.fn().mockResolvedValue([]) },
       user: { findMany: jest.fn() },
       classRequirement: {
         findMany: jest.fn(),
@@ -113,7 +115,7 @@ describe('SchedulingDemandService', () => {
   });
 
   describe('calculateDemand', () => {
-    it('calculates demand correctly with prerequisite passes and school shifts', async () => {
+    it('calculates demand correctly with auto-progression and placement tests', async () => {
       prisma.term.findUniqueOrThrow.mockResolvedValue({
         id: 'term-fall',
         title: 'ترم پاییز ۱۴۰۳',
@@ -146,6 +148,20 @@ describe('SchedulingDemandService', () => {
         courseStarter2,
       ]);
 
+      // student-1 was in course-1 in preceding term (Summer)
+      prisma.enrollment.findMany.mockResolvedValue([
+        {
+          student: {
+            id: 'student-1',
+            studentProfile: {
+              schoolShift: 'MORNING',
+              dayPreference: 'EVEN_DAYS',
+            },
+          },
+          class: { courseId: 'course-1' },
+        },
+      ]);
+
       prisma.user.findMany.mockResolvedValue([
         {
           id: 'student-1',
@@ -154,12 +170,6 @@ describe('SchedulingDemandService', () => {
             schoolShift: 'MORNING',
             dayPreference: 'EVEN_DAYS',
           },
-          enrollments: [
-            {
-              isPassed: true,
-              class: { courseId: 'course-1' },
-            },
-          ],
         },
         {
           id: 'student-2',
@@ -168,7 +178,6 @@ describe('SchedulingDemandService', () => {
             schoolShift: 'AFTERNOON',
             dayPreference: 'ODD_DAYS',
           },
-          enrollments: [], // Direct placement test, did not pass course-1
         },
         {
           id: 'student-3',
@@ -177,7 +186,6 @@ describe('SchedulingDemandService', () => {
             schoolShift: 'FLEXIBLE',
             dayPreference: 'ANY',
           },
-          enrollments: [],
         },
       ]);
 
@@ -208,6 +216,192 @@ describe('SchedulingDemandService', () => {
       expect(starter2Summary?.evenDaysPreferenceCount).toBe(1);
       expect(starter2Summary?.oddDaysPreferenceCount).toBe(1);
       expect(starter2Summary?.suggestedClassCount).toBe(1);
+
+      const starter1Summary = result.courses.find(
+        (c) => c.courseId === 'course-1',
+      );
+      expect(starter1Summary).toBeDefined();
+      expect(starter1Summary?.eligibleStudentsCount).toBe(1);
+      expect(starter1Summary?.continuingStudentsCount).toBe(0);
+      expect(starter1Summary?.newPlacementCount).toBe(1);
+      expect(starter1Summary?.flexibleShiftCount).toBe(1);
+      expect(starter1Summary?.anyDayPreferenceCount).toBe(1);
+    });
+
+    it('does not project graduating students into any course when course has no next course', async () => {
+      prisma.term.findUniqueOrThrow.mockResolvedValue({
+        id: 'term-fall',
+        title: 'ترم پاییز ۱۴۰۳',
+        startDate: new Date('2024-09-22T00:00:00.000Z'),
+        instituteId: 'inst-1',
+      });
+      prisma.term.findFirst.mockResolvedValue({
+        id: 'term-summer',
+        title: 'ترم تابستان ۱۴۰۳',
+      });
+
+      const courseGraduating = {
+        id: 'course-advanced',
+        title: 'Advanced 3',
+        baseFee: 2000000,
+        prerequisiteId: null,
+        prerequisite: null,
+      };
+
+      prisma.course.findMany.mockResolvedValue([courseGraduating]);
+
+      // student-grad is in course-advanced in Summer (no course has prerequisiteId === 'course-advanced')
+      prisma.enrollment.findMany.mockResolvedValue([
+        {
+          student: {
+            id: 'student-grad',
+            studentProfile: {
+              schoolShift: 'MORNING',
+              dayPreference: 'EVEN_DAYS',
+            },
+          },
+          class: { courseId: 'course-advanced' },
+        },
+      ]);
+
+      // No new placement students
+      prisma.user.findMany.mockResolvedValue([]);
+      prisma.classRequirement.findMany.mockResolvedValue([]);
+
+      const result = await service.calculateDemand(mockUser, {
+        termId: 'term-fall',
+        defaultCapacity: 14,
+      });
+
+      expect(result.totalContinuingStudents).toBe(0);
+      expect(result.totalNewPlacements).toBe(0);
+      expect(result.totalEligibleStudents).toBe(0);
+      expect(result.courses[0].continuingStudentsCount).toBe(0);
+      expect(result.courses[0].newPlacementCount).toBe(0);
+      expect(result.courses[0].eligibleStudentsCount).toBe(0);
+    });
+
+    it('handles first term with null preceding term by counting only new placements', async () => {
+      prisma.term.findUniqueOrThrow.mockResolvedValue({
+        id: 'term-first',
+        title: 'ترم اول مؤسسه',
+        startDate: new Date('2024-01-01T00:00:00.000Z'),
+        instituteId: 'inst-1',
+      });
+      prisma.term.findFirst.mockResolvedValue(null);
+
+      const courseStarter = {
+        id: 'course-1',
+        title: 'Starter 1',
+        baseFee: 1000000,
+        prerequisiteId: null,
+        prerequisite: null,
+      };
+
+      prisma.course.findMany.mockResolvedValue([courseStarter]);
+      prisma.user.findMany.mockResolvedValue([
+        {
+          id: 'student-new',
+          currentAllowedCourseId: 'course-1',
+          studentProfile: {
+            schoolShift: 'MORNING',
+            dayPreference: 'EVEN_DAYS',
+          },
+        },
+      ]);
+      prisma.classRequirement.findMany.mockResolvedValue([]);
+
+      const result = await service.calculateDemand(mockUser, {
+        termId: 'term-first',
+        defaultCapacity: 14,
+      });
+
+      expect(result.currentTermId).toBeNull();
+      expect(result.totalContinuingStudents).toBe(0);
+      expect(result.totalNewPlacements).toBe(1);
+      expect(result.totalEligibleStudents).toBe(1);
+      expect(result.courses[0].continuingStudentsCount).toBe(0);
+      expect(result.courses[0].newPlacementCount).toBe(1);
+    });
+
+    it('guarantees an active student in preceding term is never counted as a new placement (zero double-counting)', async () => {
+      prisma.term.findUniqueOrThrow.mockResolvedValue({
+        id: 'term-fall',
+        title: 'ترم پاییز ۱۴۰۳',
+        startDate: new Date('2024-09-22T00:00:00.000Z'),
+        instituteId: 'inst-1',
+      });
+      prisma.term.findFirst.mockResolvedValue({
+        id: 'term-summer',
+        title: 'ترم تابستان ۱۴۰۳',
+      });
+
+      const course1 = {
+        id: 'course-1',
+        title: 'Level 1',
+        baseFee: 1000000,
+        prerequisiteId: null,
+        prerequisite: null,
+      };
+      const course2 = {
+        id: 'course-2',
+        title: 'Level 2',
+        baseFee: 1200000,
+        prerequisiteId: 'course-1',
+        prerequisite: { id: 'course-1', title: 'Level 1' },
+      };
+
+      prisma.course.findMany.mockResolvedValue([course1, course2]);
+
+      // student-active is enrolled in Level 1 in Summer
+      prisma.enrollment.findMany.mockResolvedValue([
+        {
+          student: {
+            id: 'student-active',
+            studentProfile: {
+              schoolShift: 'MORNING',
+              dayPreference: 'EVEN_DAYS',
+            },
+          },
+          class: { courseId: 'course-1' },
+        },
+      ]);
+
+      // Both student-active and student-placed have currentAllowedCourseId = course-2
+      prisma.user.findMany.mockResolvedValue([
+        {
+          id: 'student-active',
+          currentAllowedCourseId: 'course-2',
+          studentProfile: {
+            schoolShift: 'MORNING',
+            dayPreference: 'EVEN_DAYS',
+          },
+        },
+        {
+          id: 'student-placed',
+          currentAllowedCourseId: 'course-2',
+          studentProfile: {
+            schoolShift: 'AFTERNOON',
+            dayPreference: 'ODD_DAYS',
+          },
+        },
+      ]);
+
+      prisma.classRequirement.findMany.mockResolvedValue([]);
+
+      const result = await service.calculateDemand(mockUser, {
+        termId: 'term-fall',
+        defaultCapacity: 14,
+      });
+
+      const level2 = result.courses.find((c) => c.courseId === 'course-2');
+      expect(level2).toBeDefined();
+      expect(level2?.continuingStudentsCount).toBe(1); // student-active
+      expect(level2?.newPlacementCount).toBe(1); // student-placed only
+      expect(level2?.eligibleStudentsCount).toBe(2); // strictly 2, not 3
+      expect(result.totalEligibleStudents).toBe(2);
+      expect(result.totalContinuingStudents).toBe(1);
+      expect(result.totalNewPlacements).toBe(1);
     });
   });
 

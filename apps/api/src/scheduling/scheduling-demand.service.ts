@@ -101,6 +101,78 @@ export class SchedulingDemandService {
 
     const courseIds = courses.map((c) => c.id);
 
+    const activeEnrollments = precedingTerm
+      ? await this.prisma.enrollment.findMany({
+          where: {
+            class: {
+              termId: precedingTerm.id,
+              instituteId,
+              ...(input.branchId
+                ? { OR: [{ branchId: input.branchId }, { branchId: null }] }
+                : {}),
+            },
+            status: { in: ['ENROLLED', 'PENDING_PAYMENT', 'PENDING_APPROVAL'] },
+            student: {
+              isActive: true,
+            },
+          },
+          include: {
+            class: {
+              select: {
+                courseId: true,
+              },
+            },
+            student: {
+              select: {
+                id: true,
+                studentProfile: {
+                  select: {
+                    schoolShift: true,
+                    dayPreference: true,
+                  },
+                },
+              },
+            },
+          },
+        })
+      : [];
+
+    const enrolledStudentIdsInCurrentTerm = new Set(
+      activeEnrollments.map((e) => e.student.id),
+    );
+
+    const continuingStudentsByCourseId = new Map<
+      string,
+      Map<
+        string,
+        {
+          schoolShift?: string | null;
+          dayPreference?: string | null;
+        }
+      >
+    >();
+
+    for (const course of courses) {
+      continuingStudentsByCourseId.set(course.id, new Map());
+    }
+
+    for (const enrollment of activeEnrollments) {
+      const currentCourseId = enrollment.class.courseId;
+      const nextCourses = courses.filter(
+        (c) => c.prerequisiteId === currentCourseId,
+      );
+
+      for (const nextCourse of nextCourses) {
+        const studentMap = continuingStudentsByCourseId.get(nextCourse.id);
+        if (studentMap && !studentMap.has(enrollment.student.id)) {
+          studentMap.set(enrollment.student.id, {
+            schoolShift: enrollment.student.studentProfile?.schoolShift,
+            dayPreference: enrollment.student.studentProfile?.dayPreference,
+          });
+        }
+      }
+    }
+
     const students = await this.prisma.user.findMany({
       where: {
         instituteId,
@@ -118,18 +190,6 @@ export class SchedulingDemandService {
             dayPreference: true,
           },
         },
-        enrollments: {
-          where: { isPassed: true },
-          include: {
-            class: {
-              select: {
-                courseId: true,
-              },
-            },
-          },
-          orderBy: { updatedAt: 'desc' },
-          take: 5,
-        },
       },
     });
 
@@ -145,29 +205,18 @@ export class SchedulingDemandService {
     const defaultCapacity = input.defaultCapacity || 14;
 
     const courseSummaries: CourseDemandSummaryDto[] = courses.map((course) => {
-      const eligibleStudents = students.filter(
-        (s) => s.currentAllowedCourseId === course.id,
+      const continuingMap =
+        continuingStudentsByCourseId.get(course.id) ?? new Map();
+      const continuingStudentsCount = continuingMap.size;
+
+      const placedStudents = students.filter(
+        (s) =>
+          s.currentAllowedCourseId === course.id &&
+          !enrolledStudentIdsInCurrentTerm.has(s.id),
       );
-      const eligibleCount = eligibleStudents.length;
+      const newPlacementCount = placedStudents.length;
 
-      let passedPrereqCount = 0;
-      let newPlacementCount = 0;
-
-      for (const student of eligibleStudents) {
-        const hasPassedPrereq = course.prerequisiteId
-          ? student.enrollments.some(
-              (e) =>
-                e.class.courseId === course.prerequisiteId &&
-                e.isPassed === true,
-            )
-          : false;
-
-        if (hasPassedPrereq) {
-          passedPrereqCount++;
-        } else {
-          newPlacementCount++;
-        }
-      }
+      const eligibleCount = continuingStudentsCount + newPlacementCount;
 
       let morningShift = 0;
       let afternoonShift = 0;
@@ -176,7 +225,19 @@ export class SchedulingDemandService {
       let oddDays = 0;
       let anyDay = 0;
 
-      for (const student of eligibleStudents) {
+      for (const profile of continuingMap.values()) {
+        const shift = profile.schoolShift ?? 'FLEXIBLE';
+        if (shift === 'MORNING') morningShift++;
+        else if (shift === 'AFTERNOON') afternoonShift++;
+        else flexibleShift++;
+
+        const pref = profile.dayPreference ?? 'ANY';
+        if (pref === 'EVEN_DAYS') evenDays++;
+        else if (pref === 'ODD_DAYS') oddDays++;
+        else anyDay++;
+      }
+
+      for (const student of placedStudents) {
         const shift = student.studentProfile?.schoolShift ?? 'FLEXIBLE';
         if (shift === 'MORNING') morningShift++;
         else if (shift === 'AFTERNOON') afternoonShift++;
@@ -204,9 +265,9 @@ export class SchedulingDemandService {
         prerequisiteId: course.prerequisiteId,
         prerequisiteTitle: course.prerequisite?.title ?? null,
         eligibleStudentsCount: eligibleCount,
-        passedPrerequisiteCount: passedPrereqCount,
-        continuingStudentsCount: passedPrereqCount,
-        newPlacementCount: newPlacementCount,
+        passedPrerequisiteCount: continuingStudentsCount,
+        continuingStudentsCount,
+        newPlacementCount,
         morningShiftCount: morningShift,
         afternoonShiftCount: afternoonShift,
         flexibleShiftCount: flexibleShift,
