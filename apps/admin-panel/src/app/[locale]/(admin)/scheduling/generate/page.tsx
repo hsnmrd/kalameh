@@ -12,18 +12,21 @@ import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
 import { ModuleGuard } from "@/components/module-guard"
 import { PermissionGuard } from "@/components/permission-guard"
 import { useRouter } from "@/i18n/routing"
+import { useSchedulingRunStore } from "@/lib/stores"
 import { SchedulingGenerationForm } from "../components/scheduling-generation-form"
-import { SchedulingRunStatusPanel } from "../components/scheduling-run-status-panel"
 
 export default function SchedulingGeneratePage() {
   const t = useTranslations("scheduling")
   const router = useRouter()
+  const { setActiveRun } = useSchedulingRunStore()
 
-  const [createdRun, setCreatedRun] = React.useState<SchedulingRunDto | null>(
-    null
+  const handleCreated = React.useCallback(
+    (run: SchedulingRunDto) => {
+      setActiveRun(run)
+      router.push(`/scheduling/runs/${run.id}`)
+    },
+    [setActiveRun, router]
   )
-
-  const backHref = "/scheduling"
 
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
@@ -31,7 +34,7 @@ export default function SchedulingGeneratePage() {
         <AdminPageShell
           breadcrumb={
             <AdminBreadcrumb
-              backHref={backHref}
+              backHref="/scheduling"
               backLabel={t("title")}
               items={[
                 { label: t("title"), href: "/scheduling" },
@@ -40,17 +43,10 @@ export default function SchedulingGeneratePage() {
             />
           }
         >
-          {createdRun ? (
-            <SchedulingRunStatusPanel
-              run={createdRun}
-              onReset={() => setCreatedRun(null)}
-            />
-          ) : (
-            <SchedulingGenerationForm
-              onCreated={(run) => setCreatedRun(run)}
-              onNavigateToDemand={() => router.push(backHref)}
-            />
-          )}
+          <SchedulingGenerationForm
+            onCreated={handleCreated}
+            onNavigateToDemand={() => router.push("/scheduling")}
+          />
         </AdminPageShell>
       </PermissionGuard>
     </ModuleGuard>

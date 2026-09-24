@@ -3,8 +3,9 @@
 import * as React from "react"
 import { Controller } from "react-hook-form"
 import { useLocale, useTranslations } from "next-intl"
-import { CalendarClock, Sparkles } from "lucide-react"
+import { Calendar, CalendarClock, Sparkles } from "lucide-react"
 import { PERMISSIONS, type SchedulingRunDto } from "@workspace/types"
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   ResponsiveCombobox,
@@ -13,7 +14,6 @@ import {
 import {
   Field,
   FieldDescription,
-  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@workspace/ui/components/field"
@@ -27,14 +27,12 @@ const ALL_BRANCHES = "ALL_BRANCHES"
 
 interface SchedulingGenerationFormProps {
   onCreated: (run: SchedulingRunDto) => void
-  termOptions?: ComboboxOption[]
   defaultTermId?: string
   onNavigateToDemand?: () => void
 }
 
 export function SchedulingGenerationForm({
   onCreated,
-  termOptions: propTermOptions,
   defaultTermId,
   onNavigateToDemand,
 }: SchedulingGenerationFormProps) {
@@ -55,21 +53,20 @@ export function SchedulingGenerationForm({
     submit,
   } = useSchedulingGenerationForm(onCreated, t("success"))
 
-  const termOptions: ComboboxOption[] =
-    propTermOptions ??
-    terms.map((term) => ({
-      value: term.id,
-      label: term.title,
-    }))
-
-  // Auto-select default term or first eligible term with requirements
-  React.useEffect(() => {
-    if (defaultTermId && terms.some((t) => t.id === defaultTermId)) {
-      form.setValue("termId", defaultTermId, { shouldValidate: true })
-    } else if (!termId && termOptions.length > 0 && termOptions[0]) {
-      form.setValue("termId", termOptions[0].value, { shouldValidate: true })
+  const activeTerm = React.useMemo(() => {
+    if (defaultTermId) {
+      const found = terms.find((t) => t.id === defaultTermId)
+      if (found) return found
     }
-  }, [defaultTermId, termId, termOptions, form, terms])
+    return terms[0] ?? null
+  }, [defaultTermId, terms])
+
+  // Auto-select eligible active term
+  React.useEffect(() => {
+    if (activeTerm) {
+      form.setValue("termId", activeTerm.id, { shouldValidate: true })
+    }
+  }, [activeTerm, form])
 
   const branchOptions: ComboboxOption[] = [
     { value: ALL_BRANCHES, label: t("fields.branch.all") },
@@ -85,16 +82,30 @@ export function SchedulingGenerationForm({
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border bg-card">
-      <div className="flex items-start gap-3 border-b border-border px-5 py-5 sm:px-6">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Sparkles aria-hidden className="size-5" />
-        </span>
-        <div>
-          <h2 className="font-bold text-foreground">{t("title")}</h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            {t("description")}
-          </p>
+      <div className="flex flex-col gap-3 border-b border-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex items-start gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Sparkles aria-hidden className="size-5" />
+          </span>
+          <div>
+            <h2 className="font-bold text-foreground">{t("title")}</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              {t("description")}
+            </p>
+          </div>
         </div>
+
+        {activeTerm && (
+          <div className="flex shrink-0 items-center gap-2">
+            <Badge
+              variant="outline"
+              className="gap-2 border-border bg-muted/30 px-3.5 py-1.5 text-xs font-semibold text-foreground sm:text-sm"
+            >
+              <Calendar className="size-4 text-primary" />
+              <span>{activeTerm.title}</span>
+            </Badge>
+          </div>
+        )}
       </div>
 
       <form onSubmit={submit} className="p-5 sm:p-6">
@@ -126,36 +137,7 @@ export function SchedulingGenerationForm({
           </div>
         ) : (
           <FieldGroup>
-            <div className="grid gap-4 md:grid-cols-3">
-              <Field data-invalid={Boolean(errors.termId)}>
-                <FieldLabel>{t("fields.term.label")}</FieldLabel>
-                <Controller
-                  control={form.control}
-                  name="termId"
-                  render={({ field }) => (
-                    <ResponsiveCombobox
-                      items={termOptions}
-                      value={field.value}
-                      onValueChange={(value) => {
-                        field.onChange(value ?? "")
-                        form.setValue("requirementIds", [])
-                      }}
-                      disabled={isScopeLoading}
-                      placeholder={t("fields.term.placeholder")}
-                      searchPlaceholder={t("fields.term.search")}
-                      emptyMessage={t("fields.term.empty")}
-                      drawerTitle={t("fields.term.drawerTitle")}
-                      locale={locale}
-                      clearable={false}
-                      data-invalid={Boolean(errors.termId)}
-                    />
-                  )}
-                />
-                <FieldError>
-                  {errors.termId ? t("validation.term") : undefined}
-                </FieldError>
-              </Field>
-
+            <div className="grid gap-4 md:grid-cols-2">
               <Field>
                 <FieldLabel>{t("fields.branch.label")}</FieldLabel>
                 <Controller

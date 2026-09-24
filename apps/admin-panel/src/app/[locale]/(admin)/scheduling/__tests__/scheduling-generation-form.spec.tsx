@@ -94,12 +94,11 @@ describe("MVP-034 scheduling generation form", () => {
 
     render(<SchedulingGenerationForm onCreated={onCreated} />)
 
-    const termCombobox = await screen.findByRole("combobox", {
-      name: "انتخاب ترم",
-    })
-    await waitFor(() => expect(termCombobox).not.toBeDisabled())
-    fireEvent.click(termCombobox)
-    fireEvent.click(await screen.findByRole("option", { name: "ترم پاییز" }))
+    // The active eligible term is automatically selected and displayed in the header
+    expect(await screen.findByText("ترم پاییز")).toBeInTheDocument()
+    expect(
+      screen.queryByRole("combobox", { name: "انتخاب ترم" })
+    ).not.toBeInTheDocument()
     await waitFor(() =>
       expect(requirementsQuerySpy).toHaveBeenCalledWith(
         expect.objectContaining({ termId })

@@ -130,6 +130,7 @@
     "updatedAt": "Last update: {value}",
     "refresh": "Refresh status",
     "another": "Create another run",
+    "pageTitle": "Scheduling results",
     "preflightIssues": {
       "title": "Preflight blocking issues:",
       "COURSE_WITHOUT_QUALIFIED_TEACHER": "Course \"{entity}\" does not have an active qualified teacher. Please assign course qualification to at least one teacher.",
@@ -410,9 +411,10 @@
     "smartHero": {
       "title": "Smart Demand Summary",
       "subtitle": "Based on auto-progression of continuing students and new placements, {count} classes are projected for this term.",
-      "generateButton": "Generate Weekly Timetable",
+      "generateButton": "Save & Continue",
       "noDemandSubtitle": "No classes are projected for this term. Please review term registrations and placements."
     },
+    "applyAndContinue": "Save & Continue",
     "breakdown": {
       "toggle": "View & edit course details ({count} courses)",
       "course": "Course",

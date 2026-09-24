@@ -4,7 +4,12 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { Calendar, CalendarClock } from "lucide-react"
-import type { SchedulingRunDto, TermDemandReportDto } from "@workspace/types"
+import { toast } from "@workspace/ui/components/sonner"
+import type {
+  ApplyTermDemandItem,
+  SchedulingRunDto,
+  TermDemandReportDto,
+} from "@workspace/types"
 import {
   Empty,
   EmptyDescription,
@@ -15,25 +20,28 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { schedulingResource } from "@/lib/api"
-import { useActiveInstitute } from "@/lib/stores"
+import { useActiveInstitute, useSchedulingRunStore } from "@/lib/stores"
 import { useRouter } from "@/i18n/routing"
 import { selectDefaultSchedulingTerm } from "../../helper/term-selection"
-import { SchedulingDemandView } from "../scheduling-demand-view"
+import {
+  SchedulingDemandView,
+  type CourseAdjustment,
+} from "../scheduling-demand-view"
 import { SchedulingFab } from "../scheduling-fab"
 import { SchedulingFilter } from "../scheduling-filter"
-import { SchedulingRunStatusPanel } from "../scheduling-run-status-panel"
 
 export function SchedulingWorkspace() {
   const t = useTranslations("scheduling")
   const router = useRouter()
   const { activeInstituteId } = useActiveInstitute()
+  const { clearActiveRun } = useSchedulingRunStore()
 
   const [branchId, setBranchId] = React.useState("")
   const [demandData, setDemandData] =
     React.useState<TermDemandReportDto | null>(null)
-  const [createdRun, setCreatedRun] = React.useState<SchedulingRunDto | null>(
-    null
-  )
+  const [adjustments, setAdjustments] = React.useState<
+    Record<string, CourseAdjustment>
+  >({})
 
   const termsQuery = useQuery({
     ...schedulingResource.terms.toQuery(
@@ -51,13 +59,40 @@ export function SchedulingWorkspace() {
   React.useEffect(() => {
     setBranchId("")
     setDemandData(null)
-    setCreatedRun(null)
-  }, [activeInstituteId])
+    clearActiveRun()
+    setAdjustments({})
+  }, [activeInstituteId, clearActiveRun])
+
+  // Reset adjustments when term or branch changes
+  React.useEffect(() => {
+    setAdjustments({})
+  }, [selectedTerm?.id, branchId])
+
+  const handleAdjustmentChange = React.useCallback(
+    (courseId: string, changes: CourseAdjustment) => {
+      setAdjustments((prev) => ({
+        ...prev,
+        [courseId]: {
+          ...prev[courseId],
+          ...changes,
+        },
+      }))
+    },
+    []
+  )
 
   const calculateMutation = useMutation({
     ...schedulingResource.calculateDemand.toMutation(),
     onSuccess: (data) => {
       setDemandData(data)
+    },
+  })
+
+  const applyMutation = useMutation({
+    ...schedulingResource.applyDemand.toMutation(),
+    onSuccess: (data) => {
+      toast.success(t("demand.applySuccess", { count: data.totalRequirements }))
+      router.push("/scheduling/generate")
     },
   })
 
@@ -77,11 +112,62 @@ export function SchedulingWorkspace() {
   }, [selectedTerm?.id, branchId, activeInstituteId])
 
   const handleGenerateSchedule = React.useCallback(() => {
-    router.push("/scheduling/generate")
-  }, [router])
+    if (!selectedTerm) return
 
-  const activeRun =
-    createdRun?.instituteId === activeInstituteId ? createdRun : null
+    const courses = demandData?.courses ?? []
+    if (courses.length === 0) {
+      router.push("/scheduling/generate")
+      return
+    }
+
+    const items: ApplyTermDemandItem[] = courses
+      .map((c) => {
+        const adj = adjustments[c.courseId]
+        const requiredClassCount = Math.min(
+          50,
+          Math.max(0, adj?.suggestedClassCount ?? c.suggestedClassCount)
+        )
+        const capacity = Math.min(
+          100,
+          Math.max(1, adj?.capacity ?? c.suggestedCapacity ?? 14)
+        )
+        return {
+          courseId: c.courseId,
+          requiredClassCount,
+          capacity,
+          deliveryMode: (c.suggestedOnlineCount > c.suggestedInPersonCount
+            ? "ONLINE"
+            : "IN_PERSON") as const,
+          sessionDurationMinutes: 90,
+          sessionsPerWeek:
+            c.sessionsPerWeek ??
+            (c.evenDaysPreferenceCount >= c.oddDaysPreferenceCount ? 3 : 2),
+        }
+      })
+      .filter((item) => item.requiredClassCount > 0)
+
+    if (items.length === 0) {
+      router.push("/scheduling/generate")
+      return
+    }
+
+    applyMutation.mutate({
+      termId: selectedTerm.id,
+      branchId: branchId && branchId !== "all" ? branchId : undefined,
+      instituteId: activeInstituteId || undefined,
+      items,
+    })
+  }, [
+    selectedTerm,
+    demandData?.courses,
+    adjustments,
+    applyMutation,
+    branchId,
+    activeInstituteId,
+    router,
+  ])
+
+  const isActionPending = calculateMutation.isPending || applyMutation.isPending
 
   return (
     <AdminPageShell
@@ -91,17 +177,15 @@ export function SchedulingWorkspace() {
           isLoadingTerm={termsQuery.isLoading}
           branchId={branchId}
           onBranchChange={setBranchId}
-          hasActiveRun={Boolean(activeRun)}
-          onNewRun={handleGenerateSchedule}
           onGenerateSchedule={handleGenerateSchedule}
-          isGenerating={calculateMutation.isPending}
+          isGenerating={isActionPending}
         />
       }
       fab={
         <SchedulingFab
           termId={selectedTerm?.id}
           onGenerateSchedule={handleGenerateSchedule}
-          disabled={!selectedTerm || calculateMutation.isPending}
+          disabled={!selectedTerm || isActionPending}
         />
       }
     >
@@ -135,20 +219,13 @@ export function SchedulingWorkspace() {
         </Empty>
       ) : (
         <div className="flex flex-col gap-6">
-          {activeRun ? (
-            <SchedulingRunStatusPanel
-              run={activeRun}
-              onReset={() => {
-                setCreatedRun(null)
-              }}
-            />
-          ) : (
-            <SchedulingDemandView
-              termId={selectedTerm.id}
-              demandData={demandData}
-              isLoading={calculateMutation.isPending}
-            />
-          )}
+          <SchedulingDemandView
+            termId={selectedTerm.id}
+            demandData={demandData}
+            isLoading={calculateMutation.isPending}
+            adjustments={adjustments}
+            onAdjustmentChange={handleAdjustmentChange}
+          />
         </div>
       )}
     </AdminPageShell>

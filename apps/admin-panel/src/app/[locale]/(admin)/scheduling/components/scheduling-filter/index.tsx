@@ -2,10 +2,11 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { CalendarPlus, Plus } from "lucide-react"
+import { CalendarPlus } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { PERMISSIONS, type SchedulingTermSummaryDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -19,8 +20,6 @@ export interface SchedulingFilterProps {
   isLoadingTerm?: boolean
   branchId: string
   onBranchChange: (branchId: string) => void
-  hasActiveRun?: boolean
-  onNewRun?: () => void
   onGenerateSchedule?: () => void
   isGenerating?: boolean
 }
@@ -30,8 +29,6 @@ export function SchedulingFilter({
   isLoadingTerm,
   branchId,
   onBranchChange,
-  hasActiveRun,
-  onNewRun,
   onGenerateSchedule,
   isGenerating,
 }: SchedulingFilterProps) {
@@ -79,20 +76,14 @@ export function SchedulingFilter({
               disabled={!term || isGenerating}
               className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
             >
-              <CalendarPlus className="size-5" />
-              <span>{t("demand.smartHero.generateButton")}</span>
+              {isGenerating ? (
+                <Spinner className="size-5" />
+              ) : (
+                <CalendarPlus className="size-5" />
+              )}
+              <span>{t("demand.applyAndContinue")}</span>
             </Button>
           </PermissionGuard>
-        ) : hasActiveRun && onNewRun ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onNewRun}
-            className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
-          >
-            <Plus className="size-5" />
-            <span>{t("runStatus.another")}</span>
-          </Button>
         ) : undefined
       }
       filters={

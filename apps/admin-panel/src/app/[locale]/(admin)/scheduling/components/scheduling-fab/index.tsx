@@ -23,7 +23,7 @@ export function SchedulingFab({
     <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
       <FABSingle
         onClick={onGenerateSchedule}
-        aria-label={t("demand.smartHero.generateButton")}
+        aria-label={t("demand.applyAndContinue")}
       >
         <CalendarPlus className="size-6" aria-hidden />
       </FABSingle>

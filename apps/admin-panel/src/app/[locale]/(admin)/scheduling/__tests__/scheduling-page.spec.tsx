@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { fireEvent, render, screen } from "../../../../../test/test-utils"
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "../../../../../test/test-utils"
 import { INSTITUTE_NAV_ITEMS } from "@/data"
 import commonMessagesEn from "@/messages/en/common.json"
 import schedulingMessagesEn from "@/messages/en/scheduling.json"
@@ -129,11 +134,115 @@ describe("Unified scheduling workspace", () => {
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument()
     // Verify header generate button is present (both desktop filter action and mobile FAB)
     const generateButtons = screen.getAllByRole("button", {
-      name: "تولید خودکار برنامه هفتگی",
+      name: "ثبت و ادامه",
     })
     expect(generateButtons.length).toBeGreaterThanOrEqual(1)
     // Clicking generate button navigates to /scheduling/generate without termId in route
     fireEvent.click(generateButtons[0]!)
+    expect(mockPush).toHaveBeenCalledWith("/scheduling/generate")
+  })
+
+  it("saves demand adjustments and navigates to /scheduling/generate on clicking apply button", async () => {
+    const mockTerms: SchedulingTermSummaryDto[] = [
+      {
+        id: "term-fall",
+        title: "پاییز ۱۴۰۵",
+        startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: true,
+        classesCount: 0,
+        requirementsCount: 0,
+        totalRequiredClasses: 0,
+        schedulingStatus: "READY_TO_SCHEDULE",
+      },
+    ]
+
+    const mockDemandReport = {
+      termId: "term-fall",
+      termTitle: "پاییز ۱۴۰۵",
+      defaultCapacity: 14,
+      totalEligibleStudents: 25,
+      totalContinuingStudents: 20,
+      totalNewPlacements: 5,
+      totalSuggestedClasses: 2,
+      courses: [
+        {
+          courseId: "11111111-1111-1111-1111-111111111111",
+          courseTitle: "انگلیسی کودکان ۱",
+          baseFee: 1500000,
+          eligibleStudentsCount: 25,
+          passedPrerequisiteCount: 20,
+          continuingStudentsCount: 20,
+          newPlacementCount: 5,
+          morningShiftCount: 5,
+          afternoonShiftCount: 15,
+          flexibleShiftCount: 5,
+          evenDaysPreferenceCount: 18,
+          oddDaysPreferenceCount: 7,
+          anyDayPreferenceCount: 0,
+          suggestedClassCount: 2,
+          suggestedCapacity: 14,
+          suggestedInPersonCount: 20,
+          suggestedOnlineCount: 5,
+          sessionsPerWeek: 2,
+        },
+      ],
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: "inst-1",
+      activeInstitute: {
+        id: "inst-1",
+        name: "Test Institute",
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "terms", "inst-1"],
+      queryFn: async () => mockTerms,
+    } as any)
+
+    const calculateDemandSpy = vi.fn().mockResolvedValue(mockDemandReport)
+    vi.spyOn(schedulingResource.calculateDemand, "toMutation").mockReturnValue({
+      mutationFn: calculateDemandSpy,
+    } as any)
+
+    const applyMutationSpy = vi.fn().mockResolvedValue({
+      createdCount: 1,
+      updatedCount: 0,
+      totalRequirements: 1,
+    })
+    vi.spyOn(schedulingResource.applyDemand, "toMutation").mockReturnValue({
+      mutationFn: applyMutationSpy,
+    } as any)
+
+    render(<SchedulingPage />)
+
+    expect(
+      (await screen.findAllByText("انگلیسی کودکان ۱")).length
+    ).toBeGreaterThanOrEqual(1)
+
+    const applyButton = screen.getAllByRole("button", {
+      name: "ثبت و ادامه",
+    })[0]!
+    fireEvent.click(applyButton)
+
+    await waitFor(() => {
+      expect(applyMutationSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          termId: "term-fall",
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              courseId: "11111111-1111-1111-1111-111111111111",
+              requiredClassCount: 2,
+              capacity: 14,
+            }),
+          ]),
+        }),
+        expect.anything()
+      )
+    })
     expect(mockPush).toHaveBeenCalledWith("/scheduling/generate")
   })
 

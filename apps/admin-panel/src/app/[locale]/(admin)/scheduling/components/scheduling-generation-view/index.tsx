@@ -2,13 +2,11 @@
 
 import * as React from "react"
 import type { SchedulingRunDto } from "@workspace/types"
-import type { ComboboxOption } from "@workspace/ui/components/combobox"
 import { SchedulingGenerationForm } from "../scheduling-generation-form"
 import { SchedulingRunStatusPanel } from "../scheduling-run-status-panel"
 
 export interface SchedulingGenerationViewProps {
   activeRun: SchedulingRunDto | null
-  termOptions?: ComboboxOption[]
   defaultTermId?: string
   onCreatedRun: (run: SchedulingRunDto) => void
   onResetRun: () => void
@@ -17,7 +15,6 @@ export interface SchedulingGenerationViewProps {
 
 export function SchedulingGenerationView({
   activeRun,
-  termOptions,
   defaultTermId,
   onCreatedRun,
   onResetRun,
@@ -29,7 +26,6 @@ export function SchedulingGenerationView({
 
   return (
     <SchedulingGenerationForm
-      termOptions={termOptions}
       defaultTermId={defaultTermId}
       onCreated={onCreatedRun}
       onNavigateToDemand={onNavigateToDemand}

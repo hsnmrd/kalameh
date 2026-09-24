@@ -18,39 +18,51 @@ import {
   type CourseAdjustment,
 } from "./demand-breakdown-drawer"
 
+export type { CourseAdjustment } from "./demand-breakdown-drawer"
+
 export interface SchedulingDemandViewProps {
   termId: string
   demandData: TermDemandReportDto | null
   isLoading: boolean
   search?: string
+  adjustments?: Record<string, CourseAdjustment>
+  onAdjustmentChange?: (courseId: string, changes: CourseAdjustment) => void
   onCalculateDemand?: () => void
   onGenerateTimetable?: () => void
 }
 
 export function SchedulingDemandView({
-  termId,
+  termId: _termId,
   demandData,
   isLoading,
   search = "",
+  adjustments: externalAdjustments,
+  onAdjustmentChange: externalOnAdjustmentChange,
   onCalculateDemand,
 }: SchedulingDemandViewProps) {
   const t = useTranslations("scheduling")
 
-  const [adjustments, setAdjustments] = React.useState<
+  const [internalAdjustments, setInternalAdjustments] = React.useState<
     Record<string, CourseAdjustment>
   >({})
 
+  const adjustments = externalAdjustments ?? internalAdjustments
+
   const handleAdjustmentChange = React.useCallback(
     (courseId: string, changes: CourseAdjustment) => {
-      setAdjustments((prev) => ({
-        ...prev,
-        [courseId]: {
-          ...prev[courseId],
-          ...changes,
-        },
-      }))
+      if (externalOnAdjustmentChange) {
+        externalOnAdjustmentChange(courseId, changes)
+      } else {
+        setInternalAdjustments((prev) => ({
+          ...prev,
+          [courseId]: {
+            ...prev[courseId],
+            ...changes,
+          },
+        }))
+      }
     },
-    []
+    [externalOnAdjustmentChange]
   )
 
   const courses = demandData?.courses ?? []
