@@ -19,12 +19,16 @@ export class SchedulingDemandService {
     currentUser: JwtPayload,
     termId: string,
     targetInstituteId?: string,
-  ): Promise<{ term: { id: string; title: string }; instituteId: string }> {
+  ): Promise<{
+    term: { id: string; title: string; startDate: Date };
+    instituteId: string;
+  }> {
     const term = await this.prisma.term.findUniqueOrThrow({
       where: { id: termId },
       select: {
         id: true,
         title: true,
+        startDate: true,
         instituteId: true,
       },
     });
@@ -44,6 +48,29 @@ export class SchedulingDemandService {
     return { term, instituteId };
   }
 
+  private async resolvePrecedingTerm(
+    instituteId: string,
+    targetTermStartDate: Date,
+  ): Promise<{ id: string; title: string } | null> {
+    const precedingTerm = await this.prisma.term.findFirst({
+      where: {
+        instituteId,
+        startDate: {
+          lt: targetTermStartDate,
+        },
+      },
+      orderBy: {
+        startDate: 'desc',
+      },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
+
+    return precedingTerm;
+  }
+
   async calculateDemand(
     currentUser: JwtPayload,
     input: CalculateTermDemandInput,
@@ -52,6 +79,11 @@ export class SchedulingDemandService {
       currentUser,
       input.termId,
       input.instituteId,
+    );
+
+    const precedingTerm = await this.resolvePrecedingTerm(
+      instituteId,
+      term.startDate,
     );
 
     const courses = await this.prisma.course.findMany({
@@ -226,7 +258,7 @@ export class SchedulingDemandService {
     return {
       termId: term.id,
       termTitle: term.title,
-      currentTermId: null,
+      currentTermId: precedingTerm?.id ?? null,
       branchId: input.branchId ?? null,
       defaultCapacity,
       totalEligibleStudents,

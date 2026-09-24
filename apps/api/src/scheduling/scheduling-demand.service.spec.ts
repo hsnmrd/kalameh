@@ -6,7 +6,11 @@ import { SchedulingDemandService } from './scheduling-demand.service';
 describe('SchedulingDemandService', () => {
   let service: SchedulingDemandService;
   let prisma: {
-    term: { findUniqueOrThrow: jest.Mock; findFirstOrThrow?: jest.Mock };
+    term: {
+      findUniqueOrThrow: jest.Mock;
+      findFirst: jest.Mock;
+      findFirstOrThrow?: jest.Mock;
+    };
     course: { findMany: jest.Mock };
     user: { findMany: jest.Mock };
     classRequirement: {
@@ -33,11 +37,14 @@ describe('SchedulingDemandService', () => {
         findUniqueOrThrow: jest.fn().mockResolvedValue({
           id: 'term-fall',
           title: 'ترم پاییز ۱۴۰۳',
+          startDate: new Date('2024-09-22T00:00:00.000Z'),
           instituteId: 'inst-1',
         }),
+        findFirst: jest.fn().mockResolvedValue(null),
         findFirstOrThrow: jest.fn().mockResolvedValue({
           id: 'term-fall',
           title: 'ترم پاییز ۱۴۰۳',
+          startDate: new Date('2024-09-22T00:00:00.000Z'),
           instituteId: 'inst-1',
         }),
       },
@@ -63,12 +70,59 @@ describe('SchedulingDemandService', () => {
     service = module.get<SchedulingDemandService>(SchedulingDemandService);
   });
 
+  describe('resolvePrecedingTerm', () => {
+    it('returns the immediately preceding term when previous terms exist', async () => {
+      const preceding = { id: 'term-summer', title: 'ترم تابستان ۱۴۰۳' };
+      prisma.term.findFirst.mockResolvedValue(preceding);
+
+      const targetDate = new Date('2024-09-22T00:00:00.000Z');
+      const result = await (service as any).resolvePrecedingTerm(
+        'inst-1',
+        targetDate,
+      );
+
+      expect(prisma.term.findFirst).toHaveBeenCalledWith({
+        where: {
+          instituteId: 'inst-1',
+          startDate: {
+            lt: targetDate,
+          },
+        },
+        orderBy: {
+          startDate: 'desc',
+        },
+        select: {
+          id: true,
+          title: true,
+        },
+      });
+      expect(result).toEqual(preceding);
+    });
+
+    it('returns null gracefully when no preceding term exists', async () => {
+      prisma.term.findFirst.mockResolvedValue(null);
+
+      const targetDate = new Date('2024-01-01T00:00:00.000Z');
+      const result = await (service as any).resolvePrecedingTerm(
+        'inst-1',
+        targetDate,
+      );
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe('calculateDemand', () => {
     it('calculates demand correctly with prerequisite passes and school shifts', async () => {
       prisma.term.findUniqueOrThrow.mockResolvedValue({
         id: 'term-fall',
         title: 'ترم پاییز ۱۴۰۳',
+        startDate: new Date('2024-09-22T00:00:00.000Z'),
         instituteId: 'inst-1',
+      });
+      prisma.term.findFirst.mockResolvedValue({
+        id: 'term-summer',
+        title: 'ترم تابستان ۱۴۰۳',
       });
 
       const courseStarter1 = {
@@ -135,6 +189,7 @@ describe('SchedulingDemandService', () => {
       });
 
       expect(result.termId).toBe('term-fall');
+      expect(result.currentTermId).toBe('term-summer');
       expect(result.totalEligibleStudents).toBe(3);
       expect(result.totalContinuingStudents).toBe(1);
       expect(result.totalNewPlacements).toBe(2);
