@@ -39,6 +39,7 @@ export function SchedulingGenerationForm({
   onNavigateToDemand,
 }: SchedulingGenerationFormProps) {
   const t = useTranslations("scheduling.generation")
+  const tTerms = useTranslations("scheduling.termsList")
   const locale = useLocale()
   const {
     form,
@@ -61,14 +62,14 @@ export function SchedulingGenerationForm({
       label: term.title,
     }))
 
-  // Auto-select default term or first term with requirements
+  // Auto-select default term or first eligible term with requirements
   React.useEffect(() => {
-    if (defaultTermId) {
+    if (defaultTermId && terms.some((t) => t.id === defaultTermId)) {
       form.setValue("termId", defaultTermId, { shouldValidate: true })
     } else if (!termId && termOptions.length > 0 && termOptions[0]) {
       form.setValue("termId", termOptions[0].value, { shouldValidate: true })
     }
-  }, [defaultTermId, termId, termOptions, form])
+  }, [defaultTermId, termId, termOptions, form, terms])
 
   const branchOptions: ComboboxOption[] = [
     { value: ALL_BRANCHES, label: t("fields.branch.all") },
@@ -108,6 +109,19 @@ export function SchedulingGenerationForm({
             </p>
             <p className="max-w-md text-sm leading-6 text-muted-foreground">
               {t("instituteRequired.description")}
+            </p>
+          </div>
+        ) : terms.length === 0 && !isScopeLoading ? (
+          <div className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-5 text-center">
+            <CalendarClock
+              aria-hidden
+              className="size-7 text-muted-foreground"
+            />
+            <p className="font-semibold text-foreground">
+              {tTerms("notEligible.title")}
+            </p>
+            <p className="max-w-md text-sm leading-6 text-muted-foreground">
+              {tTerms("notEligible.description")}
             </p>
           </div>
         ) : (

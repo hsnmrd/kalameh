@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 import type { SchedulingTermSummaryDto } from "@workspace/types"
-import { selectDefaultSchedulingTerm } from "../helper/term-selection"
+import {
+  isTermEligibleForScheduling,
+  selectDefaultSchedulingTerm,
+} from "../helper/term-selection"
 
 function makeTerm(
   id: string,
@@ -89,7 +92,7 @@ describe("selectDefaultSchedulingTerm", () => {
     expect(selected?.id).toBe("term-starting")
   })
 
-  it("falls back to closest future term when no term is running and next term starts in more than 10 days", () => {
+  it("returns null when no term is running and next term starts in more than 10 days", () => {
     const now = new Date("2026-09-24T12:00:00Z")
     const termEnded = makeTerm(
       "term-ended",
@@ -100,7 +103,7 @@ describe("selectDefaultSchedulingTerm", () => {
     const termFuture1 = makeTerm(
       "term-future-1",
       "Winter 2026",
-      "2026-11-01T00:00:00Z", // starts in 38 days
+      "2026-11-01T00:00:00Z", // starts in 38 days (> 10 days)
       "2027-01-30T23:59:59Z"
     )
     const termFuture2 = makeTerm(
@@ -114,10 +117,10 @@ describe("selectDefaultSchedulingTerm", () => {
       [termEnded, termFuture2, termFuture1],
       now
     )
-    expect(selected?.id).toBe("term-future-1")
+    expect(selected).toBeNull()
   })
 
-  it("falls back to most recent term when all terms are in the past", () => {
+  it("returns null when all terms are in the past", () => {
     const now = new Date("2026-09-24T12:00:00Z")
     const termOld = makeTerm(
       "term-old",
@@ -133,6 +136,61 @@ describe("selectDefaultSchedulingTerm", () => {
     )
 
     const selected = selectDefaultSchedulingTerm([termOld, termRecent], now)
-    expect(selected?.id).toBe("term-recent")
+    expect(selected).toBeNull()
+  })
+})
+
+describe("isTermEligibleForScheduling", () => {
+  const now = new Date("2026-09-24T12:00:00Z")
+
+  it("returns true for a term starting within 10 days", () => {
+    const term = makeTerm(
+      "term-soon",
+      "Fall 2026",
+      "2026-09-28T00:00:00Z", // starts in 4 days
+      "2026-12-20T23:59:59Z"
+    )
+    expect(isTermEligibleForScheduling(term, now)).toBe(true)
+  })
+
+  it("returns true for a currently running term", () => {
+    const term = makeTerm(
+      "term-running",
+      "Summer 2026",
+      "2026-09-01T00:00:00Z",
+      "2026-10-15T23:59:59Z"
+    )
+    expect(isTermEligibleForScheduling(term, now)).toBe(true)
+  })
+
+  it("returns false for a term starting in more than 10 days", () => {
+    const term = makeTerm(
+      "term-distant",
+      "Winter 2026",
+      "2026-10-10T00:00:00Z", // starts in 16 days
+      "2027-01-15T23:59:59Z"
+    )
+    expect(isTermEligibleForScheduling(term, now)).toBe(false)
+  })
+
+  it("returns false for a term that has already ended", () => {
+    const term = makeTerm(
+      "term-past",
+      "Summer 2026",
+      "2026-06-01T00:00:00Z",
+      "2026-09-20T23:59:59Z" // ended 4 days ago
+    )
+    expect(isTermEligibleForScheduling(term, now)).toBe(false)
+  })
+
+  it("returns false for an inactive term even if dates match", () => {
+    const term = makeTerm(
+      "term-inactive",
+      "Fall 2026",
+      "2026-09-28T00:00:00Z",
+      "2026-12-20T23:59:59Z",
+      false
+    )
+    expect(isTermEligibleForScheduling(term, now)).toBe(false)
   })
 })

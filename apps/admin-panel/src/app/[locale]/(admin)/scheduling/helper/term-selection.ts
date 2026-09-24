@@ -15,10 +15,44 @@ export function toEndOfDayMs(date: Date | string): number {
 }
 
 /**
+ * Determines whether a term is eligible for scheduling:
+ * 1. Must be active (term.isActive !== false).
+ * 2. Either starts within 10 days in the future (0 <= startDate - now <= 10 days) and has not ended,
+ *    OR is currently running (startDate <= now <= endDate).
+ * Terms starting > 10 days in the future or terms that have ended are NOT eligible.
+ */
+export function isTermEligibleForScheduling(
+  term: Pick<SchedulingTermSummaryDto, "startDate" | "endDate" | "isActive">,
+  now: Date = new Date()
+): boolean {
+  if (term.isActive === false) {
+    return false
+  }
+
+  const nowStartMs = toStartOfDayMs(now)
+  const nowEndMs = toEndOfDayMs(now)
+  const startMs = toStartOfDayMs(term.startDate)
+  const endMs = toEndOfDayMs(term.endDate)
+
+  // 1. Starts within 10 days (0 <= startDate - now <= 10 days) and hasn't ended
+  const diffMs = startMs - nowStartMs
+  if (diffMs >= 0 && diffMs <= TEN_DAYS_MS && nowStartMs <= endMs) {
+    return true
+  }
+
+  // 2. Currently running (has already started and not ended)
+  if (startMs <= nowEndMs && nowStartMs <= endMs) {
+    return true
+  }
+
+  return false
+}
+
+/**
  * Selects the default scheduling term based on:
  * 1. Upcoming term starting within 10 days (0 <= startDate - now <= 10 days).
- * 2. Currently active/running term (startDate <= now <= endDate), if next term is > 10 days away.
- * 3. Fallback: closest future term, or most recently ended term if all have ended.
+ * 2. Currently active/running term (startDate <= now <= endDate).
+ * If no eligible term exists, returns null.
  */
 export function selectDefaultSchedulingTerm(
   terms: SchedulingTermSummaryDto[] | undefined | null,
@@ -30,21 +64,22 @@ export function selectDefaultSchedulingTerm(
 
   const nowMs = toStartOfDayMs(now)
 
-  // Prioritize active terms, fallback to all terms if none are marked active
-  const activeOnly = terms.filter((term) => term.isActive !== false)
-  const candidateTerms = activeOnly.length > 0 ? activeOnly : terms
+  // Only consider eligible terms (starts within 10 days or currently running)
+  const eligibleTerms = terms.filter((term) =>
+    isTermEligibleForScheduling(term, now)
+  )
+
+  if (eligibleTerms.length === 0) {
+    return null
+  }
 
   // Sort ascending by startDate
-  const sorted = [...candidateTerms].sort(
+  const sorted = [...eligibleTerms].sort(
     (a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate)
   )
 
   // 1. Check for upcoming terms starting within 10 days
-  const upcomingTerms = sorted.filter(
-    (term) => toStartOfDayMs(term.startDate) >= nowMs
-  )
-
-  const startingWithin10Days = upcomingTerms.find((term) => {
+  const startingWithin10Days = sorted.find((term) => {
     const diffMs = toStartOfDayMs(term.startDate) - nowMs
     return diffMs >= 0 && diffMs <= TEN_DAYS_MS
   })
@@ -53,7 +88,7 @@ export function selectDefaultSchedulingTerm(
     return startingWithin10Days
   }
 
-  // 2. Check for currently running term (next term is > 10 days away or doesn't exist)
+  // 2. Check for currently running term
   const runningTerm = sorted.find((term) => {
     const startMs = toStartOfDayMs(term.startDate)
     const endMs = toEndOfDayMs(term.endDate)
@@ -64,11 +99,5 @@ export function selectDefaultSchedulingTerm(
     return runningTerm
   }
 
-  // 3. Fallback: closest upcoming term in the future
-  if (upcomingTerms.length > 0) {
-    return upcomingTerms[0]
-  }
-
-  // 4. Fallback: most recent term in the past
-  return sorted[sorted.length - 1] ?? null
+  return null
 }

@@ -14,7 +14,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SchedulingGenerationEngineService } from './scheduling-generation-engine.service';
 
 const DEFAULT_BATCH_SIZE = 5;
-const POLL_INTERVAL_MS = 2_000;
+const ACTIVE_POLL_INTERVAL_MS = 2_000;
+const IDLE_POLL_INTERVAL_MS = 30_000;
 const STALE_RUN_TIMEOUT_MS = 30 * 60 * 1_000;
 
 @Injectable()
@@ -182,15 +183,19 @@ export class SchedulingGenerationDispatcherService
   }
 
   private async poll(): Promise<void> {
+    let nextDelay = IDLE_POLL_INTERVAL_MS;
     try {
-      await this.runOnce();
+      const result = await this.runOnce();
+      if (result.discoveredRunCount > 0 || result.requeuedStaleRunCount > 0) {
+        nextDelay = ACTIVE_POLL_INTERVAL_MS;
+      }
     } catch (error) {
       this.logger.error(
         'Scheduling dispatcher polling failed',
         error instanceof Error ? error.stack : undefined,
       );
     } finally {
-      this.scheduleNextPoll(POLL_INTERVAL_MS);
+      this.scheduleNextPoll(nextDelay);
     }
   }
 }

@@ -2,33 +2,38 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Plus } from "lucide-react"
+import { CalendarPlus, Plus } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
+import { PERMISSIONS, type SchedulingTermSummaryDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
-import { termsResource, branchesResource } from "@/lib/api"
+import { PermissionGuard } from "@/components/permission-guard"
+import { branchesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
+import { TermSummaryBar } from "../term-summary-bar"
 
 export interface SchedulingFilterProps {
-  termId: string
-  onTermChange: (termId: string) => void
+  term?: SchedulingTermSummaryDto | null
+  isLoadingTerm?: boolean
   branchId: string
   onBranchChange: (branchId: string) => void
-  termOptions?: { value: string; label: string }[]
   hasActiveRun?: boolean
   onNewRun?: () => void
+  onGenerateSchedule?: () => void
+  isGenerating?: boolean
 }
 
 export function SchedulingFilter({
-  termId,
-  onTermChange,
+  term,
+  isLoadingTerm,
   branchId,
   onBranchChange,
-  termOptions: propTermOptions,
   hasActiveRun,
   onNewRun,
+  onGenerateSchedule,
+  isGenerating,
 }: SchedulingFilterProps) {
   const t = useTranslations("scheduling")
   const { activeInstituteId } = useActiveInstitute()
@@ -36,18 +41,6 @@ export function SchedulingFilter({
   const queryParams = activeInstituteId
     ? { instituteId: activeInstituteId }
     : undefined
-
-  const { data: fetchedTermOptions = [] } = useQuery({
-    ...termsResource.list.toQuery(queryParams),
-    enabled: Boolean(activeInstituteId && !propTermOptions),
-    select: (terms) =>
-      terms.map((term) => ({
-        value: term.id,
-        label: term.title,
-      })),
-  })
-
-  const termOptions = propTermOptions ?? fetchedTermOptions
 
   const {
     data: branchOptions = [
@@ -76,21 +69,21 @@ export function SchedulingFilter({
       isPinned={activeFiltersCount > 0}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
-      search={
-        <ResponsiveCombobox
-          items={termOptions}
-          value={termId}
-          onValueChange={(val) => onTermChange(val ?? "")}
-          placeholder={t("generation.fields.term.placeholder")}
-          searchPlaceholder={t("generation.fields.term.search")}
-          emptyMessage={t("generation.fields.term.empty")}
-          drawerTitle={t("demand.filters.term")}
-          clearable={false}
-          className="w-full"
-        />
-      }
+      search={<TermSummaryBar term={term} isLoading={isLoadingTerm} />}
       actions={
-        hasActiveRun && onNewRun ? (
+        onGenerateSchedule ? (
+          <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
+            <Button
+              type="button"
+              onClick={onGenerateSchedule}
+              disabled={!term || isGenerating}
+              className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
+            >
+              <CalendarPlus className="size-5" />
+              <span>{t("demand.smartHero.generateButton")}</span>
+            </Button>
+          </PermissionGuard>
+        ) : hasActiveRun && onNewRun ? (
           <Button
             type="button"
             variant="outline"

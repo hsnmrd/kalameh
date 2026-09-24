@@ -38,13 +38,22 @@ export function TermSummaryBar({ term, isLoading }: TermSummaryBarProps) {
 
   if (isLoading) {
     return (
-      <div className="flex h-16 w-full items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-6 text-foreground" />
+      <div className="flex h-14 w-full items-center justify-center rounded-2xl border border-border bg-card">
+        <Spinner className="size-5 text-foreground" />
       </div>
     )
   }
 
-  if (!term) return null
+  if (!term) {
+    return (
+      <div className="flex h-14 w-full items-center gap-2.5 rounded-2xl border border-dashed border-border bg-muted/40 px-3.5 text-muted-foreground sm:px-4">
+        <Calendar className="size-5 shrink-0 text-muted-foreground" />
+        <span className="truncate text-xs font-medium sm:text-sm">
+          {t("notEligible.title")}
+        </span>
+      </div>
+    )
+  }
 
   const renderStatusBadge = () => {
     switch (term.schedulingStatus) {
@@ -52,18 +61,22 @@ export function TermSummaryBar({ term, isLoading }: TermSummaryBarProps) {
         return (
           <Badge
             variant="secondary"
-            className="border-success/30 bg-success/10 text-success"
+            className="h-6 shrink-0 border-success/30 bg-success/10 px-2.5 text-xs text-success"
           >
             {t("statuses.PUBLISHED")}
           </Badge>
         )
       case "SCHEDULED":
-        return <Badge variant="default">{t("statuses.SCHEDULED")}</Badge>
+        return (
+          <Badge variant="default" className="h-6 shrink-0 px-2.5 text-xs">
+            {t("statuses.SCHEDULED")}
+          </Badge>
+        )
       case "GENERATING":
         return (
           <Badge
             variant="outline"
-            className="gap-1.5 border-primary/40 text-primary"
+            className="h-6 shrink-0 gap-1.5 border-primary/40 px-2.5 text-xs text-primary"
           >
             <Spinner className="size-3" />
             <span>{t("statuses.GENERATING")}</span>
@@ -71,14 +84,20 @@ export function TermSummaryBar({ term, isLoading }: TermSummaryBarProps) {
         )
       case "READY_TO_SCHEDULE":
         return (
-          <Badge variant="outline" className="border-warning/40 text-warning">
+          <Badge
+            variant="outline"
+            className="h-6 shrink-0 border-warning/40 px-2.5 text-xs text-warning"
+          >
             {t("statuses.READY_TO_SCHEDULE")}
           </Badge>
         )
       case "NO_REQUIREMENTS":
       default:
         return (
-          <Badge variant="outline" className="text-muted-foreground">
+          <Badge
+            variant="outline"
+            className="h-6 shrink-0 px-2.5 text-xs text-muted-foreground"
+          >
             {t("statuses.NO_REQUIREMENTS")}
           </Badge>
         )
@@ -86,36 +105,39 @@ export function TermSummaryBar({ term, isLoading }: TermSummaryBarProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
-      <div className="flex items-center gap-3">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Calendar className="size-5" />
+    <div className="flex h-14 w-full min-w-0 items-center justify-between gap-2 rounded-2xl border border-border bg-card px-3 sm:gap-4 sm:px-4">
+      <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Calendar className="size-4.5" />
         </div>
-        <div className="flex flex-col">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-base font-bold text-foreground">
+        <div className="flex min-w-0 flex-col justify-center">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="truncate text-xs font-bold text-foreground sm:text-sm">
               {term.title}
             </span>
             {term.operatingPhase && (
-              <Badge variant="secondary" className="gap-1 text-xs">
+              <Badge
+                variant="secondary"
+                className="hidden h-5 shrink-0 gap-1 px-1.5 text-[11px] sm:inline-flex"
+              >
                 <Layers className="size-3" />
                 <span>{term.operatingPhase.title}</span>
               </Badge>
             )}
             {term.isActive && (
-              <span className="size-2 rounded-full bg-success" />
+              <span className="size-2 shrink-0 rounded-full bg-success" />
             )}
           </div>
-          <span className="text-xs text-muted-foreground">
+          <span className="hidden truncate text-[11px] text-muted-foreground sm:inline-block">
             {formatDate(term.startDate)} — {formatDate(term.endDate)}
           </span>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-border pt-2 sm:border-t-0 sm:pt-0">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <Badge
           variant="outline"
-          className="gap-1 text-xs text-muted-foreground"
+          className="hidden h-6 shrink-0 gap-1 px-2 text-xs text-muted-foreground md:inline-flex"
         >
           <BookOpen className="size-3" />
           <span>

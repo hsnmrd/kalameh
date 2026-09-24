@@ -1,16 +1,32 @@
 "use client"
 
-import type { SchedulingTab } from "../scheduling-filter"
+import { useTranslations } from "next-intl"
+import { CalendarPlus } from "lucide-react"
+import { PERMISSIONS } from "@workspace/types"
+import { FABSingle } from "@workspace/ui/components/fab"
+import { PermissionGuard } from "@/components/permission-guard"
 
 export interface SchedulingFabProps {
-  activeTab?: SchedulingTab
   termId?: string
-  hasDemands?: boolean
-  onCalculateDemand?: () => void
-  onApplyDemand?: () => void
-  registeredCount?: number
+  onGenerateSchedule?: () => void
+  disabled?: boolean
 }
 
-export function SchedulingFab(_props: SchedulingFabProps) {
-  return null
+export function SchedulingFab({
+  onGenerateSchedule,
+  disabled,
+}: SchedulingFabProps) {
+  const t = useTranslations("scheduling")
+  if (!onGenerateSchedule || disabled) return null
+
+  return (
+    <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
+      <FABSingle
+        onClick={onGenerateSchedule}
+        aria-label={t("demand.smartHero.generateButton")}
+      >
+        <CalendarPlus className="size-6" aria-hidden />
+      </FABSingle>
+    </PermissionGuard>
+  )
 }

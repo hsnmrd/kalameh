@@ -536,6 +536,10 @@
       "title": "No terms found",
       "description": "Create academic terms in the Terms module to start scheduling."
     },
+    "notEligible": {
+      "title": "No Eligible Term for Scheduling",
+      "description": "Scheduling opens 10 days prior to term start so student progression and completion data from the previous term are finalized."
+    },
     "termWorkspace": {
       "tabs": {
         "demand": "Demand & Requirements",

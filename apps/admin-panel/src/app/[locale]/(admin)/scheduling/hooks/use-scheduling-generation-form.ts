@@ -17,6 +17,7 @@ import {
   termsResource,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { isTermEligibleForScheduling } from "../helper/term-selection"
 
 const defaultValues: GenerateSchedulingPlanInput = {
   termId: "",
@@ -63,6 +64,12 @@ export function useSchedulingGenerationForm(
     enabled: Boolean(activeInstituteId && termId),
   })
 
+  const terms = React.useMemo(() => {
+    return (termsQuery.data ?? []).filter((term) =>
+      isTermEligibleForScheduling(term)
+    )
+  }, [termsQuery.data])
+
   const requirements = React.useMemo(() => {
     const items = requirementsQuery.data ?? []
     if (!branchId) return items
@@ -99,7 +106,7 @@ export function useSchedulingGenerationForm(
     form,
     termId,
     requirementIds,
-    terms: termsQuery.data ?? [],
+    terms,
     branches: branchesQuery.data ?? [],
     requirements,
     isScopeLoading: termsQuery.isLoading || branchesQuery.isLoading,

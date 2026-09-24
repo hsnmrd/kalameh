@@ -1,10 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { Calendar } from "lucide-react"
+import { Calendar, CalendarClock } from "lucide-react"
 import type { SchedulingRunDto, TermDemandReportDto } from "@workspace/types"
 import {
   Empty,
@@ -17,31 +16,24 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { schedulingResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { useRouter } from "@/i18n/routing"
 import { selectDefaultSchedulingTerm } from "../../helper/term-selection"
 import { SchedulingDemandView } from "../scheduling-demand-view"
 import { SchedulingFab } from "../scheduling-fab"
 import { SchedulingFilter } from "../scheduling-filter"
-import { SchedulingGenerationForm } from "../scheduling-generation-form"
 import { SchedulingRunStatusPanel } from "../scheduling-run-status-panel"
-import { TermSummaryBar } from "../term-summary-bar"
 
 export function SchedulingWorkspace() {
   const t = useTranslations("scheduling")
-  const searchParams = useSearchParams()
   const router = useRouter()
-  const pathname = usePathname()
   const { activeInstituteId } = useActiveInstitute()
 
-  const [selectedTermId, setSelectedTermId] = React.useState<string>(() => {
-    return searchParams.get("termId") || ""
-  })
   const [branchId, setBranchId] = React.useState("")
   const [demandData, setDemandData] =
     React.useState<TermDemandReportDto | null>(null)
   const [createdRun, setCreatedRun] = React.useState<SchedulingRunDto | null>(
     null
   )
-  const [showGenerationForm, setShowGenerationForm] = React.useState(false)
 
   const termsQuery = useQuery({
     ...schedulingResource.terms.toQuery(
@@ -50,53 +42,17 @@ export function SchedulingWorkspace() {
     enabled: Boolean(activeInstituteId),
   })
 
-  // When terms data loads or updates, resolve default selected term if needed
-  React.useEffect(() => {
-    const terms = termsQuery.data
-    if (!terms || terms.length === 0) {
-      if (selectedTermId) setSelectedTermId("")
-      return
-    }
-
-    const currentSelectedExists = terms.some((t) => t.id === selectedTermId)
-    if (currentSelectedExists) {
-      return
-    }
-
-    const paramTermId = searchParams.get("termId")
-    const paramTermExists =
-      paramTermId && terms.some((t) => t.id === paramTermId)
-
-    if (paramTermExists) {
-      setSelectedTermId(paramTermId)
-      return
-    }
-
-    const defaultTerm = selectDefaultSchedulingTerm(terms)
-    if (defaultTerm) {
-      setSelectedTermId(defaultTerm.id)
-    }
-  }, [termsQuery.data, selectedTermId, searchParams])
+  // Select the eligible term (starts within 10 days or currently running)
+  const selectedTerm = React.useMemo(() => {
+    return selectDefaultSchedulingTerm(termsQuery.data)
+  }, [termsQuery.data])
 
   // Reset state when institute changes
   React.useEffect(() => {
     setBranchId("")
     setDemandData(null)
     setCreatedRun(null)
-    setShowGenerationForm(false)
-    setSelectedTermId("")
   }, [activeInstituteId])
-
-  const termOptions = React.useMemo(() => {
-    return (termsQuery.data ?? []).map((term) => ({
-      value: term.id,
-      label: term.title,
-    }))
-  }, [termsQuery.data])
-
-  const selectedTerm = React.useMemo(() => {
-    return termsQuery.data?.find((term) => term.id === selectedTermId)
-  }, [termsQuery.data, selectedTermId])
 
   const calculateMutation = useMutation({
     ...schedulingResource.calculateDemand.toMutation(),
@@ -105,11 +61,11 @@ export function SchedulingWorkspace() {
     },
   })
 
-  // Automatically trigger demand calculation when selected term or branch changes
+  // Automatically trigger demand calculation when eligible term or branch changes
   React.useEffect(() => {
-    if (selectedTermId) {
+    if (selectedTerm) {
       calculateMutation.mutate({
-        termId: selectedTermId,
+        termId: selectedTerm.id,
         branchId: branchId && branchId !== "all" ? branchId : undefined,
         instituteId: activeInstituteId || undefined,
         defaultCapacity: 14,
@@ -118,26 +74,11 @@ export function SchedulingWorkspace() {
       setDemandData(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTermId, branchId, activeInstituteId])
+  }, [selectedTerm?.id, branchId, activeInstituteId])
 
-  const handleTermChange = React.useCallback(
-    (newTermId: string) => {
-      setSelectedTermId(newTermId)
-      setCreatedRun(null)
-      setShowGenerationForm(false)
-      const params = new URLSearchParams(searchParams.toString())
-      if (newTermId) {
-        params.set("termId", newTermId)
-      } else {
-        params.delete("termId")
-      }
-      const query = params.toString()
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      })
-    },
-    [router, pathname, searchParams]
-  )
+  const handleGenerateSchedule = React.useCallback(() => {
+    router.push("/scheduling/generate")
+  }, [router])
 
   const activeRun =
     createdRun?.instituteId === activeInstituteId ? createdRun : null
@@ -146,19 +87,23 @@ export function SchedulingWorkspace() {
     <AdminPageShell
       filter={
         <SchedulingFilter
-          termId={selectedTermId}
-          onTermChange={handleTermChange}
-          termOptions={termOptions}
+          term={selectedTerm}
+          isLoadingTerm={termsQuery.isLoading}
           branchId={branchId}
           onBranchChange={setBranchId}
           hasActiveRun={Boolean(activeRun)}
-          onNewRun={() => {
-            setCreatedRun(null)
-            setShowGenerationForm(true)
-          }}
+          onNewRun={handleGenerateSchedule}
+          onGenerateSchedule={handleGenerateSchedule}
+          isGenerating={calculateMutation.isPending}
         />
       }
-      fab={<SchedulingFab termId={selectedTermId} />}
+      fab={
+        <SchedulingFab
+          termId={selectedTerm?.id}
+          onGenerateSchedule={handleGenerateSchedule}
+          disabled={!selectedTerm || calculateMutation.isPending}
+        />
+      }
     >
       {termsQuery.isLoading ? (
         <div className="flex min-h-64 items-center justify-center">
@@ -176,39 +121,32 @@ export function SchedulingWorkspace() {
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
+      ) : !selectedTerm ? (
+        <Empty variant="default" className="border border-border bg-card">
+          <EmptyMedia variant="icon">
+            <CalendarClock className="size-7 text-foreground" aria-hidden />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>{t("termsList.notEligible.title")}</EmptyTitle>
+            <EmptyDescription>
+              {t("termsList.notEligible.description")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <div className="flex flex-col gap-6">
-          <TermSummaryBar
-            term={selectedTerm}
-            isLoading={termsQuery.isLoading}
-          />
-
           {activeRun ? (
             <SchedulingRunStatusPanel
               run={activeRun}
               onReset={() => {
                 setCreatedRun(null)
-                setShowGenerationForm(false)
               }}
-            />
-          ) : showGenerationForm ? (
-            <SchedulingGenerationForm
-              termOptions={termOptions}
-              defaultTermId={selectedTermId}
-              onCreated={(run) => {
-                setCreatedRun(run)
-                setShowGenerationForm(false)
-              }}
-              onNavigateToDemand={() => setShowGenerationForm(false)}
             />
           ) : (
             <SchedulingDemandView
-              termId={selectedTermId}
+              termId={selectedTerm.id}
               demandData={demandData}
               isLoading={calculateMutation.isPending}
-              termOptions={termOptions}
-              onTermChange={handleTermChange}
-              onGenerateTimetable={() => setShowGenerationForm(true)}
             />
           )}
         </div>
