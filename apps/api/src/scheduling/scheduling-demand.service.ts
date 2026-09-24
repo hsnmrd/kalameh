@@ -173,6 +173,7 @@ export class SchedulingDemandService {
         prerequisiteTitle: course.prerequisite?.title ?? null,
         eligibleStudentsCount: eligibleCount,
         passedPrerequisiteCount: passedPrereqCount,
+        continuingStudentsCount: passedPrereqCount,
         newPlacementCount: newPlacementCount,
         morningShiftCount: morningShift,
         afternoonShiftCount: afternoonShift,
@@ -205,6 +206,14 @@ export class SchedulingDemandService {
       (sum, c) => sum + c.eligibleStudentsCount,
       0,
     );
+    const totalContinuingStudents = courseSummaries.reduce(
+      (sum, c) => sum + c.continuingStudentsCount,
+      0,
+    );
+    const totalNewPlacements = courseSummaries.reduce(
+      (sum, c) => sum + c.newPlacementCount,
+      0,
+    );
     const totalSuggestedClasses = courseSummaries.reduce(
       (sum, c) => sum + c.suggestedClassCount,
       0,
@@ -217,9 +226,12 @@ export class SchedulingDemandService {
     return {
       termId: term.id,
       termTitle: term.title,
+      currentTermId: null,
       branchId: input.branchId ?? null,
       defaultCapacity,
       totalEligibleStudents,
+      totalContinuingStudents,
+      totalNewPlacements,
       totalSuggestedClasses,
       courses: courseSummaries,
     };

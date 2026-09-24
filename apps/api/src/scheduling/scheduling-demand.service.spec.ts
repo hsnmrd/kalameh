@@ -136,6 +136,8 @@ describe('SchedulingDemandService', () => {
 
       expect(result.termId).toBe('term-fall');
       expect(result.totalEligibleStudents).toBe(3);
+      expect(result.totalContinuingStudents).toBe(1);
+      expect(result.totalNewPlacements).toBe(2);
       expect(result.courses).toHaveLength(2);
 
       const starter2Summary = result.courses.find(
@@ -144,6 +146,7 @@ describe('SchedulingDemandService', () => {
       expect(starter2Summary).toBeDefined();
       expect(starter2Summary?.eligibleStudentsCount).toBe(2);
       expect(starter2Summary?.passedPrerequisiteCount).toBe(1);
+      expect(starter2Summary?.continuingStudentsCount).toBe(1);
       expect(starter2Summary?.newPlacementCount).toBe(1);
       expect(starter2Summary?.morningShiftCount).toBe(1);
       expect(starter2Summary?.afternoonShiftCount).toBe(1);

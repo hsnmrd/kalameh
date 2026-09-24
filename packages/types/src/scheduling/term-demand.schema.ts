@@ -20,6 +20,7 @@ export const CourseDemandSummaryDtoSchema = z.object({
   prerequisiteTitle: z.string().nullable().optional(),
   eligibleStudentsCount: z.number().int(),
   passedPrerequisiteCount: z.number().int(),
+  continuingStudentsCount: z.number().int(),
   newPlacementCount: z.number().int(),
   morningShiftCount: z.number().int(),
   afternoonShiftCount: z.number().int(),
@@ -43,9 +44,12 @@ export type CourseDemandSummaryDto = z.infer<
 export const TermDemandReportDtoSchema = z.object({
   termId: z.string().uuid(),
   termTitle: z.string(),
+  currentTermId: z.string().uuid().nullable().optional(),
   branchId: z.string().uuid().nullable().optional(),
   defaultCapacity: z.number().int(),
   totalEligibleStudents: z.number().int(),
+  totalContinuingStudents: z.number().int(),
+  totalNewPlacements: z.number().int(),
   totalSuggestedClasses: z.number().int(),
   courses: z.array(CourseDemandSummaryDtoSchema),
 })
