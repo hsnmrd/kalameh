@@ -413,6 +413,15 @@
       "generateButton": "Generate Weekly Timetable",
       "noDemandSubtitle": "No classes are projected for this term. Please review term registrations and placements."
     },
+    "breakdown": {
+      "toggle": "View & edit course details ({count} courses)",
+      "course": "Course",
+      "prerequisite": "Prerequisite: {title}",
+      "students": "Applicants",
+      "studentsDetail": "{continuing} continuing + {new} placement = {total} students",
+      "suggestedClasses": "Suggested Classes",
+      "capacity": "Class Capacity"
+    },
     "tabTitle": "Course Demand",
     "generationTabTitle": "Class Scheduling",
     "calculateButton": "Calculate Demand",

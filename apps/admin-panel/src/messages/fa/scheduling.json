@@ -413,6 +413,15 @@
       "generateButton": "تولید خودکار برنامه هفتگی",
       "noDemandSubtitle": "هیچ کلاسی برای این ترم پیش‌بینی نشده است. اطلاعات ترم و دانشجویان را بررسی کنید."
     },
+    "breakdown": {
+      "toggle": "مشاهده و ویرایش جزئیات دوره‌ها ({count} دوره)",
+      "course": "نام دوره",
+      "prerequisite": "پیشنیاز: {title}",
+      "students": "متقاضیان",
+      "studentsDetail": "{continuing} در حال تحصیل + {new} تعیین‌سطح = {total} نفر",
+      "suggestedClasses": "تعداد کلاس پیشنهادی",
+      "capacity": "ظرفیت هر کلاس"
+    },
     "tabTitle": "تقاضای دوره‌ها",
     "generationTabTitle": "زمان‌بندی کلاس‌ها",
     "calculateButton": "محاسبه تقاضا",

@@ -16,8 +16,10 @@ import {
   EmptyTitle,
 } from "@workspace/ui/components/empty"
 import { SmartDemandHero } from "./smart-demand-hero"
-import { DemandTable } from "./demand-table"
-import { DemandList } from "./demand-list"
+import {
+  DemandBreakdownDrawer,
+  type CourseAdjustment,
+} from "./demand-breakdown-drawer"
 
 export interface SchedulingDemandViewProps {
   termId: string
@@ -42,7 +44,31 @@ export function SchedulingDemandView({
 }: SchedulingDemandViewProps) {
   const t = useTranslations("scheduling")
 
+  const [adjustments, setAdjustments] = React.useState<
+    Record<string, CourseAdjustment>
+  >({})
+
+  const handleAdjustmentChange = React.useCallback(
+    (courseId: string, changes: CourseAdjustment) => {
+      setAdjustments((prev) => ({
+        ...prev,
+        [courseId]: {
+          ...prev[courseId],
+          ...changes,
+        },
+      }))
+    },
+    []
+  )
+
   const courses = demandData?.courses ?? []
+
+  const totalSuggestedClasses = React.useMemo(() => {
+    return courses.reduce((sum, item) => {
+      const adj = adjustments[item.courseId]
+      return sum + (adj?.suggestedClassCount ?? item.suggestedClassCount)
+    }, 0)
+  }, [courses, adjustments])
 
   const filteredItems = React.useMemo(() => {
     if (!search.trim()) return courses
@@ -120,9 +146,9 @@ export function SchedulingDemandView({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col items-center gap-6">
       <SmartDemandHero
-        totalSuggestedClasses={demandData.totalSuggestedClasses}
+        totalSuggestedClasses={totalSuggestedClasses}
         totalContinuingStudents={demandData.totalContinuingStudents}
         totalNewPlacements={demandData.totalNewPlacements}
         totalEligibleStudents={demandData.totalEligibleStudents}
@@ -130,15 +156,12 @@ export function SchedulingDemandView({
         onGenerateTimetable={onGenerateTimetable}
       />
 
-      {/* Desktop: DataTable */}
-      <div className="hidden lg:block">
-        <DemandTable items={filteredItems} isLoading={isLoading} />
-      </div>
-
-      {/* Mobile: MobileList */}
-      <div className="lg:hidden">
-        <DemandList items={filteredItems} isLoading={isLoading} />
-      </div>
+      <DemandBreakdownDrawer
+        courses={filteredItems}
+        adjustments={adjustments}
+        onAdjustmentChange={handleAdjustmentChange}
+        isLoading={isLoading}
+      />
     </div>
   )
 }
