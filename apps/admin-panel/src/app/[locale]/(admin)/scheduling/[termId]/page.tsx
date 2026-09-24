@@ -19,7 +19,6 @@ import { useActiveInstitute } from "@/lib/stores"
 import { SchedulingDemandView } from "../components/scheduling-demand-view"
 import { SchedulingGenerationView } from "../components/scheduling-generation-view"
 import { SchedulingFab } from "../components/scheduling-fab"
-import { TermSummaryBar } from "./components/term-summary-bar"
 import {
   TermWorkspaceFilter,
   type SchedulingWorkspaceTab,
@@ -126,11 +125,6 @@ export default function SingleTermSchedulingPage() {
           fab={<SchedulingFab activeTab={activeTab} termId={termId} />}
         >
           <div className="flex flex-col gap-6">
-            <TermSummaryBar
-              term={currentTerm}
-              isLoading={termsQuery.isLoading}
-            />
-
             {activeTab === "demand" ? (
               <SchedulingDemandView
                 termId={termId}
@@ -138,6 +132,7 @@ export default function SingleTermSchedulingPage() {
                 isLoading={calculateMutation.isPending}
                 search={search}
                 onCalculateDemand={handleCalculateDemand}
+                onGenerateTimetable={() => setActiveTab("generation")}
               />
             ) : (
               <SchedulingGenerationView

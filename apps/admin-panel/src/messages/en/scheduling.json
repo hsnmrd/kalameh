@@ -407,6 +407,12 @@
     }
   },
   "demand": {
+    "smartHero": {
+      "title": "Smart Demand Summary",
+      "subtitle": "Based on auto-progression of continuing students and new placements, {count} classes are projected for this term.",
+      "generateButton": "Generate Weekly Timetable",
+      "noDemandSubtitle": "No classes are projected for this term. Please review term registrations and placements."
+    },
     "tabTitle": "Course Demand",
     "generationTabTitle": "Class Scheduling",
     "calculateButton": "Calculate Demand",
