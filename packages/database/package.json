@@ -24,6 +24,7 @@
     "db:migrate:deploy": "dotenv -e ../../.env -e .env -c -- prisma migrate deploy --schema ./schema.prisma",
     "db:migrate:status": "dotenv -e ../../.env -e .env -c -- prisma migrate status --schema ./schema.prisma",
     "db:seed": "dotenv -e ../../.env -e .env -c -- prisma db seed --schema ./schema.prisma",
+    "db:seed:scheduling": "dotenv -e ../../.env -e .env -c -- tsx src/seed-scheduling-zabanland.ts",
     "db:studio": "dotenv -e ../../.env -e .env -c -- prisma studio --schema ./schema.prisma",
     "typecheck": "tsc --noEmit"
   },

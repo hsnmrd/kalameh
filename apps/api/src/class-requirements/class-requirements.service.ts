@@ -55,13 +55,15 @@ export class ClassRequirementsService {
       ],
     });
 
-    const sanitized = requirements.map((req) => ({
-      ...req,
-      sessionsPerWeek:
-        req.sessionsPerWeek == null && req.totalSessions == null
-          ? 2
-          : req.sessionsPerWeek,
-    }));
+    const sanitized = requirements.map((req) => {
+      const hasWeekly = req.sessionsPerWeek != null;
+      const hasTotal = req.totalSessions != null;
+      return {
+        ...req,
+        sessionsPerWeek: !hasWeekly && !hasTotal ? 2 : req.sessionsPerWeek,
+        totalSessions: hasWeekly && hasTotal ? null : req.totalSessions,
+      };
+    });
 
     return ClassRequirementSchema.array().parse(sanitized);
   }
@@ -82,12 +84,13 @@ export class ClassRequirementsService {
       include: classRequirementRelations,
     });
 
+    const hasWeekly = requirement.sessionsPerWeek != null;
+    const hasTotal = requirement.totalSessions != null;
     const sanitized = {
       ...requirement,
       sessionsPerWeek:
-        requirement.sessionsPerWeek == null && requirement.totalSessions == null
-          ? 2
-          : requirement.sessionsPerWeek,
+        !hasWeekly && !hasTotal ? 2 : requirement.sessionsPerWeek,
+      totalSessions: hasWeekly && hasTotal ? null : requirement.totalSessions,
     };
 
     return ClassRequirementSchema.parse(sanitized);

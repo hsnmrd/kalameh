@@ -17,6 +17,7 @@
     "db:migrate:deploy": "pnpm --filter @workspace/database db:migrate:deploy",
     "db:migrate:status": "pnpm --filter @workspace/database db:migrate:status",
     "db:seed": "pnpm --filter @workspace/database db:seed",
+    "db:seed:scheduling": "pnpm --filter @workspace/database db:seed:scheduling",
     "prepare": "husky"
   },
   "devDependencies": {
