@@ -4,7 +4,6 @@ import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
   Building2,
-  Clock3,
   Globe,
   LockKeyhole,
   Pencil,
@@ -42,22 +41,29 @@ export function SchedulingPlanCalendarClassCard({
   return (
     <>
       <article
-        className="group relative flex flex-col gap-2 rounded-xl border border-border bg-card p-3 shadow-xs transition-all hover:border-primary/40 hover:shadow-sm"
-        aria-label={`${proposal.course.title} - ${proposal.startTime}`}
+        className="group relative flex flex-col gap-2 rounded-xl border border-border bg-card p-2.5 shadow-xs transition-all hover:border-primary/40 hover:shadow-sm"
+        aria-label={proposal.course.title}
       >
-        {/* Time & Status Badges */}
-        <div className="flex items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
-            <Clock3 aria-hidden className="size-3.5 text-muted-foreground" />
-            <span className="tabular-nums">
-              {t("timeRange", {
-                start: proposal.startTime,
-                end: proposal.endTime,
-              })}
-            </span>
+        {/* Header: Course Title & Actions/Badges */}
+        <div className="flex items-start justify-between gap-1.5">
+          <div className="min-w-0 flex-1">
+            <h5
+              className="truncate text-xs font-bold text-foreground"
+              title={proposal.course.title}
+            >
+              {proposal.course.title}
+            </h5>
+            {proposal.title && proposal.title !== proposal.course.title && (
+              <p
+                className="truncate text-[11px] text-muted-foreground"
+                title={proposal.title}
+              >
+                {proposal.title}
+              </p>
+            )}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0.5">
             {proposal.isLocked && (
               <span
                 title={t("states.locked")}
@@ -96,18 +102,8 @@ export function SchedulingPlanCalendarClassCard({
           </div>
         </div>
 
-        {/* Course Info */}
-        <div className="min-w-0">
-          <h5 className="truncate text-sm font-bold text-foreground">
-            {proposal.course.title}
-          </h5>
-          <p className="truncate text-xs text-muted-foreground">
-            {proposal.title}
-          </p>
-        </div>
-
         {/* Teacher & Location Meta */}
-        <div className="flex flex-col gap-1 border-t border-border/60 pt-2 text-xs text-muted-foreground">
+        <div className="flex flex-col gap-1 border-t border-border/60 pt-1.5 text-[11px] text-muted-foreground">
           <div className="flex items-center gap-1.5 truncate">
             <User aria-hidden className="size-3 shrink-0" />
             <span className="truncate text-foreground/90">{teacherName}</span>
@@ -120,7 +116,7 @@ export function SchedulingPlanCalendarClassCard({
             )}
             <span className="truncate">{locationName}</span>
             {proposal.classroom?.capacity && (
-              <Badge variant="outline" className="h-4 px-1 py-0 text-[10px]">
+              <Badge variant="outline" className="h-3.5 px-1 py-0 text-[9px]">
                 {formatNumber(proposal.classroom.capacity, locale)}
               </Badge>
             )}

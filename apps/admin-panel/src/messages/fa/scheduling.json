@@ -283,7 +283,9 @@
       "classesCount": "{count} کلاس",
       "noClasses": "بدون کلاس",
       "weekendOff": "تعطیل هفتگی",
-      "allInOneNotice": "برنامه یک هفته نمونه (تکرار هفتگی در طول ترم)"
+      "allInOneNotice": "برنامه یک هفته نمونه (تکرار هفتگی در طول ترم)",
+      "timeColumn": "ساعت",
+      "timeTo": "تا"
     },
     "weekDays": {
       "SATURDAY": "شنبه",

@@ -283,7 +283,9 @@
       "classesCount": "{count} classes",
       "noClasses": "No classes",
       "weekendOff": "Weekend off",
-      "allInOneNotice": "Sample week schedule (repeats weekly throughout the term)"
+      "allInOneNotice": "Sample week schedule (repeats weekly throughout the term)",
+      "timeColumn": "Time",
+      "timeTo": "to"
     },
     "weekDays": {
       "SATURDAY": "Saturday",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { render, screen } from "../../../../../../../test/test-utils"
+import { render, screen, within } from "../../../../../../../test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { SchedulingPlanCalendarView } from "../index"
 
@@ -49,11 +49,12 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.getByText("کلاس قابل اجرا ساخته نشد")).toBeInTheDocument()
   })
 
-  it("renders 7 week days in Persian calendar order", () => {
+  it("renders Time column header and 7 week days in Persian calendar order", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
+    expect(screen.getByText("ساعت")).toBeInTheDocument()
     expect(screen.getByText("شنبه")).toBeInTheDocument()
     expect(screen.getByText("یکشنبه")).toBeInTheDocument()
     expect(screen.getByText("دوشنبه")).toBeInTheDocument()
@@ -73,30 +74,47 @@ describe("SchedulingPlanCalendarView Component", () => {
     ).toBeInTheDocument()
   })
 
-  it("distributes proposals into proper days and sorts by time", () => {
-    render(
+  it("renders time slot rows with time column and day cells", () => {
+    const { container } = render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    // Saturday has 2 classes: A1 and A2
-    const saturdayColumn = screen.getByRole("region", { name: /^شنبه \(/ })
-    expect(saturdayColumn).toBeInTheDocument()
-    expect(saturdayColumn).toHaveTextContent("American English File 1")
-    expect(saturdayColumn).toHaveTextContent("American English File 2")
+    // Check time slot rows exist
+    const row1 = screen.getByTestId("time-slot-row-09:00-10:30")
+    const row2 = screen.getByTestId("time-slot-row-16:00-17:30")
+    expect(row1).toBeInTheDocument()
+    expect(row2).toBeInTheDocument()
 
-    // Monday has 1 class: A1
-    const mondayColumn = screen.getByRole("region", { name: /^دوشنبه \(/ })
-    expect(mondayColumn).toBeInTheDocument()
-    expect(mondayColumn).toHaveTextContent("American English File 1")
-    expect(mondayColumn).not.toHaveTextContent("American English File 2")
+    // Row 1 (09:00 - 10:30)
+    expect(within(row1).getByText("09:00")).toBeInTheDocument()
+    expect(within(row1).getByText("10:30")).toBeInTheDocument()
 
-    // Sunday has no classes
-    const sundayColumn = screen.getByRole("region", { name: /^یکشنبه \(/ })
-    expect(sundayColumn).toBeInTheDocument()
-    expect(sundayColumn).toHaveTextContent("تعطیل هفتگی")
+    // Saturday in Row 1 has A1
+    const satCellRow1 = row1.querySelector('[data-day="SATURDAY"]')
+    expect(satCellRow1).toHaveTextContent("American English File 1")
+
+    // Monday in Row 1 has A1
+    const monCellRow1 = row1.querySelector('[data-day="MONDAY"]')
+    expect(monCellRow1).toHaveTextContent("American English File 1")
+
+    // Sunday in Row 1 has empty placeholder
+    const sunCellRow1 = row1.querySelector('[data-day="SUNDAY"]')
+    expect(sunCellRow1).toHaveTextContent("—")
+
+    // Row 2 (16:00 - 17:30)
+    expect(within(row2).getByText("16:00")).toBeInTheDocument()
+    expect(within(row2).getByText("17:30")).toBeInTheDocument()
+
+    // Saturday in Row 2 has A2
+    const satCellRow2 = row2.querySelector('[data-day="SATURDAY"]')
+    expect(satCellRow2).toHaveTextContent("American English File 2")
+
+    // Monday in Row 2 has empty placeholder
+    const monCellRow2 = row2.querySelector('[data-day="MONDAY"]')
+    expect(monCellRow2).toHaveTextContent("—")
   })
 
-  it("displays teacher name, time range, and classroom capacity", () => {
+  it("displays teacher name, location, and capacity without time inside the card", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
@@ -105,15 +123,25 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.getAllByText("مریم رضایی").length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText("کلاس ۱۰۱").length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText("کلاس ۱۰۲").length).toBeGreaterThanOrEqual(1)
+
+    // The class card itself should not render inline clock/timeRange since time is in the Time column
+    const card = screen.getAllByRole("article")[0]
+    expect(card).toBeDefined()
+    expect(card).toHaveTextContent("American English File 1")
+    expect(card).not.toHaveTextContent("09:00 تا 10:30")
   })
 
-  it("groups classes within a day into distinct time slot sections", () => {
-    render(
+  it("shows day header summary badges", () => {
+    const { container } = render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    const saturdayColumn = screen.getByRole("region", { name: /^شنبه \(/ })
-    expect(saturdayColumn).toHaveTextContent("09:00 تا 10:30")
-    expect(saturdayColumn).toHaveTextContent("16:00 تا 17:30")
+    const satHeader = container.querySelector('[data-day-header="SATURDAY"]')
+    expect(satHeader).toHaveTextContent("شنبه")
+    expect(satHeader).toHaveTextContent("۲ کلاس")
+
+    const sunHeader = container.querySelector('[data-day-header="SUNDAY"]')
+    expect(sunHeader).toHaveTextContent("یکشنبه")
+    expect(sunHeader).toHaveTextContent("تعطیل هفتگی")
   })
 })
