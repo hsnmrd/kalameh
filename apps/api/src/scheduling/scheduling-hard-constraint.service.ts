@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  DEFAULT_SCHEDULING_SETTINGS,
   SchedulingHardConstraintEvaluationSchema,
   type ClassDeliveryMode,
   type SchedulingCandidateRejection,
@@ -242,6 +243,19 @@ export class SchedulingHardConstraintService {
     return { candidate, reasonCodes, context: {} };
   }
 
+  private candidateDays(candidate: SchedulingCandidateSlot): readonly string[] {
+    if (candidate.timeGroup.startsWith('EVEN')) {
+      return DEFAULT_SCHEDULING_SETTINGS.timeGroups.evenDays;
+    }
+    if (candidate.timeGroup.startsWith('ODD')) {
+      return DEFAULT_SCHEDULING_SETTINGS.timeGroups.oddDays;
+    }
+    if (candidate.timeGroup.startsWith('NEUTRAL')) {
+      return DEFAULT_SCHEDULING_SETTINGS.timeGroups.neutralDays;
+    }
+    return [candidate.dayOfWeek];
+  }
+
   private hasScheduleConflict(
     candidate: SchedulingCandidateSlot,
     existingClass: ExistingScheduledClass,
@@ -254,7 +268,10 @@ export class SchedulingHardConstraintService {
       return false;
     }
 
-    return this.classOccursOnDay(existingClass, candidate.dayOfWeek);
+    const candidateDays = this.candidateDays(candidate);
+    return candidateDays.some((day) =>
+      this.classOccursOnDay(existingClass, day as WeekDay),
+    );
   }
 
   private classOccursOnDay(

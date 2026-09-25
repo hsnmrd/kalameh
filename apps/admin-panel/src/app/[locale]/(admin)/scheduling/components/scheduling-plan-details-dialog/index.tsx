@@ -1,8 +1,10 @@
 "use client"
 
+import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
   BookOpenCheck,
+  CalendarDays,
   CalendarRange,
   CircleAlert,
   ListChecks,
@@ -10,6 +12,7 @@ import {
 } from "lucide-react"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 import {
   ResponsiveDialog,
   ResponsiveDialogCloseButton,
@@ -28,6 +31,7 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { formatDate, formatNumber } from "@workspace/ui/lib/utils"
 import { useSchedulingPlanValidation } from "../../hooks/use-scheduling-plan-validation"
+import { SchedulingPlanCalendarView } from "../scheduling-plan-calendar-view"
 import { SchedulingPlanDetailsFooter } from "../scheduling-plan-details-footer"
 import { SchedulingPlanPublicationStatus } from "../scheduling-plan-publication-status"
 import { SchedulingPlanValidationResult } from "../scheduling-plan-validation-result"
@@ -61,10 +65,13 @@ export function SchedulingPlanDetailsDialog({
     0
   )
   const validation = useSchedulingPlanValidation(plan.id, plan.updatedAt)
+  const [viewMode, setViewMode] = React.useState<"calendar" | "list">(
+    "calendar"
+  )
 
   return (
     <ResponsiveDialog open onOpenChange={(open) => !open && onClose()}>
-      <ResponsiveDialogContent className="lg:flex lg:max-h-[90dvh] lg:max-w-4xl lg:flex-col lg:overflow-hidden">
+      <ResponsiveDialogContent className="lg:flex lg:max-h-[92dvh] lg:max-w-5xl lg:flex-col lg:overflow-hidden xl:max-w-6xl 2xl:max-w-7xl">
         <ResponsiveDialogHeader>
           <div className="flex min-w-0 flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -161,43 +168,83 @@ export function SchedulingPlanDetailsDialog({
           <Separator />
 
           <section aria-labelledby="plan-proposals-title">
-            <div className="flex items-center justify-between gap-3">
-              <h3
-                id="plan-proposals-title"
-                className="flex items-center gap-2 font-bold text-foreground"
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <h3
+                  id="plan-proposals-title"
+                  className="flex items-center gap-2 font-bold text-foreground"
+                >
+                  <ListChecks aria-hidden className="size-5" />
+                  {t("proposalsTitle")}
+                </h3>
+                <Badge variant="secondary">
+                  {t("proposalCount", {
+                    count: formatNumber(plan.proposals.length, locale),
+                  })}
+                </Badge>
+              </div>
+
+              {/* View Switcher: Calendar vs List */}
+              <div
+                role="radiogroup"
+                aria-label={t("proposalsTitle")}
+                className="flex items-center rounded-xl border border-border bg-muted/50 p-1"
               >
-                <ListChecks aria-hidden className="size-5" />
-                {t("proposalsTitle")}
-              </h3>
-              <Badge variant="secondary">
-                {t("proposalCount", {
-                  count: formatNumber(plan.proposals.length, locale),
-                })}
-              </Badge>
+                <Button
+                  type="button"
+                  variant={viewMode === "calendar" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("calendar")}
+                  className="h-8 gap-1.5 rounded-lg px-2.5 text-xs"
+                  aria-pressed={viewMode === "calendar"}
+                >
+                  <CalendarDays aria-hidden className="size-3.5" />
+                  <span>{t("calendarView.toggleCalendar")}</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  className="h-8 gap-1.5 rounded-lg px-2.5 text-xs"
+                  aria-pressed={viewMode === "list"}
+                >
+                  <ListChecks aria-hidden className="size-3.5" />
+                  <span>{t("calendarView.toggleList")}</span>
+                </Button>
+              </div>
             </div>
-            {plan.proposals.length > 0 ? (
-              <ul className="mt-4 flex flex-col gap-3">
-                {plan.proposals.map((proposal) => (
-                  <SchedulingProposalDetailsItem
-                    key={proposal.id}
-                    proposal={proposal}
-                    canEdit={isSelected && plan.status === "SELECTED"}
-                  />
-                ))}
-              </ul>
-            ) : (
-              <Empty variant="compact" className="mt-4 bg-muted/30">
-                <EmptyMedia>
-                  <BookOpenCheck aria-hidden />
-                </EmptyMedia>
-                <EmptyHeader>
-                  <EmptyTitle>{t("noProposals.title")}</EmptyTitle>
-                  <EmptyDescription>
-                    {t("noProposals.description")}
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            )}
+
+            <div className="mt-4">
+              {viewMode === "calendar" ? (
+                <SchedulingPlanCalendarView
+                  proposals={plan.proposals}
+                  canEdit={isSelected && plan.status === "SELECTED"}
+                />
+              ) : plan.proposals.length > 0 ? (
+                <ul className="flex flex-col gap-3">
+                  {plan.proposals.map((proposal) => (
+                    <SchedulingProposalDetailsItem
+                      key={proposal.id}
+                      proposal={proposal}
+                      canEdit={isSelected && plan.status === "SELECTED"}
+                    />
+                  ))}
+                </ul>
+              ) : (
+                <Empty variant="compact" className="mt-4 bg-muted/30">
+                  <EmptyMedia>
+                    <BookOpenCheck aria-hidden />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle>{t("noProposals.title")}</EmptyTitle>
+                    <EmptyDescription>
+                      {t("noProposals.description")}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              )}
+            </div>
           </section>
 
           {plan.unresolvedRequirements.length > 0 && (
@@ -216,6 +263,9 @@ export function SchedulingPlanDetailsDialog({
                   })}
                 </Badge>
               </div>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                {t("unresolvedDescription")}
+              </p>
               <ul className="mt-4 flex flex-col gap-3">
                 {plan.unresolvedRequirements.map((requirement) => (
                   <SchedulingUnresolvedRequirementItem

@@ -226,6 +226,7 @@
       "description": "Review the unresolved requirements below to understand why."
     },
     "unresolvedTitle": "Unresolved requirements",
+    "unresolvedDescription": "Student demand exceeded available teacher hours or physical classroom capacity, so these courses could not be scheduled.",
     "missingCount": "{count} missing classes",
     "warningCount": "{count} warnings",
     "planWarnings": "Plan warnings",
@@ -274,6 +275,15 @@
     "states": {
       "locked": "Locked",
       "edited": "Edited"
+    },
+    "calendarView": {
+      "toggleCalendar": "Calendar View",
+      "toggleList": "List View",
+      "subtitle": "Weekly class schedule mapped by day and time",
+      "classesCount": "{count} classes",
+      "noClasses": "No classes",
+      "weekendOff": "Weekend off",
+      "allInOneNotice": "Sample week schedule (repeats weekly throughout the term)"
     },
     "weekDays": {
       "SATURDAY": "Saturday",

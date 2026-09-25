@@ -574,21 +574,38 @@ export class SchedulingPlanCompositionService {
     return weights;
   }
 
+  private candidateDays(
+    candidate: SchedulingFeasibleCandidate,
+  ): readonly string[] {
+    if (candidate.timeGroup.startsWith('EVEN')) {
+      return DEFAULT_SCHEDULING_SETTINGS.timeGroups.evenDays;
+    }
+    if (candidate.timeGroup.startsWith('ODD')) {
+      return DEFAULT_SCHEDULING_SETTINGS.timeGroups.oddDays;
+    }
+    if (candidate.timeGroup.startsWith('NEUTRAL')) {
+      return DEFAULT_SCHEDULING_SETTINGS.timeGroups.neutralDays;
+    }
+    return [candidate.dayOfWeek];
+  }
+
   private hasResourceConflict(
     left: SchedulingFeasibleCandidate,
     right: SchedulingFeasibleCandidate,
   ): boolean {
+    if (left.startTime >= right.endTime || right.startTime >= left.endTime) {
+      return false;
+    }
+
     if (
-      left.dayOfWeek !== right.dayOfWeek ||
-      left.startTime >= right.endTime ||
-      right.startTime >= left.endTime
+      left.teacherId !== right.teacherId &&
+      (left.classroomId === null || left.classroomId !== right.classroomId)
     ) {
       return false;
     }
-    return (
-      left.teacherId === right.teacherId ||
-      (left.classroomId !== null && left.classroomId === right.classroomId)
-    );
+
+    const rightDays = new Set(this.candidateDays(right));
+    return this.candidateDays(left).some((day) => rightDays.has(day));
   }
 
   private isSameCandidate(

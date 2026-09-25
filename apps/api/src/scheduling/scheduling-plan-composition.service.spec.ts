@@ -275,6 +275,66 @@ describe('MVP-023 SchedulingPlanCompositionService', () => {
     expect(result.summary.missingClassCount).toBe(1);
   });
 
+  it('prevents multi-day track overlap conflicts between candidates with different days in the same track', () => {
+    const sundayClass = candidate(1, {
+      dayOfWeek: 'SUNDAY',
+      timeGroup: 'ODD_MORNING',
+      startTime: '09:00',
+      endTime: '10:30',
+      teacherId: ids.teacherA,
+      classroomId: ids.classroomA,
+      deliveryMode: 'IN_PERSON',
+    });
+    const thursdayTeacherConflict = candidate(2, {
+      requirementId: ids.requirementB,
+      courseId: ids.courseB,
+      dayOfWeek: 'THURSDAY',
+      timeGroup: 'ODD_MORNING',
+      startTime: '09:00',
+      endTime: '10:30',
+      teacherId: ids.teacherA,
+      classroomId: uuid(12),
+      deliveryMode: 'IN_PERSON',
+    });
+    const thursdayRoomConflict = candidate(3, {
+      requirementId: ids.requirementB,
+      courseId: ids.courseB,
+      dayOfWeek: 'THURSDAY',
+      timeGroup: 'ODD_MORNING',
+      startTime: '09:00',
+      endTime: '10:30',
+      teacherId: ids.teacherB,
+      classroomId: ids.classroomA,
+      deliveryMode: 'IN_PERSON',
+    });
+
+    const scopedRequirements = [
+      { ...requirements[0], requiredClassCount: 1 },
+      {
+        id: ids.requirementB,
+        courseId: ids.courseB,
+        requiredClassCount: 1,
+      },
+    ];
+    const records = [
+      coverage(sundayClass, [ids.studentA], []),
+      coverage(thursdayTeacherConflict, [ids.studentB], []),
+      coverage(thursdayRoomConflict, [ids.studentB], []),
+    ];
+    const result = service.compose({
+      requirements: scopedRequirements,
+      feasibleCandidates: [
+        sundayClass,
+        thursdayTeacherConflict,
+        thursdayRoomConflict,
+      ],
+      coverageEvaluation: coverageEvaluation(records, scopedRequirements),
+    });
+
+    expect(result.summary.scheduledClassCount).toBe(1);
+    expect(result.summary.missingClassCount).toBe(1);
+  });
+
   it('produces the same composition for shuffled inputs', () => {
     const first = candidate(1);
     const second = candidate(2, {

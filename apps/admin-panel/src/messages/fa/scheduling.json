@@ -226,6 +226,7 @@
       "description": "علت‌های تأمین‌نشدن نیازها را در بخش بعد بررسی کنید."
     },
     "unresolvedTitle": "نیازهای حل‌نشده",
+    "unresolvedDescription": "تعداد زبان‌آموزان و تقاضای ترم فراتر از زمان آزاد اساتید یا ظرفیت فیزیکی کلاس‌ها بوده و این دوره‌ها نتوانستند در برنامه گنجانده شوند.",
     "missingCount": "{count} کلاس کسری",
     "warningCount": "{count} هشدار",
     "planWarnings": "هشدارهای برنامه",
@@ -274,6 +275,15 @@
     "states": {
       "locked": "قفل‌شده",
       "edited": "ویرایش‌شده"
+    },
+    "calendarView": {
+      "toggleCalendar": "نمای تقویمی",
+      "toggleList": "نمای فهرستی",
+      "subtitle": "برنامه هفتگی کلاس‌ها بر اساس روز و ساعت برگزاری",
+      "classesCount": "{count} کلاس",
+      "noClasses": "بدون کلاس",
+      "weekendOff": "تعطیل هفتگی",
+      "allInOneNotice": "برنامه یک هفته نمونه (تکرار هفتگی در طول ترم)"
     },
     "weekDays": {
       "SATURDAY": "شنبه",

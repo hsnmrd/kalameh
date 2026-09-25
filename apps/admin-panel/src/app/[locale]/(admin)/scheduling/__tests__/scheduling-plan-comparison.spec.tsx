@@ -204,8 +204,11 @@ describe("MVP-036 scheduling plan comparison", () => {
     expect(
       screen.getByRole("heading", { name: "جزئیات برنامه ۱" })
     ).toBeInTheDocument()
-    expect(screen.getByText("کلاس سطح A2")).toBeInTheDocument()
-    expect(screen.getByText(/سارا احمدی/)).toBeInTheDocument()
+    expect(screen.getAllByText("کلاس سطح A2").length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/سارا احمدی/).length).toBeGreaterThan(0)
+
+    // Switch to list view to inspect comprehensive item breakdown
+    fireEvent.click(screen.getByRole("button", { name: "نمای فهرستی" }))
     expect(screen.getByText("شنبه، دوشنبه")).toBeInTheDocument()
     expect(screen.getByText("تطابق با زمان استاد")).toBeInTheDocument()
     expect(
