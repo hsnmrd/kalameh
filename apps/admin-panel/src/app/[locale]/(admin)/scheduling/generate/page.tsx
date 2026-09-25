@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import {
   APP_MODULES,
@@ -18,6 +19,8 @@ import { SchedulingGenerationForm } from "../components/scheduling-generation-fo
 export default function SchedulingGeneratePage() {
   const t = useTranslations("scheduling")
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const defaultTermId = searchParams.get("termId") ?? undefined
   const { setActiveRun } = useSchedulingRunStore()
 
   const handleCreated = React.useCallback(
@@ -44,6 +47,7 @@ export default function SchedulingGeneratePage() {
           }
         >
           <SchedulingGenerationForm
+            defaultTermId={defaultTermId}
             onCreated={handleCreated}
             onNavigateToDemand={() => router.push("/scheduling")}
           />

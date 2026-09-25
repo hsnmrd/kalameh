@@ -126,6 +126,23 @@
       "title": "Status could not be refreshed",
       "description": "The run is still preserved. Check your connection and try refreshing its status."
     },
+    "retry": "Retry",
+    "retryGeneration": "Retry Generation",
+    "exactError": "Technical details: {error}",
+    "notFound": {
+      "title": "Scheduling Run Not Found",
+      "description": "This run was not found or may belong to another institute.",
+      "back": "Back to Scheduling"
+    },
+    "progress": {
+      "title": "Scheduling Generation Progress",
+      "stage1": "Initial validation & prerequisites",
+      "stage2": "Evaluating teacher availability & classroom capacities",
+      "stage3": "Analyzing student preferences & school shifts",
+      "stage4": "Generating & ranking alternative plans",
+      "stage5": "Persisting & finalizing proposals",
+      "completed": "Calculation completed successfully"
+    },
     "result": {
       "title": "{count} scheduling suggestions generated",
       "recommended": "The engine has also identified a recommended plan for review.",

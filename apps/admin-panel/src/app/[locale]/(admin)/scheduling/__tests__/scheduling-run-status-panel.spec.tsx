@@ -185,4 +185,53 @@ describe("MVP-035 scheduling run status panel", () => {
       )
     ).toBeInTheDocument()
   })
+
+  it("renders connection error with exact technical details and retry button", async () => {
+    const refetchMock = vi.fn().mockResolvedValue({} as never)
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "conn-error"],
+      queryFn: async () => Promise.reject(new Error("Network timeout: 504")),
+    } as never)
+
+    render(<SchedulingRunStatusPanel run={queuedRun} onReset={vi.fn()} />)
+
+    expect(
+      await screen.findByText("وضعیت اجرا به‌روزرسانی نشد")
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Network timeout: 504/i)).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "تلاش مجدد" })
+    ).toBeInTheDocument()
+  })
+
+  it("renders retry generation button when run fails", async () => {
+    const failedStatus: SchedulingRunStatusDto = {
+      ...completedStatus,
+      status: "FAILED",
+      isTerminal: true,
+      result: null,
+      failureCode: "ENGINE_FAILED",
+      failureMessage: "موتور به دلیل تداخل زمانی متوقف شد.",
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "engine-failed"],
+      queryFn: async () => failedStatus,
+    } as never)
+
+    render(<SchedulingRunStatusPanel run={queuedRun} onReset={vi.fn()} />)
+
+    expect(
+      await screen.findByRole("button", { name: "تلاش مجدد برای ساخت برنامه" })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText("موتور به دلیل تداخل زمانی متوقف شد.")
+    ).toBeInTheDocument()
+  })
 })

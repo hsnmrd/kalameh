@@ -42,8 +42,11 @@ async function main() {
     throw new Error("Central branch for 'zabanland' not found!")
   }
 
-  console.log(`✅ Target Institute: ${institute.name} (${institute.id})`)
-  console.log(`✅ Central Branch: ${centralBranch.name} (${centralBranch.id})`)
+  const instituteId = institute.id
+  const centralBranchId = centralBranch.id
+
+  console.log(`✅ Target Institute: ${institute.name} (${instituteId})`)
+  console.log(`✅ Central Branch: ${centralBranch.name} (${centralBranchId})`)
 
   // 2. Upsert 25 Sequential Courses: AME 1-1 to AME 5-5
   // American English File 1 (1-1 to 1-5), 2 (2-1 to 2-5), 3 (3-1 to 3-5), 4 (4-1 to 4-5), 5 (5-1 to 5-5)
@@ -53,7 +56,7 @@ async function main() {
     prerequisiteId: string | null = null
   ) {
     const existing = await prisma.course.findFirst({
-      where: { instituteId: institute.id, title },
+      where: { instituteId, title },
     })
     if (existing) {
       return prisma.course.update({
@@ -63,7 +66,7 @@ async function main() {
     }
     return prisma.course.create({
       data: {
-        instituteId: institute.id,
+        instituteId,
         title,
         baseFee,
         prerequisiteId,
@@ -92,6 +95,14 @@ async function main() {
     }
   }
 
+  function getCourse(title: string) {
+    const course = activeCourses[title]
+    if (!course) {
+      throw new Error(`Course '${title}' was not found in activeCourses map.`)
+    }
+    return course
+  }
+
   const activeCourseTitles = Object.keys(activeCourses)
   console.log(
     `✅ Seeded 25 Progressive Courses from ${activeCourseTitles[0]} to ${activeCourseTitles[activeCourseTitles.length - 1]}`
@@ -99,7 +110,7 @@ async function main() {
 
   // Clean up legacy courses that don't match the AME 1-1 -> AME 5-5 curriculum
   const allExistingCourses = await prisma.course.findMany({
-    where: { instituteId: institute.id },
+    where: { instituteId },
   })
   const legacyCourses = allExistingCourses.filter(
     (c) => !activeCourseTitles.includes(c.title)
@@ -122,7 +133,7 @@ async function main() {
       })
       await prisma.user.updateMany({
         where: { currentAllowedCourseId: legacy.id },
-        data: { currentAllowedCourseId: activeCourses["AME 1-1"].id },
+        data: { currentAllowedCourseId: getCourse("AME 1-1").id },
       })
       await prisma.course.updateMany({
         where: { prerequisiteId: legacy.id },
@@ -161,13 +172,13 @@ async function main() {
 
   for (const room of classroomsData) {
     const existing = await prisma.classroom.findFirst({
-      where: { instituteId: institute.id, name: room.name },
+      where: { instituteId, name: room.name },
     })
     if (!existing) {
       await prisma.classroom.create({
         data: {
-          instituteId: institute.id,
-          branchId: centralBranch.id,
+          instituteId,
+          branchId: centralBranchId,
           name: room.name,
           capacity: room.capacity,
           description: room.description,
@@ -180,7 +191,7 @@ async function main() {
         data: {
           capacity: room.capacity,
           description: room.description,
-          branchId: centralBranch.id,
+          branchId: centralBranchId,
           isActive: true,
         },
       })
@@ -511,19 +522,19 @@ async function main() {
       where: {
         phone_instituteId: {
           phone: t.phone,
-          instituteId: institute.id,
+          instituteId,
         },
       },
       update: {
         firstName: t.firstName,
         lastName: t.lastName,
         role: Role.TEACHER,
-        branchId: centralBranch.id,
+        branchId: centralBranchId,
         isActive: true,
       },
       create: {
-        instituteId: institute.id,
-        branchId: centralBranch.id,
+        instituteId,
+        branchId: centralBranchId,
         phone: t.phone,
         firstName: t.firstName,
         lastName: t.lastName,
@@ -555,7 +566,7 @@ async function main() {
       if (course) {
         await prisma.teacherCourseQualification.create({
           data: {
-            instituteId: institute.id,
+            instituteId,
             teacherProfileId: teacherProfile.id,
             courseId: course.id,
           },
@@ -725,13 +736,17 @@ async function main() {
       globalStudentIndex++
       const isFemale = i % 2 === 0
       const fn = isFemale
-        ? firstNamesF[i % firstNamesF.length]
-        : firstNamesM[i % firstNamesM.length]
-      const ln = lastNames[(i + globalStudentIndex) % lastNames.length]
+        ? (firstNamesF[i % firstNamesF.length] ?? "سارا")
+        : (firstNamesM[i % firstNamesM.length] ?? "پویا")
+      const ln =
+        lastNames[(i + globalStudentIndex) % lastNames.length] ?? "محمدی"
       const phone = `0990100${String(globalStudentIndex).padStart(4, "0")}`
-      const shift = shiftOptions[(i + globalStudentIndex) % shiftOptions.length]
+      const shift =
+        shiftOptions[(i + globalStudentIndex) % shiftOptions.length] ??
+        StudentSchoolShift.FLEXIBLE
       const dayPref =
-        dayPrefOptions[(i + globalStudentIndex * 2) % dayPrefOptions.length]
+        dayPrefOptions[(i + globalStudentIndex * 2) % dayPrefOptions.length] ??
+        StudentDayPreference.ANY
 
       studentData.push({
         phone,
@@ -751,7 +766,7 @@ async function main() {
       where: {
         phone_instituteId: {
           phone: s.phone,
-          instituteId: institute.id,
+          instituteId,
         },
       },
       update: {
@@ -759,12 +774,12 @@ async function main() {
         lastName: s.lastName,
         role: Role.STUDENT,
         currentAllowedCourseId: s.courseId,
-        branchId: centralBranch.id,
+        branchId: centralBranchId,
         isActive: true,
       },
       create: {
-        instituteId: institute.id,
-        branchId: centralBranch.id,
+        instituteId,
+        branchId: centralBranchId,
         phone: s.phone,
         firstName: s.firstName,
         lastName: s.lastName,
@@ -815,7 +830,7 @@ async function main() {
     },
     create: {
       id: "00000000-0000-0000-0000-000000000077",
-      instituteId: institute.id,
+      instituteId,
       title: "تابستان ۱۴۰۵",
       startDate: summerStartDate,
       endDate: summerEndDate,
@@ -835,16 +850,16 @@ async function main() {
         title,
         termId: summerTerm.id,
         courseId,
-        branchId: centralBranch.id,
+        branchId: centralBranchId,
         capacity: 16,
         fee: 1500000,
       },
       create: {
         id,
-        instituteId: institute.id,
+        instituteId,
         termId: summerTerm.id,
         courseId,
-        branchId: centralBranch.id,
+        branchId: centralBranchId,
         title,
         capacity: 16,
         fee: 1500000,
@@ -856,57 +871,57 @@ async function main() {
     {
       id: "00000000-0000-0000-0000-000000000078",
       title: "کلاس تابستان AME 1-1",
-      course: activeCourses["AME 1-1"],
-      nextCourse: activeCourses["AME 1-2"],
+      course: getCourse("AME 1-1"),
+      nextCourse: getCourse("AME 1-2"),
       count: 12,
     },
     {
       id: "00000000-0000-0000-0000-000000000079",
       title: "کلاس تابستان AME 1-2",
-      course: activeCourses["AME 1-2"],
-      nextCourse: activeCourses["AME 1-3"],
+      course: getCourse("AME 1-2"),
+      nextCourse: getCourse("AME 1-3"),
       count: 12,
     },
     {
       id: "00000000-0000-0000-0000-000000000080",
       title: "کلاس تابستان AME 1-3",
-      course: activeCourses["AME 1-3"],
-      nextCourse: activeCourses["AME 1-4"],
+      course: getCourse("AME 1-3"),
+      nextCourse: getCourse("AME 1-4"),
       count: 10,
     },
     {
       id: "00000000-0000-0000-0000-000000000081",
       title: "کلاس تابستان AME 1-4",
-      course: activeCourses["AME 1-4"],
-      nextCourse: activeCourses["AME 1-5"],
+      course: getCourse("AME 1-4"),
+      nextCourse: getCourse("AME 1-5"),
       count: 10,
     },
     {
       id: "00000000-0000-0000-0000-000000000082",
       title: "کلاس تابستان AME 1-5",
-      course: activeCourses["AME 1-5"],
-      nextCourse: activeCourses["AME 2-1"],
+      course: getCourse("AME 1-5"),
+      nextCourse: getCourse("AME 2-1"),
       count: 10,
     },
     {
       id: "00000000-0000-0000-0000-000000000083",
       title: "کلاس تابستان AME 2-5",
-      course: activeCourses["AME 2-5"],
-      nextCourse: activeCourses["AME 3-1"],
+      course: getCourse("AME 2-5"),
+      nextCourse: getCourse("AME 3-1"),
       count: 8,
     },
     {
       id: "00000000-0000-0000-0000-000000000084",
       title: "کلاس تابستان AME 3-5",
-      course: activeCourses["AME 3-5"],
-      nextCourse: activeCourses["AME 4-1"],
+      course: getCourse("AME 3-5"),
+      nextCourse: getCourse("AME 4-1"),
       count: 6,
     },
     {
       id: "00000000-0000-0000-0000-000000000085",
       title: "کلاس تابستان AME 4-5",
-      course: activeCourses["AME 4-5"],
-      nextCourse: activeCourses["AME 5-1"],
+      course: getCourse("AME 4-5"),
+      nextCourse: getCourse("AME 5-1"),
       count: 5,
     },
   ]
@@ -957,7 +972,7 @@ async function main() {
 
   // Clear existing requirements for this term to avoid duplicate runs
   await prisma.classRequirement.deleteMany({
-    where: { instituteId: institute.id, termId: activeTerm.id },
+    where: { instituteId, termId: activeTerm.id },
   })
 
   // 18 Parallel Classes to Schedule (Intense multi-level scheduling stress-test):
@@ -976,67 +991,67 @@ async function main() {
   // - AME 5-5: 1 class (In-Person, Cap 14)
   const requirementsData = [
     {
-      courseId: activeCourses["AME 1-1"].id,
+      courseId: getCourse("AME 1-1").id,
       requiredClassCount: 2,
       capacity: 14,
     },
     {
-      courseId: activeCourses["AME 1-2"].id,
+      courseId: getCourse("AME 1-2").id,
       requiredClassCount: 2,
       capacity: 14,
     },
     {
-      courseId: activeCourses["AME 1-3"].id,
+      courseId: getCourse("AME 1-3").id,
       requiredClassCount: 2,
       capacity: 14,
     },
     {
-      courseId: activeCourses["AME 1-4"].id,
+      courseId: getCourse("AME 1-4").id,
       requiredClassCount: 2,
       capacity: 14,
     },
     {
-      courseId: activeCourses["AME 1-5"].id,
+      courseId: getCourse("AME 1-5").id,
       requiredClassCount: 2,
       capacity: 16,
     }, // Rejects Room C!
     {
-      courseId: activeCourses["AME 2-1"].id,
+      courseId: getCourse("AME 2-1").id,
       requiredClassCount: 2,
       capacity: 14,
     },
     {
-      courseId: activeCourses["AME 2-5"].id,
+      courseId: getCourse("AME 2-5").id,
       requiredClassCount: 1,
       capacity: 16,
     }, // Rejects Room C!
     {
-      courseId: activeCourses["AME 3-1"].id,
+      courseId: getCourse("AME 3-1").id,
       requiredClassCount: 1,
       capacity: 14,
     },
     {
-      courseId: activeCourses["AME 3-5"].id,
+      courseId: getCourse("AME 3-5").id,
       requiredClassCount: 1,
       capacity: 14,
     },
     {
-      courseId: activeCourses["AME 4-1"].id,
+      courseId: getCourse("AME 4-1").id,
       requiredClassCount: 1,
       capacity: 14,
     },
     {
-      courseId: activeCourses["AME 4-5"].id,
+      courseId: getCourse("AME 4-5").id,
       requiredClassCount: 1,
       capacity: 14,
     },
     {
-      courseId: activeCourses["AME 5-1"].id,
+      courseId: getCourse("AME 5-1").id,
       requiredClassCount: 1,
       capacity: 14,
     },
     {
-      courseId: activeCourses["AME 5-5"].id,
+      courseId: getCourse("AME 5-5").id,
       requiredClassCount: 1,
       capacity: 14,
     },
@@ -1046,10 +1061,10 @@ async function main() {
   for (const req of requirementsData) {
     const createdReq = await prisma.classRequirement.create({
       data: {
-        instituteId: institute.id,
+        instituteId,
         termId: activeTerm.id,
         courseId: req.courseId,
-        branchId: centralBranch.id,
+        branchId: centralBranchId,
         requiredClassCount: req.requiredClassCount,
         capacity: req.capacity,
         sessionDurationMinutes: 90,
