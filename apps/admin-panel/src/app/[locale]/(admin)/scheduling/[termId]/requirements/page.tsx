@@ -170,9 +170,7 @@ export default function TermRequirementsPage() {
                   ? "ONLINE"
                   : "IN_PERSON",
               sessionDurationMinutes: 90,
-              sessionsPerWeek:
-                c.sessionsPerWeek ??
-                (c.evenDaysPreferenceCount >= c.oddDaysPreferenceCount ? 3 : 2),
+              sessionsPerWeek: c.sessionsPerWeek ?? 3,
             })),
           })
         },

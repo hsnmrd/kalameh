@@ -153,9 +153,13 @@ async function main() {
         { dayOfWeek: "TUESDAY", startTime: "15:30", endTime: "17:00" },
         { dayOfWeek: "TUESDAY", startTime: "17:00", endTime: "18:30" },
         { dayOfWeek: "TUESDAY", startTime: "18:30", endTime: "20:00" },
-        // THURSDAY morning
+        // THURSDAY morning, afternoon & evening
         { dayOfWeek: "THURSDAY", startTime: "09:00", endTime: "10:30" },
         { dayOfWeek: "THURSDAY", startTime: "10:30", endTime: "12:00" },
+        { dayOfWeek: "THURSDAY", startTime: "14:00", endTime: "15:30" },
+        { dayOfWeek: "THURSDAY", startTime: "15:30", endTime: "17:00" },
+        { dayOfWeek: "THURSDAY", startTime: "17:00", endTime: "18:30" },
+        { dayOfWeek: "THURSDAY", startTime: "18:30", endTime: "20:00" },
       ],
     },
     {
@@ -177,6 +181,8 @@ async function main() {
         { dayOfWeek: "SUNDAY", startTime: "10:30", endTime: "12:00" },
         { dayOfWeek: "TUESDAY", startTime: "09:00", endTime: "10:30" },
         { dayOfWeek: "TUESDAY", startTime: "10:30", endTime: "12:00" },
+        { dayOfWeek: "THURSDAY", startTime: "09:00", endTime: "10:30" },
+        { dayOfWeek: "THURSDAY", startTime: "10:30", endTime: "12:00" },
       ],
     },
   ]
@@ -670,7 +676,7 @@ async function main() {
       requiredClassCount: 1,
       capacity: 12,
       sessionDurationMinutes: 90,
-      sessionsPerWeek: 2,
+      sessionsPerWeek: 3,
       totalSessions: null,
       deliveryMode: ClassDeliveryMode.IN_PERSON,
     },

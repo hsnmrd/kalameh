@@ -60,7 +60,7 @@ export class ClassRequirementsService {
       const hasTotal = req.totalSessions != null;
       return {
         ...req,
-        sessionsPerWeek: !hasWeekly && !hasTotal ? 2 : req.sessionsPerWeek,
+        sessionsPerWeek: !hasWeekly && !hasTotal ? 3 : req.sessionsPerWeek,
         totalSessions: hasWeekly && hasTotal ? null : req.totalSessions,
       };
     });
@@ -89,7 +89,7 @@ export class ClassRequirementsService {
     const sanitized = {
       ...requirement,
       sessionsPerWeek:
-        !hasWeekly && !hasTotal ? 2 : requirement.sessionsPerWeek,
+        !hasWeekly && !hasTotal ? 3 : requirement.sessionsPerWeek,
       totalSessions: hasWeekly && hasTotal ? null : requirement.totalSessions,
     };
 

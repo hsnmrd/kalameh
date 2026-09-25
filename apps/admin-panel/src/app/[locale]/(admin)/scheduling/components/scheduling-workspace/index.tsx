@@ -140,9 +140,7 @@ export function SchedulingWorkspace() {
               ? ("ONLINE" as const)
               : ("IN_PERSON" as const),
           sessionDurationMinutes: 90,
-          sessionsPerWeek:
-            c.sessionsPerWeek ??
-            (c.evenDaysPreferenceCount >= c.oddDaysPreferenceCount ? 3 : 2),
+          sessionsPerWeek: c.sessionsPerWeek ?? 3,
         }
       })
       .filter((item) => item.requiredClassCount > 0)

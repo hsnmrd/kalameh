@@ -280,8 +280,7 @@ export class SchedulingDemandService {
         suggestedOnlineCount: 0,
         existingRequirementId: existingReq?.id ?? null,
         currentRequirementClassCount: existingReq?.requiredClassCount ?? null,
-        sessionsPerWeek:
-          existingReq?.sessionsPerWeek ?? (evenDays >= oddDays ? 3 : 2),
+        sessionsPerWeek: existingReq?.sessionsPerWeek ?? 3,
       };
     });
 
@@ -367,7 +366,7 @@ export class SchedulingDemandService {
         const sessionsPerWeek =
           item.sessionsPerWeek ??
           existing?.sessionsPerWeek ??
-          (item.totalSessions || existing?.totalSessions ? null : 2);
+          (item.totalSessions || existing?.totalSessions ? null : 3);
         const totalSessions =
           item.totalSessions ??
           (sessionsPerWeek ? null : (existing?.totalSessions ?? null));
@@ -403,7 +402,7 @@ export class SchedulingDemandService {
               isActive: true,
             },
           });
-          updatedCount++;
+          createdCount++;
         }
       }
     });

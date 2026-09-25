@@ -59,6 +59,9 @@ describe('SchedulingDemandService', () => {
         update: jest.fn(),
         count: jest.fn(),
       },
+      branch: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
       $transaction: jest.fn(),
     };
 
