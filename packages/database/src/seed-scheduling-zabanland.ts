@@ -14,12 +14,14 @@ dotenv.config({ path: "../../.env" })
 dotenv.config()
 
 async function main() {
-  console.log("🚀 Starting seed for Zaban Land (زبان لند) scheduling data...")
+  console.log(
+    "🚀 Starting comprehensive stress-test seed for Zaban Land with AME 1-1 to AME 5-5..."
+  )
 
   const defaultPassword = "Password123!"
   const hashedPassword = await bcrypt.hash(defaultPassword, 10)
 
-  // 1. Fetch Institute
+  // 1. Fetch Target Institute
   const institute = await prisma.institute.findUnique({
     where: { subdomain: "zabanland" },
     include: {
@@ -43,19 +45,97 @@ async function main() {
   console.log(`✅ Target Institute: ${institute.name} (${institute.id})`)
   console.log(`✅ Central Branch: ${centralBranch.name} (${centralBranch.id})`)
 
-  // 2. Identify Courses
-  const courseAme1 = institute.courses.find((c) => c.title === "AME 1")
-  const courseAme2 = institute.courses.find((c) => c.title === "AME 2")
-  const courseAme3 = institute.courses.find((c) => c.title === "AME 3")
-
-  if (!courseAme1 || !courseAme2 || !courseAme3) {
-    throw new Error(
-      "Required courses (AME 1, AME 2, AME 3) not found in Zaban Land!"
-    )
+  // 2. Upsert 25 Sequential Courses: AME 1-1 to AME 5-5
+  // American English File 1 (1-1 to 1-5), 2 (2-1 to 2-5), 3 (3-1 to 3-5), 4 (4-1 to 4-5), 5 (5-1 to 5-5)
+  async function ensureCourse(
+    title: string,
+    baseFee: number,
+    prerequisiteId: string | null = null
+  ) {
+    const existing = await prisma.course.findFirst({
+      where: { instituteId: institute.id, title },
+    })
+    if (existing) {
+      return prisma.course.update({
+        where: { id: existing.id },
+        data: { baseFee, prerequisiteId },
+      })
+    }
+    return prisma.course.create({
+      data: {
+        instituteId: institute.id,
+        title,
+        baseFee,
+        prerequisiteId,
+      },
+    })
   }
-  console.log("✅ Verified Courses: AME 1, AME 2, AME 3")
 
-  // 3. Classrooms (Ensure 4 rooms to accommodate parallel classes)
+  const activeCourses: Record<
+    string,
+    {
+      id: string
+      title: string
+      baseFee: number
+      prerequisiteId: string | null
+    }
+  > = {}
+  let prevCourseId: string | null = null
+
+  for (let book = 1; book <= 5; book++) {
+    for (let term = 1; term <= 5; term++) {
+      const title = `AME ${book}-${term}`
+      const baseFee = 1500000 + (book - 1) * 300000 + (term - 1) * 50000
+      const course = await ensureCourse(title, baseFee, prevCourseId)
+      activeCourses[title] = course
+      prevCourseId = course.id
+    }
+  }
+
+  const activeCourseTitles = Object.keys(activeCourses)
+  console.log(
+    `✅ Seeded 25 Progressive Courses from ${activeCourseTitles[0]} to ${activeCourseTitles[activeCourseTitles.length - 1]}`
+  )
+
+  // Clean up legacy courses that don't match the AME 1-1 -> AME 5-5 curriculum
+  const allExistingCourses = await prisma.course.findMany({
+    where: { instituteId: institute.id },
+  })
+  const legacyCourses = allExistingCourses.filter(
+    (c) => !activeCourseTitles.includes(c.title)
+  )
+
+  for (const legacy of legacyCourses) {
+    try {
+      await prisma.enrollment.deleteMany({
+        where: { class: { courseId: legacy.id } },
+      })
+      await prisma.class.deleteMany({ where: { courseId: legacy.id } })
+      await prisma.classRequirement.deleteMany({
+        where: { courseId: legacy.id },
+      })
+      await prisma.schedulingProposal.deleteMany({
+        where: { courseId: legacy.id },
+      })
+      await prisma.teacherCourseQualification.deleteMany({
+        where: { courseId: legacy.id },
+      })
+      await prisma.user.updateMany({
+        where: { currentAllowedCourseId: legacy.id },
+        data: { currentAllowedCourseId: activeCourses["AME 1-1"].id },
+      })
+      await prisma.course.updateMany({
+        where: { prerequisiteId: legacy.id },
+        data: { prerequisiteId: null },
+      })
+      await prisma.course.delete({ where: { id: legacy.id } })
+      console.log(`🧹 Cleaned up legacy course: ${legacy.title}`)
+    } catch {
+      // Gracefully continue if retained by relations
+    }
+  }
+
+  // 3. Classrooms (Capacity Contention: Cap 14, 18, 20, 25)
   const classroomsData = [
     {
       name: "کلاس A (اتاق ۱۰۱)",
@@ -64,18 +144,18 @@ async function main() {
     },
     {
       name: "کلاس B (اتاق ۱۰۲)",
-      capacity: 20,
+      capacity: 18,
       description: "کلاس استاندارد با پروژکتور و تخته هوشمند",
     },
     {
       name: "کلاس C (اتاق ۱۰۳)",
-      capacity: 16,
-      description: "کلاس نیمه خصوصی و پیشرفته",
+      capacity: 14, // Small room: rejects classes with cap > 14 (e.g. AME 1-5 with cap 16)
+      description: "کلاس نیمه خصوصی (ظرفیت کوچک ۱۴ نفر)",
     },
     {
       name: "کلاس D (آزمایشگاه زبان)",
       capacity: 25,
-      description: "سالن چندرسانه‌ای و آزمایشگاه زبان",
+      description: "سالن چندرسانه‌ای و آزمایشگاه زبان بزرگ",
     },
   ]
 
@@ -106,88 +186,327 @@ async function main() {
       })
     }
   }
-  console.log("✅ Seeded 4 Classrooms with capacities 16-25")
+  console.log(
+    "✅ Seeded 4 Classrooms with capacity bottlenecks (Cap 14, 18, 20, 25)"
+  )
 
-  // 4. Additional Teachers & Qualifications & Availabilities
-  const additionalTeachers = [
+  // 4. Nine Teachers with Qualifications across AME 1-1 to AME 5-5
+  // Strictly respects the Uniform Class Time Rule (identical hours on all days of their track)
+  function buildEvenTrackSlots(
+    timeRanges: Array<{ startTime: string; endTime: string }>
+  ) {
+    const days = ["SATURDAY", "MONDAY", "WEDNESDAY"] as const
+    return days.flatMap((dayOfWeek) =>
+      timeRanges.map((tr) => ({
+        dayOfWeek,
+        startTime: tr.startTime,
+        endTime: tr.endTime,
+      }))
+    )
+  }
+
+  function buildOddTrackSlots(
+    timeRanges: Array<{ startTime: string; endTime: string }>
+  ) {
+    const days = ["SUNDAY", "TUESDAY", "THURSDAY"] as const
+    return days.flatMap((dayOfWeek) =>
+      timeRanges.map((tr) => ({
+        dayOfWeek,
+        startTime: tr.startTime,
+        endTime: tr.endTime,
+      }))
+    )
+  }
+
+  const teachersData = [
     {
       phone: "09127770001",
       firstName: "امیرحسین",
       lastName: "رضایی",
       degree: "کارشناسی ارشد آموزش زبان انگلیسی",
-      specialties: ["Starter", "Elementary", "AME 1", "AME 2"],
-      qualifiedCourseIds: [courseAme1.id, courseAme2.id],
-      availabilities: [
-        // SATURDAY afternoon & evening
-        { dayOfWeek: "SATURDAY", startTime: "14:00", endTime: "15:30" },
-        { dayOfWeek: "SATURDAY", startTime: "15:30", endTime: "17:00" },
-        { dayOfWeek: "SATURDAY", startTime: "17:00", endTime: "18:30" },
-        { dayOfWeek: "SATURDAY", startTime: "18:30", endTime: "20:00" },
-        // MONDAY afternoon & evening
-        { dayOfWeek: "MONDAY", startTime: "14:00", endTime: "15:30" },
-        { dayOfWeek: "MONDAY", startTime: "15:30", endTime: "17:00" },
-        { dayOfWeek: "MONDAY", startTime: "17:00", endTime: "18:30" },
-        { dayOfWeek: "MONDAY", startTime: "18:30", endTime: "20:00" },
-        // WEDNESDAY afternoon & evening
-        { dayOfWeek: "WEDNESDAY", startTime: "14:00", endTime: "15:30" },
-        { dayOfWeek: "WEDNESDAY", startTime: "15:30", endTime: "17:00" },
-        { dayOfWeek: "WEDNESDAY", startTime: "17:00", endTime: "18:30" },
-        { dayOfWeek: "WEDNESDAY", startTime: "18:30", endTime: "20:00" },
+      specialties: [
+        "AME 1-1",
+        "AME 1-2",
+        "AME 1-3",
+        "AME 1-4",
+        "AME 1-5",
+        "AME 2-1",
+        "AME 2-2",
       ],
+      qualifiedTitles: [
+        "AME 1-1",
+        "AME 1-2",
+        "AME 1-3",
+        "AME 1-4",
+        "AME 1-5",
+        "AME 2-1",
+        "AME 2-2",
+      ],
+      availabilities: buildEvenTrackSlots([
+        { startTime: "14:00", endTime: "15:30" },
+        { startTime: "15:30", endTime: "17:00" },
+        { startTime: "17:00", endTime: "18:30" },
+        { startTime: "18:30", endTime: "20:00" },
+      ]),
     },
     {
       phone: "09127770002",
       firstName: "مریم",
       lastName: "کاظمی",
       degree: "دکتری زبان‌شناسی کاربردی",
-      specialties: ["Intermediate", "Advanced", "AME 2", "AME 3"],
-      qualifiedCourseIds: [courseAme2.id, courseAme3.id],
-      availabilities: [
-        // SUNDAY afternoon & evening
-        { dayOfWeek: "SUNDAY", startTime: "14:00", endTime: "15:30" },
-        { dayOfWeek: "SUNDAY", startTime: "15:30", endTime: "17:00" },
-        { dayOfWeek: "SUNDAY", startTime: "17:00", endTime: "18:30" },
-        { dayOfWeek: "SUNDAY", startTime: "18:30", endTime: "20:00" },
-        // TUESDAY afternoon & evening
-        { dayOfWeek: "TUESDAY", startTime: "14:00", endTime: "15:30" },
-        { dayOfWeek: "TUESDAY", startTime: "15:30", endTime: "17:00" },
-        { dayOfWeek: "TUESDAY", startTime: "17:00", endTime: "18:30" },
-        { dayOfWeek: "TUESDAY", startTime: "18:30", endTime: "20:00" },
-        // THURSDAY morning, afternoon & evening
-        { dayOfWeek: "THURSDAY", startTime: "09:00", endTime: "10:30" },
-        { dayOfWeek: "THURSDAY", startTime: "10:30", endTime: "12:00" },
-        { dayOfWeek: "THURSDAY", startTime: "14:00", endTime: "15:30" },
-        { dayOfWeek: "THURSDAY", startTime: "15:30", endTime: "17:00" },
-        { dayOfWeek: "THURSDAY", startTime: "17:00", endTime: "18:30" },
-        { dayOfWeek: "THURSDAY", startTime: "18:30", endTime: "20:00" },
+      specialties: [
+        "AME 2-1",
+        "AME 2-2",
+        "AME 2-3",
+        "AME 2-4",
+        "AME 2-5",
+        "AME 3-1",
+        "AME 3-2",
       ],
+      qualifiedTitles: [
+        "AME 2-1",
+        "AME 2-2",
+        "AME 2-3",
+        "AME 2-4",
+        "AME 2-5",
+        "AME 3-1",
+        "AME 3-2",
+      ],
+      availabilities: buildOddTrackSlots([
+        { startTime: "14:00", endTime: "15:30" },
+        { startTime: "15:30", endTime: "17:00" },
+        { startTime: "17:00", endTime: "18:30" },
+        { startTime: "18:30", endTime: "20:00" },
+      ]),
     },
     {
       phone: "09127770003",
       firstName: "علیرضا",
       lastName: "شمس",
       degree: "کارشناسی ادبیات انگلیسی",
-      specialties: ["AME 1", "AME 3", "Conversation"],
-      qualifiedCourseIds: [courseAme1.id, courseAme3.id],
-      availabilities: [
-        // Morning slots
-        { dayOfWeek: "SATURDAY", startTime: "09:00", endTime: "10:30" },
-        { dayOfWeek: "SATURDAY", startTime: "10:30", endTime: "12:00" },
-        { dayOfWeek: "MONDAY", startTime: "09:00", endTime: "10:30" },
-        { dayOfWeek: "MONDAY", startTime: "10:30", endTime: "12:00" },
-        { dayOfWeek: "WEDNESDAY", startTime: "09:00", endTime: "10:30" },
-        { dayOfWeek: "WEDNESDAY", startTime: "10:30", endTime: "12:00" },
-        { dayOfWeek: "SUNDAY", startTime: "09:00", endTime: "10:30" },
-        { dayOfWeek: "SUNDAY", startTime: "10:30", endTime: "12:00" },
-        { dayOfWeek: "TUESDAY", startTime: "09:00", endTime: "10:30" },
-        { dayOfWeek: "TUESDAY", startTime: "10:30", endTime: "12:00" },
-        { dayOfWeek: "THURSDAY", startTime: "09:00", endTime: "10:30" },
-        { dayOfWeek: "THURSDAY", startTime: "10:30", endTime: "12:00" },
+      specialties: [
+        "AME 1-1",
+        "AME 1-2",
+        "AME 1-3",
+        "AME 2-1",
+        "AME 2-2",
+        "AME 3-1",
       ],
+      qualifiedTitles: [
+        "AME 1-1",
+        "AME 1-2",
+        "AME 1-3",
+        "AME 2-1",
+        "AME 2-2",
+        "AME 3-1",
+      ],
+      availabilities: [
+        ...buildEvenTrackSlots([
+          { startTime: "09:00", endTime: "10:30" },
+          { startTime: "10:30", endTime: "12:00" },
+        ]),
+        ...buildOddTrackSlots([
+          { startTime: "09:00", endTime: "10:30" },
+          { startTime: "10:30", endTime: "12:00" },
+        ]),
+      ],
+    },
+    {
+      phone: "09127770004",
+      firstName: "نیلوفر",
+      lastName: "صادقی",
+      degree: "کارشناسی ارشد مترجمی زبان",
+      specialties: [
+        "AME 3-1",
+        "AME 3-2",
+        "AME 3-3",
+        "AME 3-4",
+        "AME 3-5",
+        "AME 4-1",
+        "AME 4-2",
+      ],
+      qualifiedTitles: [
+        "AME 3-1",
+        "AME 3-2",
+        "AME 3-3",
+        "AME 3-4",
+        "AME 3-5",
+        "AME 4-1",
+        "AME 4-2",
+      ],
+      availabilities: buildEvenTrackSlots([
+        { startTime: "15:30", endTime: "17:00" },
+        { startTime: "17:00", endTime: "18:30" },
+        { startTime: "18:30", endTime: "20:00" },
+      ]),
+    },
+    {
+      phone: "09127770005",
+      firstName: "کامران",
+      lastName: "حسینی",
+      degree: "کارشناسی آموزش زبان انگلیسی",
+      specialties: [
+        "AME 2-2",
+        "AME 2-3",
+        "AME 2-4",
+        "AME 2-5",
+        "AME 3-1",
+        "AME 3-2",
+        "AME 3-3",
+      ],
+      qualifiedTitles: [
+        "AME 2-2",
+        "AME 2-3",
+        "AME 2-4",
+        "AME 2-5",
+        "AME 3-1",
+        "AME 3-2",
+        "AME 3-3",
+      ],
+      availabilities: buildOddTrackSlots([
+        { startTime: "09:00", endTime: "10:30" },
+        { startTime: "10:30", endTime: "12:00" },
+        { startTime: "14:00", endTime: "15:30" },
+      ]),
+    },
+    {
+      phone: "09127770006",
+      firstName: "دکتر فرهاد",
+      lastName: "رستمی",
+      degree: "دکتری زبان و ادبیات انگلیسی",
+      specialties: [
+        "AME 4-1",
+        "AME 4-2",
+        "AME 4-3",
+        "AME 4-4",
+        "AME 4-5",
+        "AME 5-1",
+        "AME 5-2",
+        "AME 5-3",
+        "AME 5-4",
+        "AME 5-5",
+      ],
+      qualifiedTitles: [
+        "AME 4-1",
+        "AME 4-2",
+        "AME 4-3",
+        "AME 4-4",
+        "AME 4-5",
+        "AME 5-1",
+        "AME 5-2",
+        "AME 5-3",
+        "AME 5-4",
+        "AME 5-5",
+      ],
+      availabilities: [
+        ...buildEvenTrackSlots([{ startTime: "18:30", endTime: "20:00" }]),
+        ...buildOddTrackSlots([{ startTime: "18:30", endTime: "20:00" }]),
+      ],
+    },
+    {
+      phone: "09127770007",
+      firstName: "آرزو",
+      lastName: "احمدی",
+      degree: "کارشناسی ارشد آموزش زبان انگلیسی",
+      specialties: [
+        "AME 1-1",
+        "AME 1-2",
+        "AME 1-3",
+        "AME 1-4",
+        "AME 1-5",
+        "AME 2-1",
+        "AME 2-2",
+      ],
+      qualifiedTitles: [
+        "AME 1-1",
+        "AME 1-2",
+        "AME 1-3",
+        "AME 1-4",
+        "AME 1-5",
+        "AME 2-1",
+        "AME 2-2",
+      ],
+      availabilities: buildEvenTrackSlots([
+        { startTime: "09:00", endTime: "10:30" },
+        { startTime: "10:30", endTime: "12:00" },
+        { startTime: "14:00", endTime: "15:30" },
+      ]),
+    },
+    {
+      phone: "09127770008",
+      firstName: "دکتر بهنام",
+      lastName: "مرادی",
+      degree: "دکتری آموزش زبان انگلیسی (TEFL)",
+      specialties: [
+        "AME 3-3",
+        "AME 3-4",
+        "AME 3-5",
+        "AME 4-1",
+        "AME 4-2",
+        "AME 4-3",
+        "AME 4-4",
+        "AME 4-5",
+        "AME 5-1",
+        "AME 5-2",
+        "AME 5-3",
+        "AME 5-4",
+        "AME 5-5",
+      ],
+      qualifiedTitles: [
+        "AME 3-3",
+        "AME 3-4",
+        "AME 3-5",
+        "AME 4-1",
+        "AME 4-2",
+        "AME 4-3",
+        "AME 4-4",
+        "AME 4-5",
+        "AME 5-1",
+        "AME 5-2",
+        "AME 5-3",
+        "AME 5-4",
+        "AME 5-5",
+      ],
+      availabilities: buildOddTrackSlots([
+        { startTime: "15:30", endTime: "17:00" },
+        { startTime: "17:00", endTime: "18:30" },
+        { startTime: "18:30", endTime: "20:00" },
+      ]),
+    },
+    {
+      phone: "09127770009",
+      firstName: "سمیرا",
+      lastName: "یزدانی",
+      degree: "کارشناسی ارشد زبان‌شناسی همگانی",
+      specialties: [
+        "AME 4-3",
+        "AME 4-4",
+        "AME 4-5",
+        "AME 5-1",
+        "AME 5-2",
+        "AME 5-3",
+        "AME 5-4",
+        "AME 5-5",
+      ],
+      qualifiedTitles: [
+        "AME 4-3",
+        "AME 4-4",
+        "AME 4-5",
+        "AME 5-1",
+        "AME 5-2",
+        "AME 5-3",
+        "AME 5-4",
+        "AME 5-5",
+      ],
+      availabilities: buildEvenTrackSlots([
+        { startTime: "14:00", endTime: "15:30" },
+        { startTime: "15:30", endTime: "17:00" },
+        { startTime: "17:00", endTime: "18:30" },
+      ]),
     },
   ]
 
-  for (const t of additionalTeachers) {
+  for (const t of teachersData) {
     const user = await prisma.user.upsert({
       where: {
         phone_instituteId: {
@@ -228,21 +547,20 @@ async function main() {
     })
 
     // Upsert Qualifications
-    for (const courseId of t.qualifiedCourseIds) {
-      await prisma.teacherCourseQualification.upsert({
-        where: {
-          teacherProfileId_courseId: {
+    await prisma.teacherCourseQualification.deleteMany({
+      where: { teacherProfileId: teacherProfile.id },
+    })
+    for (const title of t.qualifiedTitles) {
+      const course = activeCourses[title]
+      if (course) {
+        await prisma.teacherCourseQualification.create({
+          data: {
+            instituteId: institute.id,
             teacherProfileId: teacherProfile.id,
-            courseId,
+            courseId: course.id,
           },
-        },
-        update: {},
-        create: {
-          instituteId: institute.id,
-          teacherProfileId: teacherProfile.id,
-          courseId,
-        },
-      })
+        })
+      }
     }
 
     // Reset and add Availabilities
@@ -260,208 +578,175 @@ async function main() {
     })
 
     console.log(
-      `👩‍🏫 Seeded Teacher: ${t.firstName} ${t.lastName} (${t.availabilities.length} availability slots)`
+      `👩‍🏫 Seeded Teacher: ${t.firstName} ${t.lastName} (${t.availabilities.length} availability slots, ${t.qualifiedTitles.length} qualified courses)`
     )
   }
 
-  // 5. Update existing Student 'مهدی رضاوند' to COMPLETE
-  const existingStudent = await prisma.user.findFirst({
-    where: { phone: "09903103965", instituteId: institute.id },
-    include: { studentProfile: true },
-  })
-  if (existingStudent) {
-    await prisma.studentProfile.upsert({
-      where: { userId: existingStudent.id },
-      update: {
-        scheduleStatus: StudentScheduleStatus.COMPLETE,
-        schoolShift: StudentSchoolShift.AFTERNOON,
-        dayPreference: StudentDayPreference.EVEN_DAYS,
-      },
-      create: {
-        userId: existingStudent.id,
-        scheduleStatus: StudentScheduleStatus.COMPLETE,
-        schoolShift: StudentSchoolShift.AFTERNOON,
-        dayPreference: StudentDayPreference.EVEN_DAYS,
-      },
-    })
-    console.log(
-      "✅ Updated existing student مهدی رضاوند to COMPLETE schedule status"
-    )
-  }
+  // 5. Seed ~294 Students across all 25 courses (AME 1-1 to AME 5-5)
+  const studentData: Array<{
+    phone: string
+    firstName: string
+    lastName: string
+    courseId: string
+    shift: StudentSchoolShift
+    dayPref: StudentDayPreference
+    gender: "MALE" | "FEMALE"
+  }> = []
 
-  // 6. Seed 18 More Students (6 per Course Level)
-  const studentTemplates = [
-    // Course AME 1
-    {
-      phone: "09900000101",
-      firstName: "سارا",
-      lastName: "محمدی",
-      courseId: courseAme1.id,
-      shift: StudentSchoolShift.MORNING,
-      dayPref: StudentDayPreference.EVEN_DAYS,
-      gender: "FEMALE",
-    },
-    {
-      phone: "09900000102",
-      firstName: "پویا",
-      lastName: "ناصری",
-      courseId: courseAme1.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.EVEN_DAYS,
-      gender: "MALE",
-    },
-    {
-      phone: "09900000103",
-      firstName: "نیلوفر",
-      lastName: "عباسی",
-      courseId: courseAme1.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.ODD_DAYS,
-      gender: "FEMALE",
-    },
-    {
-      phone: "09900000104",
-      firstName: "دانیال",
-      lastName: "حسینی",
-      courseId: courseAme1.id,
-      shift: StudentSchoolShift.FLEXIBLE,
-      dayPref: StudentDayPreference.ANY,
-      gender: "MALE",
-    },
-    {
-      phone: "09900000105",
-      firstName: "زهرا",
-      lastName: "احمدی",
-      courseId: courseAme1.id,
-      shift: StudentSchoolShift.MORNING,
-      dayPref: StudentDayPreference.ANY,
-      gender: "FEMALE",
-    },
-    {
-      phone: "09900000106",
-      firstName: "محمدرضا",
-      lastName: "کاظمی",
-      courseId: courseAme1.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.EVEN_DAYS,
-      gender: "MALE",
-    },
-
-    // Course AME 2
-    {
-      phone: "09900000201",
-      firstName: "آرمین",
-      lastName: "کریمی",
-      courseId: courseAme2.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.EVEN_DAYS,
-      gender: "MALE",
-    },
-    {
-      phone: "09900000202",
-      firstName: "الهام",
-      lastName: "رحیمی",
-      courseId: courseAme2.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.ODD_DAYS,
-      gender: "FEMALE",
-    },
-    {
-      phone: "09900000203",
-      firstName: "سپهر",
-      lastName: "شریفی",
-      courseId: courseAme2.id,
-      shift: StudentSchoolShift.MORNING,
-      dayPref: StudentDayPreference.EVEN_DAYS,
-      gender: "MALE",
-    },
-    {
-      phone: "09900000204",
-      firstName: "یاسمین",
-      lastName: "سعیدی",
-      courseId: courseAme2.id,
-      shift: StudentSchoolShift.FLEXIBLE,
-      dayPref: StudentDayPreference.ANY,
-      gender: "FEMALE",
-    },
-    {
-      phone: "09900000205",
-      firstName: "کیان",
-      lastName: "مهرابی",
-      courseId: courseAme2.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.EVEN_DAYS,
-      gender: "MALE",
-    },
-    {
-      phone: "09900000206",
-      firstName: "فاطمه",
-      lastName: "اکبری",
-      courseId: courseAme2.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.ODD_DAYS,
-      gender: "FEMALE",
-    },
-
-    // Course AME 3
-    {
-      phone: "09900000301",
-      firstName: "نوید",
-      lastName: "ابراهیمی",
-      courseId: courseAme3.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.EVEN_DAYS,
-      gender: "MALE",
-    },
-    {
-      phone: "09900000302",
-      firstName: "پریا",
-      lastName: "رستمی",
-      courseId: courseAme3.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.ODD_DAYS,
-      gender: "FEMALE",
-    },
-    {
-      phone: "09900000303",
-      firstName: "سینا",
-      lastName: "جعفری",
-      courseId: courseAme3.id,
-      shift: StudentSchoolShift.FLEXIBLE,
-      dayPref: StudentDayPreference.ANY,
-      gender: "MALE",
-    },
-    {
-      phone: "09900000304",
-      firstName: "بهاره",
-      lastName: "صادقی",
-      courseId: courseAme3.id,
-      shift: StudentSchoolShift.MORNING,
-      dayPref: StudentDayPreference.ANY,
-      gender: "FEMALE",
-    },
-    {
-      phone: "09900000305",
-      firstName: "متین",
-      lastName: "خسروی",
-      courseId: courseAme3.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.EVEN_DAYS,
-      gender: "MALE",
-    },
-    {
-      phone: "09900000306",
-      firstName: "دنیا",
-      lastName: "اسدی",
-      courseId: courseAme3.id,
-      shift: StudentSchoolShift.AFTERNOON,
-      dayPref: StudentDayPreference.ODD_DAYS,
-      gender: "FEMALE",
-    },
+  const firstNamesM = [
+    "پویا",
+    "دانیال",
+    "محمدرضا",
+    "آرمین",
+    "سپهر",
+    "کیان",
+    "نوید",
+    "سینا",
+    "متین",
+    "امیر",
+    "سهراب",
+    "بردیا",
+    "سامان",
+    "امید",
+    "ماهان",
+    "علیرضا",
+    "آرش",
+    "بهراد",
+    "فرزاد",
+    "کامیار",
+    "پرهام",
+    "مهیار",
+    "شاهین",
+    "پیمان",
+  ]
+  const firstNamesF = [
+    "سارا",
+    "نیلوفر",
+    "زهرا",
+    "الهام",
+    "یاسمین",
+    "فاطمه",
+    "پریا",
+    "بهاره",
+    "دنیا",
+    "رکسانا",
+    "آیدا",
+    "طناز",
+    "ترانه",
+    "غزل",
+    "شیدا",
+    "مهسا",
+    "نازنین",
+    "نگار",
+    "عسل",
+    "سوگل",
+    "مهناز",
+    "هلیا",
+    "درسا",
+    "ملیکا",
+  ]
+  const lastNames = [
+    "محمدی",
+    "ناصری",
+    "عباسی",
+    "حسینی",
+    "احمدی",
+    "کاظمی",
+    "کریمی",
+    "رحیمی",
+    "شریفی",
+    "سعیدی",
+    "مهرابی",
+    "اکبری",
+    "ابراهیمی",
+    "رستمی",
+    "جعفری",
+    "صادقی",
+    "خسروی",
+    "اسدی",
+    "مرادی",
+    "یزدانی",
+    "طاهری",
+    "منصوری",
+    "فرهادی",
+    "سلیمانی",
   ]
 
+  const shiftOptions: StudentSchoolShift[] = [
+    StudentSchoolShift.MORNING,
+    StudentSchoolShift.AFTERNOON,
+    StudentSchoolShift.FLEXIBLE,
+  ]
+  const dayPrefOptions: StudentDayPreference[] = [
+    StudentDayPreference.EVEN_DAYS,
+    StudentDayPreference.ODD_DAYS,
+    StudentDayPreference.ANY,
+  ]
+
+  const courseStudentCounts: Record<string, number> = {
+    // Book 1: High density (triggers 2 parallel classes)
+    "AME 1-1": 26,
+    "AME 1-2": 24,
+    "AME 1-3": 22,
+    "AME 1-4": 20,
+    "AME 1-5": 22,
+    // Book 2: Medium-High density
+    "AME 2-1": 20,
+    "AME 2-2": 14,
+    "AME 2-3": 12,
+    "AME 2-4": 10,
+    "AME 2-5": 14,
+    // Book 3: Intermediate
+    "AME 3-1": 14,
+    "AME 3-2": 10,
+    "AME 3-3": 8,
+    "AME 3-4": 8,
+    "AME 3-5": 12,
+    // Book 4: Upper intermediate
+    "AME 4-1": 12,
+    "AME 4-2": 8,
+    "AME 4-3": 8,
+    "AME 4-4": 7,
+    "AME 4-5": 10,
+    // Book 5: Advanced
+    "AME 5-1": 10,
+    "AME 5-2": 6,
+    "AME 5-3": 6,
+    "AME 5-4": 5,
+    "AME 5-5": 5,
+  }
+
+  let globalStudentIndex = 0
+  for (const [courseTitle, count] of Object.entries(courseStudentCounts)) {
+    const course = activeCourses[courseTitle]
+    if (!course) continue
+
+    for (let i = 1; i <= count; i++) {
+      globalStudentIndex++
+      const isFemale = i % 2 === 0
+      const fn = isFemale
+        ? firstNamesF[i % firstNamesF.length]
+        : firstNamesM[i % firstNamesM.length]
+      const ln = lastNames[(i + globalStudentIndex) % lastNames.length]
+      const phone = `0990100${String(globalStudentIndex).padStart(4, "0")}`
+      const shift = shiftOptions[(i + globalStudentIndex) % shiftOptions.length]
+      const dayPref =
+        dayPrefOptions[(i + globalStudentIndex * 2) % dayPrefOptions.length]
+
+      studentData.push({
+        phone,
+        firstName: fn,
+        lastName: ln,
+        courseId: course.id,
+        shift,
+        dayPref,
+        gender: isFemale ? "FEMALE" : "MALE",
+      })
+    }
+  }
+
   const seededStudentUsers = []
-  for (const s of studentTemplates) {
+  for (const s of studentData) {
     const studentUser = await prisma.user.upsert({
       where: {
         phone_instituteId: {
@@ -472,9 +757,9 @@ async function main() {
       update: {
         firstName: s.firstName,
         lastName: s.lastName,
+        role: Role.STUDENT,
         currentAllowedCourseId: s.courseId,
         branchId: centralBranch.id,
-        role: Role.STUDENT,
         isActive: true,
       },
       create: {
@@ -483,9 +768,9 @@ async function main() {
         phone: s.phone,
         firstName: s.firstName,
         lastName: s.lastName,
-        currentAllowedCourseId: s.courseId,
         role: Role.STUDENT,
         password: hashedPassword,
+        currentAllowedCourseId: s.courseId,
         isActive: true,
       },
     })
@@ -510,10 +795,13 @@ async function main() {
     seededStudentUsers.push(studentUser)
   }
   console.log(
-    `🎓 Seeded ${seededStudentUsers.length} Students across AME 1, 2, 3 with scheduleStatus: COMPLETE`
+    `🎓 Seeded ${seededStudentUsers.length} Students across all 25 courses with scheduleStatus: COMPLETE`
   )
 
-  // 7. Preceding Term (تابستان ۱۴۰۵) & Completed Enrollments for Demand Analysis
+  // 6. Preceding Term (تابستان ۱۴۰۵) & Auto-Progression Ladder Enrollments
+  // Students who passed in summer term advance to next level in target term:
+  // AME 1-1 -> 1-2 | AME 1-2 -> 1-3 | AME 1-3 -> 1-4 | AME 1-4 -> 1-5 | AME 1-5 -> 2-1
+  // AME 2-5 -> 3-1 | AME 3-5 -> 4-1 | AME 4-5 -> 5-1
   const summerStartDate = new Date("2026-06-22T00:00:00.000Z")
   const summerEndDate = new Date("2026-09-10T00:00:00.000Z")
 
@@ -523,7 +811,7 @@ async function main() {
       title: "تابستان ۱۴۰۵",
       startDate: summerStartDate,
       endDate: summerEndDate,
-      isActive: false, // Preceding term has ended
+      isActive: false,
     },
     create: {
       id: "00000000-0000-0000-0000-000000000077",
@@ -535,105 +823,128 @@ async function main() {
     },
   })
 
-  // Create summer classes to anchor continuing students
-  const summerClassAme1 = await prisma.class.upsert({
-    where: { id: "00000000-0000-0000-0000-000000000078" },
-    update: {
-      title: "کلاس تابستان AME 1",
-      termId: summerTerm.id,
-      courseId: courseAme1.id,
-      branchId: centralBranch.id,
-      capacity: 15,
-      fee: 1500000,
-    },
-    create: {
+  // Create summer classes for progression checkpoints
+  async function ensureSummerClass(
+    id: string,
+    title: string,
+    courseId: string
+  ) {
+    return prisma.class.upsert({
+      where: { id },
+      update: {
+        title,
+        termId: summerTerm.id,
+        courseId,
+        branchId: centralBranch.id,
+        capacity: 16,
+        fee: 1500000,
+      },
+      create: {
+        id,
+        instituteId: institute.id,
+        termId: summerTerm.id,
+        courseId,
+        branchId: centralBranch.id,
+        title,
+        capacity: 16,
+        fee: 1500000,
+      },
+    })
+  }
+
+  const summerClassCheckpoints = [
+    {
       id: "00000000-0000-0000-0000-000000000078",
-      instituteId: institute.id,
-      termId: summerTerm.id,
-      courseId: courseAme1.id,
-      branchId: centralBranch.id,
-      title: "کلاس تابستان AME 1",
-      capacity: 15,
-      fee: 1500000,
+      title: "کلاس تابستان AME 1-1",
+      course: activeCourses["AME 1-1"],
+      nextCourse: activeCourses["AME 1-2"],
+      count: 12,
     },
-  })
-
-  const summerClassAme2 = await prisma.class.upsert({
-    where: { id: "00000000-0000-0000-0000-000000000079" },
-    update: {
-      title: "کلاس تابستان AME 2",
-      termId: summerTerm.id,
-      courseId: courseAme2.id,
-      branchId: centralBranch.id,
-      capacity: 15,
-      fee: 1500000,
-    },
-    create: {
+    {
       id: "00000000-0000-0000-0000-000000000079",
-      instituteId: institute.id,
-      termId: summerTerm.id,
-      courseId: courseAme2.id,
-      branchId: centralBranch.id,
-      title: "کلاس تابستان AME 2",
-      capacity: 15,
-      fee: 1500000,
+      title: "کلاس تابستان AME 1-2",
+      course: activeCourses["AME 1-2"],
+      nextCourse: activeCourses["AME 1-3"],
+      count: 12,
     },
-  })
+    {
+      id: "00000000-0000-0000-0000-000000000080",
+      title: "کلاس تابستان AME 1-3",
+      course: activeCourses["AME 1-3"],
+      nextCourse: activeCourses["AME 1-4"],
+      count: 10,
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000081",
+      title: "کلاس تابستان AME 1-4",
+      course: activeCourses["AME 1-4"],
+      nextCourse: activeCourses["AME 1-5"],
+      count: 10,
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000082",
+      title: "کلاس تابستان AME 1-5",
+      course: activeCourses["AME 1-5"],
+      nextCourse: activeCourses["AME 2-1"],
+      count: 10,
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000083",
+      title: "کلاس تابستان AME 2-5",
+      course: activeCourses["AME 2-5"],
+      nextCourse: activeCourses["AME 3-1"],
+      count: 8,
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000084",
+      title: "کلاس تابستان AME 3-5",
+      course: activeCourses["AME 3-5"],
+      nextCourse: activeCourses["AME 4-1"],
+      count: 6,
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000085",
+      title: "کلاس تابستان AME 4-5",
+      course: activeCourses["AME 4-5"],
+      nextCourse: activeCourses["AME 5-1"],
+      count: 5,
+    },
+  ]
 
-  // Enroll some students from AME 2 group into summer AME 1 (so they are "continuing" to AME 2 now)
-  const continuingToAme2Students = seededStudentUsers
-    .filter((u) => u.currentAllowedCourseId === courseAme2.id)
-    .slice(0, 4)
-  for (const st of continuingToAme2Students) {
-    await prisma.enrollment.upsert({
-      where: {
-        studentId_classId: {
-          studentId: st.id,
-          classId: summerClassAme1.id,
+  for (const checkpoint of summerClassCheckpoints) {
+    const sClass = await ensureSummerClass(
+      checkpoint.id,
+      checkpoint.title,
+      checkpoint.course.id
+    )
+    const candidates = seededStudentUsers
+      .filter((u) => u.currentAllowedCourseId === checkpoint.nextCourse.id)
+      .slice(0, checkpoint.count)
+
+    for (const st of candidates) {
+      await prisma.enrollment.upsert({
+        where: {
+          studentId_classId: {
+            studentId: st.id,
+            classId: sClass.id,
+          },
         },
-      },
-      update: {
-        status: EnrollmentStatus.ENROLLED,
-        isPassed: true,
-      },
-      create: {
-        studentId: st.id,
-        classId: summerClassAme1.id,
-        status: EnrollmentStatus.ENROLLED,
-        isPassed: true,
-      },
-    })
+        update: { status: EnrollmentStatus.ENROLLED, isPassed: true },
+        create: {
+          studentId: st.id,
+          classId: sClass.id,
+          status: EnrollmentStatus.ENROLLED,
+          isPassed: true,
+        },
+      })
+    }
   }
 
-  // Enroll some students from AME 3 group into summer AME 2 (so they are "continuing" to AME 3 now)
-  const continuingToAme3Students = seededStudentUsers
-    .filter((u) => u.currentAllowedCourseId === courseAme3.id)
-    .slice(0, 4)
-  for (const st of continuingToAme3Students) {
-    await prisma.enrollment.upsert({
-      where: {
-        studentId_classId: {
-          studentId: st.id,
-          classId: summerClassAme2.id,
-        },
-      },
-      update: {
-        status: EnrollmentStatus.ENROLLED,
-        isPassed: true,
-      },
-      create: {
-        studentId: st.id,
-        classId: summerClassAme2.id,
-        status: EnrollmentStatus.ENROLLED,
-        isPassed: true,
-      },
-    })
-  }
   console.log(
-    "✅ Seeded Preceding Term (تابستان ۱۴۰۵) & historical enrollments for Demand calculation"
+    "✅ Seeded Preceding Term (تابستان ۱۴۰۵) & multi-stage auto-progression ladder (including cross-book transitions 1-5➔2-1, 2-5➔3-1, 3-5➔4-1, 4-5➔5-1)"
   )
 
-  // 8. Class Requirements for Current Active Term (مهر و آبان ۱۴۰۵)
+  // 7. Class Requirements for Target Term (مهر و آبان ۱۴۰۵)
   const activeTerm =
     institute.terms.find((t) => t.title.includes("مهر و آبان") && t.isActive) ??
     institute.terms[0]
@@ -644,41 +955,90 @@ async function main() {
     `📅 Target Scheduling Term: ${activeTerm.title} (${activeTerm.id})`
   )
 
-  // Clear any existing requirements for this term to avoid duplicate runs
+  // Clear existing requirements for this term to avoid duplicate runs
   await prisma.classRequirement.deleteMany({
     where: { instituteId: institute.id, termId: activeTerm.id },
   })
 
+  // 18 Parallel Classes to Schedule (Intense multi-level scheduling stress-test):
+  // - AME 1-1: 2 classes (In-Person, Cap 14)
+  // - AME 1-2: 2 classes (In-Person, Cap 14)
+  // - AME 1-3: 2 classes (In-Person, Cap 14)
+  // - AME 1-4: 2 classes (In-Person, Cap 14)
+  // - AME 1-5: 2 classes (In-Person, Cap 16 - exceeds Room C cap 14!)
+  // - AME 2-1: 2 classes (In-Person, Cap 14)
+  // - AME 2-5: 1 class (In-Person, Cap 16 - forces larger room!)
+  // - AME 3-1: 1 class (In-Person, Cap 14)
+  // - AME 3-5: 1 class (In-Person, Cap 14)
+  // - AME 4-1: 1 class (In-Person, Cap 14)
+  // - AME 4-5: 1 class (In-Person, Cap 14)
+  // - AME 5-1: 1 class (In-Person, Cap 14)
+  // - AME 5-5: 1 class (In-Person, Cap 14)
   const requirementsData = [
     {
-      courseId: courseAme1.id,
-      branchId: centralBranch.id,
+      courseId: activeCourses["AME 1-1"].id,
       requiredClassCount: 2,
       capacity: 14,
-      sessionDurationMinutes: 90,
-      sessionsPerWeek: 3,
-      totalSessions: null,
-      deliveryMode: ClassDeliveryMode.IN_PERSON,
     },
     {
-      courseId: courseAme2.id,
-      branchId: centralBranch.id,
+      courseId: activeCourses["AME 1-2"].id,
       requiredClassCount: 2,
       capacity: 14,
-      sessionDurationMinutes: 90,
-      sessionsPerWeek: 3,
-      totalSessions: null,
-      deliveryMode: ClassDeliveryMode.IN_PERSON,
     },
     {
-      courseId: courseAme3.id,
-      branchId: centralBranch.id,
+      courseId: activeCourses["AME 1-3"].id,
+      requiredClassCount: 2,
+      capacity: 14,
+    },
+    {
+      courseId: activeCourses["AME 1-4"].id,
+      requiredClassCount: 2,
+      capacity: 14,
+    },
+    {
+      courseId: activeCourses["AME 1-5"].id,
+      requiredClassCount: 2,
+      capacity: 16,
+    }, // Rejects Room C!
+    {
+      courseId: activeCourses["AME 2-1"].id,
+      requiredClassCount: 2,
+      capacity: 14,
+    },
+    {
+      courseId: activeCourses["AME 2-5"].id,
       requiredClassCount: 1,
-      capacity: 12,
-      sessionDurationMinutes: 90,
-      sessionsPerWeek: 3,
-      totalSessions: null,
-      deliveryMode: ClassDeliveryMode.IN_PERSON,
+      capacity: 16,
+    }, // Rejects Room C!
+    {
+      courseId: activeCourses["AME 3-1"].id,
+      requiredClassCount: 1,
+      capacity: 14,
+    },
+    {
+      courseId: activeCourses["AME 3-5"].id,
+      requiredClassCount: 1,
+      capacity: 14,
+    },
+    {
+      courseId: activeCourses["AME 4-1"].id,
+      requiredClassCount: 1,
+      capacity: 14,
+    },
+    {
+      courseId: activeCourses["AME 4-5"].id,
+      requiredClassCount: 1,
+      capacity: 14,
+    },
+    {
+      courseId: activeCourses["AME 5-1"].id,
+      requiredClassCount: 1,
+      capacity: 14,
+    },
+    {
+      courseId: activeCourses["AME 5-5"].id,
+      requiredClassCount: 1,
+      capacity: 14,
     },
   ]
 
@@ -689,29 +1049,35 @@ async function main() {
         instituteId: institute.id,
         termId: activeTerm.id,
         courseId: req.courseId,
-        branchId: req.branchId,
+        branchId: centralBranch.id,
         requiredClassCount: req.requiredClassCount,
         capacity: req.capacity,
-        sessionDurationMinutes: req.sessionDurationMinutes,
-        sessionsPerWeek: req.sessionsPerWeek,
-        totalSessions: req.totalSessions,
-        deliveryMode: req.deliveryMode,
+        sessionDurationMinutes: 90,
+        sessionsPerWeek: 3, // Always 3 sessions per week!
+        totalSessions: null,
+        deliveryMode: ClassDeliveryMode.IN_PERSON,
         isActive: true,
       },
     })
     seededRequirements.push(createdReq)
   }
 
+  const totalClassesToSchedule = seededRequirements.reduce(
+    (sum, r) => sum + r.requiredClassCount,
+    0
+  )
   console.log(
-    `📋 Seeded ${seededRequirements.length} Class Requirements (Total 6 classes to schedule) for ${activeTerm.title}:`
+    `📋 Seeded ${seededRequirements.length} Class Requirements (Total ${totalClassesToSchedule} parallel classes to schedule) for ${activeTerm.title}:`
   )
   for (const req of seededRequirements) {
     console.log(
-      `   - Course: ${req.courseId} | Mode: ${req.deliveryMode} | Required: ${req.requiredClassCount} classes | Cap: ${req.capacity}`
+      `   - Course: ${req.courseId} | Mode: ${req.deliveryMode} | Required: ${req.requiredClassCount} classes | Cap: ${req.capacity} | Cadence: ${req.sessionsPerWeek} sess/wk`
     )
   }
 
-  console.log("\n🎉 Seeding for automatic scheduling completed successfully!")
+  console.log(
+    "\n🎉 Full AME 1-1 to AME 5-5 curriculum stress-test seed completed successfully!"
+  )
 }
 
 main()
