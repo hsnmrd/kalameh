@@ -135,9 +135,10 @@ export function SchedulingWorkspace() {
           courseId: c.courseId,
           requiredClassCount,
           capacity,
-          deliveryMode: (c.suggestedOnlineCount > c.suggestedInPersonCount
-            ? "ONLINE"
-            : "IN_PERSON") as const,
+          deliveryMode:
+            c.suggestedOnlineCount > c.suggestedInPersonCount
+              ? ("ONLINE" as const)
+              : ("IN_PERSON" as const),
           sessionDurationMinutes: 90,
           sessionsPerWeek:
             c.sessionsPerWeek ??

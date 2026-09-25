@@ -674,16 +674,6 @@ async function main() {
       totalSessions: null,
       deliveryMode: ClassDeliveryMode.IN_PERSON,
     },
-    {
-      courseId: courseAme1.id,
-      branchId: null,
-      requiredClassCount: 1,
-      capacity: 16,
-      sessionDurationMinutes: 90,
-      sessionsPerWeek: 2,
-      totalSessions: null,
-      deliveryMode: ClassDeliveryMode.ONLINE,
-    },
   ]
 
   const seededRequirements = []

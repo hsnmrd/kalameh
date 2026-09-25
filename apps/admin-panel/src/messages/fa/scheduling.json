@@ -70,7 +70,12 @@
       "chooseTermHint": "نیازهای کلاسی فعال آن ترم اینجا نمایش داده می‌شوند.",
       "goToDemand": "رفتن به تب تقاضای دوره‌ها",
       "unnamed": "دوره بدون عنوان",
-      "summary": "{classes} کلاس · ظرفیت {capacity} نفر"
+      "summary": "{classes} کلاس · ظرفیت {capacity} نفر",
+      "deliveryModes": {
+        "IN_PERSON": "حضوری",
+        "ONLINE": "آنلاین"
+      },
+      "allBranches": "همه شعبه‌ها"
     },
     "validation": {
       "term": "یک ترم انتخاب کنید.",

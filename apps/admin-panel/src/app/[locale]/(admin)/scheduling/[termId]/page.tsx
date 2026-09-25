@@ -122,7 +122,7 @@ export default function SingleTermSchedulingPage() {
               onResetRun={() => setCreatedRun(null)}
             />
           }
-          fab={<SchedulingFab activeTab={activeTab} termId={termId} />}
+          fab={<SchedulingFab termId={termId} />}
         >
           <div className="flex flex-col gap-6">
             {activeTab === "demand" ? (

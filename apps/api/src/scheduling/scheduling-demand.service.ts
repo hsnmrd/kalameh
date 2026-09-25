@@ -340,6 +340,14 @@ export class SchedulingDemandService {
       input.instituteId,
     );
 
+    const activeBranches = await this.prisma.branch.findMany({
+      where: { instituteId, isActive: true },
+      select: { id: true },
+    });
+    const targetBranchId =
+      input.branchId ??
+      (activeBranches.length === 1 ? activeBranches[0].id : null);
+
     let createdCount = 0;
     let updatedCount = 0;
 
@@ -350,7 +358,9 @@ export class SchedulingDemandService {
             instituteId,
             termId: input.termId,
             courseId: item.courseId,
-            branchId: input.branchId ?? null,
+            ...(targetBranchId
+              ? { OR: [{ branchId: targetBranchId }, { branchId: null }] }
+              : { branchId: null }),
           },
         });
 
@@ -366,6 +376,7 @@ export class SchedulingDemandService {
           await tx.classRequirement.update({
             where: { id: existing.id },
             data: {
+              branchId: targetBranchId,
               requiredClassCount: item.requiredClassCount,
               capacity: item.capacity,
               deliveryMode: item.deliveryMode,
@@ -382,7 +393,7 @@ export class SchedulingDemandService {
               instituteId,
               termId: input.termId,
               courseId: item.courseId,
-              branchId: input.branchId ?? null,
+              branchId: targetBranchId,
               requiredClassCount: item.requiredClassCount,
               capacity: item.capacity,
               deliveryMode: item.deliveryMode,
@@ -392,7 +403,7 @@ export class SchedulingDemandService {
               isActive: true,
             },
           });
-          createdCount++;
+          updatedCount++;
         }
       }
     });

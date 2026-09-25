@@ -70,7 +70,12 @@
       "chooseTermHint": "Active class requirements for that term will appear here.",
       "goToDemand": "Go to Course Demand",
       "unnamed": "Untitled course",
-      "summary": "{classes} classes · capacity {capacity}"
+      "summary": "{classes} classes · capacity {capacity}",
+      "deliveryModes": {
+        "IN_PERSON": "In-Person",
+        "ONLINE": "Online"
+      },
+      "allBranches": "All Branches"
     },
     "validation": {
       "term": "Select a term.",

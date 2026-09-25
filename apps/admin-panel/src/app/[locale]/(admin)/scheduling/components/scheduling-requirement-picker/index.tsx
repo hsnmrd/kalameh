@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl"
 import { BookOpenCheck } from "lucide-react"
 import type { ClassRequirementDto } from "@workspace/types"
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
@@ -127,11 +128,27 @@ export function SchedulingRequirementPicker({
                   />
                   <FieldLabel
                     htmlFor={checkboxId}
-                    className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1 leading-5"
+                    className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1.5 leading-5"
                   >
-                    <span className="truncate">
-                      {item.course?.title ?? t("unnamed")}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="truncate font-semibold text-foreground">
+                        {item.course?.title ?? t("unnamed")}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="h-5 px-1.5 py-0 text-[10px] font-normal"
+                      >
+                        {t(`deliveryModes.${item.deliveryMode}`)}
+                      </Badge>
+                      {item.branch?.name && (
+                        <Badge
+                          variant="secondary"
+                          className="h-5 px-1.5 py-0 text-[10px] font-normal text-muted-foreground"
+                        >
+                          {item.branch.name}
+                        </Badge>
+                      )}
+                    </div>
                     <span className="text-xs font-normal text-muted-foreground">
                       {t("summary", {
                         classes: formatNumber(item.requiredClassCount, locale),
