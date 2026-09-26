@@ -1,6 +1,7 @@
 # Repository Engineering Rules (Global Hub)
 
 - **SOLID & Modular Design:** Follow SOLID principles across all apps and packages.
+- **Backend Service Separation:** Keep backend services focused on one domain responsibility. Target a maximum of 300 lines for production service files; split oversized services into injectable query, command, validation, persistence, composition, import/export, or calculation collaborators. Controllers and public service facades must remain thin, and refactors must preserve routes, DTOs, authorization, response shapes, transactions, and observable behavior. Register extracted collaborators through NestJS dependency injection and cover them with focused unit tests. Cohesive algorithm implementations may exceed the target only when splitting would obscure the algorithm; keep orchestration and I/O outside those files and document the exception beside the service.
 - **Testing:** Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
 - **Git Hooks & Quality Gate:** Prettier and ESLint are enforced by Husky (`.husky/pre-commit`) and `lint-staged` on every commit. Never bypass hooks.
 - **Environment Configuration:** All environment variables must be managed centrally in the root `.env` and declared in `turbo.json` under `globalEnv`. Do not create disconnected per-app `.env` files.

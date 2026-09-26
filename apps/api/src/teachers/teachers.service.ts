@@ -1,817 +1,115 @@
-import {
-  Injectable,
-  ConflictException,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
-import { PrismaService } from '../prisma/prisma.service';
-import { I18nService } from '../i18n/i18n.service';
-import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { CreateTeacherDto } from './dto/create-teacher.dto';
-import { UpdateTeacherDto } from './dto/update-teacher.dto';
-import { ReplaceTeacherAvailabilitiesDto } from './dto/replace-teacher-availabilities.dto';
-import {
-  ROLES,
-  TeacherCourseQualificationsSchema,
-  type JwtPayload,
-  type ReplaceTeacherCoursesInput,
-  type SupportedLocale,
-  type TeacherCourseQualificationsDto,
-  type TeacherLookupResponse,
+import { Injectable } from '@nestjs/common';
+import type {
+  JwtPayload,
+  ReplaceTeacherCoursesInput,
+  SupportedLocale,
+  TeacherCourseQualificationsDto,
+  TeacherLookupResponse,
 } from '@workspace/types';
+import { CreateTeacherDto } from './dto/create-teacher.dto';
+import { ReplaceTeacherAvailabilitiesDto } from './dto/replace-teacher-availabilities.dto';
+import { UpdateTeacherDto } from './dto/update-teacher.dto';
+import { TeacherAvailabilityService } from './teacher-availability.service';
+import { TeacherCreateService } from './teacher-create.service';
+import { TeacherLifecycleService } from './teacher-lifecycle.service';
+import { TeacherQualificationsService } from './teacher-qualifications.service';
+import { TeacherQueryService } from './teacher-query.service';
+import { TeacherUpdateService } from './teacher-update.service';
 
 @Injectable()
 export class TeachersService {
-  private readonly logger = new Logger(TeachersService.name);
-
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly i18n: I18nService,
-    private readonly auditLogsService: AuditLogsService,
+    private readonly createService: TeacherCreateService,
+    private readonly queryService: TeacherQueryService,
+    private readonly updateService: TeacherUpdateService,
+    private readonly lifecycle: TeacherLifecycleService,
+    private readonly availability: TeacherAvailabilityService,
+    private readonly qualifications: TeacherQualificationsService,
   ) {}
-
-  async create(
+  create(
     currentUser: JwtPayload,
     dto: CreateTeacherDto,
     locale: SupportedLocale = 'fa',
     file?: Express.Multer.File,
   ) {
-    const targetInstituteId =
-      currentUser.role === ROLES.SUPER_ADMIN && dto.instituteId
-        ? dto.instituteId
-        : currentUser.instituteId;
-
-    if (!targetInstituteId) {
-      throw new BadRequestException(
-        locale === 'fa' ? 'شناسه آموزشگاه الزامی است' : 'Institute is required',
-      );
-    }
-
-    const avatarUrl = file
-      ? `/uploads/avatars/${file.filename}`
-      : dto.avatarUrl;
-
-    const existing = await this.prisma.user.findUnique({
-      where: {
-        phone_instituteId: {
-          phone: dto.phone,
-          instituteId: targetInstituteId,
-        },
-      },
-    });
-
-    if (existing) {
-      throw new ConflictException(
-        this.i18n.t('users.userAlreadyExists', locale),
-      );
-    }
-
-    const rawPassword = dto.password || dto.phone;
-    const hashedPassword = await bcrypt.hash(rawPassword, 10);
-    const courseIds = await this.validateCourseIds(
-      targetInstituteId,
-      dto.courseIds,
-      locale,
-    );
-
-    const availabilitiesData =
-      dto.availabilities && dto.availabilities.length > 0
-        ? {
-            create: dto.availabilities.map((slot) => ({
-              dayOfWeek: slot.dayOfWeek,
-              startTime: slot.startTime,
-              endTime: slot.endTime,
-            })),
-          }
-        : undefined;
-
-    const teacher = await this.prisma.user.create({
-      data: {
-        instituteId: targetInstituteId,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phone: dto.phone,
-        password: hashedPassword,
-        role: ROLES.TEACHER,
-        nationalCode: dto.nationalCode,
-        avatarUrl,
-        isActive: true,
-        teacherProfile: {
-          create: {
-            bio: dto.bio,
-            degree: dto.degree,
-            specialties: dto.specialties || [],
-            availabilities: availabilitiesData,
-            teachableCourses:
-              courseIds.length > 0
-                ? {
-                    create: courseIds.map((courseId) => ({
-                      instituteId: targetInstituteId,
-                      courseId,
-                    })),
-                  }
-                : undefined,
-          },
-        },
-      },
-      include: {
-        teacherProfile: {
-          include: {
-            availabilities: true,
-            teachableCourses: {
-              include: { course: { select: { id: true, title: true } } },
-              orderBy: { course: { title: 'asc' } },
-            },
-          },
-        },
-      },
-    });
-
-    await this.auditLogsService.log({
-      instituteId: targetInstituteId,
-      userId: currentUser.sub,
-      module: 'TEACHER',
-      action: 'TEACHER_CREATED',
-      entityId: teacher.id,
-      metadata: {
-        name: `${teacher.firstName} ${teacher.lastName}`,
-        phone: teacher.phone,
-        courseIds,
-      },
-    });
-
-    const { password: _password, ...safeTeacher } = teacher;
-    return safeTeacher;
+    return this.createService.create(currentUser, dto, locale, file);
   }
-
-  async findAll(
+  findAll(
     currentUser: JwtPayload,
-    query: {
-      search?: string;
-      isActive?: boolean;
-      instituteId?: string;
-    },
-    _locale: SupportedLocale = 'fa',
+    query: { search?: string; isActive?: boolean; instituteId?: string },
+    locale: SupportedLocale = 'fa',
   ) {
-    const targetInstituteId =
-      currentUser.role === ROLES.SUPER_ADMIN && query.instituteId
-        ? query.instituteId
-        : currentUser.instituteId;
-
-    const where: Record<string, unknown> = {
-      role: ROLES.TEACHER,
-      ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
-      ...(query.isActive !== undefined ? { isActive: query.isActive } : {}),
-    };
-
-    if (query.search?.trim()) {
-      const s = query.search.trim();
-      where.OR = [
-        { firstName: { contains: s, mode: 'insensitive' } },
-        { lastName: { contains: s, mode: 'insensitive' } },
-        { phone: { contains: s } },
-        { nationalCode: { contains: s } },
-      ];
-    }
-
-    const teachers = await this.prisma.user.findMany({
-      where,
-      select: {
-        id: true,
-        instituteId: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-        role: true,
-        nationalCode: true,
-        avatarUrl: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-        teacherProfile: {
-          include: {
-            availabilities: {
-              orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
-            },
-            teachableCourses: {
-              include: { course: { select: { id: true, title: true } } },
-              orderBy: { course: { title: 'asc' } },
-            },
-          },
-        },
-        _count: {
-          select: {
-            teachingClasses: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return teachers.map((t) => {
-      const { _count, ...rest } = t;
-      return {
-        ...rest,
-        classesCount: _count.teachingClasses,
-      };
-    });
+    return this.queryService.findAll(currentUser, query, locale);
   }
-
-  async findOne(
-    currentUser: JwtPayload,
-    id: string,
-    _locale: SupportedLocale = 'fa',
-  ) {
-    const teacher = await this.prisma.user.findFirstOrThrow({
-      where: {
-        id,
-        role: ROLES.TEACHER,
-        ...(currentUser.role === ROLES.SUPER_ADMIN
-          ? {}
-          : { instituteId: currentUser.instituteId }),
-      },
-      select: {
-        id: true,
-        instituteId: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-        role: true,
-        nationalCode: true,
-        avatarUrl: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-        teacherProfile: {
-          include: {
-            availabilities: {
-              orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
-            },
-            teachableCourses: {
-              include: { course: { select: { id: true, title: true } } },
-              orderBy: { course: { title: 'asc' } },
-            },
-          },
-        },
-        teachingClasses: {
-          select: {
-            id: true,
-            title: true,
-            schedule: true,
-            term: {
-              select: {
-                id: true,
-                title: true,
-              },
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-        },
-        _count: {
-          select: {
-            teachingClasses: true,
-          },
-        },
-      },
-    });
-
-    const { _count, ...rest } = teacher;
-    return {
-      ...rest,
-      classesCount: _count.teachingClasses,
-    };
+  findOne(currentUser: JwtPayload, id: string, locale: SupportedLocale = 'fa') {
+    return this.queryService.findOne(currentUser, id, locale);
   }
-
-  async update(
+  update(
     currentUser: JwtPayload,
     id: string,
     dto: UpdateTeacherDto,
     locale: SupportedLocale = 'fa',
     file?: Express.Multer.File,
   ) {
-    const existing = await this.prisma.user.findFirstOrThrow({
-      where: {
-        id,
-        role: ROLES.TEACHER,
-        ...(currentUser.role === ROLES.SUPER_ADMIN
-          ? {}
-          : { instituteId: currentUser.instituteId }),
-      },
-      include: {
-        teacherProfile: {
-          include: {
-            availabilities: true,
-          },
-        },
-      },
-    });
-
-    if (dto.phone && dto.phone !== existing.phone) {
-      const phoneExists = await this.prisma.user.findUnique({
-        where: {
-          phone_instituteId: {
-            phone: dto.phone,
-            instituteId: existing.instituteId,
-          },
-        },
-      });
-
-      if (phoneExists) {
-        throw new ConflictException(
-          this.i18n.t('users.userAlreadyExists', locale),
-        );
-      }
-    }
-
-    const avatarUrl = file
-      ? `/uploads/avatars/${file.filename}`
-      : dto.avatarUrl !== undefined
-        ? dto.avatarUrl
-        : existing.avatarUrl;
-
-    const courseIds =
-      dto.courseIds === undefined
-        ? undefined
-        : await this.validateCourseIds(
-            existing.instituteId,
-            dto.courseIds,
-            locale,
-          );
-
-    const userUpdateData: Record<string, unknown> = {
-      ...(dto.firstName ? { firstName: dto.firstName } : {}),
-      ...(dto.lastName ? { lastName: dto.lastName } : {}),
-      ...(dto.phone ? { phone: dto.phone } : {}),
-      ...(dto.nationalCode !== undefined
-        ? { nationalCode: dto.nationalCode }
-        : {}),
-      ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
-      avatarUrl,
-    };
-
-    const hasProfileUpdate =
-      dto.bio !== undefined ||
-      dto.degree !== undefined ||
-      dto.specialties !== undefined ||
-      dto.availabilities !== undefined ||
-      courseIds !== undefined;
-
-    const updated = await this.prisma.$transaction(async (tx) => {
-      if (hasProfileUpdate) {
-        const profile = await tx.teacherProfile.upsert({
-          where: { userId: id },
-          create: {
-            userId: id,
-            bio: dto.bio,
-            degree: dto.degree,
-            specialties: dto.specialties || [],
-          },
-          update: {
-            ...(dto.bio !== undefined ? { bio: dto.bio } : {}),
-            ...(dto.degree !== undefined ? { degree: dto.degree } : {}),
-            ...(dto.specialties !== undefined
-              ? { specialties: dto.specialties }
-              : {}),
-          },
-        });
-
-        if (dto.availabilities !== undefined) {
-          await tx.teacherAvailability.deleteMany({
-            where: { teacherProfileId: profile.id },
-          });
-          if (dto.availabilities && dto.availabilities.length > 0) {
-            await tx.teacherAvailability.createMany({
-              data: dto.availabilities.map((slot) => ({
-                teacherProfileId: profile.id,
-                dayOfWeek: slot.dayOfWeek,
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-              })),
-            });
-          }
-        }
-
-        if (courseIds !== undefined) {
-          await tx.teacherCourseQualification.deleteMany({
-            where: { teacherProfileId: profile.id },
-          });
-          if (courseIds.length > 0) {
-            await tx.teacherCourseQualification.createMany({
-              data: courseIds.map((courseId) => ({
-                instituteId: existing.instituteId,
-                teacherProfileId: profile.id,
-                courseId,
-              })),
-            });
-          }
-        }
-      }
-
-      return tx.user.update({
-        where: {
-          id,
-          instituteId: existing.instituteId,
-        },
-        data: userUpdateData,
-        include: {
-          teacherProfile: {
-            include: {
-              availabilities: {
-                orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
-              },
-              teachableCourses: {
-                include: { course: { select: { id: true, title: true } } },
-                orderBy: { course: { title: 'asc' } },
-              },
-            },
-          },
-        },
-      });
-    });
-
-    await this.auditLogsService.log({
-      instituteId: existing.instituteId,
-      userId: currentUser.sub,
-      module: 'TEACHER',
-      action: 'TEACHER_UPDATED',
-      entityId: id,
-      metadata: {
-        fields: Object.keys(dto),
-        ...(courseIds !== undefined ? { courseIds } : {}),
-      },
-    });
-
-    const { password: _password, ...safeTeacher } = updated;
-    return safeTeacher;
+    return this.updateService.update(currentUser, id, dto, locale, file);
   }
-
-  async findCourseQualifications(
+  findCourseQualifications(
     currentUser: JwtPayload,
     teacherId: string,
     requestedInstituteId?: string,
     locale: SupportedLocale = 'fa',
   ): Promise<TeacherCourseQualificationsDto> {
-    const instituteId = this.resolveQualificationsInstituteId(
+    return this.qualifications.findCourseQualifications(
       currentUser,
+      teacherId,
       requestedInstituteId,
       locale,
     );
-    const teacher = await this.findTeacherForQualifications(
-      teacherId,
-      instituteId,
-    );
-
-    return TeacherCourseQualificationsSchema.parse(
-      teacher.teacherProfile?.teachableCourses ?? [],
-    );
   }
-
-  async replaceCourseQualifications(
+  replaceCourseQualifications(
     currentUser: JwtPayload,
     teacherId: string,
     input: ReplaceTeacherCoursesInput,
     requestedInstituteId?: string,
     locale: SupportedLocale = 'fa',
   ): Promise<TeacherCourseQualificationsDto> {
-    const instituteId = this.resolveQualificationsInstituteId(
+    return this.qualifications.replaceCourseQualifications(
       currentUser,
+      teacherId,
+      input,
       requestedInstituteId,
       locale,
     );
-    const teacher = await this.findTeacherForQualifications(
-      teacherId,
-      instituteId,
-    );
-    const courseIds = await this.validateCourseIds(
-      instituteId,
-      input.courseIds,
-      locale,
-    );
-
-    const qualifications = await this.prisma.$transaction(async (tx) => {
-      const profile = await tx.teacherProfile.upsert({
-        where: { userId: teacher.id },
-        create: { userId: teacher.id },
-        update: {},
-        select: { id: true },
-      });
-
-      await tx.teacherCourseQualification.deleteMany({
-        where: {
-          instituteId,
-          teacherProfileId: profile.id,
-        },
-      });
-
-      if (courseIds.length > 0) {
-        await tx.teacherCourseQualification.createMany({
-          data: courseIds.map((courseId) => ({
-            instituteId,
-            teacherProfileId: profile.id,
-            courseId,
-          })),
-        });
-      }
-
-      return tx.teacherCourseQualification.findMany({
-        where: {
-          instituteId,
-          teacherProfileId: profile.id,
-        },
-        include: {
-          course: { select: { id: true, title: true } },
-        },
-        orderBy: { course: { title: 'asc' } },
-      });
-    });
-
-    await this.auditLogsService.log({
-      instituteId,
-      userId: currentUser.sub,
-      module: 'TEACHER_COURSE_QUALIFICATION',
-      action: 'REPLACE',
-      entityId: teacher.id,
-      metadata: {
-        previousCourseIds:
-          teacher.teacherProfile?.teachableCourses.map(
-            (qualification) => qualification.courseId,
-          ) ?? [],
-        courseIds,
-      },
-    });
-
-    return TeacherCourseQualificationsSchema.parse(qualifications);
   }
-
-  async replaceAvailabilities(
+  replaceAvailabilities(
     currentUser: JwtPayload,
     teacherId: string,
     dto: ReplaceTeacherAvailabilitiesDto,
-    _locale: SupportedLocale = 'fa',
+    locale: SupportedLocale = 'fa',
   ) {
-    const teacher = await this.prisma.user.findFirstOrThrow({
-      where: {
-        id: teacherId,
-        role: ROLES.TEACHER,
-        ...(currentUser.role === ROLES.SUPER_ADMIN
-          ? {}
-          : { instituteId: currentUser.instituteId }),
-      },
-      include: {
-        teacherProfile: true,
-      },
-    });
-
-    const profile =
-      teacher.teacherProfile ||
-      (await this.prisma.teacherProfile.create({
-        data: {
-          userId: teacher.id,
-        },
-      }));
-
-    const availabilities = await this.prisma.$transaction(async (tx) => {
-      await tx.teacherAvailability.deleteMany({
-        where: { teacherProfileId: profile.id },
-      });
-
-      if (dto.availabilities.length > 0) {
-        await tx.teacherAvailability.createMany({
-          data: dto.availabilities.map((slot) => ({
-            teacherProfileId: profile.id,
-            dayOfWeek: slot.dayOfWeek,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-          })),
-        });
-      }
-
-      return tx.teacherAvailability.findMany({
-        where: { teacherProfileId: profile.id },
-        orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
-      });
-    });
-
-    await this.auditLogsService.log({
-      instituteId: teacher.instituteId,
-      userId: currentUser.sub,
-      module: 'TEACHER',
-      action: 'TEACHER_AVAILABILITY_UPDATED',
-      entityId: teacher.id,
-      metadata: {
-        count: dto.availabilities.length,
-      },
-    });
-
-    return availabilities;
+    return this.availability.replaceAvailabilities(
+      currentUser,
+      teacherId,
+      dto,
+      locale,
+    );
   }
-
-  async resetPassword(
+  resetPassword(
     currentUser: JwtPayload,
     id: string,
     newPassword?: string,
-    _locale: SupportedLocale = 'fa',
+    locale: SupportedLocale = 'fa',
   ) {
-    const teacher = await this.prisma.user.findFirstOrThrow({
-      where: {
-        id,
-        role: ROLES.TEACHER,
-        ...(currentUser.role === ROLES.SUPER_ADMIN
-          ? {}
-          : { instituteId: currentUser.instituteId }),
-      },
-    });
-
-    const rawPassword = newPassword?.trim() || teacher.phone;
-    const hashedPassword = await bcrypt.hash(rawPassword, 10);
-
-    await this.prisma.user.update({
-      where: {
-        id,
-        instituteId: teacher.instituteId,
-      },
-      data: { password: hashedPassword },
-    });
-
-    await this.auditLogsService.log({
-      instituteId: teacher.instituteId,
-      userId: currentUser.sub,
-      module: 'TEACHER',
-      action: 'TEACHER_PASSWORD_RESET',
-      entityId: id,
-      metadata: { phone: teacher.phone },
-    });
-
-    return { success: true };
+    return this.lifecycle.resetPassword(currentUser, id, newPassword, locale);
   }
-
-  async remove(
-    currentUser: JwtPayload,
-    id: string,
-    _locale: SupportedLocale = 'fa',
-  ) {
-    const teacher = await this.prisma.user.findFirstOrThrow({
-      where: {
-        id,
-        role: ROLES.TEACHER,
-        ...(currentUser.role === ROLES.SUPER_ADMIN
-          ? {}
-          : { instituteId: currentUser.instituteId }),
-      },
-      include: {
-        _count: {
-          select: { teachingClasses: true },
-        },
-      },
-    });
-
-    if (teacher._count.teachingClasses > 0) {
-      // Soft-deactivate if classes are associated
-      await this.prisma.user.update({
-        where: {
-          id,
-          instituteId: teacher.instituteId,
-        },
-        data: { isActive: false },
-      });
-      return { success: true, deactivated: true };
-    }
-
-    await this.prisma.user.delete({
-      where: {
-        id,
-        instituteId: teacher.instituteId,
-      },
-    });
-
-    await this.auditLogsService.log({
-      instituteId: teacher.instituteId,
-      userId: currentUser.sub,
-      module: 'TEACHER',
-      action: 'TEACHER_DELETED',
-      entityId: id,
-      metadata: { phone: teacher.phone },
-    });
-
-    return { success: true, deleted: true };
+  remove(currentUser: JwtPayload, id: string, locale: SupportedLocale = 'fa') {
+    return this.lifecycle.remove(currentUser, id, locale);
   }
-
-  async lookup(
+  lookup(
     currentUser: JwtPayload,
     nationalCode?: string,
     phone?: string,
   ): Promise<TeacherLookupResponse> {
-    if (!nationalCode && !phone) {
-      return { found: false, teacher: null };
-    }
-
-    const where: Record<string, unknown> = {
-      role: ROLES.TEACHER,
-      ...(currentUser.role === ROLES.SUPER_ADMIN
-        ? {}
-        : { instituteId: currentUser.instituteId }),
-    };
-
-    if (nationalCode) {
-      where.nationalCode = nationalCode;
-    } else if (phone) {
-      where.phone = phone;
-    }
-
-    const teacher = await this.prisma.user.findFirst({
-      where,
-      include: {
-        teacherProfile: true,
-      },
-    });
-
-    if (!teacher) {
-      return { found: false, teacher: null };
-    }
-
-    return {
-      found: true,
-      teacher: {
-        id: teacher.id,
-        firstName: teacher.firstName,
-        lastName: teacher.lastName,
-        phone: teacher.phone,
-        nationalCode: teacher.nationalCode,
-        avatarUrl: teacher.avatarUrl,
-        bio: teacher.teacherProfile?.bio ?? null,
-        degree: teacher.teacherProfile?.degree ?? null,
-      },
-    };
-  }
-
-  private async validateCourseIds(
-    instituteId: string,
-    requestedCourseIds: string[] | undefined,
-    locale: SupportedLocale,
-  ): Promise<string[]> {
-    const courseIds = [...new Set(requestedCourseIds ?? [])];
-    if (courseIds.length === 0) return courseIds;
-
-    const courses = await this.prisma.course.findMany({
-      where: {
-        instituteId,
-        id: { in: courseIds },
-      },
-      select: { id: true },
-    });
-
-    if (courses.length !== courseIds.length) {
-      throw new BadRequestException(
-        this.i18n.t('teachers.invalidCourses', locale),
-      );
-    }
-
-    return courseIds;
-  }
-
-  private resolveQualificationsInstituteId(
-    currentUser: JwtPayload,
-    requestedInstituteId: string | undefined,
-    locale: SupportedLocale,
-  ): string {
-    if (currentUser.role === ROLES.SUPER_ADMIN) {
-      if (!requestedInstituteId) {
-        throw new BadRequestException(
-          this.i18n.t('teachers.instituteRequired', locale),
-        );
-      }
-
-      return requestedInstituteId;
-    }
-
-    return currentUser.instituteId;
-  }
-
-  private findTeacherForQualifications(teacherId: string, instituteId: string) {
-    return this.prisma.user.findFirstOrThrow({
-      where: {
-        id: teacherId,
-        instituteId,
-        role: ROLES.TEACHER,
-      },
-      select: {
-        id: true,
-        instituteId: true,
-        teacherProfile: {
-          select: {
-            id: true,
-            teachableCourses: {
-              where: { instituteId },
-              include: {
-                course: { select: { id: true, title: true } },
-              },
-              orderBy: { course: { title: 'asc' } },
-            },
-          },
-        },
-      },
-    });
+    return this.queryService.lookup(currentUser, nationalCode, phone);
   }
 }

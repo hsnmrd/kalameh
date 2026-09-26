@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import type {
   ClassConflictItem,
   ClassConflictResult,
@@ -9,6 +9,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CheckClassConflictsDto } from './dto/check-class-conflicts.dto';
 
+@Injectable()
 export class ClassScheduleConflicts {
   constructor(
     private readonly prisma: PrismaService,

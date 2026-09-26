@@ -2,6 +2,7 @@
 
 - **Framework:** NestJS application providing RESTful APIs.
 - **Architecture:** Keep controllers thin; place all business and domain logic in injectable services.
+- **Service Separation & File Size:** Each production service must own one domain responsibility and should stay at or below 300 lines. Split oversized services into injectable collaborators by responsibility—for example queries, commands, validation/conflict detection, persistence, composition/calculation, and import/export—while keeping any public facade thin. Register collaborators in the feature module and inject them through constructors; do not instantiate service dependencies manually. Preserve controller routes, DTOs, authorization, response shapes, transactions, and observable behavior during refactors. A cohesive algorithm may exceed 300 lines only when splitting would make the algorithm harder to understand; isolate orchestration and I/O from it and document the exception next to the service.
 - **Validation (Zod Only):** DO NOT use `class-validator`. All input validation DTOs must use Zod schemas defined in `@workspace/types` paired with `nestjs-zod` / `ZodValidationPipe`.
 - **Database Access:** Access Prisma through the global `PrismaService` (which delegates to `@workspace/database`).
 - **SaaS Tenant Isolation:** Every query on tenant entities (`User`, `Course`, `Term`, `Class`, `Transaction`) must explicitly filter by `where: { instituteId }`.

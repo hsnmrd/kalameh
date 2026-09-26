@@ -10,6 +10,12 @@ import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TeachersService } from './teachers.service';
+import { TeacherAvailabilityService } from './teacher-availability.service';
+import { TeacherCreateService } from './teacher-create.service';
+import { TeacherLifecycleService } from './teacher-lifecycle.service';
+import { TeacherQualificationsService } from './teacher-qualifications.service';
+import { TeacherQueryService } from './teacher-query.service';
+import { TeacherUpdateService } from './teacher-update.service';
 
 describe('MVP-013 teacher course qualifications API service', () => {
   let service: TeachersService;
@@ -55,6 +61,12 @@ describe('MVP-013 teacher course qualifications API service', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TeachersService,
+        TeacherAvailabilityService,
+        TeacherCreateService,
+        TeacherLifecycleService,
+        TeacherQualificationsService,
+        TeacherQueryService,
+        TeacherUpdateService,
         { provide: PrismaService, useValue: prisma },
         {
           provide: I18nService,

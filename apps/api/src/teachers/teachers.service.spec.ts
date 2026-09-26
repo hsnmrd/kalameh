@@ -5,6 +5,12 @@ import { TeachersService } from './teachers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { TeacherAvailabilityService } from './teacher-availability.service';
+import { TeacherQualificationsService } from './teacher-qualifications.service';
+import { TeacherCreateService } from './teacher-create.service';
+import { TeacherLifecycleService } from './teacher-lifecycle.service';
+import { TeacherQueryService } from './teacher-query.service';
+import { TeacherUpdateService } from './teacher-update.service';
 import {
   CreateTeacherSchema,
   ROLES,
@@ -86,6 +92,12 @@ describe('TeachersService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TeachersService,
+        TeacherAvailabilityService,
+        TeacherQualificationsService,
+        TeacherCreateService,
+        TeacherLifecycleService,
+        TeacherQueryService,
+        TeacherUpdateService,
         { provide: PrismaService, useValue: prisma },
         { provide: I18nService, useValue: i18nService },
         { provide: AuditLogsService, useValue: auditLogsService },

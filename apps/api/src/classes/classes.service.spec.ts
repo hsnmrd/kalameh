@@ -5,6 +5,11 @@ import { ClassesService } from './classes.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { ClassScheduleConflicts } from './class-schedule-conflicts';
+import { ClassCreateService } from './class-create.service';
+import { ClassLifecycleService } from './class-lifecycle.service';
+import { ClassQueryService } from './class-query.service';
+import { ClassUpdateService } from './class-update.service';
 import { JwtPayload } from '@workspace/types';
 
 describe('ClassesService', () => {
@@ -65,6 +70,11 @@ describe('ClassesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ClassesService,
+        ClassScheduleConflicts,
+        ClassCreateService,
+        ClassLifecycleService,
+        ClassQueryService,
+        ClassUpdateService,
         { provide: PrismaService, useValue: prismaService },
         { provide: I18nService, useValue: i18nService },
         { provide: AuditLogsService, useValue: { log: jest.fn() } },
