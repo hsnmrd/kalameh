@@ -37,6 +37,21 @@ export interface EditInstituteModalProps {
   institute: InstituteWithStats | null
 }
 
+const EMPTY_VALUES: UpdateInstituteInput = {
+  name: "",
+  subdomain: "",
+  isActive: true,
+  enabledModules: [...DEFAULT_ENABLED_MODULES],
+  logo: null,
+  logoUrl: null,
+  primaryColor: "#10b981",
+  address: "",
+  phones: [""],
+  bankAccountName: "",
+  bankCardNumber: "",
+  bankShaba: "",
+}
+
 export function EditInstituteModal({
   open,
   onClose,
@@ -46,43 +61,40 @@ export function EditInstituteModal({
   const queryClient = useQueryClient()
   const { activeInstitute, setActiveInstitute } = useActiveInstitute()
   const [activeTab, setActiveTab] = React.useState<InstituteFormTab>("general")
+  const formValues = React.useMemo<UpdateInstituteInput>(
+    () =>
+      institute
+        ? {
+            name: institute.name,
+            subdomain: institute.subdomain,
+            isActive: institute.isActive,
+            enabledModules: institute.enabledModules || [
+              ...DEFAULT_ENABLED_MODULES,
+            ],
+            logo: null,
+            logoUrl: institute.logoUrl || null,
+            primaryColor: institute.primaryColor || "#10b981",
+            address: institute.address || "",
+            phones: institute.phones?.length ? institute.phones : [""],
+            bankAccountName: institute.bankAccountName || "",
+            bankCardNumber: institute.bankCardNumber || "",
+            bankShaba: institute.bankShaba || "",
+          }
+        : EMPTY_VALUES,
+    [institute]
+  )
   const form = useForm<UpdateInstituteInput>({
     resolver: zodResolver(useUpdateInstituteSchema()),
-    defaultValues: {
-      name: "",
-      subdomain: "",
-      isActive: true,
-      enabledModules: [...DEFAULT_ENABLED_MODULES],
-      logo: null,
-      logoUrl: null,
-      primaryColor: "#10b981",
-      address: "",
-      phones: [""],
-      bankAccountName: "",
-      bankCardNumber: "",
-      bankShaba: "",
-    },
+    defaultValues: EMPTY_VALUES,
+    values: formValues,
   })
   const { handleSubmit, reset, getValues, setValue } = form
 
-  React.useEffect(() => {
-    if (!open || !institute) return
-    reset({
-      name: institute.name,
-      subdomain: institute.subdomain,
-      isActive: institute.isActive,
-      enabledModules: institute.enabledModules || [...DEFAULT_ENABLED_MODULES],
-      logo: null,
-      logoUrl: institute.logoUrl || null,
-      primaryColor: institute.primaryColor || "#10b981",
-      address: institute.address || "",
-      phones: institute.phones?.length ? institute.phones : [""],
-      bankAccountName: institute.bankAccountName || "",
-      bankCardNumber: institute.bankCardNumber || "",
-      bankShaba: institute.bankShaba || "",
-    })
+  const handleClose = React.useCallback(() => {
+    reset(formValues)
     setActiveTab("general")
-  }, [open, institute, reset])
+    onClose()
+  }, [formValues, onClose, reset])
 
   const mutation = useMutation({
     ...institutesResource.update.toMutation(),
@@ -92,7 +104,7 @@ export function EditInstituteModal({
         queryKey: institutesResource.list.baseKey(),
       })
       if (activeInstitute?.id === institute?.id) setActiveInstitute(updated)
-      onClose()
+      handleClose()
     },
   })
   const onSubmit = (values: UpdateInstituteInput) => {
@@ -104,7 +116,7 @@ export function EditInstituteModal({
   }
 
   return (
-    <FormDialog open={open} onOpenChange={(value) => !value && onClose()}>
+    <FormDialog open={open} onOpenChange={(value) => !value && handleClose()}>
       <FormDialogContent className="sm:max-w-2xl">
         <FormDialogHeader>
           <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
@@ -140,7 +152,7 @@ export function EditInstituteModal({
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={handleClose}
               className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
             >
               {t("createModal.cancel")}

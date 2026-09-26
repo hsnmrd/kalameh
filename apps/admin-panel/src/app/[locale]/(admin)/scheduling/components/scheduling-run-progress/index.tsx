@@ -26,56 +26,43 @@ export function SchedulingRunProgress({
 }: SchedulingRunProgressProps) {
   const t = useTranslations("scheduling.runStatus.progress")
   const locale = useLocale()
-  const [currentStage, setCurrentStage] = React.useState(1)
-  const [percent, setPercent] = React.useState(15)
+  const [generationProgress, setGenerationProgress] = React.useState({
+    currentStage: 1,
+    percent: 15,
+  })
 
   const isCompleted = status === "COMPLETED"
   const isGenerating = status === "GENERATING"
   const isQueued = status === "QUEUED"
 
   React.useEffect(() => {
-    if (isCompleted) {
-      setCurrentStage(5)
-      setPercent(100)
-      return
-    }
+    if (!isGenerating || isFailed) return
 
-    if (isFailed) {
-      return
-    }
+    const startTime = Date.now()
+    const interval = setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000
 
-    if (isQueued) {
-      setCurrentStage(1)
-      setPercent(10)
-      return
-    }
+      if (elapsed < 1.2) {
+        setGenerationProgress({ currentStage: 1, percent: 20 })
+      } else if (elapsed < 2.5) {
+        setGenerationProgress({ currentStage: 2, percent: 45 })
+      } else if (elapsed < 4.5) {
+        setGenerationProgress({ currentStage: 3, percent: 70 })
+      } else if (elapsed < 7.0) {
+        setGenerationProgress({ currentStage: 4, percent: 88 })
+      } else {
+        setGenerationProgress({ currentStage: 5, percent: 95 })
+      }
+    }, 300)
 
-    if (isGenerating) {
-      const startTime = Date.now()
-      const interval = setInterval(() => {
-        const elapsed = (Date.now() - startTime) / 1000
+    return () => clearInterval(interval)
+  }, [isFailed, isGenerating])
 
-        if (elapsed < 1.2) {
-          setCurrentStage(1)
-          setPercent(20)
-        } else if (elapsed < 2.5) {
-          setCurrentStage(2)
-          setPercent(45)
-        } else if (elapsed < 4.5) {
-          setCurrentStage(3)
-          setPercent(70)
-        } else if (elapsed < 7.0) {
-          setCurrentStage(4)
-          setPercent(88)
-        } else {
-          setCurrentStage(5)
-          setPercent(95)
-        }
-      }, 300)
-
-      return () => clearInterval(interval)
-    }
-  }, [isCompleted, isFailed, isGenerating, isQueued])
+  const { currentStage, percent } = isCompleted
+    ? { currentStage: 5, percent: 100 }
+    : isQueued
+      ? { currentStage: 1, percent: 10 }
+      : generationProgress
 
   return (
     <div

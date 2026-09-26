@@ -53,6 +53,21 @@ export interface EditTermModalProps {
   allTerms?: TermDto[]
 }
 
+const EMPTY_TERM_VALUES: UpdateTermInput = {
+  title: "",
+  startDate: "",
+  endDate: "",
+  isActive: true,
+  operatingPhaseId: undefined,
+}
+const EMPTY_DISMISSED_HOLIDAYS: string[] = []
+
+function formatDateForInput(dateVal: string | Date | undefined) {
+  if (!dateVal) return ""
+  const date = new Date(dateVal)
+  return date.toISOString().split("T")[0] || ""
+}
+
 export function EditTermModal({
   term,
   open,
@@ -73,11 +88,19 @@ export function EditTermModal({
     [t]
   )
 
-  const formatDateForInput = (dateVal: string | Date | undefined) => {
-    if (!dateVal) return ""
-    const d = new Date(dateVal)
-    return d.toISOString().split("T")[0] || ""
-  }
+  const formValues = React.useMemo<UpdateTermInput>(
+    () =>
+      term
+        ? {
+            title: term.title,
+            startDate: formatDateForInput(term.startDate),
+            endDate: formatDateForInput(term.endDate),
+            isActive: term.isActive,
+            operatingPhaseId: term.operatingPhaseId || undefined,
+          }
+        : EMPTY_TERM_VALUES,
+    [term]
+  )
 
   const {
     register,
@@ -88,13 +111,8 @@ export function EditTermModal({
     formState: { errors },
   } = useForm<UpdateTermInput>({
     resolver: zodResolver(updateTermSchema),
-    defaultValues: {
-      title: "",
-      startDate: "",
-      endDate: "",
-      isActive: true,
-      operatingPhaseId: undefined,
-    },
+    defaultValues: EMPTY_TERM_VALUES,
+    values: formValues,
   })
 
   const classesCount = term?.classesCount ?? 0
@@ -151,27 +169,27 @@ export function EditTermModal({
   })
 
   // Calendar off-days & compensatory state
-  const [activeDismissedHolidays, setActiveDismissedHolidays] = React.useState<
-    string[]
-  >([])
+  const [dismissedHolidaysOverride, setDismissedHolidaysOverride] =
+    React.useState<string[] | null>(null)
   const [localCustomOffDays, setLocalCustomOffDays] = React.useState<
     string[] | null
   >(null)
   const [compensatorySessions, setCompensatorySessions] = React.useState<
     Record<number, CompensatorySession[]>
   >({})
-  const [proposals, setProposals] = React.useState<GeneratedTermProposal[]>([])
-
-  React.useEffect(() => {
-    if (institute?.dismissedHolidays) {
-      setActiveDismissedHolidays(institute.dismissedHolidays)
-    }
-  }, [institute?.dismissedHolidays])
+  const [proposalDraft, setProposalDraft] = React.useState<{
+    key: string
+    proposals: GeneratedTermProposal[]
+  } | null>(null)
 
   const customOffDays = React.useMemo(() => {
     if (localCustomOffDays !== null) return localCustomOffDays
     return rawCustomOffDays?.map((d) => d.date) ?? []
   }, [localCustomOffDays, rawCustomOffDays])
+  const activeDismissedHolidays =
+    dismissedHolidaysOverride ??
+    institute?.dismissedHolidays ??
+    EMPTY_DISMISSED_HOLIDAYS
   const observeOfficialHolidays = institute?.observeOfficialHolidays ?? true
 
   const createCustomOffDayMutation = useMutation({
@@ -204,13 +222,13 @@ export function EditTermModal({
     const daysOfWeek = phaseDays as WeekDay[]
     const classPatterns = resolveClassPatterns(daysOfWeek)
     return { currentPhase, daysOfWeek, classPatterns }
-  }, [phases, targetPhaseId, term?.operatingPhase])
+  }, [phases, targetPhaseId, term])
 
   const buildInitialProposals = React.useCallback(
     (
       currentTerm: TermDto,
-      overrideDismissed = activeDismissedHolidays,
-      overrideCompensatory = compensatorySessions
+      overrideDismissed: string[],
+      overrideCompensatory: Record<number, CompensatorySession[]>
     ) => {
       const { daysOfWeek, classPatterns } = getPhaseContext()
       const currentPhase = phases.find(
@@ -275,67 +293,59 @@ export function EditTermModal({
       allTerms,
       observeOfficialHolidays,
       customOffDays,
-      activeDismissedHolidays,
-      compensatorySessions,
     ]
   )
 
-  const lastInitializedIdRef = React.useRef<string | null>(null)
+  const proposalSourceKey = React.useMemo(
+    () =>
+      [
+        term?.id ?? "",
+        targetPhaseId ?? "",
+        ...phaseTerms.map(
+          (phaseTerm) =>
+            `${phaseTerm.id}:${phaseTerm.title}:${phaseTerm.startDate}:${phaseTerm.endDate}`
+        ),
+      ].join("|"),
+    [phaseTerms, targetPhaseId, term?.id]
+  )
 
-  React.useEffect(() => {
-    if (!open) {
-      lastInitializedIdRef.current = null
-      return
-    }
-    if (term && open && lastInitializedIdRef.current !== term.id) {
-      lastInitializedIdRef.current = term.id
-      reset({
-        title: term.title,
-        startDate: formatDateForInput(term.startDate),
-        endDate: formatDateForInput(term.endDate),
-        isActive: term.isActive,
-        operatingPhaseId: term.operatingPhaseId || undefined,
-      })
-      setCompensatorySessions({})
-      setLocalCustomOffDays(null)
-      const initial = buildInitialProposals(term)
-      setProposals(initial)
-    }
-  }, [term, open, reset, buildInitialProposals])
+  const initialProposals = React.useMemo(
+    () =>
+      term ? buildInitialProposals(term, activeDismissedHolidays, {}) : [],
+    [term, buildInitialProposals, activeDismissedHolidays]
+  )
 
-  React.useEffect(() => {
-    if (
-      open &&
-      term?.operatingPhaseId &&
-      phaseTerms.length > 0 &&
-      proposals.length <= 1
-    ) {
-      const updated = buildInitialProposals(term)
-      setProposals(updated)
-    }
-  }, [open, term, phaseTerms.length, proposals.length, buildInitialProposals])
+  const proposalValues =
+    proposalDraft?.key === proposalSourceKey
+      ? proposalDraft.proposals
+      : initialProposals
 
   const lockedTermIndex = React.useMemo(() => {
-    if (proposals.length <= 1) return 0
-    const found = proposals.findIndex(
+    if (proposalValues.length <= 1) return 0
+    const found = proposalValues.findIndex(
       (p) =>
-        (term?.id && p.title === (watchedTitle || term?.title)) ||
-        p.startDate === watchedStartDate
+        (p.title === term?.title && p.startDate === originalStartDate) ||
+        p.startDate === originalStartDate
     )
     return found !== -1 ? found : 0
-  }, [proposals, watchedTitle, term?.title, term?.id, watchedStartDate])
+  }, [proposalValues, term?.title, originalStartDate])
 
-  React.useEffect(() => {
-    if (proposals.length > 0 && watchedTitle !== undefined) {
-      setProposals((prev) =>
-        prev.map((p, idx) =>
-          idx === lockedTermIndex
-            ? { ...p, title: watchedTitle || term?.title || "" }
-            : p
-        )
-      )
-    }
-  }, [watchedTitle, lockedTermIndex, term?.title])
+  const proposals = React.useMemo(
+    () =>
+      proposalValues.map((proposal, index) =>
+        index === lockedTermIndex
+          ? { ...proposal, title: watchedTitle || term?.title || "" }
+          : proposal
+      ),
+    [proposalValues, lockedTermIndex, watchedTitle, term?.title]
+  )
+
+  const setProposals = React.useCallback(
+    (nextProposals: GeneratedTermProposal[]) => {
+      setProposalDraft({ key: proposalSourceKey, proposals: nextProposals })
+    },
+    [proposalSourceKey]
+  )
 
   const standardSessionsCount = React.useMemo(() => {
     // 1. If we have sibling terms in proposals, find the standard (mode/majority) sessionsCount
@@ -507,7 +517,7 @@ export function EditTermModal({
 
         validateNextSiblingBoundary(recalculated[lockedTermIndex], snapshot)
 
-        setActiveDismissedHolidays(nextDismissed)
+        setDismissedHolidaysOverride(nextDismissed)
         const updated = mergeWithFrozenSiblings(recalculated, snapshot)
         setProposals(updated)
 
@@ -519,7 +529,7 @@ export function EditTermModal({
           })
         }
       } else {
-        setActiveDismissedHolidays(nextDismissed)
+        setDismissedHolidaysOverride(nextDismissed)
       }
       toast.success(t("batchModal.holidayToggled"))
     } catch (err: unknown) {
@@ -734,6 +744,15 @@ export function EditTermModal({
     }
   }
 
+  const handleClose = React.useCallback(() => {
+    reset(formValues)
+    setDismissedHolidaysOverride(null)
+    setLocalCustomOffDays(null)
+    setCompensatorySessions({})
+    setProposalDraft(null)
+    onClose()
+  }, [formValues, onClose, reset])
+
   const updateMutation = useMutation({
     ...termsResource.update.toMutation(),
     onSuccess: () => {
@@ -741,7 +760,7 @@ export function EditTermModal({
       queryClient.invalidateQueries({
         queryKey: termsResource.list.baseKey(),
       })
-      onClose()
+      handleClose()
     },
   })
 
@@ -755,7 +774,7 @@ export function EditTermModal({
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
-      onClose()
+      handleClose()
     }
   }
 
@@ -878,7 +897,7 @@ export function EditTermModal({
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={handleClose}
               className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
             >
               {t("editModal.cancel")}

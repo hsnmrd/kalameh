@@ -29,6 +29,14 @@ export interface EditRequirementModalProps {
   isSaving?: boolean
 }
 
+interface RequirementDraft {
+  sourceKey: string
+  requiredClassCount: number
+  capacity: number
+  deliveryMode: "IN_PERSON" | "ONLINE"
+  sessionsPerWeek: number
+}
+
 export function EditRequirementModal({
   item,
   open,
@@ -38,23 +46,33 @@ export function EditRequirementModal({
 }: EditRequirementModalProps) {
   const t = useTranslations("scheduling")
 
-  const [requiredClassCount, setRequiredClassCount] = React.useState(1)
-  const [capacity, setCapacity] = React.useState(14)
-  const [deliveryMode, setDeliveryMode] = React.useState<
-    "IN_PERSON" | "ONLINE"
-  >("IN_PERSON")
-  const [sessionsPerWeek, setSessionsPerWeek] = React.useState<number>(3)
-
-  React.useEffect(() => {
-    if (item) {
-      setRequiredClassCount(item.requiredClassCount)
-      setCapacity(item.capacity)
-      setDeliveryMode(item.deliveryMode)
-      setSessionsPerWeek(item.sessionsPerWeek ?? 3)
-    }
-  }, [item])
+  const sourceKey = item
+    ? [
+        item.id,
+        item.requiredClassCount,
+        item.capacity,
+        item.deliveryMode,
+        item.sessionsPerWeek ?? 3,
+      ].join(":")
+    : ""
+  const [storedDraft, setStoredDraft] = React.useState<RequirementDraft | null>(
+    null
+  )
 
   if (!item) return null
+
+  const draft =
+    storedDraft?.sourceKey === sourceKey
+      ? storedDraft
+      : {
+          sourceKey,
+          requiredClassCount: item.requiredClassCount,
+          capacity: item.capacity,
+          deliveryMode: item.deliveryMode,
+          sessionsPerWeek: item.sessionsPerWeek ?? 3,
+        }
+  const updateDraft = (changes: Partial<Omit<RequirementDraft, "sourceKey">>) =>
+    setStoredDraft({ ...draft, ...changes })
 
   const cadenceOptions = [
     { value: "3", label: t("requirementsPage.fields.cadence3") },
@@ -70,10 +88,10 @@ export function EditRequirementModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSave(item.id, {
-      requiredClassCount: Math.max(1, requiredClassCount),
-      capacity: Math.max(1, capacity),
-      deliveryMode,
-      sessionsPerWeek,
+      requiredClassCount: Math.max(1, draft.requiredClassCount),
+      capacity: Math.max(1, draft.capacity),
+      deliveryMode: draft.deliveryMode,
+      sessionsPerWeek: draft.sessionsPerWeek,
       sessionDurationMinutes: 90,
     })
   }
@@ -102,9 +120,9 @@ export function EditRequirementModal({
                 <Input
                   type="number"
                   min={1}
-                  value={requiredClassCount}
+                  value={draft.requiredClassCount}
                   onChange={(e) =>
-                    setRequiredClassCount(Number(e.target.value))
+                    updateDraft({ requiredClassCount: Number(e.target.value) })
                   }
                 />
               </Field>
@@ -114,8 +132,10 @@ export function EditRequirementModal({
                 <Input
                   type="number"
                   min={1}
-                  value={capacity}
-                  onChange={(e) => setCapacity(Number(e.target.value))}
+                  value={draft.capacity}
+                  onChange={(e) =>
+                    updateDraft({ capacity: Number(e.target.value) })
+                  }
                 />
               </Field>
             </div>
@@ -126,8 +146,10 @@ export function EditRequirementModal({
               </FieldLabel>
               <ResponsiveCombobox
                 items={cadenceOptions}
-                value={String(sessionsPerWeek)}
-                onValueChange={(val) => val && setSessionsPerWeek(Number(val))}
+                value={String(draft.sessionsPerWeek)}
+                onValueChange={(val) =>
+                  val && updateDraft({ sessionsPerWeek: Number(val) })
+                }
                 placeholder={t("requirementsPage.fields.sessionsPerWeek")}
                 drawerTitle={t("requirementsPage.fields.sessionsPerWeek")}
                 clearable={false}
@@ -140,9 +162,12 @@ export function EditRequirementModal({
               </FieldLabel>
               <ResponsiveCombobox
                 items={deliveryModeOptions}
-                value={deliveryMode}
+                value={draft.deliveryMode}
                 onValueChange={(val) =>
-                  val && setDeliveryMode(val as "IN_PERSON" | "ONLINE")
+                  val &&
+                  updateDraft({
+                    deliveryMode: val as "IN_PERSON" | "ONLINE",
+                  })
                 }
                 placeholder={t("requirementsPage.fields.deliveryMode")}
                 drawerTitle={t("requirementsPage.fields.deliveryMode")}

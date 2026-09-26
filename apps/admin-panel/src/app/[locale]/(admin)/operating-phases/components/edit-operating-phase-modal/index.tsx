@@ -41,6 +41,20 @@ export interface EditOperatingPhaseModalProps {
   onClose: () => void
 }
 
+const EMPTY_VALUES: UpdateOperatingPhaseInput = {
+  title: "",
+  months: [],
+  startTime: "15:00",
+  endTime: "21:00",
+  slotDurationMinutes: 90,
+  daysOfWeek: [],
+  hasBreak: false,
+  breakStartTime: "18:00",
+  breakEndTime: "19:00",
+  isActive: true,
+  order: 0,
+}
+
 export function EditOperatingPhaseModal({
   phase,
   open,
@@ -51,6 +65,25 @@ export function EditOperatingPhaseModal({
   const updateSchema = useUpdateOperatingPhaseSchema()
 
   const [step, setStep] = React.useState<"form" | "review">("form")
+  const formValues = React.useMemo<UpdateOperatingPhaseInput>(
+    () =>
+      phase
+        ? {
+            title: phase.title,
+            months: phase.months,
+            startTime: phase.startTime,
+            endTime: phase.endTime,
+            slotDurationMinutes: phase.slotDurationMinutes,
+            daysOfWeek: phase.daysOfWeek as WeekDay[],
+            hasBreak: phase.hasBreak ?? false,
+            breakStartTime: phase.breakStartTime || "18:00",
+            breakEndTime: phase.breakEndTime || "19:00",
+            isActive: phase.isActive,
+            order: phase.order,
+          }
+        : EMPTY_VALUES,
+    [phase]
+  )
 
   const {
     register,
@@ -64,39 +97,15 @@ export function EditOperatingPhaseModal({
     formState: { errors },
   } = useForm<UpdateOperatingPhaseInput>({
     resolver: zodResolver(updateSchema),
-    defaultValues: {
-      title: "",
-      months: [],
-      startTime: "15:00",
-      endTime: "21:00",
-      slotDurationMinutes: 90,
-      daysOfWeek: [],
-      hasBreak: false,
-      breakStartTime: "18:00",
-      breakEndTime: "19:00",
-      isActive: true,
-      order: 0,
-    },
+    defaultValues: EMPTY_VALUES,
+    values: formValues,
   })
 
-  React.useEffect(() => {
-    if (phase && open) {
-      setStep("form")
-      reset({
-        title: phase.title,
-        months: phase.months,
-        startTime: phase.startTime,
-        endTime: phase.endTime,
-        slotDurationMinutes: phase.slotDurationMinutes,
-        daysOfWeek: phase.daysOfWeek as WeekDay[],
-        hasBreak: phase.hasBreak ?? false,
-        breakStartTime: phase.breakStartTime || "18:00",
-        breakEndTime: phase.breakEndTime || "19:00",
-        isActive: phase.isActive,
-        order: phase.order,
-      })
-    }
-  }, [phase, open, reset])
+  const handleClose = React.useCallback(() => {
+    setStep("form")
+    reset(formValues)
+    onClose()
+  }, [formValues, onClose, reset])
 
   const watchedTitle = useWatch({ control, name: "title" })
   const watchedMonths = useWatch({ control, name: "months" })
@@ -157,7 +166,7 @@ export function EditOperatingPhaseModal({
       queryClient.invalidateQueries({
         queryKey: operatingPhasesResource.list.baseKey(),
       })
-      onClose()
+      handleClose()
     },
   })
 
@@ -181,7 +190,7 @@ export function EditOperatingPhaseModal({
   }
 
   return (
-    <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <FormDialogContent className="sm:max-w-2xl">
         <FormDialogHeader>
           <FormDialogTitle>
@@ -349,7 +358,7 @@ export function EditOperatingPhaseModal({
               <Button
                 type="button"
                 variant="outline"
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={updateMutation.isPending}
               >
                 {t("form.cancel")}

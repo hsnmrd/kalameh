@@ -186,17 +186,22 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
   }, [open, singleBranchId, setValue])
 
   // Reset form when modal opens/closes
+  const defaultSelectionsRef = React.useRef({ terms, courses, singleBranchId })
   React.useEffect(() => {
+    defaultSelectionsRef.current = { terms, courses, singleBranchId }
+  }, [terms, courses, singleBranchId])
+  React.useEffect(() => {
+    const currentDefaults = defaultSelectionsRef.current
     if (open) {
-      if (singleBranchId) {
+      if (currentDefaults.singleBranchId) {
         hasAutoSelectedBranchRef.current = true
       }
       reset(
         getCreateClassDefaults({
-          termId: terms[0]?.id,
-          courseId: courses[0]?.id,
-          branchId: singleBranchId,
-          fee: courses[0]?.baseFee,
+          termId: currentDefaults.terms[0]?.id,
+          courseId: currentDefaults.courses[0]?.id,
+          branchId: currentDefaults.singleBranchId,
+          fee: currentDefaults.courses[0]?.baseFee,
         })
       )
     } else {

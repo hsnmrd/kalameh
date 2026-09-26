@@ -36,6 +36,27 @@ export interface CreateOperatingPhaseModalProps {
   onClose: () => void
 }
 
+const DEFAULT_VALUES: CreateOperatingPhaseInput = {
+  title: "",
+  months: [7, 8, 9, 10, 11, 12, 1, 2, 3],
+  startTime: "15:00",
+  endTime: "21:00",
+  slotDurationMinutes: 90,
+  daysOfWeek: [
+    "SATURDAY",
+    "SUNDAY",
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+  ],
+  hasBreak: false,
+  breakStartTime: "18:00",
+  breakEndTime: "19:00",
+  isActive: true,
+  order: 0,
+}
+
 export function CreateOperatingPhaseModal({
   open,
   onClose,
@@ -59,26 +80,7 @@ export function CreateOperatingPhaseModal({
     formState: { errors },
   } = useForm<CreateOperatingPhaseInput>({
     resolver: zodResolver(createSchema),
-    defaultValues: {
-      title: "",
-      months: [7, 8, 9, 10, 11, 12, 1, 2, 3],
-      startTime: "15:00",
-      endTime: "21:00",
-      slotDurationMinutes: 90,
-      daysOfWeek: [
-        "SATURDAY",
-        "SUNDAY",
-        "MONDAY",
-        "TUESDAY",
-        "WEDNESDAY",
-        "THURSDAY",
-      ],
-      hasBreak: false,
-      breakStartTime: "18:00",
-      breakEndTime: "19:00",
-      isActive: true,
-      order: 0,
-    },
+    defaultValues: DEFAULT_VALUES,
   })
 
   const watchedTitle = useWatch({ control, name: "title" })
@@ -119,31 +121,11 @@ export function CreateOperatingPhaseModal({
     watchedBreakEndTime,
   ])
 
-  React.useEffect(() => {
-    if (open) {
-      setStep("form")
-      reset({
-        title: "",
-        months: [7, 8, 9, 10, 11, 12, 1, 2, 3],
-        startTime: "15:00",
-        endTime: "21:00",
-        slotDurationMinutes: 90,
-        daysOfWeek: [
-          "SATURDAY",
-          "SUNDAY",
-          "MONDAY",
-          "TUESDAY",
-          "WEDNESDAY",
-          "THURSDAY",
-        ],
-        hasBreak: false,
-        breakStartTime: "18:00",
-        breakEndTime: "19:00",
-        isActive: true,
-        order: 0,
-      })
-    }
-  }, [open, reset])
+  const handleClose = React.useCallback(() => {
+    setStep("form")
+    reset(DEFAULT_VALUES)
+    onClose()
+  }, [onClose, reset])
 
   const createMutation = useMutation({
     ...operatingPhasesResource.create.toMutation(),
@@ -152,7 +134,7 @@ export function CreateOperatingPhaseModal({
       queryClient.invalidateQueries({
         queryKey: operatingPhasesResource.list.baseKey(),
       })
-      onClose()
+      handleClose()
     },
   })
 
@@ -173,7 +155,7 @@ export function CreateOperatingPhaseModal({
   }
 
   return (
-    <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <FormDialogContent className="sm:max-w-2xl">
         <FormDialogHeader>
           <FormDialogTitle>
@@ -339,7 +321,7 @@ export function CreateOperatingPhaseModal({
               <Button
                 type="button"
                 variant="outline"
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={createMutation.isPending}
               >
                 {t("form.cancel")}

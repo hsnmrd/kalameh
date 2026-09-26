@@ -36,12 +36,10 @@ export function ClassroomPickerModal({
   const t = useTranslations("classes")
   const [searchQuery, setSearchQuery] = React.useState("")
 
-  // Reset search when modal opens
-  React.useEffect(() => {
-    if (open) {
-      setSearchQuery("")
-    }
-  }, [open])
+  const handleClose = () => {
+    setSearchQuery("")
+    onClose()
+  }
 
   const filteredClassrooms = React.useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -61,11 +59,11 @@ export function ClassroomPickerModal({
 
   const handleSelect = (id: string | null) => {
     onSelectClassroom(id)
-    onClose()
+    handleClose()
   }
 
   return (
-    <FormDialog open={open} onOpenChange={(val) => !val && onClose()}>
+    <FormDialog open={open} onOpenChange={(val) => !val && handleClose()}>
       <FormDialogContent className="sm:max-w-lg">
         <FormDialogHeader>
           <FormDialogTitle>{t("classroomPicker.title")}</FormDialogTitle>
@@ -174,7 +172,7 @@ export function ClassroomPickerModal({
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={handleClose}
               className="h-12 w-full rounded-xl text-sm font-medium sm:h-12 sm:w-auto"
             >
               {t("createModal.cancel")}

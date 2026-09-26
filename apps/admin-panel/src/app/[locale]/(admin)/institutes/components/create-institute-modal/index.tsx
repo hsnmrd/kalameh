@@ -58,12 +58,12 @@ export function CreateInstituteModal({
   })
   const { handleSubmit, reset, getValues, setValue, trigger } = form
 
-  React.useEffect(() => {
-    if (open) {
-      reset(DEFAULT_VALUES)
-      setActiveTab("general")
-    }
-  }, [open, reset])
+  const handleClose = React.useCallback(() => {
+    reset(DEFAULT_VALUES)
+    setActiveTab("general")
+    onClose()
+  }, [onClose, reset])
+
   const mutation = useMutation({
     ...institutesResource.create.toMutation(),
     onSuccess: () => {
@@ -71,7 +71,7 @@ export function CreateInstituteModal({
       queryClient.invalidateQueries({
         queryKey: institutesResource.list.baseKey(),
       })
-      onClose()
+      handleClose()
     },
   })
   const handleNextStep = async () => {
@@ -98,7 +98,7 @@ export function CreateInstituteModal({
   }
 
   return (
-    <FormDialog open={open} onOpenChange={(value) => !value && onClose()}>
+    <FormDialog open={open} onOpenChange={(value) => !value && handleClose()}>
       <FormDialogContent className="sm:max-w-2xl">
         <FormDialogHeader>
           <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>
@@ -143,7 +143,7 @@ export function CreateInstituteModal({
             activeTab={activeTab}
             isPending={mutation.isPending}
             onBack={handleBack}
-            onClose={onClose}
+            onClose={handleClose}
             onNext={() => void handleNextStep()}
           />
         </form>

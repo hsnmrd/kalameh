@@ -47,6 +47,15 @@ export interface CreateTermModalProps {
   allTerms?: TermDto[]
 }
 
+const DEFAULT_VALUES: CreateTermInput = {
+  title: "",
+  startDate: "",
+  endDate: "",
+  isActive: true,
+  operatingPhaseId: undefined,
+}
+const EMPTY_DISMISSED_HOLIDAYS: string[] = []
+
 export function CreateTermModal({
   open,
   onClose,
@@ -67,13 +76,7 @@ export function CreateTermModal({
     formState: { errors },
   } = useForm<CreateTermInput>({
     resolver: zodResolver(createTermSchema),
-    defaultValues: {
-      title: "",
-      startDate: "",
-      endDate: "",
-      isActive: true,
-      operatingPhaseId: undefined,
-    },
+    defaultValues: DEFAULT_VALUES,
   })
 
   const watchedTitle = useWatch({ control, name: "title" })
@@ -111,9 +114,8 @@ export function CreateTermModal({
   })
 
   // Calendar off-days & compensatory state
-  const [activeDismissedHolidays, setActiveDismissedHolidays] = React.useState<
-    string[]
-  >([])
+  const [dismissedHolidaysOverride, setDismissedHolidaysOverride] =
+    React.useState<string[] | null>(null)
   const [localCustomOffDays, setLocalCustomOffDays] = React.useState<
     string[] | null
   >(null)
@@ -121,25 +123,10 @@ export function CreateTermModal({
     Record<number, CompensatorySession[]>
   >({})
 
-  React.useEffect(() => {
-    if (institute?.dismissedHolidays) {
-      setActiveDismissedHolidays(institute.dismissedHolidays)
-    }
-  }, [institute?.dismissedHolidays])
-
-  React.useEffect(() => {
-    if (open) {
-      reset({
-        title: "",
-        startDate: "",
-        endDate: "",
-        isActive: true,
-        operatingPhaseId: undefined,
-      })
-      setCompensatorySessions({})
-      setLocalCustomOffDays(null)
-    }
-  }, [open, reset])
+  const activeDismissedHolidays =
+    dismissedHolidaysOverride ??
+    institute?.dismissedHolidays ??
+    EMPTY_DISMISSED_HOLIDAYS
 
   const customOffDays = React.useMemo(() => {
     if (localCustomOffDays !== null) return localCustomOffDays
@@ -283,12 +270,10 @@ export function CreateTermModal({
   }
 
   const handleToggleHoliday = (dateYmd: string) => {
-    setActiveDismissedHolidays((prev) => {
-      const next = prev.includes(dateYmd)
-        ? prev.filter((d) => d !== dateYmd)
-        : [...prev, dateYmd]
-      return next
-    })
+    const next = activeDismissedHolidays.includes(dateYmd)
+      ? activeDismissedHolidays.filter((d) => d !== dateYmd)
+      : [...activeDismissedHolidays, dateYmd]
+    setDismissedHolidaysOverride(next)
     toast.success(t("batchModal.holidayToggled"))
   }
 
@@ -365,7 +350,7 @@ export function CreateTermModal({
       queryClient.invalidateQueries({
         queryKey: termsResource.list.baseKey(),
       })
-      onClose()
+      handleClose()
     },
   })
 
@@ -376,9 +361,17 @@ export function CreateTermModal({
     })
   }
 
+  const handleClose = () => {
+    reset(DEFAULT_VALUES)
+    setCompensatorySessions({})
+    setLocalCustomOffDays(null)
+    setDismissedHolidaysOverride(null)
+    onClose()
+  }
+
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
-      onClose()
+      handleClose()
     }
   }
 
@@ -500,7 +493,7 @@ export function CreateTermModal({
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={handleClose}
               className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
             >
               {t("createModal.cancel")}

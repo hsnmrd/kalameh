@@ -24,6 +24,15 @@ import {
   type SchedulingWorkspaceTab,
 } from "./components/term-workspace-filter"
 
+function buildDemandKey(
+  termId: string,
+  branchId: string,
+  instituteId?: string | null
+) {
+  const normalizedBranchId = branchId === "all" ? "" : branchId
+  return `${instituteId ?? ""}:${termId}:${normalizedBranchId}`
+}
+
 export default function SingleTermSchedulingPage() {
   const t = useTranslations("scheduling")
   const tTerms = useTranslations("scheduling.termsList")
@@ -33,10 +42,24 @@ export default function SingleTermSchedulingPage() {
 
   const [activeTab, setActiveTab] =
     React.useState<SchedulingWorkspaceTab>("demand")
-  const [branchId, setBranchId] = React.useState("")
+  const [branchSelection, setBranchSelection] = React.useState({
+    instituteId: activeInstituteId,
+    value: "",
+  })
+  const branchId =
+    branchSelection.instituteId === activeInstituteId
+      ? branchSelection.value
+      : ""
+  const setBranchId = React.useCallback(
+    (value: string) =>
+      setBranchSelection({ instituteId: activeInstituteId, value }),
+    [activeInstituteId]
+  )
   const [search, setSearch] = React.useState("")
-  const [demandData, setDemandData] =
-    React.useState<TermDemandReportDto | null>(null)
+  const [demandResult, setDemandResult] = React.useState<{
+    key: string
+    data: TermDemandReportDto
+  } | null>(null)
   const [createdRun, setCreatedRun] = React.useState<SchedulingRunDto | null>(
     null
   )
@@ -53,44 +76,44 @@ export default function SingleTermSchedulingPage() {
     [termsQuery.data, termId]
   )
 
-  // Reset state when institute changes
-  React.useEffect(() => {
-    setBranchId("")
-    setDemandData(null)
-    setCreatedRun(null)
-  }, [activeInstituteId])
-
+  const demandKey = buildDemandKey(termId, branchId, activeInstituteId)
+  const demandData = demandResult?.key === demandKey ? demandResult.data : null
   const calculateMutation = useMutation({
     ...schedulingResource.calculateDemand.toMutation(),
-    onSuccess: (data) => {
-      setDemandData(data)
+    onSuccess: (data, variables) => {
+      setDemandResult({
+        key: buildDemandKey(
+          variables.termId,
+          variables.branchId ?? "",
+          variables.instituteId
+        ),
+        data,
+      })
     },
   })
+  const calculateDemand = calculateMutation.mutate
 
   const handleCalculateDemand = React.useCallback(() => {
     if (!termId) return
-    calculateMutation.mutate({
+    calculateDemand({
       termId,
       branchId: branchId && branchId !== "all" ? branchId : undefined,
       instituteId: activeInstituteId || undefined,
       defaultCapacity: 14,
     })
-  }, [termId, branchId, activeInstituteId, calculateMutation])
+  }, [termId, branchId, activeInstituteId, calculateDemand])
 
   // Automatically trigger demand calculation when component mounts or branch/institute changes
   React.useEffect(() => {
     if (termId) {
-      calculateMutation.mutate({
+      calculateDemand({
         termId,
         branchId: branchId && branchId !== "all" ? branchId : undefined,
         instituteId: activeInstituteId || undefined,
         defaultCapacity: 14,
       })
-    } else {
-      setDemandData(null)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [termId, branchId, activeInstituteId])
+  }, [termId, branchId, activeInstituteId, calculateDemand])
 
   const activeRun =
     createdRun?.instituteId === activeInstituteId ? createdRun : null

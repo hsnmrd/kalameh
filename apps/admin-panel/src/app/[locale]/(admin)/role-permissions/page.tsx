@@ -29,12 +29,11 @@ export default function RolePermissionsPage() {
 
   const [selectedRole, setSelectedRole] = React.useState<Role>(ROLES.CLERK)
   const [resetModalOpen, setResetModalOpen] = React.useState(false)
-  const [selectedPermissions, setSelectedPermissions] = React.useState<
-    Set<string>
-  >(new Set())
-  const [initialPermissions, setInitialPermissions] = React.useState<
-    Set<string>
-  >(new Set())
+  const [permissionDraft, setPermissionDraft] = React.useState<{
+    sourceKey: string
+    selected: Set<string>
+    initial: Set<string>
+  } | null>(null)
 
   // Query all role-permission records for the active institute
   const { data: rolePermissionsList, isLoading } = useQuery({
@@ -49,17 +48,37 @@ export default function RolePermissionsPage() {
     return rolePermissionsList?.find((item) => item.role === selectedRole)
   }, [rolePermissionsList, selectedRole])
 
-  // Sync state when role changes or query data arrives
-  React.useEffect(() => {
-    if (currentRoleData) {
-      const permSet = new Set(currentRoleData.permissions)
-      setSelectedPermissions(permSet)
-      setInitialPermissions(new Set(permSet))
-    } else {
-      setSelectedPermissions(new Set())
-      setInitialPermissions(new Set())
-    }
-  }, [currentRoleData, selectedRole])
+  const sourceKey = React.useMemo(
+    () =>
+      `${activeInstituteId ?? ""}:${selectedRole}:${currentRoleData?.permissions.join(",") ?? ""}`,
+    [activeInstituteId, currentRoleData?.permissions, selectedRole]
+  )
+  const sourcePermissions = React.useMemo(
+    () => new Set(currentRoleData?.permissions ?? []),
+    [currentRoleData?.permissions]
+  )
+  const activeDraft =
+    permissionDraft?.sourceKey === sourceKey ? permissionDraft : null
+  const selectedPermissions = activeDraft?.selected ?? sourcePermissions
+  const initialPermissions = activeDraft?.initial ?? sourcePermissions
+
+  const updateSelectedPermissions = React.useCallback(
+    (update: (current: Set<string>) => Set<string>) => {
+      setPermissionDraft((currentDraft) => {
+        const isCurrentSource = currentDraft?.sourceKey === sourceKey
+        return {
+          sourceKey,
+          selected: update(
+            isCurrentSource ? currentDraft.selected : sourcePermissions
+          ),
+          initial: isCurrentSource
+            ? currentDraft.initial
+            : new Set(sourcePermissions),
+        }
+      })
+    },
+    [sourceKey, sourcePermissions]
+  )
 
   // Track if there are unsaved local modifications
   const hasChanges = React.useMemo(() => {
@@ -76,8 +95,11 @@ export default function RolePermissionsPage() {
     onSuccess: (updated) => {
       toast.success(t("saveSuccess"))
       const permSet = new Set(updated.permissions)
-      setSelectedPermissions(permSet)
-      setInitialPermissions(new Set(permSet))
+      setPermissionDraft({
+        sourceKey,
+        selected: permSet,
+        initial: new Set(permSet),
+      })
       queryClient.invalidateQueries({
         queryKey: rolePermissionsResource.list.baseKey(),
       })
@@ -90,41 +112,47 @@ export default function RolePermissionsPage() {
     onSuccess: (resetResult) => {
       toast.success(t("resetSuccess"))
       const permSet = new Set(resetResult.permissions)
-      setSelectedPermissions(permSet)
-      setInitialPermissions(new Set(permSet))
+      setPermissionDraft({
+        sourceKey,
+        selected: permSet,
+        initial: new Set(permSet),
+      })
       queryClient.invalidateQueries({
         queryKey: rolePermissionsResource.list.baseKey(),
       })
     },
   })
 
-  const handleTogglePermission = React.useCallback((permission: string) => {
-    setSelectedPermissions((prev) => {
-      const next = new Set(prev)
-      if (next.has(permission)) {
-        next.delete(permission)
-      } else {
-        next.add(permission)
-      }
-      return next
-    })
-  }, [])
+  const handleTogglePermission = React.useCallback(
+    (permission: string) => {
+      updateSelectedPermissions((current) => {
+        const next = new Set(current)
+        if (next.has(permission)) {
+          next.delete(permission)
+        } else {
+          next.add(permission)
+        }
+        return next
+      })
+    },
+    [updateSelectedPermissions]
+  )
 
   const handleToggleAllInModule = React.useCallback(
     (permissions: string[], selectAll: boolean) => {
-      setSelectedPermissions((prev) => {
-        const next = new Set(prev)
-        for (const p of permissions) {
+      updateSelectedPermissions((current) => {
+        const next = new Set(current)
+        for (const permission of permissions) {
           if (selectAll) {
-            next.add(p)
+            next.add(permission)
           } else {
-            next.delete(p)
+            next.delete(permission)
           }
         }
         return next
       })
     },
-    []
+    [updateSelectedPermissions]
   )
 
   const handleSave = () => {

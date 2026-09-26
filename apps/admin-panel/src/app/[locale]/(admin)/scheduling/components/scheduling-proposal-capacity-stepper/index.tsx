@@ -29,11 +29,22 @@ export function SchedulingProposalCapacityStepper({
   const maxCapacity = proposal.classroom?.capacity ?? proposal.capacity
   const minCapacity = 1
 
-  const [capacity, setCapacity] = React.useState(proposal.capacity)
-
-  React.useEffect(() => {
-    setCapacity(proposal.capacity)
-  }, [proposal.capacity])
+  const [capacityDraft, setCapacityDraft] = React.useState<{
+    proposalId: string
+    sourceCapacity: number
+    value: number
+  } | null>(null)
+  const capacity =
+    capacityDraft?.proposalId === proposal.id &&
+    capacityDraft.sourceCapacity === proposal.capacity
+      ? capacityDraft.value
+      : proposal.capacity
+  const setCapacity = (value: number) =>
+    setCapacityDraft({
+      proposalId: proposal.id,
+      sourceCapacity: proposal.capacity,
+      value,
+    })
 
   const updateMutation = useMutation({
     ...schedulingResource.updateProposal.toMutation(),

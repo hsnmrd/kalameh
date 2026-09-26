@@ -26,18 +26,44 @@ import {
 import { SchedulingFab } from "../scheduling-fab"
 import { SchedulingFilter } from "../scheduling-filter"
 
+const EMPTY_ADJUSTMENTS: Record<string, CourseAdjustment> = {}
+
+function buildWorkspaceKey(
+  termId?: string,
+  branchId?: string | null,
+  instituteId?: string | null
+) {
+  const normalizedBranchId = branchId === "all" ? "" : (branchId ?? "")
+  return `${instituteId ?? ""}:${termId ?? ""}:${normalizedBranchId}`
+}
+
 export function SchedulingWorkspace() {
   const t = useTranslations("scheduling")
   const router = useRouter()
   const { activeInstituteId } = useActiveInstitute()
   const { clearActiveRun } = useSchedulingRunStore()
 
-  const [branchId, setBranchId] = React.useState("")
-  const [demandData, setDemandData] =
-    React.useState<TermDemandReportDto | null>(null)
-  const [adjustments, setAdjustments] = React.useState<
-    Record<string, CourseAdjustment>
-  >({})
+  const [branchSelection, setBranchSelection] = React.useState({
+    instituteId: activeInstituteId,
+    value: "",
+  })
+  const branchId =
+    branchSelection.instituteId === activeInstituteId
+      ? branchSelection.value
+      : ""
+  const setBranchId = React.useCallback(
+    (value: string) =>
+      setBranchSelection({ instituteId: activeInstituteId, value }),
+    [activeInstituteId]
+  )
+  const [demandResult, setDemandResult] = React.useState<{
+    key: string
+    data: TermDemandReportDto
+  } | null>(null)
+  const [adjustmentDraft, setAdjustmentDraft] = React.useState<{
+    key: string
+    values: Record<string, CourseAdjustment>
+  } | null>(null)
 
   const termsQuery = useQuery({
     ...schedulingResource.terms.toQuery(
@@ -51,38 +77,60 @@ export function SchedulingWorkspace() {
     return selectDefaultSchedulingTerm(termsQuery.data)
   }, [termsQuery.data])
 
-  // Reset state when institute changes
-  React.useEffect(() => {
-    setBranchId("")
-    setDemandData(null)
-    clearActiveRun()
-    setAdjustments({})
-  }, [activeInstituteId, clearActiveRun])
+  const workspaceKey = buildWorkspaceKey(
+    selectedTerm?.id,
+    branchId,
+    activeInstituteId
+  )
+  const demandData =
+    demandResult?.key === workspaceKey ? demandResult.data : null
+  const adjustments =
+    adjustmentDraft?.key === workspaceKey
+      ? adjustmentDraft.values
+      : EMPTY_ADJUSTMENTS
 
-  // Reset adjustments when term or branch changes
+  // The active scheduling run is external store state and must be cleared
+  // whenever the tenant context changes.
   React.useEffect(() => {
-    setAdjustments({})
-  }, [selectedTerm?.id, branchId])
+    clearActiveRun()
+  }, [activeInstituteId, clearActiveRun])
 
   const handleAdjustmentChange = React.useCallback(
     (courseId: string, changes: CourseAdjustment) => {
-      setAdjustments((prev) => ({
-        ...prev,
-        [courseId]: {
-          ...prev[courseId],
-          ...changes,
-        },
-      }))
+      setAdjustmentDraft((currentDraft) => {
+        const currentValues =
+          currentDraft?.key === workspaceKey
+            ? currentDraft.values
+            : EMPTY_ADJUSTMENTS
+        return {
+          key: workspaceKey,
+          values: {
+            ...currentValues,
+            [courseId]: {
+              ...currentValues[courseId],
+              ...changes,
+            },
+          },
+        }
+      })
     },
-    []
+    [workspaceKey]
   )
 
   const calculateMutation = useMutation({
     ...schedulingResource.calculateDemand.toMutation(),
-    onSuccess: (data) => {
-      setDemandData(data)
+    onSuccess: (data, variables) => {
+      setDemandResult({
+        key: buildWorkspaceKey(
+          variables.termId,
+          variables.branchId,
+          variables.instituteId
+        ),
+        data,
+      })
     },
   })
+  const calculateDemand = calculateMutation.mutate
 
   const applyMutation = useMutation({
     ...schedulingResource.applyDemand.toMutation(),
@@ -95,17 +143,14 @@ export function SchedulingWorkspace() {
   // Automatically trigger demand calculation when eligible term or branch changes
   React.useEffect(() => {
     if (selectedTerm) {
-      calculateMutation.mutate({
+      calculateDemand({
         termId: selectedTerm.id,
         branchId: branchId && branchId !== "all" ? branchId : undefined,
         instituteId: activeInstituteId || undefined,
         defaultCapacity: 14,
       })
-    } else {
-      setDemandData(null)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTerm?.id, branchId, activeInstituteId])
+  }, [selectedTerm, branchId, activeInstituteId, calculateDemand])
 
   const handleGenerateSchedule = React.useCallback(() => {
     if (!selectedTerm) return

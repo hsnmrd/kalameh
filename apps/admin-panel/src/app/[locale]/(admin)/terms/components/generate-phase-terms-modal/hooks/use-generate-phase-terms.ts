@@ -70,9 +70,8 @@ export function useGeneratePhaseTerms({
     enabled: Boolean(activeInstituteId && open),
   })
 
-  const [activeDismissedHolidays, setActiveDismissedHolidays] = React.useState<
-    string[]
-  >([])
+  const [dismissedHolidaysOverride, setDismissedHolidaysOverride] =
+    React.useState<string[] | null>(null)
   const [localCustomOffDays, setLocalCustomOffDays] = React.useState<
     string[] | null
   >(null)
@@ -83,16 +82,12 @@ export function useGeneratePhaseTerms({
     Record<number, string>
   >({})
 
-  React.useEffect(() => {
-    if (institute?.dismissedHolidays) {
-      setActiveDismissedHolidays(institute.dismissedHolidays)
-    }
-  }, [institute?.dismissedHolidays])
-
   const customOffDays = React.useMemo(() => {
     if (localCustomOffDays !== null) return localCustomOffDays
     return rawCustomOffDays?.map((d) => d.date) ?? []
   }, [localCustomOffDays, rawCustomOffDays])
+  const activeDismissedHolidays =
+    dismissedHolidaysOverride ?? institute?.dismissedHolidays ?? []
   const observeOfficialHolidays = institute?.observeOfficialHolidays ?? true
 
   const phaseOptions: ComboboxOption[] = React.useMemo(() => {
@@ -227,7 +222,7 @@ export function useGeneratePhaseTerms({
         ? activeDismissedHolidays.filter((d) => d !== dateYmd)
         : [...activeDismissedHolidays, dateYmd]
 
-      setActiveDismissedHolidays(nextDismissed)
+      setDismissedHolidaysOverride(nextDismissed)
 
       if (proposals.length > 0) {
         const selectedPhase = phases.find((p) => p.id === activePhaseId)
@@ -496,7 +491,7 @@ export function useGeneratePhaseTerms({
     setCustomTitles({})
     setCompensatorySessions({})
     setPinnedStartDates({})
-    setActiveDismissedHolidays(institute?.dismissedHolidays ?? [])
+    setDismissedHolidaysOverride(null)
     setLocalCustomOffDays(null)
     onClose()
   }

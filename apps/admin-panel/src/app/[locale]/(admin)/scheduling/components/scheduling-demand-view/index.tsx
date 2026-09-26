@@ -32,7 +32,6 @@ export interface SchedulingDemandViewProps {
 }
 
 export function SchedulingDemandView({
-  termId: _termId,
   demandData,
   isLoading,
   search = "",
@@ -65,7 +64,10 @@ export function SchedulingDemandView({
     [externalOnAdjustmentChange]
   )
 
-  const courses = demandData?.courses ?? []
+  const courses = React.useMemo(
+    () => demandData?.courses ?? [],
+    [demandData?.courses]
+  )
 
   const filteredItems = React.useMemo(() => {
     if (!search.trim()) return courses
