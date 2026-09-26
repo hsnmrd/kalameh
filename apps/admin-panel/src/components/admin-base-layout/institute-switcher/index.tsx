@@ -2,15 +2,7 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import {
-  Building2,
-  ChevronsUpDown,
-  Check,
-  Search,
-  Globe,
-  ArrowRight,
-  ArrowLeft,
-} from "lucide-react"
+import { Check, Search, Globe, ArrowRight, ArrowLeft } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"

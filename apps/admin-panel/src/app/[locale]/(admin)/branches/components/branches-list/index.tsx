@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Building2, MapPin } from "lucide-react"
-import { Edit2, Trash2 } from "lucide-react"
+import { Edit2 } from "lucide-react"
 import {
   MobileList,
   MobileListItem,

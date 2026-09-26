@@ -21,6 +21,7 @@ describe('SchedulingDemandService', () => {
       update: jest.Mock;
       count: jest.Mock;
     };
+    branch: { findMany: jest.Mock };
     $transaction: jest.Mock;
   };
 

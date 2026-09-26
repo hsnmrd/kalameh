@@ -68,8 +68,6 @@ export default function StudentsPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
-  const totalCount = students?.length ?? 0
-
   return (
     <ModuleGuard module={APP_MODULES.STUDENTS}>
       <PermissionGuard permission={PERMISSIONS.VIEW_STUDENTS} mode="forbidden">

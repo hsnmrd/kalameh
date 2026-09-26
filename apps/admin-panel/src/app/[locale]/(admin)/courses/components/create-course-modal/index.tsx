@@ -18,10 +18,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { PriceInput } from "@workspace/ui/components/price-input"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
-import {
-  ResponsiveCombobox,
-  type ComboboxOption,
-} from "@workspace/ui/components/combobox"
+import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { coursesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"

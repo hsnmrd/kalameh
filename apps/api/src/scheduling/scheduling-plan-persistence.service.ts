@@ -11,6 +11,7 @@ import {
   type SchedulingScoreCriterion,
   type SchedulingUnresolvedEvaluation,
   type SchedulingWarning,
+  type WeekDay,
 } from '@workspace/types';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -327,7 +328,7 @@ export class SchedulingPlanPersistenceService {
           const schedule = calculateTermScheduleFromDateRange({
             startDate: termStartDate,
             endDate: termEndDate,
-            daysOfWeek: proposal.daysOfWeek as any,
+            daysOfWeek: proposal.daysOfWeek as WeekDay[],
             skipHolidays: true,
             observeOfficialHolidays: true,
           });

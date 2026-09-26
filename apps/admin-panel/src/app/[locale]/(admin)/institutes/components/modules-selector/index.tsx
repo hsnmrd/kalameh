@@ -16,7 +16,6 @@ import {
 } from "lucide-react"
 import { APP_MODULES, ALL_APP_MODULES, type AppModule } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 
 export interface ModulesSelectorProps {

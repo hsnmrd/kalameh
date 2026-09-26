@@ -4,7 +4,6 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { FileSpreadsheet, Download, MoreVertical } from "lucide-react"
 import { PERMISSIONS } from "@workspace/types"
-import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   DropdownMenu,

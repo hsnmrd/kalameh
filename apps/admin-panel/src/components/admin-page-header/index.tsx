@@ -1,12 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { useLocale } from "next-intl"
 import { Plus } from "lucide-react"
 import type { Permission } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
-import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { cn } from "@workspace/ui/lib/utils"
 import { PermissionGuard, type PermissionGuardMode } from "../permission-guard"
 
 export { AdminPageHeaderFilterButton } from "./filter-button"
@@ -37,15 +35,12 @@ export interface AdminPageHeaderProps {
 export function AdminPageHeader({
   title,
   subtitle,
-  count,
-  countIcon: CountIcon,
   action,
   actions,
   mobileActions,
   children,
   className,
 }: AdminPageHeaderProps) {
-  const locale = useLocale()
   const ActionIcon = action?.icon || Plus
 
   const renderActionButton = () => {

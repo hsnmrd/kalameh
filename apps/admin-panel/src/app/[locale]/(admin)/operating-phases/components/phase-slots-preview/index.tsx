@@ -3,10 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Clock, Coffee, Sparkles } from "lucide-react"
-import type {
-  PhaseGeneratedSlot,
-  PhaseSlotsCalculationResult,
-} from "@workspace/types"
+import type { PhaseSlotsCalculationResult } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 import { PhaseRemainderWarning } from "../phase-remainder-warning"

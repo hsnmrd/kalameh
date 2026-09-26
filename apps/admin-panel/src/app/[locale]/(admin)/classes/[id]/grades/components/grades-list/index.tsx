@@ -9,9 +9,6 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import {
   MobileList,
   MobileListItem,
-  MobileListItemIcon,
-  MobileListItemContent,
-  MobileListItemTrailing,
 } from "@workspace/ui/components/mobile-list"
 import {
   Empty,

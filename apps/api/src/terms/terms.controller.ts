@@ -82,7 +82,7 @@ export class TermsController {
     let parsedPatterns: WeekDay[][] | undefined;
     if (classPatterns) {
       try {
-        parsedPatterns = JSON.parse(classPatterns);
+        parsedPatterns = JSON.parse(classPatterns) as WeekDay[][];
       } catch {
         // ignore invalid json
       }

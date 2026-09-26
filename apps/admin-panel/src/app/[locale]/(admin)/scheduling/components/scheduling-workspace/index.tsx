@@ -5,11 +5,7 @@ import { useTranslations } from "next-intl"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { Calendar, CalendarClock } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
-import type {
-  ApplyTermDemandItem,
-  SchedulingRunDto,
-  TermDemandReportDto,
-} from "@workspace/types"
+import type { ApplyTermDemandItem, TermDemandReportDto } from "@workspace/types"
 import {
   Empty,
   EmptyDescription,

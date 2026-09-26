@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
@@ -57,7 +57,6 @@ export function EditOperatingPhaseModal({
     handleSubmit,
     control,
     reset,
-    watch,
     setValue,
     getValues,
     clearErrors,
@@ -99,14 +98,14 @@ export function EditOperatingPhaseModal({
     }
   }, [phase, open, reset])
 
-  const watchedTitle = watch("title")
-  const watchedMonths = watch("months")
-  const watchedStartTime = watch("startTime")
-  const watchedEndTime = watch("endTime")
-  const watchedDuration = watch("slotDurationMinutes")
-  const watchedHasBreak = watch("hasBreak")
-  const watchedBreakStartTime = watch("breakStartTime")
-  const watchedBreakEndTime = watch("breakEndTime")
+  const watchedTitle = useWatch({ control, name: "title" })
+  const watchedMonths = useWatch({ control, name: "months" })
+  const watchedStartTime = useWatch({ control, name: "startTime" })
+  const watchedEndTime = useWatch({ control, name: "endTime" })
+  const watchedDuration = useWatch({ control, name: "slotDurationMinutes" })
+  const watchedHasBreak = useWatch({ control, name: "hasBreak" })
+  const watchedBreakStartTime = useWatch({ control, name: "breakStartTime" })
+  const watchedBreakEndTime = useWatch({ control, name: "breakEndTime" })
 
   const suggestedBreak = React.useMemo(() => {
     return suggestPhaseBreakWindow(

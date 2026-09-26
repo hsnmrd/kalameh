@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@workspace/database';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   JwtPayload,
@@ -24,7 +25,9 @@ export class AuditLogsService {
           action: input.action.toUpperCase(),
           description: input.description ?? null,
           metadata: input.metadata
-            ? JSON.parse(JSON.stringify(input.metadata))
+            ? (JSON.parse(
+                JSON.stringify(input.metadata),
+              ) as Prisma.InputJsonValue)
             : undefined,
         },
       });

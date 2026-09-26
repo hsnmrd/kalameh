@@ -15,12 +15,11 @@ import {
   EmptyDescription,
 } from "@workspace/ui/components/empty"
 import Image from "next/image"
-import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
+import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type AuthUser } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { UserRoleBadge } from "../user-role-badge"
 import { UserStatusBadge } from "../user-status-badge"
-import { UserCard } from "../user-card"
 
 export interface UsersTableProps {
   users: AuthUser[] | undefined

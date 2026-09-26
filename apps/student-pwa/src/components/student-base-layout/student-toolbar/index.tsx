@@ -16,8 +16,6 @@ export interface StudentToolbarProps {
 
 export function StudentToolbar({
   isHomePage,
-  locale,
-  onSwitchLanguage,
   onLogout,
   isLogoutPending,
 }: StudentToolbarProps) {

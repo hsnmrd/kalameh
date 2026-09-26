@@ -16,11 +16,10 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from "@workspace/ui/components/empty"
-import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
+import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { StudentStatusBadge } from "../student-status-badge"
-import { StudentCard } from "../student-card"
 import type { StudentsTableProps } from "./types"
 
 export function StudentsTable({

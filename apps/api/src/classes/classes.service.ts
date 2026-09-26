@@ -526,7 +526,7 @@ export class ClassesService {
       dto.sessionDates !== undefined ? dto.sessionDates : existing.sessionDates;
 
     const targetTeacherId =
-      dto.teacherId !== undefined ? dto.teacherId : (existing as any).teacherId;
+      dto.teacherId !== undefined ? dto.teacherId : existing.teacherId;
     let targetTeacherName =
       dto.teacherName !== undefined ? dto.teacherName : existing.teacherName;
 

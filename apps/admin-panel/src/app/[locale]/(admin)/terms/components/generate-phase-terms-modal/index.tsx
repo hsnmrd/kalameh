@@ -36,7 +36,6 @@ export function GeneratePhaseTermsModal({
     setSessionsPerTerm,
     daysPerTerm,
     setDaysPerTerm,
-    activeClassPatterns,
     gapDays,
     setGapDays,
     proposals,

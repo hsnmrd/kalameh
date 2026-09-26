@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
@@ -99,21 +99,21 @@ export function useEditClassForm(
     },
   })
 
-  const { reset, watch, setValue } = form
+  const { control, reset, setValue } = form
 
-  const selectedTermId = watch("termId")
+  const selectedTermId = useWatch({ control, name: "termId" })
   const selectedTerm = React.useMemo(
     () => terms.find((tm) => tm.id === selectedTermId),
     [terms, selectedTermId]
   )
 
-  const selectedTeacherId = watch("teacherId")
+  const selectedTeacherId = useWatch({ control, name: "teacherId" })
   const selectedTeacher = React.useMemo(
     () => teachers.find((tch) => tch.id === selectedTeacherId) || null,
     [teachers, selectedTeacherId]
   )
 
-  const selectedBranchId = watch("branchId")
+  const selectedBranchId = useWatch({ control, name: "branchId" })
   const filteredClassrooms = React.useMemo(() => {
     if (!selectedBranchId) return classrooms
     return classrooms.filter(
@@ -130,12 +130,12 @@ export function useEditClassForm(
     [filteredClassrooms, t]
   )
 
-  const selectedClassroomId = watch("classroomId")
+  const selectedClassroomId = useWatch({ control, name: "classroomId" })
   const selectedClassroom = React.useMemo(
     () => classrooms.find((r) => r.id === selectedClassroomId),
     [classrooms, selectedClassroomId]
   )
-  const classCapacity = watch("capacity") || 0
+  const classCapacity = useWatch({ control, name: "capacity" }) || 0
   const isCapacityExceeded = Boolean(
     selectedClassroom && classCapacity > selectedClassroom.capacity
   )

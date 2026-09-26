@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations, useLocale } from "next-intl"
+import { useTranslations } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Users, CheckCircle2, XCircle, Info, GraduationCap } from "lucide-react"
+import { Users, CheckCircle2, XCircle, Info } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -15,7 +15,6 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from "@workspace/ui/components/empty"
-import { cn } from "@workspace/ui/lib/utils"
 import {
   PERMISSIONS,
   type ClassGradeRecordDto,
@@ -33,8 +32,6 @@ export function GradesTable({
   onSubmit,
 }: GradesTableProps) {
   const t = useTranslations("grades")
-  const locale = useLocale()
-
   const [gradeOverrides, setGradeOverrides] = React.useState<
     Record<string, { finalScore?: number; isPassed?: boolean }>
   >({})

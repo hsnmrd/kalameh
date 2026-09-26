@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, Trash2 } from "lucide-react"
@@ -42,7 +42,6 @@ export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
     handleSubmit,
     control,
     reset,
-    watch,
     setValue,
     getValues,
     formState: { errors },
@@ -56,7 +55,7 @@ export function CreateBranchModal({ open, onClose }: CreateBranchModalProps) {
     },
   })
 
-  const phones = watch("phones") || [""]
+  const phones = useWatch({ control, name: "phones" }) || [""]
 
   const handleAddPhone = () => {
     const current = getValues("phones") || []

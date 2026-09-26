@@ -17,6 +17,7 @@ import {
   type SetSchedulingProposalLockInput,
   type SupportedLocale,
   type UpdateSchedulingProposalInput,
+  type WeekDay,
 } from '@workspace/types';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -321,7 +322,7 @@ export class SchedulingPlanReviewService {
           const schedule = calculateTermScheduleFromDateRange({
             startDate: termDates.startDate,
             endDate: termDates.endDate,
-            daysOfWeek: merged.daysOfWeek as any,
+            daysOfWeek: merged.daysOfWeek as WeekDay[],
             skipHolidays: true,
             observeOfficialHolidays: true,
           });

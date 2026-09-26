@@ -4,7 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { cn } from "@workspace/ui/lib/utils"
 
 export interface CalendarToolbarProps {
   selectedYear: number

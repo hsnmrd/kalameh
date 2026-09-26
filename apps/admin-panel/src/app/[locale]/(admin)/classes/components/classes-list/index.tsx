@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { Layers, Edit2, GraduationCap, Eye, Trash2 } from "lucide-react"
-import { Link, useRouter } from "@/i18n/routing"
+import { useRouter } from "@/i18n/routing"
 import {
   MobileList,
   MobileListItem,

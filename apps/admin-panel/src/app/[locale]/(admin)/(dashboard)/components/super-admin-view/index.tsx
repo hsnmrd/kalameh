@@ -9,8 +9,6 @@ import {
   Activity,
   ArrowRight,
   ArrowLeft,
-  ChevronRight,
-  ChevronLeft,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -23,8 +21,6 @@ export function SuperAdminView() {
   const t = useTranslations("dashboard.superAdmin")
   const isRtl = useIsRtl()
   const ActionArrow = isRtl ? ArrowLeft : ArrowRight
-  const ChevronIcon = isRtl ? ChevronLeft : ChevronRight
-
   const { institutes, isLoadingInstitutes, selectInstitute } =
     useActiveInstitute()
 

@@ -5,6 +5,8 @@ import {
   type CalculateTermDemandInput,
   type CourseDemandSummaryDto,
   type JwtPayload,
+  type StudentDayPreference,
+  type StudentSchoolShift,
   type TermDemandReportDto,
 } from '@workspace/types';
 import { PrismaService } from '../prisma/prisma.service';
@@ -146,8 +148,8 @@ export class SchedulingDemandService {
       Map<
         string,
         {
-          schoolShift?: string | null;
-          dayPreference?: string | null;
+          schoolShift?: StudentSchoolShift | null;
+          dayPreference?: StudentDayPreference | null;
         }
       >
     >();
@@ -206,7 +208,14 @@ export class SchedulingDemandService {
 
     const courseSummaries: CourseDemandSummaryDto[] = courses.map((course) => {
       const continuingMap =
-        continuingStudentsByCourseId.get(course.id) ?? new Map();
+        continuingStudentsByCourseId.get(course.id) ??
+        new Map<
+          string,
+          {
+            schoolShift?: StudentSchoolShift | null;
+            dayPreference?: StudentDayPreference | null;
+          }
+        >();
       const continuingStudentsCount = continuingMap.size;
 
       const placedStudents = students.filter(

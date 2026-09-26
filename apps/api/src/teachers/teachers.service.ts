@@ -141,7 +141,7 @@ export class TeachersService {
       },
     });
 
-    const { password, ...safeTeacher } = teacher;
+    const { password: _password, ...safeTeacher } = teacher;
     return safeTeacher;
   }
 
@@ -443,7 +443,7 @@ export class TeachersService {
       },
     });
 
-    const { password, ...safeTeacher } = updated;
+    const { password: _password, ...safeTeacher } = updated;
     return safeTeacher;
   }
 
@@ -650,7 +650,7 @@ export class TeachersService {
   async remove(
     currentUser: JwtPayload,
     id: string,
-    locale: SupportedLocale = 'fa',
+    _locale: SupportedLocale = 'fa',
   ) {
     const teacher = await this.prisma.user.findFirstOrThrow({
       where: {

@@ -2,11 +2,10 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { CheckCircle2, RotateCcw, Save } from "lucide-react"
+import { RotateCcw, Save } from "lucide-react"
 import { PERMISSIONS } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { Badge } from "@workspace/ui/components/badge"
 import { PermissionGuard } from "@/components/permission-guard"
 
 export interface RolePermissionsStickyBarProps {
@@ -24,7 +23,6 @@ export function RolePermissionsStickyBar({
   isSaving,
   isResetting,
   hasChanges,
-  selectedPermissionsCount,
 }: RolePermissionsStickyBarProps) {
   const t = useTranslations("rolePermissions")
 

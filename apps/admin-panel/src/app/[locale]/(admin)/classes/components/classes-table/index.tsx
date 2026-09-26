@@ -17,7 +17,7 @@ import {
   EmptyDescription,
 } from "@workspace/ui/components/empty"
 import { Price } from "@workspace/ui/components/price"
-import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type ClassDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 

@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { AdminSearchInput } from "@/components/admin-search-input"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
-import type { SchedulingTermStatus } from "@workspace/types"
 
 export interface SchedulingTermsFilterProps {
   search: string

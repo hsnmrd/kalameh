@@ -3,9 +3,12 @@
 import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
+import { Button } from "@workspace/ui/components/button"
 import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
 
-export interface UserBadgeTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface UserBadgeTriggerProps extends React.ComponentPropsWithoutRef<
+  typeof Button
+> {
   hasActiveInstitute: boolean
   activeInstituteName?: string
   activeInstituteSubdomain?: string
@@ -24,13 +27,11 @@ export const UserBadgeTrigger = React.forwardRef<
   {
     hasActiveInstitute,
     activeInstituteName,
-    activeInstituteSubdomain,
     activeInstituteLogoUrl,
     activeInstitutePrimaryColor,
     userAvatarUrl,
     fullName,
     userInitial,
-    roleLabel,
     className,
     ...props
   },
@@ -54,9 +55,10 @@ export const UserBadgeTrigger = React.forwardRef<
   const fallbackInitial = hasActiveInstitute ? instituteInitial : userInitial
 
   return (
-    <button
+    <Button
       ref={ref}
       type="button"
+      size="icon"
       className={cn(
         "relative flex aspect-square size-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border shadow-xs transition-all select-none hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-hidden active:scale-95",
         hasActiveInstitute
@@ -87,6 +89,6 @@ export const UserBadgeTrigger = React.forwardRef<
       ) : (
         <span className="text-xs font-bold">{fallbackInitial}</span>
       )}
-    </button>
+    </Button>
   )
 })
