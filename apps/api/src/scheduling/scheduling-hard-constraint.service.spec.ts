@@ -85,7 +85,7 @@ describe('MVP-018 SchedulingHardConstraintService', () => {
     expect(result.accepted[0]).toMatchObject({
       classroomId: ids.classroom,
       deliveryMode: 'IN_PERSON',
-      capacity: 12,
+      capacity: 20,
     });
   });
 

@@ -8,11 +8,14 @@ type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 const mockProposals: Proposal[] = [
   {
     id: "prop-1",
+    planId: "plan-1",
+    instituteId: "inst-1",
     title: "کلاس صبح سطح A1",
     course: { id: "c1", title: "American English File 1" },
     teacher: { id: "t1", firstName: "علی", lastName: "محمدی" },
     branch: { id: "b1", name: "شعبه مرکزی" },
     classroom: { id: "cr1", name: "کلاس ۱۰۱", capacity: 15 },
+    capacity: 15,
     daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
     startTime: "09:00",
     endTime: "10:30",
@@ -24,11 +27,14 @@ const mockProposals: Proposal[] = [
   },
   {
     id: "prop-2",
+    planId: "plan-1",
+    instituteId: "inst-1",
     title: "کلاس عصر سطح A2",
     course: { id: "c2", title: "American English File 2" },
     teacher: { id: "t2", firstName: "مریم", lastName: "رضایی" },
     branch: { id: "b1", name: "شعبه مرکزی" },
     classroom: { id: "cr2", name: "کلاس ۱۰۲", capacity: 20 },
+    capacity: 14,
     daysOfWeek: ["SATURDAY"],
     startTime: "16:00",
     endTime: "17:30",
@@ -143,5 +149,69 @@ describe("SchedulingPlanCalendarView Component", () => {
     const sunHeader = container.querySelector('[data-day-header="SUNDAY"]')
     expect(sunHeader).toHaveTextContent("یکشنبه")
     expect(sunHeader).toHaveTextContent("تعطیل هفتگی")
+  })
+
+  it("renders capacity stepper with limits and disables plus when max is reached", () => {
+    const editableProposals: Proposal[] = [
+      ...mockProposals,
+      {
+        id: "prop-3",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "کلاس سطح B1",
+        course: { id: "c3", title: "American English File 3" },
+        teacher: { id: "t3", firstName: "سارا", lastName: "احمدی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr3", name: "کلاس ۱۰۳", capacity: 20 },
+        capacity: 14,
+        daysOfWeek: ["SUNDAY"],
+        startTime: "09:00",
+        endTime: "10:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={editableProposals}
+        canEdit={true}
+      />
+    )
+
+    // prop-1 has capacity 15 and max room capacity 15 (at max)
+    // prop-3 has capacity 14 and max room capacity 20 (below max, unlocked)
+    expect(screen.getAllByText("ظرفیت").length).toBeGreaterThanOrEqual(2)
+
+    // Check displays
+    expect(screen.getAllByText(/\/\s*(15|۱۵)/).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(/\/\s*(20|۲۰)/).length).toBeGreaterThanOrEqual(1)
+
+    // For prop-1 (at max capacity 15/15), the plus button is disabled
+    const prop1Card = screen.getAllByRole("article", {
+      name: "American English File 1",
+    })[0]
+    expect(prop1Card).toBeDefined()
+    const prop1Plus = within(prop1Card!).getByRole("button", {
+      name: "افزایش ظرفیت",
+    })
+    expect(prop1Plus).toBeDisabled()
+
+    // For prop-3 (unlocked and at 14/20), the plus and minus buttons are enabled
+    const prop3Card = screen.getByRole("article", {
+      name: "American English File 3",
+    })
+    expect(prop3Card).toBeDefined()
+    const prop3Plus = within(prop3Card).getByRole("button", {
+      name: "افزایش ظرفیت",
+    })
+    expect(prop3Plus).not.toBeDisabled()
+    const prop3Minus = within(prop3Card).getByRole("button", {
+      name: "کاهش ظرفیت",
+    })
+    expect(prop3Minus).not.toBeDisabled()
   })
 })

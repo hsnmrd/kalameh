@@ -285,7 +285,11 @@
       "weekendOff": "Weekend off",
       "allInOneNotice": "Sample week schedule (repeats weekly throughout the term)",
       "timeColumn": "Time",
-      "timeTo": "to"
+      "timeTo": "to",
+      "increaseCapacity": "Increase capacity",
+      "decreaseCapacity": "Decrease capacity",
+      "maxCapacity": "Max {max} students",
+      "capacityLabel": "Capacity: {current} of {max}"
     },
     "weekDays": {
       "SATURDAY": "Saturday",

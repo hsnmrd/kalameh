@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import {
   Building2,
   Globe,
@@ -11,10 +11,9 @@ import {
   User,
 } from "lucide-react"
 import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
-import { Badge } from "@workspace/ui/components/badge"
-import { formatNumber } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
 import { SchedulingProposalActions } from "../scheduling-proposal-actions"
+import { SchedulingProposalCapacityStepper } from "../scheduling-proposal-capacity-stepper"
 import { SchedulingProposalEditDialog } from "../scheduling-proposal-edit-dialog"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
@@ -29,7 +28,6 @@ export function SchedulingPlanCalendarClassCard({
   canEdit,
 }: SchedulingPlanCalendarClassCardProps) {
   const t = useTranslations("scheduling.planDetails")
-  const locale = useLocale()
   const [isEditOpen, setIsEditOpen] = React.useState(false)
 
   const teacherName = `${proposal.teacher.firstName} ${proposal.teacher.lastName}`
@@ -115,13 +113,14 @@ export function SchedulingPlanCalendarClassCard({
               <Building2 aria-hidden className="size-3 shrink-0" />
             )}
             <span className="truncate">{locationName}</span>
-            {proposal.classroom?.capacity && (
-              <Badge variant="outline" className="h-3.5 px-1 py-0 text-[9px]">
-                {formatNumber(proposal.classroom.capacity, locale)}
-              </Badge>
-            )}
           </div>
         </div>
+
+        {/* Capacity Stepper */}
+        <SchedulingProposalCapacityStepper
+          proposal={proposal}
+          canEdit={canEdit}
+        />
       </article>
 
       {isEditOpen && (

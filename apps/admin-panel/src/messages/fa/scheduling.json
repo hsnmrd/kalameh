@@ -285,7 +285,11 @@
       "weekendOff": "تعطیل هفتگی",
       "allInOneNotice": "برنامه یک هفته نمونه (تکرار هفتگی در طول ترم)",
       "timeColumn": "ساعت",
-      "timeTo": "تا"
+      "timeTo": "تا",
+      "increaseCapacity": "افزایش ظرفیت",
+      "decreaseCapacity": "کاهش ظرفیت",
+      "maxCapacity": "حداکثر {max} نفر",
+      "capacityLabel": "ظرفیت: {current} از {max}"
     },
     "weekDays": {
       "SATURDAY": "شنبه",
