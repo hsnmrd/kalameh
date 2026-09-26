@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { Calendar, CalendarClock } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
-import type { ApplyTermDemandItem, TermDemandReportDto } from "@workspace/types"
+import type { TermDemandReportDto } from "@workspace/types"
 import {
   Empty,
   EmptyDescription,
@@ -25,17 +25,11 @@ import {
 } from "../scheduling-demand-view"
 import { SchedulingFab } from "../scheduling-fab"
 import { SchedulingFilter } from "../scheduling-filter"
-
-const EMPTY_ADJUSTMENTS: Record<string, CourseAdjustment> = {}
-
-function buildWorkspaceKey(
-  termId?: string,
-  branchId?: string | null,
-  instituteId?: string | null
-) {
-  const normalizedBranchId = branchId === "all" ? "" : (branchId ?? "")
-  return `${instituteId ?? ""}:${termId ?? ""}:${normalizedBranchId}`
-}
+import {
+  buildDemandItems,
+  buildWorkspaceKey,
+  EMPTY_ADJUSTMENTS,
+} from "./helper/demand-items"
 
 export function SchedulingWorkspace() {
   const t = useTranslations("scheduling")
@@ -161,30 +155,7 @@ export function SchedulingWorkspace() {
       return
     }
 
-    const items: ApplyTermDemandItem[] = courses
-      .map((c) => {
-        const adj = adjustments[c.courseId]
-        const requiredClassCount = Math.min(
-          50,
-          Math.max(0, adj?.suggestedClassCount ?? c.suggestedClassCount)
-        )
-        const capacity = Math.min(
-          100,
-          Math.max(1, adj?.capacity ?? c.suggestedCapacity ?? 14)
-        )
-        return {
-          courseId: c.courseId,
-          requiredClassCount,
-          capacity,
-          deliveryMode:
-            c.suggestedOnlineCount > c.suggestedInPersonCount
-              ? ("ONLINE" as const)
-              : ("IN_PERSON" as const),
-          sessionDurationMinutes: 90,
-          sessionsPerWeek: c.sessionsPerWeek ?? 3,
-        }
-      })
-      .filter((item) => item.requiredClassCount > 0)
+    const items = buildDemandItems(courses, adjustments)
 
     if (items.length === 0) {
       router.push("/scheduling/generate")

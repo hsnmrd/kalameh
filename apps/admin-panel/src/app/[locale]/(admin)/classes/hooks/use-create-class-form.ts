@@ -4,22 +4,16 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
-import {
-  classesResource,
-  termsResource,
-  coursesResource,
-  branchesResource,
-  classroomsResource,
-  teachersResource,
-} from "@/lib/api"
+import { classesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import {
   useCreateClassSchema,
   type CreateClassInput,
 } from "./use-class-schemas"
 import { getCreateClassDefaults } from "./create-class-form-utils"
+import { useCreateClassOptions } from "./use-create-class-options"
 
 export function useCreateClassForm(open: boolean, onClose: () => void) {
   const t = useTranslations("classes")
@@ -27,56 +21,18 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
   const { activeInstituteId } = useActiveInstitute()
   const createClassSchema = useCreateClassSchema()
 
-  const queryParams = activeInstituteId
-    ? { instituteId: activeInstituteId }
-    : undefined
-
-  const { data: terms = [] } = useQuery({
-    ...termsResource.list.toQuery(queryParams),
-    enabled: open && !!activeInstituteId,
-  })
-  const { data: courses = [] } = useQuery({
-    ...coursesResource.list.toQuery(queryParams),
-    enabled: open && !!activeInstituteId,
-  })
-  const { data: branches = [] } = useQuery({
-    ...branchesResource.list.toQuery(queryParams),
-    enabled: open && !!activeInstituteId,
-  })
-  const { data: classrooms = [] } = useQuery({
-    ...classroomsResource.list.toQuery(queryParams),
-    enabled: open && !!activeInstituteId,
-  })
-  const { data: teachers = [] } = useQuery({
-    ...teachersResource.list.toQuery({
-      ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
-      isActive: true,
-    }),
-    enabled: open && !!activeInstituteId,
-  })
-
-  const termOptions = React.useMemo(
-    () => terms.map((tm) => ({ value: tm.id, label: tm.title })),
-    [terms]
-  )
-  const courseOptions = React.useMemo(
-    () => courses.map((c) => ({ value: c.id, label: c.title })),
-    [courses]
-  )
-  const branchOptions = React.useMemo(
-    () => branches.map((b) => ({ value: b.id, label: b.name })),
-    [branches]
-  )
-  const teacherOptions = React.useMemo(
-    () =>
-      teachers.map((tch) => ({
-        value: tch.id,
-        label: `${tch.firstName} ${tch.lastName}`,
-      })),
-    [teachers]
-  )
-
-  const singleBranchId = branches.length === 1 ? branches[0]?.id || null : null
+  const {
+    t: classTranslations,
+    terms,
+    courses,
+    classrooms,
+    teachers,
+    termOptions,
+    courseOptions,
+    branchOptions,
+    teacherOptions,
+    singleBranchId,
+  } = useCreateClassOptions(open, activeInstituteId)
 
   const form = useForm<CreateClassInput>({
     resolver: zodResolver(createClassSchema),
@@ -110,9 +66,9 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
     () =>
       filteredClassrooms.map((r) => ({
         value: r.id,
-        label: `${r.name} (${r.capacity} ${t("createModal.capacity") || "نفر"})`,
+        label: `${r.name} (${r.capacity} ${classTranslations("createModal.capacity") || "نفر"})`,
       })),
-    [filteredClassrooms, t]
+    [filteredClassrooms, classTranslations]
   )
 
   const selectedClassroomId = useWatch({ control, name: "classroomId" })

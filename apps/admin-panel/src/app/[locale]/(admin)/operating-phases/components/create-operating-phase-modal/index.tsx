@@ -2,34 +2,26 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { useForm, Controller, useWatch } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import {
   FormDialog,
+  FormDialogCloseButton,
   FormDialogContent,
   FormDialogHeader,
   FormDialogTitle,
-  FormDialogCloseButton,
-  FormDialogFooter,
 } from "@workspace/ui/components/dialog"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
-import { Spinner } from "@workspace/ui/components/spinner"
-import { RotateCcw } from "lucide-react"
 import { calculatePhaseSlots, suggestPhaseBreakWindow } from "@workspace/types"
 import { operatingPhasesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { MonthsSelector } from "../months-selector"
-import { PhaseSlotsReview } from "../phase-slots-review"
-import { PhaseRemainderWarning } from "../phase-remainder-warning"
-import { PhaseBreakSection } from "../phase-break-section"
 import {
   useCreateOperatingPhaseSchema,
   type CreateOperatingPhaseInput,
 } from "../../hooks/use-operating-phase-schemas"
+import { PhaseSlotsReview } from "../phase-slots-review"
+import { FormStep } from "./form-step"
 
 export interface CreateOperatingPhaseModalProps {
   open: boolean
@@ -65,61 +57,42 @@ export function CreateOperatingPhaseModal({
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
   const createSchema = useCreateOperatingPhaseSchema()
-
   const [step, setStep] = React.useState<"form" | "review">("form")
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    setValue,
-    getValues,
-    clearErrors,
-    trigger,
-    formState: { errors },
-  } = useForm<CreateOperatingPhaseInput>({
+  const form = useForm<CreateOperatingPhaseInput>({
     resolver: zodResolver(createSchema),
     defaultValues: DEFAULT_VALUES,
   })
+  const { control, reset, getValues } = form
+  const title = useWatch({ control, name: "title" })
+  const months = useWatch({ control, name: "months" })
+  const startTime = useWatch({ control, name: "startTime" })
+  const endTime = useWatch({ control, name: "endTime" })
+  const duration = useWatch({ control, name: "slotDurationMinutes" })
+  const hasBreak = useWatch({ control, name: "hasBreak" })
+  const breakStartTime = useWatch({ control, name: "breakStartTime" })
+  const breakEndTime = useWatch({ control, name: "breakEndTime" })
 
-  const watchedTitle = useWatch({ control, name: "title" })
-  const watchedMonths = useWatch({ control, name: "months" })
-  const watchedStartTime = useWatch({ control, name: "startTime" })
-  const watchedEndTime = useWatch({ control, name: "endTime" })
-  const watchedDuration = useWatch({ control, name: "slotDurationMinutes" })
-  const watchedHasBreak = useWatch({ control, name: "hasBreak" })
-  const watchedBreakStartTime = useWatch({ control, name: "breakStartTime" })
-  const watchedBreakEndTime = useWatch({ control, name: "breakEndTime" })
-
-  const suggestedBreak = React.useMemo(() => {
-    return suggestPhaseBreakWindow(
-      watchedStartTime || "15:00",
-      watchedEndTime || "21:00",
-      Number(watchedDuration) || 90,
-      60
-    )
-  }, [watchedStartTime, watchedEndTime, watchedDuration])
-
-  const liveCalculation = React.useMemo(() => {
-    return calculatePhaseSlots(
-      watchedStartTime || "15:00",
-      watchedEndTime || "21:00",
-      Number(watchedDuration) || 90,
-      {
-        hasBreak: watchedHasBreak,
-        breakStartTime: watchedBreakStartTime,
-        breakEndTime: watchedBreakEndTime,
-      }
-    )
-  }, [
-    watchedStartTime,
-    watchedEndTime,
-    watchedDuration,
-    watchedHasBreak,
-    watchedBreakStartTime,
-    watchedBreakEndTime,
-  ])
+  const suggestedBreak = React.useMemo(
+    () =>
+      suggestPhaseBreakWindow(
+        startTime || "15:00",
+        endTime || "21:00",
+        Number(duration) || 90,
+        60
+      ),
+    [startTime, endTime, duration]
+  )
+  const calculation = React.useMemo(
+    () =>
+      calculatePhaseSlots(
+        startTime || "15:00",
+        endTime || "21:00",
+        Number(duration) || 90,
+        { hasBreak, breakStartTime, breakEndTime }
+      ),
+    [startTime, endTime, duration, hasBreak, breakStartTime, breakEndTime]
+  )
 
   const handleClose = React.useCallback(() => {
     setStep("form")
@@ -138,11 +111,7 @@ export function CreateOperatingPhaseModal({
     },
   })
 
-  const onFormSubmit = () => {
-    setStep("review")
-  }
-
-  const onConfirmCreate = () => {
+  const handleConfirm = () => {
     const values = getValues()
     createMutation.mutate({
       ...values,
@@ -165,189 +134,32 @@ export function CreateOperatingPhaseModal({
         </FormDialogHeader>
 
         {step === "form" ? (
-          <form
-            onSubmit={handleSubmit(onFormSubmit)}
-            className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
-          >
-            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-              {/* Title */}
-              <Field>
-                <FieldLabel htmlFor="create-phase-title">
-                  {t("form.titleLabel")}
-                </FieldLabel>
-                <Input
-                  id="create-phase-title"
-                  placeholder={t("form.titlePlaceholder")}
-                  {...register("title")}
-                  disabled={createMutation.isPending}
-                />
-                {errors.title && (
-                  <FieldError>{errors.title.message}</FieldError>
-                )}
-              </Field>
-
-              {/* Months Selection */}
-              <Field>
-                <div className="flex items-center justify-between">
-                  <FieldLabel>{t("form.monthsLabel")}</FieldLabel>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setValue("months", [], {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                      })
-                      trigger("months")
-                    }}
-                    disabled={
-                      createMutation.isPending ||
-                      !watchedMonths ||
-                      watchedMonths.length === 0
-                    }
-                    className="h-auto cursor-pointer gap-1 p-0 text-xs font-normal text-muted-foreground hover:bg-transparent hover:text-destructive disabled:pointer-events-none disabled:opacity-40"
-                  >
-                    <RotateCcw className="size-3 text-muted-foreground" />
-                    <span>{t("form.clearMonths")}</span>
-                  </Button>
-                </div>
-                <Controller
-                  name="months"
-                  control={control}
-                  render={({ field }) => (
-                    <MonthsSelector
-                      value={field.value}
-                      onChange={(nextMonths) => {
-                        field.onChange(nextMonths)
-                        if (nextMonths.length > 0) {
-                          clearErrors("months")
-                        } else {
-                          trigger("months")
-                        }
-                      }}
-                      disabled={createMutation.isPending}
-                      hasError={Boolean(errors.months)}
-                    />
-                  )}
-                />
-              </Field>
-
-              {/* Times and Duration Grid */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <Field>
-                  <FieldLabel htmlFor="create-phase-start-time">
-                    {t("form.startTimeLabel")}
-                  </FieldLabel>
-                  <Input
-                    id="create-phase-start-time"
-                    type="time"
-                    {...register("startTime")}
-                    disabled={createMutation.isPending}
-                    className="text-center"
-                  />
-                  {errors.startTime && (
-                    <FieldError>{errors.startTime.message}</FieldError>
-                  )}
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="create-phase-end-time">
-                    {t("form.endTimeLabel")}
-                  </FieldLabel>
-                  <Input
-                    id="create-phase-end-time"
-                    type="time"
-                    {...register("endTime")}
-                    disabled={createMutation.isPending}
-                    className="text-center"
-                  />
-                  {errors.endTime && (
-                    <FieldError>{errors.endTime.message}</FieldError>
-                  )}
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="create-phase-duration">
-                    {t("form.durationLabel")}
-                  </FieldLabel>
-                  <Input
-                    id="create-phase-duration"
-                    type="number"
-                    min={15}
-                    max={240}
-                    {...register("slotDurationMinutes", {
-                      valueAsNumber: true,
-                    })}
-                    disabled={createMutation.isPending}
-                    className="text-center"
-                  />
-                  {errors.slotDurationMinutes && (
-                    <FieldError>
-                      {errors.slotDurationMinutes.message}
-                    </FieldError>
-                  )}
-                </Field>
-              </div>
-
-              {/* Break Window Section */}
-              <PhaseBreakSection
-                idPrefix="create-phase"
-                hasBreak={Boolean(watchedHasBreak)}
-                onHasBreakChange={(val) =>
-                  setValue("hasBreak", val, { shouldValidate: true })
-                }
-                breakStartTime={watchedBreakStartTime}
-                onBreakStartTimeChange={(val) =>
-                  setValue("breakStartTime", val, { shouldValidate: true })
-                }
-                breakEndTime={watchedBreakEndTime}
-                onBreakEndTimeChange={(val) =>
-                  setValue("breakEndTime", val, { shouldValidate: true })
-                }
-                suggestedBreak={suggestedBreak}
-                errors={errors}
-                disabled={createMutation.isPending}
-              />
-
-              {/* Remainder Warning (Extra Unused Time) */}
-              <PhaseRemainderWarning
-                calculation={liveCalculation}
-                slotDurationMinutes={Number(watchedDuration) || 90}
-              />
-            </div>
-
-            <FormDialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={createMutation.isPending}
-              >
-                {t("form.cancel")}
-              </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? (
-                  <Spinner className="size-4" />
-                ) : (
-                  <span>{t("form.submit")}</span>
-                )}
-              </Button>
-            </FormDialogFooter>
-          </form>
+          <FormStep
+            form={form}
+            months={months}
+            hasBreak={hasBreak}
+            breakStartTime={breakStartTime}
+            breakEndTime={breakEndTime}
+            duration={duration}
+            suggestedBreak={suggestedBreak}
+            calculation={calculation}
+            isPending={createMutation.isPending}
+            onSubmit={() => setStep("review")}
+            onCancel={handleClose}
+          />
         ) : (
           <PhaseSlotsReview
-            title={watchedTitle || t("review.phaseInfo")}
-            months={watchedMonths || []}
-            startTime={watchedStartTime || "15:00"}
-            endTime={watchedEndTime || "21:00"}
-            slotDurationMinutes={Number(watchedDuration) || 90}
-            hasBreak={watchedHasBreak}
-            breakStartTime={watchedBreakStartTime}
-            breakEndTime={watchedBreakEndTime}
-            calculation={liveCalculation}
+            title={title || t("review.phaseInfo")}
+            months={months || []}
+            startTime={startTime || "15:00"}
+            endTime={endTime || "21:00"}
+            slotDurationMinutes={Number(duration) || 90}
+            hasBreak={hasBreak}
+            breakStartTime={breakStartTime}
+            breakEndTime={breakEndTime}
+            calculation={calculation}
             onEditAgain={() => setStep("form")}
-            onConfirm={onConfirmCreate}
+            onConfirm={handleConfirm}
             isSubmitting={createMutation.isPending}
             confirmText={t("review.confirmAndCreate")}
           />

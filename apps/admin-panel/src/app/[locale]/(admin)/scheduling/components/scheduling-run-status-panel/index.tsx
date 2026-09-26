@@ -8,10 +8,11 @@ import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { formatNumber } from "@workspace/ui/lib/utils"
-import { useRouter } from "@/i18n/routing"
 import { useSchedulingRunStatus } from "../../hooks/use-scheduling-run-status"
 import { SchedulingPlanComparison } from "../scheduling-plan-comparison"
 import { SchedulingRunProgress } from "../scheduling-run-progress"
+import { ConnectionError } from "./connection-error"
+import { FailureDetails } from "./failure-details"
 
 interface SchedulingRunStatusPanelProps {
   run: SchedulingRunDto
@@ -38,7 +39,6 @@ export function SchedulingRunStatusPanel({
 }: SchedulingRunStatusPanelProps) {
   const t = useTranslations("scheduling.runStatus")
   const locale = useLocale()
-  const router = useRouter()
   const statusQuery = useSchedulingRunStatus(run.id)
   const result = statusQuery.data
   const status = result?.status ?? run.status
@@ -89,122 +89,14 @@ export function SchedulingRunStatusPanel({
           )}
 
           {statusQuery.isError && (
-            <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-3">
-                  <CircleAlert className="mt-0.5 size-5 shrink-0 text-destructive" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">
-                      {t("connectionError.title")}
-                    </p>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      {t("connectionError.description")}
-                    </p>
-                    {statusQuery.error && (
-                      <p className="mt-2 font-mono text-xs text-destructive">
-                        {t("exactError", {
-                          error:
-                            statusQuery.error instanceof Error
-                              ? statusQuery.error.message
-                              : String(statusQuery.error),
-                        })}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => statusQuery.refetch()}
-                  disabled={statusQuery.isFetching}
-                  className="shrink-0"
-                >
-                  {statusQuery.isFetching ? (
-                    <Spinner data-icon="inline-start" size="sm" />
-                  ) : (
-                    <RotateCcw data-icon="inline-start" className="size-4" />
-                  )}
-                  {t("retry")}
-                </Button>
-              </div>
-            </div>
+            <ConnectionError
+              error={statusQuery.error}
+              isFetching={statusQuery.isFetching}
+              onRetry={() => statusQuery.refetch()}
+            />
           )}
 
-          {isFailed && (
-            <div className="flex flex-col gap-3 rounded-xl bg-destructive/10 p-4 text-sm leading-6 text-destructive">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  {result?.failureMessage && (
-                    <p className="font-semibold">{result.failureMessage}</p>
-                  )}
-                </div>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {
-                    const termId =
-                      (run as any).termId ||
-                      (run.inputSnapshot as any)?.term?.id ||
-                      ""
-                    router.push(
-                      termId
-                        ? `/scheduling/generate?termId=${termId}`
-                        : "/scheduling/generate"
-                    )
-                  }}
-                  className="shrink-0"
-                >
-                  <RotateCcw data-icon="inline-start" className="size-4" />
-                  {t("retryGeneration")}
-                </Button>
-              </div>
-              {result?.preflightReport?.issues &&
-                result.preflightReport.issues.filter(
-                  (i) => i.severity === "BLOCKING"
-                ).length > 0 && (
-                  <div className="flex flex-col gap-2 border-t border-destructive/20 pt-3">
-                    <p className="text-xs font-medium text-destructive/80">
-                      {t("preflightIssues.title")}
-                    </p>
-                    <ul className="list-inside list-disc space-y-1">
-                      {result.preflightReport.issues
-                        .filter((issue) => issue.severity === "BLOCKING")
-                        .map((issue, idx) => {
-                          const reqs = (run.inputSnapshot as any)
-                            ?.requirements as
-                            | Array<{
-                                id: string
-                                courseId: string
-                                course?: { id: string; title: string }
-                              }>
-                            | undefined
-                          const matchedReq = reqs?.find(
-                            (r) =>
-                              r.courseId === issue.entityId ||
-                              r.course?.id === issue.entityId
-                          )
-                          const entityName =
-                            matchedReq?.course?.title || issue.entityId || ""
-                          const hasTranslation = t.has(
-                            `preflightIssues.${issue.code}`
-                          )
-                          return (
-                            <li key={idx} className="text-sm">
-                              {hasTranslation
-                                ? t(`preflightIssues.${issue.code}`, {
-                                    entity: entityName,
-                                  })
-                                : issue.code}
-                            </li>
-                          )
-                        })}
-                    </ul>
-                  </div>
-                )}
-            </div>
-          )}
+          {isFailed && <FailureDetails run={run} result={result} />}
 
           {status === "COMPLETED" && result?.result && (
             <div className="rounded-xl bg-success/10 p-4">
