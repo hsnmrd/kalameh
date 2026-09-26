@@ -203,7 +203,7 @@ export class SchedulingHardConstraintService {
           this.accept(
             candidate,
             requirement.deliveryMode,
-            classroom.capacity,
+            requirement.capacity,
             classroom.id,
           ),
         );

@@ -3,9 +3,24 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { Calendar, CalendarClock } from "lucide-react"
-import { toast } from "@workspace/ui/components/sonner"
-import type { TermDemandReportDto } from "@workspace/types"
+import { AlertTriangle, Calendar, CalendarClock } from "lucide-react"
+import {
+  calculateUncoveredStudents,
+  rebalanceClassCapacities,
+  type SuggestedClassDto,
+  type TermDemandReportDto,
+} from "@workspace/types"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import {
   Empty,
   EmptyDescription,
@@ -13,22 +28,21 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@workspace/ui/components/empty"
+import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageShell } from "@/components/admin-page-shell"
+import { useRouter } from "@/i18n/routing"
 import { schedulingResource } from "@/lib/api"
 import { useActiveInstitute, useSchedulingRunStore } from "@/lib/stores"
-import { useRouter } from "@/i18n/routing"
 import { selectDefaultSchedulingTerm } from "../../helper/term-selection"
-import {
-  SchedulingDemandView,
-  type CourseAdjustment,
-} from "../scheduling-demand-view"
+import { SchedulingDemandView } from "../scheduling-demand-view"
 import { SchedulingFab } from "../scheduling-fab"
 import { SchedulingFilter } from "../scheduling-filter"
 import {
   buildDemandItems,
+  buildSuggestionDraft,
   buildWorkspaceKey,
-  EMPTY_ADJUSTMENTS,
+  EMPTY_SUGGESTIONS,
 } from "./helper/demand-items"
 
 export function SchedulingWorkspace() {
@@ -36,7 +50,9 @@ export function SchedulingWorkspace() {
   const router = useRouter()
   const { activeInstituteId } = useActiveInstitute()
   const { clearActiveRun } = useSchedulingRunStore()
-
+  const nextSuggestionKey = React.useRef(0)
+  const [maxStudentsPerClass, setMaxStudentsPerClass] = React.useState(14)
+  const [shortfallDialogOpen, setShortfallDialogOpen] = React.useState(false)
   const [branchSelection, setBranchSelection] = React.useState({
     instituteId: activeInstituteId,
     value: "",
@@ -54,9 +70,9 @@ export function SchedulingWorkspace() {
     key: string
     data: TermDemandReportDto
   } | null>(null)
-  const [adjustmentDraft, setAdjustmentDraft] = React.useState<{
+  const [suggestionDraft, setSuggestionDraft] = React.useState<{
     key: string
-    values: Record<string, CourseAdjustment>
+    values: Record<string, SuggestedClassDto[]>
   } | null>(null)
 
   const termsQuery = useQuery({
@@ -65,180 +81,316 @@ export function SchedulingWorkspace() {
     ),
     enabled: Boolean(activeInstituteId),
   })
-
-  // Select the eligible term (starts within 10 days or currently running)
-  const selectedTerm = React.useMemo(() => {
-    return selectDefaultSchedulingTerm(termsQuery.data)
-  }, [termsQuery.data])
-
+  const selectedTerm = React.useMemo(
+    () => selectDefaultSchedulingTerm(termsQuery.data),
+    [termsQuery.data]
+  )
   const workspaceKey = buildWorkspaceKey(
     selectedTerm?.id,
     branchId,
-    activeInstituteId
+    activeInstituteId,
+    maxStudentsPerClass
   )
   const demandData =
     demandResult?.key === workspaceKey ? demandResult.data : null
-  const adjustments =
-    adjustmentDraft?.key === workspaceKey
-      ? adjustmentDraft.values
-      : EMPTY_ADJUSTMENTS
+  const suggestions =
+    suggestionDraft?.key === workspaceKey
+      ? suggestionDraft.values
+      : EMPTY_SUGGESTIONS
 
-  // The active scheduling run is external store state and must be cleared
-  // whenever the tenant context changes.
   React.useEffect(() => {
     clearActiveRun()
   }, [activeInstituteId, clearActiveRun])
 
-  const handleAdjustmentChange = React.useCallback(
-    (courseId: string, changes: CourseAdjustment) => {
-      setAdjustmentDraft((currentDraft) => {
+  const calculateMutation = useMutation({
+    ...schedulingResource.calculateDemand.toMutation(),
+    onSuccess: (data, variables) => {
+      const key = buildWorkspaceKey(
+        variables.termId,
+        variables.branchId,
+        variables.instituteId,
+        variables.maxStudentsPerClass
+      )
+      setDemandResult({ key, data })
+      setSuggestionDraft({ key, values: buildSuggestionDraft(data.courses) })
+      setShortfallDialogOpen(false)
+    },
+  })
+  const calculateDemand = calculateMutation.mutate
+
+  React.useEffect(() => {
+    if (!selectedTerm) return
+    calculateDemand({
+      termId: selectedTerm.id,
+      branchId: branchId && branchId !== "all" ? branchId : undefined,
+      instituteId: activeInstituteId || undefined,
+      maxStudentsPerClass,
+    })
+  }, [
+    selectedTerm,
+    branchId,
+    activeInstituteId,
+    maxStudentsPerClass,
+    calculateDemand,
+  ])
+
+  const updateSuggestions = React.useCallback(
+    (
+      courseId: string,
+      updater: (current: SuggestedClassDto[]) => SuggestedClassDto[]
+    ) => {
+      setSuggestionDraft((currentDraft) => {
         const currentValues =
           currentDraft?.key === workspaceKey
             ? currentDraft.values
-            : EMPTY_ADJUSTMENTS
+            : EMPTY_SUGGESTIONS
         return {
           key: workspaceKey,
           values: {
             ...currentValues,
-            [courseId]: {
-              ...currentValues[courseId],
-              ...changes,
-            },
+            [courseId]: updater(currentValues[courseId] ?? []),
           },
         }
       })
+      setShortfallDialogOpen(false)
     },
     [workspaceKey]
   )
 
-  const calculateMutation = useMutation({
-    ...schedulingResource.calculateDemand.toMutation(),
-    onSuccess: (data, variables) => {
-      setDemandResult({
-        key: buildWorkspaceKey(
-          variables.termId,
-          variables.branchId,
-          variables.instituteId
-        ),
-        data,
+  const getCourse = React.useCallback(
+    (courseId: string) =>
+      demandData?.courses.find((course) => course.courseId === courseId),
+    [demandData?.courses]
+  )
+
+  const handleCapacityChange = React.useCallback(
+    (courseId: string, classKey: string, capacity: number) => {
+      const course = getCourse(courseId)
+      if (!course || !demandData) return
+      updateSuggestions(courseId, (current) => {
+        const fixedIndex = current.findIndex((item) => item.key === classKey)
+        if (fixedIndex < 0) return current
+        const nextCapacities = current.map((item, index) =>
+          index === fixedIndex ? capacity : item.capacity
+        )
+        const balanced = rebalanceClassCapacities(
+          course.eligibleStudentsCount,
+          nextCapacities,
+          demandData.effectiveCapacityLimit,
+          fixedIndex
+        )
+        return current.map((item, index) => ({
+          ...item,
+          capacity: balanced[index] ?? item.capacity,
+        }))
       })
     },
-  })
-  const calculateDemand = calculateMutation.mutate
+    [demandData, getCourse, updateSuggestions]
+  )
+
+  const handleAddClass = React.useCallback(
+    (courseId: string) => {
+      const course = getCourse(courseId)
+      if (!course || !demandData) return
+      updateSuggestions(courseId, (current) => {
+        nextSuggestionKey.current += 1
+        const next = [
+          ...current,
+          {
+            key: `${courseId}:manual:${nextSuggestionKey.current}`,
+            capacity: 1,
+          },
+        ]
+        const balanced = rebalanceClassCapacities(
+          course.eligibleStudentsCount,
+          next.map((item) => item.capacity),
+          demandData.effectiveCapacityLimit
+        )
+        return next.map((item, index) => ({
+          ...item,
+          capacity: balanced[index] ?? item.capacity,
+        }))
+      })
+    },
+    [demandData, getCourse, updateSuggestions]
+  )
+
+  const handleRemoveClass = React.useCallback(
+    (courseId: string, classKey: string) => {
+      const course = getCourse(courseId)
+      if (!course || !demandData) return
+      updateSuggestions(courseId, (current) => {
+        const next = current.filter((item) => item.key !== classKey)
+        if (next.length === 0) return []
+        const balanced = rebalanceClassCapacities(
+          course.eligibleStudentsCount,
+          next.map((item) => item.capacity),
+          demandData.effectiveCapacityLimit
+        )
+        return next.map((item, index) => ({
+          ...item,
+          capacity: balanced[index] ?? item.capacity,
+        }))
+      })
+    },
+    [demandData, getCourse, updateSuggestions]
+  )
+
+  const totalUncoveredStudents = React.useMemo(
+    () =>
+      (demandData?.courses ?? []).reduce(
+        (total, course) =>
+          total +
+          calculateUncoveredStudents(
+            course.eligibleStudentsCount,
+            (suggestions[course.courseId] ?? course.suggestedClasses).map(
+              (item) => item.capacity
+            )
+          ),
+        0
+      ),
+    [demandData?.courses, suggestions]
+  )
 
   const applyMutation = useMutation({
     ...schedulingResource.applyDemand.toMutation(),
     onSuccess: (data) => {
       toast.success(t("demand.applySuccess", { count: data.totalRequirements }))
-      router.push("/scheduling/generate")
+      const params = new URLSearchParams({ termId: selectedTerm?.id ?? "" })
+      if (branchId && branchId !== "all") params.set("branchId", branchId)
+      router.push(`/scheduling/generate?${params.toString()}`)
     },
   })
 
-  // Automatically trigger demand calculation when eligible term or branch changes
-  React.useEffect(() => {
-    if (selectedTerm) {
-      calculateDemand({
+  const applyReviewedDemand = React.useCallback(
+    (acknowledgeShortfall: boolean) => {
+      if (!selectedTerm || !demandData) return
+      applyMutation.mutate({
         termId: selectedTerm.id,
         branchId: branchId && branchId !== "all" ? branchId : undefined,
         instituteId: activeInstituteId || undefined,
-        defaultCapacity: 14,
+        acknowledgeShortfall,
+        items: buildDemandItems(demandData.courses, suggestions),
       })
-    }
-  }, [selectedTerm, branchId, activeInstituteId, calculateDemand])
+    },
+    [
+      selectedTerm,
+      demandData,
+      applyMutation,
+      branchId,
+      activeInstituteId,
+      suggestions,
+    ]
+  )
 
   const handleGenerateSchedule = React.useCallback(() => {
-    if (!selectedTerm) return
-
-    const courses = demandData?.courses ?? []
-    if (courses.length === 0) {
-      router.push("/scheduling/generate")
+    if (!selectedTerm || !demandData) return
+    if (totalUncoveredStudents > 0) {
+      setShortfallDialogOpen(true)
       return
     }
-
-    const items = buildDemandItems(courses, adjustments)
-
-    if (items.length === 0) {
-      router.push("/scheduling/generate")
-      return
-    }
-
-    applyMutation.mutate({
-      termId: selectedTerm.id,
-      branchId: branchId && branchId !== "all" ? branchId : undefined,
-      instituteId: activeInstituteId || undefined,
-      items,
-    })
-  }, [
-    selectedTerm,
-    demandData?.courses,
-    adjustments,
-    applyMutation,
-    branchId,
-    activeInstituteId,
-    router,
-  ])
+    applyReviewedDemand(false)
+  }, [selectedTerm, demandData, totalUncoveredStudents, applyReviewedDemand])
 
   const isActionPending = calculateMutation.isPending || applyMutation.isPending
 
   return (
-    <AdminPageShell
-      filter={
-        <SchedulingFilter
-          term={selectedTerm}
-          isLoadingTerm={termsQuery.isLoading}
-          branchId={branchId}
-          onBranchChange={setBranchId}
-          onGenerateSchedule={handleGenerateSchedule}
-          isGenerating={isActionPending}
-        />
-      }
-      fab={
-        <SchedulingFab
-          termId={selectedTerm?.id}
-          onGenerateSchedule={handleGenerateSchedule}
-          disabled={!selectedTerm || isActionPending}
-        />
-      }
-    >
-      {termsQuery.isLoading ? (
-        <div className="flex min-h-64 items-center justify-center">
-          <Spinner className="size-8 text-foreground" />
-        </div>
-      ) : !termsQuery.data || termsQuery.data.length === 0 ? (
-        <Empty variant="default" className="border border-border bg-card">
-          <EmptyMedia variant="icon">
-            <Calendar className="size-7 text-foreground" aria-hidden />
-          </EmptyMedia>
-          <EmptyHeader>
-            <EmptyTitle>{t("termsList.empty.title")}</EmptyTitle>
-            <EmptyDescription>
-              {t("termsList.empty.description")}
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : !selectedTerm ? (
-        <Empty variant="default" className="border border-border bg-card">
-          <EmptyMedia variant="icon">
-            <CalendarClock className="size-7 text-foreground" aria-hidden />
-          </EmptyMedia>
-          <EmptyHeader>
-            <EmptyTitle>{t("termsList.notEligible.title")}</EmptyTitle>
-            <EmptyDescription>
-              {t("termsList.notEligible.description")}
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : (
-        <div className="flex flex-col gap-6">
+    <>
+      <AdminPageShell
+        filter={
+          <SchedulingFilter
+            term={selectedTerm}
+            isLoadingTerm={termsQuery.isLoading}
+            branchId={branchId}
+            onBranchChange={setBranchId}
+            maxStudentsPerClass={maxStudentsPerClass}
+            onMaxStudentsPerClassChange={setMaxStudentsPerClass}
+            maxAvailableRoomCapacity={
+              demandData?.maxAvailableRoomCapacity ?? null
+            }
+            onGenerateSchedule={handleGenerateSchedule}
+            isGenerating={isActionPending}
+          />
+        }
+        fab={
+          <SchedulingFab
+            termId={selectedTerm?.id}
+            onGenerateSchedule={handleGenerateSchedule}
+            disabled={!selectedTerm || !demandData || isActionPending}
+          />
+        }
+      >
+        {termsQuery.isLoading ? (
+          <div className="flex min-h-64 items-center justify-center">
+            <Spinner className="size-8 text-foreground" />
+          </div>
+        ) : !termsQuery.data || termsQuery.data.length === 0 ? (
+          <Empty variant="default" className="border border-border bg-card">
+            <EmptyMedia variant="icon">
+              <Calendar className="size-7 text-foreground" aria-hidden />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>{t("termsList.empty.title")}</EmptyTitle>
+              <EmptyDescription>
+                {t("termsList.empty.description")}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : !selectedTerm ? (
+          <Empty variant="default" className="border border-border bg-card">
+            <EmptyMedia variant="icon">
+              <CalendarClock className="size-7 text-foreground" aria-hidden />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>{t("termsList.notEligible.title")}</EmptyTitle>
+              <EmptyDescription>
+                {t("termsList.notEligible.description")}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
           <SchedulingDemandView
             termId={selectedTerm.id}
             demandData={demandData}
             isLoading={calculateMutation.isPending}
-            adjustments={adjustments}
-            onAdjustmentChange={handleAdjustmentChange}
+            suggestions={suggestions}
+            totalUncoveredStudents={totalUncoveredStudents}
+            onCapacityChange={handleCapacityChange}
+            onAddClass={handleAddClass}
+            onRemoveClass={handleRemoveClass}
           />
-        </div>
-      )}
-    </AdminPageShell>
+        )}
+      </AdminPageShell>
+
+      <AlertDialog
+        open={shortfallDialogOpen}
+        onOpenChange={setShortfallDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <AlertTriangle aria-hidden />
+            </AlertDialogMedia>
+            <AlertDialogTitle>{t("demand.shortfall.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("demand.shortfall.description", {
+                count: totalUncoveredStudents,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {t("demand.shortfall.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => applyReviewedDemand(true)}
+              disabled={applyMutation.isPending}
+            >
+              {t("demand.shortfall.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

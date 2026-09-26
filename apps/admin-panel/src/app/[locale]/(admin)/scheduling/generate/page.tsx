@@ -21,6 +21,7 @@ export default function SchedulingGeneratePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const defaultTermId = searchParams.get("termId") ?? undefined
+  const defaultBranchId = searchParams.get("branchId") ?? undefined
   const { setActiveRun } = useSchedulingRunStore()
 
   const handleCreated = React.useCallback(
@@ -48,6 +49,7 @@ export default function SchedulingGeneratePage() {
         >
           <SchedulingGenerationForm
             defaultTermId={defaultTermId}
+            defaultBranchId={defaultBranchId}
             onCreated={handleCreated}
             onNavigateToDemand={() => router.push("/scheduling")}
           />

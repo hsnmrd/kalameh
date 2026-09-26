@@ -21,9 +21,21 @@ async function main() {
   const defaultPassword = "Password123!"
   const hashedPassword = await bcrypt.hash(defaultPassword, 10)
 
-  // 1. Fetch Target Institute
-  const institute = await prisma.institute.findUnique({
+  // 1. Fetch or Create Target Institute & Central Branch
+  const institute = await prisma.institute.upsert({
     where: { subdomain: "zabanland" },
+    update: {
+      name: "آموزشگاه زبان‌لند",
+      isActive: true,
+    },
+    create: {
+      name: "آموزشگاه زبان‌لند",
+      subdomain: "zabanland",
+      isActive: true,
+      bankCardNumber: "6037991899990000",
+      bankAccountName: "آموزشگاه زبان‌لند",
+      bankShaba: "IR120170000000999900000000",
+    },
     include: {
       branches: true,
       terms: true,
@@ -31,15 +43,20 @@ async function main() {
     },
   })
 
-  if (!institute) {
-    throw new Error("Institute 'zabanland' not found! Please ensure it exists.")
-  }
-
-  const centralBranch =
+  let centralBranch =
     institute.branches.find((b) => b.name === "شعبه مرکزی") ??
     institute.branches[0]
+
   if (!centralBranch) {
-    throw new Error("Central branch for 'zabanland' not found!")
+    centralBranch = await prisma.branch.create({
+      data: {
+        instituteId: institute.id,
+        name: "شعبه مرکزی",
+        address: "تهران، میدان ونک",
+        phones: ["02188001122"],
+        isActive: true,
+      },
+    })
   }
 
   const instituteId = institute.id
@@ -47,6 +64,36 @@ async function main() {
 
   console.log(`✅ Target Institute: ${institute.name} (${instituteId})`)
   console.log(`✅ Central Branch: ${centralBranch.name} (${centralBranchId})`)
+
+  // 1.1 Ensure Admin User for Zabanland
+  await prisma.user.upsert({
+    where: {
+      phone_instituteId: {
+        phone: "09127770000",
+        instituteId,
+      },
+    },
+    update: {
+      firstName: "مدیر",
+      lastName: "زبان‌لند",
+      role: Role.ADMIN,
+      branchId: centralBranchId,
+      isActive: true,
+    },
+    create: {
+      instituteId,
+      branchId: centralBranchId,
+      phone: "09127770000",
+      firstName: "مدیر",
+      lastName: "زبان‌لند",
+      role: Role.ADMIN,
+      password: hashedPassword,
+      isActive: true,
+    },
+  })
+  console.log(
+    `👤 Admin seeded: 09127770000 (ADMIN) - Password: ${defaultPassword}`
+  )
 
   // 2. Upsert 25 Sequential Courses: AME 1-1 to AME 5-5
   // American English File 1 (1-1 to 1-5), 2 (2-1 to 2-5), 3 (3-1 to 3-5), 4 (4-1 to 4-5), 5 (5-1 to 5-5)
@@ -960,12 +1007,34 @@ async function main() {
   )
 
   // 7. Class Requirements for Target Term (مهر و آبان ۱۴۰۵)
+  const autumnStartDate = new Date("2026-09-23T00:00:00.000Z")
+  const autumnEndDate = new Date("2026-11-21T00:00:00.000Z")
+
   const activeTerm =
-    institute.terms.find((t) => t.title.includes("مهر و آبان") && t.isActive) ??
-    institute.terms[0]
-  if (!activeTerm) {
-    throw new Error("Active term for مهر و آبان ۱۴۰۵ not found!")
-  }
+    (await prisma.term.findFirst({
+      where: {
+        instituteId,
+        title: { contains: "مهر و آبان" },
+        isActive: true,
+      },
+    })) ??
+    (await prisma.term.upsert({
+      where: { id: "00000000-0000-0000-0000-000000000078" },
+      update: {
+        title: "مهر و آبان ۱۴۰۵",
+        startDate: autumnStartDate,
+        endDate: autumnEndDate,
+        isActive: true,
+      },
+      create: {
+        id: "00000000-0000-0000-0000-000000000078",
+        instituteId,
+        title: "مهر و آبان ۱۴۰۵",
+        startDate: autumnStartDate,
+        endDate: autumnEndDate,
+        isActive: true,
+      },
+    }))
   console.log(
     `📅 Target Scheduling Term: ${activeTerm.title} (${activeTerm.id})`
   )

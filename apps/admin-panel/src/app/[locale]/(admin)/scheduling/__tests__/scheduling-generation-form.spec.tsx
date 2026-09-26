@@ -105,7 +105,7 @@ describe("MVP-034 scheduling generation form", () => {
       )
     )
     await waitFor(() => expect(requirementsQueryFn).toHaveBeenCalled())
-    fireEvent.click(await screen.findByLabelText("English A1"))
+    expect(await screen.findByLabelText("English A1")).toBeChecked()
     fireEvent.click(screen.getByRole("button", { name: "ساخت پیشنهادها" }))
 
     await waitFor(() => {

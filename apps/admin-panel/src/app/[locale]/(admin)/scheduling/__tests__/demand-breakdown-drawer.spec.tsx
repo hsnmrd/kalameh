@@ -7,124 +7,96 @@ const mockCourses: CourseDemandSummaryDto[] = [
   {
     courseId: "course-1",
     courseTitle: "American English File 2",
-    baseFee: 1200000,
+    baseFee: 1_200_000,
     prerequisiteId: "course-prereq",
     prerequisiteTitle: "American English File 1",
-    eligibleStudentsCount: 15,
-    passedPrerequisiteCount: 10,
-    continuingStudentsCount: 10,
-    newPlacementCount: 5,
-    morningShiftCount: 5,
-    afternoonShiftCount: 5,
-    flexibleShiftCount: 5,
-    evenDaysPreferenceCount: 10,
-    oddDaysPreferenceCount: 5,
+    eligibleStudentsCount: 29,
+    passedPrerequisiteCount: 20,
+    continuingStudentsCount: 20,
+    newPlacementCount: 9,
+    morningShiftCount: 10,
+    afternoonShiftCount: 10,
+    flexibleShiftCount: 9,
+    evenDaysPreferenceCount: 15,
+    oddDaysPreferenceCount: 14,
     anyDayPreferenceCount: 0,
     suggestedClassCount: 2,
-    suggestedCapacity: 14,
-    suggestedInPersonCount: 2,
-    suggestedOnlineCount: 0,
+    suggestedClasses: [
+      { key: "course-1:1", capacity: 15 },
+      { key: "course-1:2", capacity: 14 },
+    ],
+    plannedCapacity: 29,
+    uncoveredStudentCount: 0,
   },
 ]
 
 describe("DemandBreakdownDrawer", () => {
-  it("renders both desktop table and mobile cards directly and displays course details", () => {
+  it("renders separate editable class rows on desktop and mobile", () => {
     render(
       <DemandBreakdownDrawer
         courses={mockCourses}
-        adjustments={{}}
-        onAdjustmentChange={vi.fn()}
+        suggestions={{ "course-1": mockCourses[0]!.suggestedClasses }}
+        capacityLimit={20}
+        onCapacityChange={vi.fn()}
+        onAddClass={vi.fn()}
+        onRemoveClass={vi.fn()}
       />
     )
 
-    // The toggle button is NOT present (no collapsible)
-    expect(
-      screen.queryByText(/مشاهده و ویرایش جزئیات دوره‌ها/)
-    ).not.toBeInTheDocument()
-
-    // Desktop table headers are visible
     expect(screen.getByText("نام دوره")).toBeInTheDocument()
-    expect(screen.getByText("متقاضیان")).toBeInTheDocument()
-
-    // Course title and applicants are rendered in both desktop table and mobile card
     expect(screen.getAllByText("American English File 2")).toHaveLength(2)
-    expect(
-      screen.getAllByText(/۱۰ ارتقا از ترم قبل \+ ۵ تعیین‌سطح = ۱۵ نفر/)
-    ).toHaveLength(2)
-
-    // Inputs exist for both desktop table and mobile card
-    expect(
-      screen.getAllByLabelText(/تعداد کلاس پیشنهادی - American English File 2/)
-    ).toHaveLength(2)
-    expect(
-      screen.getAllByLabelText(/ظرفیت هر کلاس - American English File 2/)
-    ).toHaveLength(2)
+    expect(screen.getAllByText("کلاس ۱")).toHaveLength(2)
+    expect(screen.getAllByText("کلاس ۲")).toHaveLength(2)
+    expect(screen.getAllByText("۲۹ صندلی برنامه‌ریزی‌شده")).toHaveLength(2)
+    expect(screen.getAllByText("پوشش کامل")).toHaveLength(2)
   })
 
-  it("calls onAdjustmentChange when modifying suggested classes and capacity from desktop or mobile", () => {
-    const onAdjustmentChange = vi.fn()
+  it("edits, adds, and removes individual suggested classes", () => {
+    const onCapacityChange = vi.fn()
+    const onAddClass = vi.fn()
+    const onRemoveClass = vi.fn()
     render(
       <DemandBreakdownDrawer
         courses={mockCourses}
-        adjustments={{}}
-        onAdjustmentChange={onAdjustmentChange}
+        suggestions={{ "course-1": mockCourses[0]!.suggestedClasses }}
+        capacityLimit={20}
+        onCapacityChange={onCapacityChange}
+        onAddClass={onAddClass}
+        onRemoveClass={onRemoveClass}
       />
     )
 
-    const classInputs = screen.getAllByLabelText(
-      /تعداد کلاس پیشنهادی - American English File 2/
+    const firstCapacity = screen.getAllByLabelText(
+      /ظرفیت هر کلاس - American English File 2 - کلاس ۱/
+    )[0]!
+    fireEvent.change(firstCapacity, { target: { value: "16" } })
+    expect(onCapacityChange).toHaveBeenCalledWith("course-1", "course-1:1", 16)
+
+    fireEvent.click(screen.getAllByRole("button", { name: "افزودن کلاس" })[0]!)
+    expect(onAddClass).toHaveBeenCalledWith("course-1")
+
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: /حذف کلاس - American English File 2 - کلاس ۱/,
+      })[0]!
     )
-    // Desktop input change
-    fireEvent.change(classInputs[0]!, { target: { value: "3" } })
-    expect(onAdjustmentChange).toHaveBeenCalledWith("course-1", {
-      suggestedClassCount: 3,
-    })
-
-    // Mobile card input change
-    fireEvent.change(classInputs[1]!, { target: { value: "4" } })
-    expect(onAdjustmentChange).toHaveBeenCalledWith("course-1", {
-      suggestedClassCount: 4,
-    })
-
-    const capacityInputs = screen.getAllByLabelText(
-      /ظرفیت هر کلاس - American English File 2/
-    )
-    // Desktop capacity change
-    fireEvent.change(capacityInputs[0]!, { target: { value: "16" } })
-    expect(onAdjustmentChange).toHaveBeenCalledWith("course-1", {
-      capacity: 16,
-    })
-
-    // Mobile card capacity change
-    fireEvent.change(capacityInputs[1]!, { target: { value: "18" } })
-    expect(onAdjustmentChange).toHaveBeenCalledWith("course-1", {
-      capacity: 18,
-    })
+    expect(onRemoveClass).toHaveBeenCalledWith("course-1", "course-1:1")
   })
 
-  it("increments and decrements counter values using plus and minus buttons", () => {
-    const onAdjustmentChange = vi.fn()
+  it("shows uncovered students when reviewed seats are short", () => {
     render(
       <DemandBreakdownDrawer
         courses={mockCourses}
-        adjustments={{}}
-        onAdjustmentChange={onAdjustmentChange}
+        suggestions={{
+          "course-1": [{ key: "course-1:1", capacity: 14 }],
+        }}
+        capacityLimit={20}
+        onCapacityChange={vi.fn()}
+        onAddClass={vi.fn()}
+        onRemoveClass={vi.fn()}
       />
     )
 
-    const increaseButtons = screen.getAllByRole("button", { name: "افزایش" })
-    const decreaseButtons = screen.getAllByRole("button", { name: "کاهش" })
-
-    // Click increment on first counter (suggested classes: initial 2 -> 3)
-    fireEvent.click(increaseButtons[0]!)
-    expect(onAdjustmentChange).toHaveBeenCalledWith("course-1", {
-      suggestedClassCount: 3,
-    })
-
-    // Click decrement on second counter (capacity: initial 14 -> 13)
-    fireEvent.click(decreaseButtons[1]!)
-    expect(onAdjustmentChange).toHaveBeenCalledWith("course-1", {
-      capacity: 13,
-    })
+    expect(screen.getAllByText("۱۵ نفر بدون ظرفیت")).toHaveLength(2)
   })
 })

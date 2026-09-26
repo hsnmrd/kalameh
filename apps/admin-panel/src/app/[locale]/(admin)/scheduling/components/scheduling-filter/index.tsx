@@ -7,7 +7,12 @@ import { useQuery } from "@tanstack/react-query"
 import { PERMISSIONS, type SchedulingTermSummaryDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { Field, FieldLabel } from "@workspace/ui/components/field"
+import { Counter } from "@workspace/ui/components/counter"
+import {
+  Field,
+  FieldDescription,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { PermissionGuard } from "@/components/permission-guard"
 import { branchesResource } from "@/lib/api"
@@ -20,6 +25,9 @@ export interface SchedulingFilterProps {
   isLoadingTerm?: boolean
   branchId: string
   onBranchChange: (branchId: string) => void
+  maxStudentsPerClass: number
+  onMaxStudentsPerClassChange: (value: number) => void
+  maxAvailableRoomCapacity: number | null
   onGenerateSchedule?: () => void
   isGenerating?: boolean
 }
@@ -29,6 +37,9 @@ export function SchedulingFilter({
   isLoadingTerm,
   branchId,
   onBranchChange,
+  maxStudentsPerClass,
+  onMaxStudentsPerClassChange,
+  maxAvailableRoomCapacity,
   onGenerateSchedule,
   isGenerating,
 }: SchedulingFilterProps) {
@@ -74,7 +85,7 @@ export function SchedulingFilter({
               type="button"
               onClick={onGenerateSchedule}
               disabled={!term || isGenerating}
-              className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
+              className="shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs"
             >
               {isGenerating ? (
                 <Spinner className="size-5" />
@@ -87,19 +98,38 @@ export function SchedulingFilter({
         ) : undefined
       }
       filters={
-        <Field>
-          <FieldLabel>{t("demand.filters.branch")}</FieldLabel>
-          <ResponsiveCombobox
-            items={branchOptions}
-            value={branchId || "all"}
-            onValueChange={(val) =>
-              onBranchChange(val === "all" || !val ? "" : val)
-            }
-            placeholder={t("demand.filters.branch")}
-            drawerTitle={t("demand.filters.branch")}
-            clearable={false}
-          />
-        </Field>
+        <>
+          <Field>
+            <FieldLabel>{t("demand.filters.branch")}</FieldLabel>
+            <ResponsiveCombobox
+              items={branchOptions}
+              value={branchId || "all"}
+              onValueChange={(val) =>
+                onBranchChange(val === "all" || !val ? "" : val)
+              }
+              placeholder={t("demand.filters.branch")}
+              drawerTitle={t("demand.filters.branch")}
+              clearable={false}
+            />
+          </Field>
+          <Field>
+            <FieldLabel>{t("demand.filters.maxStudents")}</FieldLabel>
+            <Counter
+              min={1}
+              max={100}
+              value={maxStudentsPerClass}
+              onValueChange={onMaxStudentsPerClassChange}
+              aria-label={t("demand.filters.maxStudents")}
+            />
+            <FieldDescription>
+              {maxAvailableRoomCapacity === null
+                ? t("demand.filters.noRoomCeiling")
+                : t("demand.filters.roomCeiling", {
+                    count: maxAvailableRoomCapacity,
+                  })}
+            </FieldDescription>
+          </Field>
+        </>
       }
     />
   )

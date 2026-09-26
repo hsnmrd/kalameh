@@ -1,9 +1,14 @@
 "use client"
 
-import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import type { CourseDemandSummaryDto } from "@workspace/types"
-import { Counter } from "@workspace/ui/components/counter"
+import { Plus } from "lucide-react"
+import {
+  calculateUncoveredStudents,
+  type CourseDemandSummaryDto,
+  type SuggestedClassDto,
+} from "@workspace/types"
+import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 import {
   Table,
   TableBody,
@@ -14,116 +19,140 @@ import {
 } from "@workspace/ui/components/table"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { DemandBreakdownCard } from "./demand-breakdown-card"
-
-export interface CourseAdjustment {
-  suggestedClassCount?: number
-  capacity?: number
-}
+import { SuggestedClassControl } from "./suggested-class-control"
 
 export interface DemandBreakdownDrawerProps {
   courses: CourseDemandSummaryDto[]
-  adjustments: Record<string, CourseAdjustment>
-  onAdjustmentChange: (courseId: string, changes: CourseAdjustment) => void
-  isLoading?: boolean
+  suggestions: Record<string, SuggestedClassDto[]>
+  capacityLimit: number
+  onCapacityChange: (
+    courseId: string,
+    classKey: string,
+    capacity: number
+  ) => void
+  onAddClass: (courseId: string) => void
+  onRemoveClass: (courseId: string, classKey: string) => void
 }
 
 export function DemandBreakdownDrawer({
   courses,
-  adjustments,
-  onAdjustmentChange,
+  suggestions,
+  capacityLimit,
+  onCapacityChange,
+  onAddClass,
+  onRemoveClass,
 }: DemandBreakdownDrawerProps) {
   const t = useTranslations("scheduling.demand.breakdown")
   const locale = useLocale()
 
-  if (!courses || courses.length === 0) {
-    return null
-  }
+  if (courses.length === 0) return null
 
   return (
     <div className="w-full">
-      {/* Desktop: Table view */}
       <div className="hidden w-full overflow-hidden rounded-2xl border border-border bg-card lg:block">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="min-w-48">{t("course")}</TableHead>
               <TableHead className="min-w-60">{t("students")}</TableHead>
-              <TableHead className="w-40 text-center">
-                {t("suggestedClasses")}
-              </TableHead>
-              <TableHead className="w-36 text-center">
-                {t("capacity")}
-              </TableHead>
+              <TableHead className="min-w-72">{t("classRows")}</TableHead>
+              <TableHead className="w-36">{t("coverage")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {courses.map((item) => {
-              const currentClassCount =
-                adjustments[item.courseId]?.suggestedClassCount ??
-                item.suggestedClassCount
-              const currentCapacity =
-                adjustments[item.courseId]?.capacity ?? item.suggestedCapacity
+            {courses.map((course) => {
+              const classes =
+                suggestions[course.courseId] ?? course.suggestedClasses
+              const planned = classes.reduce(
+                (total, suggestedClass) => total + suggestedClass.capacity,
+                0
+              )
+              const uncovered = calculateUncoveredStudents(
+                course.eligibleStudentsCount,
+                classes.map((item) => item.capacity)
+              )
 
               return (
-                <TableRow key={item.courseId}>
-                  <TableCell>
+                <TableRow key={course.courseId}>
+                  <TableCell className="align-top">
                     <div className="flex flex-col gap-0.5">
                       <span className="font-semibold text-foreground">
-                        {item.courseTitle}
+                        {course.courseTitle}
                       </span>
-                      {item.prerequisiteTitle && (
+                      {course.prerequisiteTitle && (
                         <span className="text-xs text-muted-foreground">
                           {t("prerequisite", {
-                            title: item.prerequisiteTitle,
+                            title: course.prerequisiteTitle,
                           })}
                         </span>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="align-top">
                     <span className="text-sm text-muted-foreground">
                       {t("studentsDetail", {
                         continuing: formatNumber(
-                          item.continuingStudentsCount,
+                          course.continuingStudentsCount,
                           locale
                         ),
-                        new: formatNumber(item.newPlacementCount, locale),
-                        total: formatNumber(item.eligibleStudentsCount, locale),
+                        new: formatNumber(course.newPlacementCount, locale),
+                        total: formatNumber(
+                          course.eligibleStudentsCount,
+                          locale
+                        ),
                       })}
                     </span>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex justify-center">
-                      <Counter
+                  <TableCell>
+                    <div className="flex flex-col gap-2">
+                      {classes.map((suggestedClass, index) => (
+                        <SuggestedClassControl
+                          key={suggestedClass.key}
+                          item={suggestedClass}
+                          index={index}
+                          courseTitle={course.courseTitle}
+                          capacityLimit={capacityLimit}
+                          compact
+                          onCapacityChange={(capacity) =>
+                            onCapacityChange(
+                              course.courseId,
+                              suggestedClass.key,
+                              capacity
+                            )
+                          }
+                          onRemove={() =>
+                            onRemoveClass(course.courseId, suggestedClass.key)
+                          }
+                        />
+                      ))}
+                      <Button
+                        type="button"
+                        variant="ghost"
                         size="sm"
-                        min={0}
-                        max={50}
-                        value={currentClassCount}
-                        onValueChange={(val) => {
-                          onAdjustmentChange(item.courseId, {
-                            suggestedClassCount: val,
-                          })
-                        }}
-                        className="w-32"
-                        aria-label={`${t("suggestedClasses")} - ${item.courseTitle}`}
-                      />
+                        className="w-fit"
+                        onClick={() => onAddClass(course.courseId)}
+                      >
+                        <Plus aria-hidden />
+                        {t("addClass")}
+                      </Button>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex justify-center">
-                      <Counter
-                        size="sm"
-                        min={1}
-                        max={100}
-                        value={currentCapacity}
-                        onValueChange={(val) => {
-                          onAdjustmentChange(item.courseId, {
-                            capacity: val,
-                          })
-                        }}
-                        className="w-32"
-                        aria-label={`${t("capacity")} - ${item.courseTitle}`}
-                      />
+                  <TableCell>
+                    <div className="flex flex-col items-start gap-1.5">
+                      <span className="text-sm font-semibold text-foreground">
+                        {t("plannedSeats", {
+                          count: formatNumber(planned, locale),
+                        })}
+                      </span>
+                      {uncovered > 0 ? (
+                        <Badge variant="destructive">
+                          {t("uncovered", {
+                            count: formatNumber(uncovered, locale),
+                          })}
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">{t("covered")}</Badge>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -133,25 +162,20 @@ export function DemandBreakdownDrawer({
         </Table>
       </div>
 
-      {/* Mobile: Cards view */}
       <div className="flex flex-col gap-3 lg:hidden">
-        {courses.map((item) => {
-          const currentClassCount =
-            adjustments[item.courseId]?.suggestedClassCount ??
-            item.suggestedClassCount
-          const currentCapacity =
-            adjustments[item.courseId]?.capacity ?? item.suggestedCapacity
-
-          return (
-            <DemandBreakdownCard
-              key={item.courseId}
-              item={item}
-              currentClassCount={currentClassCount}
-              currentCapacity={currentCapacity}
-              onAdjustmentChange={onAdjustmentChange}
-            />
-          )
-        })}
+        {courses.map((course) => (
+          <DemandBreakdownCard
+            key={course.courseId}
+            item={course}
+            suggestions={
+              suggestions[course.courseId] ?? course.suggestedClasses
+            }
+            capacityLimit={capacityLimit}
+            onCapacityChange={onCapacityChange}
+            onAddClass={onAddClass}
+            onRemoveClass={onRemoveClass}
+          />
+        ))}
       </div>
     </div>
   )

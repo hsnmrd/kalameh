@@ -20,6 +20,8 @@ import { SchedulingRunQueryService } from './scheduling-run-query.service';
 import { SchedulingRunsController } from './scheduling-runs.controller';
 import { SchedulingDemandController } from './scheduling-demand.controller';
 import { SchedulingDemandService } from './scheduling-demand.service';
+import { SchedulingDemandCalculationService } from './scheduling-demand-calculation.service';
+import { SchedulingDemandApplicationService } from './scheduling-demand-application.service';
 import { SchedulingTermsController } from './scheduling-terms.controller';
 import { SchedulingTermsService } from './scheduling-terms.service';
 import { SchedulingService } from './scheduling.service';
@@ -35,6 +37,8 @@ import { SchedulingService } from './scheduling.service';
     SchedulingService,
     SchedulingTermsService,
     SchedulingDemandService,
+    SchedulingDemandCalculationService,
+    SchedulingDemandApplicationService,
     SchedulingAlternativePlanService,
     SchedulingPreflightService,
     SchedulingRunQueryService,

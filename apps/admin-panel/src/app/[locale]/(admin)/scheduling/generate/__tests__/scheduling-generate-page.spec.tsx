@@ -160,8 +160,8 @@ describe("SchedulingGeneratePage", () => {
     // Wait for the term to be selected
     expect(await screen.findByText("ترم پاییز")).toBeInTheDocument()
 
-    // Select the requirement checkbox
-    fireEvent.click(await screen.findByLabelText("دوره زبان"))
+    // Newly active requirements are preselected after demand review.
+    expect(await screen.findByLabelText("دوره زبان")).toBeChecked()
 
     // Click submit button "ساخت پیشنهادها"
     const submitButton = screen.getByRole("button", {

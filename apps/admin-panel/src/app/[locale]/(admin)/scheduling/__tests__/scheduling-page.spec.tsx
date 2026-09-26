@@ -118,7 +118,7 @@ describe("Unified scheduling workspace", () => {
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
       queryKey: ["scheduling", "terms", "inst-1"],
       queryFn: async () => mockTerms,
-    } as any)
+    } as never)
 
     render(<SchedulingPage />)
 
@@ -137,9 +137,6 @@ describe("Unified scheduling workspace", () => {
       name: "ثبت و ادامه",
     })
     expect(generateButtons.length).toBeGreaterThanOrEqual(1)
-    // Clicking generate button navigates to /scheduling/generate without termId in route
-    fireEvent.click(generateButtons[0]!)
-    expect(mockPush).toHaveBeenCalledWith("/scheduling/generate")
   })
 
   it("saves demand adjustments and navigates to /scheduling/generate on clicking apply button", async () => {
@@ -160,11 +157,16 @@ describe("Unified scheduling workspace", () => {
     const mockDemandReport = {
       termId: "term-fall",
       termTitle: "پاییز ۱۴۰۵",
-      defaultCapacity: 14,
+      maxStudentsPerClass: 14,
+      maxAvailableRoomCapacity: 20,
+      effectiveCapacityLimit: 14,
+      warnings: [],
       totalEligibleStudents: 25,
       totalContinuingStudents: 20,
       totalNewPlacements: 5,
       totalSuggestedClasses: 2,
+      totalPlannedCapacity: 25,
+      totalUncoveredStudents: 0,
       courses: [
         {
           courseId: "11111111-1111-1111-1111-111111111111",
@@ -181,9 +183,12 @@ describe("Unified scheduling workspace", () => {
           oddDaysPreferenceCount: 7,
           anyDayPreferenceCount: 0,
           suggestedClassCount: 2,
-          suggestedCapacity: 14,
-          suggestedInPersonCount: 20,
-          suggestedOnlineCount: 5,
+          suggestedClasses: [
+            { key: "class-1", capacity: 13 },
+            { key: "class-2", capacity: 12 },
+          ],
+          plannedCapacity: 25,
+          uncoveredStudentCount: 0,
           sessionsPerWeek: 2,
         },
       ],
@@ -201,21 +206,22 @@ describe("Unified scheduling workspace", () => {
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
       queryKey: ["scheduling", "terms", "inst-1"],
       queryFn: async () => mockTerms,
-    } as any)
+    } as never)
 
     const calculateDemandSpy = vi.fn().mockResolvedValue(mockDemandReport)
     vi.spyOn(schedulingResource.calculateDemand, "toMutation").mockReturnValue({
       mutationFn: calculateDemandSpy,
-    } as any)
+    } as never)
 
     const applyMutationSpy = vi.fn().mockResolvedValue({
       createdCount: 1,
-      updatedCount: 0,
+      deactivatedCount: 0,
       totalRequirements: 1,
+      requirementIds: ["requirement-1"],
     })
     vi.spyOn(schedulingResource.applyDemand, "toMutation").mockReturnValue({
       mutationFn: applyMutationSpy,
-    } as any)
+    } as never)
 
     render(<SchedulingPage />)
 
@@ -235,15 +241,113 @@ describe("Unified scheduling workspace", () => {
           items: expect.arrayContaining([
             expect.objectContaining({
               courseId: "11111111-1111-1111-1111-111111111111",
-              requiredClassCount: 2,
-              capacity: 14,
+              classes: [{ capacity: 13 }, { capacity: 12 }],
             }),
           ]),
+          acknowledgeShortfall: false,
         }),
         expect.anything()
       )
     })
-    expect(mockPush).toHaveBeenCalledWith("/scheduling/generate")
+    expect(mockPush).toHaveBeenCalledWith(
+      "/scheduling/generate?termId=term-fall"
+    )
+  })
+
+  it("requires explicit acknowledgement before applying a reviewed shortfall", async () => {
+    const mockTerms: SchedulingTermSummaryDto[] = [
+      {
+        id: "term-fall",
+        title: "پاییز ۱۴۰۵",
+        startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: true,
+        classesCount: 0,
+        requirementsCount: 0,
+        totalRequiredClasses: 0,
+        schedulingStatus: "READY_TO_SCHEDULE",
+      },
+    ]
+    const mockDemandReport = {
+      termId: "term-fall",
+      termTitle: "پاییز ۱۴۰۵",
+      maxStudentsPerClass: 14,
+      maxAvailableRoomCapacity: 20,
+      effectiveCapacityLimit: 14,
+      warnings: [],
+      totalEligibleStudents: 20,
+      totalContinuingStudents: 20,
+      totalNewPlacements: 0,
+      totalSuggestedClasses: 1,
+      totalPlannedCapacity: 14,
+      totalUncoveredStudents: 6,
+      courses: [
+        {
+          courseId: "11111111-1111-1111-1111-111111111111",
+          courseTitle: "انگلیسی کودکان ۱",
+          baseFee: 1_500_000,
+          eligibleStudentsCount: 20,
+          passedPrerequisiteCount: 20,
+          continuingStudentsCount: 20,
+          newPlacementCount: 0,
+          morningShiftCount: 10,
+          afternoonShiftCount: 10,
+          flexibleShiftCount: 0,
+          evenDaysPreferenceCount: 10,
+          oddDaysPreferenceCount: 10,
+          anyDayPreferenceCount: 0,
+          suggestedClassCount: 1,
+          suggestedClasses: [{ key: "class-1", capacity: 14 }],
+          plannedCapacity: 14,
+          uncoveredStudentCount: 6,
+          sessionsPerWeek: 2,
+        },
+      ],
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: "inst-1",
+      activeInstitute: {
+        id: "inst-1",
+        name: "Test Institute",
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "terms", "inst-1"],
+      queryFn: async () => mockTerms,
+    } as never)
+    vi.spyOn(schedulingResource.calculateDemand, "toMutation").mockReturnValue({
+      mutationFn: vi.fn().mockResolvedValue(mockDemandReport),
+    } as never)
+    const applyMutationSpy = vi.fn().mockResolvedValue({
+      createdCount: 1,
+      deactivatedCount: 0,
+      totalRequirements: 1,
+      requirementIds: ["requirement-1"],
+    })
+    vi.spyOn(schedulingResource.applyDemand, "toMutation").mockReturnValue({
+      mutationFn: applyMutationSpy,
+    } as never)
+
+    render(<SchedulingPage />)
+    expect(
+      (await screen.findAllByText("انگلیسی کودکان ۱")).length
+    ).toBeGreaterThanOrEqual(1)
+
+    fireEvent.click(screen.getAllByRole("button", { name: "ثبت و ادامه" })[0]!)
+    expect(
+      await screen.findByText("با وجود زبان‌آموز بدون ظرفیت ادامه می‌دهید؟")
+    ).toBeInTheDocument()
+    expect(applyMutationSpy).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole("button", { name: "ادامه" }))
+    await waitFor(() =>
+      expect(applyMutationSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ acknowledgeShortfall: true }),
+        expect.anything()
+      )
+    )
   })
 
   it("renders notEligible empty state when terms exist but none start within 10 days", async () => {
@@ -275,7 +379,7 @@ describe("Unified scheduling workspace", () => {
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
       queryKey: ["scheduling", "terms", "inst-1"],
       queryFn: async () => distantTerms,
-    } as any)
+    } as never)
 
     render(<SchedulingPage />)
 

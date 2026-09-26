@@ -460,7 +460,30 @@
       "students": "Applicants",
       "studentsDetail": "{continuing} continuing + {new} placement = {total} students",
       "suggestedClasses": "Suggested Classes",
-      "capacity": "Class Capacity"
+      "capacity": "Class Capacity",
+      "classRows": "Suggested class rows",
+      "classLabel": "Class {count}",
+      "coverage": "Coverage",
+      "plannedSeats": "{count} planned seats",
+      "uncovered": "{count} uncovered",
+      "covered": "Covered",
+      "addClass": "Add class",
+      "removeClass": "Remove class"
+    },
+    "summary": {
+      "eligible": "{count} eligible students",
+      "effectiveLimit": "Maximum {count} per class",
+      "uncovered": "{count} students uncovered"
+    },
+    "warnings": {
+      "NO_ACTIVE_CLASSROOMS": "No active classroom is available in this scope. Suggestions use the supervisor limit, but timetable generation may fail.",
+      "CLASS_LIMIT_CLAMPED": "The class limit was reduced to fit the largest active classroom in this scope."
+    },
+    "shortfall": {
+      "title": "Continue with uncovered students?",
+      "description": "The reviewed classes leave {count} eligible students without seats. You can continue intentionally, or return and adjust the class rows.",
+      "cancel": "Review",
+      "confirm": "Continue"
     },
     "tabTitle": "Course Demand",
     "generationTabTitle": "Class Scheduling",
@@ -532,6 +555,9 @@
       "term": "Term",
       "branch": "Branch",
       "allBranches": "All Branches",
+      "maxStudents": "Maximum students per class",
+      "roomCeiling": "Largest available classroom: {count} seats",
+      "noRoomCeiling": "No active classroom is available in this scope.",
       "allTerms": "All Terms",
       "search": "Search course...",
       "statusAll": "All Courses ({count})",
@@ -579,65 +605,6 @@
     "notEligible": {
       "title": "No Eligible Term for Scheduling",
       "description": "Scheduling opens 10 days prior to term start so student progression and completion data from the previous term are finalized."
-    },
-    "termWorkspace": {
-      "tabs": {
-        "demand": "Demand & Requirements",
-        "schedule": "Schedule Generation"
-      },
-      "termOverview": {
-        "title": "Term Overview",
-        "dates": "Academic Dates",
-        "classes": "Classes",
-        "requirements": "Requirements",
-        "phase": "Phase"
-      }
-    }
-  },
-  "requirementsPage": {
-    "title": "Term Class Requirements",
-    "description": "Define and manage required class counts, capacities, and scheduling patterns for this term.",
-    "syncDemand": "Load from Demand Analysis",
-    "syncDemandDesc": "Do you want to apply all suggested classes from student demand analysis as class requirements for this term? Existing requirements will be replaced.",
-    "syncDemandConfirm": "Confirm & Replace",
-    "syncDemandSuccess": "{count} class requirements applied from demand analysis successfully.",
-    "addRequirement": "Add Requirement",
-    "editRequirement": "Edit Requirement",
-    "deleteRequirement": "Delete Requirement",
-    "deleteConfirm": "Are you sure you want to delete this class requirement? This action cannot be undone.",
-    "createSuccess": "Class requirement created successfully.",
-    "updateSuccess": "Class requirement updated successfully.",
-    "deleteSuccess": "Class requirement deleted successfully.",
-    "empty": "No class requirements defined for this term yet.",
-    "emptyDesc": "You can add requirements manually or use 'Load from Demand Analysis' to auto-populate from student enrollment data.",
-    "columns": {
-      "course": "Course",
-      "branch": "Branch",
-      "requiredClassCount": "Classes",
-      "capacity": "Capacity",
-      "deliveryMode": "Delivery Mode",
-      "sessionsPerWeek": "Weekly Sessions",
-      "actions": "Actions"
-    },
-    "fields": {
-      "course": "Course",
-      "coursePlaceholder": "Select course...",
-      "branch": "Branch",
-      "branchPlaceholder": "All Branches",
-      "requiredClassCount": "Required Class Count",
-      "capacity": "Class Capacity",
-      "deliveryMode": "Delivery Mode",
-      "sessionsPerWeek": "Weekly Schedule Pattern",
-      "cadence3": "3 sessions per week (Even days)",
-      "cadence2": "2 sessions per week (Odd days)",
-      "cadence1": "1 session per week (Single session)"
-    },
-    "actions": {
-      "backToScheduling": "Back to Term Scheduling",
-      "cancel": "Cancel",
-      "save": "Save",
-      "confirm": "Confirm",
-      "delete": "Delete"
     }
   }
 }

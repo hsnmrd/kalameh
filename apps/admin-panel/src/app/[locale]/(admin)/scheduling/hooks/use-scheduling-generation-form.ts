@@ -46,6 +46,7 @@ export function useSchedulingGenerationForm(
     control: form.control,
     name: "requirementIds",
   })
+  const autoSelectedScopeRef = React.useRef("")
 
   const termsQuery = useQuery({
     ...termsResource.list.toQuery(scope),
@@ -80,12 +81,34 @@ export function useSchedulingGenerationForm(
   }, [branchId, requirementsQuery.data])
 
   React.useEffect(() => {
+    const scopeKey = `${termId}:${branchId ?? ""}`
+    if (
+      !requirementsQuery.isLoading &&
+      termId &&
+      autoSelectedScopeRef.current !== scopeKey
+    ) {
+      autoSelectedScopeRef.current = scopeKey
+      form.setValue(
+        "requirementIds",
+        requirements.map((requirement) => requirement.id),
+        { shouldValidate: true }
+      )
+      return
+    }
+
     const visibleIds = new Set(requirements.map((item) => item.id))
     const nextIds = requirementIds.filter((id) => visibleIds.has(id))
     if (nextIds.length !== requirementIds.length) {
       form.setValue("requirementIds", nextIds, { shouldValidate: true })
     }
-  }, [form, requirementIds, requirements])
+  }, [
+    branchId,
+    form,
+    requirementIds,
+    requirements,
+    requirementsQuery.isLoading,
+    termId,
+  ])
 
   const generateMutation = useMutation({
     ...schedulingResource.generate.toMutation(),

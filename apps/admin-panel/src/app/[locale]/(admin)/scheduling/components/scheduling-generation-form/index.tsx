@@ -28,12 +28,14 @@ const ALL_BRANCHES = "ALL_BRANCHES"
 interface SchedulingGenerationFormProps {
   onCreated: (run: SchedulingRunDto) => void
   defaultTermId?: string
+  defaultBranchId?: string
   onNavigateToDemand?: () => void
 }
 
 export function SchedulingGenerationForm({
   onCreated,
   defaultTermId,
+  defaultBranchId,
   onNavigateToDemand,
 }: SchedulingGenerationFormProps) {
   const t = useTranslations("scheduling.generation")
@@ -67,6 +69,12 @@ export function SchedulingGenerationForm({
       form.setValue("termId", activeTerm.id, { shouldValidate: true })
     }
   }, [activeTerm, form])
+
+  React.useEffect(() => {
+    if (defaultBranchId) {
+      form.setValue("branchId", defaultBranchId, { shouldValidate: true })
+    }
+  }, [defaultBranchId, form])
 
   const branchOptions: ComboboxOption[] = [
     { value: ALL_BRANCHES, label: t("fields.branch.all") },
@@ -218,9 +226,8 @@ export function SchedulingGenerationForm({
               >
                 <Button
                   type="submit"
-                  size="lg"
                   disabled={isPending || !termId || requirements.length === 0}
-                  className="h-12 w-full px-6 sm:w-auto"
+                  className="w-full px-6 sm:w-auto"
                 >
                   {isPending ? (
                     <Spinner className="size-5 text-primary-foreground" />

@@ -1,6 +1,7 @@
 export * from "./scheduling.constants.js"
 export * from "./default-scheduling-settings.constant.js"
 export * from "./class-requirement.schema.js"
+export * from "./class-suggestion-balancing.js"
 export * from "./update-class-requirement.schema.js"
 export * from "./class-requirement-filter.schema.js"
 export * from "./generate-scheduling-plan.schema.js"

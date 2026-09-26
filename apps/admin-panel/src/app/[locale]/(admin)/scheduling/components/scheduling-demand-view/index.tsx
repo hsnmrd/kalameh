@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
-import { Sparkles } from "lucide-react"
-import type { TermDemandReportDto } from "@workspace/types"
+import { useLocale, useTranslations } from "next-intl"
+import { AlertTriangle, DoorOpen, Sparkles, Users } from "lucide-react"
+import type { SuggestedClassDto, TermDemandReportDto } from "@workspace/types"
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Empty,
   EmptyDescription,
@@ -13,70 +13,51 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@workspace/ui/components/empty"
-import {
-  DemandBreakdownDrawer,
-  type CourseAdjustment,
-} from "./demand-breakdown-drawer"
-
-export type { CourseAdjustment } from "./demand-breakdown-drawer"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { formatNumber } from "@workspace/ui/lib/utils"
+import { DemandBreakdownDrawer } from "./demand-breakdown-drawer"
 
 export interface SchedulingDemandViewProps {
   termId: string
   demandData: TermDemandReportDto | null
   isLoading: boolean
   search?: string
-  adjustments?: Record<string, CourseAdjustment>
-  onAdjustmentChange?: (courseId: string, changes: CourseAdjustment) => void
+  suggestions?: Record<string, SuggestedClassDto[]>
+  totalUncoveredStudents?: number
+  onCapacityChange?: (
+    courseId: string,
+    classKey: string,
+    capacity: number
+  ) => void
+  onAddClass?: (courseId: string) => void
+  onRemoveClass?: (courseId: string, classKey: string) => void
   onCalculateDemand?: () => void
-  onGenerateTimetable?: () => void
 }
 
 export function SchedulingDemandView({
   demandData,
   isLoading,
   search = "",
-  adjustments: externalAdjustments,
-  onAdjustmentChange: externalOnAdjustmentChange,
+  suggestions = {},
+  totalUncoveredStudents = 0,
+  onCapacityChange = () => undefined,
+  onAddClass = () => undefined,
+  onRemoveClass = () => undefined,
   onCalculateDemand,
 }: SchedulingDemandViewProps) {
   const t = useTranslations("scheduling")
-
-  const [internalAdjustments, setInternalAdjustments] = React.useState<
-    Record<string, CourseAdjustment>
-  >({})
-
-  const adjustments = externalAdjustments ?? internalAdjustments
-
-  const handleAdjustmentChange = React.useCallback(
-    (courseId: string, changes: CourseAdjustment) => {
-      if (externalOnAdjustmentChange) {
-        externalOnAdjustmentChange(courseId, changes)
-      } else {
-        setInternalAdjustments((prev) => ({
-          ...prev,
-          [courseId]: {
-            ...prev[courseId],
-            ...changes,
-          },
-        }))
-      }
-    },
-    [externalOnAdjustmentChange]
-  )
-
+  const locale = useLocale()
   const courses = React.useMemo(
     () => demandData?.courses ?? [],
     [demandData?.courses]
   )
-
   const filteredItems = React.useMemo(() => {
     if (!search.trim()) return courses
     const query = search.trim().toLowerCase()
     return courses.filter(
       (item) =>
         item.courseTitle.toLowerCase().includes(query) ||
-        (item.prerequisiteTitle &&
-          item.prerequisiteTitle.toLowerCase().includes(query))
+        item.prerequisiteTitle?.toLowerCase().includes(query)
     )
   }, [courses, search])
 
@@ -100,13 +81,9 @@ export function SchedulingDemandView({
         </EmptyHeader>
         {onCalculateDemand && (
           <div className="mt-4">
-            <Button
-              type="button"
-              onClick={onCalculateDemand}
-              className="gap-2 px-6 font-semibold"
-            >
-              <Sparkles className="size-5" />
-              <span>{t("demand.calculateButton")}</span>
+            <Button type="button" onClick={onCalculateDemand}>
+              <Sparkles className="size-5" aria-hidden />
+              {t("demand.calculateButton")}
             </Button>
           </div>
         )}
@@ -115,12 +92,47 @@ export function SchedulingDemandView({
   }
 
   return (
-    <div className="w-full">
+    <div className="flex w-full flex-col gap-4">
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="secondary" className="gap-2 px-3 py-1.5">
+            <Users className="size-4 text-muted-foreground" aria-hidden />
+            {t("demand.summary.eligible", {
+              count: formatNumber(demandData.totalEligibleStudents, locale),
+            })}
+          </Badge>
+          <Badge variant="outline" className="gap-2 px-3 py-1.5">
+            <DoorOpen className="size-4 text-muted-foreground" aria-hidden />
+            {t("demand.summary.effectiveLimit", {
+              count: formatNumber(demandData.effectiveCapacityLimit, locale),
+            })}
+          </Badge>
+          {totalUncoveredStudents > 0 && (
+            <Badge variant="destructive" className="gap-2 px-3 py-1.5">
+              <AlertTriangle
+                className="size-4 text-destructive-foreground"
+                aria-hidden
+              />
+              {t("demand.summary.uncovered", {
+                count: formatNumber(totalUncoveredStudents, locale),
+              })}
+            </Badge>
+          )}
+        </div>
+        {demandData.warnings.map((warning) => (
+          <p key={warning} className="text-sm text-muted-foreground">
+            {t(`demand.warnings.${warning}`)}
+          </p>
+        ))}
+      </div>
+
       <DemandBreakdownDrawer
         courses={filteredItems}
-        adjustments={adjustments}
-        onAdjustmentChange={handleAdjustmentChange}
-        isLoading={isLoading}
+        suggestions={suggestions}
+        capacityLimit={demandData.effectiveCapacityLimit}
+        onCapacityChange={onCapacityChange}
+        onAddClass={onAddClass}
+        onRemoveClass={onRemoveClass}
       />
     </div>
   )

@@ -1,445 +1,317 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { type JwtPayload } from '@workspace/types';
-import { PrismaService } from '../prisma/prisma.service';
-import { SchedulingDemandService } from './scheduling-demand.service';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import type { JwtPayload, TermDemandReportDto } from '@workspace/types';
+import { SchedulingDemandApplicationService } from './scheduling-demand-application.service';
+import { SchedulingDemandCalculationService } from './scheduling-demand-calculation.service';
 
-describe('SchedulingDemandService', () => {
-  let service: SchedulingDemandService;
-  let prisma: {
-    term: {
-      findUniqueOrThrow: jest.Mock;
-      findFirst: jest.Mock;
-      findFirstOrThrow?: jest.Mock;
-    };
-    course: { findMany: jest.Mock };
-    enrollment: { findMany: jest.Mock };
-    user: { findMany: jest.Mock };
-    classRequirement: {
-      findMany: jest.Mock;
-      findFirst: jest.Mock;
-      create: jest.Mock;
-      update: jest.Mock;
-      count: jest.Mock;
-    };
-    branch: { findMany: jest.Mock };
-    $transaction: jest.Mock;
-  };
-
-  const mockUser: JwtPayload = {
-    sub: 'user-admin-1',
-    phone: '09120000002',
+describe('Scheduling demand', () => {
+  const currentUser: JwtPayload = {
+    sub: 'admin-1',
+    phone: '09120000000',
     role: 'ADMIN',
-    instituteId: 'inst-1',
+    instituteId: 'institute-1',
     permissions: [],
   };
 
-  beforeEach(async () => {
-    prisma = {
-      term: {
-        findUniqueOrThrow: jest.fn().mockResolvedValue({
-          id: 'term-fall',
-          title: 'ترم پاییز ۱۴۰۳',
-          startDate: new Date('2024-09-22T00:00:00.000Z'),
-          instituteId: 'inst-1',
-        }),
-        findFirst: jest.fn().mockResolvedValue(null),
-        findFirstOrThrow: jest.fn().mockResolvedValue({
-          id: 'term-fall',
-          title: 'ترم پاییز ۱۴۰۳',
-          startDate: new Date('2024-09-22T00:00:00.000Z'),
-          instituteId: 'inst-1',
-        }),
-      },
-      course: { findMany: jest.fn() },
-      enrollment: { findMany: jest.fn().mockResolvedValue([]) },
-      user: { findMany: jest.fn() },
-      classRequirement: {
-        findMany: jest.fn(),
-        findFirst: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        count: jest.fn(),
-      },
-      branch: {
-        findMany: jest.fn().mockResolvedValue([]),
-      },
-      $transaction: jest.fn(),
-    };
+  const course = {
+    id: 'course-1',
+    title: 'Starter',
+    baseFee: 1_000_000,
+    prerequisiteId: null,
+    prerequisite: null,
+  };
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        SchedulingDemandService,
-        { provide: PrismaService, useValue: prisma },
-      ],
-    }).compile();
-
-    service = module.get<SchedulingDemandService>(SchedulingDemandService);
+  const createCalculationPrisma = () => ({
+    term: {
+      findUniqueOrThrow: jest.fn().mockResolvedValue({
+        id: 'term-1',
+        title: 'Fall',
+        startDate: new Date('2026-09-01T00:00:00.000Z'),
+        instituteId: 'institute-1',
+      }),
+      findFirst: jest.fn().mockResolvedValue(null),
+    },
+    course: { findMany: jest.fn().mockResolvedValue([course]) },
+    enrollment: { findMany: jest.fn().mockResolvedValue([]) },
+    user: { findMany: jest.fn().mockResolvedValue([]) },
+    classRequirement: { findMany: jest.fn().mockResolvedValue([]) },
+    classroom: {
+      findMany: jest.fn().mockResolvedValue([{ capacity: 20 }]),
+    },
   });
 
-  describe('resolvePrecedingTerm', () => {
-    it('returns the immediately preceding term when previous terms exist', async () => {
-      const preceding = { id: 'term-summer', title: 'ترم تابستان ۱۴۰۳' };
-      prisma.term.findFirst.mockResolvedValue(preceding);
+  it('balances separate class rows under the supervisor limit', async () => {
+    const prisma = createCalculationPrisma();
+    prisma.user.findMany.mockResolvedValue(
+      Array.from({ length: 29 }, (_, index) => ({
+        id: `student-${index}`,
+        currentAllowedCourseId: course.id,
+        studentProfile: null,
+      })),
+    );
+    const service = new SchedulingDemandCalculationService(prisma as never);
 
-      const targetDate = new Date('2024-09-22T00:00:00.000Z');
-      const result = await (service as any).resolvePrecedingTerm(
-        'inst-1',
-        targetDate,
-      );
-
-      expect(prisma.term.findFirst).toHaveBeenCalledWith({
-        where: {
-          instituteId: 'inst-1',
-          startDate: {
-            lt: targetDate,
-          },
-        },
-        orderBy: {
-          startDate: 'desc',
-        },
-        select: {
-          id: true,
-          title: true,
-        },
-      });
-      expect(result).toEqual(preceding);
+    const result = await service.calculateDemand(currentUser, {
+      termId: 'term-1',
+      maxStudentsPerClass: 20,
     });
 
-    it('returns null gracefully when no preceding term exists', async () => {
-      prisma.term.findFirst.mockResolvedValue(null);
-
-      const targetDate = new Date('2024-01-01T00:00:00.000Z');
-      const result = await (service as any).resolvePrecedingTerm(
-        'inst-1',
-        targetDate,
-      );
-
-      expect(result).toBeNull();
-    });
+    expect(result.effectiveCapacityLimit).toBe(20);
+    expect(result.courses[0]?.suggestedClasses).toEqual([
+      { key: 'course-1:1', capacity: 15 },
+      { key: 'course-1:2', capacity: 14 },
+    ]);
+    expect(result.totalPlannedCapacity).toBe(29);
+    expect(result.totalUncoveredStudents).toBe(0);
   });
 
-  describe('calculateDemand', () => {
-    it('calculates demand correctly with auto-progression and placement tests', async () => {
-      prisma.term.findUniqueOrThrow.mockResolvedValue({
-        id: 'term-fall',
-        title: 'ترم پاییز ۱۴۰۳',
-        startDate: new Date('2024-09-22T00:00:00.000Z'),
-        instituteId: 'inst-1',
-      });
-      prisma.term.findFirst.mockResolvedValue({
-        id: 'term-summer',
-        title: 'ترم تابستان ۱۴۰۳',
-      });
+  it('clamps suggestions to the largest active room in branch scope', async () => {
+    const prisma = createCalculationPrisma();
+    prisma.classroom.findMany.mockResolvedValue([
+      { capacity: 8 },
+      { capacity: 12 },
+    ]);
+    prisma.user.findMany.mockResolvedValue(
+      Array.from({ length: 25 }, (_, index) => ({
+        id: `student-${index}`,
+        currentAllowedCourseId: course.id,
+        studentProfile: null,
+      })),
+    );
+    const service = new SchedulingDemandCalculationService(prisma as never);
 
-      const courseStarter1 = {
-        id: 'course-1',
-        title: 'Starter 1',
-        baseFee: 1000000,
-        prerequisiteId: null,
-        prerequisite: null,
-      };
+    const result = await service.calculateDemand(currentUser, {
+      termId: 'term-1',
+      branchId: 'branch-1',
+      maxStudentsPerClass: 14,
+    });
 
-      const courseStarter2 = {
-        id: 'course-2',
-        title: 'Starter 2',
-        baseFee: 1200000,
-        prerequisiteId: 'course-1',
-        prerequisite: { id: 'course-1', title: 'Starter 1' },
-      };
+    expect(result.maxAvailableRoomCapacity).toBe(12);
+    expect(result.effectiveCapacityLimit).toBe(12);
+    expect(result.warnings).toContain('CLASS_LIMIT_CLAMPED');
+    expect(
+      result.courses[0]?.suggestedClasses.map((item) => item.capacity),
+    ).toEqual([9, 8, 8]);
+    expect(prisma.classroom.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          OR: [{ branchId: 'branch-1' }, { branchId: null }],
+        }),
+      }),
+    );
+  });
 
-      prisma.course.findMany.mockResolvedValue([
-        courseStarter1,
-        courseStarter2,
+  it('keeps calculating when there are no rooms and reports the warning', async () => {
+    const prisma = createCalculationPrisma();
+    prisma.classroom.findMany.mockResolvedValue([]);
+    prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'student-1',
+        currentAllowedCourseId: course.id,
+        studentProfile: null,
+      },
+    ]);
+    const service = new SchedulingDemandCalculationService(prisma as never);
+
+    const result = await service.calculateDemand(currentUser, {
+      termId: 'term-1',
+      maxStudentsPerClass: 14,
+    });
+
+    expect(result.maxAvailableRoomCapacity).toBeNull();
+    expect(result.effectiveCapacityLimit).toBe(14);
+    expect(result.warnings).toEqual(['NO_ACTIVE_CLASSROOMS']);
+  });
+
+  it.each(['ENROLLED', 'PENDING_PAYMENT', 'PENDING_APPROVAL'] as const)(
+    'excludes target-term students with %s status from the same course',
+    async (status) => {
+      const prisma = createCalculationPrisma();
+      prisma.enrollment.findMany.mockResolvedValueOnce([
+        { studentId: 'student-1', class: { courseId: course.id }, status },
       ]);
-
-      // student-1 was in course-1 in preceding term (Summer)
-      prisma.enrollment.findMany.mockResolvedValue([
-        {
-          student: {
-            id: 'student-1',
-            studentProfile: {
-              schoolShift: 'MORNING',
-              dayPreference: 'EVEN_DAYS',
-            },
-          },
-          class: { courseId: 'course-1' },
-        },
-      ]);
-
       prisma.user.findMany.mockResolvedValue([
         {
           id: 'student-1',
-          currentAllowedCourseId: 'course-2',
-          studentProfile: {
-            schoolShift: 'MORNING',
-            dayPreference: 'EVEN_DAYS',
-          },
-        },
-        {
-          id: 'student-2',
-          currentAllowedCourseId: 'course-2',
-          studentProfile: {
-            schoolShift: 'AFTERNOON',
-            dayPreference: 'ODD_DAYS',
-          },
-        },
-        {
-          id: 'student-3',
-          currentAllowedCourseId: 'course-1',
-          studentProfile: {
-            schoolShift: 'FLEXIBLE',
-            dayPreference: 'ANY',
-          },
+          currentAllowedCourseId: course.id,
+          studentProfile: null,
         },
       ]);
+      const service = new SchedulingDemandCalculationService(prisma as never);
 
-      prisma.classRequirement.findMany.mockResolvedValue([]);
-
-      const result = await service.calculateDemand(mockUser, {
-        termId: 'term-fall',
-        defaultCapacity: 14,
+      const result = await service.calculateDemand(currentUser, {
+        termId: 'term-1',
       });
 
-      expect(result.termId).toBe('term-fall');
-      expect(result.currentTermId).toBe('term-summer');
-      expect(result.totalEligibleStudents).toBe(3);
-      expect(result.totalContinuingStudents).toBe(1);
-      expect(result.totalNewPlacements).toBe(2);
-      expect(result.courses).toHaveLength(2);
-
-      const starter2Summary = result.courses.find(
-        (c) => c.courseId === 'course-2',
-      );
-      expect(starter2Summary).toBeDefined();
-      expect(starter2Summary?.eligibleStudentsCount).toBe(2);
-      expect(starter2Summary?.passedPrerequisiteCount).toBe(1);
-      expect(starter2Summary?.continuingStudentsCount).toBe(1);
-      expect(starter2Summary?.newPlacementCount).toBe(1);
-      expect(starter2Summary?.morningShiftCount).toBe(1);
-      expect(starter2Summary?.afternoonShiftCount).toBe(1);
-      expect(starter2Summary?.evenDaysPreferenceCount).toBe(1);
-      expect(starter2Summary?.oddDaysPreferenceCount).toBe(1);
-      expect(starter2Summary?.suggestedClassCount).toBe(1);
-
-      const starter1Summary = result.courses.find(
-        (c) => c.courseId === 'course-1',
-      );
-      expect(starter1Summary).toBeDefined();
-      expect(starter1Summary?.eligibleStudentsCount).toBe(1);
-      expect(starter1Summary?.continuingStudentsCount).toBe(0);
-      expect(starter1Summary?.newPlacementCount).toBe(1);
-      expect(starter1Summary?.flexibleShiftCount).toBe(1);
-      expect(starter1Summary?.anyDayPreferenceCount).toBe(1);
-    });
-
-    it('does not project graduating students into any course when course has no next course', async () => {
-      prisma.term.findUniqueOrThrow.mockResolvedValue({
-        id: 'term-fall',
-        title: 'ترم پاییز ۱۴۰۳',
-        startDate: new Date('2024-09-22T00:00:00.000Z'),
-        instituteId: 'inst-1',
-      });
-      prisma.term.findFirst.mockResolvedValue({
-        id: 'term-summer',
-        title: 'ترم تابستان ۱۴۰۳',
-      });
-
-      const courseGraduating = {
-        id: 'course-advanced',
-        title: 'Advanced 3',
-        baseFee: 2000000,
-        prerequisiteId: null,
-        prerequisite: null,
-      };
-
-      prisma.course.findMany.mockResolvedValue([courseGraduating]);
-
-      // student-grad is in course-advanced in Summer (no course has prerequisiteId === 'course-advanced')
-      prisma.enrollment.findMany.mockResolvedValue([
-        {
-          student: {
-            id: 'student-grad',
-            studentProfile: {
-              schoolShift: 'MORNING',
-              dayPreference: 'EVEN_DAYS',
-            },
-          },
-          class: { courseId: 'course-advanced' },
-        },
-      ]);
-
-      // No new placement students
-      prisma.user.findMany.mockResolvedValue([]);
-      prisma.classRequirement.findMany.mockResolvedValue([]);
-
-      const result = await service.calculateDemand(mockUser, {
-        termId: 'term-fall',
-        defaultCapacity: 14,
-      });
-
-      expect(result.totalContinuingStudents).toBe(0);
-      expect(result.totalNewPlacements).toBe(0);
       expect(result.totalEligibleStudents).toBe(0);
-      expect(result.courses[0].continuingStudentsCount).toBe(0);
-      expect(result.courses[0].newPlacementCount).toBe(0);
-      expect(result.courses[0].eligibleStudentsCount).toBe(0);
-    });
-
-    it('handles first term with null preceding term by counting only new placements', async () => {
-      prisma.term.findUniqueOrThrow.mockResolvedValue({
-        id: 'term-first',
-        title: 'ترم اول مؤسسه',
-        startDate: new Date('2024-01-01T00:00:00.000Z'),
-        instituteId: 'inst-1',
-      });
-      prisma.term.findFirst.mockResolvedValue(null);
-
-      const courseStarter = {
-        id: 'course-1',
-        title: 'Starter 1',
-        baseFee: 1000000,
-        prerequisiteId: null,
-        prerequisite: null,
-      };
-
-      prisma.course.findMany.mockResolvedValue([courseStarter]);
-      prisma.user.findMany.mockResolvedValue([
-        {
-          id: 'student-new',
-          currentAllowedCourseId: 'course-1',
-          studentProfile: {
-            schoolShift: 'MORNING',
-            dayPreference: 'EVEN_DAYS',
-          },
-        },
-      ]);
-      prisma.classRequirement.findMany.mockResolvedValue([]);
-
-      const result = await service.calculateDemand(mockUser, {
-        termId: 'term-first',
-        defaultCapacity: 14,
-      });
-
-      expect(result.currentTermId).toBeNull();
-      expect(result.totalContinuingStudents).toBe(0);
-      expect(result.totalNewPlacements).toBe(1);
-      expect(result.totalEligibleStudents).toBe(1);
-      expect(result.courses[0].continuingStudentsCount).toBe(0);
-      expect(result.courses[0].newPlacementCount).toBe(1);
-    });
-
-    it('guarantees an active student in preceding term is never counted as a new placement (zero double-counting)', async () => {
-      prisma.term.findUniqueOrThrow.mockResolvedValue({
-        id: 'term-fall',
-        title: 'ترم پاییز ۱۴۰۳',
-        startDate: new Date('2024-09-22T00:00:00.000Z'),
-        instituteId: 'inst-1',
-      });
-      prisma.term.findFirst.mockResolvedValue({
-        id: 'term-summer',
-        title: 'ترم تابستان ۱۴۰۳',
-      });
-
-      const course1 = {
-        id: 'course-1',
-        title: 'Level 1',
-        baseFee: 1000000,
-        prerequisiteId: null,
-        prerequisite: null,
-      };
-      const course2 = {
-        id: 'course-2',
-        title: 'Level 2',
-        baseFee: 1200000,
-        prerequisiteId: 'course-1',
-        prerequisite: { id: 'course-1', title: 'Level 1' },
-      };
-
-      prisma.course.findMany.mockResolvedValue([course1, course2]);
-
-      // student-active is enrolled in Level 1 in Summer
-      prisma.enrollment.findMany.mockResolvedValue([
-        {
-          student: {
-            id: 'student-active',
-            studentProfile: {
-              schoolShift: 'MORNING',
-              dayPreference: 'EVEN_DAYS',
+      expect(prisma.enrollment.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            status: {
+              in: ['ENROLLED', 'PENDING_PAYMENT', 'PENDING_APPROVAL'],
             },
-          },
-          class: { courseId: 'course-1' },
-        },
-      ]);
+          }),
+        }),
+      );
+    },
+  );
 
-      // Both student-active and student-placed have currentAllowedCourseId = course-2
-      prisma.user.findMany.mockResolvedValue([
-        {
-          id: 'student-active',
-          currentAllowedCourseId: 'course-2',
-          studentProfile: {
-            schoolShift: 'MORNING',
-            dayPreference: 'EVEN_DAYS',
-          },
-        },
-        {
-          id: 'student-placed',
-          currentAllowedCourseId: 'course-2',
-          studentProfile: {
-            schoolShift: 'AFTERNOON',
-            dayPreference: 'ODD_DAYS',
-          },
-        },
-      ]);
-
-      prisma.classRequirement.findMany.mockResolvedValue([]);
-
-      const result = await service.calculateDemand(mockUser, {
-        termId: 'term-fall',
-        defaultCapacity: 14,
-      });
-
-      const level2 = result.courses.find((c) => c.courseId === 'course-2');
-      expect(level2).toBeDefined();
-      expect(level2?.continuingStudentsCount).toBe(1); // student-active
-      expect(level2?.newPlacementCount).toBe(1); // student-placed only
-      expect(level2?.eligibleStudentsCount).toBe(2); // strictly 2, not 3
-      expect(result.totalEligibleStudents).toBe(2);
-      expect(result.totalContinuingStudents).toBe(1);
-      expect(result.totalNewPlacements).toBe(1);
+  it('rejects cross-tenant term access', async () => {
+    const prisma = createCalculationPrisma();
+    prisma.term.findUniqueOrThrow.mockResolvedValue({
+      id: 'term-2',
+      title: 'Other',
+      startDate: new Date(),
+      instituteId: 'institute-2',
     });
+    const service = new SchedulingDemandCalculationService(prisma as never);
+
+    await expect(
+      service.calculateDemand(currentUser, { termId: 'term-2' }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
-  describe('applyDemand', () => {
-    it('creates or updates class requirements in a transaction', async () => {
-      prisma.$transaction.mockImplementation((callback) => {
-        const tx = {
-          classRequirement: {
-            findFirst: jest.fn().mockResolvedValue(null),
-            create: jest.fn().mockResolvedValue({ id: 'req-new' }),
-            update: jest.fn().mockResolvedValue({ id: 'req-updated' }),
-          },
-        };
-        return callback(tx);
-      });
+  describe('application', () => {
+    const demand = {
+      courses: [
+        { courseId: course.id, eligibleStudentsCount: 20 },
+        { courseId: 'course-2', eligibleStudentsCount: 0 },
+      ],
+    } as TermDemandReportDto;
 
-      prisma.classRequirement.count.mockResolvedValue(1);
+    const createApplicationContext = () => {
+      const transactionClassRequirement = {
+        updateMany: jest.fn().mockResolvedValue({ count: 2 }),
+        create: jest
+          .fn()
+          .mockResolvedValueOnce({ id: 'requirement-1' })
+          .mockResolvedValueOnce({ id: 'requirement-2' }),
+      };
+      const prisma = {
+        branch: { findMany: jest.fn().mockResolvedValue([{ id: 'branch-1' }]) },
+        classRequirement: {
+          findMany: jest.fn().mockResolvedValue([
+            {
+              courseId: course.id,
+              sessionsPerWeek: 2,
+              totalSessions: null,
+            },
+          ]),
+          count: jest.fn().mockResolvedValue(2),
+        },
+        $transaction: jest.fn((callback) =>
+          callback({ classRequirement: transactionClassRequirement }),
+        ),
+      };
+      const calculation = {
+        resolveInstituteForTerm: jest
+          .fn()
+          .mockResolvedValue({ instituteId: 'institute-1' }),
+        calculateDemand: jest.fn().mockResolvedValue(demand),
+      };
+      const service = new SchedulingDemandApplicationService(
+        prisma as never,
+        calculation as never,
+      );
+      return {
+        service,
+        prisma,
+        calculation,
+        transactionClassRequirement,
+      };
+    };
 
-      const result = await service.applyDemand(mockUser, {
-        termId: 'term-fall',
+    it('replaces active requirements and creates one historical-safe row per class', async () => {
+      const { service, transactionClassRequirement } =
+        createApplicationContext();
+
+      const result = await service.applyDemand(currentUser, {
+        termId: 'term-1',
+        acknowledgeShortfall: false,
         items: [
           {
+            courseId: course.id,
+            classes: [{ capacity: 10 }, { capacity: 10 }],
+            deliveryMode: 'IN_PERSON',
+            sessionDurationMinutes: 90,
+          },
+          {
             courseId: 'course-2',
-            requiredClassCount: 2,
-            capacity: 14,
+            classes: [],
             deliveryMode: 'IN_PERSON',
             sessionDurationMinutes: 90,
           },
         ],
       });
 
-      expect(prisma.$transaction).toHaveBeenCalled();
-      expect(result.createdCount).toBe(1);
-      expect(result.totalRequirements).toBe(1);
+      expect(transactionClassRequirement.updateMany).toHaveBeenCalledWith({
+        where: {
+          instituteId: 'institute-1',
+          termId: 'term-1',
+          OR: [{ branchId: 'branch-1' }, { branchId: null }],
+          isActive: true,
+        },
+        data: { isActive: false },
+      });
+      expect(transactionClassRequirement.create).toHaveBeenCalledTimes(2);
+      expect(transactionClassRequirement.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            requiredClassCount: 1,
+            capacity: 10,
+            sessionsPerWeek: 2,
+          }),
+        }),
+      );
+      expect(result).toEqual({
+        createdCount: 2,
+        deactivatedCount: 2,
+        totalRequirements: 2,
+        requirementIds: ['requirement-1', 'requirement-2'],
+      });
+    });
+
+    it('requires explicit acknowledgement when reviewed seats leave a shortfall', async () => {
+      const { service, prisma } = createApplicationContext();
+
+      await expect(
+        service.applyDemand(currentUser, {
+          termId: 'term-1',
+          acknowledgeShortfall: false,
+          items: [
+            {
+              courseId: course.id,
+              classes: [{ capacity: 14 }],
+              deliveryMode: 'IN_PERSON',
+              sessionDurationMinutes: 90,
+            },
+          ],
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('rejects a class capacity above the available classroom ceiling', async () => {
+      const { service, prisma, calculation } = createApplicationContext();
+      calculation.calculateDemand.mockResolvedValue({
+        ...demand,
+        maxAvailableRoomCapacity: 12,
+      });
+
+      await expect(
+        service.applyDemand(currentUser, {
+          termId: 'term-1',
+          acknowledgeShortfall: true,
+          items: [
+            {
+              courseId: course.id,
+              classes: [{ capacity: 14 }],
+              deliveryMode: 'IN_PERSON',
+              sessionDurationMinutes: 90,
+            },
+          ],
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(prisma.$transaction).not.toHaveBeenCalled();
     });
   });
 });

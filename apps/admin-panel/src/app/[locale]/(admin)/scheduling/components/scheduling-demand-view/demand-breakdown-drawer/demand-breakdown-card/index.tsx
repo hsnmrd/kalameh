@@ -1,47 +1,71 @@
 "use client"
 
-import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Users } from "lucide-react"
-import type { CourseDemandSummaryDto } from "@workspace/types"
-import { Counter } from "@workspace/ui/components/counter"
-import { FieldLabel } from "@workspace/ui/components/field"
+import { Plus, Users } from "lucide-react"
+import {
+  calculateUncoveredStudents,
+  type CourseDemandSummaryDto,
+  type SuggestedClassDto,
+} from "@workspace/types"
+import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 import { formatNumber } from "@workspace/ui/lib/utils"
-import type { CourseAdjustment } from ".."
+import { SuggestedClassControl } from "../suggested-class-control"
 
 export interface DemandBreakdownCardProps {
   item: CourseDemandSummaryDto
-  currentClassCount: number
-  currentCapacity: number
-  onAdjustmentChange: (courseId: string, changes: CourseAdjustment) => void
+  suggestions: SuggestedClassDto[]
+  capacityLimit: number
+  onCapacityChange: (
+    courseId: string,
+    classKey: string,
+    capacity: number
+  ) => void
+  onAddClass: (courseId: string) => void
+  onRemoveClass: (courseId: string, classKey: string) => void
 }
 
 export function DemandBreakdownCard({
   item,
-  currentClassCount,
-  currentCapacity,
-  onAdjustmentChange,
+  suggestions,
+  capacityLimit,
+  onCapacityChange,
+  onAddClass,
+  onRemoveClass,
 }: DemandBreakdownCardProps) {
   const t = useTranslations("scheduling.demand.breakdown")
   const locale = useLocale()
+  const planned = suggestions.reduce(
+    (total, suggestedClass) => total + suggestedClass.capacity,
+    0
+  )
+  const uncovered = calculateUncoveredStudents(
+    item.eligibleStudentsCount,
+    suggestions.map((suggestedClass) => suggestedClass.capacity)
+  )
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-2xs">
-      {/* Course Title and Prerequisite */}
-      <div className="flex flex-col gap-0.5">
-        <span className="text-base font-semibold text-foreground">
-          {item.courseTitle}
-        </span>
-        {item.prerequisiteTitle && (
-          <span className="text-xs text-muted-foreground">
-            {t("prerequisite", {
-              title: item.prerequisiteTitle,
-            })}
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-2xs">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-base font-semibold text-foreground">
+            {item.courseTitle}
           </span>
+          {item.prerequisiteTitle && (
+            <span className="text-xs text-muted-foreground">
+              {t("prerequisite", { title: item.prerequisiteTitle })}
+            </span>
+          )}
+        </div>
+        {uncovered > 0 ? (
+          <Badge variant="destructive">
+            {t("uncovered", { count: formatNumber(uncovered, locale) })}
+          </Badge>
+        ) : (
+          <Badge variant="secondary">{t("covered")}</Badge>
         )}
       </div>
 
-      {/* Applicants Breakdown */}
       <div className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
         <Users className="size-4 shrink-0 text-muted-foreground" aria-hidden />
         <span>
@@ -53,53 +77,31 @@ export function DemandBreakdownCard({
         </span>
       </div>
 
-      {/* Editable Inputs: Suggested Classes & Capacity */}
-      <div className="grid grid-cols-2 gap-3 border-t border-border/60 pt-3">
-        <div className="flex flex-col gap-1.5">
-          <FieldLabel
-            htmlFor={`suggested-classes-${item.courseId}`}
-            className="text-xs font-medium text-muted-foreground"
-          >
-            {t("suggestedClasses")}
-          </FieldLabel>
-          <Counter
-            id={`suggested-classes-${item.courseId}`}
-            size="sm"
-            min={0}
-            max={50}
-            value={currentClassCount}
-            onValueChange={(val) => {
-              onAdjustmentChange(item.courseId, {
-                suggestedClassCount: val,
-              })
-            }}
-            className="w-full"
-            aria-label={`${t("suggestedClasses")} - ${item.courseTitle}`}
+      <div className="flex flex-col gap-3 border-t border-border pt-4">
+        {suggestions.map((suggestedClass, index) => (
+          <SuggestedClassControl
+            key={suggestedClass.key}
+            item={suggestedClass}
+            index={index}
+            courseTitle={item.courseTitle}
+            capacityLimit={capacityLimit}
+            onCapacityChange={(capacity) =>
+              onCapacityChange(item.courseId, suggestedClass.key, capacity)
+            }
+            onRemove={() => onRemoveClass(item.courseId, suggestedClass.key)}
           />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <FieldLabel
-            htmlFor={`capacity-${item.courseId}`}
-            className="text-xs font-medium text-muted-foreground"
-          >
-            {t("capacity")}
-          </FieldLabel>
-          <Counter
-            id={`capacity-${item.courseId}`}
-            size="sm"
-            min={1}
-            max={100}
-            value={currentCapacity}
-            onValueChange={(val) => {
-              onAdjustmentChange(item.courseId, {
-                capacity: val,
-              })
-            }}
-            className="w-full"
-            aria-label={`${t("capacity")} - ${item.courseTitle}`}
-          />
-        </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onAddClass(item.courseId)}
+        >
+          <Plus aria-hidden />
+          {t("addClass")}
+        </Button>
+        <p className="text-sm text-muted-foreground">
+          {t("plannedSeats", { count: formatNumber(planned, locale) })}
+        </p>
       </div>
     </div>
   )
