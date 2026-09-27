@@ -100,7 +100,11 @@ export function SchedulingUnresolvedRequirementItem({
               </p>
               <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
                 {recovery.busyTeachers.length > 0
-                  ? t("recovery.teacherConflictDescription")
+                  ? t(
+                      recovery.staffingFallback.availabilityOptions.length > 0
+                        ? "recovery.teacherConflictDescriptionWithSuggestion"
+                        : "recovery.teacherConflictDescriptionWithoutSuggestion"
+                    )
                   : t(`unresolvedSuggestions.${requirement.reasonCode}`)}
               </p>
               {recovery.busyTeachers.length > 0 && (

@@ -222,6 +222,16 @@ describe('SchedulingRecoverySuggestionService', () => {
         addTeacherSuggested: true,
       },
     });
+    expect(
+      result[ids.requirement]?.staffingFallback.availabilityOptions[0],
+    ).toMatchObject({
+      startTime: '12:00',
+      endTime: '13:30',
+      availableClassrooms: expect.arrayContaining([
+        expect.objectContaining({ name: 'Room 1' }),
+        expect.objectContaining({ name: 'Room 2' }),
+      ]),
+    });
     expect(result[ids.requirement]?.options).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

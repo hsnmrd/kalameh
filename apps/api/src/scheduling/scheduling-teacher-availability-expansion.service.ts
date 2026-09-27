@@ -159,9 +159,43 @@ export class SchedulingTeacherAvailabilityExpansionService {
           ) ||
         left.availabilityChangeDays.length -
           right.availabilityChangeDays.length ||
+        this.teacherScheduleGapMinutes(left, schedules) -
+          this.teacherScheduleGapMinutes(right, schedules) ||
         left.startTime.localeCompare(right.startTime) ||
         left.key.localeCompare(right.key),
     );
+  }
+
+  private teacherScheduleGapMinutes(
+    option: SchedulingTeacherOutreachOption,
+    schedules: ScheduledClass[],
+  ): number {
+    const optionStart = this.windowService.toMinutes(option.startTime);
+    const optionEnd = this.windowService.toMinutes(option.endTime);
+    if (optionStart === null || optionEnd === null) {
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    const gaps = schedules.flatMap((scheduledClass) => {
+      if (
+        scheduledClass.teacherId !== option.teacher.id ||
+        !scheduledClass.startTime ||
+        !scheduledClass.endTime ||
+        !option.daysOfWeek.some((day) =>
+          scheduledClass.daysOfWeek.includes(day),
+        )
+      ) {
+        return [];
+      }
+      const classStart = this.windowService.toMinutes(scheduledClass.startTime);
+      const classEnd = this.windowService.toMinutes(scheduledClass.endTime);
+      if (classStart === null || classEnd === null) return [];
+      if (classEnd <= optionStart) return [optionStart - classEnd];
+      if (optionEnd <= classStart) return [classStart - optionEnd];
+      return [];
+    });
+
+    return gaps.length > 0 ? Math.min(...gaps) : Number.MAX_SAFE_INTEGER;
   }
 
   private dayGroups(

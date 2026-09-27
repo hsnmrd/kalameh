@@ -342,7 +342,8 @@
       "blockingClass": "Class {title} is using room {room} during this time.",
       "unknownPhysicalRoom": "unknown",
       "teacherConflictTitle": "No teacher is free",
-      "teacherConflictDescription": "The teachers below are qualified for this course, but they teach another class during the feasible times. Change their availability or add another qualified teacher.",
+      "teacherConflictDescriptionWithSuggestion": "The teachers below are qualified for this course but teach another class during the current windows. The best exact time to request one additional class appears under Teacher staffing options.",
+      "teacherConflictDescriptionWithoutSuggestion": "The teachers below are qualified for this course but teach another class during the current windows, and no other conflict-free time was found. Consider adding another qualified teacher.",
       "noOptionTitle": "No concrete slot is available yet"
     },
     "reassignment": {
@@ -368,6 +369,10 @@
       "title": "Teacher staffing options",
       "description": "The system evaluates two staffing paths: expanding a qualified current teacher’s availability or adding a new teacher for this level. Each availability-expansion option covers only one unscheduled class.",
       "outreachBadge": "Increase teacher availability",
+      "suggestedTimesTitle": "Suggested times for one additional class",
+      "suggestedTimesRanking": "Options are ranked by having a room ready, requiring the fewest availability-day changes, being closest to the teacher’s existing classes, and then starting earliest.",
+      "bestTimeBadge": "Best suggested time",
+      "alternativeTimeBadge": "Alternative {rank}",
       "outreachTitle": "Ask {teacher} about teaching one additional class",
       "noClassConflict": "{teacher} has no other institute class during this window.",
       "availabilityChange": "For one additional class, add or extend the teacher’s availability on {days} to cover {start}–{end}.",

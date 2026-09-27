@@ -623,6 +623,10 @@ describe("MVP-036 scheduling plan comparison", () => {
     ).toBeInTheDocument()
     expect(screen.getAllByText("راه‌حل تأمین استاد")).toHaveLength(2)
     expect(
+      screen.getByText("زمان‌های پیشنهادی برای یک کلاس اضافه")
+    ).toBeInTheDocument()
+    expect(screen.getByText("بهترین بازه پیشنهادی")).toBeInTheDocument()
+    expect(
       screen.getByText("بازه مناسبی برای افزایش زمان حضور پیدا نشد")
     ).toBeInTheDocument()
     expect(
