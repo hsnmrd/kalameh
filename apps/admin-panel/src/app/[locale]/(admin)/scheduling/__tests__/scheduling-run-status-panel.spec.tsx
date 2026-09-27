@@ -81,6 +81,12 @@ describe("MVP-035 scheduling run status panel", () => {
       await screen.findByRole("heading", { name: "پیشنهادها آماده‌اند" })
     ).toBeInTheDocument()
     expect(screen.getByText("۱ پیشنهاد زمان‌بندی ساخته شد")).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "گزینه‌های ساخته‌شده را بررسی و مناسب‌ترین برنامه را انتخاب کنید."
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/پیشنهاد موتور/)).not.toBeInTheDocument()
     expect(statusQuerySpy).toHaveBeenCalledWith({ runId, instituteId })
 
     fireEvent.click(screen.getByRole("button", { name: "ساخت اجرای دیگر" }))

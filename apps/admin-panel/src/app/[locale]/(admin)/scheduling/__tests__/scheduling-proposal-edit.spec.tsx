@@ -138,13 +138,12 @@ describe("MVP-039 scheduling proposal editing", () => {
       mutationFn: update,
     })
 
-    render(
-      <SchedulingPlanComparison planIds={[planId]} recommendedPlanId={planId} />
-    )
+    render(<SchedulingPlanComparison planIds={[planId]} />)
 
-    fireEvent.click(
-      await screen.findByRole("button", { name: "مشاهده جزئیات" })
-    )
+    const detailsButtons = await screen.findAllByRole("button", {
+      name: "مشاهده جزئیات",
+    })
+    fireEvent.click(detailsButtons[0]!)
     fireEvent.click(
       screen.getAllByRole("button", { name: "اقدامات کلاس پیشنهادی" })[0]
     )

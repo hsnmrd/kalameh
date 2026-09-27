@@ -145,8 +145,7 @@
     },
     "result": {
       "title": "{count} scheduling suggestions generated",
-      "recommended": "The engine has also identified a recommended plan for review.",
-      "noRecommendation": "Review the generated alternatives and choose the best fit."
+      "description": "Review the generated alternatives and choose the best fit."
     },
     "runId": "Run ID: {id}",
     "updatedAt": "Last update: {value}",
@@ -165,10 +164,9 @@
   },
   "comparison": {
     "title": "Compare suggested plans",
-    "description": "Review every option against the same criteria. The engine recommendation is guidance; the supervisor keeps the final decision.",
+    "description": "Review every option against the same criteria and choose the best fit.",
     "rank": "Rank {rank}",
     "plan": "Plan {rank}",
-    "recommended": "Engine pick",
     "qualityIndex": "Quality index",
     "weightedPoints": "{earned} of {applicable} applicable points",
     "metrics": {
@@ -176,6 +174,11 @@
       "minimumCoverage": "Lowest course coverage",
       "timeDiversity": "Time diversity",
       "proposals": "Suggested classes"
+    },
+    "table": {
+      "plan": "Plan",
+      "issues": "Needs attention",
+      "actions": "Actions"
     },
     "missingClasses": "{count} unfilled classes",
     "warnings": "{count} warnings",
@@ -205,7 +208,6 @@
     "title": "Plan {rank} details",
     "description": "Review the suggested classes and unresolved requirements before making a final decision.",
     "publishedDescription": "This plan is published and its operational classes have been created.",
-    "recommended": "Engine pick",
     "selected": "Supervisor selection",
     "published": "Published",
     "rejected": "Rejected",

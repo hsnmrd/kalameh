@@ -21,15 +21,14 @@ import { useActiveInstitute } from "@/lib/stores"
 import { useSchedulingPlanDetails } from "../../hooks/use-scheduling-plan-details"
 import { SchedulingPlanCard } from "../scheduling-plan-card"
 import { SchedulingPlanDetailsDialog } from "../scheduling-plan-details-dialog"
+import { SchedulingPlanTable } from "../scheduling-plan-table"
 
 interface SchedulingPlanComparisonProps {
   planIds: string[]
-  recommendedPlanId: string | null
 }
 
 export function SchedulingPlanComparison({
   planIds,
-  recommendedPlanId,
 }: SchedulingPlanComparisonProps) {
   const t = useTranslations("scheduling.comparison")
   const queryClient = useQueryClient()
@@ -132,30 +131,39 @@ export function SchedulingPlanComparison({
         </div>
       </div>
 
-      <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {plans.map((plan) => (
-          <SchedulingPlanCard
-            key={plan.id}
-            plan={plan}
-            isRecommended={plan.id === recommendedPlanId || plan.isRecommended}
-            isSelected={plan.status === "SELECTED"}
-            isSelectionPending={selectionMutation.isPending}
-            isSelecting={
-              selectionMutation.isPending &&
-              selectionMutation.variables?.planId === plan.id
-            }
-            onSelect={() => selectPlan(plan.id)}
-            onViewDetails={() => setSelectedPlanId(plan.id)}
-          />
-        ))}
+      <div className="hidden lg:block">
+        <SchedulingPlanTable
+          plans={plans}
+          isSelectionPending={selectionMutation.isPending}
+          selectingPlanId={selectionMutation.variables?.planId}
+          onSelect={selectPlan}
+          onViewDetails={setSelectedPlanId}
+        />
+      </div>
+
+      <div className="grid items-stretch gap-4 sm:grid-cols-2 lg:hidden">
+        {plans.map((plan) => {
+          const isSelecting =
+            selectionMutation.isPending &&
+            selectionMutation.variables?.planId === plan.id
+
+          return (
+            <SchedulingPlanCard
+              key={plan.id}
+              plan={plan}
+              isSelected={plan.status === "SELECTED"}
+              isSelectionPending={selectionMutation.isPending}
+              isSelecting={isSelecting}
+              onSelect={() => selectPlan(plan.id)}
+              onViewDetails={() => setSelectedPlanId(plan.id)}
+            />
+          )
+        })}
       </div>
 
       {selectedPlan && (
         <SchedulingPlanDetailsDialog
           plan={selectedPlan}
-          isRecommended={
-            selectedPlan.id === recommendedPlanId || selectedPlan.isRecommended
-          }
           isSelected={selectedPlan.status === "SELECTED"}
           isSelectionPending={selectionMutation.isPending}
           isSelecting={

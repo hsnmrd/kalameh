@@ -9,7 +9,6 @@ import {
   Gauge,
   ListTree,
   MousePointerClick,
-  Sparkles,
   TriangleAlert,
   UsersRound,
 } from "lucide-react"
@@ -23,7 +22,6 @@ import { PermissionGuard } from "@/components/permission-guard"
 
 interface SchedulingPlanCardProps {
   plan: SchedulingPlanDetailsDto
-  isRecommended: boolean
   isSelected: boolean
   isSelectionPending: boolean
   isSelecting: boolean
@@ -41,7 +39,6 @@ const percent = (value: number | null | undefined, locale: string) =>
 
 export function SchedulingPlanCard({
   plan,
-  isRecommended,
   isSelected,
   isSelectionPending,
   isSelecting,
@@ -115,12 +112,6 @@ export function SchedulingPlanCard({
           )}
           {plan.status === "REJECTED" && (
             <Badge variant="secondary">{t("statuses.rejected")}</Badge>
-          )}
-          {isRecommended && (
-            <Badge variant="success">
-              <Sparkles aria-hidden data-icon="inline-start" />
-              {t("recommended")}
-            </Badge>
           )}
         </div>
       </div>

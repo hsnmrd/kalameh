@@ -106,9 +106,7 @@ export function SchedulingRunStatusPanel({
                 })}
               </p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                {result.result.recommendedPlanId
-                  ? t("result.recommended")
-                  : t("result.noRecommendation")}
+                {t("result.description")}
               </p>
             </div>
           )}
@@ -141,10 +139,7 @@ export function SchedulingRunStatusPanel({
       </section>
 
       {status === "COMPLETED" && result?.result && (
-        <SchedulingPlanComparison
-          planIds={result.result.planIds}
-          recommendedPlanId={result.result.recommendedPlanId}
-        />
+        <SchedulingPlanComparison planIds={result.result.planIds} />
       )}
     </div>
   )

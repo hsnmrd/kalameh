@@ -18,7 +18,6 @@ import { Content } from "./content"
 
 interface SchedulingPlanDetailsDialogProps {
   plan: SchedulingPlanDetailsDto
-  isRecommended: boolean
   isSelected: boolean
   isSelectionPending: boolean
   isSelecting: boolean
@@ -28,7 +27,6 @@ interface SchedulingPlanDetailsDialogProps {
 
 export function SchedulingPlanDetailsDialog({
   plan,
-  isRecommended,
   isSelected,
   isSelectionPending,
   isSelecting,
@@ -48,9 +46,6 @@ export function SchedulingPlanDetailsDialog({
               <ResponsiveDialogTitle>
                 {t("title", { rank: formatNumber(plan.rank, locale) })}
               </ResponsiveDialogTitle>
-              {isRecommended && (
-                <Badge variant="success">{t("recommended")}</Badge>
-              )}
               {isSelected && <Badge>{t("selected")}</Badge>}
               {plan.status === "PUBLISHED" && (
                 <Badge variant="success">{t("published")}</Badge>

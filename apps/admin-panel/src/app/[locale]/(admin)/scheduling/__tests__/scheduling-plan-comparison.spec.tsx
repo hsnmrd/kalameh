@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "../../../../../test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
@@ -103,7 +104,7 @@ const plan = (
 describe("MVP-036 scheduling plan comparison", () => {
   afterEach(() => vi.restoreAllMocks())
 
-  it("loads every plan, sorts by rank, and marks the engine recommendation", async () => {
+  it("loads every plan, sorts by rank, and keeps the choice neutral", async () => {
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: instituteId,
     } as ReturnType<typeof stores.useActiveInstitute>)
@@ -122,12 +123,7 @@ describe("MVP-036 scheduling plan comparison", () => {
               }),
       }))
 
-    render(
-      <SchedulingPlanComparison
-        planIds={[firstPlanId, secondPlanId]}
-        recommendedPlanId={secondPlanId}
-      />
-    )
+    render(<SchedulingPlanComparison planIds={[firstPlanId, secondPlanId]} />)
 
     expect(
       await screen.findByRole("heading", {
@@ -139,8 +135,13 @@ describe("MVP-036 scheduling plan comparison", () => {
         .getAllByRole("heading", { level: 3 })
         .map((item) => item.textContent)
     ).toEqual(["برنامه ۱", "برنامه ۲"])
-    expect(screen.getByText("پیشنهاد موتور")).toBeInTheDocument()
-    expect(screen.getByText("۲ کلاس تأمین‌نشده")).toBeInTheDocument()
+    expect(screen.getAllByRole("row")).toHaveLength(3)
+    expect(screen.queryByText("پیشنهاد موتور")).not.toBeInTheDocument()
+    const missingClassBadges = screen.getAllByText("۲ کلاس تأمین‌نشده")
+    expect(missingClassBadges).toHaveLength(2)
+    missingClassBadges.forEach((badge) =>
+      expect(badge).toHaveClass("text-warning-foreground")
+    )
     expect(detailSpy).toHaveBeenCalledWith({
       planId: firstPlanId,
       instituteId,
@@ -163,12 +164,7 @@ describe("MVP-036 scheduling plan comparison", () => {
       queryFn: async () => Promise.reject(new Error("offline")),
     } as never)
 
-    render(
-      <SchedulingPlanComparison
-        planIds={[firstPlanId]}
-        recommendedPlanId={null}
-      />
-    )
+    render(<SchedulingPlanComparison planIds={[firstPlanId]} />)
 
     expect(
       await screen.findByText("مقایسه برنامه‌ها بارگذاری نشد")
@@ -190,16 +186,12 @@ describe("MVP-036 scheduling plan comparison", () => {
       queryFn: async () => plan(firstPlanId, 1),
     } as never)
 
-    render(
-      <SchedulingPlanComparison
-        planIds={[firstPlanId]}
-        recommendedPlanId={firstPlanId}
-      />
-    )
+    render(<SchedulingPlanComparison planIds={[firstPlanId]} />)
 
-    fireEvent.click(
-      await screen.findByRole("button", { name: "مشاهده جزئیات" })
-    )
+    const detailsButtons = await screen.findAllByRole("button", {
+      name: "مشاهده جزئیات",
+    })
+    fireEvent.click(detailsButtons[0]!)
 
     expect(
       screen.getByRole("heading", { name: "جزئیات برنامه ۱" })
@@ -216,7 +208,9 @@ describe("MVP-036 scheduling plan comparison", () => {
     ).toBeInTheDocument()
     expect(screen.getByText("فیلدهای تغییرکرده: استاد")).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: "انتخاب این برنامه" })
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "انتخاب این برنامه",
+      })
     ).toBeInTheDocument()
     expect(
       screen.queryByRole("button", {
@@ -246,38 +240,26 @@ describe("MVP-036 scheduling plan comparison", () => {
       mutationFn: select,
     })
 
-    render(
-      <SchedulingPlanComparison
-        planIds={[firstPlanId, secondPlanId]}
-        recommendedPlanId={secondPlanId}
-      />
-    )
+    render(<SchedulingPlanComparison planIds={[firstPlanId, secondPlanId]} />)
 
     const initialButtons = await screen.findAllByRole("button", {
       name: "انتخاب این برنامه",
     })
     fireEvent.click(initialButtons[0]!)
 
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "برنامه انتخاب‌شده" })
-      ).toBeDisabled()
-    )
-    expect(
-      screen
-        .getByRole("button", { name: "برنامه انتخاب‌شده" })
-        .closest("article")
-    ).toHaveTextContent("برنامه ۱")
+    await waitFor(() => {
+      const selectedButtons = screen.getAllByRole("button", {
+        name: "برنامه انتخاب‌شده",
+      })
+      expect(selectedButtons.length).toBeGreaterThan(0)
+      selectedButtons.forEach((button) => expect(button).toBeDisabled())
+    })
 
-    fireEvent.click(screen.getByRole("button", { name: "انتخاب این برنامه" }))
-
-    await waitFor(() =>
-      expect(
-        screen
-          .getByRole("button", { name: "برنامه انتخاب‌شده" })
-          .closest("article")
-      ).toHaveTextContent("برنامه ۲")
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "انتخاب این برنامه" })[0]!
     )
+
+    await waitFor(() => expect(select).toHaveBeenCalledTimes(2))
     expect(select).toHaveBeenNthCalledWith(
       1,
       {
