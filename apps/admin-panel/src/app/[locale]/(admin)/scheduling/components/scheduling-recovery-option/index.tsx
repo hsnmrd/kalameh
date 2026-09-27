@@ -120,9 +120,9 @@ export function SchedulingRecoveryOption({
                   <li key={blockingClass.id}>
                     {t("recovery.blockingClass", {
                       title: blockingClass.title,
-                      resources: blockingClass.conflictTypes
-                        .map((type) => t(`recovery.conflictTypes.${type}`))
-                        .join(t("daySeparator")),
+                      room:
+                        blockingClass.classroom?.name ??
+                        t("recovery.unknownPhysicalRoom"),
                     })}
                   </li>
                 ))}

@@ -327,26 +327,36 @@
     },
     "recovery": {
       "title": "Ways to place this class",
-      "summary": "{teachers} qualified teachers · {rooms} compatible rooms",
-      "onlineSummary": "{teachers} qualified teachers · no classroom required",
       "optionCount": "Showing {shown} of {total} options",
       "statuses": {
         "AVAILABLE_NOW": "Available now",
-        "REQUIRES_PLAN_CHANGE": "Needs a plan change"
+        "REQUIRES_PLAN_CHANGE": "Available after freeing a room"
       },
-      "teacher": "Teacher to coordinate with",
+      "teacher": "Teacher free at this time",
       "schedule": "Possible schedule",
-      "emptyRooms": "Rooms currently empty at this time",
-      "onlineRoom": "No classroom is needed for this online class.",
-      "roomWithCapacity": "{room} · capacity {capacity}",
-      "noEmptyRoom": "No compatible room is empty at this time.",
-      "changeNeeded": "Move or edit the blocking class to use this slot",
-      "blockingClass": "{title} conflicts on {resources}.",
-      "conflictTypes": {
-        "TEACHER": "teacher",
-        "CLASSROOM": "classroom"
-      },
+      "emptyRooms": "Physical rooms currently empty at this time",
+      "onlineRoom": "No physical room is needed for this online class.",
+      "roomWithCapacity": "Room {room} · capacity {capacity}",
+      "noEmptyRoom": "No compatible physical room is empty at this time.",
+      "changeNeeded": "Move one of these classes to free a room",
+      "blockingClass": "Class {title} is using room {room} during this time.",
+      "unknownPhysicalRoom": "unknown",
+      "teacherConflictTitle": "No teacher is free",
+      "teacherConflictDescription": "The teachers below are qualified for this course, but they teach another class during the feasible times. Change their availability or add another qualified teacher.",
       "noOptionTitle": "No concrete slot is available yet"
+    },
+    "teacherCalendar": {
+      "title": "Teacher availability calendars",
+      "description": "Compare the free time and scheduled classes of every qualified teacher.",
+      "legend": "Time status legend",
+      "teacherSelector": "Select a teacher to view their calendar",
+      "states": {
+        "FREE": "Free",
+        "BUSY": "Teaching",
+        "UNAVAILABLE": "Outside availability"
+      },
+      "existingClass": "Existing class",
+      "noAvailability": "No availability is recorded for this day."
     },
     "unresolvedSuggestions": {
       "INVALID_REQUIREMENT": "Review the class requirement, requested class count, and target capacity, then run scheduling again.",

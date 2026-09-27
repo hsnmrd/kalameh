@@ -170,6 +170,8 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
           totalOptionCount: 0,
           qualifiedTeacherCount: 1,
           compatibleClassroomCount: 0,
+          busyTeachers: [],
+          teacherCalendars: [],
         },
       }),
     };

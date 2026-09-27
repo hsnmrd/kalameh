@@ -21,6 +21,21 @@ const SchedulingRecoveryBlockingClassSchema = z.object({
   id: z.string().uuid(),
   title: z.string(),
   conflictTypes: z.array(z.enum(["TEACHER", "CLASSROOM"])).min(1),
+  classroom: SchedulingRecoveryClassroomSchema.nullable(),
+})
+
+const SchedulingTeacherCalendarSlotSchema = z.object({
+  dayOfWeek: z.enum(WEEK_DAYS),
+  startTime: z.string().regex(SCHEDULING_TIME_REGEX),
+  endTime: z.string().regex(SCHEDULING_TIME_REGEX),
+  status: z.enum(["FREE", "BUSY"]),
+  title: z.string().nullable(),
+  source: z.enum(["AVAILABILITY", "PLAN", "EXISTING_CLASS"]),
+})
+
+export const SchedulingTeacherCalendarSchema = z.object({
+  teacher: SchedulingRecoveryTeacherSchema,
+  slots: z.array(SchedulingTeacherCalendarSlotSchema),
 })
 
 export const SchedulingRecoveryOptionSchema = z.object({
@@ -40,6 +55,8 @@ export const SchedulingRecoveryAnalysisSchema = z.object({
   totalOptionCount: z.number().int().nonnegative(),
   qualifiedTeacherCount: z.number().int().nonnegative(),
   compatibleClassroomCount: z.number().int().nonnegative(),
+  busyTeachers: z.array(SchedulingRecoveryTeacherSchema),
+  teacherCalendars: z.array(SchedulingTeacherCalendarSchema),
 })
 
 export type SchedulingRecoveryOption = z.infer<
@@ -47,4 +64,7 @@ export type SchedulingRecoveryOption = z.infer<
 >
 export type SchedulingRecoveryAnalysis = z.infer<
   typeof SchedulingRecoveryAnalysisSchema
+>
+export type SchedulingTeacherCalendar = z.infer<
+  typeof SchedulingTeacherCalendarSchema
 >

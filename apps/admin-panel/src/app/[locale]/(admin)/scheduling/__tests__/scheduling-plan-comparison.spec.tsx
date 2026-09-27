@@ -197,6 +197,59 @@ describe("MVP-036 scheduling plan comparison", () => {
                 totalOptionCount: 2,
                 qualifiedTeacherCount: 1,
                 compatibleClassroomCount: 2,
+                busyTeachers: [],
+                teacherCalendars: [
+                  {
+                    teacher: {
+                      id: "66666666-6666-4666-8666-666666666666",
+                      firstName: "سارا",
+                      lastName: "احمدی",
+                    },
+                    slots: [
+                      {
+                        dayOfWeek: "SUNDAY",
+                        startTime: "09:00",
+                        endTime: "10:30",
+                        status: "BUSY",
+                        title: "AME 3-2",
+                        source: "PLAN",
+                      },
+                      {
+                        dayOfWeek: "SUNDAY",
+                        startTime: "10:30",
+                        endTime: "13:30",
+                        status: "FREE",
+                        title: null,
+                        source: "AVAILABILITY",
+                      },
+                    ],
+                  },
+                  {
+                    teacher: {
+                      id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+                      firstName: "رضا",
+                      lastName: "کریمی",
+                    },
+                    slots: [
+                      {
+                        dayOfWeek: "SATURDAY",
+                        startTime: "14:00",
+                        endTime: "15:30",
+                        status: "BUSY",
+                        title: "AME 2",
+                        source: "PLAN",
+                      },
+                      {
+                        dayOfWeek: "SATURDAY",
+                        startTime: "15:30",
+                        endTime: "18:00",
+                        status: "FREE",
+                        title: null,
+                        source: "AVAILABILITY",
+                      },
+                    ],
+                  },
+                ],
                 options: [
                   {
                     key: "ame-5-sara-sunday-1030",
@@ -219,6 +272,72 @@ describe("MVP-036 scheduling plan comparison", () => {
                     ],
                     blockingClasses: [],
                   },
+                  {
+                    key: "ame-5-reza-sunday-1530",
+                    status: "REQUIRES_PLAN_CHANGE",
+                    deliveryMode: "IN_PERSON",
+                    daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+                    startTime: "15:30",
+                    endTime: "17:00",
+                    teacher: {
+                      id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+                      firstName: "رضا",
+                      lastName: "کریمی",
+                    },
+                    availableClassrooms: [],
+                    blockingClasses: [
+                      {
+                        id: "ffffffff-ffff-4fff-8fff-ffffffffffff",
+                        title: "AME 3-2",
+                        conflictTypes: ["CLASSROOM"],
+                        classroom: {
+                          id: "abababab-abab-4aba-8aba-abababababab",
+                          name: "کلاس ۱",
+                          capacity: 15,
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+            {
+              id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+              reasonCode: "TEACHER_TIME_CONFLICT",
+              missingClassCount: 1,
+              classRequirement: {
+                course: { title: "AME 3-5" },
+              },
+              recovery: {
+                totalOptionCount: 0,
+                qualifiedTeacherCount: 1,
+                compatibleClassroomCount: 2,
+                options: [],
+                busyTeachers: [
+                  {
+                    id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+                    firstName: "دکتر بهنام",
+                    lastName: "مرادی",
+                  },
+                ],
+                teacherCalendars: [
+                  {
+                    teacher: {
+                      id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+                      firstName: "دکتر بهنام",
+                      lastName: "مرادی",
+                    },
+                    slots: [
+                      {
+                        dayOfWeek: "SUNDAY",
+                        startTime: "15:30",
+                        endTime: "17:00",
+                        status: "BUSY",
+                        title: "AME 3-5",
+                        source: "PLAN",
+                      },
+                    ],
+                  },
                 ],
               },
             },
@@ -239,13 +358,32 @@ describe("MVP-036 scheduling plan comparison", () => {
     expect(screen.getAllByText("کلاس سطح A2").length).toBeGreaterThan(0)
     expect(screen.getAllByText(/سارا احمدی/).length).toBeGreaterThan(0)
     expect(
-      screen.getByText("راه‌های جای‌دادن این کلاس در برنامه")
-    ).toBeInTheDocument()
+      screen.getAllByText("راه‌های جای‌دادن این کلاس در برنامه")
+    ).toHaveLength(2)
     expect(screen.getByText("همین حالا قابل اجرا")).toBeInTheDocument()
     expect(
       screen.getByText("یکشنبه، سه‌شنبه، پنجشنبه · 10:30–12:00")
     ).toBeInTheDocument()
-    expect(screen.getByText("کلاس ۳ · ظرفیت ۱۵ نفر")).toBeInTheDocument()
+    expect(
+      screen.getByText("فضای فیزیکی «کلاس ۳» · ظرفیت ۱۵ نفر")
+    ).toBeInTheDocument()
+    expect(screen.getByText("استاد آزاد پیدا نشد")).toBeInTheDocument()
+    expect(screen.getAllByText("دکتر بهنام مرادی").length).toBeGreaterThan(1)
+    expect(screen.getAllByText("تقویم دسترسی استادان")).toHaveLength(2)
+    expect(
+      screen.getByRole("button", { name: "سارا احمدی" })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "دکتر بهنام مرادی" })
+    ).toBeInTheDocument()
+    expect(screen.getAllByText("آزاد").length).toBeGreaterThan(1)
+    fireEvent.click(screen.getByRole("button", { name: "رضا کریمی" }))
+    expect(screen.getByText("AME 2")).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "کلاس AME 3-2 در این بازه از فضای فیزیکی «کلاس ۱» استفاده می‌کند."
+      )
+    ).toBeInTheDocument()
     expect(
       screen.queryByText(
         "زمان، استاد یا کلاس‌درس این نیاز را تغییر دهید یا محدودیت‌های سایر کلاس‌های هم‌زمان را بازبینی کنید."

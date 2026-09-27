@@ -6,6 +6,7 @@ import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { SchedulingRecoveryOption } from "../scheduling-recovery-option"
+import { SchedulingTeacherAvailabilityCalendar } from "../scheduling-teacher-availability-calendar"
 
 type UnresolvedRequirement =
   SchedulingPlanDetailsDto["unresolvedRequirements"][number]
@@ -24,6 +25,8 @@ export function SchedulingUnresolvedRequirementItem({
     totalOptionCount: 0,
     qualifiedTeacherCount: 0,
     compatibleClassroomCount: 0,
+    busyTeachers: [],
+    teacherCalendars: [],
   }
   const visibleOptions = recovery.options.slice(0, 3)
 
@@ -52,26 +55,9 @@ export function SchedulingUnresolvedRequirementItem({
               aria-hidden
               className="mt-0.5 size-4 shrink-0 text-foreground"
             />
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-semibold text-foreground">
                 {t("recovery.title")}
-              </p>
-              <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                {t(
-                  requirement.classRequirement?.deliveryMode === "ONLINE"
-                    ? "recovery.onlineSummary"
-                    : "recovery.summary",
-                  {
-                    teachers: formatNumber(
-                      recovery.qualifiedTeacherCount,
-                      locale
-                    ),
-                    rooms: formatNumber(
-                      recovery.compatibleClassroomCount,
-                      locale
-                    ),
-                  }
-                )}
               </p>
             </div>
           </div>
@@ -99,15 +85,34 @@ export function SchedulingUnresolvedRequirementItem({
             />
             <div>
               <p className="text-xs font-semibold text-foreground">
-                {t("recovery.noOptionTitle")}
+                {t(
+                  recovery.busyTeachers.length > 0
+                    ? "recovery.teacherConflictTitle"
+                    : "recovery.noOptionTitle"
+                )}
               </p>
               <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                {t(`unresolvedSuggestions.${requirement.reasonCode}`)}
+                {recovery.busyTeachers.length > 0
+                  ? t("recovery.teacherConflictDescription")
+                  : t(`unresolvedSuggestions.${requirement.reasonCode}`)}
               </p>
+              {recovery.busyTeachers.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {recovery.busyTeachers.map((teacher) => (
+                    <Badge key={teacher.id} variant="outline">
+                      {teacher.firstName} {teacher.lastName}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
+
+      <SchedulingTeacherAvailabilityCalendar
+        calendars={recovery.teacherCalendars}
+      />
     </li>
   )
 }

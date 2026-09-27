@@ -24,6 +24,8 @@ const emptyRecovery = {
   totalOptionCount: 0,
   qualifiedTeacherCount: 0,
   compatibleClassroomCount: 0,
+  busyTeachers: [],
+  teacherCalendars: [],
 } as const;
 
 @Injectable()

@@ -16,6 +16,8 @@ import { SchedulingStudentCoverageService } from './scheduling-student-coverage.
 import { SchedulingTimeDistributionService } from './scheduling-time-distribution.service';
 import { SchedulingUnresolvedRequirementService } from './scheduling-unresolved-requirement.service';
 import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
+import { SchedulingRecoveryOptionBuilderService } from './scheduling-recovery-option-builder.service';
+import { SchedulingTeacherCalendarService } from './scheduling-teacher-calendar.service';
 import { SchedulingPreflightService } from './scheduling-preflight.service';
 import { SchedulingRunQueryService } from './scheduling-run-query.service';
 import { SchedulingRunsController } from './scheduling-runs.controller';
@@ -58,6 +60,8 @@ import { SchedulingService } from './scheduling.service';
     SchedulingTimeDistributionService,
     SchedulingUnresolvedRequirementService,
     SchedulingRecoverySuggestionService,
+    SchedulingRecoveryOptionBuilderService,
+    SchedulingTeacherCalendarService,
   ],
   exports: [
     SchedulingService,
@@ -80,6 +84,8 @@ import { SchedulingService } from './scheduling.service';
     SchedulingTimeDistributionService,
     SchedulingUnresolvedRequirementService,
     SchedulingRecoverySuggestionService,
+    SchedulingRecoveryOptionBuilderService,
+    SchedulingTeacherCalendarService,
   ],
 })
 export class SchedulingModule {}

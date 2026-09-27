@@ -3,37 +3,23 @@ import {
   SchedulingEngineInputSnapshotSchema,
   SchedulingEngineSettingsSnapshotSchema,
   SchedulingRecoveryAnalysisSchema,
-  type SchedulingEngineSettingsSnapshot,
-  type SchedulingFeasibleCandidate,
   type SchedulingRecoveryAnalysis,
-  type SchedulingRecoveryOption,
-  type WeekDay,
 } from '@workspace/types';
 import { PrismaService } from '../prisma/prisma.service';
 import { SchedulingCandidateSlotService } from './scheduling-candidate-slot.service';
 import { SchedulingHardConstraintService } from './scheduling-hard-constraint.service';
-
-type PlanProposal = {
-  id: string;
-  title: string;
-  teacherId: string;
-  classroomId?: string | null;
-  daysOfWeek: string[];
-  startTime: string;
-  endTime: string;
-};
+import {
+  SchedulingRecoveryOptionBuilderService,
+  type SchedulingRecoveryPlanProposal,
+} from './scheduling-recovery-option-builder.service';
+import { SchedulingTeacherCalendarService } from './scheduling-teacher-calendar.service';
 
 type RecoveryInput = {
   instituteId: string;
   inputSnapshot: unknown;
   settingsSnapshot: unknown;
-  proposals: PlanProposal[];
+  proposals: SchedulingRecoveryPlanProposal[];
   unresolvedRequirementIds: string[];
-};
-
-type CandidateGroup = {
-  candidate: SchedulingFeasibleCandidate;
-  assignments: SchedulingFeasibleCandidate[];
 };
 
 @Injectable()
@@ -42,6 +28,8 @@ export class SchedulingRecoverySuggestionService {
     private readonly prisma: PrismaService,
     private readonly candidateSlotService: SchedulingCandidateSlotService,
     private readonly hardConstraintService: SchedulingHardConstraintService,
+    private readonly teacherCalendarService: SchedulingTeacherCalendarService,
+    private readonly optionBuilderService: SchedulingRecoveryOptionBuilderService,
   ) {}
 
   async analyze(
@@ -92,7 +80,7 @@ export class SchedulingRecoverySuggestionService {
       ),
     );
     const classroomIds = snapshot.classrooms.map(({ id }) => id);
-    const [teachers, classrooms] = await Promise.all([
+    const [teachers, classrooms, existingClasses] = await Promise.all([
       this.prisma.user.findMany({
         where: { id: { in: teacherIds }, instituteId: input.instituteId },
         select: { id: true, firstName: true, lastName: true },
@@ -101,14 +89,24 @@ export class SchedulingRecoverySuggestionService {
         where: { id: { in: classroomIds }, instituteId: input.instituteId },
         select: { id: true, name: true, capacity: true },
       }),
+      this.prisma.class.findMany({
+        where: {
+          id: { in: snapshot.existingClasses.map(({ id }) => id) },
+          instituteId: input.instituteId,
+        },
+        select: { id: true, title: true },
+      }),
     ]);
     const teacherById = new Map(
       teachers.map((teacher) => [teacher.id, teacher]),
     );
     const classroomById = new Map(classrooms.map((room) => [room.id, room]));
-    const baseGroups = this.groupCandidates(baseEvaluation.accepted);
-    const currentGroups = this.groupCandidates(currentEvaluation.accepted);
-
+    const existingClassTitles = new Map(
+      existingClasses.map((existingClass) => [
+        existingClass.id,
+        existingClass.title,
+      ]),
+    );
     return Object.fromEntries(
       requirements.map((requirement) => {
         const qualifiedTeacherCount = new Set(
@@ -127,10 +125,10 @@ export class SchedulingRecoverySuggestionService {
                     room.branchId === null ||
                     room.branchId === requirement.branchId),
               ).length;
-        const options = this.optionsForRequirement({
+        const recovery = this.optionBuilderService.build({
           requirementId: requirement.id,
-          baseGroups,
-          currentGroups,
+          baseCandidates: baseEvaluation.accepted,
+          currentCandidates: currentEvaluation.accepted,
           proposals: input.proposals,
           settings,
           teacherById,
@@ -140,136 +138,30 @@ export class SchedulingRecoverySuggestionService {
         return [
           requirement.id,
           SchedulingRecoveryAnalysisSchema.parse({
-            options: options.slice(0, 6),
-            totalOptionCount: options.length,
+            options: recovery.options.slice(0, 6),
+            totalOptionCount: recovery.options.length,
             qualifiedTeacherCount,
             compatibleClassroomCount,
+            busyTeachers:
+              recovery.options.length === 0
+                ? Array.from(recovery.busyTeacherIds)
+                    .map((teacherId) => teacherById.get(teacherId))
+                    .filter(
+                      (teacher): teacher is NonNullable<typeof teacher> =>
+                        teacher !== undefined,
+                    )
+                : [],
+            teacherCalendars: this.teacherCalendarService.build({
+              courseId: requirement.courseId,
+              qualifications: snapshot.teachers,
+              teachers,
+              proposals: input.proposals,
+              existingClasses: snapshot.existingClasses,
+              existingClassTitles,
+            }),
           }),
         ];
       }),
     );
-  }
-
-  private optionsForRequirement(input: {
-    requirementId: string;
-    baseGroups: Map<string, CandidateGroup>;
-    currentGroups: Map<string, CandidateGroup>;
-    proposals: PlanProposal[];
-    settings: SchedulingEngineSettingsSnapshot;
-    teacherById: Map<
-      string,
-      { id: string; firstName: string; lastName: string }
-    >;
-    classroomById: Map<string, { id: string; name: string; capacity: number }>;
-  }): SchedulingRecoveryOption[] {
-    const options: SchedulingRecoveryOption[] = [];
-    for (const group of input.baseGroups.values()) {
-      if (group.candidate.requirementId !== input.requirementId) continue;
-      const teacher = input.teacherById.get(group.candidate.teacherId);
-      if (!teacher) continue;
-      const current = input.currentGroups.get(group.candidate.key);
-      const blockingClasses = current
-        ? []
-        : this.blockingClasses(group, input.proposals, input.settings);
-      const availableClassrooms = (current?.assignments ?? group.assignments)
-        .filter(
-          ({ classroomId }) =>
-            classroomId !== null &&
-            !blockingClasses.some(
-              (blocking) =>
-                blocking.conflictTypes.includes('CLASSROOM') &&
-                input.proposals.find(({ id }) => id === blocking.id)
-                  ?.classroomId === classroomId,
-            ),
-        )
-        .map(({ classroomId }) => input.classroomById.get(classroomId!))
-        .filter((room): room is NonNullable<typeof room> => room !== undefined);
-
-      options.push({
-        key: group.candidate.key,
-        status: current ? 'AVAILABLE_NOW' : 'REQUIRES_PLAN_CHANGE',
-        deliveryMode: group.candidate.deliveryMode,
-        daysOfWeek: this.candidateDays(
-          group.candidate.timeGroup,
-          input.settings,
-        ),
-        startTime: group.candidate.startTime,
-        endTime: group.candidate.endTime,
-        teacher,
-        availableClassrooms: this.uniqueById(availableClassrooms),
-        blockingClasses,
-      });
-    }
-
-    return options.sort(
-      (left, right) =>
-        left.status.localeCompare(right.status) ||
-        left.blockingClasses.length - right.blockingClasses.length ||
-        left.startTime.localeCompare(right.startTime) ||
-        left.key.localeCompare(right.key),
-    );
-  }
-
-  private groupCandidates(
-    candidates: SchedulingFeasibleCandidate[],
-  ): Map<string, CandidateGroup> {
-    const groups = new Map<string, CandidateGroup>();
-    for (const candidate of candidates) {
-      const group = groups.get(candidate.key);
-      if (group) group.assignments.push(candidate);
-      else groups.set(candidate.key, { candidate, assignments: [candidate] });
-    }
-    return groups;
-  }
-
-  private blockingClasses(
-    group: CandidateGroup,
-    proposals: PlanProposal[],
-    settings: SchedulingEngineSettingsSnapshot,
-  ): SchedulingRecoveryOption['blockingClasses'] {
-    const days = this.candidateDays(group.candidate.timeGroup, settings);
-    const classroomIds = new Set(
-      group.assignments.flatMap(({ classroomId }) =>
-        classroomId === null ? [] : [classroomId],
-      ),
-    );
-    return proposals.flatMap((proposal) => {
-      if (!this.overlaps(days, group.candidate, proposal)) return [];
-      const conflictTypes: Array<'TEACHER' | 'CLASSROOM'> = [];
-      if (proposal.teacherId === group.candidate.teacherId) {
-        conflictTypes.push('TEACHER');
-      }
-      if (proposal.classroomId && classroomIds.has(proposal.classroomId)) {
-        conflictTypes.push('CLASSROOM');
-      }
-      return conflictTypes.length === 0
-        ? []
-        : [{ id: proposal.id, title: proposal.title, conflictTypes }];
-    });
-  }
-
-  private overlaps(
-    days: WeekDay[],
-    candidate: SchedulingFeasibleCandidate,
-    proposal: PlanProposal,
-  ): boolean {
-    return (
-      days.some((day) => proposal.daysOfWeek.includes(day)) &&
-      candidate.startTime < proposal.endTime &&
-      proposal.startTime < candidate.endTime
-    );
-  }
-
-  private candidateDays(
-    timeGroup: SchedulingFeasibleCandidate['timeGroup'],
-    settings: SchedulingEngineSettingsSnapshot,
-  ): WeekDay[] {
-    if (timeGroup.startsWith('EVEN')) return [...settings.timeGroups.evenDays];
-    if (timeGroup.startsWith('ODD')) return [...settings.timeGroups.oddDays];
-    return [...settings.timeGroups.neutralDays];
-  }
-
-  private uniqueById<T extends { id: string }>(items: T[]): T[] {
-    return Array.from(new Map(items.map((item) => [item.id, item])).values());
   }
 }

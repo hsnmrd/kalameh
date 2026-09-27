@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SchedulingCandidateSlotService } from './scheduling-candidate-slot.service';
 import { SchedulingHardConstraintService } from './scheduling-hard-constraint.service';
 import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
+import { SchedulingRecoveryOptionBuilderService } from './scheduling-recovery-option-builder.service';
+import { SchedulingTeacherCalendarService } from './scheduling-teacher-calendar.service';
 
 describe('SchedulingRecoverySuggestionService', () => {
   const uuid = (suffix: number): string =>
@@ -19,6 +21,10 @@ describe('SchedulingRecoverySuggestionService', () => {
     roomTwo: uuid(8),
     proposal: uuid(9),
     term: uuid(10),
+    otherTeacher: uuid(11),
+    thirdTeacher: uuid(12),
+    roomOneProposal: uuid(13),
+    roomTwoProposal: uuid(14),
   };
   const prisma = {
     user: {
@@ -34,17 +40,22 @@ describe('SchedulingRecoverySuggestionService', () => {
         { id: ids.roomTwo, name: 'Room 2', capacity: 16 },
       ]),
     },
+    class: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
   };
   const service = new SchedulingRecoverySuggestionService(
     prisma as unknown as PrismaService,
     new SchedulingCandidateSlotService(),
     new SchedulingHardConstraintService(),
+    new SchedulingTeacherCalendarService(),
+    new SchedulingRecoveryOptionBuilderService(),
   );
 
   beforeEach(() => jest.clearAllMocks());
 
-  it('finds immediately usable slots and explains plan changes with empty rooms', async () => {
-    const result = await service.analyze({
+  it('finds usable rooms without offering a teacher who is already teaching', async () => {
+    const analysisRequest = {
       instituteId: ids.institute,
       unresolvedRequirementIds: [ids.requirement],
       inputSnapshot: {
@@ -87,7 +98,7 @@ describe('SchedulingRecoverySuggestionService', () => {
                   id: ids.availability,
                   dayOfWeek: 'SUNDAY',
                   startTime: '09:00',
-                  endTime: '12:00',
+                  endTime: '13:30',
                 },
               ],
             },
@@ -120,23 +131,65 @@ describe('SchedulingRecoverySuggestionService', () => {
           title: 'A1 class',
           teacherId: ids.teacher,
           classroomId: ids.roomOne,
+          classroom: { id: ids.roomOne, name: 'Room 1', capacity: 20 },
           daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
           startTime: '09:00',
           endTime: '10:30',
         },
+        {
+          id: ids.roomOneProposal,
+          title: 'B1 class',
+          teacherId: ids.otherTeacher,
+          classroomId: ids.roomOne,
+          classroom: { id: ids.roomOne, name: 'Room 1', capacity: 20 },
+          daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+          startTime: '10:30',
+          endTime: '12:00',
+        },
+        {
+          id: ids.roomTwoProposal,
+          title: 'B2 class',
+          teacherId: ids.thirdTeacher,
+          classroomId: ids.roomTwo,
+          classroom: { id: ids.roomTwo, name: 'Room 2', capacity: 16 },
+          daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+          startTime: '10:30',
+          endTime: '12:00',
+        },
       ],
-    });
+    };
+    const result = await service.analyze(analysisRequest);
 
     expect(result[ids.requirement]).toMatchObject({
       qualifiedTeacherCount: 1,
       compatibleClassroomCount: 2,
+      teacherCalendars: [
+        {
+          teacher: { firstName: 'Sara', lastName: 'Ahmadi' },
+          slots: expect.arrayContaining([
+            expect.objectContaining({
+              dayOfWeek: 'SUNDAY',
+              startTime: '09:00',
+              endTime: '10:30',
+              status: 'BUSY',
+              title: 'A1 class',
+            }),
+            expect.objectContaining({
+              dayOfWeek: 'SUNDAY',
+              startTime: '10:30',
+              endTime: '13:30',
+              status: 'FREE',
+            }),
+          ]),
+        },
+      ],
     });
     expect(result[ids.requirement]?.options).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           status: 'AVAILABLE_NOW',
-          startTime: '10:30',
-          endTime: '12:00',
+          startTime: '12:00',
+          endTime: '13:30',
           teacher: expect.objectContaining({
             firstName: 'Sara',
             lastName: 'Ahmadi',
@@ -148,24 +201,55 @@ describe('SchedulingRecoverySuggestionService', () => {
         }),
         expect.objectContaining({
           status: 'REQUIRES_PLAN_CHANGE',
-          startTime: '09:00',
-          availableClassrooms: [
-            expect.objectContaining({ id: ids.roomTwo, name: 'Room 2' }),
-          ],
-          blockingClasses: [
+          startTime: '10:30',
+          availableClassrooms: [],
+          blockingClasses: expect.arrayContaining([
             expect.objectContaining({
-              id: ids.proposal,
-              title: 'A1 class',
-              conflictTypes: ['TEACHER', 'CLASSROOM'],
+              id: ids.roomOneProposal,
+              title: 'B1 class',
+              conflictTypes: ['CLASSROOM'],
+              classroom: expect.objectContaining({ name: 'Room 1' }),
             }),
-          ],
+            expect.objectContaining({
+              id: ids.roomTwoProposal,
+              title: 'B2 class',
+              conflictTypes: ['CLASSROOM'],
+              classroom: expect.objectContaining({ name: 'Room 2' }),
+            }),
+          ]),
         }),
       ]),
+    );
+    expect(result[ids.requirement]?.options).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ startTime: '09:00' })]),
     );
     expect(prisma.user.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ instituteId: ids.institute }),
       }),
     );
+    const teacherConflictResult = await service.analyze({
+      ...analysisRequest,
+      proposals: [
+        {
+          id: ids.proposal,
+          title: 'A1 class',
+          teacherId: ids.teacher,
+          classroomId: ids.roomOne,
+          classroom: { id: ids.roomOne, name: 'Room 1', capacity: 20 },
+          daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+          startTime: '09:00',
+          endTime: '13:30',
+        },
+      ],
+    });
+
+    expect(teacherConflictResult[ids.requirement]).toMatchObject({
+      options: [],
+      totalOptionCount: 0,
+      busyTeachers: [
+        { id: ids.teacher, firstName: 'Sara', lastName: 'Ahmadi' },
+      ],
+    });
   });
 });
