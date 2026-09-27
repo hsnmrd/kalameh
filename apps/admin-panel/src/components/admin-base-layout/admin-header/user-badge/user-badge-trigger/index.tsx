@@ -11,13 +11,11 @@ export interface UserBadgeTriggerProps extends React.ComponentPropsWithoutRef<
 > {
   hasActiveInstitute: boolean
   activeInstituteName?: string
-  activeInstituteSubdomain?: string
   activeInstituteLogoUrl?: string | null
   activeInstitutePrimaryColor?: string | null
   userAvatarUrl?: string | null
   fullName: string
   userInitial: string
-  roleLabel: string
 }
 
 export const UserBadgeTrigger = React.forwardRef<

@@ -105,11 +105,16 @@ describe("UserBadge", () => {
       />
     )
 
-    // Header trigger shows active institute initial ("آم")
+    const trigger = screen.getByRole("button", { name: "اطلاعات کاربری" })
+
+    // Header trigger shows active institute initial ("آم") without leaking
+    // app-specific props to the underlying DOM button.
     expect(screen.getByText("آم")).toBeInTheDocument()
+    expect(trigger).not.toHaveAttribute("activeinstitutesubdomain")
+    expect(trigger).not.toHaveAttribute("rolelabel")
 
     // Open popover
-    fireEvent.click(screen.getByRole("button", { name: "اطلاعات کاربری" }))
+    fireEvent.click(trigger)
 
     // Active Institute details & actions are shown
     expect(screen.getByText("آموزشگاه کلمه تهران")).toBeInTheDocument()

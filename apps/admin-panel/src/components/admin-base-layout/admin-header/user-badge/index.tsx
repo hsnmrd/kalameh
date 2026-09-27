@@ -88,13 +88,11 @@ export function UserBadge({ user, role, onLogout }: UserBadgeProps) {
           <UserBadgeTrigger
             hasActiveInstitute={hasActiveInstitute}
             activeInstituteName={activeInstitute?.name}
-            activeInstituteSubdomain={activeInstitute?.subdomain}
             activeInstituteLogoUrl={activeInstitute?.logoUrl}
             activeInstitutePrimaryColor={activeInstitute?.primaryColor}
             userAvatarUrl={user?.avatarUrl}
             fullName={fullName}
             userInitial={userInitial}
-            roleLabel={roleLabel}
           />
         }
       >
