@@ -11,6 +11,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
 import { SchedulingPlanTeacherCalendarService } from './scheduling-plan-teacher-calendar.service';
+import { SchedulingNewTeacherHiringPlanService } from './scheduling-new-teacher-hiring-plan.service';
 
 const requirementReferenceSelect = {
   id: true,
@@ -30,7 +31,7 @@ const emptyRecovery = {
   teacherCalendars: [],
   reassignmentChains: [],
   staffingFallback: {
-    addTeacherSuggested: false,
+    addTeacherSuggested: true,
     availabilityOptions: [],
   },
 } as const;
@@ -42,6 +43,7 @@ export class SchedulingPlanQueryService {
     private readonly i18n: I18nService,
     private readonly recoverySuggestionService: SchedulingRecoverySuggestionService,
     private readonly planTeacherCalendarService: SchedulingPlanTeacherCalendarService,
+    private readonly newTeacherHiringPlanService: SchedulingNewTeacherHiringPlanService,
   ) {}
 
   async findOne(
@@ -193,14 +195,24 @@ export class SchedulingPlanQueryService {
             proposals: plan.proposals,
             unresolvedRequirementIds,
           });
-    const [recoveryByRequirementId, teacherCalendars] = await Promise.all([
-      recoveryPromise,
-      this.planTeacherCalendarService.build({
-        instituteId,
-        inputSnapshot: plan.run.inputSnapshot,
-        proposals: plan.proposals,
-      }),
-    ]);
+    const [recoveryByRequirementId, teacherCalendars, newTeacherHiringPlan] =
+      await Promise.all([
+        recoveryPromise,
+        this.planTeacherCalendarService.build({
+          instituteId,
+          inputSnapshot: plan.run.inputSnapshot,
+          proposals: plan.proposals,
+        }),
+        unresolvedRequirementIds.length === 0
+          ? Promise.resolve(null)
+          : this.newTeacherHiringPlanService.build({
+              instituteId,
+              inputSnapshot: plan.run.inputSnapshot,
+              settingsSnapshot: plan.run.settingsSnapshot,
+              proposals: plan.proposals,
+              unresolvedRequirements: plan.unresolvedRequirements,
+            }),
+      ]);
     const {
       inputSnapshot: _inputSnapshot,
       settingsSnapshot: _settingsSnapshot,
@@ -211,6 +223,7 @@ export class SchedulingPlanQueryService {
       ...plan,
       run,
       teacherCalendars,
+      newTeacherHiringPlan,
       unresolvedRequirements: plan.unresolvedRequirements.map(
         (requirement) => ({
           ...requirement,

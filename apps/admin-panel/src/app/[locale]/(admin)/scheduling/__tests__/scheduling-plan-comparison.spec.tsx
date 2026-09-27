@@ -9,6 +9,7 @@ import {
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"
+import { SchedulingNewTeacherHiringPlan } from "../components/scheduling-new-teacher-hiring-plan"
 import { SchedulingPlanComparison } from "../components/scheduling-plan-comparison"
 
 const instituteId = "11111111-1111-4111-8111-111111111111"
@@ -153,6 +154,7 @@ const plan = (
         ],
       },
     ],
+    newTeacherHiringPlan: null,
     unresolvedRequirements: [],
     run: {
       term: { title: "پاییز" },
@@ -245,11 +247,82 @@ describe("MVP-036 scheduling plan comparison", () => {
       }),
       queryFn: async () =>
         plan(firstPlanId, 1, {
+          newTeacherHiringPlan: {
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "14:00",
+            endTime: "18:30",
+            totalClassCount: 3,
+            requiredCourses: [
+              {
+                id: "51515151-5151-4515-8515-515151515151",
+                title: "AME 5",
+              },
+              {
+                id: "52525252-5252-4525-8525-525252525252",
+                title: "AME 3-5",
+              },
+            ],
+            assignments: [
+              {
+                key: "ame-5:1",
+                requirementId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+                course: {
+                  id: "51515151-5151-4515-8515-515151515151",
+                  title: "AME 5",
+                },
+                classNumber: 1,
+                deliveryMode: "IN_PERSON",
+                daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+                startTime: "14:00",
+                endTime: "15:30",
+                classroom: {
+                  id: "88888888-8888-4888-8888-888888888888",
+                  name: "کلاس ۳",
+                  capacity: 15,
+                },
+              },
+              {
+                key: "ame-5:2",
+                requirementId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+                course: {
+                  id: "51515151-5151-4515-8515-515151515151",
+                  title: "AME 5",
+                },
+                classNumber: 2,
+                deliveryMode: "IN_PERSON",
+                daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+                startTime: "15:30",
+                endTime: "17:00",
+                classroom: {
+                  id: "88888888-8888-4888-8888-888888888888",
+                  name: "کلاس ۳",
+                  capacity: 15,
+                },
+              },
+              {
+                key: "ame-3-5:1",
+                requirementId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+                course: {
+                  id: "52525252-5252-4525-8525-525252525252",
+                  title: "AME 3-5",
+                },
+                classNumber: 1,
+                deliveryMode: "IN_PERSON",
+                daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+                startTime: "17:00",
+                endTime: "18:30",
+                classroom: null,
+              },
+            ],
+            coversAllUnresolvedClasses: true,
+            usesPreferredThreeDayPattern: true,
+            hasConsecutiveTimes: true,
+          },
           unresolvedRequirements: [
             {
               id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
               reasonCode: "PLAN_COMBINATION_CONFLICT",
-              missingClassCount: 1,
+              missingClassCount: 2,
               classRequirement: {
                 course: { title: "AME 5" },
               },
@@ -358,7 +431,7 @@ describe("MVP-036 scheduling plan comparison", () => {
                   },
                 ],
                 staffingFallback: {
-                  addTeacherSuggested: false,
+                  addTeacherSuggested: true,
                   availabilityOptions: [],
                 },
                 options: [
@@ -505,6 +578,18 @@ describe("MVP-036 scheduling plan comparison", () => {
       screen.getAllByText("فضای فیزیکی «کلاس ۳» · ظرفیت ۱۵ نفر").length
     ).toBeGreaterThan(0)
     expect(screen.getByText("استاد آزاد پیدا نشد")).toBeInTheDocument()
+    expect(
+      screen.getByText("برنامه پیشنهادی برای جذب استاد جدید")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText("یکشنبه، سه‌شنبه، پنجشنبه · 14:00–18:30")
+    ).toBeInTheDocument()
+    expect(screen.getByText("ساعت‌های پیوسته")).toBeInTheDocument()
+    expect(screen.getByText("الگوی سه‌روزه زوج/فرد")).toBeInTheDocument()
+    expect(screen.getByText("AME 5 · کلاس ۱")).toBeInTheDocument()
+    expect(screen.getByText("AME 5 · کلاس ۲")).toBeInTheDocument()
+    expect(screen.getByText("AME 3-5 · کلاس ۱")).toBeInTheDocument()
+    expect(screen.getByText("نیازمند تأمین فضای فیزیکی")).toBeInTheDocument()
     expect(screen.getAllByText("دکتر بهنام مرادی").length).toBeGreaterThan(1)
     expect(screen.getByText("تقویم همه استادان")).toBeInTheDocument()
     const allTeacherSelector = screen.getByRole("combobox", {
@@ -536,9 +621,14 @@ describe("MVP-036 scheduling plan comparison", () => {
     expect(
       screen.getByRole("button", { name: "دکتر بهنام مرادی" })
     ).toBeInTheDocument()
-    expect(screen.getByText("راه‌حل تأمین استاد")).toBeInTheDocument()
+    expect(screen.getAllByText("راه‌حل تأمین استاد")).toHaveLength(2)
     expect(
-      screen.getByText("با دکتر بهنام مرادی برای ثبت این زمان حضور گفتگو کنید")
+      screen.getByText("بازه مناسبی برای افزایش زمان حضور پیدا نشد")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "با دکتر بهنام مرادی درباره برگزاری یک کلاس اضافه گفتگو کنید"
+      )
     ).toBeInTheDocument()
     expect(
       screen.getByText(
@@ -547,7 +637,7 @@ describe("MVP-036 scheduling plan comparison", () => {
     ).toBeInTheDocument()
     expect(
       screen.getByText(
-        "زمان حضور استاد در یکشنبه، سه‌شنبه، پنجشنبه باید برای 17:30–19:00 اضافه یا گسترش داده شود."
+        "برای برگزاری یک کلاس اضافه، زمان حضور استاد در یکشنبه، سه‌شنبه، پنجشنبه باید برای 17:30–19:00 اضافه یا گسترش داده شود."
       )
     ).toBeInTheDocument()
     expect(
@@ -647,5 +737,20 @@ describe("MVP-036 scheduling plan comparison", () => {
       },
       expect.any(Object)
     )
+  })
+
+  it("keeps the new-teacher recommendation visible when no consolidated window exists", () => {
+    render(<SchedulingNewTeacherHiringPlan plan={null} missingClassCount={3} />)
+
+    expect(
+      screen.getByText("برنامه پیشنهادی برای جذب استاد جدید")
+    ).toBeInTheDocument()
+    expect(screen.getByText("۳ کلاس")).toBeInTheDocument()
+    expect(
+      screen.getByText("برنامه قابل اجرای کاملی پیدا نشد")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/افزودن استاد جدید همچنان پیشنهاد می‌شود/)
+    ).toBeInTheDocument()
   })
 })

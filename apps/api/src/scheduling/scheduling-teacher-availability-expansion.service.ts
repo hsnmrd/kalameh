@@ -6,23 +6,14 @@ import {
   type WeekDay,
 } from '@workspace/types';
 import type { SchedulingRecoveryPlanProposal } from './scheduling-recovery-option-builder.service';
+import {
+  SchedulingScheduleWindowService,
+  type SchedulingWindowClass,
+  type SchedulingWindowOperatingPhase,
+} from './scheduling-schedule-window.service';
 
-type OperatingPhase = {
-  startTime: string;
-  endTime: string;
-  daysOfWeek: string[];
-  hasBreak: boolean;
-  breakStartTime: string | null;
-  breakEndTime: string | null;
-};
-
-type ScheduledClass = {
+type ScheduledClass = SchedulingWindowClass & {
   teacherId: string | null;
-  classroomId: string | null;
-  daysOfWeek: string[];
-  sessionDates: string[];
-  startTime: string | null;
-  endTime: string | null;
 };
 
 type AvailabilityExpansionInput = {
@@ -30,21 +21,25 @@ type AvailabilityExpansionInput = {
   snapshot: SchedulingEngineInputSnapshot;
   settings: SchedulingEngineSettingsSnapshot;
   proposals: SchedulingRecoveryPlanProposal[];
-  operatingPhase: OperatingPhase | null;
+  operatingPhase: SchedulingWindowOperatingPhase | null;
   teacherById: Map<string, { id: string; firstName: string; lastName: string }>;
   classroomById: Map<string, { id: string; name: string; capacity: number }>;
 };
 
 @Injectable()
 export class SchedulingTeacherAvailabilityExpansionService {
+  constructor(
+    private readonly windowService: SchedulingScheduleWindowService,
+  ) {}
+
   analyze(
     input: AvailabilityExpansionInput,
   ): SchedulingTeacherOutreachOption[] {
     if (!input.operatingPhase) return [];
 
     const phase = input.operatingPhase;
-    const phaseStart = this.toMinutes(phase.startTime);
-    const phaseEnd = this.toMinutes(phase.endTime);
+    const phaseStart = this.windowService.toMinutes(phase.startTime);
+    const phaseEnd = this.windowService.toMinutes(phase.endTime);
     if (phaseStart === null || phaseEnd === null || phaseStart >= phaseEnd) {
       return [];
     }
@@ -85,16 +80,18 @@ export class SchedulingTeacherAvailabilityExpansionService {
           start + input.requirement.sessionDurationMinutes <= phaseEnd;
           start += input.settings.generation.candidateStepMinutes
         ) {
-          const startTime = this.toTime(start);
-          const endTime = this.toTime(
+          const startTime = this.windowService.toTime(start);
+          const endTime = this.windowService.toTime(
             start + input.requirement.sessionDurationMinutes,
           );
-          if (this.overlapsBreak(startTime, endTime, phase)) continue;
+          if (this.windowService.overlapsBreak(startTime, endTime, phase)) {
+            continue;
+          }
           if (
             schedules.some(
               (scheduledClass) =>
                 scheduledClass.teacherId === profile.userId &&
-                this.hasConflict(
+                this.windowService.hasConflict(
                   daysOfWeek,
                   startTime,
                   endTime,
@@ -121,7 +118,7 @@ export class SchedulingTeacherAvailabilityExpansionService {
               !schedules.some(
                 (scheduledClass) =>
                   scheduledClass.classroomId === room.id &&
-                  this.hasConflict(
+                  this.windowService.hasConflict(
                     daysOfWeek,
                     startTime,
                     endTime,
@@ -129,13 +126,6 @@ export class SchedulingTeacherAvailabilityExpansionService {
                   ),
               ),
           );
-          if (
-            input.requirement.deliveryMode === 'IN_PERSON' &&
-            availableClassrooms.length === 0
-          ) {
-            continue;
-          }
-
           const key = [
             input.requirement.id,
             profile.userId,
@@ -159,6 +149,14 @@ export class SchedulingTeacherAvailabilityExpansionService {
 
     return Array.from(options.values()).sort(
       (left, right) =>
+        Number(
+          left.deliveryMode === 'IN_PERSON' &&
+            left.availableClassrooms.length === 0,
+        ) -
+          Number(
+            right.deliveryMode === 'IN_PERSON' &&
+              right.availableClassrooms.length === 0,
+          ) ||
         left.availabilityChangeDays.length -
           right.availabilityChangeDays.length ||
         left.startTime.localeCompare(right.startTime) ||
@@ -199,72 +197,5 @@ export class SchedulingTeacherAvailabilityExpansionService {
       const reference = input.classroomById.get(room.id);
       return reference ? [reference] : [];
     });
-  }
-
-  private overlapsBreak(
-    startTime: string,
-    endTime: string,
-    phase: OperatingPhase,
-  ): boolean {
-    return Boolean(
-      phase.hasBreak &&
-      phase.breakStartTime &&
-      phase.breakEndTime &&
-      startTime < phase.breakEndTime &&
-      phase.breakStartTime < endTime,
-    );
-  }
-
-  private hasConflict(
-    days: WeekDay[],
-    startTime: string,
-    endTime: string,
-    scheduledClass: ScheduledClass,
-  ): boolean {
-    if (!scheduledClass.startTime || !scheduledClass.endTime) return false;
-    if (
-      startTime >= scheduledClass.endTime ||
-      scheduledClass.startTime >= endTime
-    ) {
-      return false;
-    }
-    return days.some(
-      (day) =>
-        scheduledClass.daysOfWeek.includes(day) ||
-        scheduledClass.sessionDates.some(
-          (sessionDate) => this.dayOfWeek(sessionDate) === day,
-        ),
-    );
-  }
-
-  private dayOfWeek(sessionDate: string): WeekDay | null {
-    const date = new Date(`${sessionDate.slice(0, 10)}T12:00:00.000Z`);
-    if (Number.isNaN(date.getTime())) return null;
-    return [
-      'SUNDAY',
-      'MONDAY',
-      'TUESDAY',
-      'WEDNESDAY',
-      'THURSDAY',
-      'FRIDAY',
-      'SATURDAY',
-    ][date.getUTCDay()] as WeekDay;
-  }
-
-  private toMinutes(time: string): number | null {
-    const match = /^(\d{2}):(\d{2})$/.exec(time);
-    if (!match) return null;
-    const hours = Number(match[1]);
-    const minutes = Number(match[2]);
-    if (hours > 23 || minutes > 59) return null;
-    return hours * 60 + minutes;
-  }
-
-  private toTime(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const remainder = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${remainder
-      .toString()
-      .padStart(2, '0')}`;
   }
 }

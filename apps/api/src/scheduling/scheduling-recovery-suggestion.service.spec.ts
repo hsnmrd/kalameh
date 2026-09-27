@@ -9,6 +9,7 @@ import { SchedulingTeacherCalendarService } from './scheduling-teacher-calendar.
 import { SchedulingTeacherAvailabilityExpansionService } from './scheduling-teacher-availability-expansion.service';
 import { SchedulingTeacherReassignmentChainService } from './scheduling-teacher-reassignment-chain.service';
 import { SchedulingTeacherReassignmentValidatorService } from './scheduling-teacher-reassignment-validator.service';
+import { SchedulingScheduleWindowService } from './scheduling-schedule-window.service';
 
 describe('SchedulingRecoverySuggestionService', () => {
   const uuid = (suffix: number): string =>
@@ -64,7 +65,9 @@ describe('SchedulingRecoverySuggestionService', () => {
     new SchedulingCandidateSlotService(),
     new SchedulingHardConstraintService(),
     new SchedulingTeacherCalendarService(),
-    new SchedulingTeacherAvailabilityExpansionService(),
+    new SchedulingTeacherAvailabilityExpansionService(
+      new SchedulingScheduleWindowService(),
+    ),
     new SchedulingRecoveryOptionBuilderService(),
     new SchedulingTeacherReassignmentChainService(
       new SchedulingTeacherReassignmentValidatorService(),
@@ -215,6 +218,9 @@ describe('SchedulingRecoverySuggestionService', () => {
         },
       ],
       reassignmentChains: [],
+      staffingFallback: {
+        addTeacherSuggested: true,
+      },
     });
     expect(result[ids.requirement]?.options).toEqual(
       expect.arrayContaining([
@@ -313,6 +319,39 @@ describe('SchedulingRecoverySuggestionService', () => {
       expect.arrayContaining([
         expect.objectContaining({
           startTime: expect.stringMatching(/^(09:00|10:30|12:00)$/),
+        }),
+      ]),
+    );
+
+    prisma.classroom.findMany.mockResolvedValueOnce([]);
+    const noRoomResult = await service.analyze({
+      ...analysisRequest,
+      proposals: [
+        {
+          id: ids.proposal,
+          title: 'A1 class',
+          courseId: ids.course,
+          branchId: null,
+          teacherId: ids.teacher,
+          classroomId: ids.roomOne,
+          deliveryMode: 'IN_PERSON' as const,
+          classroom: { id: ids.roomOne, name: 'Room 1', capacity: 20 },
+          daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+          startTime: '09:00',
+          endTime: '13:30',
+          isLocked: false,
+        },
+      ],
+    });
+
+    expect(
+      noRoomResult[ids.requirement]?.staffingFallback.availabilityOptions,
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          startTime: '13:30',
+          endTime: '15:00',
+          availableClassrooms: [],
         }),
       ]),
     );

@@ -31,7 +31,7 @@ export function SchedulingUnresolvedRequirementItem({
     teacherCalendars: [],
     reassignmentChains: [],
     staffingFallback: {
-      addTeacherSuggested: false,
+      addTeacherSuggested: true,
       availabilityOptions: [],
     },
   }

@@ -10,6 +10,7 @@ import {
   CLASS_DELIVERY_MODES,
   SCHEDULING_RUN_STATUSES,
 } from "./scheduling.constants.js"
+import { SchedulingNewTeacherHiringPlanSchema } from "./scheduling-new-teacher-hiring-plan.schema.js"
 
 const SchedulingCourseReferenceSchema = z.object({
   id: z.string().uuid(),
@@ -63,6 +64,8 @@ export const SchedulingUnresolvedRequirementDetailsSchema =
 export const SchedulingPlanDetailsSchema = SchedulingPlanSchema.extend({
   proposals: z.array(SchedulingProposalDetailsSchema),
   teacherCalendars: z.array(SchedulingTeacherCalendarSchema).default([]),
+  newTeacherHiringPlan:
+    SchedulingNewTeacherHiringPlanSchema.nullable().default(null),
   unresolvedRequirements: z.array(SchedulingUnresolvedRequirementDetailsSchema),
   run: z.object({
     id: z.string().uuid(),

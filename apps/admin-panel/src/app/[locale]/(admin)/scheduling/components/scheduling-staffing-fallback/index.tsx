@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl"
 import {
   CalendarClock,
+  CalendarX2,
   DoorOpen,
   MessageCircleMore,
   UserPlus,
@@ -22,8 +23,6 @@ export function SchedulingStaffingFallback({
 }: SchedulingStaffingFallbackProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
-
-  if (!fallback.addTeacherSuggested) return null
 
   const timeWindows = Array.from(
     new Map(
@@ -57,7 +56,7 @@ export function SchedulingStaffingFallback({
         </div>
       </div>
 
-      {fallback.availabilityOptions.length > 0 && (
+      {fallback.availabilityOptions.length > 0 ? (
         <ul className="mt-3 flex flex-col gap-2.5">
           {fallback.availabilityOptions.map((option) => {
             const teacherName = `${option.teacher.firstName} ${option.teacher.lastName}`
@@ -67,6 +66,9 @@ export function SchedulingStaffingFallback({
             const availabilityChangeDays = option.availabilityChangeDays
               .map((day) => t(`weekDays.${day}`))
               .join(t("daySeparator"))
+            const needsRoom =
+              option.deliveryMode === "IN_PERSON" &&
+              option.availableClassrooms.length === 0
 
             return (
               <li key={option.key} className="rounded-xl bg-muted/40 p-3.5">
@@ -113,16 +115,21 @@ export function SchedulingStaffingFallback({
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-start gap-2">
-                  <DoorOpen
-                    aria-hidden
-                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                  />
+                <div
+                  className={
+                    needsRoom
+                      ? "mt-3 flex items-start gap-2 text-warning-foreground"
+                      : "mt-3 flex items-start gap-2 text-muted-foreground"
+                  }
+                >
+                  <DoorOpen aria-hidden className="mt-0.5 size-4 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs">
                       {option.deliveryMode === "ONLINE"
                         ? t("staffingFallback.online")
-                        : t("staffingFallback.availableRooms")}
+                        : needsRoom
+                          ? t("staffingFallback.roomNeeded")
+                          : t("staffingFallback.availableRooms")}
                     </p>
                     {option.deliveryMode === "IN_PERSON" && (
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -142,6 +149,21 @@ export function SchedulingStaffingFallback({
             )
           })}
         </ul>
+      ) : (
+        <div className="mt-3 flex items-start gap-2 border-y border-border py-3">
+          <CalendarX2
+            aria-hidden
+            className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+          />
+          <div>
+            <p className="text-xs font-semibold text-foreground">
+              {t("staffingFallback.availabilityEmptyTitle")}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {t("staffingFallback.availabilityEmptyDescription")}
+            </p>
+          </div>
+        </div>
       )}
 
       <div className="mt-3 rounded-xl bg-muted/40 p-3.5">

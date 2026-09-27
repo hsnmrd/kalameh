@@ -113,7 +113,7 @@ export const SchedulingRecoveryAnalysisSchema = z.object({
   teacherCalendars: z.array(SchedulingTeacherCalendarSchema),
   reassignmentChains: z.array(SchedulingTeacherReassignmentChainSchema),
   staffingFallback: SchedulingStaffingFallbackSchema.default({
-    addTeacherSuggested: false,
+    addTeacherSuggested: true,
     availabilityOptions: [],
   }),
 })

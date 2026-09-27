@@ -11,6 +11,11 @@ import { SchedulingPlanPersistenceService } from './scheduling-plan-persistence.
 import { SchedulingPlanPublicationService } from './scheduling-plan-publication.service';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
 import { SchedulingPlanTeacherCalendarService } from './scheduling-plan-teacher-calendar.service';
+import { SchedulingNewTeacherHiringPlanService } from './scheduling-new-teacher-hiring-plan.service';
+import { SchedulingNewTeacherArrangementService } from './scheduling-new-teacher-arrangement.service';
+import { SchedulingNewTeacherScheduleOptimizerService } from './scheduling-new-teacher-schedule-optimizer.service';
+import { SchedulingNewTeacherPreferenceService } from './scheduling-new-teacher-preference.service';
+import { SchedulingScheduleWindowService } from './scheduling-schedule-window.service';
 import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
 import { SchedulingPlanValidationService } from './scheduling-plan-validation.service';
 import { SchedulingStudentCoverageService } from './scheduling-student-coverage.service';
@@ -59,6 +64,11 @@ import { SchedulingService } from './scheduling.service';
     SchedulingPlanPublicationService,
     SchedulingPlanQueryService,
     SchedulingPlanTeacherCalendarService,
+    SchedulingNewTeacherHiringPlanService,
+    SchedulingNewTeacherArrangementService,
+    SchedulingNewTeacherScheduleOptimizerService,
+    SchedulingNewTeacherPreferenceService,
+    SchedulingScheduleWindowService,
     SchedulingPlanReviewService,
     SchedulingPlanValidationService,
     SchedulingStudentCoverageService,
@@ -87,6 +97,9 @@ import { SchedulingService } from './scheduling.service';
     SchedulingPlanPublicationService,
     SchedulingPlanQueryService,
     SchedulingPlanTeacherCalendarService,
+    SchedulingNewTeacherHiringPlanService,
+    SchedulingNewTeacherScheduleOptimizerService,
+    SchedulingScheduleWindowService,
     SchedulingPlanReviewService,
     SchedulingPlanValidationService,
     SchedulingStudentCoverageService,

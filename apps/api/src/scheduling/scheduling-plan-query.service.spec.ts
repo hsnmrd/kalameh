@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
 import { SchedulingPlanTeacherCalendarService } from './scheduling-plan-teacher-calendar.service';
 import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
+import { SchedulingNewTeacherHiringPlanService } from './scheduling-new-teacher-hiring-plan.service';
 
 describe('MVP-029 SchedulingPlanQueryService', () => {
   const uuid = (suffix: number): string =>
@@ -43,6 +44,7 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
   let i18n: any;
   let recoverySuggestionService: any;
   let planTeacherCalendarService: any;
+  let newTeacherHiringPlanService: any;
   let service: SchedulingPlanQueryService;
 
   beforeEach(() => {
@@ -176,7 +178,7 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
           teacherCalendars: [],
           reassignmentChains: [],
           staffingFallback: {
-            addTeacherSuggested: false,
+            addTeacherSuggested: true,
             availabilityOptions: [],
           },
         },
@@ -194,11 +196,37 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
         },
       ]),
     };
+    newTeacherHiringPlanService = {
+      build: jest.fn().mockResolvedValue({
+        daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+        startTime: '10:30',
+        endTime: '12:00',
+        totalClassCount: 1,
+        requiredCourses: [{ id: ids.course, title: 'A2' }],
+        assignments: [
+          {
+            key: `${ids.requirement}:1`,
+            requirementId: ids.requirement,
+            course: { id: ids.course, title: 'A2' },
+            classNumber: 1,
+            deliveryMode: 'ONLINE',
+            daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+            startTime: '10:30',
+            endTime: '12:00',
+            classroom: null,
+          },
+        ],
+        coversAllUnresolvedClasses: true,
+        usesPreferredThreeDayPattern: true,
+        hasConsecutiveTimes: true,
+      }),
+    };
     service = new SchedulingPlanQueryService(
       prisma as PrismaService,
       i18n as I18nService,
       recoverySuggestionService as SchedulingRecoverySuggestionService,
       planTeacherCalendarService as SchedulingPlanTeacherCalendarService,
+      newTeacherHiringPlanService as SchedulingNewTeacherHiringPlanService,
     );
   });
 
@@ -228,6 +256,10 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
           slots: [],
         },
       ],
+      newTeacherHiringPlan: {
+        totalClassCount: 1,
+        requiredCourses: [{ title: 'A2' }],
+      },
       unresolvedRequirements: [
         {
           reasonCode: 'INSUFFICIENT_FEASIBLE_CANDIDATES',
@@ -248,6 +280,14 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
       expect.objectContaining({
         instituteId: ids.institute,
         unresolvedRequirementIds: [ids.requirement],
+      }),
+    );
+    expect(newTeacherHiringPlanService.build).toHaveBeenCalledWith(
+      expect.objectContaining({
+        instituteId: ids.institute,
+        unresolvedRequirements: expect.arrayContaining([
+          expect.objectContaining({ classRequirementId: ids.requirement }),
+        ]),
       }),
     );
   });

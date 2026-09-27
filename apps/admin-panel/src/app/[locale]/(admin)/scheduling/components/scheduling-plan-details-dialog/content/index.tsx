@@ -26,6 +26,7 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { formatDate, formatNumber } from "@workspace/ui/lib/utils"
 import { SchedulingPlanCalendarView } from "../../scheduling-plan-calendar-view"
+import { SchedulingNewTeacherHiringPlan } from "../../scheduling-new-teacher-hiring-plan"
 import { SchedulingPlanPublicationStatus } from "../../scheduling-plan-publication-status"
 import { SchedulingPlanValidationResult } from "../../scheduling-plan-validation-result"
 import { SchedulingProposalDetailsItem } from "../../scheduling-proposal-details-item"
@@ -208,6 +209,10 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
             {t("unresolvedDescription")}
           </p>
+          <SchedulingNewTeacherHiringPlan
+            plan={plan.newTeacherHiringPlan}
+            missingClassCount={missingClassCount}
+          />
           <ul className="mt-4 flex flex-col gap-3">
             {plan.unresolvedRequirements.map((requirement) => (
               <SchedulingUnresolvedRequirementItem

@@ -169,21 +169,17 @@ export class SchedulingRecoverySuggestionService {
             toTeacher.id,
           ]),
         ]);
-        const hasAutomatedRecovery =
-          recovery.options.length > 0 || reassignmentChains.length > 0;
-        const availabilityOptions = hasAutomatedRecovery
-          ? []
-          : this.teacherAvailabilityExpansionService
-              .analyze({
-                requirement,
-                snapshot,
-                settings,
-                proposals: input.proposals,
-                operatingPhase: term?.operatingPhase ?? null,
-                teacherById,
-                classroomById,
-              })
-              .slice(0, 3);
+        const availabilityOptions = this.teacherAvailabilityExpansionService
+          .analyze({
+            requirement,
+            snapshot,
+            settings,
+            proposals: input.proposals,
+            operatingPhase: term?.operatingPhase ?? null,
+            teacherById,
+            classroomById,
+          })
+          .slice(0, 3);
 
         return [
           requirement.id,
@@ -212,7 +208,7 @@ export class SchedulingRecoverySuggestionService {
             }),
             reassignmentChains,
             staffingFallback: {
-              addTeacherSuggested: !hasAutomatedRecovery,
+              addTeacherSuggested: true,
               availabilityOptions,
             },
           }),
