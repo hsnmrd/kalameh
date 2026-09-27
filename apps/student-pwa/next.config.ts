@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
     "localhost",
     "127.0.0.1",
     ...localIps,
-    ...localIps.map((ip) => `${ip}:5001`),
+    ...localIps.map((ip) => `${ip}:3002`),
     ...(process.env.ALLOWED_DEV_ORIGINS?.split(",").map((s) => s.trim()) ?? []),
   ],
   env: {
