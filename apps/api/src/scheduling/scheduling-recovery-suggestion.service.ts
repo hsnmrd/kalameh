@@ -136,6 +136,22 @@ export class SchedulingRecoverySuggestionService {
           teacherById,
           classroomById,
         });
+        const reassignmentChains = this.reassignmentChainService.analyze({
+          requirementId: requirement.id,
+          candidates: baseEvaluation.accepted,
+          snapshot,
+          settings,
+          proposals: input.proposals,
+          teacherById,
+          classroomById,
+        });
+        const chainTeacherIds = reassignmentChains.flatMap((chain) => [
+          chain.targetAssignment.teacher.id,
+          ...chain.reassignments.flatMap(({ fromTeacher, toTeacher }) => [
+            fromTeacher.id,
+            toTeacher.id,
+          ]),
+        ]);
 
         return [
           requirement.id,
@@ -155,21 +171,14 @@ export class SchedulingRecoverySuggestionService {
                 : [],
             teacherCalendars: this.teacherCalendarService.build({
               courseId: requirement.courseId,
+              additionalTeacherIds: chainTeacherIds,
               qualifications: snapshot.teachers,
               teachers,
               proposals: input.proposals,
               existingClasses: snapshot.existingClasses,
               existingClassTitles,
             }),
-            reassignmentChains: this.reassignmentChainService.analyze({
-              requirementId: requirement.id,
-              candidates: baseEvaluation.accepted,
-              snapshot,
-              settings,
-              proposals: input.proposals,
-              teacherById,
-              classroomById,
-            }),
+            reassignmentChains,
           }),
         ];
       }),

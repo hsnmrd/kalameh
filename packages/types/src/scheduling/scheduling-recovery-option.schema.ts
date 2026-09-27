@@ -35,6 +35,14 @@ const SchedulingTeacherCalendarSlotSchema = z.object({
 
 export const SchedulingTeacherCalendarSchema = z.object({
   teacher: SchedulingRecoveryTeacherSchema,
+  teachableCourses: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        title: z.string().trim().min(1),
+      })
+    )
+    .default([]),
   slots: z.array(SchedulingTeacherCalendarSlotSchema),
 })
 

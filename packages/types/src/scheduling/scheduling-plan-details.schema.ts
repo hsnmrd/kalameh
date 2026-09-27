@@ -2,7 +2,10 @@ import { z } from "zod"
 import { SchedulingPlanSchema } from "./scheduling-plan.schema.js"
 import { SchedulingProposalSchema } from "./scheduling-proposal.schema.js"
 import { SchedulingUnresolvedRequirementSchema } from "./scheduling-unresolved-requirement.schema.js"
-import { SchedulingRecoveryAnalysisSchema } from "./scheduling-recovery-option.schema.js"
+import {
+  SchedulingRecoveryAnalysisSchema,
+  SchedulingTeacherCalendarSchema,
+} from "./scheduling-recovery-option.schema.js"
 import {
   CLASS_DELIVERY_MODES,
   SCHEDULING_RUN_STATUSES,
@@ -59,6 +62,7 @@ export const SchedulingUnresolvedRequirementDetailsSchema =
 
 export const SchedulingPlanDetailsSchema = SchedulingPlanSchema.extend({
   proposals: z.array(SchedulingProposalDetailsSchema),
+  teacherCalendars: z.array(SchedulingTeacherCalendarSchema).default([]),
   unresolvedRequirements: z.array(SchedulingUnresolvedRequirementDetailsSchema),
   run: z.object({
     id: z.string().uuid(),

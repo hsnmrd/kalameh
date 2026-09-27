@@ -4,11 +4,13 @@ import {
   SchedulingPlanDetailsSchema,
   type JwtPayload,
   type SchedulingPlanDetailsDto,
+  type SchedulingRecoveryAnalysis,
   type SupportedLocale,
 } from '@workspace/types';
 import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
+import { SchedulingPlanTeacherCalendarService } from './scheduling-plan-teacher-calendar.service';
 
 const requirementReferenceSelect = {
   id: true,
@@ -35,6 +37,7 @@ export class SchedulingPlanQueryService {
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
     private readonly recoverySuggestionService: SchedulingRecoverySuggestionService,
+    private readonly planTeacherCalendarService: SchedulingPlanTeacherCalendarService,
   ) {}
 
   async findOne(
@@ -176,16 +179,24 @@ export class SchedulingPlanQueryService {
       ({ classRequirementId }) =>
         classRequirementId === null ? [] : [classRequirementId],
     );
-    const recoveryByRequirementId =
+    const recoveryPromise: Promise<Record<string, SchedulingRecoveryAnalysis>> =
       unresolvedRequirementIds.length === 0
-        ? {}
-        : await this.recoverySuggestionService.analyze({
+        ? Promise.resolve({})
+        : this.recoverySuggestionService.analyze({
             instituteId,
             inputSnapshot: plan.run.inputSnapshot,
             settingsSnapshot: plan.run.settingsSnapshot,
             proposals: plan.proposals,
             unresolvedRequirementIds,
           });
+    const [recoveryByRequirementId, teacherCalendars] = await Promise.all([
+      recoveryPromise,
+      this.planTeacherCalendarService.build({
+        instituteId,
+        inputSnapshot: plan.run.inputSnapshot,
+        proposals: plan.proposals,
+      }),
+    ]);
     const {
       inputSnapshot: _inputSnapshot,
       settingsSnapshot: _settingsSnapshot,
@@ -195,6 +206,7 @@ export class SchedulingPlanQueryService {
     return SchedulingPlanDetailsSchema.parse({
       ...plan,
       run,
+      teacherCalendars,
       unresolvedRequirements: plan.unresolvedRequirements.map(
         (requirement) => ({
           ...requirement,

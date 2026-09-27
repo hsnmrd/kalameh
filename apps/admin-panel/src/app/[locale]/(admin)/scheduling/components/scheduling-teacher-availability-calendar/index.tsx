@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { CalendarClock } from "lucide-react"
 import type { SchedulingTeacherCalendar } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
+import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -13,24 +14,27 @@ import { ORDERED_WEEK_DAYS } from "../scheduling-plan-calendar-view"
 
 interface SchedulingTeacherAvailabilityCalendarProps {
   calendars: SchedulingTeacherCalendar[]
+  scope?: "ALL" | "QUALIFIED"
 }
 
 export function SchedulingTeacherAvailabilityCalendar({
   calendars,
+  scope = "QUALIFIED",
 }: SchedulingTeacherAvailabilityCalendarProps) {
   const t = useTranslations("scheduling.planDetails")
+  const locale = useLocale()
   const [selectedTeacherId, setSelectedTeacherId] = React.useState(
     calendars[0]?.teacher.id ?? ""
   )
   const selectedCalendar =
     calendars.find(({ teacher }) => teacher.id === selectedTeacherId) ??
     calendars[0]
-
-  if (!selectedCalendar) return null
+  const titleKey =
+    scope === "ALL" ? "teacherCalendar.all" : "teacherCalendar.qualified"
 
   return (
     <section
-      aria-label={t("teacherCalendar.title")}
+      aria-label={t(`${titleKey}.title`)}
       className="flex flex-col gap-3"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -41,10 +45,10 @@ export function SchedulingTeacherAvailabilityCalendar({
           />
           <div>
             <h5 className="text-sm font-semibold text-foreground">
-              {t("teacherCalendar.title")}
+              {t(`${titleKey}.title`)}
             </h5>
             <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-              {t("teacherCalendar.description")}
+              {t(`${titleKey}.description`)}
             </p>
           </div>
         </div>
@@ -60,81 +64,133 @@ export function SchedulingTeacherAvailabilityCalendar({
         </div>
       </div>
 
-      <div className="overflow-x-auto pb-1">
-        <ToggleGroup
-          value={[selectedCalendar.teacher.id]}
-          onValueChange={(value) => value[0] && setSelectedTeacherId(value[0])}
-          aria-label={t("teacherCalendar.teacherSelector")}
-          className="min-w-max"
-        >
-          {calendars.map(({ teacher }) => (
-            <ToggleGroupItem
-              key={teacher.id}
-              value={teacher.id}
-              variant="outline"
-              className="min-h-11 px-4"
+      {selectedCalendar &&
+        (scope === "ALL" ? (
+          <div className="w-full sm:max-w-sm">
+            <ResponsiveCombobox
+              items={calendars.map(({ teacher }) => ({
+                value: teacher.id,
+                label: `${teacher.firstName} ${teacher.lastName}`,
+              }))}
+              value={selectedCalendar.teacher.id}
+              onValueChange={(value) => value && setSelectedTeacherId(value)}
+              placeholder={t("teacherCalendar.teacherSelector")}
+              searchPlaceholder={t("teacherCalendar.searchTeacher")}
+              emptyMessage={t("teacherCalendar.noTeacherMatch")}
+              drawerTitle={t("teacherCalendar.teacherSelector")}
+              aria-label={t("teacherCalendar.teacherSelector")}
+              locale={locale}
+              clearable={false}
+            />
+          </div>
+        ) : (
+          <div className="overflow-x-auto pb-1">
+            <ToggleGroup
+              value={[selectedCalendar.teacher.id]}
+              onValueChange={(value) =>
+                value[0] && setSelectedTeacherId(value[0])
+              }
+              aria-label={t("teacherCalendar.teacherSelector")}
+              className="min-w-max"
             >
-              {teacher.firstName} {teacher.lastName}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      </div>
+              {calendars.map(({ teacher }) => (
+                <ToggleGroupItem
+                  key={teacher.id}
+                  value={teacher.id}
+                  variant="outline"
+                  className="min-h-11 px-4"
+                >
+                  {teacher.firstName} {teacher.lastName}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+        ))}
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-background">
-        <div className="grid min-w-[920px] grid-cols-7 divide-x divide-border rtl:divide-x-reverse">
-          {ORDERED_WEEK_DAYS.map((day) => {
-            const slots = selectedCalendar.slots.filter(
-              (slot) => slot.dayOfWeek === day
-            )
-
-            return (
-              <section
-                key={day}
-                aria-label={t(`weekDays.${day}`)}
-                className="min-w-0"
-              >
-                <h6 className="border-b border-border bg-muted/50 px-2 py-2.5 text-center text-xs font-bold text-foreground">
-                  {t(`weekDays.${day}`)}
-                </h6>
-                <div className="flex min-h-40 flex-col gap-2 p-2">
-                  {slots.length > 0 ? (
-                    slots.map((slot, index) => (
-                      <div
-                        key={`${day}-${slot.startTime}-${slot.endTime}-${slot.status}-${index}`}
-                        className="flex flex-col gap-1.5 rounded-xl bg-muted/50 p-2.5"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-1.5">
-                          <Badge
-                            variant={
-                              slot.status === "FREE" ? "success" : "warning"
-                            }
-                          >
-                            {t(`teacherCalendar.states.${slot.status}`)}
-                          </Badge>
-                          <span className="text-xs font-semibold text-foreground tabular-nums">
-                            {slot.startTime}–{slot.endTime}
-                          </span>
-                        </div>
-                        {slot.status === "BUSY" && (
-                          <p className="text-xs leading-5 text-muted-foreground">
-                            {slot.title ?? t("teacherCalendar.existingClass")}
-                          </p>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="flex min-h-32 items-center justify-center rounded-xl bg-muted/30 p-3 text-center">
-                      <p className="text-xs leading-5 text-muted-foreground">
-                        {t("teacherCalendar.noAvailability")}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </section>
-            )
-          })}
+      {scope === "ALL" && selectedCalendar && (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold text-foreground">
+            {t("teacherCalendar.teachableLevels")}
+          </p>
+          {selectedCalendar.teachableCourses.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {selectedCalendar.teachableCourses.map((course) => (
+                <Badge key={course.id} variant="outline">
+                  {course.title}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs leading-5 text-muted-foreground">
+              {t("teacherCalendar.noTeachableLevels")}
+            </p>
+          )}
         </div>
-      </div>
+      )}
+
+      {selectedCalendar ? (
+        <div className="overflow-x-auto rounded-2xl border border-border bg-background">
+          <div className="grid min-w-[920px] grid-cols-7 divide-x divide-border rtl:divide-x-reverse">
+            {ORDERED_WEEK_DAYS.map((day) => {
+              const slots = selectedCalendar.slots.filter(
+                (slot) => slot.dayOfWeek === day
+              )
+
+              return (
+                <section
+                  key={day}
+                  aria-label={t(`weekDays.${day}`)}
+                  className="min-w-0"
+                >
+                  <h6 className="border-b border-border bg-muted/50 px-2 py-2.5 text-center text-xs font-bold text-foreground">
+                    {t(`weekDays.${day}`)}
+                  </h6>
+                  <div className="flex min-h-40 flex-col gap-2 p-2">
+                    {slots.length > 0 ? (
+                      slots.map((slot, index) => (
+                        <div
+                          key={`${day}-${slot.startTime}-${slot.endTime}-${slot.status}-${index}`}
+                          className="flex flex-col gap-1.5 rounded-xl bg-muted/50 p-2.5"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-1.5">
+                            <Badge
+                              variant={
+                                slot.status === "FREE" ? "success" : "warning"
+                              }
+                            >
+                              {t(`teacherCalendar.states.${slot.status}`)}
+                            </Badge>
+                            <span className="text-xs font-semibold text-foreground tabular-nums">
+                              {slot.startTime}–{slot.endTime}
+                            </span>
+                          </div>
+                          {slot.status === "BUSY" && (
+                            <p className="text-xs leading-5 text-muted-foreground">
+                              {slot.title ?? t("teacherCalendar.existingClass")}
+                            </p>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex min-h-32 items-center justify-center rounded-xl bg-muted/30 p-3 text-center">
+                        <p className="text-xs leading-5 text-muted-foreground">
+                          {t("teacherCalendar.noAvailability")}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-xl bg-muted/30 p-4 text-center">
+          <p className="text-xs leading-5 text-muted-foreground">
+            {t("teacherCalendar.noTeachers")}
+          </p>
+        </div>
+      )}
     </section>
   )
 }

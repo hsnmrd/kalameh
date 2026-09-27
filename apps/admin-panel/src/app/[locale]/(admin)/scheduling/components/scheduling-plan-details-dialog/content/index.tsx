@@ -29,6 +29,7 @@ import { SchedulingPlanCalendarView } from "../../scheduling-plan-calendar-view"
 import { SchedulingPlanPublicationStatus } from "../../scheduling-plan-publication-status"
 import { SchedulingPlanValidationResult } from "../../scheduling-plan-validation-result"
 import { SchedulingProposalDetailsItem } from "../../scheduling-proposal-details-item"
+import { SchedulingTeacherAvailabilityCalendar } from "../../scheduling-teacher-availability-calendar"
 import { SchedulingUnresolvedRequirementItem } from "../../scheduling-unresolved-requirement-item"
 import { SchedulingWarningList } from "../../scheduling-warning-list"
 
@@ -183,6 +184,11 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
           )}
         </div>
       </section>
+      <Separator />
+      <SchedulingTeacherAvailabilityCalendar
+        calendars={plan.teacherCalendars ?? []}
+        scope="ALL"
+      />
       {plan.unresolvedRequirements.length > 0 && (
         <section aria-labelledby="plan-unresolved-title">
           <div className="flex items-center justify-between gap-3">

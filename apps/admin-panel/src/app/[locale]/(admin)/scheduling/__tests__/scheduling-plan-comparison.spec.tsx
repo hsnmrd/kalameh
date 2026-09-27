@@ -93,6 +93,66 @@ const plan = (
         ],
       },
     ],
+    teacherCalendars: [
+      {
+        teacher: {
+          id: "66666666-6666-4666-8666-666666666666",
+          firstName: "سارا",
+          lastName: "احمدی",
+        },
+        teachableCourses: [
+          {
+            id: "51515151-5151-4515-8515-515151515151",
+            title: "AME 1",
+          },
+        ],
+        slots: [
+          {
+            dayOfWeek: "SUNDAY",
+            startTime: "09:00",
+            endTime: "10:30",
+            status: "BUSY",
+            title: "کلاس سطح A2",
+            source: "PLAN",
+          },
+          {
+            dayOfWeek: "SUNDAY",
+            startTime: "10:30",
+            endTime: "13:30",
+            status: "FREE",
+            title: null,
+            source: "AVAILABILITY",
+          },
+        ],
+      },
+      {
+        teacher: {
+          id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+          firstName: "رضا",
+          lastName: "کریمی",
+        },
+        teachableCourses: [
+          {
+            id: "52525252-5252-4525-8525-525252525252",
+            title: "AME 4",
+          },
+          {
+            id: "53535353-5353-4535-8535-535353535353",
+            title: "AME 5",
+          },
+        ],
+        slots: [
+          {
+            dayOfWeek: "MONDAY",
+            startTime: "14:00",
+            endTime: "15:30",
+            status: "BUSY",
+            title: "کلاس عمومی رضا",
+            source: "PLAN",
+          },
+        ],
+      },
+    ],
     unresolvedRequirements: [],
     run: {
       term: { title: "پاییز" },
@@ -417,13 +477,30 @@ describe("MVP-036 scheduling plan comparison", () => {
     ).toBeInTheDocument()
     expect(screen.getByText("استاد آزاد پیدا نشد")).toBeInTheDocument()
     expect(screen.getAllByText("دکتر بهنام مرادی").length).toBeGreaterThan(1)
-    expect(screen.getAllByText("تقویم دسترسی استادان")).toHaveLength(2)
+    expect(screen.getByText("تقویم همه استادان")).toBeInTheDocument()
+    const allTeacherSelector = screen.getByRole("combobox", {
+      name: "انتخاب استاد برای مشاهده تقویم",
+    })
+    fireEvent.click(allTeacherSelector)
+    fireEvent.click(screen.getByRole("option", { name: "رضا کریمی" }))
+    expect(screen.getByText("کلاس عمومی رضا")).toBeInTheDocument()
+    expect(
+      screen.getByText("سطوح قابل تدریس استاد انتخاب‌شده")
+    ).toBeInTheDocument()
+    expect(screen.getByText("AME 4")).toBeInTheDocument()
+    expect(screen.getAllByText("تقویم استادان مرتبط با این مشکل")).toHaveLength(
+      2
+    )
     expect(screen.getAllByText("تحلیل جابه‌جایی استادان")).toHaveLength(2)
     expect(
-      screen.getByText("AME 1: انتقال از رضا کریمی به سارا احمدی")
+      screen.getByText(
+        "سارا احمدی در همین زمان آزاد است و می‌تواند AME 1 را به‌جای رضا کریمی برگزار کند."
+      )
     ).toBeInTheDocument()
     expect(screen.getByText("AME 5: تخصیص به رضا کریمی")).toBeInTheDocument()
-    expect(screen.getByText("صلاحیت تدریس تأیید شد")).toBeInTheDocument()
+    expect(
+      screen.getByText("استاد جایگزین در این زمان آزاد است")
+    ).toBeInTheDocument()
     expect(
       screen.getByRole("button", { name: "سارا احمدی" })
     ).toBeInTheDocument()

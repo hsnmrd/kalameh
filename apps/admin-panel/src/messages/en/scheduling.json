@@ -347,11 +347,11 @@
     },
     "reassignment": {
       "title": "Teacher reassignment analysis",
-      "description": "The system checks chains of up to three connected changes and only shows a chain when every resulting assignment is valid together.",
+      "description": "The system checks whether another teacher is free at the same time and qualified for the same level, so they can take the busy teacher’s class and free that teacher to resolve this requirement.",
       "chainCount": "{count} valid chains",
       "validatedChain": "Validated chain",
       "changeCount": "{count} reassignments",
-      "moveTeacher": "{classTitle}: move from {fromTeacher} to {toTeacher}",
+      "moveTeacher": "{toTeacher} is free at this time and can teach {classTitle} instead of {fromTeacher}.",
       "assignTarget": "{course}: assign to {teacher}",
       "online": "Online",
       "room": "Room {room}",
@@ -359,16 +359,27 @@
       "noChainDescription": "No safe combination was found within three reassignments. Locked classes remain unchanged, and qualifications, availability, conflicts, and the physical room are validated together.",
       "validation": {
         "qualification": "Qualifications verified",
-        "availability": "Availability verified",
+        "availability": "Replacement teacher is free at this time",
         "teacherConflicts": "No teacher conflicts",
         "room": "Physical room is free"
       }
     },
     "teacherCalendar": {
-      "title": "Teacher availability calendars",
-      "description": "Compare the free time and scheduled classes of every qualified teacher.",
+      "all": {
+        "title": "All teacher calendars",
+        "description": "Review availability, free periods, and occupied classes for every active teacher in one place."
+      },
+      "qualified": {
+        "title": "Calendars for teachers related to this problem",
+        "description": "Review the free periods and scheduled classes of teachers who can help resolve this requirement."
+      },
       "legend": "Time status legend",
       "teacherSelector": "Select a teacher to view their calendar",
+      "searchTeacher": "Search teachers...",
+      "noTeacherMatch": "No matching teacher was found.",
+      "noTeachers": "There are no active teachers to show in the calendar.",
+      "teachableLevels": "Levels the selected teacher can teach",
+      "noTeachableLevels": "No teachable level has been recorded for this teacher yet.",
       "states": {
         "FREE": "Free",
         "BUSY": "Teaching",

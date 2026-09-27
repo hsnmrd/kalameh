@@ -92,4 +92,68 @@ describe('SchedulingTeacherCalendarService', () => {
       ]),
     );
   });
+
+  it('includes a replacement teacher related through a reassignment chain', () => {
+    const targetCourseId = uuid(10);
+    const blockingCourseId = uuid(11);
+    const targetTeacherId = uuid(12);
+    const replacementTeacherId = uuid(13);
+    const calendars = service.build({
+      courseId: targetCourseId,
+      additionalTeacherIds: [replacementTeacherId],
+      teachers: [
+        {
+          id: targetTeacherId,
+          firstName: 'Target',
+          lastName: 'Teacher',
+        },
+        {
+          id: replacementTeacherId,
+          firstName: 'Replacement',
+          lastName: 'Teacher',
+        },
+      ],
+      qualifications: [
+        {
+          courseId: targetCourseId,
+          teacherProfile: {
+            userId: targetTeacherId,
+            availabilities: [],
+          },
+        },
+        {
+          courseId: blockingCourseId,
+          teacherProfile: {
+            userId: replacementTeacherId,
+            availabilities: [
+              {
+                id: uuid(14),
+                dayOfWeek: 'SUNDAY',
+                startTime: '09:00',
+                endTime: '12:00',
+              },
+            ],
+          },
+        },
+      ],
+      proposals: [],
+      existingClasses: [],
+      existingClassTitles: new Map(),
+    });
+
+    expect(calendars.map(({ teacher }) => teacher.id)).toEqual(
+      expect.arrayContaining([targetTeacherId, replacementTeacherId]),
+    );
+    expect(
+      calendars.find(({ teacher }) => teacher.id === replacementTeacherId)
+        ?.slots,
+    ).toContainEqual(
+      expect.objectContaining({
+        dayOfWeek: 'SUNDAY',
+        status: 'FREE',
+        startTime: '09:00',
+        endTime: '12:00',
+      }),
+    );
+  });
 });

@@ -4,6 +4,7 @@ import { ROLES, type JwtPayload } from '@workspace/types';
 import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
+import { SchedulingPlanTeacherCalendarService } from './scheduling-plan-teacher-calendar.service';
 import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
 
 describe('MVP-029 SchedulingPlanQueryService', () => {
@@ -41,6 +42,7 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
   let prisma: any;
   let i18n: any;
   let recoverySuggestionService: any;
+  let planTeacherCalendarService: any;
   let service: SchedulingPlanQueryService;
 
   beforeEach(() => {
@@ -176,10 +178,23 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
         },
       }),
     };
+    planTeacherCalendarService = {
+      build: jest.fn().mockResolvedValue([
+        {
+          teacher: {
+            id: ids.teacher,
+            firstName: 'Sara',
+            lastName: 'Ahmadi',
+          },
+          slots: [],
+        },
+      ]),
+    };
     service = new SchedulingPlanQueryService(
       prisma as PrismaService,
       i18n as I18nService,
       recoverySuggestionService as SchedulingRecoverySuggestionService,
+      planTeacherCalendarService as SchedulingPlanTeacherCalendarService,
     );
   });
 
@@ -201,6 +216,12 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
           course: { title: 'A2' },
           teacher: { firstName: 'Sara', lastName: 'Ahmadi' },
           selectionReasons: [],
+        },
+      ],
+      teacherCalendars: [
+        {
+          teacher: { firstName: 'Sara', lastName: 'Ahmadi' },
+          slots: [],
         },
       ],
       unresolvedRequirements: [

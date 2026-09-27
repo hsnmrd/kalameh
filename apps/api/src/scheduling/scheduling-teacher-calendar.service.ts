@@ -6,22 +6,26 @@ import {
   type WeekDay,
 } from '@workspace/types';
 
+type TeacherAvailability = {
+  id: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+};
+
 type TeacherReference = {
   id: string;
   firstName: string;
   lastName: string;
+  availabilities?: TeacherAvailability[];
+  teachableCourses?: Array<{ id: string; title: string }>;
 };
 
 type TeacherQualification = {
   courseId: string;
   teacherProfile: {
     userId: string;
-    availabilities: Array<{
-      id: string;
-      dayOfWeek: string;
-      startTime: string;
-      endTime: string;
-    }>;
+    availabilities: TeacherAvailability[];
   };
 };
 
@@ -56,7 +60,8 @@ type BusySlot = TimeWindow & {
 };
 
 type BuildTeacherCalendarsInput = {
-  courseId: string;
+  courseId: string | null;
+  additionalTeacherIds?: string[];
   qualifications: TeacherQualification[];
   teachers: TeacherReference[];
   proposals: PlanClass[];
@@ -70,22 +75,31 @@ export class SchedulingTeacherCalendarService {
     const teacherById = new Map(
       input.teachers.map((teacher) => [teacher.id, teacher]),
     );
-    const teacherIds = Array.from(
-      new Set(
-        input.qualifications
-          .filter(({ courseId }) => courseId === input.courseId)
-          .map(({ teacherProfile }) => teacherProfile.userId),
-      ),
-    ).sort();
+    const teacherIds =
+      input.courseId === null
+        ? input.teachers.map(({ id }) => id)
+        : Array.from(
+            new Set([
+              ...input.qualifications
+                .filter(({ courseId }) => courseId === input.courseId)
+                .map(({ teacherProfile }) => teacherProfile.userId),
+              ...(input.additionalTeacherIds ?? []),
+            ]),
+          );
+    teacherIds.sort((leftId, rightId) => {
+      const left = teacherById.get(leftId);
+      const right = teacherById.get(rightId);
+      return (
+        (left?.lastName ?? '').localeCompare(right?.lastName ?? '') ||
+        (left?.firstName ?? '').localeCompare(right?.firstName ?? '') ||
+        leftId.localeCompare(rightId)
+      );
+    });
 
     return teacherIds.flatMap((teacherId) => {
       const teacher = teacherById.get(teacherId);
       if (!teacher) return [];
-      const availability = this.availabilityForTeacher(
-        input.qualifications,
-        input.courseId,
-        teacherId,
-      );
+      const availability = this.availabilityForTeacher(input, teacherId);
       const busy = this.busyForTeacher(input, teacherId);
       const free = availability.flatMap((window) =>
         this.subtractBusy(window, busy),
@@ -114,27 +128,32 @@ export class SchedulingTeacherCalendarService {
           left.status.localeCompare(right.status),
       );
 
-      return [SchedulingTeacherCalendarSchema.parse({ teacher, slots })];
+      return [
+        SchedulingTeacherCalendarSchema.parse({
+          teacher,
+          teachableCourses: teacher.teachableCourses ?? [],
+          slots,
+        }),
+      ];
     });
   }
 
   private availabilityForTeacher(
-    qualifications: TeacherQualification[],
-    courseId: string,
+    input: BuildTeacherCalendarsInput,
     teacherId: string,
   ): TimeWindow[] {
-    const windows = qualifications
-      .filter(
-        (qualification) =>
-          qualification.courseId === courseId &&
-          qualification.teacherProfile.userId === teacherId,
-      )
-      .flatMap(({ teacherProfile }) => teacherProfile.availabilities)
-      .map((availability) => ({
-        dayOfWeek: availability.dayOfWeek as WeekDay,
-        startTime: availability.startTime,
-        endTime: availability.endTime,
-      }));
+    const source =
+      input.courseId === null
+        ? (input.teachers.find(({ id }) => id === teacherId)?.availabilities ??
+          [])
+        : input.qualifications
+            .filter(({ teacherProfile }) => teacherProfile.userId === teacherId)
+            .flatMap(({ teacherProfile }) => teacherProfile.availabilities);
+    const windows = source.map((availability) => ({
+      dayOfWeek: availability.dayOfWeek as WeekDay,
+      startTime: availability.startTime,
+      endTime: availability.endTime,
+    }));
 
     return this.mergeWindows(windows);
   }

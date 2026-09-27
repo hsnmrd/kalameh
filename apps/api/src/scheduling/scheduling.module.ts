@@ -10,6 +10,7 @@ import { SchedulingPlanCompositionService } from './scheduling-plan-composition.
 import { SchedulingPlanPersistenceService } from './scheduling-plan-persistence.service';
 import { SchedulingPlanPublicationService } from './scheduling-plan-publication.service';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
+import { SchedulingPlanTeacherCalendarService } from './scheduling-plan-teacher-calendar.service';
 import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
 import { SchedulingPlanValidationService } from './scheduling-plan-validation.service';
 import { SchedulingStudentCoverageService } from './scheduling-student-coverage.service';
@@ -56,6 +57,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingPlanPersistenceService,
     SchedulingPlanPublicationService,
     SchedulingPlanQueryService,
+    SchedulingPlanTeacherCalendarService,
     SchedulingPlanReviewService,
     SchedulingPlanValidationService,
     SchedulingStudentCoverageService,
@@ -82,6 +84,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingPlanPersistenceService,
     SchedulingPlanPublicationService,
     SchedulingPlanQueryService,
+    SchedulingPlanTeacherCalendarService,
     SchedulingPlanReviewService,
     SchedulingPlanValidationService,
     SchedulingStudentCoverageService,
