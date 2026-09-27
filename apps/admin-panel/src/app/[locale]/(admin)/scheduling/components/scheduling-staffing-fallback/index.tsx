@@ -11,30 +11,24 @@ import {
 import type { SchedulingStaffingFallback } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { formatNumber } from "@workspace/ui/lib/utils"
+import {
+  SchedulingNewTeacherAssignmentList,
+  type NewTeacherAssignment,
+} from "../scheduling-new-teacher-assignment-list"
 
 interface SchedulingStaffingFallbackProps {
   fallback: SchedulingStaffingFallback
   targetCourseTitle: string
+  hiringAssignments: NewTeacherAssignment[]
 }
 
 export function SchedulingStaffingFallback({
   fallback,
   targetCourseTitle,
+  hiringAssignments,
 }: SchedulingStaffingFallbackProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
-
-  const timeWindows = Array.from(
-    new Map(
-      fallback.availabilityOptions.map((option) => {
-        const days = option.daysOfWeek
-          .map((day) => t(`weekDays.${day}`))
-          .join(t("daySeparator"))
-        const label = `${days} · ${option.startTime}–${option.endTime}`
-        return [label, label]
-      })
-    ).values()
-  )
 
   return (
     <section
@@ -200,29 +194,15 @@ export function SchedulingStaffingFallback({
             </p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {t(
-                timeWindows.length > 0
-                  ? "staffingFallback.addTeacherDescriptionWithSlots"
+                hiringAssignments.length > 0
+                  ? "staffingFallback.addTeacherDescriptionWithSchedule"
                   : "staffingFallback.addTeacherDescription"
               )}
             </p>
           </div>
         </div>
 
-        {timeWindows.length > 0 && (
-          <div className="mt-3 flex items-start gap-2 border-t border-border pt-3">
-            <CalendarClock
-              aria-hidden
-              className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-            />
-            <div className="flex flex-wrap gap-1.5">
-              {timeWindows.map((timeWindow) => (
-                <Badge key={timeWindow} variant="outline">
-                  {timeWindow}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+        <SchedulingNewTeacherAssignmentList assignments={hiringAssignments} />
       </div>
     </section>
   )

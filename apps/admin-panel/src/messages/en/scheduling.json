@@ -383,8 +383,12 @@
       "online": "This class is online and will not need a physical room after the teacher is freed.",
       "addTeacherBadge": "Add a teacher",
       "addTeacherTitle": "Add a teacher qualified for {course}",
-      "addTeacherDescriptionWithSlots": "The new teacher must be qualified for this level and available in at least one of the class-free windows below. Then run scheduling again.",
-      "addTeacherDescription": "Record the new teacher’s qualification for this level and availability that overlaps the institute scheduling phases, then run scheduling again."
+      "addTeacherDescriptionWithSchedule": "Record this teaching qualification and the availability below for the new teacher. The time comes directly from the suggested schedule for unscheduled classes.",
+      "addTeacherDescription": "Adding a new teacher is still recommended, but the current plan could not produce an exact feasible time for this class.",
+      "newTeacherTimesTitle": "Suggested time for the new teacher",
+      "newTeacherTimesDescription": "Use the following days and time when arranging the new teacher’s contract or availability.",
+      "newTeacherScheduleEmptyTitle": "No exact time was found for this class",
+      "newTeacherScheduleEmptyDescription": "Review operating hours, breaks, or class duration. The recommendation to add a new teacher remains visible."
     },
     "hiringPlan": {
       "title": "Suggested schedule for a new teacher",

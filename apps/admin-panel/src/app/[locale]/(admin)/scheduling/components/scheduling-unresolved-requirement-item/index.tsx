@@ -15,10 +15,12 @@ type UnresolvedRequirement =
 
 interface SchedulingUnresolvedRequirementItemProps {
   requirement: UnresolvedRequirement
+  newTeacherHiringPlan: SchedulingPlanDetailsDto["newTeacherHiringPlan"]
 }
 
 export function SchedulingUnresolvedRequirementItem({
   requirement,
+  newTeacherHiringPlan,
 }: SchedulingUnresolvedRequirementItemProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -36,6 +38,10 @@ export function SchedulingUnresolvedRequirementItem({
     },
   }
   const visibleOptions = recovery.options.slice(0, 3)
+  const hiringAssignments =
+    newTeacherHiringPlan?.assignments.filter(
+      ({ requirementId }) => requirementId === requirement.classRequirement?.id
+    ) ?? []
 
   return (
     <li className="flex flex-col gap-3 rounded-xl border border-border p-4">
@@ -130,6 +136,7 @@ export function SchedulingUnresolvedRequirementItem({
 
       <SchedulingStaffingFallback
         fallback={recovery.staffingFallback}
+        hiringAssignments={hiringAssignments}
         targetCourseTitle={
           requirement.classRequirement?.course.title ?? t("unknownCourse")
         }

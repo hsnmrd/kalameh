@@ -9,6 +9,7 @@ import {
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"
+import { SchedulingNewTeacherAssignmentList } from "../components/scheduling-new-teacher-assignment-list"
 import { SchedulingNewTeacherHiringPlan } from "../components/scheduling-new-teacher-hiring-plan"
 import { SchedulingPlanComparison } from "../components/scheduling-plan-comparison"
 
@@ -324,6 +325,7 @@ describe("MVP-036 scheduling plan comparison", () => {
               reasonCode: "PLAN_COMBINATION_CONFLICT",
               missingClassCount: 2,
               classRequirement: {
+                id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
                 course: { title: "AME 5" },
               },
               recovery: {
@@ -490,6 +492,7 @@ describe("MVP-036 scheduling plan comparison", () => {
               reasonCode: "TEACHER_TIME_CONFLICT",
               missingClassCount: 1,
               classRequirement: {
+                id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
                 course: { title: "AME 3-5" },
               },
               recovery: {
@@ -586,10 +589,12 @@ describe("MVP-036 scheduling plan comparison", () => {
     ).toBeInTheDocument()
     expect(screen.getByText("ساعت‌های پیوسته")).toBeInTheDocument()
     expect(screen.getByText("الگوی سه‌روزه زوج/فرد")).toBeInTheDocument()
-    expect(screen.getByText("AME 5 · کلاس ۱")).toBeInTheDocument()
-    expect(screen.getByText("AME 5 · کلاس ۲")).toBeInTheDocument()
-    expect(screen.getByText("AME 3-5 · کلاس ۱")).toBeInTheDocument()
-    expect(screen.getByText("نیازمند تأمین فضای فیزیکی")).toBeInTheDocument()
+    expect(screen.getAllByText("AME 5 · کلاس ۱").length).toBeGreaterThan(1)
+    expect(screen.getAllByText("AME 5 · کلاس ۲").length).toBeGreaterThan(1)
+    expect(screen.getAllByText("AME 3-5 · کلاس ۱").length).toBeGreaterThan(1)
+    expect(
+      screen.getAllByText("نیازمند تأمین فضای فیزیکی").length
+    ).toBeGreaterThan(1)
     expect(screen.getAllByText("دکتر بهنام مرادی").length).toBeGreaterThan(1)
     expect(screen.getByText("تقویم همه استادان")).toBeInTheDocument()
     const allTeacherSelector = screen.getByRole("combobox", {
@@ -647,6 +652,10 @@ describe("MVP-036 scheduling plan comparison", () => {
     expect(
       screen.getByText("یک استاد واجد شرایط برای AME 3-5 اضافه کنید")
     ).toBeInTheDocument()
+    expect(screen.getAllByText("زمان پیشنهادی برای استاد جدید")).toHaveLength(2)
+    expect(
+      screen.getAllByText("یکشنبه، سه‌شنبه، پنجشنبه · 17:00–18:30").length
+    ).toBeGreaterThan(0)
     expect(
       screen.getAllByText("یکشنبه، سه‌شنبه، پنجشنبه · 17:30–19:00").length
     ).toBeGreaterThan(0)
@@ -755,6 +764,17 @@ describe("MVP-036 scheduling plan comparison", () => {
     ).toBeInTheDocument()
     expect(
       screen.getByText(/افزودن استاد جدید همچنان پیشنهاد می‌شود/)
+    ).toBeInTheDocument()
+  })
+
+  it("shows an explicit empty state when no exact new-teacher time exists", () => {
+    render(<SchedulingNewTeacherAssignmentList assignments={[]} />)
+
+    expect(
+      screen.getByText("زمان دقیق برای این کلاس پیدا نشد")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/پیشنهاد افزودن استاد جدید حذف نشده است/)
     ).toBeInTheDocument()
   })
 })

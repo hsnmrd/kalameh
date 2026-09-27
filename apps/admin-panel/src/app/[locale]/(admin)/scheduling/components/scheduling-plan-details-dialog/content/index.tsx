@@ -218,6 +218,7 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
               <SchedulingUnresolvedRequirementItem
                 key={requirement.id}
                 requirement={requirement}
+                newTeacherHiringPlan={plan.newTeacherHiringPlan}
               />
             ))}
           </ul>
