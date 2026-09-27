@@ -364,6 +364,20 @@
         "room": "Physical room is free"
       }
     },
+    "staffingFallback": {
+      "title": "Teacher staffing options",
+      "description": "Direct placement and validated reassignment chains did not resolve this class. The system only shows windows where the teacher and physical room have no other class; these require new teacher availability or adding a teacher.",
+      "outreachBadge": "Coordinate availability",
+      "outreachTitle": "Ask {teacher} to add this availability",
+      "noClassConflict": "{teacher} has no other institute class during this window.",
+      "availabilityChange": "Add or extend the teacher’s availability on {days} to cover {start}–{end}.",
+      "availableRooms": "Physical rooms ready for this time",
+      "online": "This class is online and will not need a physical room after the teacher is freed.",
+      "addTeacherBadge": "Add a teacher",
+      "addTeacherTitle": "Add a teacher qualified for {course}",
+      "addTeacherDescriptionWithSlots": "The new teacher must be qualified for this level and available in at least one of the class-free windows below. Then run scheduling again.",
+      "addTeacherDescription": "Record the new teacher’s qualification for this level and availability that overlaps the institute scheduling phases, then run scheduling again."
+    },
     "teacherCalendar": {
       "all": {
         "title": "All teacher calendars",

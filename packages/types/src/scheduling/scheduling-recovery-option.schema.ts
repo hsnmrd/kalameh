@@ -88,6 +88,22 @@ export const SchedulingRecoveryOptionSchema = z.object({
   blockingClasses: z.array(SchedulingRecoveryBlockingClassSchema),
 })
 
+export const SchedulingTeacherOutreachOptionSchema = z.object({
+  key: z.string().trim().min(1),
+  deliveryMode: z.enum(CLASS_DELIVERY_MODES),
+  daysOfWeek: z.array(z.enum(WEEK_DAYS)).min(1),
+  startTime: z.string().regex(SCHEDULING_TIME_REGEX),
+  endTime: z.string().regex(SCHEDULING_TIME_REGEX),
+  teacher: SchedulingRecoveryTeacherSchema,
+  availabilityChangeDays: z.array(z.enum(WEEK_DAYS)).min(1),
+  availableClassrooms: z.array(SchedulingRecoveryClassroomSchema),
+})
+
+export const SchedulingStaffingFallbackSchema = z.object({
+  addTeacherSuggested: z.boolean(),
+  availabilityOptions: z.array(SchedulingTeacherOutreachOptionSchema),
+})
+
 export const SchedulingRecoveryAnalysisSchema = z.object({
   options: z.array(SchedulingRecoveryOptionSchema),
   totalOptionCount: z.number().int().nonnegative(),
@@ -96,6 +112,10 @@ export const SchedulingRecoveryAnalysisSchema = z.object({
   busyTeachers: z.array(SchedulingRecoveryTeacherSchema),
   teacherCalendars: z.array(SchedulingTeacherCalendarSchema),
   reassignmentChains: z.array(SchedulingTeacherReassignmentChainSchema),
+  staffingFallback: SchedulingStaffingFallbackSchema.default({
+    addTeacherSuggested: false,
+    availabilityOptions: [],
+  }),
 })
 
 export type SchedulingRecoveryOption = z.infer<
@@ -109,4 +129,10 @@ export type SchedulingTeacherCalendar = z.infer<
 >
 export type SchedulingTeacherReassignmentChain = z.infer<
   typeof SchedulingTeacherReassignmentChainSchema
+>
+export type SchedulingTeacherOutreachOption = z.infer<
+  typeof SchedulingTeacherOutreachOptionSchema
+>
+export type SchedulingStaffingFallback = z.infer<
+  typeof SchedulingStaffingFallbackSchema
 >

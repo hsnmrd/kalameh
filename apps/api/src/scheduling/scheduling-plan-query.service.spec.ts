@@ -175,6 +175,10 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
           busyTeachers: [],
           teacherCalendars: [],
           reassignmentChains: [],
+          staffingFallback: {
+            addTeacherSuggested: false,
+            availabilityOptions: [],
+          },
         },
       }),
     };

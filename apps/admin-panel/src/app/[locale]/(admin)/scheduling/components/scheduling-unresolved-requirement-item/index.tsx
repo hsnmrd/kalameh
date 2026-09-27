@@ -6,6 +6,7 @@ import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { SchedulingRecoveryOption } from "../scheduling-recovery-option"
+import { SchedulingStaffingFallback } from "../scheduling-staffing-fallback"
 import { SchedulingTeacherAvailabilityCalendar } from "../scheduling-teacher-availability-calendar"
 import { SchedulingTeacherReassignmentAnalysis } from "../scheduling-teacher-reassignment-analysis"
 
@@ -29,6 +30,10 @@ export function SchedulingUnresolvedRequirementItem({
     busyTeachers: [],
     teacherCalendars: [],
     reassignmentChains: [],
+    staffingFallback: {
+      addTeacherSuggested: false,
+      availabilityOptions: [],
+    },
   }
   const visibleOptions = recovery.options.slice(0, 3)
 
@@ -114,6 +119,13 @@ export function SchedulingUnresolvedRequirementItem({
 
       <SchedulingTeacherReassignmentAnalysis
         chains={recovery.reassignmentChains}
+        targetCourseTitle={
+          requirement.classRequirement?.course.title ?? t("unknownCourse")
+        }
+      />
+
+      <SchedulingStaffingFallback
+        fallback={recovery.staffingFallback}
         targetCourseTitle={
           requirement.classRequirement?.course.title ?? t("unknownCourse")
         }

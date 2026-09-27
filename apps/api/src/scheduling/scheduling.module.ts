@@ -19,6 +19,7 @@ import { SchedulingUnresolvedRequirementService } from './scheduling-unresolved-
 import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
 import { SchedulingRecoveryOptionBuilderService } from './scheduling-recovery-option-builder.service';
 import { SchedulingTeacherCalendarService } from './scheduling-teacher-calendar.service';
+import { SchedulingTeacherAvailabilityExpansionService } from './scheduling-teacher-availability-expansion.service';
 import { SchedulingTeacherReassignmentChainService } from './scheduling-teacher-reassignment-chain.service';
 import { SchedulingTeacherReassignmentValidatorService } from './scheduling-teacher-reassignment-validator.service';
 import { SchedulingPreflightService } from './scheduling-preflight.service';
@@ -66,6 +67,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingRecoverySuggestionService,
     SchedulingRecoveryOptionBuilderService,
     SchedulingTeacherCalendarService,
+    SchedulingTeacherAvailabilityExpansionService,
     SchedulingTeacherReassignmentChainService,
     SchedulingTeacherReassignmentValidatorService,
   ],
@@ -93,6 +95,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingRecoverySuggestionService,
     SchedulingRecoveryOptionBuilderService,
     SchedulingTeacherCalendarService,
+    SchedulingTeacherAvailabilityExpansionService,
     SchedulingTeacherReassignmentChainService,
     SchedulingTeacherReassignmentValidatorService,
   ],

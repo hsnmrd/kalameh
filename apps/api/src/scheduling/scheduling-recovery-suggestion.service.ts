@@ -13,6 +13,7 @@ import {
   type SchedulingRecoveryPlanProposal,
 } from './scheduling-recovery-option-builder.service';
 import { SchedulingTeacherCalendarService } from './scheduling-teacher-calendar.service';
+import { SchedulingTeacherAvailabilityExpansionService } from './scheduling-teacher-availability-expansion.service';
 import { SchedulingTeacherReassignmentChainService } from './scheduling-teacher-reassignment-chain.service';
 
 type RecoveryInput = {
@@ -30,6 +31,7 @@ export class SchedulingRecoverySuggestionService {
     private readonly candidateSlotService: SchedulingCandidateSlotService,
     private readonly hardConstraintService: SchedulingHardConstraintService,
     private readonly teacherCalendarService: SchedulingTeacherCalendarService,
+    private readonly teacherAvailabilityExpansionService: SchedulingTeacherAvailabilityExpansionService,
     private readonly optionBuilderService: SchedulingRecoveryOptionBuilderService,
     private readonly reassignmentChainService: SchedulingTeacherReassignmentChainService,
   ) {}
@@ -82,7 +84,7 @@ export class SchedulingRecoverySuggestionService {
       ),
     );
     const classroomIds = snapshot.classrooms.map(({ id }) => id);
-    const [teachers, classrooms, existingClasses] = await Promise.all([
+    const [teachers, classrooms, existingClasses, term] = await Promise.all([
       this.prisma.user.findMany({
         where: { id: { in: teacherIds }, instituteId: input.instituteId },
         select: { id: true, firstName: true, lastName: true },
@@ -97,6 +99,21 @@ export class SchedulingRecoverySuggestionService {
           instituteId: input.instituteId,
         },
         select: { id: true, title: true },
+      }),
+      this.prisma.term.findFirst({
+        where: { id: snapshot.term.id, instituteId: input.instituteId },
+        select: {
+          operatingPhase: {
+            select: {
+              startTime: true,
+              endTime: true,
+              daysOfWeek: true,
+              hasBreak: true,
+              breakStartTime: true,
+              breakEndTime: true,
+            },
+          },
+        },
       }),
     ]);
     const teacherById = new Map(
@@ -152,6 +169,21 @@ export class SchedulingRecoverySuggestionService {
             toTeacher.id,
           ]),
         ]);
+        const hasAutomatedRecovery =
+          recovery.options.length > 0 || reassignmentChains.length > 0;
+        const availabilityOptions = hasAutomatedRecovery
+          ? []
+          : this.teacherAvailabilityExpansionService
+              .analyze({
+                requirement,
+                snapshot,
+                settings,
+                proposals: input.proposals,
+                operatingPhase: term?.operatingPhase ?? null,
+                teacherById,
+                classroomById,
+              })
+              .slice(0, 3);
 
         return [
           requirement.id,
@@ -179,6 +211,10 @@ export class SchedulingRecoverySuggestionService {
               existingClassTitles,
             }),
             reassignmentChains,
+            staffingFallback: {
+              addTeacherSuggested: !hasAutomatedRecovery,
+              availabilityOptions,
+            },
           }),
         ];
       }),

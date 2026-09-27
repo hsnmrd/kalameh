@@ -29,6 +29,10 @@ const emptyRecovery = {
   busyTeachers: [],
   teacherCalendars: [],
   reassignmentChains: [],
+  staffingFallback: {
+    addTeacherSuggested: false,
+    availabilityOptions: [],
+  },
 } as const;
 
 @Injectable()

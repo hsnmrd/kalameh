@@ -6,6 +6,7 @@ import { SchedulingHardConstraintService } from './scheduling-hard-constraint.se
 import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
 import { SchedulingRecoveryOptionBuilderService } from './scheduling-recovery-option-builder.service';
 import { SchedulingTeacherCalendarService } from './scheduling-teacher-calendar.service';
+import { SchedulingTeacherAvailabilityExpansionService } from './scheduling-teacher-availability-expansion.service';
 import { SchedulingTeacherReassignmentChainService } from './scheduling-teacher-reassignment-chain.service';
 import { SchedulingTeacherReassignmentValidatorService } from './scheduling-teacher-reassignment-validator.service';
 
@@ -45,12 +46,25 @@ describe('SchedulingRecoverySuggestionService', () => {
     class: {
       findMany: jest.fn().mockResolvedValue([]),
     },
+    term: {
+      findFirst: jest.fn().mockResolvedValue({
+        operatingPhase: {
+          startTime: '09:00',
+          endTime: '15:00',
+          daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+          hasBreak: false,
+          breakStartTime: null,
+          breakEndTime: null,
+        },
+      }),
+    },
   };
   const service = new SchedulingRecoverySuggestionService(
     prisma as unknown as PrismaService,
     new SchedulingCandidateSlotService(),
     new SchedulingHardConstraintService(),
     new SchedulingTeacherCalendarService(),
+    new SchedulingTeacherAvailabilityExpansionService(),
     new SchedulingRecoveryOptionBuilderService(),
     new SchedulingTeacherReassignmentChainService(
       new SchedulingTeacherReassignmentValidatorService(),
@@ -272,6 +286,35 @@ describe('SchedulingRecoverySuggestionService', () => {
       busyTeachers: [
         { id: ids.teacher, firstName: 'Sara', lastName: 'Ahmadi' },
       ],
+      staffingFallback: {
+        addTeacherSuggested: true,
+        availabilityOptions: [
+          expect.objectContaining({
+            startTime: '13:30',
+            endTime: '15:00',
+            teacher: {
+              id: ids.teacher,
+              firstName: 'Sara',
+              lastName: 'Ahmadi',
+            },
+            availabilityChangeDays: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+            availableClassrooms: expect.arrayContaining([
+              { id: ids.roomOne, name: 'Room 1', capacity: 20 },
+              { id: ids.roomTwo, name: 'Room 2', capacity: 16 },
+            ]),
+          }),
+        ],
+      },
     });
+    expect(
+      teacherConflictResult[ids.requirement]?.staffingFallback
+        .availabilityOptions,
+    ).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          startTime: expect.stringMatching(/^(09:00|10:30|12:00)$/),
+        }),
+      ]),
+    );
   });
 });
