@@ -15,6 +15,7 @@ import { SchedulingPlanValidationService } from './scheduling-plan-validation.se
 import { SchedulingStudentCoverageService } from './scheduling-student-coverage.service';
 import { SchedulingTimeDistributionService } from './scheduling-time-distribution.service';
 import { SchedulingUnresolvedRequirementService } from './scheduling-unresolved-requirement.service';
+import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
 import { SchedulingPreflightService } from './scheduling-preflight.service';
 import { SchedulingRunQueryService } from './scheduling-run-query.service';
 import { SchedulingRunsController } from './scheduling-runs.controller';
@@ -56,6 +57,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
     SchedulingUnresolvedRequirementService,
+    SchedulingRecoverySuggestionService,
   ],
   exports: [
     SchedulingService,
@@ -77,6 +79,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
     SchedulingUnresolvedRequirementService,
+    SchedulingRecoverySuggestionService,
   ],
 })
 export class SchedulingModule {}

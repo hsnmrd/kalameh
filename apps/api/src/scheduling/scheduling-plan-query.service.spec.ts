@@ -4,6 +4,7 @@ import { ROLES, type JwtPayload } from '@workspace/types';
 import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
+import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
 
 describe('MVP-029 SchedulingPlanQueryService', () => {
   const uuid = (suffix: number): string =>
@@ -39,6 +40,7 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
   };
   let prisma: any;
   let i18n: any;
+  let recoverySuggestionService: any;
   let service: SchedulingPlanQueryService;
 
   beforeEach(() => {
@@ -145,6 +147,8 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
             status: 'COMPLETED',
             termId: ids.term,
             branchId: null,
+            inputSnapshot: {},
+            settingsSnapshot: {},
             term: {
               id: ids.term,
               title: 'Fall',
@@ -159,9 +163,20 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
       },
     };
     i18n = { t: jest.fn((key: string) => key) };
+    recoverySuggestionService = {
+      analyze: jest.fn().mockResolvedValue({
+        [ids.requirement]: {
+          options: [],
+          totalOptionCount: 0,
+          qualifiedTeacherCount: 1,
+          compatibleClassroomCount: 0,
+        },
+      }),
+    };
     service = new SchedulingPlanQueryService(
       prisma as PrismaService,
       i18n as I18nService,
+      recoverySuggestionService as SchedulingRecoverySuggestionService,
     );
   });
 
@@ -189,6 +204,7 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
         {
           reasonCode: 'INSUFFICIENT_FEASIBLE_CANDIDATES',
           classRequirement: { course: { title: 'A2' } },
+          recovery: { qualifiedTeacherCount: 1 },
         },
       ],
     });
@@ -198,6 +214,12 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
           id: ids.plan,
           instituteId: ids.institute,
         }),
+      }),
+    );
+    expect(recoverySuggestionService.analyze).toHaveBeenCalledWith(
+      expect.objectContaining({
+        instituteId: ids.institute,
+        unresolvedRequirementIds: [ids.requirement],
       }),
     );
   });

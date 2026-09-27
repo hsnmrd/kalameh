@@ -325,6 +325,42 @@
       "INSUFFICIENT_FEASIBLE_CANDIDATES": "There were not enough feasible candidates.",
       "PLAN_COMBINATION_CONFLICT": "This class conflicted with the final plan combination."
     },
+    "recovery": {
+      "title": "Ways to place this class",
+      "summary": "{teachers} qualified teachers · {rooms} compatible rooms",
+      "onlineSummary": "{teachers} qualified teachers · no classroom required",
+      "optionCount": "Showing {shown} of {total} options",
+      "statuses": {
+        "AVAILABLE_NOW": "Available now",
+        "REQUIRES_PLAN_CHANGE": "Needs a plan change"
+      },
+      "teacher": "Teacher to coordinate with",
+      "schedule": "Possible schedule",
+      "emptyRooms": "Rooms currently empty at this time",
+      "onlineRoom": "No classroom is needed for this online class.",
+      "roomWithCapacity": "{room} · capacity {capacity}",
+      "noEmptyRoom": "No compatible room is empty at this time.",
+      "changeNeeded": "Move or edit the blocking class to use this slot",
+      "blockingClass": "{title} conflicts on {resources}.",
+      "conflictTypes": {
+        "TEACHER": "teacher",
+        "CLASSROOM": "classroom"
+      },
+      "noOptionTitle": "No concrete slot is available yet"
+    },
+    "unresolvedSuggestions": {
+      "INVALID_REQUIREMENT": "Review the class requirement, requested class count, and target capacity, then run scheduling again.",
+      "NO_VALID_TEACHER": "Add at least one active teacher or review inactive teachers in teacher management.",
+      "NO_QUALIFIED_TEACHER": "Assign this course qualification to one or more active teachers.",
+      "NO_TEACHER_AVAILABILITY": "Add availability for qualified teachers that overlaps the institute operating phases.",
+      "TEACHER_TIME_CONFLICT": "Expand teacher availability, assign another qualified teacher, or review their overlapping classes.",
+      "NO_COMPATIBLE_CLASSROOM": "Add a classroom compatible with the branch and delivery mode, or review the delivery mode.",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "Use a larger classroom, reduce the group size, or split students across more classes.",
+      "CLASSROOM_TIME_CONFLICT": "Expand classroom availability, add another classroom, or change the scheduling window.",
+      "NO_FEASIBLE_TIME_SLOT": "Review operating phases, holidays, term dates, and teacher availability to create more feasible time slots.",
+      "INSUFFICIENT_FEASIBLE_CANDIDATES": "Create more options by expanding teacher and classroom availability or relaxing the requirement constraints.",
+      "PLAN_COMBINATION_CONFLICT": "Change this requirement’s time, teacher, or classroom, or review constraints on overlapping classes."
+    },
     "unknownCourse": "Unknown course",
     "notSpecified": "Not specified",
     "close": "Close",

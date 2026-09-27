@@ -183,7 +183,47 @@ describe("MVP-036 scheduling plan comparison", () => {
         planId: firstPlanId,
         instituteId,
       }),
-      queryFn: async () => plan(firstPlanId, 1),
+      queryFn: async () =>
+        plan(firstPlanId, 1, {
+          unresolvedRequirements: [
+            {
+              id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+              reasonCode: "PLAN_COMBINATION_CONFLICT",
+              missingClassCount: 1,
+              classRequirement: {
+                course: { title: "AME 5" },
+              },
+              recovery: {
+                totalOptionCount: 2,
+                qualifiedTeacherCount: 1,
+                compatibleClassroomCount: 2,
+                options: [
+                  {
+                    key: "ame-5-sara-sunday-1030",
+                    status: "AVAILABLE_NOW",
+                    deliveryMode: "IN_PERSON",
+                    daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+                    startTime: "10:30",
+                    endTime: "12:00",
+                    teacher: {
+                      id: "66666666-6666-4666-8666-666666666666",
+                      firstName: "سارا",
+                      lastName: "احمدی",
+                    },
+                    availableClassrooms: [
+                      {
+                        id: "88888888-8888-4888-8888-888888888888",
+                        name: "کلاس ۳",
+                        capacity: 15,
+                      },
+                    ],
+                    blockingClasses: [],
+                  },
+                ],
+              },
+            },
+          ] as SchedulingPlanDetailsDto["unresolvedRequirements"],
+        }),
     } as never)
 
     render(<SchedulingPlanComparison planIds={[firstPlanId]} />)
@@ -198,6 +238,19 @@ describe("MVP-036 scheduling plan comparison", () => {
     ).toBeInTheDocument()
     expect(screen.getAllByText("کلاس سطح A2").length).toBeGreaterThan(0)
     expect(screen.getAllByText(/سارا احمدی/).length).toBeGreaterThan(0)
+    expect(
+      screen.getByText("راه‌های جای‌دادن این کلاس در برنامه")
+    ).toBeInTheDocument()
+    expect(screen.getByText("همین حالا قابل اجرا")).toBeInTheDocument()
+    expect(
+      screen.getByText("یکشنبه، سه‌شنبه، پنجشنبه · 10:30–12:00")
+    ).toBeInTheDocument()
+    expect(screen.getByText("کلاس ۳ · ظرفیت ۱۵ نفر")).toBeInTheDocument()
+    expect(
+      screen.queryByText(
+        "زمان، استاد یا کلاس‌درس این نیاز را تغییر دهید یا محدودیت‌های سایر کلاس‌های هم‌زمان را بازبینی کنید."
+      )
+    ).not.toBeInTheDocument()
 
     // Switch to list view to inspect comprehensive item breakdown
     fireEvent.click(screen.getByRole("button", { name: "نمای فهرستی" }))

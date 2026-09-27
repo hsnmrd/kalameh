@@ -8,6 +8,7 @@ import {
 } from '@workspace/types';
 import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SchedulingRecoverySuggestionService } from './scheduling-recovery-suggestion.service';
 
 const requirementReferenceSelect = {
   id: true,
@@ -18,11 +19,19 @@ const requirementReferenceSelect = {
   course: { select: { id: true, title: true } },
 } as const;
 
+const emptyRecovery = {
+  options: [],
+  totalOptionCount: 0,
+  qualifiedTeacherCount: 0,
+  compatibleClassroomCount: 0,
+} as const;
+
 @Injectable()
 export class SchedulingPlanQueryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly recoverySuggestionService: SchedulingRecoverySuggestionService,
   ) {}
 
   async findOne(
@@ -104,6 +113,8 @@ export class SchedulingPlanQueryService {
             status: true,
             termId: true,
             branchId: true,
+            inputSnapshot: true,
+            settingsSnapshot: true,
             term: {
               select: {
                 id: true,
@@ -158,7 +169,39 @@ export class SchedulingPlanQueryService {
       },
     });
 
-    return SchedulingPlanDetailsSchema.parse(plan);
+    const unresolvedRequirementIds = plan.unresolvedRequirements.flatMap(
+      ({ classRequirementId }) =>
+        classRequirementId === null ? [] : [classRequirementId],
+    );
+    const recoveryByRequirementId =
+      unresolvedRequirementIds.length === 0
+        ? {}
+        : await this.recoverySuggestionService.analyze({
+            instituteId,
+            inputSnapshot: plan.run.inputSnapshot,
+            settingsSnapshot: plan.run.settingsSnapshot,
+            proposals: plan.proposals,
+            unresolvedRequirementIds,
+          });
+    const {
+      inputSnapshot: _inputSnapshot,
+      settingsSnapshot: _settingsSnapshot,
+      ...run
+    } = plan.run;
+
+    return SchedulingPlanDetailsSchema.parse({
+      ...plan,
+      run,
+      unresolvedRequirements: plan.unresolvedRequirements.map(
+        (requirement) => ({
+          ...requirement,
+          recovery: requirement.classRequirementId
+            ? (recoveryByRequirementId[requirement.classRequirementId] ??
+              emptyRecovery)
+            : emptyRecovery,
+        }),
+      ),
+    });
   }
 
   private resolveInstituteId(

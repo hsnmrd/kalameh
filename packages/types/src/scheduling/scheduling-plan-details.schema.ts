@@ -2,6 +2,7 @@ import { z } from "zod"
 import { SchedulingPlanSchema } from "./scheduling-plan.schema.js"
 import { SchedulingProposalSchema } from "./scheduling-proposal.schema.js"
 import { SchedulingUnresolvedRequirementSchema } from "./scheduling-unresolved-requirement.schema.js"
+import { SchedulingRecoveryAnalysisSchema } from "./scheduling-recovery-option.schema.js"
 import {
   CLASS_DELIVERY_MODES,
   SCHEDULING_RUN_STATUSES,
@@ -53,6 +54,7 @@ export const SchedulingProposalDetailsSchema = SchedulingProposalSchema.and(
 export const SchedulingUnresolvedRequirementDetailsSchema =
   SchedulingUnresolvedRequirementSchema.extend({
     classRequirement: SchedulingRequirementReferenceSchema.nullable(),
+    recovery: SchedulingRecoveryAnalysisSchema,
   })
 
 export const SchedulingPlanDetailsSchema = SchedulingPlanSchema.extend({
