@@ -7,6 +7,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { SchedulingRecoveryOption } from "../scheduling-recovery-option"
 import { SchedulingTeacherAvailabilityCalendar } from "../scheduling-teacher-availability-calendar"
+import { SchedulingTeacherReassignmentAnalysis } from "../scheduling-teacher-reassignment-analysis"
 
 type UnresolvedRequirement =
   SchedulingPlanDetailsDto["unresolvedRequirements"][number]
@@ -27,6 +28,7 @@ export function SchedulingUnresolvedRequirementItem({
     compatibleClassroomCount: 0,
     busyTeachers: [],
     teacherCalendars: [],
+    reassignmentChains: [],
   }
   const visibleOptions = recovery.options.slice(0, 3)
 
@@ -109,6 +111,13 @@ export function SchedulingUnresolvedRequirementItem({
           </div>
         )}
       </div>
+
+      <SchedulingTeacherReassignmentAnalysis
+        chains={recovery.reassignmentChains}
+        targetCourseTitle={
+          requirement.classRequirement?.course.title ?? t("unknownCourse")
+        }
+      />
 
       <SchedulingTeacherAvailabilityCalendar
         calendars={recovery.teacherCalendars}

@@ -9,11 +9,15 @@ import {
 export type SchedulingRecoveryPlanProposal = {
   id: string;
   title: string;
+  courseId: string;
+  branchId?: string | null;
   teacherId: string;
   classroomId?: string | null;
+  deliveryMode: 'IN_PERSON' | 'ONLINE';
   daysOfWeek: string[];
   startTime: string;
   endTime: string;
+  isLocked: boolean;
   classroom?: { id: string; name: string; capacity: number } | null;
 };
 

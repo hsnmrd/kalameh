@@ -345,6 +345,25 @@
       "teacherConflictDescription": "The teachers below are qualified for this course, but they teach another class during the feasible times. Change their availability or add another qualified teacher.",
       "noOptionTitle": "No concrete slot is available yet"
     },
+    "reassignment": {
+      "title": "Teacher reassignment analysis",
+      "description": "The system checks chains of up to three connected changes and only shows a chain when every resulting assignment is valid together.",
+      "chainCount": "{count} valid chains",
+      "validatedChain": "Validated chain",
+      "changeCount": "{count} reassignments",
+      "moveTeacher": "{classTitle}: move from {fromTeacher} to {toTeacher}",
+      "assignTarget": "{course}: assign to {teacher}",
+      "online": "Online",
+      "room": "Room {room}",
+      "noChainTitle": "No valid reassignment chain found",
+      "noChainDescription": "No safe combination was found within three reassignments. Locked classes remain unchanged, and qualifications, availability, conflicts, and the physical room are validated together.",
+      "validation": {
+        "qualification": "Qualifications verified",
+        "availability": "Availability verified",
+        "teacherConflicts": "No teacher conflicts",
+        "room": "Physical room is free"
+      }
+    },
     "teacherCalendar": {
       "title": "Teacher availability calendars",
       "description": "Compare the free time and scheduled classes of every qualified teacher.",

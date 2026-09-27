@@ -250,6 +250,53 @@ describe("MVP-036 scheduling plan comparison", () => {
                     ],
                   },
                 ],
+                reassignmentChains: [
+                  {
+                    key: "ame-5-reassignment-chain",
+                    targetAssignment: {
+                      teacher: {
+                        id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+                        firstName: "رضا",
+                        lastName: "کریمی",
+                      },
+                      classroom: {
+                        id: "88888888-8888-4888-8888-888888888888",
+                        name: "کلاس ۳",
+                        capacity: 15,
+                      },
+                      deliveryMode: "IN_PERSON",
+                      daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+                      startTime: "14:00",
+                      endTime: "15:30",
+                    },
+                    reassignments: [
+                      {
+                        proposalId: "ffffffff-ffff-4fff-8fff-ffffffffffff",
+                        classTitle: "AME 1",
+                        courseId: "12121212-1212-4212-8212-121212121212",
+                        fromTeacher: {
+                          id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+                          firstName: "رضا",
+                          lastName: "کریمی",
+                        },
+                        toTeacher: {
+                          id: "66666666-6666-4666-8666-666666666666",
+                          firstName: "سارا",
+                          lastName: "احمدی",
+                        },
+                        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+                        startTime: "14:00",
+                        endTime: "15:30",
+                      },
+                    ],
+                    validation: {
+                      allTeachersQualified: true,
+                      allWithinAvailability: true,
+                      noTeacherConflicts: true,
+                      targetClassroomAvailable: true,
+                    },
+                  },
+                ],
                 options: [
                   {
                     key: "ame-5-sara-sunday-1030",
@@ -339,6 +386,7 @@ describe("MVP-036 scheduling plan comparison", () => {
                     ],
                   },
                 ],
+                reassignmentChains: [],
               },
             },
           ] as SchedulingPlanDetailsDto["unresolvedRequirements"],
@@ -370,6 +418,12 @@ describe("MVP-036 scheduling plan comparison", () => {
     expect(screen.getByText("استاد آزاد پیدا نشد")).toBeInTheDocument()
     expect(screen.getAllByText("دکتر بهنام مرادی").length).toBeGreaterThan(1)
     expect(screen.getAllByText("تقویم دسترسی استادان")).toHaveLength(2)
+    expect(screen.getAllByText("تحلیل جابه‌جایی استادان")).toHaveLength(2)
+    expect(
+      screen.getByText("AME 1: انتقال از رضا کریمی به سارا احمدی")
+    ).toBeInTheDocument()
+    expect(screen.getByText("AME 5: تخصیص به رضا کریمی")).toBeInTheDocument()
+    expect(screen.getByText("صلاحیت تدریس تأیید شد")).toBeInTheDocument()
     expect(
       screen.getByRole("button", { name: "سارا احمدی" })
     ).toBeInTheDocument()

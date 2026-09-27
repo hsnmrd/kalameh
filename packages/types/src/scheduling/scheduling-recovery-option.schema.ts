@@ -38,6 +38,36 @@ export const SchedulingTeacherCalendarSchema = z.object({
   slots: z.array(SchedulingTeacherCalendarSlotSchema),
 })
 
+const SchedulingTeacherReassignmentStepSchema = z.object({
+  proposalId: z.string().uuid(),
+  classTitle: z.string().trim().min(1),
+  courseId: z.string().uuid(),
+  fromTeacher: SchedulingRecoveryTeacherSchema,
+  toTeacher: SchedulingRecoveryTeacherSchema,
+  daysOfWeek: z.array(z.enum(WEEK_DAYS)).min(1),
+  startTime: z.string().regex(SCHEDULING_TIME_REGEX),
+  endTime: z.string().regex(SCHEDULING_TIME_REGEX),
+})
+
+export const SchedulingTeacherReassignmentChainSchema = z.object({
+  key: z.string().trim().min(1),
+  targetAssignment: z.object({
+    teacher: SchedulingRecoveryTeacherSchema,
+    classroom: SchedulingRecoveryClassroomSchema.nullable(),
+    deliveryMode: z.enum(CLASS_DELIVERY_MODES),
+    daysOfWeek: z.array(z.enum(WEEK_DAYS)).min(1),
+    startTime: z.string().regex(SCHEDULING_TIME_REGEX),
+    endTime: z.string().regex(SCHEDULING_TIME_REGEX),
+  }),
+  reassignments: z.array(SchedulingTeacherReassignmentStepSchema).min(1),
+  validation: z.object({
+    allTeachersQualified: z.literal(true),
+    allWithinAvailability: z.literal(true),
+    noTeacherConflicts: z.literal(true),
+    targetClassroomAvailable: z.literal(true),
+  }),
+})
+
 export const SchedulingRecoveryOptionSchema = z.object({
   key: z.string().trim().min(1),
   status: z.enum(["AVAILABLE_NOW", "REQUIRES_PLAN_CHANGE"]),
@@ -57,6 +87,7 @@ export const SchedulingRecoveryAnalysisSchema = z.object({
   compatibleClassroomCount: z.number().int().nonnegative(),
   busyTeachers: z.array(SchedulingRecoveryTeacherSchema),
   teacherCalendars: z.array(SchedulingTeacherCalendarSchema),
+  reassignmentChains: z.array(SchedulingTeacherReassignmentChainSchema),
 })
 
 export type SchedulingRecoveryOption = z.infer<
@@ -67,4 +98,7 @@ export type SchedulingRecoveryAnalysis = z.infer<
 >
 export type SchedulingTeacherCalendar = z.infer<
   typeof SchedulingTeacherCalendarSchema
+>
+export type SchedulingTeacherReassignmentChain = z.infer<
+  typeof SchedulingTeacherReassignmentChainSchema
 >

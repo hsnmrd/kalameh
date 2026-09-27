@@ -13,6 +13,7 @@ import {
   type SchedulingRecoveryPlanProposal,
 } from './scheduling-recovery-option-builder.service';
 import { SchedulingTeacherCalendarService } from './scheduling-teacher-calendar.service';
+import { SchedulingTeacherReassignmentChainService } from './scheduling-teacher-reassignment-chain.service';
 
 type RecoveryInput = {
   instituteId: string;
@@ -30,6 +31,7 @@ export class SchedulingRecoverySuggestionService {
     private readonly hardConstraintService: SchedulingHardConstraintService,
     private readonly teacherCalendarService: SchedulingTeacherCalendarService,
     private readonly optionBuilderService: SchedulingRecoveryOptionBuilderService,
+    private readonly reassignmentChainService: SchedulingTeacherReassignmentChainService,
   ) {}
 
   async analyze(
@@ -158,6 +160,15 @@ export class SchedulingRecoverySuggestionService {
               proposals: input.proposals,
               existingClasses: snapshot.existingClasses,
               existingClassTitles,
+            }),
+            reassignmentChains: this.reassignmentChainService.analyze({
+              requirementId: requirement.id,
+              candidates: baseEvaluation.accepted,
+              snapshot,
+              settings,
+              proposals: input.proposals,
+              teacherById,
+              classroomById,
             }),
           }),
         ];
