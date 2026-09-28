@@ -52,6 +52,7 @@ export interface SchedulingPlanCalendarViewProps {
   missedClassesAssignments?: Record<string, CurrentAssignmentState>
   onAssignMissedClass?: (assignmentKey: string, slotKey: string) => void
   onUnassignMissedClass?: (assignmentKey: string) => void
+  stickyTop?: "page" | "dialog"
 }
 
 export function SchedulingPlanCalendarView({
@@ -61,6 +62,7 @@ export function SchedulingPlanCalendarView({
   missedClassesAssignments,
   onAssignMissedClass,
   onUnassignMissedClass,
+  stickyTop = "dialog",
 }: SchedulingPlanCalendarViewProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -328,10 +330,15 @@ export function SchedulingPlanCalendarView({
       </div>
 
       {/* Timetable Matrix Grid with Horizontal Scroll */}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card/60">
+      <div className="max-h-[75vh] overflow-x-auto rounded-2xl border border-border bg-card/60 lg:max-h-none lg:overflow-visible">
         <div className="min-w-[840px]">
           {/* Header Row */}
-          <div className="grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] gap-2 border-b border-border bg-muted/40 p-2.5">
+          <div
+            className={cn(
+              "sticky z-20 grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] gap-2 rounded-t-2xl border-b border-border bg-card/95 p-2.5 shadow-2xs backdrop-blur-md",
+              stickyTop === "page" ? "top-16" : "top-0"
+            )}
+          >
             {/* Time Column Header */}
             <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground">
               <Clock3 aria-hidden className="size-3.5 text-muted-foreground" />

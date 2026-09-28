@@ -110,7 +110,11 @@ export function TeacherCalendarContent() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <TeacherAvailabilityCalendar calendars={calendars} scope="ALL" />
+        <TeacherAvailabilityCalendar
+          calendars={calendars}
+          scope="ALL"
+          stickyTop="page"
+        />
       )}
     </AdminPageShell>
   )
