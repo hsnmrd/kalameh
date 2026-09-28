@@ -21,6 +21,7 @@ export type SchedulingWindowClass = {
   sessionDates: string[];
   startTime: string | null;
   endTime: string | null;
+  blocksNewTeacher?: boolean;
 };
 
 @Injectable()

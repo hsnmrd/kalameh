@@ -119,6 +119,12 @@ export class SchedulingTeacherAvailabilityExpansionService {
                   ),
               ),
           );
+          if (
+            input.requirement.deliveryMode === 'IN_PERSON' &&
+            availableClassrooms.length === 0
+          ) {
+            continue;
+          }
           const key = [
             input.requirement.id,
             profile.userId,

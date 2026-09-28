@@ -359,14 +359,6 @@ describe('SchedulingRecoverySuggestionService', () => {
 
     expect(
       noRoomResult[ids.requirement]?.staffingFallback.availabilityOptions,
-    ).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          startTime: '13:30',
-          endTime: '15:00',
-          availableClassrooms: [],
-        }),
-      ]),
-    );
+    ).toEqual([]);
   });
 });

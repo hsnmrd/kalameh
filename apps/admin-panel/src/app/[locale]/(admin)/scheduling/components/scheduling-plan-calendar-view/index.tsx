@@ -165,6 +165,51 @@ export function SchedulingPlanCalendarView({
     return map
   }, [proposals])
 
+  const slotOptionsByDayAndSlot = React.useMemo(() => {
+    const map = new Map<string, SchedulingNewTeacherHiringSlotOption>()
+    if (!hiringPlan?.availableTimeSlots) return map
+    for (const opt of hiringPlan.availableTimeSlots) {
+      for (const day of opt.daysOfWeek) {
+        map.set(`${day}-${opt.startTime}-${opt.endTime}`, opt)
+      }
+    }
+    return map
+  }, [hiringPlan])
+
+  const canPlaceMissedClassOnDay = React.useCallback(
+    (
+      assignment: SchedulingNewTeacherHiringAssignment,
+      state: CurrentAssignmentState,
+      day: WeekDay
+    ): boolean => {
+      if (assignment.deliveryMode !== "IN_PERSON") return true
+      const effectiveRoomId =
+        state.classroomId ?? assignment.classroom?.id ?? null
+      if (!effectiveRoomId) return false
+
+      const slotOption = slotOptionsByDayAndSlot.get(
+        `${day}-${state.startTime}-${state.endTime}`
+      )
+      if (
+        slotOption &&
+        (slotOption.isFullyBooked ||
+          slotOption.availableClassrooms.length === 0)
+      ) {
+        return false
+      }
+
+      const hasRoomConflictWithProposal = proposals.some(
+        (proposal) =>
+          proposal.classroom?.id === effectiveRoomId &&
+          proposal.daysOfWeek.includes(day) &&
+          proposal.startTime < state.endTime &&
+          state.startTime < proposal.endTime
+      )
+      return !hasRoomConflictWithProposal
+    },
+    [proposals, slotOptionsByDayAndSlot]
+  )
+
   const missedClassesByDayAndSlot = React.useMemo(() => {
     const map = new Map<
       string,
@@ -181,6 +226,7 @@ export function SchedulingPlanCalendarView({
         continue
       }
       for (const day of state.daysOfWeek) {
+        if (!canPlaceMissedClassOnDay(assignment, state, day)) continue
         const key = `${day}-${state.startTime}-${state.endTime}`
         const existing = map.get(key)
         if (existing) {
@@ -191,7 +237,7 @@ export function SchedulingPlanCalendarView({
       }
     }
     return map
-  }, [hiringPlan, missedClassesAssignments])
+  }, [hiringPlan, missedClassesAssignments, canPlaceMissedClassOnDay])
 
   const proposalsByDay = React.useMemo(() => {
     const map: Record<string, Proposal[]> = {}
@@ -220,34 +266,40 @@ export function SchedulingPlanCalendarView({
         continue
       }
       for (const day of state.daysOfWeek) {
+        if (!canPlaceMissedClassOnDay(assignment, state, day)) continue
         if (map[day] !== undefined) {
           map[day] += 1
         }
       }
     }
     return map
-  }, [hiringPlan, missedClassesAssignments])
-
-  const slotOptionsByDayAndSlot = React.useMemo(() => {
-    const map = new Map<string, SchedulingNewTeacherHiringSlotOption>()
-    if (!hiringPlan?.availableTimeSlots) return map
-    for (const opt of hiringPlan.availableTimeSlots) {
-      for (const day of opt.daysOfWeek) {
-        map.set(`${day}-${opt.startTime}-${opt.endTime}`, opt)
-      }
-    }
-    return map
-  }, [hiringPlan])
+  }, [hiringPlan, missedClassesAssignments, canPlaceMissedClassOnDay])
 
   const getFreeClassrooms = React.useCallback(
     (option: SchedulingNewTeacherHiringSlotOption) => {
-      const targetKey = `${option.daysOfWeek.join(",")}|${option.startTime}|${option.endTime}`
+      if (option.isFullyBooked) return []
       const takenRoomIds = new Set<string>()
+      for (const proposal of proposals) {
+        if (
+          proposal.classroom?.id &&
+          proposal.daysOfWeek.some((day) =>
+            option.daysOfWeek.includes(day as WeekDay)
+          ) &&
+          proposal.startTime < option.endTime &&
+          option.startTime < proposal.endTime
+        ) {
+          takenRoomIds.add(proposal.classroom.id)
+        }
+      }
       if (missedClassesAssignments) {
         for (const state of Object.values(missedClassesAssignments)) {
           if (state.isAssigned === false || !state.daysOfWeek.length) continue
-          const itemKey = `${state.daysOfWeek.join(",")}|${state.startTime}|${state.endTime}`
-          if (itemKey === targetKey && state.classroomId) {
+          const overlapsDay = state.daysOfWeek.some((day) =>
+            option.daysOfWeek.includes(day)
+          )
+          const overlapsTime =
+            state.startTime < option.endTime && option.startTime < state.endTime
+          if (overlapsDay && overlapsTime && state.classroomId) {
             takenRoomIds.add(state.classroomId)
           }
         }
@@ -256,7 +308,7 @@ export function SchedulingPlanCalendarView({
         (room) => !takenRoomIds.has(room.id)
       )
     },
-    [missedClassesAssignments]
+    [missedClassesAssignments, proposals]
   )
 
   const handleOpenAssignDialog = (
@@ -430,12 +482,20 @@ export function SchedulingPlanCalendarView({
 
                   const hasAssignableMissedClass = Boolean(
                     hiringPlan?.assignments.some((assignment) => {
-                      const state = missedClassesAssignments?.[assignment.key]
                       if (
-                        !state ||
-                        state.isAssigned === false ||
-                        !state.daysOfWeek.length
+                        assignment.deliveryMode === "IN_PERSON" &&
+                        (matchingOption?.isFullyBooked ||
+                          freeRooms.length === 0)
                       ) {
+                        return false
+                      }
+                      const state = missedClassesAssignments?.[assignment.key]
+                      const isPlacedOnDay =
+                        Boolean(state) &&
+                        state.isAssigned !== false &&
+                        state.daysOfWeek.length > 0 &&
+                        canPlaceMissedClassOnDay(assignment, state, day)
+                      if (!isPlacedOnDay || !state) {
                         return true
                       }
                       const itemKey = `${state.daysOfWeek.join(",")}|${state.startTime}|${state.endTime}`
@@ -446,8 +506,14 @@ export function SchedulingPlanCalendarView({
                   const canAssignHere =
                     canEdit &&
                     Boolean(matchingOption) &&
+                    !matchingOption?.isFullyBooked &&
                     hasAssignableMissedClass &&
-                    freeRooms.length > 0
+                    (freeRooms.length > 0 ||
+                      Boolean(
+                        hiringPlan?.assignments.some(
+                          (assignment) => assignment.deliveryMode === "ONLINE"
+                        )
+                      ))
 
                   const hasClasses =
                     cellProposals.length > 0 || cellMissed.length > 0

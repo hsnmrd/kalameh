@@ -113,6 +113,10 @@ export function AssignSlotDialog({
                   ? `${current.daysOfWeek.join(",")}|${current.startTime}|${current.endTime}`
                   : ""
                 const isAlreadyInThisSlot = currentSlotKey === targetSlotKey
+                const lacksPhysicalRoom =
+                  assignment.deliveryMode === "IN_PERSON" &&
+                  targetSlot.availableRoomsCount === 0
+                const isDisabled = isAlreadyInThisSlot || lacksPhysicalRoom
 
                 const currentDaysText = current
                   ? current.daysOfWeek
@@ -162,8 +166,9 @@ export function AssignSlotDialog({
                       type="button"
                       size="sm"
                       variant={isAlreadyInThisSlot ? "secondary" : "default"}
-                      disabled={isAlreadyInThisSlot}
+                      disabled={isDisabled}
                       onClick={() => {
+                        if (isDisabled) return
                         onSelectAssignment(assignment.key)
                         onOpenChange(false)
                       }}

@@ -111,7 +111,9 @@ export function SchedulingNewTeacherHiringPlan({
         current.isAssigned === false ||
         !current.daysOfWeek.length ||
         !current.startTime ||
-        !current.endTime
+        !current.endTime ||
+        (orig.deliveryMode === "IN_PERSON" &&
+          !(current.classroomId ?? orig.classroom?.id))
       )
     }).length
 

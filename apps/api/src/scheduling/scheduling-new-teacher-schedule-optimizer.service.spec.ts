@@ -213,7 +213,7 @@ describe('SchedulingNewTeacherScheduleOptimizerService', () => {
     ).toEqual(['14:00-15:30', '15:30-17:00', '17:00-18:30']);
   });
 
-  it('keeps a consolidated hiring schedule when a room still needs to be arranged', () => {
+  it('returns null for in-person classes when all physical classrooms are unavailable', () => {
     const plan = service.optimize({
       workItems: [
         {
@@ -241,16 +241,157 @@ describe('SchedulingNewTeacherScheduleOptimizerService', () => {
       scheduledClasses: [],
     });
 
+    expect(plan).toBeNull();
+  });
+
+  it('never places an in-person class on a day where all physical classrooms are full and uses a free day instead', () => {
+    const roomId = uuid(25);
+    const plan = service.optimize({
+      workItems: [
+        {
+          key: 'ame-5:1',
+          requirementId: uuid(4),
+          course: { id: uuid(13), title: 'AME 5' },
+          classNumber: 1,
+          branchId: null,
+          capacity: 12,
+          durationMinutes: 90,
+          deliveryMode: 'IN_PERSON',
+        },
+        {
+          key: 'ame-5:2',
+          requirementId: uuid(4),
+          course: { id: uuid(13), title: 'AME 5' },
+          classNumber: 2,
+          branchId: null,
+          capacity: 12,
+          durationMinutes: 90,
+          deliveryMode: 'IN_PERSON',
+        },
+      ],
+      settings,
+      operatingPhase: {
+        startTime: '09:00',
+        endTime: '12:00',
+        slotDurationMinutes: 90,
+        daysOfWeek: [
+          'SATURDAY',
+          'SUNDAY',
+          'MONDAY',
+          'TUESDAY',
+          'WEDNESDAY',
+          'THURSDAY',
+        ],
+        hasBreak: false,
+        breakStartTime: null,
+        breakEndTime: null,
+      },
+      classrooms: [
+        {
+          id: roomId,
+          name: 'Room 1',
+          capacity: 20,
+          branchId: null,
+          isActive: true,
+        },
+      ],
+      scheduledClasses: [
+        {
+          classroomId: roomId,
+          daysOfWeek: ['SATURDAY', 'MONDAY', 'WEDNESDAY'],
+          sessionDates: [],
+          startTime: '09:00',
+          endTime: '12:00',
+        },
+      ],
+    });
+
+    expect(plan).toMatchObject({
+      daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+      totalClassCount: 2,
+      coversAllUnresolvedClasses: true,
+      assignments: [
+        {
+          daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+          startTime: '09:00',
+          endTime: '10:30',
+          classroom: { id: roomId },
+        },
+        {
+          daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+          startTime: '10:30',
+          endTime: '12:00',
+          classroom: { id: roomId },
+        },
+      ],
+    });
+  });
+
+  it('schedules only the subset of in-person classes that fit into available physical classrooms when building capacity is exceeded', () => {
+    const roomId = uuid(26);
+    const plan = service.optimize({
+      workItems: [
+        {
+          key: 'ame-5:1',
+          requirementId: uuid(4),
+          course: { id: uuid(13), title: 'AME 5' },
+          classNumber: 1,
+          branchId: null,
+          capacity: 12,
+          durationMinutes: 90,
+          deliveryMode: 'IN_PERSON',
+        },
+        {
+          key: 'ame-5:2',
+          requirementId: uuid(4),
+          course: { id: uuid(13), title: 'AME 5' },
+          classNumber: 2,
+          branchId: null,
+          capacity: 12,
+          durationMinutes: 90,
+          deliveryMode: 'IN_PERSON',
+        },
+      ],
+      settings,
+      operatingPhase: {
+        startTime: '09:00',
+        endTime: '12:00',
+        slotDurationMinutes: 90,
+        daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+        hasBreak: false,
+        breakStartTime: null,
+        breakEndTime: null,
+      },
+      classrooms: [
+        {
+          id: roomId,
+          name: 'Room 1',
+          capacity: 20,
+          branchId: null,
+          isActive: true,
+        },
+      ],
+      scheduledClasses: [
+        {
+          classroomId: roomId,
+          daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+          sessionDates: [],
+          startTime: '09:00',
+          endTime: '10:30',
+        },
+      ],
+    });
+
     expect(plan).toMatchObject({
       daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
       totalClassCount: 1,
-      usesPreferredThreeDayPattern: true,
+      coversAllUnresolvedClasses: false,
       assignments: [
         {
-          key: 'ame-5:4',
-          startTime: '09:00',
-          endTime: '10:30',
-          classroom: null,
+          key: 'ame-5:1',
+          startTime: '10:30',
+          endTime: '12:00',
+          classroom: { id: roomId },
         },
       ],
     });

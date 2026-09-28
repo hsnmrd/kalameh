@@ -481,6 +481,63 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(freeSlotButton).toHaveClass("h-[134px]")
   })
 
+  it("does not place an IN_PERSON missed class orange card in a day or slot where all physical classrooms are full", () => {
+    render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={true}
+        hiringPlan={{
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+          totalClassCount: 1,
+          requiredCourses: [{ id: "c-missed", title: "Touchstone Physical" }],
+          assignments: [
+            {
+              key: "missed-full-day",
+              requirementId: "req-1",
+              course: { id: "c-missed", title: "Touchstone Physical" },
+              classNumber: 1,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+              startTime: "09:00",
+              endTime: "10:30",
+              classroom: null,
+            },
+          ],
+          availableTimeSlots: [
+            {
+              key: "SATURDAY,MONDAY,WEDNESDAY|09:00|10:30",
+              daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+              startTime: "09:00",
+              endTime: "10:30",
+              availableClassrooms: [],
+              isFullyBooked: true,
+            },
+          ],
+        }}
+        missedClassesAssignments={{
+          "missed-full-day": {
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            startTime: "09:00",
+            endTime: "10:30",
+            classroomId: null,
+            classroomName: null,
+            isAssigned: true,
+          },
+        }}
+      />
+    )
+
+    expect(
+      screen.queryByTestId("missed-class-card-missed-full-day")
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText("Touchstone Physical")).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /زمان آزاد/ })
+    ).not.toBeInTheDocument()
+  })
+
   it("does not dim other classes on hover (selection is based on click only)", () => {
     const { container } = render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />

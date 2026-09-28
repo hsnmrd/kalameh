@@ -104,13 +104,34 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
 
       if (!matchingOption) return
 
+      const targetAssignment = plan.newTeacherHiringPlan.assignments.find(
+        (item) => item.key === assignmentKey
+      )
+
       setAssignmentsState((prev) => {
         const takenRoomIds = new Set<string>()
+        for (const proposal of plan.proposals) {
+          if (
+            proposal.classroom?.id &&
+            proposal.daysOfWeek.some((day) =>
+              matchingOption.daysOfWeek.includes(day as WeekDay)
+            ) &&
+            proposal.startTime < matchingOption.endTime &&
+            matchingOption.startTime < proposal.endTime
+          ) {
+            takenRoomIds.add(proposal.classroom.id)
+          }
+        }
         for (const [key, state] of Object.entries(prev)) {
           if (key === assignmentKey) continue
-          if (state.isAssigned === false) continue
-          const itemKey = `${state.daysOfWeek.join(",")}|${state.startTime}|${state.endTime}`
-          if (itemKey === slotKey && state.classroomId) {
+          if (state.isAssigned === false || !state.daysOfWeek.length) continue
+          const overlapsDay = state.daysOfWeek.some((day) =>
+            matchingOption.daysOfWeek.includes(day)
+          )
+          const overlapsTime =
+            state.startTime < matchingOption.endTime &&
+            matchingOption.startTime < state.endTime
+          if (overlapsDay && overlapsTime && state.classroomId) {
             takenRoomIds.add(state.classroomId)
           }
         }
@@ -118,6 +139,9 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
         const freeRoom = matchingOption.availableClassrooms.find(
           (room) => !takenRoomIds.has(room.id)
         )
+        if (targetAssignment?.deliveryMode === "IN_PERSON" && !freeRoom) {
+          return prev
+        }
 
         return {
           ...prev,
@@ -125,14 +149,20 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
             daysOfWeek: matchingOption.daysOfWeek as WeekDay[],
             startTime: matchingOption.startTime,
             endTime: matchingOption.endTime,
-            classroomId: freeRoom?.id ?? null,
-            classroomName: freeRoom?.name ?? null,
+            classroomId:
+              targetAssignment?.deliveryMode === "ONLINE"
+                ? null
+                : (freeRoom?.id ?? null),
+            classroomName:
+              targetAssignment?.deliveryMode === "ONLINE"
+                ? null
+                : (freeRoom?.name ?? null),
             isAssigned: true,
           },
         }
       })
     },
-    [plan.newTeacherHiringPlan]
+    [plan.newTeacherHiringPlan, plan.proposals]
   )
 
   const handleUnassignMissedClass = React.useCallback(

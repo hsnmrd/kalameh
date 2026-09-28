@@ -150,6 +150,26 @@ describe('SchedulingPlanHiringCommitService', () => {
     ).rejects.toThrow(ConflictException);
   });
 
+  it('rejects IN_PERSON assignment when no physical classroom is assigned', async () => {
+    await expect(
+      service.commit(admin, ids.plan, {
+        assignments: [
+          {
+            key: 'assignment-1',
+            classNumber: 1,
+            requirementId: ids.requirement,
+            courseId: ids.course,
+            deliveryMode: 'IN_PERSON',
+            daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+            startTime: '14:00',
+            endTime: '15:30',
+            classroomId: null,
+          },
+        ],
+      }),
+    ).rejects.toThrow(BadRequestException);
+  });
+
   it('successfully creates draft proposals without teacher and deletes unresolved requirement when count is 1', async () => {
     const result = await service.commit(admin, ids.plan, {
       assignments: [

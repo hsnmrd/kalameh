@@ -96,24 +96,39 @@ export class SchedulingNewTeacherArrangementService {
       const slotEndMinutes = this.windowService.toMinutes(slot.endTime);
       if (slotStartMinutes === null || slotEndMinutes === null) return null;
 
-      const choices = remaining
-        .flatMap((item) => {
-          if (item.durationMinutes !== slot.durationMinutes) return [];
-          const rooms = this.availableRooms(
-            input,
-            item,
+      const teacherBlocked = input.scheduledClasses.some(
+        (scheduledClass) =>
+          scheduledClass.blocksNewTeacher &&
+          this.windowService.hasConflict(
             daysOfWeek,
             slot.startTime,
             slot.endTime,
-          );
-          return [{ item, slot, rooms }];
-        })
-        .sort(
-          (left, right) =>
-            left.rooms.length - right.rooms.length ||
-            right.item.durationMinutes - left.item.durationMinutes ||
-            left.item.key.localeCompare(right.item.key),
-        );
+            scheduledClass,
+          ),
+      );
+      const choices = teacherBlocked
+        ? []
+        : remaining
+            .flatMap((item) => {
+              if (item.durationMinutes !== slot.durationMinutes) return [];
+              const rooms = this.availableRooms(
+                input,
+                item,
+                daysOfWeek,
+                slot.startTime,
+                slot.endTime,
+              );
+              if (item.deliveryMode === 'IN_PERSON' && rooms.length === 0) {
+                return [];
+              }
+              return [{ item, slot, rooms }];
+            })
+            .sort(
+              (left, right) =>
+                left.rooms.length - right.rooms.length ||
+                right.item.durationMinutes - left.item.durationMinutes ||
+                left.item.key.localeCompare(right.item.key),
+            );
 
       for (const choice of choices) {
         const classroom =
@@ -122,6 +137,9 @@ export class SchedulingNewTeacherArrangementService {
             : (choice.rooms.find(({ id }) => id === previousRoomId) ??
               choice.rooms[0] ??
               null);
+        if (choice.item.deliveryMode === 'IN_PERSON' && !classroom) {
+          continue;
+        }
         const result = search(
           remaining.filter(({ key }) => key !== choice.item.key),
           slotIndex + 1,
@@ -146,6 +164,21 @@ export class SchedulingNewTeacherArrangementService {
         if (result) return result;
       }
 
+      if (
+        assignments.length > 0 &&
+        phaseSlots.length - (slotIndex + 1) >= remaining.length
+      ) {
+        const skipped = search(
+          remaining,
+          slotIndex + 1,
+          cursorMinutes,
+          previousRoomId,
+          assignments,
+          gapMinutes,
+        );
+        if (skipped) return skipped;
+      }
+
       failedStates.add(stateKey);
       return null;
     };
@@ -158,7 +191,46 @@ export class SchedulingNewTeacherArrangementService {
     return search(workItems, startIndex, startMinutes, null, [], 0);
   }
 
-  private availableRooms(
+  placeableWorkItems(
+    input: OptimizeHiringPlanInput,
+    dayGroups: WeekDay[][],
+  ): { items: NewTeacherHiringWorkItem[]; maxCount: number } {
+    const phaseSlots = this.windowService.phaseSlots(
+      input.operatingPhase,
+      input.operatingPhase.slotDurationMinutes,
+    );
+    const canFit = (
+      item: NewTeacherHiringWorkItem,
+      daysOfWeek: WeekDay[],
+      slot: PhaseGeneratedSlot,
+    ) =>
+      item.durationMinutes === slot.durationMinutes &&
+      (item.deliveryMode === 'ONLINE' ||
+        this.availableRooms(
+          input,
+          item,
+          daysOfWeek,
+          slot.startTime,
+          slot.endTime,
+        ).length > 0);
+
+    const items = input.workItems.filter((item) =>
+      dayGroups.some((daysOfWeek) =>
+        phaseSlots.some((slot) => canFit(item, daysOfWeek, slot)),
+      ),
+    );
+    const usableSlotCount = dayGroups.reduce(
+      (count, daysOfWeek) =>
+        count +
+        phaseSlots.filter((slot) =>
+          items.some((item) => canFit(item, daysOfWeek, slot)),
+        ).length,
+      0,
+    );
+    return { items, maxCount: Math.min(items.length, usableSlotCount) };
+  }
+
+  availableRooms(
     input: OptimizeHiringPlanInput,
     item: NewTeacherHiringWorkItem,
     daysOfWeek: WeekDay[],

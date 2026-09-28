@@ -47,7 +47,7 @@ export const SchedulingNewTeacherHiringPlanSchema = z.object({
   availableTimeSlots: z
     .array(SchedulingNewTeacherHiringSlotOptionSchema)
     .default([]),
-  coversAllUnresolvedClasses: z.literal(true),
+  coversAllUnresolvedClasses: z.boolean(),
   usesPreferredThreeDayPattern: z.boolean(),
   hasConsecutiveTimes: z.boolean(),
 })

@@ -39,28 +39,40 @@ export class SchedulingNewTeacherScheduleOptimizerService {
     if (input.workItems.length === 0 || !this.hasValidPhase(input)) return null;
 
     const dayGroups = this.preferenceService.dayGroups(input);
-    const singleGroupCandidates = dayGroups.flatMap((daysOfWeek) => {
-      const arrangement = this.arrangementService.best(
-        input,
-        daysOfWeek,
-        input.workItems,
+    const { items: placeableItems, maxCount } =
+      this.arrangementService.placeableWorkItems(input, dayGroups);
+    if (maxCount === 0) return null;
+
+    for (let targetCount = maxCount; targetCount >= 1; targetCount -= 1) {
+      const subsets = this.preferenceService.subsetsOfSize(
+        placeableItems,
+        targetCount,
       );
-      return arrangement
-        ? [this.toCandidate(input, [daysOfWeek], [arrangement])]
-        : [];
-    });
-    const preferredSingleGroup = this.best(singleGroupCandidates);
-    const bestPlan = preferredSingleGroup
-      ? preferredSingleGroup.plan
-      : (this.best(this.multiGroupCandidates(input, dayGroups))?.plan ?? null);
+      const singleGroupPlan = this.best(
+        subsets.flatMap((workItems) =>
+          this.singleGroupCandidates({ ...input, workItems }, dayGroups),
+        ),
+      )?.plan;
+      const bestPlan =
+        singleGroupPlan ??
+        this.best(
+          subsets.flatMap((workItems) =>
+            this.multiGroupCandidates({ ...input, workItems }, dayGroups),
+          ),
+        )?.plan ??
+        null;
 
-    if (!bestPlan) return null;
+      if (bestPlan) {
+        return SchedulingNewTeacherHiringPlanSchema.parse({
+          ...bestPlan,
+          coversAllUnresolvedClasses:
+            bestPlan.assignments.length === input.workItems.length,
+          availableTimeSlots: this.computeAvailableTimeSlots(input),
+        });
+      }
+    }
 
-    const availableTimeSlots = this.computeAvailableTimeSlots(input);
-    return SchedulingNewTeacherHiringPlanSchema.parse({
-      ...bestPlan,
-      availableTimeSlots,
-    });
+    return null;
   }
 
   computeAvailableTimeSlots(
@@ -71,6 +83,9 @@ export class SchedulingNewTeacherScheduleOptimizerService {
       input.operatingPhase,
       input.operatingPhase.slotDurationMinutes,
     );
+    const inPersonItems = input.workItems.filter(
+      (item) => item.deliveryMode === 'IN_PERSON',
+    );
     const slots: SchedulingNewTeacherHiringSlotOption[] = [];
 
     for (const daysOfWeek of dayGroups) {
@@ -79,6 +94,14 @@ export class SchedulingNewTeacherScheduleOptimizerService {
           .filter(
             (room) =>
               room.isActive &&
+              (inPersonItems.length === 0 ||
+                inPersonItems.some(
+                  (item) =>
+                    room.capacity >= item.capacity &&
+                    (item.branchId === null ||
+                      room.branchId === null ||
+                      room.branchId === item.branchId),
+                )) &&
               !input.scheduledClasses.some(
                 (scheduledClass) =>
                   scheduledClass.classroomId === room.id &&
@@ -106,6 +129,22 @@ export class SchedulingNewTeacherScheduleOptimizerService {
     return slots;
   }
 
+  private singleGroupCandidates(
+    input: OptimizeHiringPlanInput,
+    dayGroups: WeekDay[][],
+  ): PlanCandidate[] {
+    return dayGroups.flatMap((daysOfWeek) => {
+      const arrangement = this.arrangementService.best(
+        input,
+        daysOfWeek,
+        input.workItems,
+      );
+      return arrangement
+        ? [this.toCandidate(input, [daysOfWeek], [arrangement])]
+        : [];
+    });
+  }
+
   private multiGroupCandidates(
     input: OptimizeHiringPlanInput,
     dayGroups: WeekDay[][],
@@ -124,15 +163,28 @@ export class SchedulingNewTeacherScheduleOptimizerService {
           (buckets[index]?.length ?? 0) > 0 ? [index] : [],
         );
         if (usedGroupIndexes.length < 2) return;
-        const arrangements = usedGroupIndexes.flatMap((groupIndex) => {
+        const arrangements: NewTeacherArrangement[] = [];
+        let currentScheduledClasses = input.scheduledClasses;
+        for (const groupIndex of usedGroupIndexes) {
           const arrangement = this.arrangementService.best(
-            input,
+            { ...input, scheduledClasses: currentScheduledClasses },
             dayGroups[groupIndex],
             buckets[groupIndex] ?? [],
           );
-          return arrangement ? [arrangement] : [];
-        });
-        if (arrangements.length !== usedGroupIndexes.length) return;
+          if (!arrangement) return;
+          arrangements.push(arrangement);
+          currentScheduledClasses = [
+            ...currentScheduledClasses,
+            ...arrangement.assignments.map((assignment) => ({
+              classroomId: assignment.classroom?.id ?? null,
+              daysOfWeek: assignment.daysOfWeek,
+              sessionDates: [],
+              startTime: assignment.startTime,
+              endTime: assignment.endTime,
+              blocksNewTeacher: true,
+            })),
+          ];
+        }
         candidates.push(
           this.toCandidate(
             input,
@@ -182,7 +234,7 @@ export class SchedulingNewTeacherScheduleOptimizerService {
       this.preferenceService.isPreferredThreeDayPattern(input, usedGroups[0]);
     const requiredCourses = Array.from(
       new Map(
-        input.workItems.map((item) => [item.course.id, item.course]),
+        assignments.map((item) => [item.course.id, item.course]),
       ).values(),
     ).sort((left, right) => left.title.localeCompare(right.title));
 

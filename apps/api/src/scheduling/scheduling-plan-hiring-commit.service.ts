@@ -126,6 +126,11 @@ export class SchedulingPlanHiringCommitService {
           'Assignment start time must precede end time',
         );
       }
+      if (assignment.deliveryMode === 'IN_PERSON' && !assignment.classroomId) {
+        throw new BadRequestException(
+          'In-person class assignment requires an available physical classroom',
+        );
+      }
       if (assignment.classroomId) {
         const classroom = classroomMap.get(assignment.classroomId);
         if (!classroom) {

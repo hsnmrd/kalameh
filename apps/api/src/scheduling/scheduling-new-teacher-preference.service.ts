@@ -72,4 +72,23 @@ export class SchedulingNewTeacherPreferenceService {
       ? adjustedCursor
       : null;
   }
+
+  subsetsOfSize<T>(items: T[], size: number, maxSubsets = 64): T[][] {
+    if (size === items.length) return [items];
+    const results: T[][] = [];
+    const build = (start: number, current: T[]) => {
+      if (results.length >= maxSubsets) return;
+      if (current.length === size) {
+        results.push(current);
+        return;
+      }
+      if (items.length - start < size - current.length) return;
+      for (let index = start; index < items.length; index += 1) {
+        const item = items[index];
+        if (item !== undefined) build(index + 1, [...current, item]);
+      }
+    };
+    build(0, []);
+    return results;
+  }
 }
