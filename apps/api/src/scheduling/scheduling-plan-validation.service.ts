@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@workspace/database';
 import {
+  calculatePhaseSlots,
   ROLES,
   SchedulingPlanValidationSchema,
   type JwtPayload,
@@ -72,6 +73,17 @@ export class SchedulingPlanValidationService {
                 startDate: true,
                 endDate: true,
                 isActive: true,
+                operatingPhase: {
+                  select: {
+                    startTime: true,
+                    endTime: true,
+                    slotDurationMinutes: true,
+                    daysOfWeek: true,
+                    hasBreak: true,
+                    breakStartTime: true,
+                    breakEndTime: true,
+                  },
+                },
               },
             },
           },
@@ -189,6 +201,27 @@ export class SchedulingPlanValidationService {
     if (!plan.run.term.isActive || plan.run.term.instituteId !== instituteId) {
       add('INVALID_OR_INACTIVE_REFERENCE', null);
     }
+    const operatingPhase = plan.run.term.operatingPhase;
+    const operatingPhaseSlotKeys = new Set(
+      operatingPhase
+        ? calculatePhaseSlots(
+            operatingPhase.startTime,
+            operatingPhase.endTime,
+            operatingPhase.slotDurationMinutes,
+            {
+              hasBreak: operatingPhase.hasBreak,
+              breakStartTime: operatingPhase.breakStartTime,
+              breakEndTime: operatingPhase.breakEndTime,
+            },
+          ).slots.map((slot) => `${slot.startTime}-${slot.endTime}`)
+        : [],
+    );
+    const operatingPhaseDays = new Set(operatingPhase?.daysOfWeek ?? []);
+    if (!operatingPhase || operatingPhaseSlotKeys.size === 0) {
+      add('INVALID_OR_INACTIVE_REFERENCE', null, [], {
+        reason: 'TERM_HAS_NO_VALID_OPERATING_PHASE',
+      });
+    }
     if (plan.proposals.length === 0) {
       add('INCOMPLETE_CLASS_REQUIREMENT', null, [], {
         reason: 'PLAN_HAS_NO_PROPOSALS',
@@ -263,6 +296,21 @@ export class SchedulingPlanValidationService {
             requirement.sessionDurationMinutes)
       ) {
         add('INVALID_TIME_RANGE', proposal.id);
+      }
+      if (
+        !proposal.startTime ||
+        !proposal.endTime ||
+        !operatingPhaseSlotKeys.has(
+          `${proposal.startTime}-${proposal.endTime}`,
+        ) ||
+        proposal.daysOfWeek.some((day) => !operatingPhaseDays.has(day))
+      ) {
+        add('OUTSIDE_OPERATING_PHASE', proposal.id, [], {
+          operatingPhaseStartTime: operatingPhase?.startTime ?? null,
+          operatingPhaseEndTime: operatingPhase?.endTime ?? null,
+          operatingPhaseSlotDurationMinutes:
+            operatingPhase?.slotDurationMinutes ?? null,
+        });
       }
       if (
         (proposal.deliveryMode === 'ONLINE' && proposal.classroomId) ||

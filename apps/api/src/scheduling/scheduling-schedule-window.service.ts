@@ -8,6 +8,7 @@ import {
 export type SchedulingWindowOperatingPhase = {
   startTime: string;
   endTime: string;
+  slotDurationMinutes: number;
   daysOfWeek: string[];
   hasBreak: boolean;
   breakStartTime: string | null;
@@ -26,7 +27,7 @@ export type SchedulingWindowClass = {
 export class SchedulingScheduleWindowService {
   phaseSlots(
     phase: SchedulingWindowOperatingPhase,
-    slotDurationMinutes: number,
+    slotDurationMinutes = phase.slotDurationMinutes,
   ): PhaseGeneratedSlot[] {
     return calculatePhaseSlots(
       phase.startTime,

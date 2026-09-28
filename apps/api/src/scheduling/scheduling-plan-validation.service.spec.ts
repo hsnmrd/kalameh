@@ -44,6 +44,15 @@ describe('MVP-031 SchedulingPlanValidationService', () => {
           startDate: new Date('2026-09-01T00:00:00.000Z'),
           endDate: new Date('2026-12-31T00:00:00.000Z'),
           isActive: true,
+          operatingPhase: {
+            startTime: '09:00',
+            endTime: '12:00',
+            slotDurationMinutes: 90,
+            daysOfWeek: ['SUNDAY'],
+            hasBreak: false,
+            breakStartTime: null,
+            breakEndTime: null,
+          },
         },
       },
       proposals: [
@@ -183,6 +192,27 @@ describe('MVP-031 SchedulingPlanValidationService', () => {
     );
     expect(auditLogs.log).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'PLAN_VALIDATION_FAILED' }),
+    );
+  });
+
+  it('rejects a class time that is not an exact operating-phase slot', async () => {
+    plan.proposals[0].startTime = '09:30';
+    plan.proposals[0].endTime = '11:00';
+
+    const result = await service.validate(
+      admin,
+      ids.plan,
+      undefined,
+      'fa',
+      now,
+    );
+
+    expect(result.isValid).toBe(false);
+    expect(result.violations).toContainEqual(
+      expect.objectContaining({
+        code: 'OUTSIDE_OPERATING_PHASE',
+        proposalId: ids.proposal,
+      }),
     );
   });
 

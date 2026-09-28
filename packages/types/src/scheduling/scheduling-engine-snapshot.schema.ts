@@ -9,6 +9,18 @@ import { SchedulingTimeGroupSettingsSchema } from "./scheduling-time-group-setti
 
 const snapshotDateSchema = z.coerce.date()
 
+export const SchedulingOperatingPhaseSnapshotSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().trim().min(1),
+  startTime: z.string().regex(SCHEDULING_TIME_REGEX),
+  endTime: z.string().regex(SCHEDULING_TIME_REGEX),
+  slotDurationMinutes: z.number().int().positive(),
+  daysOfWeek: z.array(z.enum(WEEK_DAYS)).min(1),
+  hasBreak: z.boolean(),
+  breakStartTime: z.string().regex(SCHEDULING_TIME_REGEX).nullable(),
+  breakEndTime: z.string().regex(SCHEDULING_TIME_REGEX).nullable(),
+})
+
 export const SchedulingEngineInputSnapshotSchema = z
   .object({
     schemaVersion: z.string().trim().min(1),
@@ -22,6 +34,7 @@ export const SchedulingEngineInputSnapshotSchema = z
       id: z.string().uuid(),
       startDate: snapshotDateSchema,
       endDate: snapshotDateSchema,
+      operatingPhase: SchedulingOperatingPhaseSnapshotSchema.nullish(),
     }),
     requirements: z
       .array(
@@ -137,6 +150,9 @@ export const SchedulingEngineSettingsSnapshotSchema = z
 
 export type SchedulingEngineInputSnapshot = z.infer<
   typeof SchedulingEngineInputSnapshotSchema
+>
+export type SchedulingOperatingPhaseSnapshot = z.infer<
+  typeof SchedulingOperatingPhaseSnapshotSchema
 >
 export type SchedulingEngineSettingsSnapshot = z.infer<
   typeof SchedulingEngineSettingsSnapshotSchema

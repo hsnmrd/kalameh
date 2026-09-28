@@ -11,6 +11,7 @@ describe('MVP-016 SchedulingPreflightService', () => {
         id: requirementId,
         courseId,
         capacity: 12,
+        sessionDurationMinutes: 90,
         deliveryMode: 'IN_PERSON' as const,
       },
     ],
@@ -20,7 +21,13 @@ describe('MVP-016 SchedulingPreflightService', () => {
         teacherProfile: {
           userId: teacherId,
           user: { isActive: true },
-          availabilities: [{ dayOfWeek: 'SATURDAY' }],
+          availabilities: [
+            {
+              dayOfWeek: 'SATURDAY',
+              startTime: '15:00',
+              endTime: '16:30',
+            },
+          ],
         },
       },
     ],
@@ -32,6 +39,24 @@ describe('MVP-016 SchedulingPreflightService', () => {
         teacherProfile: { teachableCourses: [{ id: courseId }] },
       },
     ],
+    operatingPhase: {
+      id: '00000000-0000-4000-8000-000000000004',
+      title: 'Fall',
+      startTime: '15:00',
+      endTime: '21:00',
+      slotDurationMinutes: 90,
+      daysOfWeek: [
+        'SATURDAY' as const,
+        'SUNDAY' as const,
+        'MONDAY' as const,
+        'TUESDAY' as const,
+        'WEDNESDAY' as const,
+        'THURSDAY' as const,
+      ],
+      hasBreak: false,
+      breakStartTime: null,
+      breakEndTime: null,
+    },
   };
   let service: SchedulingPreflightService;
 
@@ -100,5 +125,34 @@ describe('MVP-016 SchedulingPreflightService', () => {
       'NO_CLASSROOM_WITH_REQUIRED_CAPACITY',
       'INCOMPLETE_STUDENT_SCHEDULE_DATA',
     ]);
+  });
+
+  it('blocks availability that does not cover an exact phase slot', () => {
+    const report = service.evaluate({
+      ...baseInput,
+      teachers: [
+        {
+          ...baseInput.teachers[0],
+          teacherProfile: {
+            ...baseInput.teachers[0].teacherProfile,
+            availabilities: [
+              {
+                dayOfWeek: 'SATURDAY',
+                startTime: '15:30',
+                endTime: '17:00',
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(report.passed).toBe(false);
+    expect(report.issues).toContainEqual(
+      expect.objectContaining({
+        code: 'COURSE_WITHOUT_PHASE_AVAILABILITY',
+        severity: 'BLOCKING',
+      }),
+    );
   });
 });

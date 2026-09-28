@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@workspace/database';
 import {
+  calculatePhaseSlots,
   DEFAULT_SCHEDULING_SETTINGS,
   ROLES,
   SchedulingRunSchema,
@@ -46,6 +47,19 @@ export class SchedulingService {
           startDate: true,
           endDate: true,
           isActive: true,
+          operatingPhase: {
+            select: {
+              id: true,
+              title: true,
+              startTime: true,
+              endTime: true,
+              slotDurationMinutes: true,
+              daysOfWeek: true,
+              hasBreak: true,
+              breakStartTime: true,
+              breakEndTime: true,
+            },
+          },
         },
       }),
       branchId
@@ -86,6 +100,24 @@ export class SchedulingService {
     ) {
       throw new BadRequestException(
         this.i18n.t('scheduling.invalidScope', locale),
+      );
+    }
+
+    if (
+      !term.operatingPhase ||
+      calculatePhaseSlots(
+        term.operatingPhase.startTime,
+        term.operatingPhase.endTime,
+        term.operatingPhase.slotDurationMinutes,
+        {
+          hasBreak: term.operatingPhase.hasBreak,
+          breakStartTime: term.operatingPhase.breakStartTime,
+          breakEndTime: term.operatingPhase.breakEndTime,
+        },
+      ).slots.length === 0
+    ) {
+      throw new BadRequestException(
+        this.i18n.t('scheduling.invalidOperatingPhase', locale),
       );
     }
 
@@ -246,6 +278,7 @@ export class SchedulingService {
       students,
       classrooms,
       activeTeachers,
+      operatingPhase: term.operatingPhase,
     });
     const inputSnapshot = this.toJson({
       schemaVersion: '1',

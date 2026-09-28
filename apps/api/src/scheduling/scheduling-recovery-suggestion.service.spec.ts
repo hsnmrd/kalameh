@@ -50,8 +50,11 @@ describe('SchedulingRecoverySuggestionService', () => {
     term: {
       findFirst: jest.fn().mockResolvedValue({
         operatingPhase: {
+          id: uuid(15),
+          title: 'Fall',
           startTime: '09:00',
           endTime: '15:00',
+          slotDurationMinutes: 90,
           daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
           hasBreak: false,
           breakStartTime: null,

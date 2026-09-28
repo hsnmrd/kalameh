@@ -38,11 +38,13 @@ export class SchedulingTeacherAvailabilityExpansionService {
     if (!input.operatingPhase) return [];
 
     const phase = input.operatingPhase;
-    const phaseStart = this.windowService.toMinutes(phase.startTime);
-    const phaseEnd = this.windowService.toMinutes(phase.endTime);
-    if (phaseStart === null || phaseEnd === null || phaseStart >= phaseEnd) {
-      return [];
-    }
+    const phaseSlots = this.windowService
+      .phaseSlots(phase)
+      .filter(
+        (slot) =>
+          slot.durationMinutes === input.requirement.sessionDurationMinutes,
+      );
+    if (phaseSlots.length === 0) return [];
 
     const schedules: ScheduledClass[] = [
       ...input.snapshot.existingClasses,
@@ -75,18 +77,9 @@ export class SchedulingTeacherAvailabilityExpansionService {
       if (!teacher) continue;
 
       for (const daysOfWeek of dayGroups) {
-        for (
-          let start = phaseStart;
-          start + input.requirement.sessionDurationMinutes <= phaseEnd;
-          start += input.settings.generation.candidateStepMinutes
-        ) {
-          const startTime = this.windowService.toTime(start);
-          const endTime = this.windowService.toTime(
-            start + input.requirement.sessionDurationMinutes,
-          );
-          if (this.windowService.overlapsBreak(startTime, endTime, phase)) {
-            continue;
-          }
+        for (const phaseSlot of phaseSlots) {
+          const startTime = phaseSlot.startTime;
+          const endTime = phaseSlot.endTime;
           if (
             schedules.some(
               (scheduledClass) =>

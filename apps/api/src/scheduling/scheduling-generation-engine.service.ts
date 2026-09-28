@@ -79,12 +79,17 @@ export class SchedulingGenerationEngineService {
           'a preflight-failed run cannot enter generation',
         );
       }
+      if (!snapshot.term.operatingPhase) {
+        throw new ConflictException(
+          'the selected term does not have an operating phase snapshot',
+        );
+      }
 
       const candidates = this.candidateSlotService.generate({
         requirements: snapshot.requirements,
         qualifications: snapshot.teachers,
         timeGroups: settings.timeGroups,
-        stepMinutes: settings.generation.candidateStepMinutes,
+        operatingPhase: snapshot.term.operatingPhase,
       });
       const hardConstraints = this.hardConstraintService.evaluate({
         candidates,

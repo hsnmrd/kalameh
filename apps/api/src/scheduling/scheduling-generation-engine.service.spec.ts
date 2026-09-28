@@ -38,6 +38,17 @@ describe('MVP-026 SchedulingGenerationEngineService', () => {
       id: ids.term,
       startDate: '2026-09-01T00:00:00.000Z',
       endDate: '2026-12-31T00:00:00.000Z',
+      operatingPhase: {
+        id: uuid(11),
+        title: 'Fall',
+        startTime: '09:00',
+        endTime: '12:00',
+        slotDurationMinutes: 90,
+        daysOfWeek: ['SUNDAY'],
+        hasBreak: false,
+        breakStartTime: null,
+        breakEndTime: null,
+      },
     },
     requirements: [
       {
@@ -214,7 +225,9 @@ describe('MVP-026 SchedulingGenerationEngineService', () => {
       }),
     );
     expect(candidates.generate).toHaveBeenCalledWith(
-      expect.objectContaining({ stepMinutes: 30 }),
+      expect.objectContaining({
+        operatingPhase: inputSnapshot.term.operatingPhase,
+      }),
     );
     expect(hardConstraints.evaluate).toHaveBeenCalledWith(
       expect.objectContaining({ candidates: [{ key: 'slot' }] }),

@@ -49,12 +49,6 @@ export class SchedulingRecoverySuggestionService {
     const requirements = snapshot.requirements.filter(({ id }) =>
       requirementIds.has(id),
     );
-    const candidates = this.candidateSlotService.generate({
-      requirements,
-      qualifications: snapshot.teachers,
-      timeGroups: settings.timeGroups,
-      stepMinutes: settings.generation.candidateStepMinutes,
-    });
     const planClasses = input.proposals.map((proposal) => ({
       id: proposal.id,
       teacherId: proposal.teacherId,
@@ -64,20 +58,6 @@ export class SchedulingRecoverySuggestionService {
       startTime: proposal.startTime,
       endTime: proposal.endTime,
     }));
-    const baseEvaluation = this.hardConstraintService.evaluate({
-      candidates,
-      requirements,
-      qualifications: snapshot.teachers,
-      classrooms: snapshot.classrooms,
-      existingClasses: snapshot.existingClasses,
-    });
-    const currentEvaluation = this.hardConstraintService.evaluate({
-      candidates,
-      requirements,
-      qualifications: snapshot.teachers,
-      classrooms: snapshot.classrooms,
-      existingClasses: [...snapshot.existingClasses, ...planClasses],
-    });
     const teacherIds = Array.from(
       new Set(
         snapshot.teachers.map(({ teacherProfile }) => teacherProfile.userId),
@@ -105,8 +85,11 @@ export class SchedulingRecoverySuggestionService {
         select: {
           operatingPhase: {
             select: {
+              id: true,
+              title: true,
               startTime: true,
               endTime: true,
+              slotDurationMinutes: true,
               daysOfWeek: true,
               hasBreak: true,
               breakStartTime: true,
@@ -116,6 +99,29 @@ export class SchedulingRecoverySuggestionService {
         },
       }),
     ]);
+    const operatingPhase = snapshot.term.operatingPhase ?? term?.operatingPhase;
+    const candidates = operatingPhase
+      ? this.candidateSlotService.generate({
+          requirements,
+          qualifications: snapshot.teachers,
+          timeGroups: settings.timeGroups,
+          operatingPhase,
+        })
+      : [];
+    const baseEvaluation = this.hardConstraintService.evaluate({
+      candidates,
+      requirements,
+      qualifications: snapshot.teachers,
+      classrooms: snapshot.classrooms,
+      existingClasses: snapshot.existingClasses,
+    });
+    const currentEvaluation = this.hardConstraintService.evaluate({
+      candidates,
+      requirements,
+      qualifications: snapshot.teachers,
+      classrooms: snapshot.classrooms,
+      existingClasses: [...snapshot.existingClasses, ...planClasses],
+    });
     const teacherById = new Map(
       teachers.map((teacher) => [teacher.id, teacher]),
     );
@@ -175,7 +181,7 @@ export class SchedulingRecoverySuggestionService {
             snapshot,
             settings,
             proposals: input.proposals,
-            operatingPhase: term?.operatingPhase ?? null,
+            operatingPhase: operatingPhase ?? null,
             teacherById,
             classroomById,
           })

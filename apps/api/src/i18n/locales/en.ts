@@ -121,6 +121,8 @@ export const en: TranslationDictionary = {
   scheduling: {
     instituteRequired: 'Selecting an institute is required for this operation',
     invalidScope: 'The selected term or branch is invalid for this institute',
+    invalidOperatingPhase:
+      'The selected active term must have a valid operating phase before scheduling can begin',
     invalidRequirements:
       'Class requirements must be active and belong to the selected term, branch, and institute',
     sourceRunRequiredForLocks:

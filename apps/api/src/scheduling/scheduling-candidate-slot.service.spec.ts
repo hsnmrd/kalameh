@@ -37,7 +37,17 @@ describe('MVP-017 SchedulingCandidateSlotService', () => {
       },
     ],
     timeGroups: DEFAULT_SCHEDULING_SETTINGS.timeGroups,
-    stepMinutes: 30,
+    operatingPhase: {
+      id: '00000000-0000-4000-8000-000000000007',
+      title: 'Morning',
+      startTime: '08:00',
+      endTime: '11:00',
+      slotDurationMinutes: 90,
+      daysOfWeek: ['SUNDAY' as const],
+      hasBreak: false,
+      breakStartTime: null,
+      breakEndTime: null,
+    },
   };
   let service: SchedulingCandidateSlotService;
 
@@ -45,14 +55,12 @@ describe('MVP-017 SchedulingCandidateSlotService', () => {
     service = new SchedulingCandidateSlotService();
   });
 
-  it('creates fixed-step slots fully contained by teacher availability', () => {
+  it('creates only canonical operating-phase slots covered by availability', () => {
     const slots = service.generate(baseInput);
 
     expect(slots.map(({ startTime, endTime }) => [startTime, endTime])).toEqual(
       [
         ['08:00', '09:30'],
-        ['08:30', '10:00'],
-        ['09:00', '10:30'],
         ['09:30', '11:00'],
       ],
     );
@@ -117,6 +125,13 @@ describe('MVP-017 SchedulingCandidateSlotService', () => {
           },
         },
       ],
+      operatingPhase: {
+        ...baseInput.operatingPhase,
+        startTime: '14:00',
+        endTime: '15:00',
+        slotDurationMinutes: 60,
+        daysOfWeek: ['FRIDAY' as const],
+      },
     });
 
     expect(slots).toHaveLength(1);
@@ -142,16 +157,13 @@ describe('MVP-017 SchedulingCandidateSlotService', () => {
       ],
     });
 
-    expect(slots).toHaveLength(4);
+    expect(slots).toHaveLength(2);
     expect(
       slots.every((slot) => slot.availabilityId === ids.availability),
     ).toBe(true);
   });
 
-  it('rejects invalid generation step and invalid day partition settings', () => {
-    expect(() => service.generate({ ...baseInput, stepMinutes: 0 })).toThrow(
-      RangeError,
-    );
+  it('rejects invalid settings and invalid requirement duration', () => {
     expect(() =>
       service.generate({
         ...baseInput,
@@ -169,5 +181,28 @@ describe('MVP-017 SchedulingCandidateSlotService', () => {
         ],
       }),
     ).toThrow(RangeError);
+  });
+
+  it('does not shift a phase slot to match a misaligned availability', () => {
+    const slots = service.generate({
+      ...baseInput,
+      qualifications: [
+        {
+          ...baseInput.qualifications[0],
+          teacherProfile: {
+            ...baseInput.qualifications[0].teacherProfile,
+            availabilities: [
+              {
+                ...baseInput.qualifications[0].teacherProfile.availabilities[0],
+                startTime: '08:30',
+                endTime: '10:00',
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(slots).toEqual([]);
   });
 });

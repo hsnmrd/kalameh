@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  calculatePhaseSlots,
   SchedulingCandidateSlotSchema,
   SchedulingTimeGroupSettingsSchema,
   type SchedulingCandidateSlot,
@@ -39,7 +40,15 @@ export type GenerateCandidateSlotsInput = {
     readonly eveningStartsAt: string;
     readonly timeZone: string;
   };
-  stepMinutes?: number;
+  operatingPhase: {
+    startTime: string;
+    endTime: string;
+    slotDurationMinutes: number;
+    daysOfWeek: string[];
+    hasBreak: boolean;
+    breakStartTime: string | null;
+    breakEndTime: string | null;
+  };
 };
 
 @Injectable()
@@ -48,10 +57,17 @@ export class SchedulingCandidateSlotService {
     const timeGroups = SchedulingTimeGroupSettingsSchema.parse(
       input.timeGroups,
     );
-    const stepMinutes = input.stepMinutes ?? 30;
-    if (!Number.isInteger(stepMinutes) || stepMinutes < 5 || stepMinutes > 60) {
-      throw new RangeError('candidate step must be an integer from 5 to 60');
-    }
+    const phaseSlots = calculatePhaseSlots(
+      input.operatingPhase.startTime,
+      input.operatingPhase.endTime,
+      input.operatingPhase.slotDurationMinutes,
+      {
+        hasBreak: input.operatingPhase.hasBreak,
+        breakStartTime: input.operatingPhase.breakStartTime,
+        breakEndTime: input.operatingPhase.breakEndTime,
+      },
+    ).slots;
+    const phaseDays = new Set(input.operatingPhase.daysOfWeek);
 
     const candidates = new Map<string, SchedulingCandidateSlot>();
     const requirements = [...input.requirements].sort((left, right) =>
@@ -77,6 +93,7 @@ export class SchedulingCandidateSlotService {
         ].sort((left, right) => left.id.localeCompare(right.id));
 
         for (const availability of availabilities) {
+          if (!phaseDays.has(availability.dayOfWeek)) continue;
           const availabilityStart = this.toMinutes(availability.startTime);
           const availabilityEnd = this.toMinutes(availability.endTime);
           if (
@@ -87,15 +104,24 @@ export class SchedulingCandidateSlotService {
             continue;
           }
 
-          for (
-            let start = availabilityStart;
-            start + requirement.sessionDurationMinutes <= availabilityEnd;
-            start += stepMinutes
-          ) {
-            const startTime = this.toTime(start);
-            const endTime = this.toTime(
-              start + requirement.sessionDurationMinutes,
-            );
+          for (const phaseSlot of phaseSlots) {
+            if (
+              phaseSlot.durationMinutes !== requirement.sessionDurationMinutes
+            ) {
+              continue;
+            }
+            const slotStart = this.toMinutes(phaseSlot.startTime);
+            const slotEnd = this.toMinutes(phaseSlot.endTime);
+            if (
+              slotStart === null ||
+              slotEnd === null ||
+              availabilityStart > slotStart ||
+              availabilityEnd < slotEnd
+            ) {
+              continue;
+            }
+            const startTime = phaseSlot.startTime;
+            const endTime = phaseSlot.endTime;
             const key = [
               requirement.id,
               qualification.teacherProfile.userId,
@@ -164,13 +190,5 @@ export class SchedulingCandidateSlotService {
     if (hours > 23 || minutes > 59) return null;
 
     return hours * 60 + minutes;
-  }
-
-  private toTime(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const remainder = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${remainder
-      .toString()
-      .padStart(2, '0')}`;
   }
 }

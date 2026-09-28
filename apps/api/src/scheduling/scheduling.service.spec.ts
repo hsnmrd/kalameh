@@ -74,6 +74,24 @@ describe('MVP-015 SchedulingService', () => {
       startDate: generatedAt,
       endDate: new Date('2026-12-31T00:00:00.000Z'),
       isActive: true,
+      operatingPhase: {
+        id: '00000000-0000-4000-8000-000000000009',
+        title: 'Fall',
+        startTime: '15:00',
+        endTime: '21:00',
+        slotDurationMinutes: 90,
+        daysOfWeek: [
+          'SATURDAY',
+          'SUNDAY',
+          'MONDAY',
+          'TUESDAY',
+          'WEDNESDAY',
+          'THURSDAY',
+        ],
+        hasBreak: false,
+        breakStartTime: null,
+        breakEndTime: null,
+      },
     });
     prisma.branch.findFirst.mockResolvedValue({
       id: ids.branch,
@@ -218,6 +236,13 @@ describe('MVP-015 SchedulingService', () => {
         alternativePlanCount: 2,
       },
       requirements: [expect.objectContaining({ id: ids.requirement })],
+      term: expect.objectContaining({
+        operatingPhase: expect.objectContaining({
+          startTime: '15:00',
+          endTime: '21:00',
+          slotDurationMinutes: 90,
+        }),
+      }),
     });
     expect(data.settingsSnapshot).toMatchObject({
       source: 'MVP_DEFAULTS',
@@ -229,6 +254,28 @@ describe('MVP-015 SchedulingService', () => {
 
   it('rejects missing or cross-scope requirements before creating a run', async () => {
     prisma.classRequirement.findMany.mockResolvedValue([]);
+
+    await expect(
+      service.generate(admin, {
+        termId: ids.term,
+        branchId: ids.branch,
+        requirementIds: [ids.requirement],
+        alternativePlanCount: 1,
+        lockedProposalIds: [],
+      }),
+    ).rejects.toThrow(BadRequestException);
+    expect(prisma.schedulingRun.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects an active term without a valid operating phase', async () => {
+    prisma.term.findFirst.mockResolvedValue({
+      id: ids.term,
+      title: 'Fall',
+      startDate: generatedAt,
+      endDate: new Date('2026-12-31T00:00:00.000Z'),
+      isActive: true,
+      operatingPhase: null,
+    });
 
     await expect(
       service.generate(admin, {

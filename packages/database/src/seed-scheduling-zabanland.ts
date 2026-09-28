@@ -95,6 +95,81 @@ async function main() {
     `👤 Admin seeded: 09127770000 (ADMIN) - Password: ${defaultPassword}`
   )
 
+  const autumnStartDate = new Date("2026-09-23T00:00:00.000Z")
+  const autumnEndDate = new Date("2026-11-21T00:00:00.000Z")
+  const existingTargetTerm = await prisma.term.findFirst({
+    where: {
+      instituteId,
+      title: { contains: "مهر و آبان" },
+      isActive: true,
+    },
+    include: { operatingPhase: true },
+  })
+  const targetOperatingPhase =
+    existingTargetTerm?.operatingPhase ??
+    (await prisma.instituteOperatingPhase.findFirst({
+      where: {
+        instituteId,
+        isActive: true,
+        months: { hasSome: [7, 8] },
+      },
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    })) ??
+    (await prisma.instituteOperatingPhase.create({
+      data: {
+        instituteId,
+        title: "پاییز",
+        months: [7, 8, 9],
+        startTime: "15:00",
+        endTime: "21:00",
+        slotDurationMinutes: 90,
+        daysOfWeek: [
+          "SATURDAY",
+          "SUNDAY",
+          "MONDAY",
+          "TUESDAY",
+          "WEDNESDAY",
+          "THURSDAY",
+        ],
+        hasBreak: false,
+        isActive: true,
+        order: 0,
+      },
+    }))
+  const activeTerm = existingTargetTerm
+    ? await prisma.term.update({
+        where: { id: existingTargetTerm.id },
+        data: {
+          title: "مهر و آبان ۱۴۰۵",
+          startDate: autumnStartDate,
+          endDate: autumnEndDate,
+          isActive: true,
+          operatingPhaseId: targetOperatingPhase.id,
+        },
+      })
+    : await prisma.term.upsert({
+        where: { id: "00000000-0000-0000-0000-000000000078" },
+        update: {
+          title: "مهر و آبان ۱۴۰۵",
+          startDate: autumnStartDate,
+          endDate: autumnEndDate,
+          isActive: true,
+          operatingPhaseId: targetOperatingPhase.id,
+        },
+        create: {
+          id: "00000000-0000-0000-0000-000000000078",
+          instituteId,
+          title: "مهر و آبان ۱۴۰۵",
+          startDate: autumnStartDate,
+          endDate: autumnEndDate,
+          isActive: true,
+          operatingPhaseId: targetOperatingPhase.id,
+        },
+      })
+  console.log(
+    `📅 Target Scheduling Term: ${activeTerm.title} (${activeTerm.id}) — ${targetOperatingPhase.title} ${targetOperatingPhase.startTime}-${targetOperatingPhase.endTime}`
+  )
+
   // 2. Upsert 25 Sequential Courses: AME 1-1 to AME 5-5
   // American English File 1 (1-1 to 1-5), 2 (2-1 to 2-5), 3 (3-1 to 3-5), 4 (4-1 to 4-5), 5 (5-1 to 5-5)
   async function ensureCourse(
@@ -250,10 +325,70 @@ async function main() {
 
   // 4. Nine Teachers with Qualifications across AME 1-1 to AME 5-5
   // Strictly respects the Uniform Class Time Rule (identical hours on all days of their track)
+  function toMinutes(time: string) {
+    const [hoursText, minutesText] = time.split(":")
+    const hours = Number(hoursText ?? Number.NaN)
+    const minutes = Number(minutesText ?? Number.NaN)
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+      throw new Error(`Invalid operating-phase time: ${time}`)
+    }
+    return hours * 60 + minutes
+  }
+
+  function toTime(minutes: number) {
+    return `${Math.floor(minutes / 60)
+      .toString()
+      .padStart(2, "0")}:${(minutes % 60).toString().padStart(2, "0")}`
+  }
+
+  function buildPhaseSlots() {
+    const phaseStart = toMinutes(targetOperatingPhase.startTime)
+    const phaseEnd = toMinutes(targetOperatingPhase.endTime)
+    const hasConfiguredBreak = Boolean(
+      targetOperatingPhase.hasBreak &&
+      targetOperatingPhase.breakStartTime &&
+      targetOperatingPhase.breakEndTime
+    )
+    if (targetOperatingPhase.hasBreak && !hasConfiguredBreak) return []
+    const segments: Array<[number, number]> = hasConfiguredBreak
+      ? [
+          [phaseStart, toMinutes(targetOperatingPhase.breakStartTime!)],
+          [toMinutes(targetOperatingPhase.breakEndTime!), phaseEnd],
+        ]
+      : [[phaseStart, phaseEnd]]
+
+    return segments.flatMap(([segmentStart, segmentEnd]) => {
+      const slots: Array<{ startTime: string; endTime: string }> = []
+      for (
+        let start = segmentStart;
+        start + targetOperatingPhase.slotDurationMinutes <= segmentEnd;
+        start += targetOperatingPhase.slotDurationMinutes
+      ) {
+        slots.push({
+          startTime: toTime(start),
+          endTime: toTime(start + targetOperatingPhase.slotDurationMinutes),
+        })
+      }
+      return slots
+    })
+  }
+
+  const phaseSlots = buildPhaseSlots()
+  if (phaseSlots.length === 0) {
+    throw new Error(
+      `Operating phase '${targetOperatingPhase.title}' does not generate any class slots.`
+    )
+  }
+  const phaseDays = new Set(targetOperatingPhase.daysOfWeek)
+  const selectPhaseSlots = (...indexes: number[]) =>
+    indexes.flatMap((index) => (phaseSlots[index] ? [phaseSlots[index]] : []))
+
   function buildEvenTrackSlots(
     timeRanges: Array<{ startTime: string; endTime: string }>
   ) {
-    const days = ["SATURDAY", "MONDAY", "WEDNESDAY"] as const
+    const days = ["SATURDAY", "MONDAY", "WEDNESDAY"].filter((day) =>
+      phaseDays.has(day)
+    )
     return days.flatMap((dayOfWeek) =>
       timeRanges.map((tr) => ({
         dayOfWeek,
@@ -266,7 +401,9 @@ async function main() {
   function buildOddTrackSlots(
     timeRanges: Array<{ startTime: string; endTime: string }>
   ) {
-    const days = ["SUNDAY", "TUESDAY", "THURSDAY"] as const
+    const days = ["SUNDAY", "TUESDAY", "THURSDAY"].filter((day) =>
+      phaseDays.has(day)
+    )
     return days.flatMap((dayOfWeek) =>
       timeRanges.map((tr) => ({
         dayOfWeek,
@@ -300,12 +437,7 @@ async function main() {
         "AME 2-1",
         "AME 2-2",
       ],
-      availabilities: buildEvenTrackSlots([
-        { startTime: "14:00", endTime: "15:30" },
-        { startTime: "15:30", endTime: "17:00" },
-        { startTime: "17:00", endTime: "18:30" },
-        { startTime: "18:30", endTime: "20:00" },
-      ]),
+      availabilities: buildEvenTrackSlots(phaseSlots),
     },
     {
       phone: "09127770002",
@@ -330,12 +462,7 @@ async function main() {
         "AME 3-1",
         "AME 3-2",
       ],
-      availabilities: buildOddTrackSlots([
-        { startTime: "14:00", endTime: "15:30" },
-        { startTime: "15:30", endTime: "17:00" },
-        { startTime: "17:00", endTime: "18:30" },
-        { startTime: "18:30", endTime: "20:00" },
-      ]),
+      availabilities: buildOddTrackSlots(phaseSlots),
     },
     {
       phone: "09127770003",
@@ -359,14 +486,8 @@ async function main() {
         "AME 3-1",
       ],
       availabilities: [
-        ...buildEvenTrackSlots([
-          { startTime: "09:00", endTime: "10:30" },
-          { startTime: "10:30", endTime: "12:00" },
-        ]),
-        ...buildOddTrackSlots([
-          { startTime: "09:00", endTime: "10:30" },
-          { startTime: "10:30", endTime: "12:00" },
-        ]),
+        ...buildEvenTrackSlots(selectPhaseSlots(0, 1)),
+        ...buildOddTrackSlots(selectPhaseSlots(0, 1)),
       ],
     },
     {
@@ -392,11 +513,7 @@ async function main() {
         "AME 4-1",
         "AME 4-2",
       ],
-      availabilities: buildEvenTrackSlots([
-        { startTime: "15:30", endTime: "17:00" },
-        { startTime: "17:00", endTime: "18:30" },
-        { startTime: "18:30", endTime: "20:00" },
-      ]),
+      availabilities: buildEvenTrackSlots(selectPhaseSlots(1, 2, 3)),
     },
     {
       phone: "09127770005",
@@ -421,11 +538,7 @@ async function main() {
         "AME 3-2",
         "AME 3-3",
       ],
-      availabilities: buildOddTrackSlots([
-        { startTime: "09:00", endTime: "10:30" },
-        { startTime: "10:30", endTime: "12:00" },
-        { startTime: "14:00", endTime: "15:30" },
-      ]),
+      availabilities: buildOddTrackSlots(selectPhaseSlots(0, 1, 2)),
     },
     {
       phone: "09127770006",
@@ -457,8 +570,8 @@ async function main() {
         "AME 5-5",
       ],
       availabilities: [
-        ...buildEvenTrackSlots([{ startTime: "18:30", endTime: "20:00" }]),
-        ...buildOddTrackSlots([{ startTime: "18:30", endTime: "20:00" }]),
+        ...buildEvenTrackSlots(selectPhaseSlots(3)),
+        ...buildOddTrackSlots(selectPhaseSlots(3)),
       ],
     },
     {
@@ -484,11 +597,7 @@ async function main() {
         "AME 2-1",
         "AME 2-2",
       ],
-      availabilities: buildEvenTrackSlots([
-        { startTime: "09:00", endTime: "10:30" },
-        { startTime: "10:30", endTime: "12:00" },
-        { startTime: "14:00", endTime: "15:30" },
-      ]),
+      availabilities: buildEvenTrackSlots(selectPhaseSlots(0, 1, 2)),
     },
     {
       phone: "09127770008",
@@ -525,11 +634,7 @@ async function main() {
         "AME 5-4",
         "AME 5-5",
       ],
-      availabilities: buildOddTrackSlots([
-        { startTime: "15:30", endTime: "17:00" },
-        { startTime: "17:00", endTime: "18:30" },
-        { startTime: "18:30", endTime: "20:00" },
-      ]),
+      availabilities: buildOddTrackSlots(selectPhaseSlots(1, 2, 3)),
     },
     {
       phone: "09127770009",
@@ -556,11 +661,7 @@ async function main() {
         "AME 5-4",
         "AME 5-5",
       ],
-      availabilities: buildEvenTrackSlots([
-        { startTime: "14:00", endTime: "15:30" },
-        { startTime: "15:30", endTime: "17:00" },
-        { startTime: "17:00", endTime: "18:30" },
-      ]),
+      availabilities: buildEvenTrackSlots(selectPhaseSlots(0, 1, 2)),
     },
   ]
 
@@ -1007,38 +1108,6 @@ async function main() {
   )
 
   // 7. Class Requirements for Target Term (مهر و آبان ۱۴۰۵)
-  const autumnStartDate = new Date("2026-09-23T00:00:00.000Z")
-  const autumnEndDate = new Date("2026-11-21T00:00:00.000Z")
-
-  const activeTerm =
-    (await prisma.term.findFirst({
-      where: {
-        instituteId,
-        title: { contains: "مهر و آبان" },
-        isActive: true,
-      },
-    })) ??
-    (await prisma.term.upsert({
-      where: { id: "00000000-0000-0000-0000-000000000078" },
-      update: {
-        title: "مهر و آبان ۱۴۰۵",
-        startDate: autumnStartDate,
-        endDate: autumnEndDate,
-        isActive: true,
-      },
-      create: {
-        id: "00000000-0000-0000-0000-000000000078",
-        instituteId,
-        title: "مهر و آبان ۱۴۰۵",
-        startDate: autumnStartDate,
-        endDate: autumnEndDate,
-        isActive: true,
-      },
-    }))
-  console.log(
-    `📅 Target Scheduling Term: ${activeTerm.title} (${activeTerm.id})`
-  )
-
   // Clear existing requirements for this term to avoid duplicate runs
   await prisma.classRequirement.deleteMany({
     where: { instituteId, termId: activeTerm.id },
@@ -1136,7 +1205,7 @@ async function main() {
         branchId: centralBranchId,
         requiredClassCount: req.requiredClassCount,
         capacity: req.capacity,
-        sessionDurationMinutes: 90,
+        sessionDurationMinutes: targetOperatingPhase.slotDurationMinutes,
         sessionsPerWeek: 3, // Always 3 sessions per week!
         totalSessions: null,
         deliveryMode: ClassDeliveryMode.IN_PERSON,

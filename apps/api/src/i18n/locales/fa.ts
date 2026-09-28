@@ -112,6 +112,8 @@ export const fa: TranslationDictionary = {
   scheduling: {
     instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
     invalidScope: 'ترم یا شعبه انتخاب‌شده برای این آموزشگاه معتبر نیست',
+    invalidOperatingPhase:
+      'برای شروع زمان‌بندی، ترم فعال انتخاب‌شده باید فاز عملیاتی معتبر داشته باشد',
     invalidRequirements:
       'نیازهای کلاسی باید فعال و متعلق به ترم، شعبه و آموزشگاه انتخاب‌شده باشند',
     sourceRunRequiredForLocks:

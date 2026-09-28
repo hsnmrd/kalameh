@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  calculatePhaseSlots,
   SchedulingPreflightReportSchema,
   type SchedulingPreflightIssue,
   type SchedulingPreflightReport,
@@ -9,6 +10,7 @@ type PreflightRequirement = {
   id: string;
   courseId: string;
   capacity: number;
+  sessionDurationMinutes: number;
   deliveryMode: 'IN_PERSON' | 'ONLINE';
 };
 
@@ -17,7 +19,11 @@ type PreflightTeacherQualification = {
   teacherProfile: {
     userId: string;
     user: { isActive: boolean };
-    availabilities: unknown[];
+    availabilities: Array<{
+      dayOfWeek: string;
+      startTime: string;
+      endTime: string;
+    }>;
   };
 };
 
@@ -42,6 +48,15 @@ export type SchedulingPreflightInput = {
   students: PreflightStudent[];
   classrooms: PreflightClassroom[];
   activeTeachers: PreflightActiveTeacher[];
+  operatingPhase: {
+    startTime: string;
+    endTime: string;
+    slotDurationMinutes: number;
+    daysOfWeek: string[];
+    hasBreak: boolean;
+    breakStartTime: string | null;
+    breakEndTime: string | null;
+  };
 };
 
 @Injectable()
@@ -51,6 +66,17 @@ export class SchedulingPreflightService {
     const courseIds = Array.from(
       new Set(input.requirements.map((requirement) => requirement.courseId)),
     ).sort();
+    const phaseSlots = calculatePhaseSlots(
+      input.operatingPhase.startTime,
+      input.operatingPhase.endTime,
+      input.operatingPhase.slotDurationMinutes,
+      {
+        hasBreak: input.operatingPhase.hasBreak,
+        breakStartTime: input.operatingPhase.breakStartTime,
+        breakEndTime: input.operatingPhase.breakEndTime,
+      },
+    ).slots;
+    const phaseDays = new Set(input.operatingPhase.daysOfWeek);
 
     for (const courseId of courseIds) {
       const qualifiedTeachers = input.teachers.filter(
@@ -82,6 +108,42 @@ export class SchedulingPreflightService {
           scope: 'COURSE',
           entityId: courseId,
           context: { qualifiedTeacherCount: qualifiedTeachers.length },
+        });
+        continue;
+      }
+
+      const requiredDurations = Array.from(
+        new Set(
+          input.requirements
+            .filter((requirement) => requirement.courseId === courseId)
+            .map((requirement) => requirement.sessionDurationMinutes),
+        ),
+      ).sort((left, right) => left - right);
+      const hasAvailabilityForEveryDuration = requiredDurations.every(
+        (durationMinutes) =>
+          qualifiedTeachers.some((qualification) =>
+            qualification.teacherProfile.availabilities.some(
+              (availability) =>
+                phaseDays.has(availability.dayOfWeek) &&
+                phaseSlots.some(
+                  (slot) =>
+                    slot.durationMinutes === durationMinutes &&
+                    availability.startTime <= slot.startTime &&
+                    availability.endTime >= slot.endTime,
+                ),
+            ),
+          ),
+      );
+      if (!hasAvailabilityForEveryDuration) {
+        issues.push({
+          code: 'COURSE_WITHOUT_PHASE_AVAILABILITY',
+          severity: 'BLOCKING',
+          scope: 'COURSE',
+          entityId: courseId,
+          context: {
+            requiredDurations,
+            phaseSlotDurationMinutes: input.operatingPhase.slotDurationMinutes,
+          },
         });
       }
     }

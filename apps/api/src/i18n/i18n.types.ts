@@ -89,6 +89,7 @@ export interface TranslationDictionary {
   scheduling: {
     instituteRequired: string;
     invalidScope: string;
+    invalidOperatingPhase: string;
     invalidRequirements: string;
     sourceRunRequiredForLocks: string;
     invalidSourceRun: string;
