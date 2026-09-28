@@ -2,9 +2,16 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { CalendarRange, Clock3, Info } from "lucide-react"
-import type { SchedulingPlanDetailsDto } from "@workspace/types"
+import { CalendarRange, CalendarX2, Clock3, Info, Plus } from "lucide-react"
+import type {
+  SchedulingNewTeacherHiringAssignment,
+  SchedulingNewTeacherHiringPlan,
+  SchedulingNewTeacherHiringSlotOption,
+  SchedulingPlanDetailsDto,
+  WeekDay,
+} from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 import {
   Empty,
   EmptyDescription,
@@ -12,8 +19,14 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@workspace/ui/components/empty"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { SchedulingPlanCalendarClassCard } from "../scheduling-plan-calendar-class-card"
+import { SchedulingPlanCalendarMissedClassCard } from "../scheduling-plan-calendar-missed-class-card"
+import {
+  AssignSlotDialog,
+  type CurrentAssignmentState,
+  type TargetSlotInfo,
+} from "./assign-slot-dialog"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
@@ -24,7 +37,6 @@ export const ORDERED_WEEK_DAYS = [
   "TUESDAY",
   "WEDNESDAY",
   "THURSDAY",
-  "FRIDAY",
 ] as const
 
 interface TimeSlot {
@@ -33,17 +45,60 @@ interface TimeSlot {
   key: string
 }
 
-interface SchedulingPlanCalendarViewProps {
+export interface SchedulingPlanCalendarViewProps {
   proposals: Proposal[]
   canEdit: boolean
+  hiringPlan?: SchedulingNewTeacherHiringPlan | null
+  missedClassesAssignments?: Record<string, CurrentAssignmentState>
+  onAssignMissedClass?: (assignmentKey: string, slotKey: string) => void
+  onUnassignMissedClass?: (assignmentKey: string) => void
 }
 
 export function SchedulingPlanCalendarView({
   proposals,
   canEdit,
+  hiringPlan,
+  missedClassesAssignments,
+  onAssignMissedClass,
+  onUnassignMissedClass,
 }: SchedulingPlanCalendarViewProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
+
+  const [assignSlotTarget, setAssignSlotTarget] =
+    React.useState<TargetSlotInfo | null>(null)
+  const [hoveredClassId, setHoveredClassId] = React.useState<string | null>(
+    null
+  )
+  const [pinnedClassId, setPinnedClassId] = React.useState<string | null>(null)
+
+  const activeClassId = pinnedClassId ?? hoveredClassId
+  const isAnyClassActive = activeClassId !== null
+
+  const handleCardClick = React.useCallback((id: string) => {
+    setPinnedClassId((prev) => (prev === id ? null : id))
+  }, [])
+
+  const handleCardHover = React.useCallback(
+    (id: string | null) => {
+      if (!pinnedClassId) {
+        setHoveredClassId(id)
+      }
+    },
+    [pinnedClassId]
+  )
+
+  // Clear pinned class on Escape key
+  React.useEffect(() => {
+    if (!pinnedClassId) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPinnedClassId(null)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [pinnedClassId])
 
   const timeSlots = React.useMemo<TimeSlot[]>(() => {
     const slotsMap = new Map<string, TimeSlot>()
@@ -57,12 +112,38 @@ export function SchedulingPlanCalendarView({
         })
       }
     }
+    if (hiringPlan?.availableTimeSlots) {
+      for (const slot of hiringPlan.availableTimeSlots) {
+        const key = `${slot.startTime}-${slot.endTime}`
+        if (!slotsMap.has(key)) {
+          slotsMap.set(key, {
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            key,
+          })
+        }
+      }
+    }
+    if (missedClassesAssignments) {
+      for (const item of Object.values(missedClassesAssignments)) {
+        if (item.isAssigned !== false && item.startTime && item.endTime) {
+          const key = `${item.startTime}-${item.endTime}`
+          if (!slotsMap.has(key)) {
+            slotsMap.set(key, {
+              startTime: item.startTime,
+              endTime: item.endTime,
+              key,
+            })
+          }
+        }
+      }
+    }
     return Array.from(slotsMap.values()).sort(
       (a, b) =>
         a.startTime.localeCompare(b.startTime) ||
         a.endTime.localeCompare(b.endTime)
     )
-  }, [proposals])
+  }, [proposals, hiringPlan, missedClassesAssignments])
 
   const proposalsByDayAndSlot = React.useMemo(() => {
     const map = new Map<string, Proposal[]>()
@@ -80,6 +161,46 @@ export function SchedulingPlanCalendarView({
     return map
   }, [proposals])
 
+  const proposalColorMap = React.useMemo(() => {
+    const map = new Map<string, number>()
+    let counter = 0
+    for (const proposal of proposals) {
+      if (!map.has(proposal.id)) {
+        map.set(proposal.id, counter)
+        counter++
+      }
+    }
+    return map
+  }, [proposals])
+
+  const missedClassesByDayAndSlot = React.useMemo(() => {
+    const map = new Map<
+      string,
+      Array<{
+        assignment: SchedulingNewTeacherHiringAssignment
+        state: CurrentAssignmentState
+      }>
+    >()
+    if (!hiringPlan?.assignments || !missedClassesAssignments) return map
+
+    for (const assignment of hiringPlan.assignments) {
+      const state = missedClassesAssignments[assignment.key]
+      if (!state || state.isAssigned === false || !state.daysOfWeek.length) {
+        continue
+      }
+      for (const day of state.daysOfWeek) {
+        const key = `${day}-${state.startTime}-${state.endTime}`
+        const existing = map.get(key)
+        if (existing) {
+          existing.push({ assignment, state })
+        } else {
+          map.set(key, [{ assignment, state }])
+        }
+      }
+    }
+    return map
+  }, [hiringPlan, missedClassesAssignments])
+
   const proposalsByDay = React.useMemo(() => {
     const map: Record<string, Proposal[]> = {}
     for (const day of ORDERED_WEEK_DAYS) {
@@ -95,7 +216,76 @@ export function SchedulingPlanCalendarView({
     return map
   }, [proposals])
 
-  if (proposals.length === 0) {
+  const missedClassesByDay = React.useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const day of ORDERED_WEEK_DAYS) {
+      map[day] = 0
+    }
+    if (!hiringPlan?.assignments || !missedClassesAssignments) return map
+    for (const assignment of hiringPlan.assignments) {
+      const state = missedClassesAssignments[assignment.key]
+      if (!state || state.isAssigned === false || !state.daysOfWeek.length) {
+        continue
+      }
+      for (const day of state.daysOfWeek) {
+        if (map[day] !== undefined) {
+          map[day] += 1
+        }
+      }
+    }
+    return map
+  }, [hiringPlan, missedClassesAssignments])
+
+  const slotOptionsByDayAndSlot = React.useMemo(() => {
+    const map = new Map<string, SchedulingNewTeacherHiringSlotOption>()
+    if (!hiringPlan?.availableTimeSlots) return map
+    for (const opt of hiringPlan.availableTimeSlots) {
+      for (const day of opt.daysOfWeek) {
+        map.set(`${day}-${opt.startTime}-${opt.endTime}`, opt)
+      }
+    }
+    return map
+  }, [hiringPlan])
+
+  const getFreeClassrooms = React.useCallback(
+    (option: SchedulingNewTeacherHiringSlotOption) => {
+      const targetKey = `${option.daysOfWeek.join(",")}|${option.startTime}|${option.endTime}`
+      const takenRoomIds = new Set<string>()
+      if (missedClassesAssignments) {
+        for (const state of Object.values(missedClassesAssignments)) {
+          if (state.isAssigned === false || !state.daysOfWeek.length) continue
+          const itemKey = `${state.daysOfWeek.join(",")}|${state.startTime}|${state.endTime}`
+          if (itemKey === targetKey && state.classroomId) {
+            takenRoomIds.add(state.classroomId)
+          }
+        }
+      }
+      return option.availableClassrooms.filter(
+        (room) => !takenRoomIds.has(room.id)
+      )
+    },
+    [missedClassesAssignments]
+  )
+
+  const handleOpenAssignDialog = (
+    option: SchedulingNewTeacherHiringSlotOption,
+    freeRooms: Array<{ id: string; name: string }>
+  ) => {
+    setAssignSlotTarget({
+      daysOfWeek: option.daysOfWeek,
+      startTime: option.startTime,
+      endTime: option.endTime,
+      availableClassroomName: freeRooms[0]?.name ?? null,
+      availableRoomsCount: freeRooms.length,
+    })
+  }
+
+  const hasProposals = proposals.length > 0
+  const hasMissedClasses = Boolean(
+    hiringPlan?.assignments && hiringPlan.assignments.length > 0
+  )
+
+  if (!hasProposals && !hasMissedClasses) {
     return (
       <Empty variant="compact" className="mt-4 bg-muted/30">
         <EmptyMedia>
@@ -110,32 +300,69 @@ export function SchedulingPlanCalendarView({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Informational Subtitle */}
-      <div className="flex items-center gap-2 rounded-xl bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-        <Info aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-        <span>{t("calendarView.allInOneNotice")}</span>
+    <div
+      className="flex flex-col gap-4"
+      onClick={() => {
+        if (pinnedClassId) {
+          setPinnedClassId(null)
+        }
+      }}
+    >
+      {/* Informational Subtitle & Legend */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Info aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+          <span>{t("calendarView.allInOneNotice")}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {pinnedClassId && (
+            <button
+              type="button"
+              data-testid="clear-selection-btn"
+              onClick={(e) => {
+                e.stopPropagation()
+                setPinnedClassId(null)
+              }}
+              className="cursor-pointer text-xs font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              {t("calendarView.clearSelection")}
+            </button>
+          )}
+          {hasMissedClasses && (
+            <div className="flex items-center gap-1.5 font-semibold text-warning-foreground">
+              <span className="inline-block size-2 rounded-full bg-warning" />
+              <span>{t("calendarView.newTeacherBadge")}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Timetable Matrix Grid with Horizontal Scroll */}
       <div className="overflow-x-auto rounded-2xl border border-border bg-card/60">
-        <div className="min-w-[960px]">
+        <div className="min-w-[840px]">
           {/* Header Row */}
-          <div className="grid grid-cols-[96px_repeat(7,minmax(120px,1fr))] gap-2 border-b border-border bg-muted/40 p-2.5">
+          <div className="grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] gap-2 border-b border-border bg-muted/40 p-2.5">
             {/* Time Column Header */}
             <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground">
               <Clock3 aria-hidden className="size-3.5 text-muted-foreground" />
               <span>{t("calendarView.timeColumn")}</span>
             </div>
 
-            {/* 7 Day Column Headers */}
+            {/* 6 Day Column Headers (Saturday - Thursday) */}
             {ORDERED_WEEK_DAYS.map((day) => {
-              const dayProposalsCount = proposalsByDay[day]?.length ?? 0
+              const dayProposalsCount =
+                (proposalsByDay[day]?.length ?? 0) +
+                (missedClassesByDay[day] ?? 0)
+              const isDayEmpty = dayProposalsCount === 0
+
               return (
                 <div
                   key={day}
                   data-day-header={day}
-                  className="flex flex-col items-center justify-center gap-1 p-1 text-center"
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1 p-1 text-center transition-opacity",
+                    isDayEmpty && "opacity-50"
+                  )}
                 >
                   <span className="text-xs font-bold text-foreground">
                     {t(`weekDays.${day}`)}
@@ -152,7 +379,7 @@ export function SchedulingPlanCalendarView({
                   ) : (
                     <Badge
                       variant="outline"
-                      className="h-4 px-1.5 py-0 text-[10px] text-muted-foreground"
+                      className="h-4 border-border/50 px-1.5 py-0 text-[10px] text-muted-foreground"
                     >
                       {t("calendarView.weekendOff")}
                     </Badge>
@@ -168,7 +395,7 @@ export function SchedulingPlanCalendarView({
               <div
                 key={slot.key}
                 data-testid={`time-slot-row-${slot.key}`}
-                className="grid grid-cols-[96px_repeat(7,minmax(120px,1fr))] items-stretch gap-2 p-2"
+                className="grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] items-stretch gap-2 p-2"
               >
                 {/* Time Column Cell */}
                 <div
@@ -191,29 +418,157 @@ export function SchedulingPlanCalendarView({
 
                 {/* Day Cells */}
                 {ORDERED_WEEK_DAYS.map((day) => {
-                  const cellProposals =
-                    proposalsByDayAndSlot.get(
-                      `${day}-${slot.startTime}-${slot.endTime}`
-                    ) ?? []
+                  const cellKey = `${day}-${slot.startTime}-${slot.endTime}`
+                  const cellProposals = proposalsByDayAndSlot.get(cellKey) ?? []
+                  const cellMissed =
+                    missedClassesByDayAndSlot.get(cellKey) ?? []
+                  const matchingOption = slotOptionsByDayAndSlot.get(cellKey)
+                  const freeRooms = matchingOption
+                    ? getFreeClassrooms(matchingOption)
+                    : []
+
+                  const targetSlotKey = matchingOption
+                    ? `${matchingOption.daysOfWeek.join(",")}|${matchingOption.startTime}|${matchingOption.endTime}`
+                    : ""
+
+                  const hasAssignableMissedClass = Boolean(
+                    hiringPlan?.assignments.some((assignment) => {
+                      const state = missedClassesAssignments?.[assignment.key]
+                      if (
+                        !state ||
+                        state.isAssigned === false ||
+                        !state.daysOfWeek.length
+                      ) {
+                        return true
+                      }
+                      const itemKey = `${state.daysOfWeek.join(",")}|${state.startTime}|${state.endTime}`
+                      return itemKey !== targetSlotKey
+                    })
+                  )
+
+                  const canAssignHere =
+                    canEdit &&
+                    Boolean(matchingOption) &&
+                    hasAssignableMissedClass &&
+                    freeRooms.length > 0
+
+                  const hasClasses =
+                    cellProposals.length > 0 || cellMissed.length > 0
+
+                  const isDayEmpty =
+                    (proposalsByDay[day]?.length ?? 0) +
+                      (missedClassesByDay[day] ?? 0) ===
+                    0
 
                   return (
                     <div
                       key={`${day}-${slot.key}`}
                       data-day={day}
                       data-slot={slot.key}
-                      className="flex min-h-[68px] flex-col gap-2"
+                      className="flex min-h-[134px] flex-col gap-2"
                     >
-                      {cellProposals.length > 0 ? (
-                        cellProposals.map((proposal) => (
-                          <SchedulingPlanCalendarClassCard
-                            key={`${proposal.id}-${day}`}
-                            proposal={proposal}
-                            canEdit={canEdit}
-                          />
-                        ))
+                      {hasClasses ? (
+                        <>
+                          {cellProposals.map((proposal) => {
+                            const isActive = activeClassId === proposal.id
+                            const isDimmed = isAnyClassActive && !isActive
+                            return (
+                              <SchedulingPlanCalendarClassCard
+                                key={`${proposal.id}-${day}`}
+                                proposal={proposal}
+                                canEdit={canEdit}
+                                colorIndex={proposalColorMap.get(proposal.id)}
+                                isActive={isActive}
+                                isDimmed={isDimmed}
+                                onHover={handleCardHover}
+                                onClick={handleCardClick}
+                              />
+                            )
+                          })}
+                          {cellMissed.map(({ assignment, state }) => {
+                            const missedKey = `missed:${assignment.key}`
+                            const isActive = activeClassId === missedKey
+                            const isDimmed = isAnyClassActive && !isActive
+                            return (
+                              <SchedulingPlanCalendarMissedClassCard
+                                key={`${assignment.key}-${day}`}
+                                assignment={assignment}
+                                assignedRoomName={state.classroomName}
+                                canEdit={canEdit}
+                                isActive={isActive}
+                                isDimmed={isDimmed}
+                                onHover={handleCardHover}
+                                onClick={handleCardClick}
+                                onUnassign={() =>
+                                  onUnassignMissedClass?.(assignment.key)
+                                }
+                              />
+                            )
+                          })}
+                          {canAssignHere && matchingOption && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleOpenAssignDialog(
+                                  matchingOption,
+                                  freeRooms
+                                )
+                              }
+                              className={cn(
+                                "h-7 w-full gap-1 rounded-lg border border-dashed border-border/60 text-[11px] font-medium text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
+                                isAnyClassActive && "opacity-20"
+                              )}
+                            >
+                              <Plus className="size-3" />
+                              <span>{t("calendarView.assignClass")}</span>
+                            </Button>
+                          )}
+                        </>
+                      ) : canAssignHere && matchingOption ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleOpenAssignDialog(matchingOption, freeRooms)
+                          }
+                          className={cn(
+                            "group flex h-[134px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/50 bg-primary/10 p-3 text-center transition-all hover:border-primary hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                            isAnyClassActive && "opacity-20 grayscale"
+                          )}
+                        >
+                          <div className="flex size-7 items-center justify-center rounded-full bg-primary/20 text-primary transition-transform group-hover:scale-110">
+                            <Plus className="size-4" />
+                          </div>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-xs font-bold text-primary">
+                              {t("calendarView.freeSlot")}
+                            </span>
+                            <span className="text-[10px] font-medium text-muted-foreground group-hover:text-primary">
+                              {t("calendarView.assignClass")}
+                            </span>
+                          </div>
+                        </button>
                       ) : (
-                        <div className="flex h-full min-h-[68px] items-center justify-center rounded-xl border border-dashed border-border/40 bg-muted/5 text-muted-foreground/30">
-                          <span className="text-xs select-none">—</span>
+                        <div
+                          data-testid={`empty-cell-${day}-${slot.key}`}
+                          className={cn(
+                            "flex h-[134px] w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/50 bg-muted/15 p-3 text-center transition-all select-none hover:bg-muted/25 hover:opacity-75",
+                            isAnyClassActive
+                              ? "opacity-20 grayscale"
+                              : "opacity-40"
+                          )}
+                          aria-label={t("calendarView.noClasses")}
+                        >
+                          <div className="flex size-7 items-center justify-center rounded-full bg-muted/30 text-muted-foreground/70">
+                            <CalendarX2
+                              aria-hidden
+                              className="size-4 text-muted-foreground/70"
+                            />
+                          </div>
+                          <span className="text-[11px] font-medium text-muted-foreground/80">
+                            {t("calendarView.noClasses")}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -224,6 +579,23 @@ export function SchedulingPlanCalendarView({
           </div>
         </div>
       </div>
+
+      {/* Assign Missed Class to Slot Dialog */}
+      <AssignSlotDialog
+        open={Boolean(assignSlotTarget)}
+        onOpenChange={(open) => {
+          if (!open) setAssignSlotTarget(null)
+        }}
+        targetSlot={assignSlotTarget}
+        assignments={hiringPlan?.assignments ?? []}
+        assignmentsState={missedClassesAssignments ?? {}}
+        onSelectAssignment={(assignmentKey) => {
+          if (assignSlotTarget && onAssignMissedClass) {
+            const slotKey = `${assignSlotTarget.daysOfWeek.join(",")}|${assignSlotTarget.startTime}|${assignSlotTarget.endTime}`
+            onAssignMissedClass(assignmentKey, slotKey)
+          }
+        }}
+      />
     </div>
   )
 }

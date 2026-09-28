@@ -132,8 +132,9 @@ export class SchedulingPlanPublicationService {
                 capacity: proposal.capacity,
                 fee: proposal.course.baseFee,
                 teacherId: proposal.teacherId,
-                teacherName:
-                  `${proposal.teacher.firstName} ${proposal.teacher.lastName}`.trim(),
+                teacherName: proposal.teacher
+                  ? `${proposal.teacher.firstName} ${proposal.teacher.lastName}`.trim()
+                  : null,
                 schedule: null,
                 daysOfWeek: proposal.daysOfWeek,
                 sessionDates: proposal.sessions.map(({ sessionDate }) =>

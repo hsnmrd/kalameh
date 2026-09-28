@@ -3,6 +3,7 @@ import {
   SchedulingNewTeacherHiringPlanSchema,
   type SchedulingNewTeacherHiringAssignment,
   type SchedulingNewTeacherHiringPlan,
+  type SchedulingNewTeacherHiringSlotOption,
   type WeekDay,
 } from '@workspace/types';
 import { SchedulingNewTeacherArrangementService } from './scheduling-new-teacher-arrangement.service';
@@ -49,9 +50,82 @@ export class SchedulingNewTeacherScheduleOptimizerService {
         : [];
     });
     const preferredSingleGroup = this.best(singleGroupCandidates);
-    if (preferredSingleGroup) return preferredSingleGroup.plan;
+    const bestPlan = preferredSingleGroup
+      ? preferredSingleGroup.plan
+      : (this.best(this.multiGroupCandidates(input, dayGroups))?.plan ?? null);
 
-    return this.best(this.multiGroupCandidates(input, dayGroups))?.plan ?? null;
+    if (!bestPlan) return null;
+
+    const availableTimeSlots = this.computeAvailableTimeSlots(input);
+    return SchedulingNewTeacherHiringPlanSchema.parse({
+      ...bestPlan,
+      availableTimeSlots,
+    });
+  }
+
+  computeAvailableTimeSlots(
+    input: OptimizeHiringPlanInput,
+  ): SchedulingNewTeacherHiringSlotOption[] {
+    const dayGroups = this.preferenceService.dayGroups(input);
+    const phaseStart = this.windowService.toMinutes(
+      input.operatingPhase.startTime,
+    );
+    const phaseEnd = this.windowService.toMinutes(input.operatingPhase.endTime);
+    if (phaseStart === null || phaseEnd === null || phaseStart >= phaseEnd) {
+      return [];
+    }
+
+    const slotDuration = input.workItems[0]?.durationMinutes ?? 90;
+    const slots: SchedulingNewTeacherHiringSlotOption[] = [];
+
+    for (const daysOfWeek of dayGroups) {
+      for (
+        let start = phaseStart;
+        start + slotDuration <= phaseEnd;
+        start += slotDuration
+      ) {
+        const startTime = this.windowService.toTime(start);
+        const endTime = this.windowService.toTime(start + slotDuration);
+
+        if (
+          this.windowService.overlapsBreak(
+            startTime,
+            endTime,
+            input.operatingPhase,
+          )
+        ) {
+          continue;
+        }
+
+        const availableClassrooms = input.classrooms
+          .filter(
+            (room) =>
+              room.isActive &&
+              !input.scheduledClasses.some(
+                (scheduledClass) =>
+                  scheduledClass.classroomId === room.id &&
+                  this.windowService.hasConflict(
+                    daysOfWeek,
+                    startTime,
+                    endTime,
+                    scheduledClass,
+                  ),
+              ),
+          )
+          .map(({ id, name, capacity }) => ({ id, name, capacity }));
+
+        slots.push({
+          key: `${daysOfWeek.join(',')}|${startTime}|${endTime}`,
+          daysOfWeek,
+          startTime,
+          endTime,
+          availableClassrooms,
+          isFullyBooked: availableClassrooms.length === 0,
+        });
+      }
+    }
+
+    return slots;
   }
 
   private multiGroupCandidates(

@@ -17,6 +17,7 @@ import { SchedulingNewTeacherScheduleOptimizerService } from './scheduling-new-t
 import { SchedulingNewTeacherPreferenceService } from './scheduling-new-teacher-preference.service';
 import { SchedulingScheduleWindowService } from './scheduling-schedule-window.service';
 import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
+import { SchedulingPlanHiringCommitService } from './scheduling-plan-hiring-commit.service';
 import { SchedulingPlanValidationService } from './scheduling-plan-validation.service';
 import { SchedulingStudentCoverageService } from './scheduling-student-coverage.service';
 import { SchedulingTimeDistributionService } from './scheduling-time-distribution.service';
@@ -70,6 +71,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingNewTeacherPreferenceService,
     SchedulingScheduleWindowService,
     SchedulingPlanReviewService,
+    SchedulingPlanHiringCommitService,
     SchedulingPlanValidationService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
@@ -101,6 +103,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingNewTeacherScheduleOptimizerService,
     SchedulingScheduleWindowService,
     SchedulingPlanReviewService,
+    SchedulingPlanHiringCommitService,
     SchedulingPlanValidationService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,

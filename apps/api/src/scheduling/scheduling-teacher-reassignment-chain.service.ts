@@ -57,11 +57,17 @@ export class SchedulingTeacherReassignmentChainService {
 
       let state: TeacherReassignmentSearchState | null = {
         assignments: new Map(
-          input.proposals.map((proposal) => [proposal.id, proposal.teacherId]),
+          input.proposals
+            .filter(
+              (p): p is typeof p & { teacherId: string } =>
+                p.teacherId !== null,
+            )
+            .map((proposal) => [proposal.id, proposal.teacherId]),
         ),
         movedProposalIds: [],
       };
       for (const proposalId of blockingProposalIds) {
+        if (!state) break;
         state = this.reassignProposal(
           proposalId,
           state,
@@ -71,7 +77,6 @@ export class SchedulingTeacherReassignmentChainService {
           proposalsById,
           new Set(),
         );
-        if (!state) break;
       }
       if (
         !state ||
@@ -203,9 +208,10 @@ export class SchedulingTeacherReassignmentChainService {
     if (target.deliveryMode === 'IN_PERSON' && !targetClassroom) return null;
     const reassignments = state.movedProposalIds.flatMap((proposalId) => {
       const proposal = proposalsById.get(proposalId);
-      const fromTeacher = proposal
-        ? input.teacherById.get(proposal.teacherId)
-        : undefined;
+      const fromTeacher =
+        proposal && proposal.teacherId
+          ? input.teacherById.get(proposal.teacherId)
+          : undefined;
       const toTeacherId = state.assignments.get(proposalId);
       const toTeacher = toTeacherId
         ? input.teacherById.get(toTeacherId)

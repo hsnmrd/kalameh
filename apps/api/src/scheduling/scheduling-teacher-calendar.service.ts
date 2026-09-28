@@ -41,7 +41,7 @@ type ScheduledClass = {
 type PlanClass = {
   id: string;
   title: string;
-  teacherId: string;
+  teacherId: string | null;
   daysOfWeek: string[];
   startTime: string;
   endTime: string;

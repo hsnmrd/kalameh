@@ -1,37 +1,209 @@
 "use client"
 
+import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   CalendarClock,
   CalendarX2,
-  DoorOpen,
+  CheckCircle2,
   GraduationCap,
   ListChecks,
+  RotateCcw,
 } from "lucide-react"
-import type { SchedulingNewTeacherHiringPlan as HiringPlan } from "@workspace/types"
+import type {
+  CommitHiringPlanInput,
+  SchedulingNewTeacherHiringPlan as HiringPlan,
+  WeekDay,
+} from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { formatNumber } from "@workspace/ui/lib/utils"
+import { toast } from "@workspace/ui/components/sonner"
+import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
+import { AssignmentItem } from "./assignment-item"
 
-interface SchedulingNewTeacherHiringPlanProps {
+export interface CurrentAssignmentState {
+  daysOfWeek: WeekDay[]
+  startTime: string
+  endTime: string
+  classroomId: string | null
+  classroomName: string | null
+  isAssigned?: boolean
+}
+
+export interface SchedulingNewTeacherHiringPlanProps {
   plan: HiringPlan | null
   missingClassCount: number
+  planId?: string
+  planStatus?: string
+  assignmentsState?: Record<string, CurrentAssignmentState>
+  onResetAssignments?: () => void
 }
+
+const EVEN_DAYS: WeekDay[] = ["SUNDAY", "TUESDAY", "THURSDAY"]
+const ODD_DAYS: WeekDay[] = ["SATURDAY", "MONDAY", "WEDNESDAY"]
 
 export function SchedulingNewTeacherHiringPlan({
   plan,
   missingClassCount,
+  planId,
+  planStatus,
+  assignmentsState: assignmentsStateProp,
+  onResetAssignments,
 }: SchedulingNewTeacherHiringPlanProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
+  const queryClient = useQueryClient()
 
-  const days = plan
-    ? plan.daysOfWeek.map((day) => t(`weekDays.${day}`)).join(t("daySeparator"))
-    : ""
-  const requiresRoomResolution =
-    plan?.assignments.some(
-      ({ deliveryMode, classroom }) =>
-        deliveryMode === "IN_PERSON" && classroom === null
-    ) ?? false
+  const [internalAssignmentsState, setInternalAssignmentsState] =
+    React.useState<Record<string, CurrentAssignmentState>>(() => {
+      if (!plan) return {}
+      const initial: Record<string, CurrentAssignmentState> = {}
+      for (const a of plan.assignments) {
+        initial[a.key] = {
+          daysOfWeek: a.daysOfWeek as WeekDay[],
+          startTime: a.startTime,
+          endTime: a.endTime,
+          classroomId: a.classroom?.id ?? null,
+          classroomName: a.classroom?.name ?? null,
+          isAssigned: true,
+        }
+      }
+      return initial
+    })
+
+  // Sync internal state if plan changes
+  React.useEffect(() => {
+    if (!plan) return
+    const next: Record<string, CurrentAssignmentState> = {}
+    for (const a of plan.assignments) {
+      next[a.key] = {
+        daysOfWeek: a.daysOfWeek as WeekDay[],
+        startTime: a.startTime,
+        endTime: a.endTime,
+        classroomId: a.classroom?.id ?? null,
+        classroomName: a.classroom?.name ?? null,
+        isAssigned: true,
+      }
+    }
+    setInternalAssignmentsState(next)
+  }, [plan])
+
+  const activeAssignmentsState =
+    assignmentsStateProp ?? internalAssignmentsState
+
+  const commitMutation = useMutation({
+    ...schedulingResource.commitHiringPlan.toMutation(),
+    onSuccess: () => {
+      toast.success(t("hiringPlan.commitSuccess"))
+      queryClient.invalidateQueries({
+        queryKey: schedulingResource.planDetail.baseKey(),
+      })
+    },
+  })
+
+  const isEditable =
+    Boolean(planId) &&
+    (!planStatus || ["DRAFT", "SELECTED"].includes(planStatus))
+
+  const handleCommit = () => {
+    if (!planId || !plan) return
+
+    const unassignedCount = plan.assignments.filter((orig) => {
+      const current = activeAssignmentsState[orig.key]
+      return (
+        !current ||
+        current.isAssigned === false ||
+        !current.daysOfWeek.length ||
+        !current.startTime ||
+        !current.endTime
+      )
+    }).length
+
+    if (unassignedCount > 0) {
+      toast.error(t("calendarView.unassignedInCalendar"))
+      return
+    }
+
+    const payload: CommitHiringPlanInput = {
+      assignments: plan.assignments.map((orig) => {
+        const current = activeAssignmentsState[orig.key] ?? {
+          daysOfWeek: orig.daysOfWeek as WeekDay[],
+          startTime: orig.startTime,
+          endTime: orig.endTime,
+          classroomId: orig.classroom?.id ?? null,
+        }
+        return {
+          key: orig.key,
+          classNumber: orig.classNumber,
+          requirementId: orig.requirementId,
+          courseId: orig.course.id,
+          deliveryMode: orig.deliveryMode,
+          daysOfWeek: current.daysOfWeek,
+          startTime: current.startTime,
+          endTime: current.endTime,
+          classroomId: current.classroomId,
+        }
+      }),
+    }
+
+    commitMutation.mutate({
+      planId,
+      body: payload,
+    })
+  }
+
+  // Dynamic calculations across chosen assignments
+  const selectedEntries = Object.values(activeAssignmentsState).filter(
+    (entry) => entry.isAssigned !== false && entry.daysOfWeek.length > 0
+  )
+  const allDays = Array.from(
+    new Set(selectedEntries.flatMap((entry) => entry.daysOfWeek))
+  )
+  allDays.sort((left, right) => {
+    const order: WeekDay[] = [
+      "SATURDAY",
+      "SUNDAY",
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY",
+    ]
+    return order.indexOf(left) - order.indexOf(right)
+  })
+
+  const daysLabel = allDays
+    .map((d) => t(`weekDays.${d}`))
+    .join(t("daySeparator"))
+  const startTimes = selectedEntries.map((e) => e.startTime).sort()
+  const endTimes = selectedEntries.map((e) => e.endTime).sort()
+  const overallStartTime = startTimes[0] ?? plan?.startTime ?? ""
+  const overallEndTime = endTimes[endTimes.length - 1] ?? plan?.endTime ?? ""
+
+  const usesPreferredThreeDay =
+    allDays.length === 3 &&
+    (allDays.every((d) => EVEN_DAYS.includes(d)) ||
+      allDays.every((d) => ODD_DAYS.includes(d)))
+
+  const hasConsecutive = React.useMemo(() => {
+    if (selectedEntries.length <= 1) return true
+    const sorted = [...selectedEntries].sort((a, b) =>
+      a.startTime.localeCompare(b.startTime)
+    )
+    for (let i = 0; i < sorted.length - 1; i++) {
+      if (sorted[i]!.endTime !== sorted[i + 1]!.startTime) {
+        return false
+      }
+    }
+    return true
+  }, [selectedEntries])
+
+  const requiresRoomResolution = selectedEntries.some(
+    (entry) => entry.classroomId === null
+  )
 
   return (
     <section
@@ -79,7 +251,8 @@ export function SchedulingNewTeacherHiringPlan({
                   {t("hiringPlan.requiredAvailability")}
                 </dt>
                 <dd className="mt-0.5 text-xs font-semibold text-foreground">
-                  {days} · {plan.startTime}–{plan.endTime}
+                  {daysLabel || t("hiringPlan.noRoomAssigned")} ·{" "}
+                  {overallStartTime}–{overallEndTime}
                 </dd>
               </div>
             </div>
@@ -103,7 +276,7 @@ export function SchedulingNewTeacherHiringPlan({
             </div>
           </dl>
 
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             <ListChecks
               aria-hidden
               className="size-4 shrink-0 text-foreground"
@@ -111,74 +284,32 @@ export function SchedulingNewTeacherHiringPlan({
             <p className="text-xs font-semibold text-foreground">
               {t("hiringPlan.sequenceTitle")}
             </p>
-            <Badge
-              variant={
-                plan.usesPreferredThreeDayPattern ? "success" : "warning"
-              }
-            >
+            <Badge variant={usesPreferredThreeDay ? "success" : "warning"}>
               {t(
-                plan.usesPreferredThreeDayPattern
+                usesPreferredThreeDay
                   ? "hiringPlan.preferredThreeDay"
                   : "hiringPlan.alternateDays"
               )}
             </Badge>
-            <Badge variant={plan.hasConsecutiveTimes ? "success" : "warning"}>
+            <Badge variant={hasConsecutive ? "success" : "warning"}>
               {t(
-                plan.hasConsecutiveTimes
+                hasConsecutive
                   ? "hiringPlan.consecutive"
                   : "hiringPlan.spacedTimes"
               )}
             </Badge>
           </div>
 
-          <ol className="mt-2.5 divide-y divide-border overflow-hidden rounded-lg bg-background">
+          <ol className="mt-3 flex flex-col gap-3">
             {plan.assignments.map((assignment, index) => {
-              const needsRoom =
-                assignment.deliveryMode === "IN_PERSON" &&
-                assignment.classroom === null
-              const assignmentDays = assignment.daysOfWeek
-                .map((day) => t(`weekDays.${day}`))
-                .join(t("daySeparator"))
-
+              const current = activeAssignmentsState[assignment.key]
               return (
-                <li
+                <AssignmentItem
                   key={assignment.key}
-                  className="grid gap-2 px-3 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
-                >
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">
-                      {formatNumber(index + 1, locale)}
-                    </Badge>
-                    <span className="text-xs font-semibold text-foreground">
-                      {assignmentDays} · {assignment.startTime}–
-                      {assignment.endTime}
-                    </span>
-                  </div>
-                  <p className="text-xs font-medium text-foreground">
-                    {t("hiringPlan.courseClass", {
-                      course: assignment.course.title,
-                      number: formatNumber(assignment.classNumber, locale),
-                    })}
-                  </p>
-                  <div
-                    className={
-                      needsRoom
-                        ? "flex items-center gap-1.5 text-xs text-warning-foreground"
-                        : "flex items-center gap-1.5 text-xs text-muted-foreground"
-                    }
-                  >
-                    <DoorOpen aria-hidden className="size-4 shrink-0" />
-                    <span>
-                      {assignment.deliveryMode === "ONLINE"
-                        ? t("hiringPlan.online")
-                        : needsRoom
-                          ? t("hiringPlan.roomNeeded")
-                          : t("hiringPlan.room", {
-                              room: assignment.classroom?.name ?? "",
-                            })}
-                    </span>
-                  </div>
-                </li>
+                  assignment={assignment}
+                  index={index}
+                  assignedState={current}
+                />
               )
             })}
           </ol>
@@ -190,6 +321,43 @@ export function SchedulingNewTeacherHiringPlan({
                 : "hiringPlan.validation"
             )}
           </p>
+
+          {isEditable && (
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              {onResetAssignments ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="default"
+                  onClick={onResetAssignments}
+                  disabled={commitMutation.isPending}
+                >
+                  <RotateCcw className="size-4 shrink-0 text-muted-foreground" />
+                  <span>{t("hiringPlan.resetSuggestion")}</span>
+                </Button>
+              ) : (
+                <div />
+              )}
+              <Button
+                size="default"
+                disabled={commitMutation.isPending}
+                onClick={handleCommit}
+                className="w-full sm:w-auto"
+              >
+                {commitMutation.isPending ? (
+                  <>
+                    <Spinner className="size-4 shrink-0" />
+                    <span>{t("hiringPlan.committing")}</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="size-4 shrink-0" />
+                    <span>{t("hiringPlan.commitButton")}</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </>
       ) : (
         <div className="mt-4 flex items-start gap-2 border-y border-border py-4">

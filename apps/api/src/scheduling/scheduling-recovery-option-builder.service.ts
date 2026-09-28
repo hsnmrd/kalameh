@@ -11,7 +11,7 @@ export type SchedulingRecoveryPlanProposal = {
   title: string;
   courseId: string;
   branchId?: string | null;
-  teacherId: string;
+  teacherId: string | null;
   classroomId?: string | null;
   deliveryMode: 'IN_PERSON' | 'ONLINE';
   daysOfWeek: string[];

@@ -13,7 +13,7 @@ type PlanTeacherCalendarInput = {
   proposals: Array<{
     id: string;
     title: string;
-    teacherId: string;
+    teacherId: string | null;
     daysOfWeek: string[];
     startTime: string;
     endTime: string;

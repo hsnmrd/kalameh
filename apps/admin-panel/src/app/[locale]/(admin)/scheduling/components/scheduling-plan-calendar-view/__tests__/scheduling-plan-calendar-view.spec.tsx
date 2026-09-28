@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest"
-import { render, screen, within } from "../../../../../../../test/test-utils"
+import { describe, expect, it, vi } from "vitest"
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "../../../../../../../test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { SchedulingPlanCalendarView } from "../index"
 
@@ -55,7 +60,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.getByText("کلاس قابل اجرا ساخته نشد")).toBeInTheDocument()
   })
 
-  it("renders Time column header and 7 week days in Persian calendar order", () => {
+  it("renders Time column header and 6 week days in Persian calendar order (excluding Friday)", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
@@ -67,7 +72,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.getByText("سه‌شنبه")).toBeInTheDocument()
     expect(screen.getByText("چهارشنبه")).toBeInTheDocument()
     expect(screen.getByText("پنجشنبه")).toBeInTheDocument()
-    expect(screen.getByText("جمعه")).toBeInTheDocument()
+    expect(screen.queryByText("جمعه")).not.toBeInTheDocument()
   })
 
   it("shows all-in-one representative week notice", () => {
@@ -103,9 +108,9 @@ describe("SchedulingPlanCalendarView Component", () => {
     const monCellRow1 = row1.querySelector('[data-day="MONDAY"]')
     expect(monCellRow1).toHaveTextContent("American English File 1")
 
-    // Sunday in Row 1 has empty placeholder
+    // Sunday in Row 1 has empty placeholder with low opacity
     const sunCellRow1 = row1.querySelector('[data-day="SUNDAY"]')
-    expect(sunCellRow1).toHaveTextContent("—")
+    expect(sunCellRow1).toHaveTextContent("بدون کلاس")
 
     // Row 2 (16:00 - 17:30)
     expect(within(row2).getByText("16:00")).toBeInTheDocument()
@@ -115,9 +120,9 @@ describe("SchedulingPlanCalendarView Component", () => {
     const satCellRow2 = row2.querySelector('[data-day="SATURDAY"]')
     expect(satCellRow2).toHaveTextContent("American English File 2")
 
-    // Monday in Row 2 has empty placeholder
+    // Monday in Row 2 has empty placeholder with low opacity
     const monCellRow2 = row2.querySelector('[data-day="MONDAY"]')
-    expect(monCellRow2).toHaveTextContent("—")
+    expect(monCellRow2).toHaveTextContent("بدون کلاس")
   })
 
   it("displays teacher name, location, and capacity without time inside the card", () => {
@@ -151,7 +156,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(sunHeader).toHaveTextContent("تعطیل هفتگی")
   })
 
-  it("renders capacity stepper with limits and disables plus when max is reached", () => {
+  it("renders clean capacity display with limits and without stepper buttons", () => {
     const editableProposals: Proposal[] = [
       ...mockProposals,
       {
@@ -183,35 +188,358 @@ describe("SchedulingPlanCalendarView Component", () => {
     )
 
     // prop-1 has capacity 15 and max room capacity 15 (at max)
-    // prop-3 has capacity 14 and max room capacity 20 (below max, unlocked)
+    // prop-3 has capacity 14 and max room capacity 20
     expect(screen.getAllByText("ظرفیت").length).toBeGreaterThanOrEqual(2)
 
-    // Check displays
+    // Check displays formatted capacity
     expect(screen.getAllByText(/\/\s*(15|۱۵)/).length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText(/\/\s*(20|۲۰)/).length).toBeGreaterThanOrEqual(1)
 
-    // For prop-1 (at max capacity 15/15), the plus button is disabled
-    const prop1Card = screen.getAllByRole("article", {
-      name: "American English File 1",
-    })[0]
-    expect(prop1Card).toBeDefined()
-    const prop1Plus = within(prop1Card!).getByRole("button", {
-      name: "افزایش ظرفیت",
-    })
-    expect(prop1Plus).toBeDisabled()
+    // Stepper plus and minus buttons must NOT be rendered in the calendar class card
+    expect(
+      screen.queryByRole("button", { name: "افزایش ظرفیت" })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "کاهش ظرفیت" })
+    ).not.toBeInTheDocument()
+  })
 
-    // For prop-3 (unlocked and at 14/20), the plus and minus buttons are enabled
-    const prop3Card = screen.getByRole("article", {
-      name: "American English File 3",
+  it("assigns consistent color theme for same class occurrences across different days", () => {
+    const { container } = render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    // mockProposals[0] (prop-1) is on SATURDAY, MONDAY, WEDNESDAY
+    const prop1Cards = container.querySelectorAll('[data-class-id="prop-1"]')
+    expect(prop1Cards.length).toBe(3)
+
+    // All sessions of prop-1 must have the same color index
+    const prop1ColorIndex = prop1Cards[0]?.getAttribute("data-color-index")
+    expect(prop1ColorIndex).toBeDefined()
+    prop1Cards.forEach((card) => {
+      expect(card.getAttribute("data-color-index")).toBe(prop1ColorIndex)
     })
-    expect(prop3Card).toBeDefined()
-    const prop3Plus = within(prop3Card).getByRole("button", {
-      name: "افزایش ظرفیت",
+
+    // mockProposals[1] (prop-2) is a different class, should have a different color index
+    const prop2Cards = container.querySelectorAll('[data-class-id="prop-2"]')
+    expect(prop2Cards.length).toBe(1)
+    const prop2ColorIndex = prop2Cards[0]?.getAttribute("data-color-index")
+    expect(prop2ColorIndex).not.toBe(prop1ColorIndex)
+  })
+
+  it("renders missed classes with distinct amber warning styling and new teacher badge", () => {
+    const assignmentsState = {
+      "missed-1": {
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"] as const,
+        startTime: "14:00",
+        endTime: "15:30",
+        classroomId: "cr1",
+        classroomName: "کلاس ۱۰۱",
+        isAssigned: true,
+      },
+    }
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={true}
+        hiringPlan={{
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "14:00",
+          endTime: "15:30",
+          totalClassCount: 1,
+          requiredCourses: [{ id: "c-missed", title: "Touchstone 1" }],
+          assignments: [
+            {
+              key: "missed-1",
+              requirementId: "req-1",
+              course: { id: "c-missed", title: "Touchstone 1" },
+              classNumber: 1,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+              startTime: "14:00",
+              endTime: "15:30",
+              classroom: { id: "cr1", name: "کلاس ۱۰۱" },
+            },
+          ],
+          availableTimeSlots: [
+            {
+              key: "SUNDAY,TUESDAY,THURSDAY|14:00|15:30",
+              daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+              startTime: "14:00",
+              endTime: "15:30",
+              availableClassrooms: [{ id: "cr1", name: "کلاس ۱۰۱" }],
+            },
+          ],
+        }}
+        missedClassesAssignments={assignmentsState}
+      />
+    )
+
+    // Check legend / badge
+    expect(screen.getAllByText("استاد جدید").length).toBeGreaterThanOrEqual(1)
+
+    // Check missed class card is rendered
+    expect(screen.getAllByText("Touchstone 1").length).toBeGreaterThanOrEqual(1)
+    expect(
+      screen.getAllByText("استاد جدید (در انتظار جذب)").length
+    ).toBeGreaterThanOrEqual(1)
+  })
+
+  it("allows unassigning a missed class from calendar via the X action", () => {
+    const onUnassignSpy = vi.fn()
+    const assignmentsState = {
+      "missed-1": {
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"] as const,
+        startTime: "14:00",
+        endTime: "15:30",
+        classroomId: "cr1",
+        classroomName: "کلاس ۱۰۱",
+        isAssigned: true,
+      },
+    }
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={true}
+        hiringPlan={{
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "14:00",
+          endTime: "15:30",
+          totalClassCount: 1,
+          requiredCourses: [{ id: "c-missed", title: "Touchstone 1" }],
+          assignments: [
+            {
+              key: "missed-1",
+              requirementId: "req-1",
+              course: { id: "c-missed", title: "Touchstone 1" },
+              classNumber: 1,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+              startTime: "14:00",
+              endTime: "15:30",
+              classroom: { id: "cr1", name: "کلاس ۱۰۱" },
+            },
+          ],
+        }}
+        missedClassesAssignments={assignmentsState}
+        onUnassignMissedClass={onUnassignSpy}
+      />
+    )
+
+    const unassignButtons = screen.getAllByRole("button", {
+      name: "حذف از جدول",
     })
-    expect(prop3Plus).not.toBeDisabled()
-    const prop3Minus = within(prop3Card).getByRole("button", {
-      name: "کاهش ظرفیت",
+    expect(unassignButtons.length).toBeGreaterThanOrEqual(1)
+    fireEvent.click(unassignButtons[0]!)
+
+    expect(onUnassignSpy).toHaveBeenCalledWith("missed-1")
+  })
+
+  it("renders low opacity empty cell placeholders in calendar grid", () => {
+    const { container } = render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    // Tuesday has 0 classes in mockProposals, header is dimmed
+    const tuesdayHeader = container.querySelector('[data-day-header="TUESDAY"]')
+    expect(tuesdayHeader).toHaveClass("opacity-50")
+
+    // Friday column must not be present
+    expect(container.querySelector('[data-day-header="FRIDAY"]')).toBeNull()
+
+    // Empty cell in Tuesday Row 1 has noClasses text and low opacity
+    const tuesdayEmptyCell = screen.getByTestId(
+      "empty-cell-TUESDAY-09:00-10:30"
+    )
+    expect(tuesdayEmptyCell).toBeInTheDocument()
+    expect(tuesdayEmptyCell).toHaveClass("opacity-40")
+    expect(tuesdayEmptyCell).toHaveClass("h-[134px]")
+    expect(tuesdayEmptyCell).toHaveTextContent("بدون کلاس")
+
+    // Empty cell in Sunday Row 1 has noClasses text and low opacity
+    const sundayEmptyCell = screen.getByTestId("empty-cell-SUNDAY-09:00-10:30")
+    expect(sundayEmptyCell).toBeInTheDocument()
+    expect(sundayEmptyCell).toHaveClass("opacity-40")
+    expect(sundayEmptyCell).toHaveClass("h-[134px]")
+    expect(sundayEmptyCell).toHaveTextContent("بدون کلاس")
+  })
+
+  it("equalizes height between regular class cards and missed class cards", () => {
+    const assignmentsState = {
+      "missed-1": {
+        daysOfWeek: ["SUNDAY"] as const,
+        startTime: "09:00",
+        endTime: "10:30",
+        classroomId: "cr1",
+        classroomName: "کلاس ۱۰۱",
+        isAssigned: true,
+      },
+    }
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={true}
+        hiringPlan={{
+          daysOfWeek: ["SUNDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+          totalClassCount: 1,
+          requiredCourses: [{ id: "c-missed", title: "Touchstone 1" }],
+          assignments: [
+            {
+              key: "missed-1",
+              requirementId: "req-1",
+              course: { id: "c-missed", title: "Touchstone 1" },
+              classNumber: 1,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["SUNDAY"],
+              startTime: "09:00",
+              endTime: "10:30",
+              classroom: { id: "cr1", name: "کلاس ۱۰۱", capacity: 15 },
+            },
+          ],
+        }}
+        missedClassesAssignments={assignmentsState}
+      />
+    )
+
+    const regularCard = screen.getAllByTestId("calendar-class-card-prop-1")[0]!
+    const missedCard = screen.getByTestId("missed-class-card-missed-1")
+
+    expect(regularCard).toHaveClass("h-[134px]")
+    expect(missedCard).toHaveClass("h-[134px]")
+    expect(missedCard).toHaveTextContent("ظرفیت")
+    expect(missedCard).toHaveTextContent("۱۵ نفر")
+  })
+
+  it("renders prominent free slot button when a slot is assignable", () => {
+    render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={true}
+        hiringPlan={{
+          daysOfWeek: ["THURSDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+          totalClassCount: 1,
+          requiredCourses: [{ id: "c-missed", title: "Touchstone 1" }],
+          assignments: [
+            {
+              key: "missed-1",
+              requirementId: "req-1",
+              course: { id: "c-missed", title: "Touchstone 1" },
+              classNumber: 1,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["THURSDAY"],
+              startTime: "09:00",
+              endTime: "10:30",
+              classroom: { id: "cr1", name: "کلاس ۱۰۱" },
+            },
+          ],
+          availableTimeSlots: [
+            {
+              key: "THURSDAY|09:00|10:30",
+              daysOfWeek: ["THURSDAY"],
+              startTime: "09:00",
+              endTime: "10:30",
+              availableClassrooms: [
+                { id: "cr1", name: "کلاس ۱۰۱", capacity: 20 },
+              ],
+              isFullyBooked: false,
+            },
+          ],
+        }}
+        missedClassesAssignments={{
+          "missed-1": {
+            daysOfWeek: [],
+            startTime: "",
+            endTime: "",
+            classroomId: null,
+            classroomName: null,
+            isAssigned: false,
+          },
+        }}
+      />
+    )
+
+    expect(screen.getByText("زمان آزاد")).toBeInTheDocument()
+    expect(screen.getByText("تخصیص کلاس")).toBeInTheDocument()
+    const freeSlotButton = screen.getByRole("button", { name: /زمان آزاد/ })
+    expect(freeSlotButton).toHaveClass("h-[134px]")
+  })
+
+  it("highlights sibling class cards and grays out other classes on hover", () => {
+    const { container } = render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    const prop1Cards = container.querySelectorAll('[data-class-id="prop-1"]')
+    const prop2Cards = container.querySelectorAll('[data-class-id="prop-2"]')
+    expect(prop1Cards.length).toBe(3)
+    expect(prop2Cards.length).toBe(1)
+
+    // Initially nothing is active or dimmed
+    expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
+    expect(prop2Cards[0]?.getAttribute("data-dimmed")).toBeNull()
+
+    // Hover over the first instance of prop-1 (Saturday)
+    fireEvent.mouseEnter(prop1Cards[0]!)
+
+    // All 3 instances of prop-1 must be active
+    prop1Cards.forEach((card) => {
+      expect(card.getAttribute("data-active")).toBe("true")
+      expect(card).toHaveClass("ring-2")
+      expect(card).toHaveClass("opacity-100")
     })
-    expect(prop3Minus).not.toBeDisabled()
+
+    // prop-2 must be dimmed and grayscaled
+    expect(prop2Cards[0]?.getAttribute("data-dimmed")).toBe("true")
+    expect(prop2Cards[0]).toHaveClass("grayscale")
+    expect(prop2Cards[0]).toHaveClass("opacity-25")
+
+    // Mouse leave restores all cards to normal
+    fireEvent.mouseLeave(prop1Cards[0]!)
+    expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
+    expect(prop2Cards[0]?.getAttribute("data-dimmed")).toBeNull()
+  })
+
+  it("pins sibling class cards on click and unpins on toggle, clear button, or Escape", () => {
+    const { container } = render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    const prop1Cards = container.querySelectorAll('[data-class-id="prop-1"]')
+    const prop2Cards = container.querySelectorAll('[data-class-id="prop-2"]')
+
+    // Click on prop-1 card to pin
+    fireEvent.click(prop1Cards[0]!)
+
+    // Mouse leave should NOT unpin because it is clicked/pinned
+    fireEvent.mouseLeave(prop1Cards[0]!)
+
+    prop1Cards.forEach((card) => {
+      expect(card.getAttribute("data-active")).toBe("true")
+    })
+    expect(prop2Cards[0]?.getAttribute("data-dimmed")).toBe("true")
+
+    // Clear selection button is displayed in the header
+    const clearBtn = screen.getByTestId("clear-selection-btn")
+    expect(clearBtn).toBeInTheDocument()
+
+    // Click clear selection button to unpin
+    fireEvent.click(clearBtn)
+
+    expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
+    expect(prop2Cards[0]?.getAttribute("data-dimmed")).toBeNull()
+    expect(screen.queryByTestId("clear-selection-btn")).toBeNull()
+
+    // Test Escape key unpins
+    fireEvent.click(prop1Cards[1]!)
+    expect(prop1Cards[0]?.getAttribute("data-active")).toBe("true")
+    fireEvent.keyDown(window, { key: "Escape" })
+    expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
   })
 })

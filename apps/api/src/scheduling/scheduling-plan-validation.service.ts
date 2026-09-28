@@ -198,12 +198,12 @@ export class SchedulingPlanValidationService {
       const relationInstituteIds = [
         proposal.instituteId,
         proposal.course.instituteId,
-        proposal.teacher.instituteId,
+        proposal.teacher?.instituteId,
         proposal.branch?.instituteId,
         proposal.classroom?.instituteId,
         proposal.classRequirement?.instituteId,
         ...proposal.sessions.map((session) => session.instituteId),
-        ...(proposal.teacher.teacherProfile?.teachableCourses.map(
+        ...(proposal.teacher?.teacherProfile?.teachableCourses.map(
           (qualification) => qualification.instituteId,
         ) ?? []),
       ].filter((value): value is string => value !== undefined);
@@ -221,21 +221,38 @@ export class SchedulingPlanValidationService {
       ) {
         add('INCOMPLETE_CLASS_REQUIREMENT', proposal.id);
       }
-      if (
-        !proposal.teacher.isActive ||
-        proposal.teacher.role !== 'TEACHER' ||
-        (proposal.branchId &&
-          proposal.teacher.branchId &&
-          proposal.teacher.branchId !== proposal.branchId)
-      ) {
-        add('INVALID_TEACHER', proposal.id, [proposal.teacherId]);
-      }
-      const qualified =
-        proposal.teacher.teacherProfile?.teachableCourses.some(
-          (qualification) => qualification.courseId === proposal.courseId,
-        ) ?? false;
-      if (!qualified) {
-        add('TEACHER_NOT_QUALIFIED', proposal.id, [proposal.teacherId]);
+      if (proposal.teacherId) {
+        if (
+          !proposal.teacher ||
+          !proposal.teacher.isActive ||
+          proposal.teacher.role !== 'TEACHER' ||
+          (proposal.branchId &&
+            proposal.teacher.branchId &&
+            proposal.teacher.branchId !== proposal.branchId)
+        ) {
+          add('INVALID_TEACHER', proposal.id, [proposal.teacherId]);
+        }
+        const qualified =
+          proposal.teacher?.teacherProfile?.teachableCourses.some(
+            (qualification) => qualification.courseId === proposal.courseId,
+          ) ?? false;
+        if (!qualified) {
+          add('TEACHER_NOT_QUALIFIED', proposal.id, [proposal.teacherId]);
+        }
+        const uncoveredDays = proposal.daysOfWeek.filter(
+          (day) =>
+            !proposal.teacher?.teacherProfile?.availabilities.some(
+              (availability) =>
+                availability.dayOfWeek === day &&
+                availability.startTime <= proposal.startTime &&
+                availability.endTime >= proposal.endTime,
+            ),
+        );
+        if (uncoveredDays.length > 0) {
+          add('OUTSIDE_TEACHER_AVAILABILITY', proposal.id, [], {
+            daysOfWeek: uncoveredDays,
+          });
+        }
       }
       if (
         !proposal.startTime ||
@@ -246,20 +263,6 @@ export class SchedulingPlanValidationService {
             requirement.sessionDurationMinutes)
       ) {
         add('INVALID_TIME_RANGE', proposal.id);
-      }
-      const uncoveredDays = proposal.daysOfWeek.filter(
-        (day) =>
-          !proposal.teacher.teacherProfile?.availabilities.some(
-            (availability) =>
-              availability.dayOfWeek === day &&
-              availability.startTime <= proposal.startTime &&
-              availability.endTime >= proposal.endTime,
-          ),
-      );
-      if (uncoveredDays.length > 0) {
-        add('OUTSIDE_TEACHER_AVAILABILITY', proposal.id, [], {
-          daysOfWeek: uncoveredDays,
-        });
       }
       if (
         (proposal.deliveryMode === 'ONLINE' && proposal.classroomId) ||
@@ -336,7 +339,10 @@ export class SchedulingPlanValidationService {
 
       for (const existingClass of existingClasses) {
         if (!this.hasOverlap(proposal, existingClass)) continue;
-        if (existingClass.teacherId === proposal.teacherId) {
+        if (
+          proposal.teacherId &&
+          existingClass.teacherId === proposal.teacherId
+        ) {
           add('TEACHER_TIME_CONFLICT', proposal.id, [existingClass.id]);
         }
         if (
@@ -367,7 +373,11 @@ export class SchedulingPlanValidationService {
         const first = plan.proposals[left];
         const second = plan.proposals[right];
         if (!this.hasOverlap(first, second)) continue;
-        if (first.teacherId === second.teacherId) {
+        if (
+          first.teacherId &&
+          second.teacherId &&
+          first.teacherId === second.teacherId
+        ) {
           add('TEACHER_TIME_CONFLICT', first.id, [second.id]);
           add('TEACHER_TIME_CONFLICT', second.id, [first.id]);
         }

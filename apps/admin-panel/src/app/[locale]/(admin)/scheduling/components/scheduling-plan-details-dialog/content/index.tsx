@@ -13,6 +13,7 @@ import {
 import type {
   SchedulingPlanDetailsDto,
   SchedulingPlanValidation,
+  WeekDay,
 } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -26,7 +27,10 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { formatDate, formatNumber } from "@workspace/ui/lib/utils"
 import { SchedulingPlanCalendarView } from "../../scheduling-plan-calendar-view"
-import { SchedulingNewTeacherHiringPlan } from "../../scheduling-new-teacher-hiring-plan"
+import {
+  SchedulingNewTeacherHiringPlan,
+  type CurrentAssignmentState,
+} from "../../scheduling-new-teacher-hiring-plan"
 import { SchedulingPlanPublicationStatus } from "../../scheduling-plan-publication-status"
 import { SchedulingPlanValidationResult } from "../../scheduling-plan-validation-result"
 import { SchedulingProposalDetailsItem } from "../../scheduling-proposal-details-item"
@@ -50,6 +54,124 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
     (sum, requirement) => sum + requirement.missingClassCount,
     0
   )
+
+  const [assignmentsState, setAssignmentsState] = React.useState<
+    Record<string, CurrentAssignmentState>
+  >(() => {
+    if (!plan.newTeacherHiringPlan) return {}
+    const initial: Record<string, CurrentAssignmentState> = {}
+    for (const a of plan.newTeacherHiringPlan.assignments) {
+      initial[a.key] = {
+        daysOfWeek: a.daysOfWeek as WeekDay[],
+        startTime: a.startTime,
+        endTime: a.endTime,
+        classroomId: a.classroom?.id ?? null,
+        classroomName: a.classroom?.name ?? null,
+        isAssigned: true,
+      }
+    }
+    return initial
+  })
+
+  React.useEffect(() => {
+    if (!plan.newTeacherHiringPlan) {
+      setAssignmentsState({})
+      return
+    }
+    const next: Record<string, CurrentAssignmentState> = {}
+    for (const a of plan.newTeacherHiringPlan.assignments) {
+      next[a.key] = {
+        daysOfWeek: a.daysOfWeek as WeekDay[],
+        startTime: a.startTime,
+        endTime: a.endTime,
+        classroomId: a.classroom?.id ?? null,
+        classroomName: a.classroom?.name ?? null,
+        isAssigned: true,
+      }
+    }
+    setAssignmentsState(next)
+  }, [plan.newTeacherHiringPlan])
+
+  const handleAssignMissedClass = React.useCallback(
+    (assignmentKey: string, slotKey: string) => {
+      if (!plan.newTeacherHiringPlan?.availableTimeSlots) return
+
+      const matchingOption = plan.newTeacherHiringPlan.availableTimeSlots.find(
+        (opt) =>
+          `${opt.daysOfWeek.join(",")}|${opt.startTime}|${opt.endTime}` ===
+          slotKey
+      )
+
+      if (!matchingOption) return
+
+      setAssignmentsState((prev) => {
+        const takenRoomIds = new Set<string>()
+        for (const [key, state] of Object.entries(prev)) {
+          if (key === assignmentKey) continue
+          if (state.isAssigned === false) continue
+          const itemKey = `${state.daysOfWeek.join(",")}|${state.startTime}|${state.endTime}`
+          if (itemKey === slotKey && state.classroomId) {
+            takenRoomIds.add(state.classroomId)
+          }
+        }
+
+        const freeRoom = matchingOption.availableClassrooms.find(
+          (room) => !takenRoomIds.has(room.id)
+        )
+
+        return {
+          ...prev,
+          [assignmentKey]: {
+            daysOfWeek: matchingOption.daysOfWeek as WeekDay[],
+            startTime: matchingOption.startTime,
+            endTime: matchingOption.endTime,
+            classroomId: freeRoom?.id ?? null,
+            classroomName: freeRoom?.name ?? null,
+            isAssigned: true,
+          },
+        }
+      })
+    },
+    [plan.newTeacherHiringPlan]
+  )
+
+  const handleUnassignMissedClass = React.useCallback(
+    (assignmentKey: string) => {
+      setAssignmentsState((prev) => {
+        const existing = prev[assignmentKey]
+        if (!existing) return prev
+        return {
+          ...prev,
+          [assignmentKey]: {
+            ...existing,
+            isAssigned: false,
+            daysOfWeek: [],
+            startTime: "",
+            endTime: "",
+            classroomId: null,
+            classroomName: null,
+          },
+        }
+      })
+    },
+    []
+  )
+
+  const handleResetAssignments = React.useCallback(() => {
+    if (!plan.newTeacherHiringPlan) return
+    const next: Record<string, CurrentAssignmentState> = {}
+    for (const a of plan.newTeacherHiringPlan.assignments) {
+      next[a.key] = {
+        daysOfWeek: a.daysOfWeek as WeekDay[],
+        startTime: a.startTime,
+        endTime: a.endTime,
+        classroomId: a.classroom?.id ?? null,
+        classroomName: a.classroom?.name ?? null,
+        isAssigned: true,
+      }
+    }
+    setAssignmentsState(next)
+  }, [plan.newTeacherHiringPlan])
 
   return (
     <div className="flex flex-col gap-6 px-6 pb-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
@@ -159,6 +281,10 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
             <SchedulingPlanCalendarView
               proposals={plan.proposals}
               canEdit={isSelected && plan.status === "SELECTED"}
+              hiringPlan={plan.newTeacherHiringPlan}
+              missedClassesAssignments={assignmentsState}
+              onAssignMissedClass={handleAssignMissedClass}
+              onUnassignMissedClass={handleUnassignMissedClass}
             />
           ) : plan.proposals.length > 0 ? (
             <ul className="flex flex-col gap-3">
@@ -212,6 +338,10 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
           <SchedulingNewTeacherHiringPlan
             plan={plan.newTeacherHiringPlan}
             missingClassCount={missingClassCount}
+            planId={plan.id}
+            planStatus={plan.status}
+            assignmentsState={assignmentsState}
+            onResetAssignments={handleResetAssignments}
           />
           <ul className="mt-4 flex flex-col gap-3">
             {plan.unresolvedRequirements.map((requirement) => (

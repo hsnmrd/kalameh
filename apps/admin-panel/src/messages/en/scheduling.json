@@ -291,7 +291,22 @@
       "increaseCapacity": "Increase capacity",
       "decreaseCapacity": "Decrease capacity",
       "maxCapacity": "Max {max} students",
-      "capacityLabel": "Capacity: {current} of {max}"
+      "capacityLabel": "Capacity: {current} of {max}",
+      "freeSlot": "Free Slot",
+      "assignClass": "Assign Class",
+      "assignSlotTitle": "Assign Class to this Time",
+      "assignSlotDescription": "Select an unscheduled class to hold on {days} from {start} to {end}.",
+      "newTeacherBadge": "New Teacher",
+      "unassign": "Unassign from Calendar",
+      "changeSlot": "Change Time",
+      "availableRooms": "{count} room(s) available",
+      "assignedInCalendar": "Scheduled in Calendar",
+      "unassignedInCalendar": "Unscheduled",
+      "scrollToCalendar": "View in Weekly Calendar",
+      "noMissedClassesToAssign": "All unscheduled classes have been scheduled in the calendar.",
+      "roomNeeded": "Room needed",
+      "emptyDaysNotice": "Days without classes in this schedule: {days}",
+      "clearSelection": "Clear class selection"
     },
     "weekDays": {
       "SATURDAY": "Saturday",
@@ -408,7 +423,20 @@
       "validation": "The system checked physical rooms for the displayed days and times. An odd/even three-day pattern and consecutive times are preferences, not reasons to hide a suggestion.",
       "validationWithRoomChanges": "This is the best time combination found, but one or more classes still need a free or additional physical room. An odd/even three-day pattern and consecutive times are preferences, not reasons to hide a suggestion.",
       "emptyTitle": "No complete feasible schedule was found",
-      "emptyDescription": "Adding a new teacher is still recommended, but even with alternative days and time gaps, the current operating phase cannot fit every unscheduled class. Review operating hours, breaks, or class durations."
+      "emptyDescription": "Adding a new teacher is still recommended, but even with alternative days and time gaps, the current operating phase cannot fit every unscheduled class. Review operating hours, breaks, or class durations.",
+      "pendingTeacher": "New Teacher (Pending Hiring)",
+      "selectSlotLabel": "Select Class Time",
+      "selectSlotPlaceholder": "Select schedule slot...",
+      "reservedByOther": "Reserved by another class",
+      "noRoomsAvailable": "No rooms available",
+      "roomOption": "Room {room}",
+      "noRoomAssigned": "No room assigned",
+      "commitButton": "Commit as Draft Plan Classes",
+      "committing": "Committing...",
+      "commitSuccess": "Draft classes successfully added to plan.",
+      "resetSuggestion": "Reset to Initial Suggestion",
+      "trackEven": "Even (Sun/Tue/Thu)",
+      "trackOdd": "Odd (Sat/Mon/Wed)"
     },
     "teacherCalendar": {
       "all": {

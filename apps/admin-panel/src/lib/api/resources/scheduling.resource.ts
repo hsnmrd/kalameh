@@ -2,6 +2,7 @@ import type {
   ApplyTermDemandInput,
   ApplyTermDemandResult,
   CalculateTermDemandInput,
+  CommitHiringPlanInput,
   GenerateSchedulingPlanInput,
   SchedulingPlanDetailsDto,
   SchedulingPlanPublicationResult,
@@ -101,4 +102,11 @@ export const schedulingResource = api.resource("scheduling", {
       body: ({ body }) => body,
     }
   ),
+  commitHiringPlan: api.post<
+    SchedulingPlanDetailsDto,
+    SchedulingPlanRequest & { body: CommitHiringPlanInput }
+  >(({ planId }) => `/scheduling/plans/${planId}/hiring-plan/commit`, {
+    query: toInstituteQuery,
+    body: ({ body }) => body,
+  }),
 })

@@ -157,7 +157,7 @@ const proposalDefaults = (
   proposal: Proposal
 ): UpdateSchedulingProposalInput => ({
   title: proposal.title,
-  teacherId: proposal.teacherId,
+  teacherId: proposal.teacherId ?? undefined,
   branchId: proposal.branchId ?? null,
   classroomId: proposal.classroomId ?? null,
   capacity: proposal.capacity,

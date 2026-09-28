@@ -47,7 +47,7 @@ const SchedulingRequirementReferenceSchema = z.object({
 export const SchedulingProposalDetailsSchema = SchedulingProposalSchema.and(
   z.object({
     course: SchedulingCourseReferenceSchema,
-    teacher: SchedulingUserReferenceSchema,
+    teacher: SchedulingUserReferenceSchema.nullable(),
     branch: SchedulingBranchReferenceSchema.nullable(),
     classroom: SchedulingClassroomReferenceSchema.nullable(),
     classRequirement: SchedulingRequirementReferenceSchema.nullable(),

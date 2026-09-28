@@ -408,17 +408,17 @@ model SchedulingPlan {
 }
 
 model SchedulingProposal {
-  id                     String   @id @default(uuid())
+  id                     String    @id @default(uuid())
   instituteId            String
   planId                 String
   classRequirementId     String?
   courseId               String
   branchId               String?
-  teacherId              String
+  teacherId              String?
   classroomId            String?
   teacherQualificationId String?
-  qualificationCheckedAt DateTime
-  publishedClassId       String?  @unique
+  qualificationCheckedAt DateTime?
+  publishedClassId       String?   @unique
 
   title            String
   capacity         Int
@@ -443,7 +443,7 @@ model SchedulingProposal {
   classRequirement ClassRequirement?           @relation(fields: [classRequirementId], references: [id], onDelete: SetNull)
   course           Course                      @relation(fields: [courseId], references: [id], onDelete: Restrict)
   branch           Branch?                     @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  teacher          User                        @relation("SchedulingProposalTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+  teacher          User?                       @relation("SchedulingProposalTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
   classroom        Classroom?                  @relation(fields: [classroomId], references: [id], onDelete: SetNull)
   lockedBy         User?                       @relation("SchedulingProposalLocker", fields: [lockedByUserId], references: [id], onDelete: SetNull)
   publishedClass   Class?                      @relation(fields: [publishedClassId], references: [id], onDelete: SetNull)

@@ -83,6 +83,14 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return prisma.schedulingProposal;
   }
 
+  get schedulingProposalSession(): typeof prisma.schedulingProposalSession {
+    return prisma.schedulingProposalSession;
+  }
+
+  get schedulingUnresolvedRequirement(): typeof prisma.schedulingUnresolvedRequirement {
+    return prisma.schedulingUnresolvedRequirement;
+  }
+
   get instituteOperatingPhase(): typeof prisma.instituteOperatingPhase {
     return prisma.instituteOperatingPhase;
   }

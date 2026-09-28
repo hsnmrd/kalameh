@@ -32,7 +32,9 @@ export function SchedulingProposalDetailsItem({
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
   const [isEditOpen, setIsEditOpen] = React.useState(false)
-  const teacherName = `${proposal.teacher.firstName} ${proposal.teacher.lastName}`
+  const teacherName = proposal.teacher
+    ? `${proposal.teacher.firstName} ${proposal.teacher.lastName}`
+    : t("hiringPlan.pendingTeacher")
   const location =
     proposal.deliveryMode === "ONLINE"
       ? t("deliveryModes.ONLINE")

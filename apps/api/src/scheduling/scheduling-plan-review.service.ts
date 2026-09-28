@@ -216,21 +216,23 @@ export class SchedulingPlanReviewService {
     }
 
     const [qualification, , classroom] = await Promise.all([
-      this.prisma.teacherCourseQualification.findFirstOrThrow({
-        where: {
-          instituteId,
-          courseId: proposal.courseId,
-          teacherProfile: {
-            userId: merged.teacherId,
-            user: {
+      merged.teacherId
+        ? this.prisma.teacherCourseQualification.findFirstOrThrow({
+            where: {
               instituteId,
-              role: 'TEACHER',
-              isActive: true,
+              courseId: proposal.courseId,
+              teacherProfile: {
+                userId: merged.teacherId,
+                user: {
+                  instituteId,
+                  role: 'TEACHER',
+                  isActive: true,
+                },
+              },
             },
-          },
-        },
-        select: { id: true },
-      }),
+            select: { id: true },
+          })
+        : Promise.resolve(null),
       merged.branchId
         ? this.prisma.branch.findFirstOrThrow({
             where: {
@@ -282,8 +284,8 @@ export class SchedulingPlanReviewService {
         },
         data: {
           ...merged,
-          teacherQualificationId: qualification.id,
-          qualificationCheckedAt: changedAt,
+          teacherQualificationId: qualification?.id ?? null,
+          qualificationCheckedAt: qualification ? changedAt : null,
           score: null,
           scoreBreakdown: this.toJson({}),
           selectionReasons: this.toJson([
