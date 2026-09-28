@@ -10,6 +10,7 @@ import {
   type SchedulingRunDto,
 } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
+import { FABSingle } from "@workspace/ui/components/fab"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
@@ -57,6 +58,15 @@ export default function SchedulingRunResultPage() {
     return null
   }, [activeRun, runId, statusQuery.data])
 
+  const isTerminal = React.useMemo(() => {
+    if (!resolvedRun) return false
+    const status = statusQuery.data?.status ?? resolvedRun.status
+    return (
+      statusQuery.data?.isTerminal ??
+      (status !== "QUEUED" && status !== "GENERATING")
+    )
+  }, [resolvedRun, statusQuery.data])
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_CLASSES} mode="forbidden">
@@ -70,6 +80,16 @@ export default function SchedulingRunResultPage() {
                 { label: t("runStatus.pageTitle") },
               ]}
             />
+          }
+          fab={
+            isTerminal ? (
+              <FABSingle
+                onClick={handleReset}
+                aria-label={t("runStatus.another")}
+              >
+                <RotateCcw className="size-6" aria-hidden />
+              </FABSingle>
+            ) : undefined
           }
         >
           {resolvedRun ? (

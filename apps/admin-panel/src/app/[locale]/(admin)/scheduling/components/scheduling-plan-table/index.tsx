@@ -63,13 +63,21 @@ export function SchedulingPlanTable({
             <div className="flex flex-wrap gap-1.5">
               {currentPlan.status === "SELECTED" && (
                 <Badge>
-                  <Check aria-hidden data-icon="inline-start" />
+                  <Check
+                    aria-hidden
+                    data-icon="inline-start"
+                    className="size-3.5"
+                  />
                   {t("selection.badge")}
                 </Badge>
               )}
               {currentPlan.status === "PUBLISHED" && (
                 <Badge variant="success">
-                  <Check aria-hidden data-icon="inline-start" />
+                  <Check
+                    aria-hidden
+                    data-icon="inline-start"
+                    className="size-3.5"
+                  />
                   {t("statuses.published")}
                 </Badge>
               )}
@@ -166,13 +174,21 @@ export function SchedulingPlanTable({
         return (
           <div className="flex min-w-36 flex-col items-start gap-1.5">
             <Badge variant={missingClassCount > 0 ? "warning" : "outline"}>
-              <CircleAlert aria-hidden data-icon="inline-start" />
+              <CircleAlert
+                aria-hidden
+                data-icon="inline-start"
+                className="size-3.5"
+              />
               {t("missingClasses", {
                 count: formatNumber(missingClassCount, locale),
               })}
             </Badge>
             <Badge variant={warningCount > 0 ? "secondary" : "outline"}>
-              <TriangleAlert aria-hidden data-icon="inline-start" />
+              <TriangleAlert
+                aria-hidden
+                data-icon="inline-start"
+                className="size-3.5"
+              />
               {t("warnings", {
                 count: formatNumber(warningCount, locale),
               })}

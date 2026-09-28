@@ -189,9 +189,7 @@ describe("MVP-036 scheduling plan comparison", () => {
     render(<SchedulingPlanComparison planIds={[firstPlanId, secondPlanId]} />)
 
     expect(
-      await screen.findByRole("heading", {
-        name: "مقایسه برنامه‌های پیشنهادی",
-      })
+      await screen.findByRole("heading", { name: "برنامه ۱" })
     ).toBeInTheDocument()
     expect(
       screen

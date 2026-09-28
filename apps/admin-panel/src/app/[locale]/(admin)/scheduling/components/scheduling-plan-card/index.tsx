@@ -100,13 +100,21 @@ export function SchedulingPlanCard({
         <div className="flex flex-wrap justify-end gap-2">
           {isSelected && (
             <Badge>
-              <Check aria-hidden data-icon="inline-start" />
+              <Check
+                aria-hidden
+                data-icon="inline-start"
+                className="size-3.5"
+              />
               {t("selection.badge")}
             </Badge>
           )}
           {plan.status === "PUBLISHED" && (
             <Badge variant="success">
-              <Check aria-hidden data-icon="inline-start" />
+              <Check
+                aria-hidden
+                data-icon="inline-start"
+                className="size-3.5"
+              />
               {t("statuses.published")}
             </Badge>
           )}
@@ -147,13 +155,21 @@ export function SchedulingPlanCard({
         <Separator className="mb-4" />
         <div className="flex flex-wrap gap-2">
           <Badge variant={missingClassCount > 0 ? "warning" : "outline"}>
-            <CircleAlert aria-hidden data-icon="inline-start" />
+            <CircleAlert
+              aria-hidden
+              data-icon="inline-start"
+              className="size-3.5"
+            />
             {t("missingClasses", {
               count: formatNumber(missingClassCount, locale),
             })}
           </Badge>
           <Badge variant={warningCount > 0 ? "secondary" : "outline"}>
-            <TriangleAlert aria-hidden data-icon="inline-start" />
+            <TriangleAlert
+              aria-hidden
+              data-icon="inline-start"
+              className="size-3.5"
+            />
             {t("warnings", { count: formatNumber(warningCount, locale) })}
           </Badge>
         </div>

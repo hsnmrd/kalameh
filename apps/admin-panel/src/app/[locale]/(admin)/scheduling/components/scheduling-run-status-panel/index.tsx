@@ -1,13 +1,12 @@
 "use client"
 
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import { Ban, CheckCircle2, CircleAlert, RotateCcw } from "lucide-react"
 import type { SchedulingRunDto, SchedulingRunStatus } from "@workspace/types"
 import { Badge, type BadgeProps } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { useSchedulingRunStatus } from "../../hooks/use-scheduling-run-status"
 import { SchedulingPlanComparison } from "../scheduling-plan-comparison"
 import { SchedulingRunProgress } from "../scheduling-run-progress"
@@ -38,105 +37,86 @@ export function SchedulingRunStatusPanel({
   onReset,
 }: SchedulingRunStatusPanelProps) {
   const t = useTranslations("scheduling.runStatus")
-  const locale = useLocale()
   const statusQuery = useSchedulingRunStatus(run.id)
   const result = statusQuery.data
   const status = result?.status ?? run.status
   const isActive = ACTIVE_STATUSES.has(status)
   const isTerminal = result?.isTerminal ?? !isActive
   const isFailed = status === "FAILED" || status === "PREFLIGHT_FAILED"
-  const updatedAt = result?.updatedAt ?? run.updatedAt
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <section
-        aria-live="polite"
-        aria-busy={isActive || statusQuery.isFetching}
-        className="overflow-hidden rounded-2xl border border-border bg-card"
-      >
-        <div className="flex flex-col gap-5 px-5 py-6 sm:px-6 sm:py-8">
-          <div className="flex items-start gap-4">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-              {isActive ? (
-                <Spinner size="lg" />
-              ) : status === "COMPLETED" ? (
-                <CheckCircle2 aria-hidden className="size-6 text-success" />
-              ) : status === "CANCELLED" ? (
-                <Ban aria-hidden className="size-6" />
-              ) : (
-                <CircleAlert aria-hidden className="size-6 text-destructive" />
-              )}
-            </span>
+      <AdminFilterBar
+        className="mb-0 lg:mb-0"
+        search={
+          <section
+            aria-live="polite"
+            aria-busy={isActive || statusQuery.isFetching}
+            className="flex min-h-14 w-full min-w-0 items-center justify-between gap-2 rounded-2xl border border-border bg-card px-3 py-2 sm:gap-4 sm:px-4"
+          >
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                {isActive ? (
+                  <Spinner className="size-4.5" />
+                ) : status === "COMPLETED" ? (
+                  <CheckCircle2 aria-hidden className="size-4.5 text-success" />
+                ) : status === "CANCELLED" ? (
+                  <Ban aria-hidden className="size-4.5" />
+                ) : (
+                  <CircleAlert
+                    aria-hidden
+                    className="size-4.5 text-destructive"
+                  />
+                )}
+              </span>
 
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-lg font-bold text-foreground">
-                  {t(`statuses.${status}.title`)}
-                </h2>
-                <Badge variant={statusVariants[status]}>
-                  {isActive && <Spinner data-icon="inline-start" size="sm" />}
-                  {t(`statuses.${status}.badge`)}
-                </Badge>
+              <div className="flex min-w-0 flex-col justify-center">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <h2 className="truncate text-xs font-bold text-foreground sm:text-sm">
+                    {t(`statuses.${status}.title`)}
+                  </h2>
+                  <Badge
+                    variant={statusVariants[status]}
+                    className="h-5 shrink-0 px-2 text-[11px]"
+                  >
+                    {isActive && <Spinner data-icon="inline-start" size="sm" />}
+                    {t(`statuses.${status}.badge`)}
+                  </Badge>
+                </div>
+                <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
+                  {t(`statuses.${status}.description`)}
+                </p>
               </div>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                {t(`statuses.${status}.description`)}
-              </p>
             </div>
-          </div>
+          </section>
+        }
+        actions={
+          isTerminal ? (
+            <Button
+              type="button"
+              onClick={onReset}
+              className="shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs"
+            >
+              <RotateCcw aria-hidden className="size-5" />
+              <span>{t("another")}</span>
+            </Button>
+          ) : undefined
+        }
+      />
 
-          {isActive && (
-            <SchedulingRunProgress status={status} isFailed={isFailed} />
-          )}
+      {isActive && (
+        <SchedulingRunProgress status={status} isFailed={isFailed} />
+      )}
 
-          {statusQuery.isError && (
-            <ConnectionError
-              error={statusQuery.error}
-              isFetching={statusQuery.isFetching}
-              onRetry={() => statusQuery.refetch()}
-            />
-          )}
+      {statusQuery.isError && (
+        <ConnectionError
+          error={statusQuery.error}
+          isFetching={statusQuery.isFetching}
+          onRetry={() => statusQuery.refetch()}
+        />
+      )}
 
-          {isFailed && <FailureDetails run={run} result={result} />}
-
-          {status === "COMPLETED" && result?.result && (
-            <div className="rounded-xl bg-success/10 p-4">
-              <p className="font-semibold text-foreground">
-                {t("result.title", {
-                  count: formatNumber(result.result.planIds.length, locale),
-                })}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                {t("result.description")}
-              </p>
-            </div>
-          )}
-
-          <Separator />
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0 text-xs leading-5 text-muted-foreground">
-              <p className="break-all">{t("runId", { id: run.id })}</p>
-              <p>
-                {t("updatedAt", {
-                  value: new Intl.DateTimeFormat(locale, {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  }).format(new Date(updatedAt)),
-                })}
-              </p>
-            </div>
-
-            <div className="flex flex-col-reverse gap-2 sm:flex-row">
-              {isTerminal && (
-                <Button type="button" size="lg" onClick={onReset}>
-                  <RotateCcw aria-hidden data-icon="inline-start" />
-                  {t("another")}
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+      {isFailed && <FailureDetails run={run} result={result} />}
 
       {status === "COMPLETED" && result?.result && (
         <SchedulingPlanComparison planIds={result.result.planIds} />

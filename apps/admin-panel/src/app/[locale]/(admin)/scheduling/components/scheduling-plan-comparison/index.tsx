@@ -113,24 +113,7 @@ export function SchedulingPlanComparison({
   }
 
   return (
-    <section aria-labelledby="scheduling-comparison-title">
-      <div className="mb-4 flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <GitCompareArrows aria-hidden className="size-5" />
-        </span>
-        <div>
-          <h2
-            id="scheduling-comparison-title"
-            className="text-lg font-bold text-foreground"
-          >
-            {t("title")}
-          </h2>
-          <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
-            {t("description")}
-          </p>
-        </div>
-      </div>
-
+    <section aria-label={t("title")}>
       <div className="hidden lg:block">
         <SchedulingPlanTable
           plans={plans}
