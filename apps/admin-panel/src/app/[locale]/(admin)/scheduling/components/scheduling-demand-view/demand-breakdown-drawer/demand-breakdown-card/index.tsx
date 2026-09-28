@@ -39,10 +39,6 @@ export function DemandBreakdownCard({
 }: DemandBreakdownCardProps) {
   const t = useTranslations("scheduling.demand.breakdown")
   const locale = useLocale()
-  const planned = suggestions.reduce(
-    (total, suggestedClass) => total + suggestedClass.capacity,
-    0
-  )
   const uncovered = calculateUncoveredStudents(
     item.eligibleStudentsCount,
     suggestions.map((suggestedClass) => suggestedClass.capacity)
@@ -91,22 +87,14 @@ export function DemandBreakdownCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 rounded-xl bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <Users
-            className="size-4 shrink-0 text-muted-foreground"
-            aria-hidden
-          />
-          <span>
-            {t("studentsDetail", {
-              continuing: formatNumber(item.continuingStudentsCount, locale),
-              new: formatNumber(item.newPlacementCount, locale),
-              total: formatNumber(item.eligibleStudentsCount, locale),
-            })}
-          </span>
-        </div>
-        <span className="shrink-0 font-semibold text-foreground">
-          {t("plannedSeats", { count: formatNumber(planned, locale) })}
+      <div className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+        <Users className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+        <span>
+          {t("studentsDetail", {
+            continuing: formatNumber(item.continuingStudentsCount, locale),
+            new: formatNumber(item.newPlacementCount, locale),
+            total: formatNumber(item.eligibleStudentsCount, locale),
+          })}
         </span>
       </div>
 

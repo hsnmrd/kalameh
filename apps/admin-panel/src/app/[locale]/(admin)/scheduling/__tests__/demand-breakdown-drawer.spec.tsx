@@ -52,7 +52,7 @@ describe("DemandBreakdownDrawer", () => {
     expect(screen.getAllByText("American English File 2")).toHaveLength(2)
     expect(screen.getByText("American English File 1")).toBeInTheDocument()
     expect(screen.getAllByText("۲ کلاس")).toHaveLength(2)
-    expect(screen.getAllByText("۲۹ صندلی برنامه‌ریزی‌شده")).toHaveLength(2)
+    expect(screen.getByText("۲۹ صندلی برنامه‌ریزی‌شده")).toBeInTheDocument()
     expect(screen.getAllByText("پوشش کامل")).toHaveLength(2)
 
     // Initially collapsed

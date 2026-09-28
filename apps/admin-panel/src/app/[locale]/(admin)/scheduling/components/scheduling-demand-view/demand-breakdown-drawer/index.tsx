@@ -230,8 +230,16 @@ export function DemandBreakdownDrawer({
                               </Button>
                             </CarouselItem>
                           </CarouselContent>
-                          <CarouselPrevious type="button" />
-                          <CarouselNext type="button" />
+                          <div className="mt-2.5 flex items-center justify-end gap-1.5">
+                            <CarouselPrevious
+                              type="button"
+                              className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
+                            />
+                            <CarouselNext
+                              type="button"
+                              className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
+                            />
+                          </div>
                         </Carousel>
                       </TableCell>
                     </TableRow>
