@@ -58,6 +58,7 @@ export class SchedulingNewTeacherHiringPlanService {
             select: {
               startTime: true,
               endTime: true,
+              slotDurationMinutes: true,
               daysOfWeek: true,
               hasBreak: true,
               breakStartTime: true,

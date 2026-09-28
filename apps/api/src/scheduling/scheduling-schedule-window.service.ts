@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { WeekDay } from '@workspace/types';
+import {
+  calculatePhaseSlots,
+  type PhaseGeneratedSlot,
+  type WeekDay,
+} from '@workspace/types';
 
 export type SchedulingWindowOperatingPhase = {
   startTime: string;
@@ -20,6 +24,22 @@ export type SchedulingWindowClass = {
 
 @Injectable()
 export class SchedulingScheduleWindowService {
+  phaseSlots(
+    phase: SchedulingWindowOperatingPhase,
+    slotDurationMinutes: number,
+  ): PhaseGeneratedSlot[] {
+    return calculatePhaseSlots(
+      phase.startTime,
+      phase.endTime,
+      slotDurationMinutes,
+      {
+        hasBreak: phase.hasBreak,
+        breakStartTime: phase.breakStartTime,
+        breakEndTime: phase.breakEndTime,
+      },
+    ).slots;
+  }
+
   overlapsBreak(
     startTime: string,
     endTime: string,

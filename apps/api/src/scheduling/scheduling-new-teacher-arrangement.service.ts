@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  PhaseGeneratedSlot,
   SchedulingNewTeacherHiringAssignment,
   WeekDay,
 } from '@workspace/types';
-import { SchedulingNewTeacherPreferenceService } from './scheduling-new-teacher-preference.service';
 import { SchedulingScheduleWindowService } from './scheduling-schedule-window.service';
 import type {
   NewTeacherArrangement,
@@ -15,7 +15,6 @@ import type {
 export class SchedulingNewTeacherArrangementService {
   constructor(
     private readonly windowService: SchedulingScheduleWindowService,
-    private readonly preferenceService: SchedulingNewTeacherPreferenceService,
   ) {}
 
   best(
@@ -23,23 +22,21 @@ export class SchedulingNewTeacherArrangementService {
     daysOfWeek: WeekDay[],
     workItems: NewTeacherHiringWorkItem[],
   ): NewTeacherArrangement | null {
-    const phaseStart = this.windowService.toMinutes(
-      input.operatingPhase.startTime,
+    const phaseSlots = this.windowService.phaseSlots(
+      input.operatingPhase,
+      input.operatingPhase.slotDurationMinutes,
     );
-    const phaseEnd = this.windowService.toMinutes(input.operatingPhase.endTime);
-    if (phaseStart === null || phaseEnd === null) return null;
-    const totalDuration = workItems.reduce(
-      (sum, item) => sum + item.durationMinutes,
-      0,
-    );
+    if (phaseSlots.length === 0) return null;
     const candidates: NewTeacherArrangement[] = [];
 
-    for (
-      let start = phaseStart;
-      start + totalDuration <= phaseEnd;
-      start += input.settings.generation.candidateStepMinutes
-    ) {
-      const arrangement = this.arrange(input, daysOfWeek, start, workItems);
+    for (let startIndex = 0; startIndex < phaseSlots.length; startIndex += 1) {
+      const arrangement = this.arrange(
+        input,
+        daysOfWeek,
+        phaseSlots,
+        startIndex,
+        workItems,
+      );
       if (arrangement) candidates.push(arrangement);
     }
 
@@ -59,7 +56,8 @@ export class SchedulingNewTeacherArrangementService {
   private arrange(
     input: OptimizeHiringPlanInput,
     daysOfWeek: WeekDay[],
-    startMinutes: number,
+    phaseSlots: PhaseGeneratedSlot[],
+    startIndex: number,
     workItems: NewTeacherHiringWorkItem[],
   ): NewTeacherArrangement | null {
     const failedStates = new Set<string>();
@@ -67,7 +65,8 @@ export class SchedulingNewTeacherArrangementService {
 
     const search = (
       remaining: NewTeacherHiringWorkItem[],
-      cursor: number,
+      slotIndex: number,
+      cursorMinutes: number,
       previousRoomId: string | null,
       assignments: SchedulingNewTeacherHiringAssignment[],
       gapMinutes: number,
@@ -85,32 +84,29 @@ export class SchedulingNewTeacherArrangementService {
           gapMinutes,
         };
       }
-      const stateKey = `${cursor}:${previousRoomId ?? 'NONE'}:${remaining
+      const stateKey = `${slotIndex}:${previousRoomId ?? 'NONE'}:${remaining
         .map(({ key }) => key)
         .sort()
         .join('|')}`;
       if (failedStates.has(stateKey)) return null;
 
+      const slot = phaseSlots[slotIndex];
+      if (!slot) return null;
+      const slotStartMinutes = this.windowService.toMinutes(slot.startTime);
+      const slotEndMinutes = this.windowService.toMinutes(slot.endTime);
+      if (slotStartMinutes === null || slotEndMinutes === null) return null;
+
       const choices = remaining
         .flatMap((item) => {
-          const adjustedCursor = this.preferenceService.advancePastBreak(
-            cursor,
-            item.durationMinutes,
-            input.operatingPhase,
-          );
-          if (adjustedCursor === null) return [];
-          const startTime = this.windowService.toTime(adjustedCursor);
-          const endTime = this.windowService.toTime(
-            adjustedCursor + item.durationMinutes,
-          );
+          if (item.durationMinutes !== slot.durationMinutes) return [];
           const rooms = this.availableRooms(
             input,
             item,
             daysOfWeek,
-            startTime,
-            endTime,
+            slot.startTime,
+            slot.endTime,
           );
-          return [{ item, startTime, endTime, rooms, adjustedCursor }];
+          return [{ item, slot, rooms }];
         })
         .sort(
           (left, right) =>
@@ -128,7 +124,8 @@ export class SchedulingNewTeacherArrangementService {
               null);
         const result = search(
           remaining.filter(({ key }) => key !== choice.item.key),
-          choice.adjustedCursor + choice.item.durationMinutes,
+          slotIndex + 1,
+          slotEndMinutes,
           classroom?.id ?? previousRoomId,
           [
             ...assignments,
@@ -139,12 +136,12 @@ export class SchedulingNewTeacherArrangementService {
               classNumber: choice.item.classNumber,
               deliveryMode: choice.item.deliveryMode,
               daysOfWeek,
-              startTime: choice.startTime,
-              endTime: choice.endTime,
+              startTime: choice.slot.startTime,
+              endTime: choice.slot.endTime,
               classroom,
             },
           ],
-          gapMinutes + choice.adjustedCursor - cursor,
+          gapMinutes + Math.max(0, slotStartMinutes - cursorMinutes),
         );
         if (result) return result;
       }
@@ -153,7 +150,12 @@ export class SchedulingNewTeacherArrangementService {
       return null;
     };
 
-    return search(workItems, startMinutes, null, [], 0);
+    const firstSlot = phaseSlots[startIndex];
+    if (!firstSlot) return null;
+    const startMinutes = this.windowService.toMinutes(firstSlot.startTime);
+    if (startMinutes === null) return null;
+
+    return search(workItems, startIndex, startMinutes, null, [], 0);
   }
 
   private availableRooms(

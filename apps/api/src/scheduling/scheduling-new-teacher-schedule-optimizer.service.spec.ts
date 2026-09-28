@@ -14,10 +14,7 @@ describe('SchedulingNewTeacherScheduleOptimizerService', () => {
   const service = new SchedulingNewTeacherScheduleOptimizerService(
     windowService,
     new SchedulingNewTeacherPreferenceService(windowService),
-    new SchedulingNewTeacherArrangementService(
-      windowService,
-      new SchedulingNewTeacherPreferenceService(windowService),
-    ),
+    new SchedulingNewTeacherArrangementService(windowService),
   );
   const settings = SchedulingEngineSettingsSnapshotSchema.parse({
     schemaVersion: '1',
@@ -62,6 +59,7 @@ describe('SchedulingNewTeacherScheduleOptimizerService', () => {
       operatingPhase: {
         startTime: '09:00',
         endTime: '15:00',
+        slotDurationMinutes: 90,
         daysOfWeek: ['SATURDAY', 'MONDAY', 'WEDNESDAY'],
         hasBreak: false,
         breakStartTime: null,
@@ -134,6 +132,7 @@ describe('SchedulingNewTeacherScheduleOptimizerService', () => {
       operatingPhase: {
         startTime: '09:00',
         endTime: '12:15',
+        slotDurationMinutes: 90,
         daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
         hasBreak: true,
         breakStartTime: '10:30',
@@ -156,6 +155,64 @@ describe('SchedulingNewTeacherScheduleOptimizerService', () => {
     });
   });
 
+  it('uses only operating-phase slots for missing-class suggestions', () => {
+    const roomId = uuid(21);
+    const plan = service.optimize({
+      workItems: [
+        {
+          key: 'ame-4:1',
+          requirementId: uuid(7),
+          course: { id: uuid(17), title: 'AME 4' },
+          classNumber: 1,
+          branchId: null,
+          capacity: 12,
+          durationMinutes: 90,
+          deliveryMode: 'IN_PERSON',
+        },
+      ],
+      settings,
+      operatingPhase: {
+        startTime: '14:00',
+        endTime: '18:30',
+        slotDurationMinutes: 90,
+        daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+        hasBreak: false,
+        breakStartTime: null,
+        breakEndTime: null,
+      },
+      classrooms: [
+        {
+          id: roomId,
+          name: 'Room 1',
+          capacity: 20,
+          branchId: null,
+          isActive: true,
+        },
+      ],
+      scheduledClasses: [
+        {
+          classroomId: roomId,
+          daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+          sessionDates: [],
+          startTime: '14:00',
+          endTime: '15:00',
+        },
+      ],
+    });
+
+    expect(plan?.assignments).toHaveLength(1);
+    expect(plan?.assignments[0]).toMatchObject({
+      startTime: '15:30',
+      endTime: '17:00',
+      classroom: { id: roomId },
+    });
+    expect(
+      plan?.availableTimeSlots.map(
+        ({ startTime, endTime }) => `${startTime}-${endTime}`,
+      ),
+    ).toEqual(['14:00-15:30', '15:30-17:00', '17:00-18:30']);
+  });
+
   it('keeps a consolidated hiring schedule when a room still needs to be arranged', () => {
     const plan = service.optimize({
       workItems: [
@@ -174,6 +231,7 @@ describe('SchedulingNewTeacherScheduleOptimizerService', () => {
       operatingPhase: {
         startTime: '09:00',
         endTime: '12:00',
+        slotDurationMinutes: 90,
         daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
         hasBreak: false,
         breakStartTime: null,
@@ -216,6 +274,7 @@ describe('SchedulingNewTeacherScheduleOptimizerService', () => {
       operatingPhase: {
         startTime: '09:00',
         endTime: '12:00',
+        slotDurationMinutes: 90,
         daysOfWeek: ['FRIDAY'],
         hasBreak: false,
         breakStartTime: null,
@@ -249,6 +308,7 @@ describe('SchedulingNewTeacherScheduleOptimizerService', () => {
       operatingPhase: {
         startTime: '09:00',
         endTime: '12:00',
+        slotDurationMinutes: 90,
         daysOfWeek: [
           'SATURDAY',
           'SUNDAY',

@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
+import { QueryClient } from "@tanstack/react-query"
+import type { AnchorHTMLAttributes, ReactNode } from "react"
 import {
   fireEvent,
   render,
@@ -10,7 +12,7 @@ import commonMessagesEn from "@/messages/en/common.json"
 import schedulingMessagesEn from "@/messages/en/scheduling.json"
 import * as hooks from "@/lib/hooks"
 import * as stores from "@/lib/stores"
-import { schedulingResource } from "@/lib/api"
+import { classRequirementsResource, schedulingResource } from "@/lib/api"
 import {
   APP_MODULES,
   ROLES,
@@ -33,7 +35,14 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/i18n/routing", () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace, back: vi.fn() }),
   usePathname: () => "/scheduling",
-  Link: ({ href, children, ...props }: any) => (
+  Link: ({
+    href,
+    children,
+    ...props
+  }: AnchorHTMLAttributes<HTMLAnchorElement> & {
+    href: string
+    children: ReactNode
+  }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -140,6 +149,10 @@ describe("Unified scheduling workspace", () => {
   })
 
   it("saves demand adjustments and navigates to /scheduling/generate on clicking apply button", async () => {
+    const invalidateQueriesSpy = vi.spyOn(
+      QueryClient.prototype,
+      "invalidateQueries"
+    )
     const mockTerms: SchedulingTermSummaryDto[] = [
       {
         id: "term-fall",
@@ -249,9 +262,14 @@ describe("Unified scheduling workspace", () => {
         expect.anything()
       )
     })
-    expect(mockPush).toHaveBeenCalledWith(
-      "/scheduling/generate?termId=term-fall"
-    )
+    await waitFor(() => {
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: classRequirementsResource.list.baseKey(),
+      })
+      expect(mockPush).toHaveBeenCalledWith(
+        "/scheduling/generate?termId=term-fall"
+      )
+    })
   })
 
   it("requires explicit acknowledgement before applying a reviewed shortfall", async () => {

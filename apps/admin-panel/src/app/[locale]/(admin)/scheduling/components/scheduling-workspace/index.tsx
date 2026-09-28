@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { AlertTriangle, Calendar, CalendarClock } from "lucide-react"
 import {
   calculateUncoveredStudents,
@@ -32,7 +32,7 @@ import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { useRouter } from "@/i18n/routing"
-import { schedulingResource } from "@/lib/api"
+import { classRequirementsResource, schedulingResource } from "@/lib/api"
 import { useActiveInstitute, useSchedulingRunStore } from "@/lib/stores"
 import { selectDefaultSchedulingTerm } from "../../helper/term-selection"
 import { SchedulingDemandView } from "../scheduling-demand-view"
@@ -48,6 +48,7 @@ import {
 export function SchedulingWorkspace() {
   const t = useTranslations("scheduling")
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
   const { clearActiveRun } = useSchedulingRunStore()
   const nextSuggestionKey = React.useRef(0)
@@ -254,8 +255,11 @@ export function SchedulingWorkspace() {
 
   const applyMutation = useMutation({
     ...schedulingResource.applyDemand.toMutation(),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success(t("demand.applySuccess", { count: data.totalRequirements }))
+      await queryClient.invalidateQueries({
+        queryKey: classRequirementsResource.list.baseKey(),
+      })
       const params = new URLSearchParams({ termId: selectedTerm?.id ?? "" })
       if (branchId && branchId !== "all") params.set("branchId", branchId)
       router.push(`/scheduling/generate?${params.toString()}`)

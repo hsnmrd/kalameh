@@ -67,36 +67,14 @@ export class SchedulingNewTeacherScheduleOptimizerService {
     input: OptimizeHiringPlanInput,
   ): SchedulingNewTeacherHiringSlotOption[] {
     const dayGroups = this.preferenceService.dayGroups(input);
-    const phaseStart = this.windowService.toMinutes(
-      input.operatingPhase.startTime,
+    const phaseSlots = this.windowService.phaseSlots(
+      input.operatingPhase,
+      input.operatingPhase.slotDurationMinutes,
     );
-    const phaseEnd = this.windowService.toMinutes(input.operatingPhase.endTime);
-    if (phaseStart === null || phaseEnd === null || phaseStart >= phaseEnd) {
-      return [];
-    }
-
-    const slotDuration = input.workItems[0]?.durationMinutes ?? 90;
     const slots: SchedulingNewTeacherHiringSlotOption[] = [];
 
     for (const daysOfWeek of dayGroups) {
-      for (
-        let start = phaseStart;
-        start + slotDuration <= phaseEnd;
-        start += slotDuration
-      ) {
-        const startTime = this.windowService.toTime(start);
-        const endTime = this.windowService.toTime(start + slotDuration);
-
-        if (
-          this.windowService.overlapsBreak(
-            startTime,
-            endTime,
-            input.operatingPhase,
-          )
-        ) {
-          continue;
-        }
-
+      for (const phaseSlot of phaseSlots) {
         const availableClassrooms = input.classrooms
           .filter(
             (room) =>
@@ -106,8 +84,8 @@ export class SchedulingNewTeacherScheduleOptimizerService {
                   scheduledClass.classroomId === room.id &&
                   this.windowService.hasConflict(
                     daysOfWeek,
-                    startTime,
-                    endTime,
+                    phaseSlot.startTime,
+                    phaseSlot.endTime,
                     scheduledClass,
                   ),
               ),
@@ -115,10 +93,10 @@ export class SchedulingNewTeacherScheduleOptimizerService {
           .map(({ id, name, capacity }) => ({ id, name, capacity }));
 
         slots.push({
-          key: `${daysOfWeek.join(',')}|${startTime}|${endTime}`,
+          key: `${daysOfWeek.join(',')}|${phaseSlot.startTime}|${phaseSlot.endTime}`,
           daysOfWeek,
-          startTime,
-          endTime,
+          startTime: phaseSlot.startTime,
+          endTime: phaseSlot.endTime,
           availableClassrooms,
           isFullyBooked: availableClassrooms.length === 0,
         });
@@ -252,9 +230,12 @@ export class SchedulingNewTeacherScheduleOptimizerService {
   }
 
   private hasValidPhase(input: OptimizeHiringPlanInput): boolean {
-    const start = this.windowService.toMinutes(input.operatingPhase.startTime);
-    const end = this.windowService.toMinutes(input.operatingPhase.endTime);
-    return start !== null && end !== null && start < end;
+    return (
+      this.windowService.phaseSlots(
+        input.operatingPhase,
+        input.operatingPhase.slotDurationMinutes,
+      ).length > 0
+    );
   }
 
   private groupOrder(

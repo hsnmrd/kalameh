@@ -30,7 +30,9 @@ export type NewTeacherHiringClassroom = {
 export type OptimizeHiringPlanInput = {
   workItems: NewTeacherHiringWorkItem[];
   settings: SchedulingEngineSettingsSnapshot;
-  operatingPhase: SchedulingWindowOperatingPhase;
+  operatingPhase: SchedulingWindowOperatingPhase & {
+    slotDurationMinutes: number;
+  };
   classrooms: NewTeacherHiringClassroom[];
   scheduledClasses: SchedulingWindowClass[];
 };

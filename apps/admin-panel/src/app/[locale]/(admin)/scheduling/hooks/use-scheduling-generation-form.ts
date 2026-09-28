@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useWatch } from "react-hook-form"
 import {
   GenerateSchedulingPlanSchema,
+  type ClassRequirementDto,
   type GenerateSchedulingPlanInput,
   type SchedulingRunDto,
 } from "@workspace/types"
@@ -47,6 +48,7 @@ export function useSchedulingGenerationForm(
     name: "requirementIds",
   })
   const autoSelectedScopeRef = React.useRef("")
+  const [isPreparing, setIsPreparing] = React.useState(false)
 
   const termsQuery = useQuery({
     ...termsResource.list.toQuery(scope),
@@ -71,14 +73,20 @@ export function useSchedulingGenerationForm(
     )
   }, [termsQuery.data])
 
-  const requirements = React.useMemo(() => {
-    const items = requirementsQuery.data ?? []
-    if (!branchId) return items
-    return items.filter(
-      (requirement) =>
-        !requirement.branchId || requirement.branchId === branchId
-    )
-  }, [branchId, requirementsQuery.data])
+  const filterRequirementsForBranch = React.useCallback(
+    (items: ClassRequirementDto[]) => {
+      if (!branchId) return items
+      return items.filter(
+        (requirement) =>
+          !requirement.branchId || requirement.branchId === branchId
+      )
+    },
+    [branchId]
+  )
+  const requirements = React.useMemo(
+    () => filterRequirementsForBranch(requirementsQuery.data ?? []),
+    [filterRequirementsForBranch, requirementsQuery.data]
+  )
 
   React.useEffect(() => {
     const scopeKey = `${termId}:${branchId ?? ""}`
@@ -118,11 +126,36 @@ export function useSchedulingGenerationForm(
     },
   })
 
-  const submit = form.handleSubmit((values) => {
-    generateMutation.mutate({
-      ...values,
-      instituteId: activeInstituteId,
-    })
+  const submit = form.handleSubmit(async (values) => {
+    if (!activeInstituteId) return
+
+    setIsPreparing(true)
+    try {
+      const refreshed = await requirementsQuery.refetch()
+      if (refreshed.isError || !refreshed.data) return
+
+      const currentRequirements = filterRequirementsForBranch(refreshed.data)
+      const currentIds = currentRequirements.map(({ id }) => id)
+      const currentIdSet = new Set(currentIds)
+      const stillSelectedIds = values.requirementIds.filter((id) =>
+        currentIdSet.has(id)
+      )
+      const authoritativeIds =
+        stillSelectedIds.length > 0 ? stillSelectedIds : currentIds
+
+      form.setValue("requirementIds", authoritativeIds, {
+        shouldValidate: true,
+      })
+      if (authoritativeIds.length === 0) return
+
+      generateMutation.mutate({
+        ...values,
+        instituteId: activeInstituteId,
+        requirementIds: authoritativeIds,
+      })
+    } finally {
+      setIsPreparing(false)
+    }
   })
 
   return {
@@ -134,7 +167,7 @@ export function useSchedulingGenerationForm(
     requirements,
     isScopeLoading: termsQuery.isLoading || branchesQuery.isLoading,
     isRequirementsLoading: requirementsQuery.isLoading,
-    isPending: generateMutation.isPending,
+    isPending: isPreparing || generateMutation.isPending,
     hasInstitute: Boolean(activeInstituteId),
     submit,
   }
