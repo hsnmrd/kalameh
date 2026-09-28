@@ -67,38 +67,28 @@ export function SchedulingPlanCalendarView({
 
   const [assignSlotTarget, setAssignSlotTarget] =
     React.useState<TargetSlotInfo | null>(null)
-  const [hoveredClassId, setHoveredClassId] = React.useState<string | null>(
+  const [selectedClassId, setSelectedClassId] = React.useState<string | null>(
     null
   )
-  const [pinnedClassId, setPinnedClassId] = React.useState<string | null>(null)
 
-  const activeClassId = pinnedClassId ?? hoveredClassId
+  const activeClassId = selectedClassId
   const isAnyClassActive = activeClassId !== null
 
   const handleCardClick = React.useCallback((id: string) => {
-    setPinnedClassId((prev) => (prev === id ? null : id))
+    setSelectedClassId((prev) => (prev === id ? null : id))
   }, [])
 
-  const handleCardHover = React.useCallback(
-    (id: string | null) => {
-      if (!pinnedClassId) {
-        setHoveredClassId(id)
-      }
-    },
-    [pinnedClassId]
-  )
-
-  // Clear pinned class on Escape key
+  // Clear selected class on Escape key
   React.useEffect(() => {
-    if (!pinnedClassId) return
+    if (!selectedClassId) return
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setPinnedClassId(null)
+        setSelectedClassId(null)
       }
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [pinnedClassId])
+  }, [selectedClassId])
 
   const timeSlots = React.useMemo<TimeSlot[]>(() => {
     const slotsMap = new Map<string, TimeSlot>()
@@ -303,8 +293,8 @@ export function SchedulingPlanCalendarView({
     <div
       className="flex flex-col gap-4"
       onClick={() => {
-        if (pinnedClassId) {
-          setPinnedClassId(null)
+        if (selectedClassId) {
+          setSelectedClassId(null)
         }
       }}
     >
@@ -315,13 +305,13 @@ export function SchedulingPlanCalendarView({
           <span>{t("calendarView.allInOneNotice")}</span>
         </div>
         <div className="flex items-center gap-3">
-          {pinnedClassId && (
+          {selectedClassId && (
             <button
               type="button"
               data-testid="clear-selection-btn"
               onClick={(e) => {
                 e.stopPropagation()
-                setPinnedClassId(null)
+                setSelectedClassId(null)
               }}
               className="cursor-pointer text-xs font-semibold text-primary underline-offset-4 hover:underline"
             >
@@ -455,11 +445,6 @@ export function SchedulingPlanCalendarView({
                   const hasClasses =
                     cellProposals.length > 0 || cellMissed.length > 0
 
-                  const isDayEmpty =
-                    (proposalsByDay[day]?.length ?? 0) +
-                      (missedClassesByDay[day] ?? 0) ===
-                    0
-
                   return (
                     <div
                       key={`${day}-${slot.key}`}
@@ -480,7 +465,6 @@ export function SchedulingPlanCalendarView({
                                 colorIndex={proposalColorMap.get(proposal.id)}
                                 isActive={isActive}
                                 isDimmed={isDimmed}
-                                onHover={handleCardHover}
                                 onClick={handleCardClick}
                               />
                             )
@@ -497,7 +481,6 @@ export function SchedulingPlanCalendarView({
                                 canEdit={canEdit}
                                 isActive={isActive}
                                 isDimmed={isDimmed}
-                                onHover={handleCardHover}
                                 onClick={handleCardClick}
                                 onUnassign={() =>
                                   onUnassignMissedClass?.(assignment.key)
@@ -534,7 +517,7 @@ export function SchedulingPlanCalendarView({
                           }
                           className={cn(
                             "group flex h-[134px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/50 bg-primary/10 p-3 text-center transition-all hover:border-primary hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                            isAnyClassActive && "opacity-20 grayscale"
+                            isAnyClassActive && "opacity-20"
                           )}
                         >
                           <div className="flex size-7 items-center justify-center rounded-full bg-primary/20 text-primary transition-transform group-hover:scale-110">
@@ -554,9 +537,7 @@ export function SchedulingPlanCalendarView({
                           data-testid={`empty-cell-${day}-${slot.key}`}
                           className={cn(
                             "flex h-[134px] w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/50 bg-muted/15 p-3 text-center transition-all select-none hover:bg-muted/25 hover:opacity-75",
-                            isAnyClassActive
-                              ? "opacity-20 grayscale"
-                              : "opacity-40"
+                            isAnyClassActive ? "opacity-20" : "opacity-40"
                           )}
                           aria-label={t("calendarView.noClasses")}
                         >

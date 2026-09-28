@@ -471,7 +471,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(freeSlotButton).toHaveClass("h-[134px]")
   })
 
-  it("highlights sibling class cards and grays out other classes on hover", () => {
+  it("does not dim other classes on hover (selection is based on click only)", () => {
     const { container } = render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
@@ -488,25 +488,14 @@ describe("SchedulingPlanCalendarView Component", () => {
     // Hover over the first instance of prop-1 (Saturday)
     fireEvent.mouseEnter(prop1Cards[0]!)
 
-    // All 3 instances of prop-1 must be active
-    prop1Cards.forEach((card) => {
-      expect(card.getAttribute("data-active")).toBe("true")
-      expect(card).toHaveClass("ring-2")
-      expect(card).toHaveClass("opacity-100")
-    })
-
-    // prop-2 must be dimmed and grayscaled
-    expect(prop2Cards[0]?.getAttribute("data-dimmed")).toBe("true")
-    expect(prop2Cards[0]).toHaveClass("grayscale")
-    expect(prop2Cards[0]).toHaveClass("opacity-25")
-
-    // Mouse leave restores all cards to normal
-    fireEvent.mouseLeave(prop1Cards[0]!)
+    // Hover does NOT trigger calendar-wide dimming or active states
     expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
     expect(prop2Cards[0]?.getAttribute("data-dimmed")).toBeNull()
+    expect(prop2Cards[0]).not.toHaveClass("grayscale")
+    expect(prop2Cards[0]).not.toHaveClass("opacity-25")
   })
 
-  it("pins sibling class cards on click and unpins on toggle, clear button, or Escape", () => {
+  it("pins sibling class cards on click and unpins on toggle, clear button, or Escape with opacity dimming preserving color", () => {
     const { container } = render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
@@ -517,13 +506,16 @@ describe("SchedulingPlanCalendarView Component", () => {
     // Click on prop-1 card to pin
     fireEvent.click(prop1Cards[0]!)
 
-    // Mouse leave should NOT unpin because it is clicked/pinned
-    fireEvent.mouseLeave(prop1Cards[0]!)
-
     prop1Cards.forEach((card) => {
       expect(card.getAttribute("data-active")).toBe("true")
+      expect(card).toHaveClass("ring-2")
+      expect(card).toHaveClass("opacity-100")
     })
+
+    // prop-2 must be dimmed via opacity only, keeping its color (no grayscale)
     expect(prop2Cards[0]?.getAttribute("data-dimmed")).toBe("true")
+    expect(prop2Cards[0]).toHaveClass("opacity-25")
+    expect(prop2Cards[0]).not.toHaveClass("grayscale")
 
     // Clear selection button is displayed in the header
     const clearBtn = screen.getByTestId("clear-selection-btn")

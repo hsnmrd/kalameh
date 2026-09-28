@@ -64,7 +64,7 @@ export function SchedulingPlanCalendarMissedClassCard({
         "group relative flex h-[134px] cursor-pointer flex-col justify-between rounded-xl border-2 border-dashed border-warning/70 bg-warning/10 p-2.5 shadow-2xs transition-all duration-200 select-none",
         isActive &&
           "z-10 scale-[1.02] opacity-100 shadow-md ring-2 ring-warning",
-        isDimmed && "opacity-25 contrast-75 grayscale hover:opacity-60"
+        isDimmed && "opacity-25 hover:opacity-60"
       )}
       aria-label={assignment.course.title}
     >

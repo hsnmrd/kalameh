@@ -174,7 +174,7 @@ export function SchedulingPlanCalendarClassCard({
           theme.bg,
           isActive &&
             "z-10 scale-[1.02] opacity-100 shadow-md ring-2 ring-primary",
-          isDimmed && "opacity-25 contrast-75 grayscale hover:opacity-60"
+          isDimmed && "opacity-25 hover:opacity-60"
         )}
         aria-label={proposal.course.title}
       >
