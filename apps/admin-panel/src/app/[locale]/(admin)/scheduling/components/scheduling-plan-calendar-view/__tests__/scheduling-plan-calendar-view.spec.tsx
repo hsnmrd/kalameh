@@ -410,7 +410,17 @@ describe("SchedulingPlanCalendarView Component", () => {
     const missedCard = screen.getByTestId("missed-class-card-missed-1")
 
     expect(regularCard).toHaveClass("h-[134px]")
+    expect(regularCard).toHaveClass(
+      "border-chart-1/20",
+      "border-s-chart-1/45",
+      "bg-chart-1/[0.04]"
+    )
     expect(missedCard).toHaveClass("h-[134px]")
+    expect(missedCard).toHaveClass(
+      "border-dashed",
+      "border-warning/70",
+      "bg-warning/10"
+    )
     expect(missedCard).toHaveTextContent("ظرفیت")
     expect(missedCard).toHaveTextContent("۱۵ نفر")
   })
