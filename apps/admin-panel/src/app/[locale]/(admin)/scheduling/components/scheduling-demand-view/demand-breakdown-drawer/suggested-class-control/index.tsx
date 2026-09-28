@@ -5,7 +5,7 @@ import { Trash2 } from "lucide-react"
 import type { SuggestedClassDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Counter } from "@workspace/ui/components/counter"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 
 interface SuggestedClassControlProps {
   item: SuggestedClassDto
@@ -31,8 +31,19 @@ export function SuggestedClassControl({
   const label = t("classLabel", { count: formatNumber(index + 1, locale) })
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">
+    <div
+      className={cn(
+        "flex items-center gap-2",
+        compact &&
+          "rounded-xl border border-border/60 bg-muted/20 px-2.5 py-1.5"
+      )}
+    >
+      <span
+        className={cn(
+          "shrink-0 text-xs font-medium whitespace-nowrap text-muted-foreground",
+          !compact && "w-16"
+        )}
+      >
         {label}
       </span>
       <Counter
@@ -47,15 +58,13 @@ export function SuggestedClassControl({
       <Button
         type="button"
         variant="ghost"
-        size={compact ? "icon-sm" : "default"}
+        size={compact ? "icon-sm" : "icon"}
         className="shrink-0 text-destructive hover:text-destructive"
         onClick={onRemove}
         aria-label={`${t("removeClass")} - ${courseTitle} - ${label}`}
       >
         <Trash2 aria-hidden />
-        <span className={compact ? "sr-only" : undefined}>
-          {t("removeClass")}
-        </span>
+        <span className="sr-only">{t("removeClass")}</span>
       </Button>
     </div>
   )

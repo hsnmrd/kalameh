@@ -31,7 +31,7 @@ const mockCourses: CourseDemandSummaryDto[] = [
 ]
 
 describe("DemandBreakdownDrawer", () => {
-  it("renders separate editable class rows on desktop and mobile", () => {
+  it("renders summary columns, starts collapsed, and toggles expand/collapse via edit/close button", () => {
     render(
       <DemandBreakdownDrawer
         courses={mockCourses}
@@ -44,14 +44,49 @@ describe("DemandBreakdownDrawer", () => {
     )
 
     expect(screen.getByText("نام دوره")).toBeInTheDocument()
+    expect(screen.getByText("پیشنیاز")).toBeInTheDocument()
+    expect(screen.getByText("متقاضیان")).toBeInTheDocument()
+    expect(screen.getByText("تعداد کلاس")).toBeInTheDocument()
+    expect(screen.getByText("پوشش ظرفیت")).toBeInTheDocument()
+    expect(screen.getByText("وضعیت")).toBeInTheDocument()
     expect(screen.getAllByText("American English File 2")).toHaveLength(2)
-    expect(screen.getAllByText("کلاس ۱")).toHaveLength(2)
-    expect(screen.getAllByText("کلاس ۲")).toHaveLength(2)
+    expect(screen.getByText("American English File 1")).toBeInTheDocument()
+    expect(screen.getAllByText("۲ کلاس")).toHaveLength(2)
     expect(screen.getAllByText("۲۹ صندلی برنامه‌ریزی‌شده")).toHaveLength(2)
     expect(screen.getAllByText("پوشش کامل")).toHaveLength(2)
+
+    // Initially collapsed
+    expect(screen.queryByText("کلاس ۱")).not.toBeInTheDocument()
+
+    // Click edit button to expand
+    const editButtons = screen.getAllByRole("button", {
+      name: /ویرایش کلاس‌ها - American English File 2/,
+    })
+    fireEvent.click(editButtons[0]!)
+
+    expect(screen.getByRole("region")).toHaveAttribute("data-slot", "carousel")
+    expect(screen.getAllByText("کلاس ۱")).toHaveLength(2)
+    expect(screen.getAllByText("کلاس ۲")).toHaveLength(2)
+
+    const removeButtons = screen.getAllByRole("button", {
+      name: /حذف کلاس - American English File 2 - کلاس ۱/,
+    })
+    expect(removeButtons).toHaveLength(2)
+    for (const button of removeButtons) {
+      const labelSpan = button.querySelector("span")
+      expect(labelSpan).toHaveClass("sr-only")
+    }
+
+    // Button turns into close button; clicking it collapses the classes list again
+    const closeButtons = screen.getAllByRole("button", {
+      name: /بستن - American English File 2/,
+    })
+    fireEvent.click(closeButtons[0]!)
+
+    expect(screen.queryByText("کلاس ۱")).not.toBeInTheDocument()
   })
 
-  it("edits, adds, and removes individual suggested classes", () => {
+  it("edits, adds, and removes individual suggested classes when expanded", () => {
     const onCapacityChange = vi.fn()
     const onAddClass = vi.fn()
     const onRemoveClass = vi.fn()
@@ -64,6 +99,12 @@ describe("DemandBreakdownDrawer", () => {
         onAddClass={onAddClass}
         onRemoveClass={onRemoveClass}
       />
+    )
+
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: /ویرایش کلاس‌ها - American English File 2/,
+      })[0]!
     )
 
     const firstCapacity = screen.getAllByLabelText(

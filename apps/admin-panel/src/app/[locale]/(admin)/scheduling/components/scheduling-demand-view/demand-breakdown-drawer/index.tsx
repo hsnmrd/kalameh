@@ -1,7 +1,8 @@
 "use client"
 
+import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Plus } from "lucide-react"
+import { Pencil, Plus, X } from "lucide-react"
 import {
   calculateUncoveredStudents,
   type CourseDemandSummaryDto,
@@ -10,6 +11,13 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@workspace/ui/components/carousel"
+import {
   Table,
   TableBody,
   TableCell,
@@ -17,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { DemandBreakdownCard } from "./demand-breakdown-card"
 import { SuggestedClassControl } from "./suggested-class-control"
 
@@ -44,19 +52,34 @@ export function DemandBreakdownDrawer({
 }: DemandBreakdownDrawerProps) {
   const t = useTranslations("scheduling.demand.breakdown")
   const locale = useLocale()
+  const [expandedCourseIds, setExpandedCourseIds] = React.useState<
+    Record<string, boolean>
+  >({})
+
+  const toggleCourseExpand = React.useCallback((courseId: string) => {
+    setExpandedCourseIds((prev) => ({
+      ...prev,
+      [courseId]: !prev[courseId],
+    }))
+  }, [])
 
   if (courses.length === 0) return null
 
   return (
     <div className="w-full">
       <div className="hidden w-full overflow-hidden rounded-2xl border border-border bg-card lg:block">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-48">{t("course")}</TableHead>
-              <TableHead className="min-w-60">{t("students")}</TableHead>
-              <TableHead className="min-w-72">{t("classRows")}</TableHead>
-              <TableHead className="w-36">{t("coverage")}</TableHead>
+              <TableHead className="w-36">{t("course")}</TableHead>
+              <TableHead className="w-36">{t("prerequisiteColumn")}</TableHead>
+              <TableHead>{t("students")}</TableHead>
+              <TableHead className="w-28">{t("classesCountColumn")}</TableHead>
+              <TableHead className="w-44">{t("coverage")}</TableHead>
+              <TableHead className="w-36">{t("statusColumn")}</TableHead>
+              <TableHead className="w-14 text-end">
+                <span className="sr-only">{t("editClasses")}</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -71,79 +94,58 @@ export function DemandBreakdownDrawer({
                 course.eligibleStudentsCount,
                 classes.map((item) => item.capacity)
               )
+              const isExpanded = Boolean(expandedCourseIds[course.courseId])
+              const toggleActionLabel = isExpanded
+                ? t("closeClasses")
+                : t("editClasses")
 
               return (
-                <TableRow key={course.courseId}>
-                  <TableCell className="align-top">
-                    <div className="flex flex-col gap-0.5">
+                <React.Fragment key={course.courseId}>
+                  <TableRow
+                    className={cn(
+                      isExpanded && "border-b-0 bg-muted/20 hover:bg-muted/20"
+                    )}
+                  >
+                    <TableCell className="align-middle">
                       <span className="font-semibold text-foreground">
                         {course.courseTitle}
                       </span>
-                      {course.prerequisiteTitle && (
-                        <span className="text-xs text-muted-foreground">
-                          {t("prerequisite", {
-                            title: course.prerequisiteTitle,
-                          })}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="align-top">
-                    <span className="text-sm text-muted-foreground">
-                      {t("studentsDetail", {
-                        continuing: formatNumber(
-                          course.continuingStudentsCount,
-                          locale
-                        ),
-                        new: formatNumber(course.newPlacementCount, locale),
-                        total: formatNumber(
-                          course.eligibleStudentsCount,
-                          locale
-                        ),
-                      })}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-2">
-                      {classes.map((suggestedClass, index) => (
-                        <SuggestedClassControl
-                          key={suggestedClass.key}
-                          item={suggestedClass}
-                          index={index}
-                          courseTitle={course.courseTitle}
-                          capacityLimit={capacityLimit}
-                          compact
-                          onCapacityChange={(capacity) =>
-                            onCapacityChange(
-                              course.courseId,
-                              suggestedClass.key,
-                              capacity
-                            )
-                          }
-                          onRemove={() =>
-                            onRemoveClass(course.courseId, suggestedClass.key)
-                          }
-                        />
-                      ))}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="w-fit"
-                        onClick={() => onAddClass(course.courseId)}
-                      >
-                        <Plus aria-hidden />
-                        {t("addClass")}
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col items-start gap-1.5">
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <span className="text-sm text-muted-foreground">
+                        {course.prerequisiteTitle ?? t("noPrerequisite")}
+                      </span>
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <span className="text-sm text-muted-foreground">
+                        {t("studentsDetail", {
+                          continuing: formatNumber(
+                            course.continuingStudentsCount,
+                            locale
+                          ),
+                          new: formatNumber(course.newPlacementCount, locale),
+                          total: formatNumber(
+                            course.eligibleStudentsCount,
+                            locale
+                          ),
+                        })}
+                      </span>
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Badge variant="outline">
+                        {t("classesCountSummary", {
+                          count: formatNumber(classes.length, locale),
+                        })}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="align-middle">
                       <span className="text-sm font-semibold text-foreground">
                         {t("plannedSeats", {
                           count: formatNumber(planned, locale),
                         })}
                       </span>
+                    </TableCell>
+                    <TableCell className="align-middle">
                       {uncovered > 0 ? (
                         <Badge variant="destructive">
                           {t("uncovered", {
@@ -153,9 +155,88 @@ export function DemandBreakdownDrawer({
                       ) : (
                         <Badge variant="secondary">{t("covered")}</Badge>
                       )}
-                    </div>
-                  </TableCell>
-                </TableRow>
+                    </TableCell>
+                    <TableCell className="text-end align-middle">
+                      <Button
+                        type="button"
+                        variant={isExpanded ? "secondary" : "ghost"}
+                        size="icon-sm"
+                        aria-expanded={isExpanded}
+                        aria-label={`${toggleActionLabel} - ${course.courseTitle}`}
+                        onClick={() => toggleCourseExpand(course.courseId)}
+                      >
+                        {isExpanded ? (
+                          <X aria-hidden />
+                        ) : (
+                          <Pencil aria-hidden />
+                        )}
+                        <span className="sr-only">{toggleActionLabel}</span>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  {isExpanded && (
+                    <TableRow className="border-t-0 bg-muted/20 hover:bg-muted/20">
+                      <TableCell
+                        colSpan={7}
+                        className="w-full max-w-0 pt-0 pb-4"
+                      >
+                        <Carousel
+                          opts={{
+                            align: "start",
+                            containScroll: "trimSnaps",
+                            dragFree: true,
+                            direction: locale === "fa" ? "rtl" : "ltr",
+                          }}
+                          className="w-full"
+                        >
+                          <CarouselContent className="items-center">
+                            {classes.map((suggestedClass, index) => (
+                              <CarouselItem
+                                key={suggestedClass.key}
+                                className="basis-auto"
+                              >
+                                <SuggestedClassControl
+                                  item={suggestedClass}
+                                  index={index}
+                                  courseTitle={course.courseTitle}
+                                  capacityLimit={capacityLimit}
+                                  compact
+                                  onCapacityChange={(capacity) =>
+                                    onCapacityChange(
+                                      course.courseId,
+                                      suggestedClass.key,
+                                      capacity
+                                    )
+                                  }
+                                  onRemove={() =>
+                                    onRemoveClass(
+                                      course.courseId,
+                                      suggestedClass.key
+                                    )
+                                  }
+                                />
+                              </CarouselItem>
+                            ))}
+                            <CarouselItem className="basis-auto">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="w-fit"
+                                onClick={() => onAddClass(course.courseId)}
+                              >
+                                <Plus aria-hidden />
+                                {t("addClass")}
+                              </Button>
+                            </CarouselItem>
+                          </CarouselContent>
+                          <CarouselPrevious type="button" />
+                          <CarouselNext type="button" />
+                        </Carousel>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
               )
             })}
           </TableBody>
@@ -171,6 +252,8 @@ export function DemandBreakdownDrawer({
               suggestions[course.courseId] ?? course.suggestedClasses
             }
             capacityLimit={capacityLimit}
+            isExpanded={Boolean(expandedCourseIds[course.courseId])}
+            onToggleExpand={() => toggleCourseExpand(course.courseId)}
             onCapacityChange={onCapacityChange}
             onAddClass={onAddClass}
             onRemoveClass={onRemoveClass}
