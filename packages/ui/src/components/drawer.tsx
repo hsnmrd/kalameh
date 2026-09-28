@@ -110,7 +110,7 @@ function DrawerOverlay({
       data-slot="drawer-overlay"
       forceRender={forceRender}
       className={cn(
-        "fixed inset-0 z-[60] min-h-dvh bg-black/40 backdrop-blur-xs transition-opacity duration-300 select-none data-ending-style:pointer-events-none data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 supports-[-webkit-touch-callout:none]:absolute",
+        "fixed inset-0 z-[60] min-h-dvh bg-black/65 backdrop-blur-sm transition-opacity duration-300 select-none data-ending-style:pointer-events-none data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 supports-[-webkit-touch-callout:none]:absolute",
         className
       )}
       {...props}

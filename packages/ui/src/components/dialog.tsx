@@ -18,7 +18,7 @@ function DialogBackdrop({
   return (
     <DialogPrimitive.Backdrop
       className={cn(
-        "fixed inset-0 z-50 bg-black/50 backdrop-blur-xs transition-all duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
+        "fixed inset-0 z-50 bg-black/70 backdrop-blur-sm transition-all duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
         className
       )}
       {...props}
@@ -37,7 +37,7 @@ function DialogPopup({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <DialogPrimitive.Popup
           className={cn(
-            "relative w-full max-w-lg rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xl transition-all duration-150 focus:outline-hidden data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
+            "relative w-full max-w-lg rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-2xl ring-1 ring-foreground/10 transition-all duration-150 focus:outline-hidden data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
             className
           )}
           {...props}
@@ -293,7 +293,7 @@ function FormDialogContent({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
         <DialogPrimitive.Popup
           className={cn(
-            "fixed inset-0 z-50 flex h-dvh max-h-dvh min-h-0 w-full max-w-full flex-col gap-2 overflow-hidden rounded-none border-0 bg-background p-0 text-foreground outline-hidden transition-all duration-150 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0 sm:relative sm:inset-auto sm:h-auto sm:max-h-[90dvh] sm:w-full sm:max-w-lg sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-0 sm:text-card-foreground sm:shadow-xl",
+            "fixed inset-0 z-50 flex h-dvh max-h-dvh min-h-0 w-full max-w-full flex-col gap-2 overflow-hidden rounded-none border-0 bg-background p-0 text-foreground outline-hidden transition-all duration-150 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0 sm:relative sm:inset-auto sm:h-auto sm:max-h-[90dvh] sm:w-full sm:max-w-lg sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-0 sm:text-card-foreground sm:shadow-2xl sm:ring-1 sm:ring-foreground/10",
             className
           )}
           {...props}
@@ -312,7 +312,7 @@ function FormDialogHeader({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-between border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4",
+        "flex shrink-0 items-center justify-between border-b border-border/60 bg-muted/20 px-4 py-3.5 sm:px-6 sm:py-4",
         className
       )}
       {...props}

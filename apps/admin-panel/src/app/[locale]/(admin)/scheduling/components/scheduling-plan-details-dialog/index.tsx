@@ -39,7 +39,7 @@ export function SchedulingPlanDetailsDialog({
   return (
     <ResponsiveDialog open onOpenChange={(open) => !open && onClose()}>
       <ResponsiveDialogContent className="overflow-hidden p-0 lg:flex lg:max-h-[92dvh] lg:max-w-5xl lg:flex-col xl:max-w-6xl 2xl:max-w-7xl">
-        <ResponsiveDialogHeader className="flex shrink-0 flex-row items-center justify-between border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
+        <ResponsiveDialogHeader className="flex shrink-0 flex-row items-center justify-between border-b border-border/60 bg-muted/20 px-4 py-3.5 sm:px-6 sm:py-4">
           <div className="flex flex-wrap items-center gap-2">
             <ResponsiveDialogTitle>
               {t("title", { rank: formatNumber(plan.rank, locale) })}

@@ -29,7 +29,7 @@ function AlertDialogOverlay({
     <AlertDialogPrimitive.Backdrop
       data-slot="alert-dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/50 backdrop-blur-xs transition-all duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-black/70 backdrop-blur-sm transition-all duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -55,7 +55,7 @@ function AlertDialogContent({
           data-slot="alert-dialog-content"
           data-size={size}
           className={cn(
-            "group/alert-dialog-content relative w-full rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xl transition-all duration-150 outline-none focus:outline-hidden data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[size=default]:max-w-md data-[size=sm]:max-w-xs data-[starting-style]:scale-95 data-[starting-style]:opacity-0 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "group/alert-dialog-content relative w-full rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-2xl ring-1 ring-foreground/10 transition-all duration-150 outline-none focus:outline-hidden data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[size=default]:max-w-md data-[size=sm]:max-w-xs data-[starting-style]:scale-95 data-[starting-style]:opacity-0 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
           {...props}

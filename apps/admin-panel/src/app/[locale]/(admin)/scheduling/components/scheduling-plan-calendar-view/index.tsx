@@ -330,12 +330,12 @@ export function SchedulingPlanCalendarView({
       </div>
 
       {/* Timetable Matrix Grid with Horizontal Scroll */}
-      <div className="max-h-[75vh] overflow-x-auto rounded-2xl border border-border bg-card/60 lg:max-h-none lg:overflow-visible">
+      <div className="max-h-[75vh] overflow-x-auto rounded-2xl border border-border bg-background/60 lg:max-h-none lg:overflow-visible">
         <div className="min-w-[840px]">
           {/* Header Row */}
           <div
             className={cn(
-              "sticky z-20 grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] gap-2 rounded-t-2xl border-b border-border bg-card/95 p-2.5 shadow-2xs backdrop-blur-md",
+              "sticky z-20 grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] gap-2 rounded-t-2xl border-b border-border bg-muted/60 p-2.5 shadow-2xs backdrop-blur-md",
               stickyTop === "page" ? "top-16" : "top-0"
             )}
           >
@@ -396,7 +396,7 @@ export function SchedulingPlanCalendarView({
               >
                 {/* Time Column Cell */}
                 <div
-                  className="flex flex-col items-center justify-center gap-0.5 rounded-xl border border-border/40 bg-muted/30 p-2 text-center"
+                  className="flex flex-col items-center justify-center gap-0.5 rounded-xl border border-border/70 bg-muted/45 p-2 text-center"
                   aria-label={t("timeRange", {
                     start: slot.startTime,
                     end: slot.endTime,

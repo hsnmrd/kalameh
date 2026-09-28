@@ -76,7 +76,7 @@ export function SchedulingWarningList({
         return (
           <li
             key={`${warning.code}-${index}`}
-            className="rounded-xl border border-border p-3"
+            className="rounded-xl border border-border bg-muted/25 p-3"
           >
             <div className="flex flex-wrap items-center gap-2">
               <Badge
