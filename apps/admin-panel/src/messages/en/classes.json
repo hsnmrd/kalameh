@@ -2,6 +2,7 @@
   "title": "Classes & Courses Management",
   "subtitle": "Define classes, schedule timetables, capacity, teachers, and manage final grading",
   "addClass": "Add New Class",
+  "teachersCalendar": "All Teachers Calendar",
   "termFilter": "Filter by Term",
   "allTerms": "All Terms",
   "courseFilter": "Filter by Course",

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Plus } from "lucide-react"
+import { CalendarClock, Plus } from "lucide-react"
 import { PERMISSIONS } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
@@ -10,6 +10,7 @@ import {
   ResponsiveCombobox,
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
+import { Link } from "@/i18n/routing"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { AdminSearchInput } from "@/components/admin-search-input"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -48,20 +49,30 @@ export function TeachersFilter({
     onStatusChange("ALL")
   }, [onStatusChange])
 
-  const desktopActions =
-    actions ??
-    (onAddClick && (
-      <PermissionGuard permission={PERMISSIONS.MANAGE_TEACHERS} mode="hide">
-        <Button
-          type="button"
-          onClick={onAddClick}
-          className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
-        >
-          <Plus className="size-5" />
-          <span>{t("addTeacher")}</span>
-        </Button>
-      </PermissionGuard>
-    ))
+  const desktopActions = actions ?? (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        render={<Link href="/teachers/calendar" />}
+        className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-4 text-sm font-semibold shadow-xs"
+      >
+        <CalendarClock className="size-5" />
+        <span>{t("teachersCalendar")}</span>
+      </Button>
+      {onAddClick && (
+        <PermissionGuard permission={PERMISSIONS.MANAGE_TEACHERS} mode="hide">
+          <Button
+            type="button"
+            onClick={onAddClick}
+            className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
+          >
+            <Plus className="size-5" />
+            <span>{t("addTeacher")}</span>
+          </Button>
+        </PermissionGuard>
+      )}
+    </div>
+  )
 
   return (
     <AdminFilterBar

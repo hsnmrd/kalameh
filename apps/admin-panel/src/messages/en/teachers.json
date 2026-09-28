@@ -2,6 +2,7 @@
   "title": "Teachers & Instructors",
   "subtitle": "Manage teachers, credentials, qualifications, and weekly available teaching hours",
   "addTeacher": "Add Teacher",
+  "teachersCalendar": "All Teachers Calendar",
   "searchPlaceholder": "Search by name, phone, or national code...",
   "filter": {
     "all": "All Statuses",

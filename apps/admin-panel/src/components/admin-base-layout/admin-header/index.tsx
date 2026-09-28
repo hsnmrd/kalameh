@@ -57,6 +57,9 @@ function getPageTitle(pathname: string, t: (key: string) => string): string {
   if (pathname.startsWith("/classrooms")) {
     return t("nav.classrooms")
   }
+  if (pathname.startsWith("/teachers/calendar")) {
+    return t("nav.teachersCalendar")
+  }
   if (pathname.startsWith("/teachers")) {
     return t("nav.teachers")
   }

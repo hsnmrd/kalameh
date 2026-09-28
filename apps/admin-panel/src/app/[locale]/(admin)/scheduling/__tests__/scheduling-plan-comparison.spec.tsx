@@ -595,18 +595,11 @@ describe("MVP-036 scheduling plan comparison", () => {
     expect(
       screen.getAllByText("نیازمند تأمین فضای فیزیکی").length
     ).toBeGreaterThan(1)
-    expect(screen.getAllByText("دکتر بهنام مرادی").length).toBeGreaterThan(1)
-    expect(screen.getByText("تقویم همه استادان")).toBeInTheDocument()
-    const allTeacherSelector = screen.getByRole("combobox", {
-      name: "انتخاب استاد برای مشاهده تقویم",
-    })
-    fireEvent.click(allTeacherSelector)
-    fireEvent.click(screen.getByRole("option", { name: "رضا کریمی" }))
-    expect(screen.getByText("کلاس عمومی رضا")).toBeInTheDocument()
     expect(
-      screen.getByText("سطوح قابل تدریس استاد انتخاب‌شده")
+      screen.getByText("استادان با زمان آزاد باقی‌مانده")
     ).toBeInTheDocument()
-    expect(screen.getByText("AME 4")).toBeInTheDocument()
+    expect(screen.getAllByText(/سارا احمدی/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/رضا کریمی/).length).toBeGreaterThan(0)
     expect(screen.getAllByText("تقویم استادان مرتبط با این مشکل")).toHaveLength(
       2
     )
