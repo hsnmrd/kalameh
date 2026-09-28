@@ -16,7 +16,6 @@ import {
   ResponsiveDialog,
   ResponsiveDialogCloseButton,
   ResponsiveDialogContent,
-  ResponsiveDialogDescription,
   ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
@@ -78,18 +77,13 @@ export function ReviewTransactionModal({
 
   return (
     <ResponsiveDialog open onOpenChange={(open) => !open && onClose()}>
-      <ResponsiveDialogContent className="sm:max-w-2xl">
-        <ResponsiveDialogHeader>
-          <div className="flex min-w-0 flex-col gap-1">
-            <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
-              {t("description")}
-            </ResponsiveDialogDescription>
-          </div>
+      <ResponsiveDialogContent className="overflow-hidden p-0 sm:max-w-2xl">
+        <ResponsiveDialogHeader className="border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
+          <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
           <ResponsiveDialogCloseButton />
         </ResponsiveDialogHeader>
 
-        <div className="flex max-h-[70vh] flex-col gap-5 overflow-y-auto px-6 pb-6">
+        <div className="flex max-h-[70vh] flex-col gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
           <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted">
             <Image
               key={receiptAttempt}
@@ -168,7 +162,7 @@ export function ReviewTransactionModal({
           </dl>
         </div>
 
-        <ResponsiveDialogFooter className="gap-2 px-6 pb-6">
+        <ResponsiveDialogFooter className="flex w-full shrink-0 flex-row items-center justify-end gap-2 border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4">
           <Button type="button" variant="outline" onClick={onClose}>
             {t("close")}
           </Button>

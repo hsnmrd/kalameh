@@ -174,7 +174,7 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
   }, [plan.newTeacherHiringPlan])
 
   return (
-    <div className="flex flex-col gap-6 px-6 pb-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+    <div className="flex flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5 lg:min-h-0 lg:flex-1">
       <dl className="grid gap-4 rounded-2xl bg-muted/50 p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <dt className="text-xs text-muted-foreground">{t("term")}</dt>

@@ -7,7 +7,6 @@ import {
   ResponsiveDialog,
   ResponsiveDialogCloseButton,
   ResponsiveDialogContent,
-  ResponsiveDialogDescription,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@workspace/ui/components/dialog"
@@ -39,26 +38,19 @@ export function SchedulingPlanDetailsDialog({
 
   return (
     <ResponsiveDialog open onOpenChange={(open) => !open && onClose()}>
-      <ResponsiveDialogContent className="lg:flex lg:max-h-[92dvh] lg:max-w-5xl lg:flex-col lg:overflow-hidden xl:max-w-6xl 2xl:max-w-7xl">
-        <ResponsiveDialogHeader>
-          <div className="flex min-w-0 flex-col gap-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <ResponsiveDialogTitle>
-                {t("title", { rank: formatNumber(plan.rank, locale) })}
-              </ResponsiveDialogTitle>
-              {isSelected && <Badge>{t("selected")}</Badge>}
-              {plan.status === "PUBLISHED" && (
-                <Badge variant="success">{t("published")}</Badge>
-              )}
-              {plan.status === "REJECTED" && (
-                <Badge variant="secondary">{t("rejected")}</Badge>
-              )}
-            </div>
-            <ResponsiveDialogDescription>
-              {plan.status === "PUBLISHED"
-                ? t("publishedDescription")
-                : t("description")}
-            </ResponsiveDialogDescription>
+      <ResponsiveDialogContent className="overflow-hidden p-0 lg:flex lg:max-h-[92dvh] lg:max-w-5xl lg:flex-col xl:max-w-6xl 2xl:max-w-7xl">
+        <ResponsiveDialogHeader className="flex shrink-0 flex-row items-center justify-between border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <ResponsiveDialogTitle>
+              {t("title", { rank: formatNumber(plan.rank, locale) })}
+            </ResponsiveDialogTitle>
+            {isSelected && <Badge>{t("selected")}</Badge>}
+            {plan.status === "PUBLISHED" && (
+              <Badge variant="success">{t("published")}</Badge>
+            )}
+            {plan.status === "REJECTED" && (
+              <Badge variant="secondary">{t("rejected")}</Badge>
+            )}
           </div>
           <ResponsiveDialogCloseButton aria-label={t("close")} />
         </ResponsiveDialogHeader>

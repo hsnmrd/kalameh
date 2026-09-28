@@ -56,7 +56,7 @@ export function SchedulingPlanDetailsFooter({
 
   return (
     <>
-      <ResponsiveDialogFooter className="px-6 pb-6">
+      <ResponsiveDialogFooter className="flex w-full shrink-0 flex-row items-center justify-end gap-3 border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4">
         <Button type="button" variant="outline" onClick={onClose}>
           {t("close")}
         </Button>

@@ -48,6 +48,14 @@
   - **For all confirmation scenarios where the user is asked "Are you sure?" (e.g. delete confirmations, destructive resets, irreversible actions), ALWAYS use `<AlertDialog />` from `@workspace/ui/components/alert-dialog` instead of `<Dialog />` or `<ResponsiveDialog />`.**
   - Compose confirmation flows with `AlertDialog`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogAction`, and `AlertDialogCancel`.
   - Regular `<Dialog />` / `<ResponsiveDialog />` / `<FormDialog />` are strictly reserved for forms, inputs, data viewers, and wizards.
+- **Modal Header & Divider Standard (No In-Header Description & Mandatory Dividers):**
+  - Standard modals and dialogs (`Dialog`, `ResponsiveDialog`, `FormDialog`) must **NEVER** render a description (`ResponsiveDialogDescription`, `FormDialogDescription`, `DialogDescription`) inside their header (`*Header`).
+  - Modal headers are strictly reserved for the concise title (`*Title`), status badges (if applicable), and close button (`*CloseButton`).
+  - **Always use a header divider:** All modal headers must be separated from the body by a bottom divider (`border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4`).
+  - **Always use a footer divider:** When a modal has a footer, it must be separated from the body by a top divider (`border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4`).
+  - Modal content containers must use `overflow-hidden p-0` so header and footer dividers span edge-to-edge, with the inner content wrapped in a scrollable, padded container (`overflow-y-auto px-4 py-4 sm:px-6 sm:py-5`).
+  - If descriptive guidance or context is needed, place it inside the modal body (e.g. as an informative banner, callout, or form field helper text).
+  - Confirmation dialogs (`AlertDialog`) are the only exception where `AlertDialogDescription` is used.
 - **Data Table & Data Grid Standard:**
   - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying tabular data.
   - Define columns using TanStack Table `ColumnDef` to ensure consistent typography, responsive design, empty states, and accessibility across all dashboards.

@@ -7,7 +7,6 @@ import {
   FormDialog,
   FormDialogCloseButton,
   FormDialogContent,
-  FormDialogDescription,
   FormDialogFooter,
   FormDialogHeader,
   FormDialogTitle,
@@ -45,12 +44,7 @@ export function SchedulingProposalEditDialog({
     <FormDialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <FormDialogContent className="sm:max-w-2xl">
         <FormDialogHeader>
-          <div className="flex min-w-0 flex-col gap-1">
-            <FormDialogTitle>{t("title")}</FormDialogTitle>
-            <FormDialogDescription>
-              {t("description", { course: proposal.course.title })}
-            </FormDialogDescription>
-          </div>
+          <FormDialogTitle>{t("title")}</FormDialogTitle>
           <FormDialogCloseButton aria-label={t("close")} />
         </FormDialogHeader>
 

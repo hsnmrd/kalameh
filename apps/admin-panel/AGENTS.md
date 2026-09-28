@@ -61,6 +61,14 @@
 - **No Vanilla JS Dialogs (`alert`, `prompt`):** NEVER use native browser `alert()` or `prompt()`. Use shadcn/Sonner `toast` for notifications.
 - **Confirmation Modals (`AlertDialog`):** For all actions asking the user to confirm (e.g. `delete-*-modal`, reset permissions, "are you sure?"), ALWAYS use `<AlertDialog />` from `@workspace/ui/components/alert-dialog`. Do NOT use `ResponsiveDialog` or `Dialog` for confirmation prompts.
 - **Input & Form Modals (`ResponsiveDialog` / `FormDialog`):** Use `ResponsiveDialog` or `FormDialog` from `@workspace/ui/components/dialog` for user inputs, form sheets, details inspectors, and wizards.
+- **Modal Header & Divider Standard (No In-Header Description & Mandatory Dividers):**
+  - Modals (`ResponsiveDialog`, `FormDialog`, `Dialog`) must **NEVER** render a description (`ResponsiveDialogDescription`, `FormDialogDescription`, `DialogDescription`) inside their header (`*Header`).
+  - Modal headers are strictly reserved for the concise title (`*Title`), status badges (if applicable), and close button (`*CloseButton`).
+  - **Always use a header divider:** All modal headers must be separated from the body by a bottom divider (`border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4`).
+  - **Always use a footer divider:** When a modal has a footer, it must be separated from the body by a top divider (`border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4`).
+  - Modal content containers must use `overflow-hidden p-0` so header and footer dividers span edge-to-edge, with the inner content wrapped in a scrollable, padded container (`overflow-y-auto px-4 py-4 sm:px-6 sm:py-5`).
+  - If descriptive guidance or context is needed, place it inside the modal body (e.g. as an informative banner, callout, or form field helper text).
+  - Confirmation dialogs (`AlertDialog`) are the only exception where `AlertDialogDescription` is used.
 - **File Length:** Keep files under 250 lines. Decompose large tables, dialogs, and forms into dedicated subcomponents.
 - **Concise Button Labels Standard (Short Titles over Verbose Phrases):**
   - Buttons, submit actions, step transitions, and dialog triggers must **ALWAYS** use concise, succinct action titles (e.g. `ادامه` / `Continue`, `تأیید` / `Confirm`, `ذخیره` / `Save`, `انصراف` / `Cancel`, `بازگشت` / `Back`).
@@ -190,7 +198,7 @@ All admin-panel list pages and overlays must follow these mobile-specific rules 
 
 ### 5. Modal → Bottom-sheet Drawer on mobile
 
-- For non-confirmation modals (forms, inspectors, wizards), use `ResponsiveDialog`, `ResponsiveDialogContent`, `ResponsiveDialogHeader`, `ResponsiveDialogFooter`, `ResponsiveDialogTitle`, `ResponsiveDialogDescription`, `ResponsiveDialogCloseButton` from `@workspace/ui/components/dialog` instead of `Dialog`/`DialogPopup`.
+- For non-confirmation modals (forms, inspectors, wizards), use `ResponsiveDialog`, `ResponsiveDialogContent`, `ResponsiveDialogHeader`, `ResponsiveDialogFooter`, `ResponsiveDialogTitle`, `ResponsiveDialogCloseButton` from `@workspace/ui/components/dialog` instead of `Dialog`/`DialogPopup`. Never put descriptions in the header.
 - On mobile it slides up as a Drawer; on desktop it renders the standard centered dialog.
 - Form content must include `px-6 pb-6` padding when inside a `ResponsiveDialogContent`.
 - **For confirmations ("Are you sure?", delete actions), use `AlertDialog` from `@workspace/ui/components/alert-dialog` instead of `ResponsiveDialog`.**
