@@ -94,7 +94,13 @@ describe("SchedulingNewTeacherHiringPlan Component", () => {
     expect(
       screen.getByText("برنامه پیشنهادی برای جذب استاد جدید")
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", {
+        name: /راهنمای اولویت‌بندی الگوی تدریس/i,
+      })
+    ).toBeInTheDocument()
     expect(screen.getByText("AME 1-3")).toBeInTheDocument()
+    expect(screen.getByText(/کلاس‌های پیشنهادی/)).toBeInTheDocument()
     expect(screen.getByText("ثبت کلاس‌های پیش‌نویس برنامه")).toBeInTheDocument()
     expect(
       screen.queryByText(/SUNDAY,TUESDAY,THURSDAY/)

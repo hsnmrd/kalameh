@@ -8,6 +8,7 @@ import {
   CalendarX2,
   CheckCircle2,
   GraduationCap,
+  Info,
   ListChecks,
   RotateCcw,
 } from "lucide-react"
@@ -19,10 +20,15 @@ import type {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { toast } from "@workspace/ui/components/sonner"
 import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
-import { AssignmentItem } from "./assignment-item"
+import { ClassesCarousel } from "./classes-carousel"
 
 export interface CurrentAssignmentState {
   daysOfWeek: WeekDay[]
@@ -57,29 +63,11 @@ export function SchedulingNewTeacherHiringPlan({
   const locale = useLocale()
   const queryClient = useQueryClient()
 
-  const [internalAssignmentsState, setInternalAssignmentsState] =
-    React.useState<Record<string, CurrentAssignmentState>>(() => {
-      if (!plan) return {}
-      const initial: Record<string, CurrentAssignmentState> = {}
-      for (const a of plan.assignments) {
-        initial[a.key] = {
-          daysOfWeek: a.daysOfWeek as WeekDay[],
-          startTime: a.startTime,
-          endTime: a.endTime,
-          classroomId: a.classroom?.id ?? null,
-          classroomName: a.classroom?.name ?? null,
-          isAssigned: true,
-        }
-      }
-      return initial
-    })
-
-  // Sync internal state if plan changes
-  React.useEffect(() => {
-    if (!plan) return
-    const next: Record<string, CurrentAssignmentState> = {}
+  const defaultAssignments = React.useMemo(() => {
+    if (!plan) return {}
+    const initial: Record<string, CurrentAssignmentState> = {}
     for (const a of plan.assignments) {
-      next[a.key] = {
+      initial[a.key] = {
         daysOfWeek: a.daysOfWeek as WeekDay[],
         startTime: a.startTime,
         endTime: a.endTime,
@@ -88,11 +76,16 @@ export function SchedulingNewTeacherHiringPlan({
         isAssigned: true,
       }
     }
-    setInternalAssignmentsState(next)
+    return initial
   }, [plan])
 
+  const [customAssignmentsState] = React.useState<Record<
+    string,
+    CurrentAssignmentState
+  > | null>(null)
+
   const activeAssignmentsState =
-    assignmentsStateProp ?? internalAssignmentsState
+    assignmentsStateProp ?? customAssignmentsState ?? defaultAssignments
 
   const commitMutation = useMutation({
     ...schedulingResource.commitHiringPlan.toMutation(),
@@ -210,22 +203,31 @@ export function SchedulingNewTeacherHiringPlan({
       aria-labelledby="new-teacher-hiring-plan-title"
       className="mt-4 rounded-xl border border-border bg-muted/30 p-4"
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
           <GraduationCap
             aria-hidden
-            className="mt-0.5 size-5 shrink-0 text-foreground"
+            className="size-5 shrink-0 text-foreground"
           />
-          <div>
+          <div className="flex items-center gap-1.5">
             <h4
               id="new-teacher-hiring-plan-title"
               className="text-sm font-bold text-foreground"
             >
               {t("hiringPlan.title")}
             </h4>
-            <p className="mt-1 max-w-3xl text-xs leading-5 text-muted-foreground">
-              {t("hiringPlan.description")}
-            </p>
+            <Tooltip delay={200}>
+              <TooltipTrigger
+                type="button"
+                aria-label={t("hiringPlan.infoTooltipLabel")}
+                className="inline-flex size-5 cursor-help items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden"
+              >
+                <Info aria-hidden className="size-4" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs leading-5">
+                {t("hiringPlan.description")}
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
         <Badge variant="secondary">
@@ -300,19 +302,10 @@ export function SchedulingNewTeacherHiringPlan({
             </Badge>
           </div>
 
-          <ol className="mt-3 flex flex-col gap-3">
-            {plan.assignments.map((assignment, index) => {
-              const current = activeAssignmentsState[assignment.key]
-              return (
-                <AssignmentItem
-                  key={assignment.key}
-                  assignment={assignment}
-                  index={index}
-                  assignedState={current}
-                />
-              )
-            })}
-          </ol>
+          <ClassesCarousel
+            assignments={plan.assignments}
+            activeAssignmentsState={activeAssignmentsState}
+          />
 
           <p className="mt-3 text-xs leading-5 text-muted-foreground">
             {t(

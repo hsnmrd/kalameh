@@ -61,7 +61,7 @@ export function AssignmentItem({
   }
 
   return (
-    <li className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-2xs">
+    <div className="flex h-full flex-col justify-between gap-3 rounded-2xl border border-border bg-card p-4 shadow-2xs">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Badge variant="outline">{formatNumber(index + 1, locale)}</Badge>
@@ -140,6 +140,6 @@ export function AssignmentItem({
           </Button>
         </div>
       )}
-    </li>
+    </div>
   )
 }

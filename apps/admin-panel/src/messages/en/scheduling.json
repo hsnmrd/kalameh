@@ -408,6 +408,8 @@
     "hiringPlan": {
       "title": "Suggested schedule for a new teacher",
       "description": "To cover every unscheduled class, the system prioritizes an odd/even three-day pattern and consecutive times; when that is not feasible, it shows the best alternative.",
+      "infoTooltipLabel": "Teaching schedule priority guidance",
+      "classesCarouselTitle": "Suggested Classes ({count})",
       "classCount": "{count} classes",
       "requiredAvailability": "Required new-teacher availability",
       "requiredQualifications": "Required teaching levels",
