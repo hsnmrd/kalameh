@@ -44,9 +44,7 @@ const ALL_FLAG_COMBINATIONS: readonly SwapCombinationFlags[] = [
   { changeTeacher: false, changeClassroom: true, changeDate: false },
   { changeTeacher: false, changeClassroom: false, changeDate: true },
   { changeTeacher: true, changeClassroom: true, changeDate: false },
-  { changeTeacher: true, changeClassroom: false, changeDate: true },
   { changeTeacher: false, changeClassroom: true, changeDate: true },
-  { changeTeacher: true, changeClassroom: true, changeDate: true },
 ]
 
 export function getProposalTeacherId(proposal: Proposal): string | null {
@@ -112,6 +110,10 @@ export function evaluateProposalSwap(
     if (flags.changeTeacher && !hasDifferentTeacher) return false
     if (flags.changeClassroom && !hasDifferentClassroom) return false
     if (flags.changeDate && !hasDifferentDate) return false
+    if (flags.changeTeacher && flags.changeDate) return false
+    if (flags.changeClassroom && !flags.changeDate && hasDifferentDate) {
+      return false
+    }
 
     const swapsAllDifferingAttributes =
       (!hasDifferentTeacher || flags.changeTeacher) &&
@@ -502,6 +504,16 @@ function isTeacherAvailableForSchedule(
   if (!calendar || calendar.slots.length === 0) {
     return true
   }
+
+  const hasExistingClassConflict = calendar.slots.some(
+    (slot) =>
+      slot.status === "BUSY" &&
+      slot.source === "EXISTING_CLASS" &&
+      daysOfWeek.includes(slot.dayOfWeek) &&
+      slot.startTime < endTime &&
+      startTime < slot.endTime
+  )
+  if (hasExistingClassConflict) return false
 
   return daysOfWeek.every((day) => {
     const coveredBySwapSource = allProposals.some(

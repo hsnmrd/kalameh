@@ -1156,24 +1156,32 @@ describe("SchedulingPlanCalendarView Component", () => {
     fireEvent.click(targetCard)
     expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
 
-    // 3. Clicking on the classroom option card toggles changeClassroom ON without closing the dialog
+    // 3. Clicking on the classroom option card switches to { changeTeacher: false, changeClassroom: true, changeDate: true } without closing the dialog
     fireEvent.click(classroomOptionCard)
     expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
     expect(classroomCheckbox).toHaveAttribute("aria-checked", "true")
-    expect(sourceCard).toHaveTextContent("کلاس ۱۰۳")
-    expect(targetCard).toHaveTextContent("کلاس ۱۰۱")
-
-    // 4. Clicking directly on the checkbox toggles it OFF and back ON without closing the dialog
-    fireEvent.click(classroomCheckbox)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
-    expect(classroomCheckbox).toHaveAttribute("aria-checked", "false")
-
-    fireEvent.click(dateOptionCard)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
     expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
       "aria-checked",
       "true"
     )
+    expect(teacherCheckbox).toHaveAttribute("aria-checked", "false")
+    expect(sourceCard).toHaveTextContent("کلاس ۱۰۳")
+    expect(targetCard).toHaveTextContent("کلاس ۱۰۱")
+
+    // 4. Clicking directly on the classroom checkbox unchecks it, leaving changeDate = true without closing the dialog
+    fireEvent.click(classroomCheckbox)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    expect(classroomCheckbox).toHaveAttribute("aria-checked", "false")
+    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
+      "aria-checked",
+      "true"
+    )
+
+    // Toggle date off and switch back to teacher swap via option card
+    fireEvent.click(dateOptionCard)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId("swap-option-teacher-label"))
+    expect(teacherCheckbox).toHaveAttribute("aria-checked", "true")
 
     // 5. Clicking the submit button calls updateProposal for both classes and updates the calendar
     const confirmBtn = screen.getByTestId("swap-confirm-btn")
@@ -1190,9 +1198,6 @@ describe("SchedulingPlanCalendarView Component", () => {
       instituteId: "inst-1",
       body: {
         teacherId: "t-swap",
-        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
-        startTime: "11:00",
-        endTime: "12:30",
       },
     })
     expect(updateProposalMutationFn.mock.calls[1]?.[0]).toEqual({
@@ -1201,13 +1206,10 @@ describe("SchedulingPlanCalendarView Component", () => {
       instituteId: "inst-1",
       body: {
         teacherId: "t1",
-        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
-        startTime: "09:00",
-        endTime: "10:30",
       },
     })
 
-    // Dialog closes and calendar reflects the swapped teachers and dates
+    // Dialog closes and calendar reflects the swapped teachers
     await waitFor(() => {
       expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
     })
@@ -1305,5 +1307,87 @@ describe("SchedulingPlanCalendarView Component", () => {
     fireEvent.click(propACard)
     expect(propBCard).not.toHaveAttribute("data-swappable")
     expect(propBCard).toHaveAttribute("data-dimmed", "true")
+  })
+
+  it("does not suggest swapping with another teacher in a period where the selected teacher already teaches another class", () => {
+    const proposalsWithTeacherInBothPeriods: Proposal[] = [
+      {
+        id: "prop-maryam-1700",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 2-2",
+        course: { id: "c-ame-2-2", title: "AME 2-2" },
+        teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr2", name: "کلاس ۱۰۲", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "17:00",
+        endTime: "18:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-maryam-1530",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 2-1",
+        course: { id: "c-ame-2-1", title: "AME 2-1" },
+        teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr3", name: "کلاس ۱۰۳", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-alireza-1530",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-1",
+        course: { id: "c-ame-1-1", title: "AME 1-1" },
+        teacher: { id: "t-alireza", firstName: "علیرضا", lastName: "شمس" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr1", name: "کلاس ۱۰۱", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={proposalsWithTeacherInBothPeriods}
+        canEdit={true}
+      />
+    )
+
+    const maryam1700Card = screen.getAllByTestId(
+      "calendar-class-card-prop-maryam-1700"
+    )[0]!
+    const alireza1530Card = screen.getAllByTestId(
+      "calendar-class-card-prop-alireza-1530"
+    )[0]!
+
+    fireEvent.click(maryam1700Card)
+
+    expect(maryam1700Card).toHaveAttribute("data-active", "true")
+    expect(alireza1530Card).not.toHaveAttribute("data-swappable")
+    expect(alireza1530Card).toHaveAttribute("data-dimmed", "true")
   })
 })
