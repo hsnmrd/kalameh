@@ -7,6 +7,7 @@ import { SchedulingGenerationEngineService } from './scheduling-generation-engin
 import { SchedulingGenerationDispatcherService } from './scheduling-generation-dispatcher.service';
 import { SchedulingHardConstraintService } from './scheduling-hard-constraint.service';
 import { SchedulingPlanCompositionService } from './scheduling-plan-composition.service';
+import { SchedulingTeacherGapReductionService } from './scheduling-teacher-gap-reduction.service';
 import { SchedulingPlanPersistenceService } from './scheduling-plan-persistence.service';
 import { SchedulingPlanPublicationService } from './scheduling-plan-publication.service';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
@@ -62,6 +63,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingGenerationDispatcherService,
     SchedulingHardConstraintService,
     SchedulingPlanCompositionService,
+    SchedulingTeacherGapReductionService,
     SchedulingPlanPersistenceService,
     SchedulingPlanPublicationService,
     SchedulingPlanQueryService,
@@ -97,6 +99,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingGenerationDispatcherService,
     SchedulingHardConstraintService,
     SchedulingPlanCompositionService,
+    SchedulingTeacherGapReductionService,
     SchedulingPlanPersistenceService,
     SchedulingPlanPublicationService,
     SchedulingPlanQueryService,

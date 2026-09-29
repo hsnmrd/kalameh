@@ -13,6 +13,7 @@ import {
   type SchedulingSelectionReason,
 } from '@workspace/types';
 import { SchedulingTimeDistributionService } from './scheduling-time-distribution.service';
+import { SchedulingTeacherGapReductionService } from './scheduling-teacher-gap-reduction.service';
 
 type CompositionRequirement = {
   id: string;
@@ -42,6 +43,7 @@ type RankedOption = {
   projectedCoveragePercent: number | null;
   projectedTimeDiversityScore: number;
   projectedWeightedPoints: number;
+  teacherGapDelta: number;
   selectionReasons: SchedulingSelectionReason[];
 };
 
@@ -49,6 +51,7 @@ type RankedOption = {
 export class SchedulingPlanCompositionService {
   constructor(
     private readonly timeDistributionService: SchedulingTimeDistributionService,
+    private readonly gapReductionService: SchedulingTeacherGapReductionService = new SchedulingTeacherGapReductionService(),
   ) {}
 
   compose(input: ComposeSchedulingPlanInput): SchedulingPlanComposition {
@@ -212,6 +215,10 @@ export class SchedulingPlanCompositionService {
               projectedTimeScore.criterion.weightedPoints!,
             2,
           ),
+          teacherGapDelta: this.gapReductionService.candidateGapDelta(
+            candidate,
+            selected.map(({ candidate: chosen }) => chosen),
+          ),
           selectionReasons,
         } satisfies RankedOption;
       });
@@ -236,9 +243,15 @@ export class SchedulingPlanCompositionService {
       );
     }
 
+    const gapOptimizedSelected = this.gapReductionService.reduceGaps({
+      selected,
+      eligibleCandidates,
+      coverageByAssignmentKey,
+    });
+
     return this.buildComposition(
       requirements,
-      selected,
+      gapOptimizedSelected,
       coverageByAssignmentKey,
       knownStudentCountByCourse,
       unknownStudentsByCourse,
@@ -260,6 +273,7 @@ export class SchedulingPlanCompositionService {
         right.projectedCoveragePercent,
       ) ||
       right.projectedTimeDiversityScore - left.projectedTimeDiversityScore ||
+      left.teacherGapDelta - right.teacherGapDelta ||
       left.candidate.assignmentKey.localeCompare(right.candidate.assignmentKey)
     );
   }

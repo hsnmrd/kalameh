@@ -412,4 +412,93 @@ describe('MVP-023 SchedulingPlanCompositionService', () => {
       }),
     ).toThrow('combined maximum of 100');
   });
+
+  it('reassigns a middle-period class to eliminate a teacher schedule gap when the other teacher has no third-period class', () => {
+    const dualRequirements = [
+      { id: ids.requirementA, courseId: ids.courseA, requiredClassCount: 2 },
+      { id: ids.requirementB, courseId: ids.courseB, requiredClassCount: 2 },
+    ];
+    const shamsPeriod1 = candidate(1, {
+      requirementId: ids.requirementA,
+      courseId: ids.courseA,
+      teacherId: ids.teacherA,
+      dayOfWeek: 'SATURDAY',
+      startTime: '15:00',
+      endTime: '16:30',
+      timeGroup: 'EVEN_EVENING',
+    });
+    const shamsPeriod2 = candidate(2, {
+      requirementId: ids.requirementA,
+      courseId: ids.courseA,
+      teacherId: ids.teacherA,
+      dayOfWeek: 'SATURDAY',
+      startTime: '16:30',
+      endTime: '18:00',
+      timeGroup: 'EVEN_EVENING',
+    });
+    const ahmadiPeriod2ForCourseA = candidate(3, {
+      requirementId: ids.requirementA,
+      courseId: ids.courseA,
+      teacherId: ids.teacherB,
+      dayOfWeek: 'SATURDAY',
+      startTime: '16:30',
+      endTime: '18:00',
+      timeGroup: 'EVEN_EVENING',
+    });
+    const ahmadiPeriod1ForCourseB = candidate(4, {
+      requirementId: ids.requirementB,
+      courseId: ids.courseB,
+      teacherId: ids.teacherB,
+      dayOfWeek: 'SATURDAY',
+      startTime: '15:00',
+      endTime: '16:30',
+      timeGroup: 'EVEN_EVENING',
+    });
+    const ahmadiPeriod3ForCourseB = candidate(5, {
+      requirementId: ids.requirementB,
+      courseId: ids.courseB,
+      teacherId: ids.teacherB,
+      dayOfWeek: 'SATURDAY',
+      startTime: '18:00',
+      endTime: '19:30',
+      timeGroup: 'EVEN_EVENING',
+    });
+    const candidates = [
+      shamsPeriod1,
+      shamsPeriod2,
+      ahmadiPeriod2ForCourseA,
+      ahmadiPeriod1ForCourseB,
+      ahmadiPeriod3ForCourseB,
+    ];
+    const records = [
+      coverage(shamsPeriod1, [ids.studentA], []),
+      coverage(shamsPeriod2, [ids.studentA], []),
+      coverage(ahmadiPeriod2ForCourseA, [ids.studentA], []),
+      coverage(ahmadiPeriod1ForCourseB, [ids.studentB], []),
+      coverage(ahmadiPeriod3ForCourseB, [ids.studentB], []),
+    ];
+
+    const result = service.compose({
+      requirements: dualRequirements,
+      feasibleCandidates: candidates,
+      coverageEvaluation: coverageEvaluation(records, dualRequirements),
+    });
+
+    const period2Selection = result.assignments.find(
+      ({ candidate: item }) =>
+        item.requirementId === ids.requirementA && item.startTime === '16:30',
+    );
+    expect(period2Selection?.candidate.teacherId).toBe(ids.teacherB);
+
+    const ahmadiSlots = result.assignments
+      .filter(({ candidate: item }) => item.teacherId === ids.teacherB)
+      .map(({ candidate: item }) => `${item.startTime}-${item.endTime}`)
+      .sort();
+    expect(ahmadiSlots).toEqual(['15:00-16:30', '16:30-18:00', '18:00-19:30']);
+
+    const shamsSlots = result.assignments
+      .filter(({ candidate: item }) => item.teacherId === ids.teacherA)
+      .map(({ candidate: item }) => `${item.startTime}-${item.endTime}`);
+    expect(shamsSlots).toEqual(['15:00-16:30']);
+  });
 });
