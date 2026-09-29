@@ -238,44 +238,28 @@ describe('SchedulingRecoverySuggestionService', () => {
         expect.objectContaining({ name: 'Room 2' }),
       ]),
     });
-    expect(result[ids.requirement]?.options).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          status: 'AVAILABLE_NOW',
-          startTime: '12:00',
-          endTime: '13:30',
-          teacher: expect.objectContaining({
-            firstName: 'Sara',
-            lastName: 'Ahmadi',
-          }),
-          availableClassrooms: expect.arrayContaining([
-            expect.objectContaining({ name: 'Room 1' }),
-            expect.objectContaining({ name: 'Room 2' }),
-          ]),
+    expect(result[ids.requirement]?.options).toHaveLength(1);
+    expect(result[ids.requirement]?.options).toEqual([
+      expect.objectContaining({
+        status: 'AVAILABLE_NOW',
+        startTime: '12:00',
+        endTime: '13:30',
+        daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+        teacher: expect.objectContaining({
+          firstName: 'Sara',
+          lastName: 'Ahmadi',
         }),
-        expect.objectContaining({
-          status: 'REQUIRES_PLAN_CHANGE',
-          startTime: '10:30',
-          availableClassrooms: [],
-          blockingClasses: expect.arrayContaining([
-            expect.objectContaining({
-              id: ids.roomOneProposal,
-              title: 'B1 class',
-              conflictTypes: ['CLASSROOM'],
-              classroom: expect.objectContaining({ name: 'Room 1' }),
-            }),
-            expect.objectContaining({
-              id: ids.roomTwoProposal,
-              title: 'B2 class',
-              conflictTypes: ['CLASSROOM'],
-              classroom: expect.objectContaining({ name: 'Room 2' }),
-            }),
-          ]),
-        }),
-      ]),
-    );
+        availableClassrooms: expect.arrayContaining([
+          expect.objectContaining({ name: 'Room 1' }),
+          expect.objectContaining({ name: 'Room 2' }),
+        ]),
+      }),
+    ]);
     expect(result[ids.requirement]?.options).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ startTime: '09:00' })]),
+      expect.arrayContaining([
+        expect.objectContaining({ startTime: '09:00' }),
+        expect.objectContaining({ startTime: '10:30' }),
+      ]),
     );
     expect(prisma.user.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -470,6 +454,114 @@ describe('SchedulingRecoverySuggestionService', () => {
         firstName: 'نیلوفر',
         lastName: 'صادقی',
       },
+    });
+  });
+
+  it('deduplicates multi-day teacher availabilities into a single option per timeGroup and excludes slots with no free physical room', async () => {
+    const result = await service.analyze({
+      instituteId: ids.institute,
+      unresolvedRequirementIds: [ids.requirement],
+      inputSnapshot: {
+        schemaVersion: '1',
+        request: {
+          termId: ids.term,
+          branchId: null,
+          requirementIds: [ids.requirement],
+          alternativePlanCount: 1,
+        },
+        term: {
+          id: ids.term,
+          startDate: '2026-09-01T00:00:00.000Z',
+          endDate: '2026-12-31T00:00:00.000Z',
+        },
+        requirements: [
+          {
+            id: ids.requirement,
+            courseId: ids.course,
+            branchId: null,
+            requiredClassCount: 1,
+            capacity: 12,
+            sessionDurationMinutes: 90,
+            deliveryMode: 'IN_PERSON',
+          },
+        ],
+        teachers: [
+          {
+            id: ids.qualification,
+            courseId: ids.course,
+            teacherProfile: {
+              userId: ids.teacher,
+              user: {
+                isActive: true,
+                role: 'TEACHER',
+                branchId: null,
+              },
+              availabilities: [
+                {
+                  id: uuid(30),
+                  dayOfWeek: 'SUNDAY',
+                  startTime: '10:30',
+                  endTime: '13:30',
+                },
+                {
+                  id: uuid(31),
+                  dayOfWeek: 'TUESDAY',
+                  startTime: '10:30',
+                  endTime: '13:30',
+                },
+                {
+                  id: uuid(32),
+                  dayOfWeek: 'THURSDAY',
+                  startTime: '10:30',
+                  endTime: '13:30',
+                },
+              ],
+            },
+          },
+        ],
+        students: [],
+        existingClasses: [],
+        classrooms: [
+          {
+            id: ids.roomOne,
+            branchId: null,
+            capacity: 20,
+            isActive: true,
+          },
+        ],
+      },
+      settingsSnapshot: {
+        schemaVersion: '1',
+        ...DEFAULT_SCHEDULING_SETTINGS,
+      },
+      proposals: [
+        {
+          id: ids.roomOneProposal,
+          title: 'Occupied room class',
+          courseId: ids.course,
+          branchId: null,
+          teacherId: ids.otherTeacher,
+          classroomId: ids.roomOne,
+          deliveryMode: 'IN_PERSON',
+          classroom: { id: ids.roomOne, name: 'Room 1', capacity: 20 },
+          daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+          startTime: '10:30',
+          endTime: '12:00',
+          isLocked: false,
+        },
+      ],
+    });
+
+    expect(result[ids.requirement]?.options).toHaveLength(1);
+    expect(result[ids.requirement]?.options[0]).toMatchObject({
+      key: `${ids.requirement}:${ids.teacher}:ODD_MORNING:12:00:13:30`,
+      status: 'AVAILABLE_NOW',
+      startTime: '12:00',
+      endTime: '13:30',
+      daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+      availableClassrooms: [
+        expect.objectContaining({ id: ids.roomOne, name: 'Room 1' }),
+      ],
     });
   });
 });

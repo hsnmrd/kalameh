@@ -235,8 +235,16 @@ export class SchedulingTeacherReassignmentChainService {
     const moveKey = reassignments
       .map(({ proposalId, toTeacher }) => `${proposalId}:${toTeacher.id}`)
       .join('|');
+    const targetTrackKey = [
+      target.requirementId,
+      target.teacherId,
+      target.timeGroup,
+      target.startTime,
+      target.endTime,
+      target.classroomId ?? 'ONLINE',
+    ].join(':');
     return SchedulingTeacherReassignmentChainSchema.parse({
-      key: `${target.assignmentKey}|${moveKey}`,
+      key: `${targetTrackKey}|${moveKey}`,
       targetAssignment: {
         teacher: targetTeacher,
         classroom: targetClassroom ?? null,

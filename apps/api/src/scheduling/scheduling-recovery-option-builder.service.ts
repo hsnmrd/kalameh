@@ -47,39 +47,55 @@ export class SchedulingRecoveryOptionBuilderService {
     const options: SchedulingRecoveryOption[] = [];
     const busyTeacherIds = new Set<string>();
 
-    for (const group of baseGroups.values()) {
+    for (const [groupKey, group] of baseGroups.entries()) {
       if (group.candidate.requirementId !== input.requirementId) continue;
       const teacher = input.teacherById.get(group.candidate.teacherId);
       if (!teacher) continue;
-      const current = currentGroups.get(group.candidate.key);
-      const blockingClasses = current
-        ? []
-        : this.blockingClasses(group, input.proposals, input.settings);
+      const current = currentGroups.get(groupKey);
+      const allBlockingClasses = this.blockingClasses(
+        group,
+        input.proposals,
+        input.settings,
+      );
       if (
-        blockingClasses.some(({ conflictTypes }) =>
+        allBlockingClasses.some(({ conflictTypes }) =>
           conflictTypes.includes('TEACHER'),
         )
       ) {
         busyTeacherIds.add(group.candidate.teacherId);
         continue;
       }
-      const availableClassrooms = (current?.assignments ?? group.assignments)
-        .filter(
-          ({ classroomId }) =>
-            classroomId !== null &&
-            !blockingClasses.some(
-              (blocking) =>
-                blocking.conflictTypes.includes('CLASSROOM') &&
-                input.proposals.find(({ id }) => id === blocking.id)
-                  ?.classroomId === classroomId,
-            ),
-        )
-        .map(({ classroomId }) => input.classroomById.get(classroomId!))
-        .filter((room): room is NonNullable<typeof room> => room !== undefined);
+      const availableClassrooms = this.uniqueById(
+        (current?.assignments ?? group.assignments)
+          .filter(
+            ({ classroomId }) =>
+              classroomId !== null &&
+              !allBlockingClasses.some(
+                (blocking) =>
+                  blocking.conflictTypes.includes('CLASSROOM') &&
+                  input.proposals.find(({ id }) => id === blocking.id)
+                    ?.classroomId === classroomId,
+              ),
+          )
+          .map(({ classroomId }) => input.classroomById.get(classroomId!))
+          .filter(
+            (room): room is NonNullable<typeof room> => room !== undefined,
+          ),
+      );
+      if (
+        group.candidate.deliveryMode === 'IN_PERSON' &&
+        availableClassrooms.length === 0
+      ) {
+        continue;
+      }
+      const isAvailableNow =
+        Boolean(current) &&
+        (group.candidate.deliveryMode === 'ONLINE' ||
+          availableClassrooms.length > 0);
 
       options.push({
-        key: group.candidate.key,
-        status: current ? 'AVAILABLE_NOW' : 'REQUIRES_PLAN_CHANGE',
+        key: groupKey,
+        status: isAvailableNow ? 'AVAILABLE_NOW' : 'REQUIRES_PLAN_CHANGE',
         deliveryMode: group.candidate.deliveryMode,
         daysOfWeek: this.candidateDays(
           group.candidate.timeGroup,
@@ -88,8 +104,8 @@ export class SchedulingRecoveryOptionBuilderService {
         startTime: group.candidate.startTime,
         endTime: group.candidate.endTime,
         teacher,
-        availableClassrooms: this.uniqueById(availableClassrooms),
-        blockingClasses,
+        availableClassrooms,
+        blockingClasses: isAvailableNow ? [] : allBlockingClasses,
       });
     }
 
@@ -110,11 +126,22 @@ export class SchedulingRecoveryOptionBuilderService {
   ): Map<string, CandidateGroup> {
     const groups = new Map<string, CandidateGroup>();
     for (const candidate of candidates) {
-      const group = groups.get(candidate.key);
+      const key = this.groupKey(candidate);
+      const group = groups.get(key);
       if (group) group.assignments.push(candidate);
-      else groups.set(candidate.key, { candidate, assignments: [candidate] });
+      else groups.set(key, { candidate, assignments: [candidate] });
     }
     return groups;
+  }
+
+  private groupKey(candidate: SchedulingFeasibleCandidate): string {
+    return [
+      candidate.requirementId,
+      candidate.teacherId,
+      candidate.timeGroup,
+      candidate.startTime,
+      candidate.endTime,
+    ].join(':');
   }
 
   private blockingClasses(
