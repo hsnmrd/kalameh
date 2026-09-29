@@ -321,7 +321,8 @@
       "showFreeTeachers": "نمایش استادان آزاد",
       "hideFreeTeachers": "پنهان‌کردن استادان آزاد",
       "freeTeachersLabel": "استادان آزاد:",
-      "suggestedForCourse": "پیشنهاد برای {course}"
+      "suggestedForCourse": "پیشنهاد برای {course}",
+      "assignToTeacher": "تخصیص به استاد"
     },
     "weekDays": {
       "SATURDAY": "شنبه",
@@ -474,6 +475,8 @@
         "friday": "جمعه"
       },
       "levels": "سطوح قابل تدریس",
+      "suggestedCourse": "پیشنهاد تدریس {course} ({slot})",
+      "assignToTeacher": "تخصیص به استاد",
       "allFilled": "تمامی زمان‌های حضور استادان در این برنامه با کلاس پوشش داده شده است.",
       "viewCalendar": "مشاهده تقویم همه استادان",
       "count": "{count} استاد"
