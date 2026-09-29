@@ -1390,4 +1390,165 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(alireza1530Card).not.toHaveAttribute("data-swappable")
     expect(alireza1530Card).toHaveAttribute("data-dimmed", "true")
   })
+
+  it("does not allow swapping between odd days and even days when a teacher is only available on odd days (and vice versa)", () => {
+    const oddEvenProposals: Proposal[] = [
+      {
+        id: "prop-maryam-odd",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 2-2",
+        course: { id: "c-ame-2-2", title: "AME 2-2" },
+        teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr2", name: "کلاس ۱۰۲", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "17:00",
+        endTime: "18:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-arezoo-even",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-1",
+        course: { id: "c-ame-1-1", title: "AME 1-1" },
+        teacher: { id: "t-arezoo", firstName: "آرزو", lastName: "احمدی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr1", name: "کلاس ۱۰۱", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "17:00",
+        endTime: "18:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={oddEvenProposals}
+        canEdit={true}
+        teacherCalendars={[
+          {
+            teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+            teachableCourses: [
+              { id: "c-ame-1-1", title: "AME 1-1" },
+              { id: "c-ame-2-2", title: "AME 2-2" },
+            ],
+            slots: [
+              {
+                dayOfWeek: "SUNDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "BUSY",
+                title: "AME 2-2",
+                source: "PLAN",
+              },
+              {
+                dayOfWeek: "TUESDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "BUSY",
+                title: "AME 2-2",
+                source: "PLAN",
+              },
+              {
+                dayOfWeek: "THURSDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "BUSY",
+                title: "AME 2-2",
+                source: "PLAN",
+              },
+            ],
+          },
+          {
+            teacher: { id: "t-arezoo", firstName: "آرزو", lastName: "احمدی" },
+            teachableCourses: [
+              { id: "c-ame-1-1", title: "AME 1-1" },
+              { id: "c-ame-2-2", title: "AME 2-2" },
+            ],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "BUSY",
+                title: "AME 1-1",
+                source: "PLAN",
+              },
+              {
+                dayOfWeek: "MONDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "BUSY",
+                title: "AME 1-1",
+                source: "PLAN",
+              },
+              {
+                dayOfWeek: "WEDNESDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "BUSY",
+                title: "AME 1-1",
+                source: "PLAN",
+              },
+              {
+                dayOfWeek: "SUNDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "TUESDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "THURSDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+            ],
+          },
+        ]}
+      />
+    )
+
+    const maryamOddCard = screen.getAllByTestId(
+      "calendar-class-card-prop-maryam-odd"
+    )[0]!
+    const arezooEvenCard = screen.getAllByTestId(
+      "calendar-class-card-prop-arezoo-even"
+    )[0]!
+
+    // 1. Select Maryam (odd days only) -> Arezoo on even days must NOT shake
+    fireEvent.click(maryamOddCard)
+    expect(maryamOddCard).toHaveAttribute("data-active", "true")
+    expect(arezooEvenCard).not.toHaveAttribute("data-swappable")
+    expect(arezooEvenCard).toHaveAttribute("data-dimmed", "true")
+
+    // 2. Vice versa: Select Arezoo (even days) -> Maryam (odd days only) must NOT shake
+    fireEvent.click(arezooEvenCard)
+    expect(arezooEvenCard).toHaveAttribute("data-active", "true")
+    expect(maryamOddCard).not.toHaveAttribute("data-swappable")
+    expect(maryamOddCard).toHaveAttribute("data-dimmed", "true")
+  })
 })

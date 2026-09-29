@@ -195,7 +195,13 @@ export function evaluateFreeTeacherSwap(
   const validCombinations: SwapCombinationFlags[] = []
 
   // Option 1: Change teacher at source's current days & time
+  const isSameSlotAsSource =
+    source.daysOfWeek.includes(freeTeacher.dayOfWeek) &&
+    source.startTime === freeTeacher.startTime &&
+    source.endTime === freeTeacher.endTime
+
   if (
+    isSameSlotAsSource &&
     isTeacherAvailableForSchedule(
       freeTeacher.teacher.id,
       source.daysOfWeek,
@@ -501,7 +507,7 @@ function isTeacherAvailableForSchedule(
   if (hasProposalConflict) return false
 
   const calendar = teacherCalendars?.find((c) => c.teacher.id === teacherId)
-  if (!calendar || calendar.slots.length === 0) {
+  if (!calendar) {
     return true
   }
 
