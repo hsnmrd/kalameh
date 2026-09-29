@@ -44,6 +44,7 @@ import {
   evaluateFreeTeacherSwap,
   evaluateProposalSwap,
   type FreeTeacherSwapTarget,
+  type OccupiedClassroomSlot,
   type SwapEvaluationResult,
   type SwapTarget,
 } from "./helper/swap-eligibility.helper"
@@ -138,6 +139,28 @@ export function SchedulingPlanCalendarView({
     [activeClassId, proposals]
   )
 
+  const occupiedClassroomSlots = React.useMemo<OccupiedClassroomSlot[]>(() => {
+    if (!hiringPlan?.assignments || !missedClassesAssignments) return []
+    const slots: OccupiedClassroomSlot[] = []
+    for (const assignment of hiringPlan.assignments) {
+      if (assignment.deliveryMode !== "IN_PERSON") continue
+      const state = missedClassesAssignments[assignment.key]
+      if (!state || state.isAssigned === false || !state.daysOfWeek.length) {
+        continue
+      }
+      const effectiveRoomId =
+        state.classroomId ?? assignment.classroom?.id ?? null
+      if (!effectiveRoomId || !state.startTime || !state.endTime) continue
+      slots.push({
+        classroomId: effectiveRoomId,
+        daysOfWeek: [...state.daysOfWeek],
+        startTime: state.startTime,
+        endTime: state.endTime,
+      })
+    }
+    return slots
+  }, [hiringPlan, missedClassesAssignments])
+
   const swappableByProposalId = React.useMemo(() => {
     const map = new Map<string, SwapEvaluationResult>()
     if (!canSwap || !activeProposal) return map
@@ -147,14 +170,21 @@ export function SchedulingPlanCalendarView({
         activeProposal,
         proposal,
         proposals,
-        teacherCalendars
+        teacherCalendars,
+        occupiedClassroomSlots
       )
       if (evaluation.canSwap) {
         map.set(proposal.id, evaluation)
       }
     }
     return map
-  }, [canSwap, activeProposal, proposals, teacherCalendars])
+  }, [
+    canSwap,
+    activeProposal,
+    proposals,
+    teacherCalendars,
+    occupiedClassroomSlots,
+  ])
 
   const handleCardClick = React.useCallback(
     (id: string) => {
@@ -1049,7 +1079,8 @@ export function SchedulingPlanCalendarView({
                                           activeProposal,
                                           freeTarget,
                                           proposals,
-                                          teacherCalendars
+                                          teacherCalendars,
+                                          occupiedClassroomSlots
                                         )
                                       : null
                                   const isFreeSwappable = Boolean(

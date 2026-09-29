@@ -1168,22 +1168,26 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(sourceCard).toHaveTextContent("کلاس ۱۰۳")
     expect(targetCard).toHaveTextContent("کلاس ۱۰۱")
 
-    // 4. Clicking directly on the classroom checkbox unchecks it, leaving changeDate = true without closing the dialog
+    // 4. Clicking directly on the classroom checkbox unchecks both paired options (changeClassroom & changeDate) without closing the dialog
     fireEvent.click(classroomCheckbox)
     expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
     expect(classroomCheckbox).toHaveAttribute("aria-checked", "false")
     expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
       "aria-checked",
-      "true"
+      "false"
     )
 
-    // Toggle date off and switch back to teacher swap via option card
+    // Clicking date option card checks both changeDate and changeClassroom so physical classrooms swap together with periods
     fireEvent.click(dateOptionCard)
     expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
-    fireEvent.click(screen.getByTestId("swap-option-teacher-label"))
-    expect(teacherCheckbox).toHaveAttribute("aria-checked", "true")
+    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
+      "aria-checked",
+      "true"
+    )
+    expect(classroomCheckbox).toHaveAttribute("aria-checked", "true")
+    expect(teacherCheckbox).toHaveAttribute("aria-checked", "false")
 
-    // 5. Clicking the submit button calls updateProposal for both classes and updates the calendar
+    // 5. Clicking the submit button calls updateProposal with both classroomId and schedule fields for both classes
     const confirmBtn = screen.getByTestId("swap-confirm-btn")
     expect(confirmBtn).not.toBeDisabled()
     fireEvent.click(confirmBtn)
@@ -1197,7 +1201,10 @@ describe("SchedulingPlanCalendarView Component", () => {
       proposalId: "prop-1",
       instituteId: "inst-1",
       body: {
-        teacherId: "t-swap",
+        classroomId: "cr3",
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "11:00",
+        endTime: "12:30",
       },
     })
     expect(updateProposalMutationFn.mock.calls[1]?.[0]).toEqual({
@@ -1205,11 +1212,14 @@ describe("SchedulingPlanCalendarView Component", () => {
       proposalId: "prop-swap-target",
       instituteId: "inst-1",
       body: {
-        teacherId: "t1",
+        classroomId: "cr1",
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "09:00",
+        endTime: "10:30",
       },
     })
 
-    // Dialog closes and calendar reflects the swapped teachers
+    // Dialog closes and calendar reflects the swapped classroom and period
     await waitFor(() => {
       expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
     })
@@ -1217,7 +1227,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     const updatedProp1Card = screen.getAllByTestId(
       "calendar-class-card-prop-1"
     )[0]!
-    expect(updatedProp1Card).toHaveTextContent("رضا نوری")
+    expect(updatedProp1Card).toHaveTextContent("کلاس ۱۰۳")
 
     toMutationSpy.mockRestore()
   })
@@ -1550,5 +1560,206 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(arezooEvenCard).toHaveAttribute("data-active", "true")
     expect(maryamOddCard).not.toHaveAttribute("data-swappable")
     expect(maryamOddCard).toHaveAttribute("data-dimmed", "true")
+  })
+
+  it("swaps physical classrooms together when changing periods and prevents moving into a period where the physical classroom is already occupied", () => {
+    const periodRoomProposals: Proposal[] = [
+      {
+        id: "prop-p1-room101",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-1",
+        course: { id: "c-ame-1-1", title: "AME 1-1" },
+        teacher: { id: "t-1", firstName: "سارا", lastName: "احمدی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr101", name: "کلاس ۱۰۱", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-p2-room102",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 2-2",
+        course: { id: "c-ame-2-2", title: "AME 2-2" },
+        teacher: { id: "t-2", firstName: "مریم", lastName: "کاظمی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr102", name: "کلاس ۱۰۲", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "17:00",
+        endTime: "18:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-p2-room101-occupied",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 3-1",
+        course: { id: "c-ame-3-1", title: "AME 3-1" },
+        teacher: { id: "t-3", firstName: "حسین", lastName: "مرادی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr101", name: "کلاس ۱۰۱", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "17:00",
+        endTime: "18:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: true,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={periodRoomProposals}
+        canEdit={true}
+        defaultCollapsed={false}
+        teacherCalendars={[
+          {
+            teacher: { id: "t-1", firstName: "سارا", lastName: "احمدی" },
+            teachableCourses: [{ id: "c-ame-1-1", title: "AME 1-1" }],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "MONDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "WEDNESDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+            ],
+          },
+          {
+            teacher: { id: "t-2", firstName: "مریم", lastName: "کاظمی" },
+            teachableCourses: [{ id: "c-ame-2-2", title: "AME 2-2" }],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "MONDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "WEDNESDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+            ],
+          },
+          {
+            teacher: { id: "t-free-p2", firstName: "علی", lastName: "رضایی" },
+            teachableCourses: [{ id: "c-ame-1-1", title: "AME 1-1" }],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "MONDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "WEDNESDAY",
+                startTime: "17:00",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+            ],
+          },
+        ]}
+      />
+    )
+
+    fireEvent.click(screen.getByTestId("toggle-free-teachers-btn"))
+
+    const p1Room101Card = screen.getAllByTestId(
+      "calendar-class-card-prop-p1-room101"
+    )[0]!
+    const p2Room102Card = screen.getAllByTestId(
+      "calendar-class-card-prop-p2-room102"
+    )[0]!
+    const freeTeacherP2Card = screen.getByTestId(
+      "free-teacher-card-t-free-p2-SATURDAY-17:00-18:30"
+    )
+
+    // Select prop-p1-room101 (15:30-17:00 in Room 101)
+    fireEvent.click(p1Room101Card)
+
+    // Free teacher in 17:00-18:30 must NOT be swappable because moving prop-p1-room101 to 17:00-18:30
+    // while keeping Room 101 would collide with prop-p2-room101-occupied in Room 101!
+    expect(freeTeacherP2Card).not.toHaveAttribute("data-swappable")
+    expect(freeTeacherP2Card).toHaveAttribute("data-dimmed", "true")
+
+    // However, prop-p2-room102 (17:00-18:30 in Room 102) IS swappable because swapping periods AND classrooms
+    // puts prop-p1 into Room 102 at 17:00-18:30 and prop-p2 into Room 101 at 15:30-17:00 with zero room conflict!
+    expect(p2Room102Card).toHaveAttribute("data-swappable", "true")
+
+    fireEvent.click(p2Room102Card)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+
+    // Both changeDate and changeClassroom are checked together by default
+    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
+      "aria-checked",
+      "true"
+    )
+    expect(screen.getByTestId("swap-option-classroom")).toHaveAttribute(
+      "aria-checked",
+      "true"
+    )
+    expect(screen.getByTestId("swap-source-card")).toHaveTextContent("کلاس ۱۰۲")
+    expect(screen.getByTestId("swap-target-card")).toHaveTextContent("کلاس ۱۰۱")
   })
 })

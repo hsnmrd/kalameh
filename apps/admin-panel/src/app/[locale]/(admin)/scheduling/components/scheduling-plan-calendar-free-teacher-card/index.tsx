@@ -44,6 +44,7 @@ export function SchedulingPlanCalendarFreeTeacherCard({
     <article
       data-testid={`free-teacher-card-${teacher.id}-${day}-${slotKey}`}
       data-swappable={isSwappable ? "true" : undefined}
+      data-dimmed={isDimmed ? "true" : undefined}
       data-collapsed={isCollapsed ? "true" : undefined}
       onClick={
         isSwappable && onClick

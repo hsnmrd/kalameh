@@ -39,12 +39,19 @@ export interface SwapEvaluationResult {
   defaultSelection: SwapCombinationFlags
 }
 
+export interface OccupiedClassroomSlot {
+  classroomId: string
+  daysOfWeek: WeekDay[]
+  startTime: string
+  endTime: string
+}
+
 const ALL_FLAG_COMBINATIONS: readonly SwapCombinationFlags[] = [
   { changeTeacher: true, changeClassroom: false, changeDate: false },
   { changeTeacher: false, changeClassroom: true, changeDate: false },
-  { changeTeacher: false, changeClassroom: false, changeDate: true },
   { changeTeacher: true, changeClassroom: true, changeDate: false },
   { changeTeacher: false, changeClassroom: true, changeDate: true },
+  { changeTeacher: false, changeClassroom: false, changeDate: true },
 ]
 
 export function getProposalTeacherId(proposal: Proposal): string | null {
@@ -63,7 +70,8 @@ export function evaluateProposalSwap(
   source: Proposal,
   target: Proposal,
   allProposals: Proposal[],
-  teacherCalendars?: SchedulingTeacherCalendar[]
+  teacherCalendars?: SchedulingTeacherCalendar[],
+  occupiedClassroomSlots?: OccupiedClassroomSlot[]
 ): SwapEvaluationResult {
   const emptyResult: SwapEvaluationResult = {
     canSwap: false,
@@ -114,6 +122,9 @@ export function evaluateProposalSwap(
     if (flags.changeClassroom && !flags.changeDate && hasDifferentDate) {
       return false
     }
+    if (flags.changeDate && hasDifferentClassroom && !flags.changeClassroom) {
+      return false
+    }
 
     const swapsAllDifferingAttributes =
       (!hasDifferentTeacher || flags.changeTeacher) &&
@@ -128,7 +139,8 @@ export function evaluateProposalSwap(
       target,
       flags,
       allProposals,
-      teacherCalendars
+      teacherCalendars,
+      occupiedClassroomSlots
     )
   })
 
@@ -152,7 +164,8 @@ export function evaluateFreeTeacherSwap(
   source: Proposal,
   freeTeacher: FreeTeacherSwapTarget,
   allProposals: Proposal[],
-  teacherCalendars?: SchedulingTeacherCalendar[]
+  teacherCalendars?: SchedulingTeacherCalendar[],
+  occupiedClassroomSlots?: OccupiedClassroomSlot[]
 ): SwapEvaluationResult {
   const emptyResult: SwapEvaluationResult = {
     canSwap: false,
@@ -247,7 +260,8 @@ export function evaluateFreeTeacherSwap(
       freeTeacher.startTime,
       freeTeacher.endTime,
       [source.id],
-      allProposals
+      allProposals,
+      occupiedClassroomSlots
     )
   ) {
     validCombinations.push({
@@ -293,7 +307,8 @@ function isProposalCombinationValid(
   target: Proposal,
   flags: SwapCombinationFlags,
   allProposals: Proposal[],
-  teacherCalendars?: SchedulingTeacherCalendar[]
+  teacherCalendars?: SchedulingTeacherCalendar[],
+  occupiedClassroomSlots?: OccupiedClassroomSlot[]
 ): boolean {
   const sourceTeacherId = getProposalTeacherId(source)
   const targetTeacherId = getProposalTeacherId(target)
@@ -418,7 +433,8 @@ function isProposalCombinationValid(
         nextSourceStart,
         nextSourceEnd,
         ignoredIds,
-        allProposals
+        allProposals,
+        occupiedClassroomSlots
       ) ||
       !isClassroomAvailableForSchedule(
         nextTargetClassroomId,
@@ -427,7 +443,8 @@ function isProposalCombinationValid(
         nextTargetStart,
         nextTargetEnd,
         ignoredIds,
-        allProposals
+        allProposals,
+        occupiedClassroomSlots
       )
     ) {
       return false
@@ -549,13 +566,14 @@ function isClassroomAvailableForSchedule(
   startTime: string,
   endTime: string,
   ignoredProposalIds: string[],
-  allProposals: Proposal[]
+  allProposals: Proposal[],
+  occupiedClassroomSlots?: OccupiedClassroomSlot[]
 ): boolean {
   if (deliveryMode === "ONLINE") return true
   if (!classroomId) return false
   const ignored = new Set(ignoredProposalIds)
 
-  return !allProposals.some(
+  const hasProposalConflict = allProposals.some(
     (proposal) =>
       !ignored.has(proposal.id) &&
       proposal.deliveryMode === "IN_PERSON" &&
@@ -564,6 +582,16 @@ function isClassroomAvailableForSchedule(
       proposal.startTime < endTime &&
       startTime < proposal.endTime
   )
+  if (hasProposalConflict) return false
+
+  const hasOccupiedSlotConflict = (occupiedClassroomSlots ?? []).some(
+    (slot) =>
+      slot.classroomId === classroomId &&
+      slot.daysOfWeek.some((day) => daysOfWeek.includes(day)) &&
+      slot.startTime < endTime &&
+      startTime < slot.endTime
+  )
+  return !hasOccupiedSlotConflict
 }
 
 function collectKnownCourses(

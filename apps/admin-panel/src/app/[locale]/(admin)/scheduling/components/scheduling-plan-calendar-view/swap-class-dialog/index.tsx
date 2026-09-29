@@ -151,14 +151,22 @@ export function SwapClassDialog({
     }
     if (checked) {
       if (key === "changeDate" && evaluation.canChangeClassroom) {
-        const withRoom = { ...next, changeClassroom: true }
+        const withRoom = {
+          changeTeacher: false,
+          changeClassroom: true,
+          changeDate: true,
+        }
         if (isCombinationValid(evaluation, withRoom)) {
           setOverrideState({ key: selectionKey, flags: withRoom })
           return
         }
       }
       if (key === "changeClassroom" && evaluation.canChangeDate) {
-        const withDate = { ...next, changeDate: true }
+        const withDate = {
+          changeTeacher: false,
+          changeClassroom: true,
+          changeDate: true,
+        }
         if (isCombinationValid(evaluation, withDate)) {
           setOverrideState({ key: selectionKey, flags: withDate })
           return
@@ -174,17 +182,13 @@ export function SwapClassDialog({
     } else {
       if (key === "changeDate" && prev.changeClassroom) {
         const withoutRoom = { ...next, changeClassroom: false }
-        if (isCombinationValid(evaluation, withoutRoom)) {
-          setOverrideState({ key: selectionKey, flags: withoutRoom })
-          return
-        }
+        setOverrideState({ key: selectionKey, flags: withoutRoom })
+        return
       }
       if (key === "changeClassroom" && prev.changeDate) {
         const withoutDate = { ...next, changeDate: false }
-        if (isCombinationValid(evaluation, withoutDate)) {
-          setOverrideState({ key: selectionKey, flags: withoutDate })
-          return
-        }
+        setOverrideState({ key: selectionKey, flags: withoutDate })
+        return
       }
     }
     setOverrideState({ key: selectionKey, flags: next })
