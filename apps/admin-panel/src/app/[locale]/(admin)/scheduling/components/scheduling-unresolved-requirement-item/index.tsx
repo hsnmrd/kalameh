@@ -5,6 +5,7 @@ import { Lightbulb, SearchCheck } from "lucide-react"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { formatNumber } from "@workspace/ui/lib/utils"
+import type { CurrentAssignmentState } from "../scheduling-new-teacher-hiring-plan"
 import { SchedulingRecoveryOption } from "../scheduling-recovery-option"
 import { SchedulingStaffingFallback } from "../scheduling-staffing-fallback"
 import { SchedulingTeacherAvailabilityCalendar } from "../scheduling-teacher-availability-calendar"
@@ -16,11 +17,17 @@ type UnresolvedRequirement =
 interface SchedulingUnresolvedRequirementItemProps {
   requirement: UnresolvedRequirement
   newTeacherHiringPlan: SchedulingPlanDetailsDto["newTeacherHiringPlan"]
+  planId?: string
+  planStatus?: string
+  assignmentsState?: Record<string, CurrentAssignmentState>
 }
 
 export function SchedulingUnresolvedRequirementItem({
   requirement,
   newTeacherHiringPlan,
+  planId,
+  planStatus,
+  assignmentsState,
 }: SchedulingUnresolvedRequirementItemProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -39,9 +46,37 @@ export function SchedulingUnresolvedRequirementItem({
   }
   const visibleOptions = recovery.options.slice(0, 3)
   const hiringAssignments =
-    newTeacherHiringPlan?.assignments.filter(
-      ({ requirementId }) => requirementId === requirement.classRequirement?.id
-    ) ?? []
+    newTeacherHiringPlan?.assignments
+      .filter(
+        ({ requirementId }) =>
+          requirementId === requirement.classRequirement?.id
+      )
+      .map((assignment) => {
+        const overridden = assignmentsState?.[assignment.key]
+        if (
+          !overridden ||
+          overridden.isAssigned === false ||
+          overridden.daysOfWeek.length === 0
+        ) {
+          return assignment
+        }
+        return {
+          ...assignment,
+          daysOfWeek: overridden.daysOfWeek,
+          startTime: overridden.startTime,
+          endTime: overridden.endTime,
+          classroom:
+            assignment.deliveryMode === "ONLINE"
+              ? null
+              : overridden.classroomId && overridden.classroomName
+                ? {
+                    id: overridden.classroomId,
+                    name: overridden.classroomName,
+                    capacity: assignment.classroom?.capacity ?? 1,
+                  }
+                : assignment.classroom,
+        }
+      }) ?? []
 
   return (
     <li className="flex flex-col gap-3 rounded-xl border border-border p-4">
@@ -54,11 +89,17 @@ export function SchedulingUnresolvedRequirementItem({
             {t(`unresolvedReasons.${requirement.reasonCode}`)}
           </p>
         </div>
-        <Badge variant="warning" className="shrink-0 self-start">
-          {t("missingCount", {
-            count: formatNumber(requirement.missingClassCount, locale),
-          })}
-        </Badge>
+        {requirement.missingClassCount > 0 ? (
+          <Badge variant="warning" className="shrink-0 self-start">
+            {t("missingCount", {
+              count: formatNumber(requirement.missingClassCount, locale),
+            })}
+          </Badge>
+        ) : (
+          <Badge variant="success" className="shrink-0 self-start">
+            {t("staffingFallback.resolvedBadge")}
+          </Badge>
+        )}
       </div>
 
       <div className="rounded-xl bg-muted/40 p-3.5">
@@ -140,6 +181,9 @@ export function SchedulingUnresolvedRequirementItem({
         targetCourseTitle={
           requirement.classRequirement?.course.title ?? t("unknownCourse")
         }
+        planId={planId}
+        planStatus={planStatus}
+        unresolvedRequirementId={requirement.id}
       />
 
       <SchedulingTeacherAvailabilityCalendar

@@ -97,6 +97,8 @@ export const SchedulingTeacherOutreachOptionSchema = z.object({
   teacher: SchedulingRecoveryTeacherSchema,
   availabilityChangeDays: z.array(z.enum(WEEK_DAYS)).min(1),
   availableClassrooms: z.array(SchedulingRecoveryClassroomSchema),
+  isAccepted: z.boolean().optional(),
+  acceptedProposalId: z.string().uuid().nullable().optional(),
 })
 
 export const SchedulingStaffingFallbackSchema = z.object({

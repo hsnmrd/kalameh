@@ -14,6 +14,11 @@ import {
 } from './scheduling-recovery-option-builder.service';
 import { SchedulingTeacherCalendarService } from './scheduling-teacher-calendar.service';
 import { SchedulingTeacherAvailabilityExpansionService } from './scheduling-teacher-availability-expansion.service';
+import {
+  appendOutreachAvailabilitiesToQualifications,
+  mergeAcceptedOutreachIntoOptions,
+  readAcceptedOutreachRecords,
+} from './scheduling-teacher-outreach.types';
 import { SchedulingTeacherReassignmentChainService } from './scheduling-teacher-reassignment-chain.service';
 
 type RecoveryInput = {
@@ -22,6 +27,11 @@ type RecoveryInput = {
   settingsSnapshot: unknown;
   proposals: SchedulingRecoveryPlanProposal[];
   unresolvedRequirementIds: string[];
+  unresolvedRequirements?: Array<{
+    classRequirementId?: string | null;
+    missingClassCount: number;
+    details?: unknown;
+  }>;
 };
 
 @Injectable()
@@ -132,8 +142,22 @@ export class SchedulingRecoverySuggestionService {
         existingClass.title,
       ]),
     );
+    const proposalIds = new Set(input.proposals.map(({ id }) => id));
+    const unresolvedByReqId = new Map(
+      (input.unresolvedRequirements ?? [])
+        .filter((item) => Boolean(item.classRequirementId))
+        .map((item) => [item.classRequirementId!, item]),
+    );
+
     return Object.fromEntries(
       requirements.map((requirement) => {
+        const unresolvedItem = unresolvedByReqId.get(requirement.id);
+        const acceptedRecords = readAcceptedOutreachRecords(
+          unresolvedItem?.details,
+        ).filter((rec) => proposalIds.has(rec.proposalId));
+        const acceptedProposalIds = new Set(
+          acceptedRecords.map((rec) => rec.proposalId),
+        );
         const qualifiedTeacherCount = new Set(
           snapshot.teachers
             .filter(({ courseId }) => courseId === requirement.courseId)
@@ -175,17 +199,25 @@ export class SchedulingRecoverySuggestionService {
             toTeacher.id,
           ]),
         ]);
-        const availabilityOptions = this.teacherAvailabilityExpansionService
-          .analyze({
+        const outreachProposals =
+          (unresolvedItem?.missingClassCount ?? 1) === 0 &&
+          acceptedProposalIds.size > 0
+            ? input.proposals.filter(
+                (proposal) => !acceptedProposalIds.has(proposal.id),
+              )
+            : input.proposals;
+        const availabilityOptions = mergeAcceptedOutreachIntoOptions(
+          this.teacherAvailabilityExpansionService.analyze({
             requirement,
             snapshot,
             settings,
-            proposals: input.proposals,
+            proposals: outreachProposals,
             operatingPhase: operatingPhase ?? null,
             teacherById,
             classroomById,
-          })
-          .slice(0, 3);
+          }),
+          acceptedRecords,
+        );
 
         return [
           requirement.id,
@@ -206,7 +238,10 @@ export class SchedulingRecoverySuggestionService {
             teacherCalendars: this.teacherCalendarService.build({
               courseId: requirement.courseId,
               additionalTeacherIds: chainTeacherIds,
-              qualifications: snapshot.teachers,
+              qualifications: appendOutreachAvailabilitiesToQualifications(
+                snapshot.teachers,
+                acceptedRecords,
+              ),
               teachers,
               proposals: input.proposals,
               existingClasses: snapshot.existingClasses,

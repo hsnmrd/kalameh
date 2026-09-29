@@ -353,29 +353,40 @@ export function Content({ plan, isSelected, validationResult }: ContentProps) {
               <CircleAlert aria-hidden className="size-5" />
               {t("unresolvedTitle")}
             </h3>
-            <Badge variant="warning">
-              {t("missingCount", {
-                count: formatNumber(missingClassCount, locale),
-              })}
-            </Badge>
+            {missingClassCount > 0 ? (
+              <Badge variant="warning">
+                {t("missingCount", {
+                  count: formatNumber(missingClassCount, locale),
+                })}
+              </Badge>
+            ) : (
+              <Badge variant="success">
+                {t("staffingFallback.resolvedBadge")}
+              </Badge>
+            )}
           </div>
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
             {t("unresolvedDescription")}
           </p>
-          <SchedulingNewTeacherHiringPlan
-            plan={plan.newTeacherHiringPlan}
-            missingClassCount={missingClassCount}
-            planId={plan.id}
-            planStatus={plan.status}
-            assignmentsState={assignmentsState}
-            onResetAssignments={handleResetAssignments}
-          />
+          {(missingClassCount > 0 || plan.newTeacherHiringPlan !== null) && (
+            <SchedulingNewTeacherHiringPlan
+              plan={plan.newTeacherHiringPlan}
+              missingClassCount={missingClassCount}
+              planId={plan.id}
+              planStatus={plan.status}
+              assignmentsState={assignmentsState}
+              onResetAssignments={handleResetAssignments}
+            />
+          )}
           <ul className="mt-4 flex flex-col gap-3">
             {plan.unresolvedRequirements.map((requirement) => (
               <SchedulingUnresolvedRequirementItem
                 key={requirement.id}
                 requirement={requirement}
                 newTeacherHiringPlan={plan.newTeacherHiringPlan}
+                planId={plan.id}
+                planStatus={plan.status}
+                assignmentsState={assignmentsState}
               />
             ))}
           </ul>

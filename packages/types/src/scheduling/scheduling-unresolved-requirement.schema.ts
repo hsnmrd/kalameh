@@ -7,7 +7,7 @@ export const SchedulingUnresolvedRequirementSchema = z.object({
   planId: z.string().uuid(),
   classRequirementId: z.string().uuid().nullable().optional(),
   reasonCode: z.enum(SCHEDULING_UNRESOLVED_REASON_CODES),
-  missingClassCount: z.number().int().positive(),
+  missingClassCount: z.number().int().nonnegative(),
   details: z.record(z.unknown()).nullable().optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),

@@ -25,12 +25,14 @@ import { CommitHiringPlanDto } from './dto/commit-hiring-plan.dto';
 import { GenerateSchedulingPlanDto } from './dto/generate-scheduling-plan.dto';
 import { SetSchedulingProposalLockDto } from './dto/set-scheduling-proposal-lock.dto';
 import { SchedulingRunQueryDto } from './dto/scheduling-run-query.dto';
+import { ToggleTeacherOutreachDto } from './dto/toggle-teacher-outreach.dto';
 import { UpdateSchedulingProposalDto } from './dto/update-scheduling-proposal.dto';
 import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
 import { SchedulingPlanPublicationService } from './scheduling-plan-publication.service';
 import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
 import { SchedulingPlanHiringCommitService } from './scheduling-plan-hiring-commit.service';
 import { SchedulingPlanValidationService } from './scheduling-plan-validation.service';
+import { SchedulingTeacherOutreachToggleService } from './scheduling-teacher-outreach-toggle.service';
 import { SchedulingService } from './scheduling.service';
 
 @Controller('scheduling/plans')
@@ -44,6 +46,7 @@ export class SchedulingController {
     private readonly schedulingPlanReviewService: SchedulingPlanReviewService,
     private readonly schedulingPlanHiringCommitService: SchedulingPlanHiringCommitService,
     private readonly schedulingPlanValidationService: SchedulingPlanValidationService,
+    private readonly schedulingTeacherOutreachToggleService: SchedulingTeacherOutreachToggleService,
   ) {}
 
   @Get(':planId')
@@ -120,6 +123,24 @@ export class SchedulingController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.schedulingPlanHiringCommitService.commit(
+      currentUser,
+      planId,
+      dto,
+      query.instituteId,
+      locale,
+    );
+  }
+
+  @Post(':planId/teacher-outreach/toggle')
+  @RequirePermissions(PERMISSIONS.MANAGE_CLASSES)
+  toggleTeacherOutreach(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('planId') planId: string,
+    @Body() dto: ToggleTeacherOutreachDto,
+    @Query() query: SchedulingRunQueryDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.schedulingTeacherOutreachToggleService.toggle(
       currentUser,
       planId,
       dto,

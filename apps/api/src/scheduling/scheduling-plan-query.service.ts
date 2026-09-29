@@ -194,6 +194,7 @@ export class SchedulingPlanQueryService {
             settingsSnapshot: plan.run.settingsSnapshot,
             proposals: plan.proposals,
             unresolvedRequirementIds,
+            unresolvedRequirements: plan.unresolvedRequirements,
           });
     const [recoveryByRequirementId, teacherCalendars, newTeacherHiringPlan] =
       await Promise.all([

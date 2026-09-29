@@ -42,7 +42,10 @@ export class SchedulingNewTeacherHiringPlanService {
   async build(
     input: BuildHiringPlanInput,
   ): Promise<SchedulingNewTeacherHiringPlan | null> {
-    if (input.unresolvedRequirements.length === 0) return null;
+    const activeUnresolved = input.unresolvedRequirements.filter(
+      (unresolved) => unresolved.missingClassCount > 0,
+    );
+    if (activeUnresolved.length === 0) return null;
 
     const snapshot = SchedulingEngineInputSnapshotSchema.parse(
       input.inputSnapshot,
@@ -80,7 +83,7 @@ export class SchedulingNewTeacherHiringPlanService {
     const requirementsById = new Map(
       snapshot.requirements.map((requirement) => [requirement.id, requirement]),
     );
-    const workItems = input.unresolvedRequirements.flatMap((unresolved) => {
+    const workItems = activeUnresolved.flatMap((unresolved) => {
       const reference = unresolved.classRequirement;
       const requirement = reference
         ? requirementsById.get(reference.id)
@@ -101,7 +104,7 @@ export class SchedulingNewTeacherHiringPlanService {
         }),
       );
     });
-    const expectedClassCount = input.unresolvedRequirements.reduce(
+    const expectedClassCount = activeUnresolved.reduce(
       (sum, unresolved) => sum + unresolved.missingClassCount,
       0,
     );

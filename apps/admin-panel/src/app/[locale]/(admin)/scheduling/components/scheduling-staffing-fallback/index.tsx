@@ -1,34 +1,106 @@
 "use client"
 
-import { useLocale, useTranslations } from "next-intl"
-import {
-  CalendarClock,
-  CalendarX2,
-  DoorOpen,
-  MessageCircleMore,
-  UserPlus,
-} from "lucide-react"
-import type { SchedulingStaffingFallback } from "@workspace/types"
+import * as React from "react"
+import { useTranslations } from "next-intl"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { CalendarX2, UserPlus } from "lucide-react"
+import type {
+  SchedulingStaffingFallback as StaffingFallbackDto,
+  SchedulingTeacherOutreachOption,
+} from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { toast } from "@workspace/ui/components/sonner"
+import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
+import { useActiveInstitute } from "@/lib/stores"
 import {
   SchedulingNewTeacherAssignmentList,
   type NewTeacherAssignment,
 } from "../scheduling-new-teacher-assignment-list"
+import { OutreachOptionItem } from "./outreach-option-item"
 
 interface SchedulingStaffingFallbackProps {
-  fallback: SchedulingStaffingFallback
+  fallback: StaffingFallbackDto
   targetCourseTitle: string
   hiringAssignments: NewTeacherAssignment[]
+  planId?: string
+  planStatus?: string
+  unresolvedRequirementId?: string
 }
 
 export function SchedulingStaffingFallback({
   fallback,
   targetCourseTitle,
   hiringAssignments,
+  planId,
+  planStatus,
+  unresolvedRequirementId,
 }: SchedulingStaffingFallbackProps) {
   const t = useTranslations("scheduling.planDetails")
-  const locale = useLocale()
+  const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
+  const [pendingOptionKey, setPendingOptionKey] = React.useState<string | null>(
+    null
+  )
+
+  const canToggle =
+    Boolean(planId) &&
+    Boolean(unresolvedRequirementId) &&
+    (!planStatus || ["DRAFT", "SELECTED"].includes(planStatus))
+
+  const toggleMutation = useMutation({
+    ...schedulingResource.toggleTeacherOutreach.toMutation(),
+    onSuccess: (updatedPlan, variables) => {
+      const targetOption = fallback.availabilityOptions.find(
+        (opt) => opt.key === variables.body.optionKey
+      )
+      const wasAccepted = Boolean(targetOption?.isAccepted)
+      toast.success(
+        t(
+          wasAccepted
+            ? "staffingFallback.revertSuccess"
+            : "staffingFallback.acceptSuccess"
+        )
+      )
+      queryClient.setQueryData(
+        schedulingResource.planDetail.key({
+          planId: updatedPlan.id,
+          ...(variables.instituteId
+            ? { instituteId: variables.instituteId }
+            : {}),
+        }),
+        updatedPlan
+      )
+      queryClient.invalidateQueries({
+        queryKey: schedulingResource.planDetail.baseKey(),
+      })
+    },
+    onSettled: () => {
+      setPendingOptionKey(null)
+    },
+  })
+
+  const handleToggleOption = (option: SchedulingTeacherOutreachOption) => {
+    if (!planId || !unresolvedRequirementId || toggleMutation.isPending) return
+    setPendingOptionKey(option.key)
+    toggleMutation.mutate({
+      planId,
+      ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
+      body: {
+        unresolvedRequirementId,
+        optionKey: option.key,
+        teacherId: option.teacher.id,
+        deliveryMode: option.deliveryMode,
+        daysOfWeek: option.daysOfWeek,
+        startTime: option.startTime,
+        endTime: option.endTime,
+        availabilityChangeDays: option.availabilityChangeDays,
+        classroomId:
+          option.deliveryMode === "ONLINE"
+            ? null
+            : (option.availableClassrooms[0]?.id ?? null),
+      },
+    })
+  }
 
   return (
     <section
@@ -59,105 +131,18 @@ export function SchedulingStaffingFallback({
             {t("staffingFallback.suggestedTimesRanking")}
           </p>
           <ul className="mt-2.5 flex flex-col gap-2.5">
-            {fallback.availabilityOptions.map((option, index) => {
-              const teacherName = `${option.teacher.firstName} ${option.teacher.lastName}`
-              const days = option.daysOfWeek
-                .map((day) => t(`weekDays.${day}`))
-                .join(t("daySeparator"))
-              const availabilityChangeDays = option.availabilityChangeDays
-                .map((day) => t(`weekDays.${day}`))
-                .join(t("daySeparator"))
-              const needsRoom =
-                option.deliveryMode === "IN_PERSON" &&
-                option.availableClassrooms.length === 0
-
-              return (
-                <li key={option.key} className="rounded-xl bg-muted/40 p-3.5">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="flex min-w-0 items-start gap-2">
-                      <MessageCircleMore
-                        aria-hidden
-                        className="mt-0.5 size-4 shrink-0 text-foreground"
-                      />
-                      <div>
-                        <div className="flex flex-wrap gap-1.5">
-                          <Badge variant="secondary">
-                            {t("staffingFallback.outreachBadge")}
-                          </Badge>
-                          <Badge variant={index === 0 ? "success" : "outline"}>
-                            {index === 0
-                              ? t("staffingFallback.bestTimeBadge")
-                              : t("staffingFallback.alternativeTimeBadge", {
-                                  rank: formatNumber(index + 1, locale),
-                                })}
-                          </Badge>
-                        </div>
-                        <p className="mt-2 text-xs font-semibold text-foreground">
-                          {t("staffingFallback.outreachTitle", {
-                            teacher: teacherName,
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {days} · {option.startTime}–{option.endTime}
-                    </span>
-                  </div>
-
-                  <div className="mt-3 rounded-lg bg-background px-3 py-2.5">
-                    <p className="text-xs leading-5 font-medium text-foreground">
-                      {t("staffingFallback.noClassConflict", {
-                        teacher: teacherName,
-                      })}
-                    </p>
-                    <div className="mt-2 flex items-start gap-2">
-                      <CalendarClock
-                        aria-hidden
-                        className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                      />
-                      <p className="text-xs leading-5 text-muted-foreground">
-                        {t("staffingFallback.availabilityChange", {
-                          days: availabilityChangeDays,
-                          start: option.startTime,
-                          end: option.endTime,
-                        })}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className={
-                      needsRoom
-                        ? "mt-3 flex items-start gap-2 text-warning-foreground"
-                        : "mt-3 flex items-start gap-2 text-muted-foreground"
-                    }
-                  >
-                    <DoorOpen aria-hidden className="mt-0.5 size-4 shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-xs">
-                        {option.deliveryMode === "ONLINE"
-                          ? t("staffingFallback.online")
-                          : needsRoom
-                            ? t("staffingFallback.roomNeeded")
-                            : t("staffingFallback.availableRooms")}
-                      </p>
-                      {option.deliveryMode === "IN_PERSON" && (
-                        <div className="mt-1.5 flex flex-wrap gap-1.5">
-                          {option.availableClassrooms.map((room) => (
-                            <Badge key={room.id} variant="outline">
-                              {t("recovery.roomWithCapacity", {
-                                room: room.name,
-                                capacity: formatNumber(room.capacity, locale),
-                              })}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </li>
-              )
-            })}
+            {fallback.availabilityOptions.map((option, index) => (
+              <OutreachOptionItem
+                key={option.key}
+                option={option}
+                index={index}
+                canToggle={canToggle}
+                isPending={
+                  toggleMutation.isPending && pendingOptionKey === option.key
+                }
+                onToggle={handleToggleOption}
+              />
+            ))}
           </ul>
         </div>
       ) : (

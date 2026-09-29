@@ -404,7 +404,12 @@
       "newTeacherTimesTitle": "Suggested time for the new teacher",
       "newTeacherTimesDescription": "Use the following days and time when arranging the new teacher’s contract or availability.",
       "newTeacherScheduleEmptyTitle": "No exact time was found for this class",
-      "newTeacherScheduleEmptyDescription": "Review operating hours, breaks, or class duration. The recommendation to add a new teacher remains visible."
+      "newTeacherScheduleEmptyDescription": "Review operating hours, breaks, or class duration. The recommendation to add a new teacher remains visible.",
+      "teacherAcceptedButton": "Teacher Accepted",
+      "acceptedBadge": "Scheduled",
+      "acceptSuccess": "Class assigned to teacher and teacher availability updated.",
+      "revertSuccess": "Class assignment and teacher availability expansion reverted.",
+      "resolvedBadge": "Resolved with current teacher"
     },
     "hiringPlan": {
       "title": "Suggested schedule for a new teacher",

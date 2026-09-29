@@ -19,6 +19,7 @@ import { SchedulingScheduleWindowService } from './scheduling-schedule-window.se
 import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
 import { SchedulingPlanHiringCommitService } from './scheduling-plan-hiring-commit.service';
 import { SchedulingPlanValidationService } from './scheduling-plan-validation.service';
+import { SchedulingTeacherOutreachToggleService } from './scheduling-teacher-outreach-toggle.service';
 import { SchedulingStudentCoverageService } from './scheduling-student-coverage.service';
 import { SchedulingTimeDistributionService } from './scheduling-time-distribution.service';
 import { SchedulingUnresolvedRequirementService } from './scheduling-unresolved-requirement.service';
@@ -73,6 +74,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingPlanReviewService,
     SchedulingPlanHiringCommitService,
     SchedulingPlanValidationService,
+    SchedulingTeacherOutreachToggleService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
     SchedulingUnresolvedRequirementService,
@@ -105,6 +107,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingPlanReviewService,
     SchedulingPlanHiringCommitService,
     SchedulingPlanValidationService,
+    SchedulingTeacherOutreachToggleService,
     SchedulingStudentCoverageService,
     SchedulingTimeDistributionService,
     SchedulingUnresolvedRequirementService,

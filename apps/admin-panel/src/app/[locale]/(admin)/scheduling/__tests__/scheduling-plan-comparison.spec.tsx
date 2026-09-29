@@ -768,4 +768,143 @@ describe("MVP-036 scheduling plan comparison", () => {
       screen.getByText(/پیشنهاد افزودن استاد جدید حذف نشده است/)
     ).toBeInTheDocument()
   })
+
+  it("toggles teacher outreach acceptance from the staffing fallback section", async () => {
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    const outreachOption = {
+      key: "ame-3-5-behnam-sunday-1730",
+      deliveryMode: "IN_PERSON" as const,
+      daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"] as const,
+      startTime: "17:30",
+      endTime: "19:00",
+      teacher: {
+        id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        firstName: "دکتر بهنام",
+        lastName: "مرادی",
+      },
+      availabilityChangeDays: ["SUNDAY", "TUESDAY", "THURSDAY"] as const,
+      availableClassrooms: [
+        {
+          id: "88888888-8888-4888-8888-888888888888",
+          name: "کلاس ۳",
+          capacity: 15,
+        },
+      ],
+      isAccepted: false,
+      acceptedProposalId: null,
+    }
+
+    vi.spyOn(schedulingResource.planDetail, "toQuery").mockReturnValue({
+      queryKey: schedulingResource.planDetail.key({
+        planId: firstPlanId,
+        instituteId,
+      }),
+      queryFn: async () =>
+        plan(firstPlanId, 1, {
+          unresolvedRequirements: [
+            {
+              id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+              reasonCode: "TEACHER_TIME_CONFLICT",
+              missingClassCount: 1,
+              classRequirement: {
+                id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+                course: { title: "AME 3-5" },
+              },
+              recovery: {
+                totalOptionCount: 0,
+                qualifiedTeacherCount: 1,
+                compatibleClassroomCount: 1,
+                options: [],
+                busyTeachers: [],
+                teacherCalendars: [],
+                reassignmentChains: [],
+                staffingFallback: {
+                  addTeacherSuggested: true,
+                  availabilityOptions: [outreachOption],
+                },
+              },
+            },
+          ] as unknown as SchedulingPlanDetailsDto["unresolvedRequirements"],
+        }),
+    } as never)
+
+    const toggleOutreach = vi.fn(async () =>
+      plan(firstPlanId, 1, {
+        unresolvedRequirements: [
+          {
+            id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+            reasonCode: "TEACHER_TIME_CONFLICT",
+            missingClassCount: 0,
+            classRequirement: {
+              id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+              course: { title: "AME 3-5" },
+            },
+            recovery: {
+              totalOptionCount: 0,
+              qualifiedTeacherCount: 1,
+              compatibleClassroomCount: 1,
+              options: [],
+              busyTeachers: [],
+              teacherCalendars: [],
+              reassignmentChains: [],
+              staffingFallback: {
+                addTeacherSuggested: false,
+                availabilityOptions: [
+                  {
+                    ...outreachOption,
+                    isAccepted: true,
+                    acceptedProposalId: "77777777-7777-4777-8777-777777777777",
+                  },
+                ],
+              },
+            },
+          },
+        ] as unknown as SchedulingPlanDetailsDto["unresolvedRequirements"],
+      })
+    )
+
+    vi.spyOn(
+      schedulingResource.toggleTeacherOutreach,
+      "toMutation"
+    ).mockReturnValue({
+      mutationFn: toggleOutreach,
+    })
+
+    render(<SchedulingPlanComparison planIds={[firstPlanId]} />)
+
+    const detailsButtons = await screen.findAllByRole("button", {
+      name: "مشاهده جزئیات",
+    })
+    fireEvent.click(detailsButtons[0]!)
+
+    const acceptButton = await screen.findByRole("button", {
+      name: /استاد پذیرفت/,
+    })
+    expect(acceptButton).toHaveAttribute("aria-pressed", "false")
+
+    fireEvent.click(acceptButton)
+
+    await waitFor(() => expect(toggleOutreach).toHaveBeenCalledTimes(1))
+    expect(toggleOutreach).toHaveBeenCalledWith(
+      {
+        planId: firstPlanId,
+        instituteId,
+        body: {
+          unresolvedRequirementId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+          optionKey: "ame-3-5-behnam-sunday-1730",
+          teacherId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+          deliveryMode: "IN_PERSON",
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "17:30",
+          endTime: "19:00",
+          classroomId: "88888888-8888-4888-8888-888888888888",
+          availabilityChangeDays: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        },
+      },
+      expect.any(Object)
+    )
+  })
 })

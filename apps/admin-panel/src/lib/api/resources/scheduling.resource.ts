@@ -14,6 +14,7 @@ import type {
   SchedulingTermSummaryDto,
   SetSchedulingProposalLockInput,
   TermDemandReportDto,
+  ToggleTeacherOutreachInput,
   UpdateSchedulingProposalInput,
 } from "@workspace/types"
 import { api } from "../client"
@@ -106,6 +107,13 @@ export const schedulingResource = api.resource("scheduling", {
     SchedulingPlanDetailsDto,
     SchedulingPlanRequest & { body: CommitHiringPlanInput }
   >(({ planId }) => `/scheduling/plans/${planId}/hiring-plan/commit`, {
+    query: toInstituteQuery,
+    body: ({ body }) => body,
+  }),
+  toggleTeacherOutreach: api.post<
+    SchedulingPlanDetailsDto,
+    SchedulingPlanRequest & { body: ToggleTeacherOutreachInput }
+  >(({ planId }) => `/scheduling/plans/${planId}/teacher-outreach/toggle`, {
     query: toInstituteQuery,
     body: ({ body }) => body,
   }),

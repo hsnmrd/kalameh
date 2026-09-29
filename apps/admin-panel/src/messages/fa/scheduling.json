@@ -404,7 +404,12 @@
       "newTeacherTimesTitle": "زمان پیشنهادی برای استاد جدید",
       "newTeacherTimesDescription": "این کلاس را با روزها و ساعت زیر در قرارداد یا زمان حضور استاد جدید هماهنگ کنید.",
       "newTeacherScheduleEmptyTitle": "زمان دقیق برای این کلاس پیدا نشد",
-      "newTeacherScheduleEmptyDescription": "ساعات فاز عملیاتی، زمان استراحت یا مدت کلاس را بازبینی کنید؛ پیشنهاد افزودن استاد جدید حذف نشده است."
+      "newTeacherScheduleEmptyDescription": "ساعات فاز عملیاتی، زمان استراحت یا مدت کلاس را بازبینی کنید؛ پیشنهاد افزودن استاد جدید حذف نشده است.",
+      "teacherAcceptedButton": "استاد پذیرفت",
+      "acceptedBadge": "ثبت‌شده در برنامه",
+      "acceptSuccess": "کلاس به نام استاد ثبت شد و زمان حضور او به‌روزرسانی گردید.",
+      "revertSuccess": "ثبت کلاس و تغییر زمان حضور استاد لغو شد.",
+      "resolvedBadge": "تأمین‌شده با استاد فعلی"
     },
     "hiringPlan": {
       "title": "برنامه پیشنهادی برای جذب استاد جدید",
