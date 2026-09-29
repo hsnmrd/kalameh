@@ -460,6 +460,13 @@
       "title": "Teachers with remaining free time",
       "description": "Teachers whose available hours were not fully filled with classes in this plan and have free slots:",
       "freeSlotsCount": "{count} free slot(s)",
+      "freeSlotSummary": "{days} {start} - {end}",
+      "dayTracks": {
+        "even": "Even",
+        "odd": "Odd",
+        "friday": "Fri"
+      },
+      "levels": "Teachable levels",
       "allFilled": "All teacher availability hours are fully occupied with classes in this plan.",
       "viewCalendar": "View all teachers' calendar",
       "count": "{count} teacher(s)"
