@@ -113,6 +113,7 @@ export interface SchedulingPlanCalendarClassCardProps {
   colorIndex?: number
   isActive?: boolean
   isDimmed?: boolean
+  isCollapsed?: boolean
   onHover?: (id: string | null) => void
   onClick?: (id: string) => void
 }
@@ -123,6 +124,7 @@ export function SchedulingPlanCalendarClassCard({
   colorIndex,
   isActive = false,
   isDimmed = false,
+  isCollapsed = false,
   onHover,
   onClick,
 }: SchedulingPlanCalendarClassCardProps) {
@@ -154,6 +156,7 @@ export function SchedulingPlanCalendarClassCard({
         data-color-index={themeIndex}
         data-active={isActive ? "true" : undefined}
         data-dimmed={isDimmed ? "true" : undefined}
+        data-collapsed={isCollapsed ? "true" : undefined}
         onMouseEnter={() => onHover?.(proposal.id)}
         onMouseLeave={() => onHover?.(null)}
         onClick={(e) => {
@@ -168,7 +171,8 @@ export function SchedulingPlanCalendarClassCard({
           }
         }}
         className={cn(
-          "group relative flex h-[134px] cursor-pointer flex-col justify-between rounded-xl border-2 border-s-4 p-2.5 shadow-2xs transition-all duration-200 select-none",
+          "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-xl border-2 border-s-4 shadow-2xs transition-[height,padding,background-color,border-color,box-shadow] duration-300 ease-in-out select-none",
+          isCollapsed ? "h-[52px] p-2" : "h-[134px] p-2.5",
           theme.border,
           theme.borderStart,
           theme.bg,
@@ -178,33 +182,30 @@ export function SchedulingPlanCalendarClassCard({
         )}
         aria-label={proposal.course.title}
       >
-        {/* Header: Indicator, Course Title & Actions/Badges */}
-        <div className="flex items-start justify-between gap-1.5">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <span
-                className={cn("size-2.5 shrink-0 rounded-full", theme.dot)}
-                aria-hidden="true"
-              />
-              <h5
-                className="truncate text-xs font-bold text-foreground"
-                title={proposal.course.title}
-              >
-                {proposal.course.title}
-              </h5>
-            </div>
+        {/* Section 1: Course Title, Indicator, Badges, Actions */}
+        <div className="flex min-w-0 items-center justify-between gap-1.5">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            <span
+              className={cn("size-2 shrink-0 rounded-full", theme.dot)}
+              aria-hidden="true"
+            />
+            <h5
+              className="truncate text-xs font-bold text-foreground"
+              title={proposal.course.title}
+            >
+              {proposal.course.title}
+            </h5>
             {proposal.title && proposal.title !== proposal.course.title && (
-              <div className="mt-0.5 ps-4">
-                <span
-                  className={cn(
-                    "inline-block max-w-full truncate rounded border px-1.5 py-0.5 text-[10px] font-semibold",
-                    theme.badge
-                  )}
-                  title={proposal.title}
-                >
-                  {proposal.title}
-                </span>
-              </div>
+              <span
+                className={cn(
+                  "inline-block max-w-[100px] truncate rounded border px-1 py-0.5 text-[10px] font-semibold transition-opacity duration-200",
+                  isCollapsed && "hidden",
+                  theme.badge
+                )}
+                title={proposal.title}
+              >
+                {proposal.title}
+              </span>
             )}
           </div>
 
@@ -249,49 +250,78 @@ export function SchedulingPlanCalendarClassCard({
           </div>
         </div>
 
-        {/* Teacher & Location Meta */}
+        {/* Section 2: Teacher & Location Meta */}
         <div
           className={cn(
-            "flex flex-col gap-1 border-t pt-1.5 text-[11px] text-muted-foreground",
-            theme.divider
+            "flex flex-col gap-1 text-[11px] text-muted-foreground transition-all duration-300",
+            !isCollapsed && cn("border-t pt-1.5", theme.divider)
           )}
         >
+          {/* Teacher (Always visible) */}
           <div className="flex items-center gap-1.5 truncate">
             <User aria-hidden className="size-3 shrink-0" />
-            <span className="truncate text-foreground/90">{teacherName}</span>
+            <span className="truncate font-medium text-foreground/90">
+              {teacherName}
+            </span>
           </div>
-          <div className="flex items-center gap-1.5 truncate">
-            {isOnline ? (
-              <Globe aria-hidden className="size-3 shrink-0" />
-            ) : (
-              <Building2 aria-hidden className="size-3 shrink-0" />
+
+          {/* Location (Collapsible) */}
+          <div
+            className={cn(
+              "grid transition-[grid-template-rows,opacity] duration-300 ease-in-out",
+              isCollapsed
+                ? "pointer-events-none grid-rows-[0fr] opacity-0"
+                : "grid-rows-[1fr] opacity-100"
             )}
-            <span className="truncate">{locationName}</span>
+          >
+            <div className="overflow-hidden">
+              <div className="flex items-center gap-1.5 truncate pt-0.5">
+                {isOnline ? (
+                  <Globe aria-hidden className="size-3 shrink-0" />
+                ) : (
+                  <Building2 aria-hidden className="size-3 shrink-0" />
+                )}
+                <span className="truncate">{locationName}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Capacity Info (Clean Display, No Stepper Buttons) */}
+        {/* Section 3: Capacity Info (Collapsible) */}
         <div
+          data-testid={`calendar-class-card-details-${proposal.id}`}
+          aria-hidden={isCollapsed}
           className={cn(
-            "flex items-center justify-between border-t pt-1.5 text-[11px]",
-            theme.divider
+            "grid transition-[grid-template-rows,opacity] duration-300 ease-in-out",
+            isCollapsed
+              ? "pointer-events-none grid-rows-[0fr] opacity-0"
+              : "grid-rows-[1fr] opacity-100"
           )}
-          aria-label={t("calendarView.capacityLabel", {
-            current: formatNumber(proposal.capacity, locale),
-            max: formatNumber(maxCapacity, locale),
-          })}
         >
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Users aria-hidden className="size-3 shrink-0" />
-            <span className="text-[10px] font-medium">{t("capacity")}</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs font-semibold text-foreground tabular-nums">
-            <span>{formatNumber(proposal.capacity, locale)}</span>
-            {proposal.classroom?.capacity && (
-              <span className="text-[10px] font-normal text-muted-foreground">
-                / {formatNumber(maxCapacity, locale)}
-              </span>
-            )}
+          <div className="overflow-hidden">
+            <div
+              className={cn(
+                "flex items-center justify-between border-t pt-1.5 text-[11px]",
+                theme.divider
+              )}
+              aria-label={t("calendarView.capacityLabel", {
+                current: formatNumber(proposal.capacity, locale),
+                max: formatNumber(maxCapacity, locale),
+              })}
+            >
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Users aria-hidden className="size-3 shrink-0" />
+                <span className="text-[10px] font-medium">{t("capacity")}</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs font-semibold text-foreground tabular-nums">
+                <span>{formatNumber(proposal.capacity, locale)}</span>
+                {proposal.classroom?.capacity && (
+                  <span className="text-[10px] font-normal text-muted-foreground">
+                    / {formatNumber(maxCapacity, locale)}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </article>

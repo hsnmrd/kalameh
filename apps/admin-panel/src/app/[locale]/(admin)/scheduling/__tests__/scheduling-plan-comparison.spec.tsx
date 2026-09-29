@@ -567,6 +567,7 @@ describe("MVP-036 scheduling plan comparison", () => {
       screen.getByRole("heading", { name: "جزئیات برنامه ۱" })
     ).toBeInTheDocument()
     expect(screen.getAllByText("کلاس سطح A2").length).toBeGreaterThan(0)
+    fireEvent.click(screen.getByTestId("toggle-collapse-all-btn"))
     expect(screen.getAllByText(/سارا احمدی/).length).toBeGreaterThan(0)
     expect(
       screen.getAllByText("راه‌های جای‌دادن این کلاس در برنامه")

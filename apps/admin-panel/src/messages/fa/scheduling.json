@@ -307,7 +307,11 @@
       "noMissedClassesToAssign": "همه کلاس‌های حل‌نشده در جدول جانمایی شده‌اند.",
       "roomNeeded": "نیازمند تأمین اتاق",
       "emptyDaysNotice": "روزهای بدون کلاس در این برنامه: {days}",
-      "clearSelection": "لغو انتخاب کلاس"
+      "clearSelection": "لغو انتخاب کلاس",
+      "collapseSlot": "بستن بازه {time}",
+      "expandSlot": "باز کردن بازه {time}",
+      "collapseAll": "بستن همه",
+      "expandAll": "باز کردن همه"
     },
     "weekDays": {
       "SATURDAY": "شنبه",

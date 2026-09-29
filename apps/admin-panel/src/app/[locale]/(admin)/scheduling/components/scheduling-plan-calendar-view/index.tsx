@@ -2,7 +2,15 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { CalendarRange, CalendarX2, Clock3, Info, Plus } from "lucide-react"
+import {
+  CalendarRange,
+  CalendarX2,
+  ChevronDown,
+  ChevronsUpDown,
+  Clock3,
+  Info,
+  Plus,
+} from "lucide-react"
 import type {
   SchedulingNewTeacherHiringAssignment,
   SchedulingNewTeacherHiringPlan,
@@ -53,6 +61,8 @@ export interface SchedulingPlanCalendarViewProps {
   onAssignMissedClass?: (assignmentKey: string, slotKey: string) => void
   onUnassignMissedClass?: (assignmentKey: string) => void
   stickyTop?: "page" | "dialog"
+  defaultCollapsed?: boolean
+  initialExpandedSlots?: string[]
 }
 
 export function SchedulingPlanCalendarView({
@@ -63,6 +73,8 @@ export function SchedulingPlanCalendarView({
   onAssignMissedClass,
   onUnassignMissedClass,
   stickyTop = "dialog",
+  defaultCollapsed = true,
+  initialExpandedSlots,
 }: SchedulingPlanCalendarViewProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -72,6 +84,11 @@ export function SchedulingPlanCalendarView({
   const [selectedClassId, setSelectedClassId] = React.useState<string | null>(
     null
   )
+  const [userExpandedSlots, setUserExpandedSlots] =
+    React.useState<Set<string> | null>(() => {
+      if (initialExpandedSlots) return new Set(initialExpandedSlots)
+      return null
+    })
 
   const activeClassId = selectedClassId
   const isAnyClassActive = activeClassId !== null
@@ -136,6 +153,46 @@ export function SchedulingPlanCalendarView({
         a.endTime.localeCompare(b.endTime)
     )
   }, [proposals, hiringPlan, missedClassesAssignments])
+
+  const expandedSlots = React.useMemo(() => {
+    if (userExpandedSlots !== null) return userExpandedSlots
+    if (!defaultCollapsed) {
+      return new Set(timeSlots.map((s) => s.key))
+    }
+    return new Set<string>()
+  }, [userExpandedSlots, defaultCollapsed, timeSlots])
+
+  const areAllExpanded =
+    timeSlots.length > 0 && expandedSlots.size >= timeSlots.length
+
+  const toggleSlotCollapse = React.useCallback(
+    (slotKey: string) => {
+      setUserExpandedSlots((prev) => {
+        const current =
+          prev !== null
+            ? prev
+            : !defaultCollapsed
+              ? new Set(timeSlots.map((s) => s.key))
+              : new Set<string>()
+        const next = new Set(current)
+        if (next.has(slotKey)) {
+          next.delete(slotKey)
+        } else {
+          next.add(slotKey)
+        }
+        return next
+      })
+    },
+    [defaultCollapsed, timeSlots]
+  )
+
+  const handleExpandAll = React.useCallback(() => {
+    setUserExpandedSlots(new Set(timeSlots.map((s) => s.key)))
+  }, [timeSlots])
+
+  const handleCollapseAll = React.useCallback(() => {
+    setUserExpandedSlots(new Set())
+  }, [])
 
   const proposalsByDayAndSlot = React.useMemo(() => {
     const map = new Map<string, Proposal[]>()
@@ -360,23 +417,49 @@ export function SchedulingPlanCalendarView({
         </div>
         <div className="flex items-center gap-3">
           {selectedClassId && (
-            <button
+            <Button
               type="button"
+              variant="link"
+              size="xs"
               data-testid="clear-selection-btn"
               onClick={(e) => {
                 e.stopPropagation()
                 setSelectedClassId(null)
               }}
-              className="cursor-pointer text-xs font-semibold text-primary underline-offset-4 hover:underline"
+              className="h-auto p-0 text-xs font-semibold text-primary underline-offset-4 hover:underline"
             >
               {t("calendarView.clearSelection")}
-            </button>
+            </Button>
           )}
           {hasMissedClasses && (
             <div className="flex items-center gap-1.5 font-semibold text-warning-foreground">
               <span className="inline-block size-2 rounded-full bg-warning" />
               <span>{t("calendarView.newTeacherBadge")}</span>
             </div>
+          )}
+          {timeSlots.length > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              data-testid="toggle-collapse-all-btn"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (areAllExpanded) {
+                  handleCollapseAll()
+                } else {
+                  handleExpandAll()
+                }
+              }}
+              className="h-6 gap-1 rounded-lg px-2 text-xs font-medium"
+            >
+              <ChevronsUpDown aria-hidden className="size-3" />
+              <span>
+                {areAllExpanded
+                  ? t("calendarView.collapseAll")
+                  : t("calendarView.expandAll")}
+              </span>
+            </Button>
           )}
         </div>
       </div>
@@ -440,196 +523,287 @@ export function SchedulingPlanCalendarView({
 
           {/* Time Slot Rows */}
           <div className="flex flex-col divide-y divide-border/50">
-            {timeSlots.map((slot) => (
-              <div
-                key={slot.key}
-                data-testid={`time-slot-row-${slot.key}`}
-                className="grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] items-stretch gap-2 p-2"
-              >
-                {/* Time Column Cell */}
+            {timeSlots.map((slot) => {
+              const isCollapsed = !expandedSlots.has(slot.key)
+
+              return (
                 <div
-                  className="flex flex-col items-center justify-center gap-0.5 rounded-xl border border-border/70 bg-muted/45 p-2 text-center"
-                  aria-label={t("timeRange", {
-                    start: slot.startTime,
-                    end: slot.endTime,
-                  })}
+                  key={slot.key}
+                  data-testid={`time-slot-row-${slot.key}`}
+                  className="grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] items-stretch gap-2 p-2 transition-all duration-300 ease-in-out"
                 >
-                  <span className="text-xs font-bold text-foreground tabular-nums">
-                    {slot.startTime}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {t("calendarView.timeTo")}
-                  </span>
-                  <span className="text-xs font-bold text-foreground tabular-nums">
-                    {slot.endTime}
-                  </span>
-                </div>
+                  {/* Time Column Cell */}
+                  <button
+                    type="button"
+                    onClick={() => toggleSlotCollapse(slot.key)}
+                    data-testid={`time-slot-toggle-${slot.key}`}
+                    className={cn(
+                      "group flex h-full w-full cursor-pointer flex-col items-center overflow-hidden rounded-xl px-1 text-center transition-[height,padding,background-color] duration-300 ease-in-out select-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                      isCollapsed
+                        ? "min-h-[52px] justify-center gap-0.5 py-1"
+                        : "min-h-[134px] justify-between py-2.5"
+                    )}
+                    aria-expanded={!isCollapsed}
+                    aria-label={
+                      isCollapsed
+                        ? t("calendarView.expandSlot", {
+                            time: `${slot.startTime} - ${slot.endTime}`,
+                          })
+                        : t("calendarView.collapseSlot", {
+                            time: `${slot.startTime} - ${slot.endTime}`,
+                          })
+                    }
+                  >
+                    {/* Top chevron indicator indicating clickable section */}
+                    <div className="flex shrink-0 items-center justify-center pt-0.5">
+                      <ChevronDown
+                        aria-hidden
+                        className={cn(
+                          "size-3.5 text-muted-foreground/60 transition-transform duration-300 ease-in-out group-hover:text-foreground",
+                          !isCollapsed && "rotate-180"
+                        )}
+                      />
+                    </div>
 
-                {/* Day Cells */}
-                {ORDERED_WEEK_DAYS.map((day) => {
-                  const cellKey = `${day}-${slot.startTime}-${slot.endTime}`
-                  const cellProposals = proposalsByDayAndSlot.get(cellKey) ?? []
-                  const cellMissed =
-                    missedClassesByDayAndSlot.get(cellKey) ?? []
-                  const matchingOption = slotOptionsByDayAndSlot.get(cellKey)
-                  const freeRooms = matchingOption
-                    ? getFreeClassrooms(matchingOption)
-                    : []
+                    {/* Prominent Hour Text */}
+                    <div className="my-auto flex flex-col items-center justify-center text-center transition-all duration-300">
+                      <span className="text-base leading-tight font-black tracking-tight text-foreground tabular-nums">
+                        {slot.startTime}
+                      </span>
+                      <span
+                        className={cn(
+                          "overflow-hidden text-[10px] font-medium text-muted-foreground transition-[max-height,opacity] duration-300 ease-in-out",
+                          isCollapsed
+                            ? "max-h-0 opacity-0"
+                            : "my-0.5 max-h-4 opacity-100"
+                        )}
+                      >
+                        {t("calendarView.timeTo")}
+                      </span>
+                      <span className="text-xs leading-tight font-extrabold text-foreground tabular-nums">
+                        {slot.endTime}
+                      </span>
+                    </div>
 
-                  const targetSlotKey = matchingOption
-                    ? `${matchingOption.daysOfWeek.join(",")}|${matchingOption.startTime}|${matchingOption.endTime}`
-                    : ""
+                    {/* Bottom balancing spacer for expanded view */}
+                    {!isCollapsed && (
+                      <div className="size-3.5 shrink-0" aria-hidden="true" />
+                    )}
+                  </button>
 
-                  const hasAssignableMissedClass = Boolean(
-                    hiringPlan?.assignments.some((assignment) => {
-                      if (
-                        assignment.deliveryMode === "IN_PERSON" &&
-                        (matchingOption?.isFullyBooked ||
-                          freeRooms.length === 0)
-                      ) {
-                        return false
-                      }
-                      const state = missedClassesAssignments?.[assignment.key]
-                      const isPlacedOnDay =
-                        Boolean(state) &&
-                        state.isAssigned !== false &&
-                        state.daysOfWeek.length > 0 &&
-                        canPlaceMissedClassOnDay(assignment, state, day)
-                      if (!isPlacedOnDay || !state) {
-                        return true
-                      }
-                      const itemKey = `${state.daysOfWeek.join(",")}|${state.startTime}|${state.endTime}`
-                      return itemKey !== targetSlotKey
-                    })
-                  )
+                  {/* Day Cells */}
+                  {ORDERED_WEEK_DAYS.map((day) => {
+                    const cellKey = `${day}-${slot.startTime}-${slot.endTime}`
+                    const cellProposals =
+                      proposalsByDayAndSlot.get(cellKey) ?? []
+                    const cellMissed =
+                      missedClassesByDayAndSlot.get(cellKey) ?? []
+                    const matchingOption = slotOptionsByDayAndSlot.get(cellKey)
+                    const freeRooms = matchingOption
+                      ? getFreeClassrooms(matchingOption)
+                      : []
 
-                  const canAssignHere =
-                    canEdit &&
-                    Boolean(matchingOption) &&
-                    !matchingOption?.isFullyBooked &&
-                    hasAssignableMissedClass &&
-                    (freeRooms.length > 0 ||
-                      Boolean(
-                        hiringPlan?.assignments.some(
-                          (assignment) => assignment.deliveryMode === "ONLINE"
-                        )
-                      ))
+                    const targetSlotKey = matchingOption
+                      ? `${matchingOption.daysOfWeek.join(",")}|${matchingOption.startTime}|${matchingOption.endTime}`
+                      : ""
 
-                  const hasClasses =
-                    cellProposals.length > 0 || cellMissed.length > 0
+                    const hasAssignableMissedClass = Boolean(
+                      hiringPlan?.assignments.some((assignment) => {
+                        if (
+                          assignment.deliveryMode === "IN_PERSON" &&
+                          (matchingOption?.isFullyBooked ||
+                            freeRooms.length === 0)
+                        ) {
+                          return false
+                        }
+                        const state = missedClassesAssignments?.[assignment.key]
+                        const isPlacedOnDay =
+                          state &&
+                          state.isAssigned !== false &&
+                          state.daysOfWeek.length > 0 &&
+                          canPlaceMissedClassOnDay(assignment, state, day)
+                        if (!isPlacedOnDay || !state) {
+                          return true
+                        }
+                        const itemKey = `${state.daysOfWeek.join(",")}|${state.startTime}|${state.endTime}`
+                        return itemKey !== targetSlotKey
+                      })
+                    )
 
-                  return (
-                    <div
-                      key={`${day}-${slot.key}`}
-                      data-day={day}
-                      data-slot={slot.key}
-                      className="flex min-h-[134px] flex-col gap-2"
-                    >
-                      {hasClasses ? (
-                        <>
-                          {cellProposals.map((proposal) => {
-                            const isActive = activeClassId === proposal.id
-                            const isDimmed = isAnyClassActive && !isActive
-                            return (
-                              <SchedulingPlanCalendarClassCard
-                                key={`${proposal.id}-${day}`}
-                                proposal={proposal}
-                                canEdit={canEdit}
-                                colorIndex={proposalColorMap.get(proposal.id)}
-                                isActive={isActive}
-                                isDimmed={isDimmed}
-                                onClick={handleCardClick}
-                              />
-                            )
-                          })}
-                          {cellMissed.map(({ assignment, state }) => {
-                            const missedKey = `missed:${assignment.key}`
-                            const isActive = activeClassId === missedKey
-                            const isDimmed = isAnyClassActive && !isActive
-                            return (
-                              <SchedulingPlanCalendarMissedClassCard
-                                key={`${assignment.key}-${day}`}
-                                assignment={assignment}
-                                assignedRoomName={state.classroomName}
-                                canEdit={canEdit}
-                                isActive={isActive}
-                                isDimmed={isDimmed}
-                                onClick={handleCardClick}
-                                onUnassign={() =>
-                                  onUnassignMissedClass?.(assignment.key)
+                    const canAssignHere =
+                      canEdit &&
+                      Boolean(matchingOption) &&
+                      !matchingOption?.isFullyBooked &&
+                      hasAssignableMissedClass &&
+                      (freeRooms.length > 0 ||
+                        Boolean(
+                          hiringPlan?.assignments.some(
+                            (assignment) => assignment.deliveryMode === "ONLINE"
+                          )
+                        ))
+
+                    const hasClasses =
+                      cellProposals.length > 0 || cellMissed.length > 0
+
+                    return (
+                      <div
+                        key={`${day}-${slot.key}`}
+                        data-day={day}
+                        data-slot={slot.key}
+                        className={cn(
+                          "flex flex-col transition-all duration-300 ease-in-out",
+                          isCollapsed
+                            ? "min-h-[52px] gap-1.5"
+                            : "min-h-[134px] gap-2"
+                        )}
+                      >
+                        {hasClasses ? (
+                          <>
+                            {cellProposals.map((proposal) => {
+                              const isActive = activeClassId === proposal.id
+                              const isDimmed = isAnyClassActive && !isActive
+                              return (
+                                <SchedulingPlanCalendarClassCard
+                                  key={`${proposal.id}-${day}`}
+                                  proposal={proposal}
+                                  canEdit={canEdit}
+                                  colorIndex={proposalColorMap.get(proposal.id)}
+                                  isActive={isActive}
+                                  isDimmed={isDimmed}
+                                  isCollapsed={isCollapsed}
+                                  onClick={handleCardClick}
+                                />
+                              )
+                            })}
+                            {cellMissed.map(({ assignment, state }) => {
+                              const missedKey = `missed:${assignment.key}`
+                              const isActive = activeClassId === missedKey
+                              const isDimmed = isAnyClassActive && !isActive
+                              return (
+                                <SchedulingPlanCalendarMissedClassCard
+                                  key={`${assignment.key}-${day}`}
+                                  assignment={assignment}
+                                  assignedRoomName={state.classroomName}
+                                  canEdit={canEdit}
+                                  isActive={isActive}
+                                  isDimmed={isDimmed}
+                                  isCollapsed={isCollapsed}
+                                  onClick={handleCardClick}
+                                  onUnassign={() =>
+                                    onUnassignMissedClass?.(assignment.key)
+                                  }
+                                />
+                              )
+                            })}
+                            {canAssignHere && matchingOption && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size={isCollapsed ? "xs" : "sm"}
+                                onClick={() =>
+                                  handleOpenAssignDialog(
+                                    matchingOption,
+                                    freeRooms
+                                  )
                                 }
-                              />
-                            )
-                          })}
-                          {canAssignHere && matchingOption && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleOpenAssignDialog(
-                                  matchingOption,
-                                  freeRooms
-                                )
-                              }
+                                className={cn(
+                                  isCollapsed
+                                    ? "h-6 w-full gap-1 rounded-md text-[10px]"
+                                    : "h-7 w-full gap-1 rounded-lg text-[11px]",
+                                  "border border-dashed border-border/60 font-medium text-muted-foreground transition-all duration-300 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
+                                  isAnyClassActive && "opacity-20"
+                                )}
+                              >
+                                <Plus
+                                  className={
+                                    isCollapsed ? "size-2.5" : "size-3"
+                                  }
+                                />
+                                <span>{t("calendarView.assignClass")}</span>
+                              </Button>
+                            )}
+                          </>
+                        ) : canAssignHere && matchingOption ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() =>
+                              handleOpenAssignDialog(matchingOption, freeRooms)
+                            }
+                            className={cn(
+                              "group w-full cursor-pointer overflow-hidden border-2 border-dashed border-primary/50 bg-primary/10 text-center transition-[height,padding,background-color,border-color] duration-300 ease-in-out hover:border-primary hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                              isCollapsed
+                                ? "h-[52px] flex-row gap-1.5 p-1.5 text-xs font-bold text-primary"
+                                : "h-[134px] flex-col justify-center gap-2 p-3",
+                              isAnyClassActive && "opacity-20"
+                            )}
+                          >
+                            <div
                               className={cn(
-                                "h-7 w-full gap-1 rounded-lg border border-dashed border-border/60 text-[11px] font-medium text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
-                                isAnyClassActive && "opacity-20"
+                                "flex items-center justify-center transition-all duration-300",
+                                isCollapsed
+                                  ? "size-auto bg-transparent"
+                                  : "size-7 rounded-full bg-primary/20 text-primary group-hover:scale-110"
                               )}
                             >
-                              <Plus className="size-3" />
-                              <span>{t("calendarView.assignClass")}</span>
-                            </Button>
-                          )}
-                        </>
-                      ) : canAssignHere && matchingOption ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleOpenAssignDialog(matchingOption, freeRooms)
-                          }
-                          className={cn(
-                            "group flex h-[134px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/50 bg-primary/10 p-3 text-center transition-all hover:border-primary hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                            isAnyClassActive && "opacity-20"
-                          )}
-                        >
-                          <div className="flex size-7 items-center justify-center rounded-full bg-primary/20 text-primary transition-transform group-hover:scale-110">
-                            <Plus className="size-4" />
-                          </div>
-                          <div className="flex flex-col items-center gap-0.5">
-                            <span className="text-xs font-bold text-primary">
-                              {t("calendarView.freeSlot")}
+                              <Plus
+                                className={isCollapsed ? "size-3.5" : "size-4"}
+                              />
+                            </div>
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="text-xs font-bold text-primary">
+                                {t("calendarView.freeSlot")}
+                              </span>
+                              <span
+                                className={cn(
+                                  "overflow-hidden text-[10px] font-medium text-muted-foreground transition-[max-height,opacity] duration-300 ease-in-out group-hover:text-primary",
+                                  isCollapsed
+                                    ? "max-h-0 opacity-0"
+                                    : "max-h-4 opacity-100"
+                                )}
+                              >
+                                {t("calendarView.assignClass")}
+                              </span>
+                            </div>
+                          </Button>
+                        ) : (
+                          <div
+                            data-testid={`empty-cell-${day}-${slot.key}`}
+                            className={cn(
+                              "flex w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-border/50 bg-muted/15 transition-[height,padding,opacity,background-color] duration-300 ease-in-out select-none hover:bg-muted/25",
+                              isCollapsed
+                                ? "h-[52px] py-1 text-center"
+                                : "h-[134px] flex-col gap-2 p-3 text-center",
+                              isAnyClassActive ? "opacity-20" : "opacity-40"
+                            )}
+                            aria-label={t("calendarView.noClasses")}
+                          >
+                            <div
+                              className={cn(
+                                "flex items-center justify-center overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-in-out",
+                                isCollapsed
+                                  ? "max-h-0 scale-75 opacity-0"
+                                  : "max-h-8 scale-100 opacity-100"
+                              )}
+                            >
+                              <div className="flex size-7 items-center justify-center rounded-full bg-muted/30 text-muted-foreground/70">
+                                <CalendarX2
+                                  aria-hidden
+                                  className="size-4 text-muted-foreground/70"
+                                />
+                              </div>
+                            </div>
+                            <span className="text-[11px] font-medium text-muted-foreground/80">
+                              {t("calendarView.noClasses")}
                             </span>
-                            <span className="text-[10px] font-medium text-muted-foreground group-hover:text-primary">
-                              {t("calendarView.assignClass")}
-                            </span>
                           </div>
-                        </button>
-                      ) : (
-                        <div
-                          data-testid={`empty-cell-${day}-${slot.key}`}
-                          className={cn(
-                            "flex h-[134px] w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/50 bg-muted/15 p-3 text-center transition-all select-none hover:bg-muted/25 hover:opacity-75",
-                            isAnyClassActive ? "opacity-20" : "opacity-40"
-                          )}
-                          aria-label={t("calendarView.noClasses")}
-                        >
-                          <div className="flex size-7 items-center justify-center rounded-full bg-muted/30 text-muted-foreground/70">
-                            <CalendarX2
-                              aria-hidden
-                              className="size-4 text-muted-foreground/70"
-                            />
-                          </div>
-                          <span className="text-[11px] font-medium text-muted-foreground/80">
-                            {t("calendarView.noClasses")}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            ))}
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>

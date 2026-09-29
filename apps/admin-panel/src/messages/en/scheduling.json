@@ -307,7 +307,11 @@
       "noMissedClassesToAssign": "All unscheduled classes have been scheduled in the calendar.",
       "roomNeeded": "Room needed",
       "emptyDaysNotice": "Days without classes in this schedule: {days}",
-      "clearSelection": "Clear class selection"
+      "clearSelection": "Clear class selection",
+      "collapseSlot": "Collapse {time}",
+      "expandSlot": "Expand {time}",
+      "collapseAll": "Collapse all",
+      "expandAll": "Expand all"
     },
     "weekDays": {
       "SATURDAY": "Saturday",

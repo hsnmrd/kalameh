@@ -218,7 +218,7 @@ export function SchedulingNewTeacherHiringPlan({
             >
               {t("hiringPlan.title")}
             </h4>
-            <Tooltip delay={200}>
+            <Tooltip>
               <TooltipTrigger
                 type="button"
                 aria-label={t("hiringPlan.infoTooltipLabel")}

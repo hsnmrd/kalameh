@@ -86,7 +86,7 @@ describe("SchedulingPlanCalendarView Component", () => {
   })
 
   it("renders time slot rows with time column and day cells", () => {
-    const { container } = render(
+    render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
@@ -125,9 +125,13 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(monCellRow2).toHaveTextContent("بدون کلاس")
   })
 
-  it("displays teacher name, location, and capacity without time inside the card", () => {
+  it("displays teacher name, location, and capacity without time inside the card when expanded", () => {
     render(
-      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={false}
+        defaultCollapsed={false}
+      />
     )
 
     expect(screen.getAllByText("علی محمدی").length).toBeGreaterThanOrEqual(1)
@@ -184,6 +188,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       <SchedulingPlanCalendarView
         proposals={editableProposals}
         canEdit={true}
+        defaultCollapsed={false}
       />
     )
 
@@ -243,6 +248,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       <SchedulingPlanCalendarView
         proposals={mockProposals}
         canEdit={true}
+        defaultCollapsed={false}
         hiringPlan={{
           daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
           startTime: "14:00",
@@ -303,6 +309,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       <SchedulingPlanCalendarView
         proposals={mockProposals}
         canEdit={true}
+        defaultCollapsed={false}
         hiringPlan={{
           daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
           startTime: "14:00",
@@ -339,7 +346,11 @@ describe("SchedulingPlanCalendarView Component", () => {
 
   it("renders low opacity empty cell placeholders in calendar grid", () => {
     const { container } = render(
-      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={false}
+        defaultCollapsed={false}
+      />
     )
 
     // Tuesday has 0 classes in mockProposals, header is dimmed
@@ -382,6 +393,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       <SchedulingPlanCalendarView
         proposals={mockProposals}
         canEdit={true}
+        defaultCollapsed={false}
         hiringPlan={{
           daysOfWeek: ["SUNDAY"],
           startTime: "09:00",
@@ -430,6 +442,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       <SchedulingPlanCalendarView
         proposals={mockProposals}
         canEdit={true}
+        defaultCollapsed={false}
         hiringPlan={{
           daysOfWeek: ["THURSDAY"],
           startTime: "09:00",
@@ -600,5 +613,190 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(prop1Cards[0]?.getAttribute("data-active")).toBe("true")
     fireEvent.keyDown(window, { key: "Escape" })
     expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
+  })
+
+  it("defaults to collapsed state where class cards show course title and teacher name, while collapsing location and capacity", () => {
+    render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    // Class title is visible
+    expect(
+      screen.getAllByText("American English File 1").length
+    ).toBeGreaterThanOrEqual(1)
+
+    // Teacher name is visible in collapsed state
+    expect(screen.getAllByText("علی محمدی").length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText("مریم رضایی").length).toBeGreaterThanOrEqual(1)
+
+    // Cards have compact collapsed height and collapsed data attribute
+    const card = screen.getAllByTestId("calendar-class-card-prop-1")[0]!
+    expect(card).toHaveAttribute("data-collapsed", "true")
+    expect(card).toHaveClass("h-[52px]")
+    expect(card).not.toHaveClass("h-[134px]")
+
+    // Collapsible details section is aria-hidden when collapsed
+    const details = screen.getAllByTestId(
+      "calendar-class-card-details-prop-1"
+    )[0]!
+    expect(details).toHaveAttribute("aria-hidden", "true")
+    expect(details).toHaveClass("grid-rows-[0fr]")
+
+    // Global expand/collapse toggle shows "باز کردن همه"
+    const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
+    expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
+  })
+
+  it("toggles collapse and expand on individual period hour rows", () => {
+    render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    const row1Toggle = screen.getByTestId("time-slot-toggle-09:00-10:30")
+    const row2Toggle = screen.getByTestId("time-slot-toggle-16:00-17:30")
+    const cardRow1 = screen.getAllByTestId("calendar-class-card-prop-1")[0]!
+    const detailsRow1 = screen.getAllByTestId(
+      "calendar-class-card-details-prop-1"
+    )[0]!
+    const cardRow2 = screen.getByTestId("calendar-class-card-prop-2")
+    const detailsRow2 = screen.getByTestId("calendar-class-card-details-prop-2")
+
+    // Both rows initially collapsed
+    expect(row1Toggle.getAttribute("aria-expanded")).toBe("false")
+    expect(row1Toggle).toHaveClass("h-full")
+    expect(row1Toggle).toHaveClass("min-h-[52px]")
+    expect(row2Toggle.getAttribute("aria-expanded")).toBe("false")
+    expect(cardRow1).toHaveAttribute("data-collapsed", "true")
+    expect(cardRow1).toHaveClass("h-[52px]")
+    expect(detailsRow1).toHaveAttribute("aria-hidden", "true")
+    expect(detailsRow1).toHaveClass("grid-rows-[0fr]")
+    expect(cardRow2).toHaveAttribute("data-collapsed", "true")
+    expect(detailsRow2).toHaveAttribute("aria-hidden", "true")
+
+    // Expand Row 1
+    fireEvent.click(row1Toggle)
+
+    expect(row1Toggle.getAttribute("aria-expanded")).toBe("true")
+    expect(row1Toggle).toHaveClass("h-full")
+    expect(row1Toggle).toHaveClass("min-h-[134px]")
+    expect(row2Toggle.getAttribute("aria-expanded")).toBe("false")
+    expect(cardRow1).not.toHaveAttribute("data-collapsed")
+    expect(cardRow1).toHaveClass("h-[134px]")
+    expect(detailsRow1).toHaveAttribute("aria-hidden", "false")
+    expect(detailsRow1).toHaveClass("grid-rows-[1fr]")
+    // Row 2 remains collapsed
+    expect(cardRow2).toHaveAttribute("data-collapsed", "true")
+    expect(cardRow2).toHaveClass("h-[52px]")
+    expect(detailsRow2).toHaveAttribute("aria-hidden", "true")
+
+    // Collapse Row 1 back
+    fireEvent.click(row1Toggle)
+
+    expect(row1Toggle.getAttribute("aria-expanded")).toBe("false")
+    expect(cardRow1).toHaveAttribute("data-collapsed", "true")
+    expect(cardRow1).toHaveClass("h-[52px]")
+    expect(detailsRow1).toHaveAttribute("aria-hidden", "true")
+  })
+
+  it("expands and collapses all rows via the global expand/collapse all button", () => {
+    render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
+    const cardRow1 = screen.getAllByTestId("calendar-class-card-prop-1")[0]!
+    const detailsRow1 = screen.getAllByTestId(
+      "calendar-class-card-details-prop-1"
+    )[0]!
+    const cardRow2 = screen.getByTestId("calendar-class-card-prop-2")
+    const detailsRow2 = screen.getByTestId("calendar-class-card-details-prop-2")
+
+    expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
+    expect(cardRow1).toHaveClass("h-[52px]")
+    expect(detailsRow1).toHaveAttribute("aria-hidden", "true")
+    expect(cardRow2).toHaveClass("h-[52px]")
+    expect(detailsRow2).toHaveAttribute("aria-hidden", "true")
+
+    // Expand all
+    fireEvent.click(toggleAllBtn)
+
+    expect(toggleAllBtn).toHaveTextContent("بستن همه")
+    expect(cardRow1).toHaveClass("h-[134px]")
+    expect(detailsRow1).toHaveAttribute("aria-hidden", "false")
+    expect(cardRow2).toHaveClass("h-[134px]")
+    expect(detailsRow2).toHaveAttribute("aria-hidden", "false")
+
+    // Collapse all
+    fireEvent.click(toggleAllBtn)
+
+    expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
+    expect(cardRow1).toHaveClass("h-[52px]")
+    expect(detailsRow1).toHaveAttribute("aria-hidden", "true")
+    expect(cardRow2).toHaveClass("h-[52px]")
+    expect(detailsRow2).toHaveAttribute("aria-hidden", "true")
+  })
+
+  it("renders missed classes with title and teacher when collapsed and reveals room and capacity when expanded", () => {
+    const assignmentsState = {
+      "missed-1": {
+        daysOfWeek: ["SUNDAY"] as const,
+        startTime: "09:00",
+        endTime: "10:30",
+        classroomId: "cr1",
+        classroomName: "کلاس ۱۰۱",
+        isAssigned: true,
+      },
+    }
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={true}
+        hiringPlan={{
+          daysOfWeek: ["SUNDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+          totalClassCount: 1,
+          requiredCourses: [{ id: "c-missed", title: "Touchstone 1" }],
+          assignments: [
+            {
+              key: "missed-1",
+              requirementId: "req-1",
+              course: { id: "c-missed", title: "Touchstone 1" },
+              classNumber: 1,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["SUNDAY"],
+              startTime: "09:00",
+              endTime: "10:30",
+              classroom: { id: "cr1", name: "کلاس ۱۰۱", capacity: 15 },
+            },
+          ],
+        }}
+        missedClassesAssignments={assignmentsState}
+      />
+    )
+
+    const missedCard = screen.getByTestId("missed-class-card-missed-1")
+    const missedDetails = screen.getByTestId(
+      "missed-class-card-details-missed-1"
+    )
+
+    expect(missedCard).toHaveAttribute("data-collapsed", "true")
+    expect(missedCard).toHaveClass("h-[52px]")
+    expect(missedCard).toHaveTextContent("Touchstone 1")
+    expect(missedCard).toHaveTextContent("استاد جدید (در انتظار جذب)")
+    expect(missedDetails).toHaveAttribute("aria-hidden", "true")
+    expect(missedDetails).toHaveClass("grid-rows-[0fr]")
+
+    // Expand slot 09:00-10:30
+    const toggleBtn = screen.getByTestId("time-slot-toggle-09:00-10:30")
+    fireEvent.click(toggleBtn)
+
+    expect(missedCard).not.toHaveAttribute("data-collapsed")
+    expect(missedCard).toHaveClass("h-[134px]")
+    expect(missedCard).toHaveTextContent("Touchstone 1")
+    expect(missedCard).toHaveTextContent("استاد جدید (در انتظار جذب)")
+    expect(missedDetails).toHaveAttribute("aria-hidden", "false")
+    expect(missedDetails).toHaveClass("grid-rows-[1fr]")
   })
 })

@@ -15,6 +15,7 @@ export interface SchedulingPlanCalendarMissedClassCardProps {
   onUnassign?: () => void
   isActive?: boolean
   isDimmed?: boolean
+  isCollapsed?: boolean
   onHover?: (id: string | null) => void
   onClick?: (id: string) => void
 }
@@ -26,6 +27,7 @@ export function SchedulingPlanCalendarMissedClassCard({
   onUnassign,
   isActive = false,
   isDimmed = false,
+  isCollapsed = false,
   onHover,
   onClick,
 }: SchedulingPlanCalendarMissedClassCardProps) {
@@ -47,6 +49,7 @@ export function SchedulingPlanCalendarMissedClassCard({
       data-class-id={classKey}
       data-active={isActive ? "true" : undefined}
       data-dimmed={isDimmed ? "true" : undefined}
+      data-collapsed={isCollapsed ? "true" : undefined}
       onMouseEnter={() => onHover?.(classKey)}
       onMouseLeave={() => onHover?.(null)}
       onClick={(e) => {
@@ -61,32 +64,37 @@ export function SchedulingPlanCalendarMissedClassCard({
         }
       }}
       className={cn(
-        "group relative flex h-[134px] cursor-pointer flex-col justify-between rounded-xl border-2 border-dashed border-warning/70 bg-warning/10 p-2.5 shadow-2xs transition-all duration-200 select-none",
+        "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-xl border-2 border-dashed border-warning/70 bg-warning/10 shadow-2xs transition-[height,padding,background-color,border-color,box-shadow] duration-300 ease-in-out select-none",
+        isCollapsed ? "h-[52px] p-2" : "h-[134px] p-2.5",
         isActive &&
           "z-10 scale-[1.02] opacity-100 shadow-md ring-2 ring-warning",
         isDimmed && "opacity-25 hover:opacity-60"
       )}
       aria-label={assignment.course.title}
     >
-      {/* Header: Title, Badge, and Quick Action */}
-      <div className="flex items-start justify-between gap-1.5">
-        <div className="min-w-0 flex-1">
+      {/* Section 1: Course Title, Badges, Actions */}
+      <div className="flex min-w-0 items-center justify-between gap-1.5">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+          <span
+            className="size-2 shrink-0 rounded-full bg-warning"
+            aria-hidden="true"
+          />
           <h5
             className="truncate text-xs font-bold text-foreground"
             title={assignment.course.title}
           >
             {assignment.course.title}
           </h5>
-          <p className="truncate text-[11px] font-medium text-warning-foreground">
-            {t("hiringPlan.courseClass", {
-              course: assignment.course.title,
-              number: formatNumber(assignment.classNumber, locale),
-            })}
-          </p>
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          <Badge variant="warning" className="h-4 px-1.5 py-0 text-[10px]">
+          <Badge
+            variant="warning"
+            className={cn(
+              "h-4 px-1.5 py-0 text-[10px] transition-opacity duration-200",
+              isCollapsed && "hidden"
+            )}
+          >
             {t("calendarView.newTeacherBadge")}
           </Badge>
           {canEdit && onUnassign && (
@@ -108,44 +116,76 @@ export function SchedulingPlanCalendarMissedClassCard({
         </div>
       </div>
 
-      {/* Meta: Teacher & Room */}
-      <div className="flex flex-col gap-1 border-t border-warning/20 pt-1.5 text-[11px] text-muted-foreground">
+      {/* Section 2: Teacher & Room Meta */}
+      <div
+        className={cn(
+          "flex flex-col gap-1 text-[11px] text-muted-foreground transition-all duration-300",
+          !isCollapsed && "border-t border-warning/20 pt-1.5"
+        )}
+      >
+        {/* Teacher (Always visible) */}
         <div className="flex items-center gap-1.5 truncate">
-          <GraduationCap aria-hidden className="size-3 shrink-0 text-warning" />
-          <span className="truncate text-xs font-medium text-foreground">
+          <GraduationCap aria-hidden className="size-3 shrink-0" />
+          <span className="truncate font-medium text-foreground/90">
             {t("hiringPlan.pendingTeacher")}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 truncate">
-          <DoorOpen aria-hidden className="size-3 shrink-0 text-warning" />
-          <span
-            className={
-              !assignedRoomName && !isOnline
-                ? "truncate font-medium text-warning-foreground"
-                : "truncate text-foreground/90"
-            }
-          >
-            {roomLabel}
-          </span>
+
+        {/* Room (Collapsible) */}
+        <div
+          className={cn(
+            "grid transition-[grid-template-rows,opacity] duration-300 ease-in-out",
+            isCollapsed
+              ? "pointer-events-none grid-rows-[0fr] opacity-0"
+              : "grid-rows-[1fr] opacity-100"
+          )}
+        >
+          <div className="overflow-hidden">
+            <div className="flex items-center gap-1.5 truncate pt-0.5">
+              <DoorOpen aria-hidden className="size-3 shrink-0" />
+              <span
+                className={
+                  !assignedRoomName && !isOnline
+                    ? "truncate font-medium text-warning-foreground"
+                    : "truncate text-foreground/90"
+                }
+              >
+                {roomLabel}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Capacity Info (Matches regular class card structure) */}
-      <div className="flex items-center justify-between border-t border-warning/20 pt-1.5 text-[11px]">
-        <div className="flex items-center gap-1.5 text-muted-foreground">
-          <Users aria-hidden className="size-3 shrink-0" />
-          <span className="text-[10px] font-medium">{t("capacity")}</span>
-        </div>
-        <div className="flex items-center gap-1 text-xs font-semibold text-foreground tabular-nums">
-          {assignment.classroom?.capacity ? (
-            <span className="text-[10px] font-medium text-warning-foreground">
-              {formatNumber(assignment.classroom.capacity, locale)} نفر
-            </span>
-          ) : (
-            <span className="text-[10px] font-medium text-warning-foreground">
-              {t("calendarView.roomNeeded")}
-            </span>
-          )}
+      {/* Section 3: Capacity Info (Collapsible) */}
+      <div
+        data-testid={`missed-class-card-details-${assignment.key}`}
+        aria-hidden={isCollapsed}
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-300 ease-in-out",
+          isCollapsed
+            ? "pointer-events-none grid-rows-[0fr] opacity-0"
+            : "grid-rows-[1fr] opacity-100"
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="flex items-center justify-between border-t border-warning/20 pt-1.5 text-[11px]">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Users aria-hidden className="size-3 shrink-0" />
+              <span className="text-[10px] font-medium">{t("capacity")}</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-semibold text-foreground tabular-nums">
+              {assignment.classroom?.capacity ? (
+                <span className="text-[10px] font-medium text-warning-foreground">
+                  {formatNumber(assignment.classroom.capacity, locale)} نفر
+                </span>
+              ) : (
+                <span className="text-[10px] font-medium text-warning-foreground">
+                  {t("calendarView.roomNeeded")}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </article>
