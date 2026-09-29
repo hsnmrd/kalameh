@@ -799,4 +799,85 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(missedDetails).toHaveAttribute("aria-hidden", "false")
     expect(missedDetails).toHaveClass("grid-rows-[1fr]")
   })
+
+  it("toggles showing free teacher names under class cards of each period", () => {
+    render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={false}
+        teacherCalendars={[
+          {
+            teacher: { id: "t-free-1", firstName: "حسین", lastName: "مرادی" },
+            teachableCourses: [{ id: "c1", title: "American English File 1" }],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "09:00",
+                endTime: "12:00",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "MONDAY",
+                startTime: "09:00",
+                endTime: "10:30",
+                status: "BUSY",
+                title: "کلاس ثبت‌شده",
+                source: "PLAN",
+              },
+            ],
+          },
+          {
+            teacher: { id: "t-free-2", firstName: "زهرا", lastName: "کریمی" },
+            teachableCourses: [{ id: "c2", title: "American English File 2" }],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "09:00",
+                endTime: "10:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+            ],
+          },
+        ]}
+      />
+    )
+
+    const toggleFreeTeachersBtn = screen.getByTestId("toggle-free-teachers-btn")
+    expect(toggleFreeTeachersBtn).toHaveTextContent("نمایش استادان آزاد")
+    expect(toggleFreeTeachersBtn).toHaveAttribute("aria-pressed", "false")
+
+    // Initially hidden
+    expect(
+      screen.queryByTestId("free-teachers-SATURDAY-09:00-10:30")
+    ).not.toBeInTheDocument()
+
+    // Toggle on
+    fireEvent.click(toggleFreeTeachersBtn)
+    expect(toggleFreeTeachersBtn).toHaveAttribute("aria-pressed", "true")
+
+    // Saturday 09:00-10:30 has both حسین مرادی (09:00-12:00 covers 09:00-10:30) and زهرا کریمی under the class card
+    const satFreeTeachers = screen.getByTestId(
+      "free-teachers-SATURDAY-09:00-10:30"
+    )
+    expect(satFreeTeachers).toBeInTheDocument()
+    expect(satFreeTeachers).toHaveTextContent("استادان آزاد:")
+    expect(satFreeTeachers).toHaveTextContent("حسین مرادی")
+    expect(satFreeTeachers).toHaveTextContent("زهرا کریمی")
+
+    // Monday 09:00-10:30 is BUSY for حسین مرادی, so no free teachers are shown there
+    expect(
+      screen.queryByTestId("free-teachers-MONDAY-09:00-10:30")
+    ).not.toBeInTheDocument()
+
+    // Toggle off
+    fireEvent.click(toggleFreeTeachersBtn)
+    expect(toggleFreeTeachersBtn).toHaveAttribute("aria-pressed", "false")
+    expect(
+      screen.queryByTestId("free-teachers-SATURDAY-09:00-10:30")
+    ).not.toBeInTheDocument()
+  })
 })

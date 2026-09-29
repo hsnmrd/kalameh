@@ -317,7 +317,10 @@
       "collapseSlot": "Collapse {time}",
       "expandSlot": "Expand {time}",
       "collapseAll": "Collapse all",
-      "expandAll": "Expand all"
+      "expandAll": "Expand all",
+      "showFreeTeachers": "Show free teachers",
+      "hideFreeTeachers": "Hide free teachers",
+      "freeTeachersLabel": "Free teachers:"
     },
     "weekDays": {
       "SATURDAY": "Saturday",

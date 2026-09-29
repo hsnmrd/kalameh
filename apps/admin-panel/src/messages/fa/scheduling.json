@@ -317,7 +317,10 @@
       "collapseSlot": "بستن بازه {time}",
       "expandSlot": "باز کردن بازه {time}",
       "collapseAll": "بستن همه",
-      "expandAll": "باز کردن همه"
+      "expandAll": "باز کردن همه",
+      "showFreeTeachers": "نمایش استادان آزاد",
+      "hideFreeTeachers": "پنهان‌کردن استادان آزاد",
+      "freeTeachersLabel": "استادان آزاد:"
     },
     "weekDays": {
       "SATURDAY": "شنبه",

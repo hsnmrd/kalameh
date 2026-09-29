@@ -10,12 +10,14 @@ import {
   Clock3,
   Info,
   Plus,
+  UserCheck,
 } from "lucide-react"
 import type {
   SchedulingNewTeacherHiringAssignment,
   SchedulingNewTeacherHiringPlan,
   SchedulingNewTeacherHiringSlotOption,
   SchedulingPlanDetailsDto,
+  SchedulingTeacherCalendar,
   WeekDay,
 } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
@@ -60,6 +62,8 @@ export interface SchedulingPlanCalendarViewProps {
   missedClassesAssignments?: Record<string, CurrentAssignmentState>
   onAssignMissedClass?: (assignmentKey: string, slotKey: string) => void
   onUnassignMissedClass?: (assignmentKey: string) => void
+  teacherCalendars?: SchedulingTeacherCalendar[]
+  defaultShowFreeTeachers?: boolean
   defaultCollapsed?: boolean
   initialExpandedSlots?: string[]
 }
@@ -71,6 +75,8 @@ export function SchedulingPlanCalendarView({
   missedClassesAssignments,
   onAssignMissedClass,
   onUnassignMissedClass,
+  teacherCalendars,
+  defaultShowFreeTeachers = false,
   defaultCollapsed = true,
   initialExpandedSlots,
 }: SchedulingPlanCalendarViewProps) {
@@ -81,6 +87,9 @@ export function SchedulingPlanCalendarView({
     React.useState<TargetSlotInfo | null>(null)
   const [selectedClassId, setSelectedClassId] = React.useState<string | null>(
     null
+  )
+  const [showFreeTeachers, setShowFreeTeachers] = React.useState(
+    defaultShowFreeTeachers
   )
   const [userExpandedSlots, setUserExpandedSlots] =
     React.useState<Set<string> | null>(() => {
@@ -145,12 +154,70 @@ export function SchedulingPlanCalendarView({
         }
       }
     }
+    if (showFreeTeachers && teacherCalendars) {
+      const baseSlots = Array.from(slotsMap.values())
+      for (const calendar of teacherCalendars) {
+        for (const slot of calendar.slots) {
+          if (
+            slot.status === "FREE" &&
+            (ORDERED_WEEK_DAYS as readonly string[]).includes(slot.dayOfWeek)
+          ) {
+            const key = `${slot.startTime}-${slot.endTime}`
+            const overlapsBaseSlot = baseSlots.some(
+              (base) =>
+                base.startTime < slot.endTime && slot.startTime < base.endTime
+            )
+            if (!overlapsBaseSlot && !slotsMap.has(key)) {
+              slotsMap.set(key, {
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                key,
+              })
+            }
+          }
+        }
+      }
+    }
     return Array.from(slotsMap.values()).sort(
       (a, b) =>
         a.startTime.localeCompare(b.startTime) ||
         a.endTime.localeCompare(b.endTime)
     )
-  }, [proposals, hiringPlan, missedClassesAssignments])
+  }, [
+    proposals,
+    hiringPlan,
+    missedClassesAssignments,
+    showFreeTeachers,
+    teacherCalendars,
+  ])
+
+  const freeTeachersByDayAndSlot = React.useMemo(() => {
+    const map = new Map<string, Array<SchedulingTeacherCalendar["teacher"]>>()
+    if (!teacherCalendars?.length) return map
+
+    for (const slot of timeSlots) {
+      for (const day of ORDERED_WEEK_DAYS) {
+        const key = `${day}-${slot.startTime}-${slot.endTime}`
+        const freeTeachers: Array<SchedulingTeacherCalendar["teacher"]> = []
+        for (const calendar of teacherCalendars) {
+          const isFreeInPeriod = calendar.slots.some(
+            (s) =>
+              s.status === "FREE" &&
+              s.dayOfWeek === day &&
+              s.startTime <= slot.startTime &&
+              s.endTime >= slot.endTime
+          )
+          if (isFreeInPeriod) {
+            freeTeachers.push(calendar.teacher)
+          }
+        }
+        if (freeTeachers.length > 0) {
+          map.set(key, freeTeachers)
+        }
+      }
+    }
+    return map
+  }, [teacherCalendars, timeSlots])
 
   const expandedSlots = React.useMemo(() => {
     if (userExpandedSlots !== null) return userExpandedSlots
@@ -436,28 +503,49 @@ export function SchedulingPlanCalendarView({
             </div>
           )}
           {timeSlots.length > 0 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="xs"
-              data-testid="toggle-collapse-all-btn"
-              onClick={(e) => {
-                e.stopPropagation()
-                if (areAllExpanded) {
-                  handleCollapseAll()
-                } else {
-                  handleExpandAll()
-                }
-              }}
-              className="h-6 gap-1 rounded-lg px-2 text-xs font-medium"
-            >
-              <ChevronsUpDown aria-hidden className="size-3" />
-              <span>
-                {areAllExpanded
-                  ? t("calendarView.collapseAll")
-                  : t("calendarView.expandAll")}
-              </span>
-            </Button>
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                data-testid="toggle-free-teachers-btn"
+                aria-pressed={showFreeTeachers}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowFreeTeachers((prev) => !prev)
+                }}
+                className={cn(
+                  "h-6 gap-1 rounded-lg px-2 text-xs font-medium",
+                  showFreeTeachers &&
+                    "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                )}
+              >
+                <UserCheck aria-hidden className="size-3" />
+                <span>{t("calendarView.showFreeTeachers")}</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                data-testid="toggle-collapse-all-btn"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (areAllExpanded) {
+                    handleCollapseAll()
+                  } else {
+                    handleExpandAll()
+                  }
+                }}
+                className="h-6 gap-1 rounded-lg px-2 text-xs font-medium"
+              >
+                <ChevronsUpDown aria-hidden className="size-3" />
+                <span>
+                  {areAllExpanded
+                    ? t("calendarView.collapseAll")
+                    : t("calendarView.expandAll")}
+                </span>
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -591,6 +679,8 @@ export function SchedulingPlanCalendarView({
                       proposalsByDayAndSlot.get(cellKey) ?? []
                     const cellMissed =
                       missedClassesByDayAndSlot.get(cellKey) ?? []
+                    const cellFreeTeachers =
+                      freeTeachersByDayAndSlot.get(cellKey) ?? []
                     const matchingOption = slotOptionsByDayAndSlot.get(cellKey)
                     const freeRooms = matchingOption
                       ? getFreeClassrooms(matchingOption)
@@ -789,6 +879,30 @@ export function SchedulingPlanCalendarView({
                             <span className="text-[11px] font-medium text-muted-foreground/80">
                               {t("calendarView.noClasses")}
                             </span>
+                          </div>
+                        )}
+                        {showFreeTeachers && cellFreeTeachers.length > 0 && (
+                          <div
+                            data-testid={`free-teachers-${day}-${slot.key}`}
+                            className={cn(
+                              "flex flex-col gap-1 rounded-xl border border-dashed border-border/70 bg-muted/30 px-2.5 py-1.5 transition-opacity duration-300",
+                              isAnyClassActive && "opacity-25"
+                            )}
+                          >
+                            <span className="text-[10px] font-semibold text-muted-foreground">
+                              {t("calendarView.freeTeachersLabel")}
+                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {cellFreeTeachers.map((teacher) => (
+                                <Badge
+                                  key={teacher.id}
+                                  variant="secondary"
+                                  className="h-5 rounded-md px-1.5 py-0 text-[10px] font-medium text-foreground"
+                                >
+                                  {teacher.firstName} {teacher.lastName}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>

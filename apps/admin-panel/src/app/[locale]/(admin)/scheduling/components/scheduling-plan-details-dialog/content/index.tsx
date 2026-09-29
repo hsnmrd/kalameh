@@ -258,6 +258,7 @@ export function Content({
           missedClassesAssignments={assignmentsState}
           onAssignMissedClass={handleAssignMissedClass}
           onUnassignMissedClass={handleUnassignMissedClass}
+          teacherCalendars={plan.teacherCalendars}
         />
       </section>
       <Separator />
