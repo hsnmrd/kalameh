@@ -1,10 +1,10 @@
+import * as React from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   fireEvent,
   render,
   screen,
   waitFor,
-  within,
 } from "../../../../../test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
@@ -12,6 +12,26 @@ import * as stores from "@/lib/stores"
 import { SchedulingNewTeacherAssignmentList } from "../components/scheduling-new-teacher-assignment-list"
 import { SchedulingNewTeacherHiringPlan } from "../components/scheduling-new-teacher-hiring-plan"
 import { SchedulingPlanComparison } from "../components/scheduling-plan-comparison"
+
+const mockPush = vi.fn()
+
+vi.mock("@/i18n/routing", () => ({
+  useRouter: () => ({ push: mockPush }),
+  usePathname: () => "/scheduling",
+  useIsRtl: () => true,
+  Link: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string
+    children: React.ReactNode
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}))
 
 const instituteId = "11111111-1111-4111-8111-111111111111"
 const firstPlanId = "22222222-2222-4222-8222-222222222222"
@@ -165,7 +185,10 @@ const plan = (
   }) as SchedulingPlanDetailsDto
 
 describe("MVP-036 scheduling plan comparison", () => {
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => {
+    vi.restoreAllMocks()
+    mockPush.mockReset()
+  })
 
   it("loads every plan, sorts by rank, and keeps the choice neutral", async () => {
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
@@ -235,7 +258,7 @@ describe("MVP-036 scheduling plan comparison", () => {
     ).toBeInTheDocument()
   })
 
-  it("opens a read-only inspector with proposal details", async () => {
+  it("navigates to the dedicated plan details page when clicking view details", async () => {
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: instituteId,
     } as ReturnType<typeof stores.useActiveInstitute>)
@@ -563,126 +586,36 @@ describe("MVP-036 scheduling plan comparison", () => {
     })
     fireEvent.click(detailsButtons[0]!)
 
-    expect(
-      screen.getByRole("heading", { name: "جزئیات برنامه ۱" })
-    ).toBeInTheDocument()
-    expect(screen.getAllByText("کلاس سطح A2").length).toBeGreaterThan(0)
-    fireEvent.click(screen.getByTestId("toggle-collapse-all-btn"))
-    expect(screen.getAllByText(/سارا احمدی/).length).toBeGreaterThan(0)
-    expect(
-      screen.getAllByText("راه‌های جای‌دادن این کلاس در برنامه")
-    ).toHaveLength(2)
-    expect(screen.getByText("همین حالا قابل اجرا")).toBeInTheDocument()
-    expect(
-      screen.getByText("یکشنبه، سه‌شنبه، پنجشنبه · 10:30–12:00")
-    ).toBeInTheDocument()
-    expect(
-      screen.getAllByText("فضای فیزیکی «کلاس ۳» · ظرفیت ۱۵ نفر").length
-    ).toBeGreaterThan(0)
-    expect(screen.getByText("استاد آزاد پیدا نشد")).toBeInTheDocument()
-    expect(
-      screen.getByText("برنامه پیشنهادی برای جذب استاد جدید")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText("یکشنبه، سه‌شنبه، پنجشنبه · 14:00–18:30")
-    ).toBeInTheDocument()
-    expect(screen.getByText("ساعت‌های پیوسته")).toBeInTheDocument()
-    expect(screen.getByText("الگوی سه‌روزه زوج/فرد")).toBeInTheDocument()
-    expect(screen.getAllByText("AME 5 · کلاس ۱").length).toBeGreaterThan(1)
-    expect(screen.getAllByText("AME 5 · کلاس ۲").length).toBeGreaterThan(1)
-    expect(screen.getAllByText("AME 3-5 · کلاس ۱").length).toBeGreaterThan(1)
-    expect(
-      screen.getAllByText("نیازمند تأمین فضای فیزیکی").length
-    ).toBeGreaterThan(1)
-    expect(
-      screen.getByText("استادان با زمان آزاد باقی‌مانده")
-    ).toBeInTheDocument()
-    expect(screen.getAllByText(/سارا احمدی/).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/رضا کریمی/).length).toBeGreaterThan(0)
-    expect(screen.getAllByText("تقویم استادان مرتبط با این مشکل")).toHaveLength(
-      2
-    )
-    expect(screen.getAllByText("تحلیل جابه‌جایی استادان")).toHaveLength(2)
-    expect(
-      screen.getByText(
-        "سارا احمدی در همین زمان آزاد است و می‌تواند AME 1 را به‌جای رضا کریمی برگزار کند."
-      )
-    ).toBeInTheDocument()
-    expect(screen.getByText("AME 5: تخصیص به رضا کریمی")).toBeInTheDocument()
-    expect(
-      screen.getByText("استاد جایگزین در این زمان آزاد است")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "سارا احمدی" })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "دکتر بهنام مرادی" })
-    ).toBeInTheDocument()
-    expect(screen.getAllByText("راه‌حل تأمین استاد")).toHaveLength(2)
-    expect(
-      screen.getByText("زمان‌های پیشنهادی برای یک کلاس اضافه")
-    ).toBeInTheDocument()
-    expect(screen.getByText("بهترین بازه پیشنهادی")).toBeInTheDocument()
-    expect(
-      screen.getByText("بازه مناسبی برای افزایش زمان حضور پیدا نشد")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        "با دکتر بهنام مرادی درباره برگزاری یک کلاس اضافه گفتگو کنید"
-      )
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        "دکتر بهنام مرادی در این بازه هیچ کلاس دیگری در آموزشگاه ندارد."
-      )
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        "برای برگزاری یک کلاس اضافه، زمان حضور استاد در یکشنبه، سه‌شنبه، پنجشنبه باید برای 17:30–19:00 اضافه یا گسترش داده شود."
-      )
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText("یک استاد واجد شرایط برای AME 3-5 اضافه کنید")
-    ).toBeInTheDocument()
-    expect(screen.getAllByText("زمان پیشنهادی برای استاد جدید")).toHaveLength(2)
-    expect(
-      screen.getAllByText("یکشنبه، سه‌شنبه، پنجشنبه · 17:00–18:30").length
-    ).toBeGreaterThan(0)
-    expect(
-      screen.getAllByText("یکشنبه، سه‌شنبه، پنجشنبه · 17:30–19:00").length
-    ).toBeGreaterThan(0)
-    expect(screen.getAllByText("آزاد").length).toBeGreaterThan(1)
-    fireEvent.click(screen.getByRole("button", { name: "رضا کریمی" }))
-    expect(screen.getByText("AME 2")).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        "کلاس AME 3-2 در این بازه از فضای فیزیکی «کلاس ۱» استفاده می‌کند."
-      )
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByText(
-        "زمان، استاد یا کلاس‌درس این نیاز را تغییر دهید یا محدودیت‌های سایر کلاس‌های هم‌زمان را بازبینی کنید."
-      )
-    ).not.toBeInTheDocument()
+    expect(mockPush).toHaveBeenCalledWith(`/scheduling/plans/${firstPlanId}`)
+  })
 
-    // Switch to list view to inspect comprehensive item breakdown
-    fireEvent.click(screen.getByRole("button", { name: "نمای فهرستی" }))
-    expect(screen.getByText("شنبه، دوشنبه")).toBeInTheDocument()
-    expect(screen.getByText("تطابق با زمان استاد")).toBeInTheDocument()
-    expect(
-      screen.getByText("بخشی از کلاس‌های موردنیاز ساخته نشده‌اند.")
-    ).toBeInTheDocument()
-    expect(screen.getByText("فیلدهای تغییرکرده: استاد")).toBeInTheDocument()
-    expect(
-      within(screen.getByRole("dialog")).getByRole("button", {
-        name: "انتخاب این برنامه",
-      })
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole("button", {
-        name: /ویرایش|قفل|اعتبارسنجی|انتشار/,
-      })
-    ).not.toBeInTheDocument()
+  it("calls custom onViewDetails callback when provided", async () => {
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.planDetail, "toQuery").mockReturnValue({
+      queryKey: schedulingResource.planDetail.key({
+        planId: firstPlanId,
+        instituteId,
+      }),
+      queryFn: async () => plan(firstPlanId, 1),
+    } as never)
+
+    const handleView = vi.fn()
+    render(
+      <SchedulingPlanComparison
+        planIds={[firstPlanId]}
+        onViewDetails={handleView}
+      />
+    )
+
+    const detailsButtons = await screen.findAllByRole("button", {
+      name: "مشاهده جزئیات",
+    })
+    fireEvent.click(detailsButtons[0]!)
+
+    expect(handleView).toHaveBeenCalledWith(firstPlanId)
+    expect(mockPush).not.toHaveBeenCalled()
   })
 
   it("selects one plan at a time and replaces the previous selection", async () => {
@@ -768,144 +701,5 @@ describe("MVP-036 scheduling plan comparison", () => {
     expect(
       screen.getByText(/پیشنهاد افزودن استاد جدید حذف نشده است/)
     ).toBeInTheDocument()
-  })
-
-  it("toggles teacher outreach acceptance from the staffing fallback section", async () => {
-    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
-      activeInstituteId: instituteId,
-    } as ReturnType<typeof stores.useActiveInstitute>)
-
-    const outreachOption = {
-      key: "ame-3-5-behnam-sunday-1730",
-      deliveryMode: "IN_PERSON" as const,
-      daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"] as const,
-      startTime: "17:30",
-      endTime: "19:00",
-      teacher: {
-        id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
-        firstName: "دکتر بهنام",
-        lastName: "مرادی",
-      },
-      availabilityChangeDays: ["SUNDAY", "TUESDAY", "THURSDAY"] as const,
-      availableClassrooms: [
-        {
-          id: "88888888-8888-4888-8888-888888888888",
-          name: "کلاس ۳",
-          capacity: 15,
-        },
-      ],
-      isAccepted: false,
-      acceptedProposalId: null,
-    }
-
-    vi.spyOn(schedulingResource.planDetail, "toQuery").mockReturnValue({
-      queryKey: schedulingResource.planDetail.key({
-        planId: firstPlanId,
-        instituteId,
-      }),
-      queryFn: async () =>
-        plan(firstPlanId, 1, {
-          unresolvedRequirements: [
-            {
-              id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-              reasonCode: "TEACHER_TIME_CONFLICT",
-              missingClassCount: 1,
-              classRequirement: {
-                id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-                course: { title: "AME 3-5" },
-              },
-              recovery: {
-                totalOptionCount: 0,
-                qualifiedTeacherCount: 1,
-                compatibleClassroomCount: 1,
-                options: [],
-                busyTeachers: [],
-                teacherCalendars: [],
-                reassignmentChains: [],
-                staffingFallback: {
-                  addTeacherSuggested: true,
-                  availabilityOptions: [outreachOption],
-                },
-              },
-            },
-          ] as unknown as SchedulingPlanDetailsDto["unresolvedRequirements"],
-        }),
-    } as never)
-
-    const toggleOutreach = vi.fn(async () =>
-      plan(firstPlanId, 1, {
-        unresolvedRequirements: [
-          {
-            id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-            reasonCode: "TEACHER_TIME_CONFLICT",
-            missingClassCount: 0,
-            classRequirement: {
-              id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-              course: { title: "AME 3-5" },
-            },
-            recovery: {
-              totalOptionCount: 0,
-              qualifiedTeacherCount: 1,
-              compatibleClassroomCount: 1,
-              options: [],
-              busyTeachers: [],
-              teacherCalendars: [],
-              reassignmentChains: [],
-              staffingFallback: {
-                addTeacherSuggested: false,
-                availabilityOptions: [
-                  {
-                    ...outreachOption,
-                    isAccepted: true,
-                    acceptedProposalId: "77777777-7777-4777-8777-777777777777",
-                  },
-                ],
-              },
-            },
-          },
-        ] as unknown as SchedulingPlanDetailsDto["unresolvedRequirements"],
-      })
-    )
-
-    vi.spyOn(
-      schedulingResource.toggleTeacherOutreach,
-      "toMutation"
-    ).mockReturnValue({
-      mutationFn: toggleOutreach,
-    })
-
-    render(<SchedulingPlanComparison planIds={[firstPlanId]} />)
-
-    const detailsButtons = await screen.findAllByRole("button", {
-      name: "مشاهده جزئیات",
-    })
-    fireEvent.click(detailsButtons[0]!)
-
-    const acceptButton = await screen.findByRole("button", {
-      name: /استاد پذیرفت/,
-    })
-    expect(acceptButton).toHaveAttribute("aria-pressed", "false")
-
-    fireEvent.click(acceptButton)
-
-    await waitFor(() => expect(toggleOutreach).toHaveBeenCalledTimes(1))
-    expect(toggleOutreach).toHaveBeenCalledWith(
-      {
-        planId: firstPlanId,
-        instituteId,
-        body: {
-          unresolvedRequirementId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-          optionKey: "ame-3-5-behnam-sunday-1730",
-          teacherId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
-          deliveryMode: "IN_PERSON",
-          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
-          startTime: "17:30",
-          endTime: "19:00",
-          classroomId: "88888888-8888-4888-8888-888888888888",
-          availabilityChangeDays: ["SUNDAY", "TUESDAY", "THURSDAY"],
-        },
-      },
-      expect.any(Object)
-    )
   })
 })

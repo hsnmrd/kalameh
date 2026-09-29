@@ -60,7 +60,6 @@ export interface SchedulingPlanCalendarViewProps {
   missedClassesAssignments?: Record<string, CurrentAssignmentState>
   onAssignMissedClass?: (assignmentKey: string, slotKey: string) => void
   onUnassignMissedClass?: (assignmentKey: string) => void
-  stickyTop?: "page" | "dialog"
   defaultCollapsed?: boolean
   initialExpandedSlots?: string[]
 }
@@ -72,7 +71,6 @@ export function SchedulingPlanCalendarView({
   missedClassesAssignments,
   onAssignMissedClass,
   onUnassignMissedClass,
-  stickyTop = "dialog",
   defaultCollapsed = true,
   initialExpandedSlots,
 }: SchedulingPlanCalendarViewProps) {
@@ -468,12 +466,7 @@ export function SchedulingPlanCalendarView({
       <div className="max-h-[75vh] overflow-x-auto rounded-2xl border border-border bg-background/60 lg:max-h-none lg:overflow-visible">
         <div className="min-w-[840px]">
           {/* Header Row */}
-          <div
-            className={cn(
-              "sticky z-20 grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] gap-2 rounded-t-2xl border-b border-border bg-muted/60 p-2.5 shadow-2xs backdrop-blur-md",
-              stickyTop === "page" ? "top-16" : "top-0"
-            )}
-          >
+          <div className="grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] gap-2 rounded-t-2xl border-b border-border bg-muted/60 p-2.5 shadow-2xs backdrop-blur-md">
             {/* Time Column Header */}
             <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground">
               <Clock3 aria-hidden className="size-3.5 text-muted-foreground" />

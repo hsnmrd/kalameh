@@ -16,33 +16,43 @@ import {
 } from "@workspace/ui/components/empty"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/sonner"
+import { useRouter } from "@/i18n/routing"
 import { schedulingResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { useSchedulingPlanDetails } from "../../hooks/use-scheduling-plan-details"
 import { SchedulingPlanCard } from "../scheduling-plan-card"
-import { SchedulingPlanDetailsDialog } from "../scheduling-plan-details-dialog"
 import { SchedulingPlanTable } from "../scheduling-plan-table"
 
 interface SchedulingPlanComparisonProps {
   planIds: string[]
+  onViewDetails?: (planId: string) => void
 }
 
 export function SchedulingPlanComparison({
   planIds,
+  onViewDetails,
 }: SchedulingPlanComparisonProps) {
   const t = useTranslations("scheduling.comparison")
+  const router = useRouter()
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
-  const [selectedPlanId, setSelectedPlanId] = React.useState<string | null>(
-    null
-  )
   const planQueries = useSchedulingPlanDetails(planIds)
   const isLoading = planQueries.some((query) => query.isPending)
   const isError = planQueries.some((query) => query.isError)
   const plans = planQueries
     .flatMap((query) => (query.data ? [query.data] : []))
     .sort((first, second) => first.rank - second.rank)
-  const selectedPlan = plans.find((plan) => plan.id === selectedPlanId)
+
+  const handleViewDetails = React.useCallback(
+    (planId: string) => {
+      if (onViewDetails) {
+        onViewDetails(planId)
+      } else {
+        router.push(`/scheduling/plans/${planId}`)
+      }
+    },
+    [onViewDetails, router]
+  )
   const selectionMutation = useMutation({
     ...schedulingResource.selectPlan.toMutation(),
     onSuccess: (result) => {
@@ -120,7 +130,7 @@ export function SchedulingPlanComparison({
           isSelectionPending={selectionMutation.isPending}
           selectingPlanId={selectionMutation.variables?.planId}
           onSelect={selectPlan}
-          onViewDetails={setSelectedPlanId}
+          onViewDetails={handleViewDetails}
         />
       </div>
 
@@ -138,25 +148,11 @@ export function SchedulingPlanComparison({
               isSelectionPending={selectionMutation.isPending}
               isSelecting={isSelecting}
               onSelect={() => selectPlan(plan.id)}
-              onViewDetails={() => setSelectedPlanId(plan.id)}
+              onViewDetails={() => handleViewDetails(plan.id)}
             />
           )
         })}
       </div>
-
-      {selectedPlan && (
-        <SchedulingPlanDetailsDialog
-          plan={selectedPlan}
-          isSelected={selectedPlan.status === "SELECTED"}
-          isSelectionPending={selectionMutation.isPending}
-          isSelecting={
-            selectionMutation.isPending &&
-            selectionMutation.variables?.planId === selectedPlan.id
-          }
-          onSelect={() => selectPlan(selectedPlan.id)}
-          onClose={() => setSelectedPlanId(null)}
-        />
-      )}
     </section>
   )
 }

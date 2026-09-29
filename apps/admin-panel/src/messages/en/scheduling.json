@@ -212,6 +212,12 @@
     "selected": "Supervisor selection",
     "published": "Published",
     "rejected": "Rejected",
+    "notFound": {
+      "title": "Scheduling plan not found",
+      "description": "The plan details could not be found or may belong to a different institute.",
+      "back": "Back to scheduling",
+      "retry": "Try again"
+    },
     "selection": {
       "select": "Select this plan",
       "selecting": "Selecting...",
