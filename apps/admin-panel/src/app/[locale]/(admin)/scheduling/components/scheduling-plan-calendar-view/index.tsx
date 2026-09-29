@@ -33,6 +33,7 @@ import {
 } from "@workspace/ui/components/empty"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { SchedulingPlanCalendarClassCard } from "../scheduling-plan-calendar-class-card"
+import { SchedulingPlanCalendarFreeTeacherCard } from "../scheduling-plan-calendar-free-teacher-card"
 import { SchedulingPlanCalendarMissedClassCard } from "../scheduling-plan-calendar-missed-class-card"
 import {
   AssignSlotDialog,
@@ -903,83 +904,40 @@ export function SchedulingPlanCalendarView({
                           <div
                             data-testid={`free-teachers-${day}-${slot.key}`}
                             className={cn(
-                              "flex flex-col gap-1 rounded-xl border border-dashed border-border/70 bg-muted/30 px-2.5 py-1.5 transition-opacity duration-300",
-                              isAnyClassActive && "opacity-25"
+                              "flex flex-col transition-all duration-300 ease-in-out",
+                              isCollapsed ? "gap-1.5" : "gap-2"
                             )}
                           >
-                            <span className="text-[10px] font-semibold text-muted-foreground">
-                              {t("calendarView.freeTeachersLabel")}
-                            </span>
-                            <div
-                              className={cn(
-                                "flex",
-                                isCollapsed
-                                  ? "flex-wrap gap-1"
-                                  : "flex-col gap-1.5"
-                              )}
-                            >
-                              {cellFreeTeachers.map(
-                                ({ teacher, teachableCourses, levelRange }) => {
-                                  const suggestedCourseTitle =
-                                    cellMissed.find(
-                                      ({ assignment }) =>
-                                        teachableCourses.some(
-                                          (tc) => tc.id === assignment.course.id
-                                        ) ||
-                                        Boolean(
-                                          findHigherLevelCourse(
-                                            assignment.course,
-                                            teachableCourses
-                                          )
+                            {cellFreeTeachers.map(
+                              ({ teacher, teachableCourses, levelRange }) => {
+                                const suggestedCourseTitle =
+                                  cellMissed.find(
+                                    ({ assignment }) =>
+                                      teachableCourses.some(
+                                        (tc) => tc.id === assignment.course.id
+                                      ) ||
+                                      Boolean(
+                                        findHigherLevelCourse(
+                                          assignment.course,
+                                          teachableCourses
                                         )
-                                    )?.assignment.course.title ?? null
+                                      )
+                                  )?.assignment.course.title ?? null
 
-                                  return isCollapsed ? (
-                                    <Badge
-                                      key={teacher.id}
-                                      variant="secondary"
-                                      className="h-5 rounded-md px-1.5 py-0 text-[10px] font-medium text-foreground"
-                                    >
-                                      {teacher.firstName} {teacher.lastName}
-                                    </Badge>
-                                  ) : (
-                                    <div
-                                      key={teacher.id}
-                                      data-testid={`free-teacher-card-${teacher.id}-${day}-${slot.key}`}
-                                      className="flex flex-col gap-1 rounded-lg border border-border/60 bg-background/70 px-2 py-1.5"
-                                    >
-                                      <div className="flex flex-wrap items-center justify-between gap-1">
-                                        <span className="text-[11px] font-semibold text-foreground">
-                                          {teacher.firstName} {teacher.lastName}
-                                        </span>
-                                        {levelRange && (
-                                          <Badge
-                                            variant="outline"
-                                            dir="ltr"
-                                            className="h-4 rounded-md px-1.5 py-0 text-[9px] font-medium text-muted-foreground"
-                                          >
-                                            {levelRange}
-                                          </Badge>
-                                        )}
-                                      </div>
-                                      {suggestedCourseTitle && (
-                                        <Badge
-                                          variant="secondary"
-                                          className="h-4 w-fit rounded-md px-1.5 py-0 text-[9px] font-semibold text-primary"
-                                        >
-                                          {t(
-                                            "calendarView.suggestedForCourse",
-                                            {
-                                              course: suggestedCourseTitle,
-                                            }
-                                          )}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  )
-                                }
-                              )}
-                            </div>
+                                return (
+                                  <SchedulingPlanCalendarFreeTeacherCard
+                                    key={teacher.id}
+                                    teacher={teacher}
+                                    day={day}
+                                    slotKey={slot.key}
+                                    levelRange={levelRange}
+                                    suggestedCourseTitle={suggestedCourseTitle}
+                                    isCollapsed={isCollapsed}
+                                    isDimmed={isAnyClassActive}
+                                  />
+                                )
+                              }
+                            )}
                           </div>
                         )}
                       </div>

@@ -864,7 +864,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       "free-teachers-SATURDAY-09:00-10:30"
     )
     expect(satFreeTeachers).toBeInTheDocument()
-    expect(satFreeTeachers).toHaveTextContent("استادان آزاد:")
+    expect(satFreeTeachers).toHaveTextContent("استاد آزاد")
     expect(satFreeTeachers).toHaveTextContent("حسین مرادی")
     expect(satFreeTeachers).toHaveTextContent("زهرا کریمی")
 
@@ -881,7 +881,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     ).not.toBeInTheDocument()
   })
 
-  it("shows teacher start ~ end course level range and lower-level missed class suggestion on free teacher card in expanded mode", () => {
+  it("renders free teacher card with the same UI structure as class card in collapsed and expanded modes", () => {
     render(
       <SchedulingPlanCalendarView
         proposals={mockProposals}
@@ -947,27 +947,33 @@ describe("SchedulingPlanCalendarView Component", () => {
     // Turn on free teachers display
     fireEvent.click(screen.getByTestId("toggle-free-teachers-btn"))
 
-    // In collapsed mode (default), only teacher name badge is rendered without expanded level card
-    const satFreeTeachers = screen.getByTestId(
-      "free-teachers-SATURDAY-09:00-10:30"
+    const freeTeacherCard = screen.getByTestId(
+      "free-teacher-card-t-higher-SATURDAY-09:00-10:30"
     )
-    expect(satFreeTeachers).toHaveTextContent("نیلوفر صادقی")
-    expect(
-      screen.queryByTestId("free-teacher-card-t-higher-SATURDAY-09:00-10:30")
-    ).not.toBeInTheDocument()
+    const freeTeacherDetails = screen.getByTestId(
+      "free-teacher-card-details-t-higher-SATURDAY-09:00-10:30"
+    )
+
+    // In collapsed mode (default), card has compact h-[52px] height and collapses details
+    expect(freeTeacherCard).toHaveAttribute("data-collapsed", "true")
+    expect(freeTeacherCard).toHaveClass("h-[52px]")
+    expect(freeTeacherCard).toHaveTextContent("نیلوفر صادقی")
+    expect(freeTeacherCard).toHaveTextContent("پیشنهاد برای AME ۲-۲")
+    expect(freeTeacherDetails).toHaveAttribute("aria-hidden", "true")
+    expect(freeTeacherDetails).toHaveClass("grid-rows-[0fr]")
 
     // Expand all rows
     fireEvent.click(screen.getByTestId("toggle-collapse-all-btn"))
 
-    // In expanded mode, free teacher card shows start ~ end level range and suggestion for lower-level missed class
-    const freeTeacherCard = screen.getByTestId(
-      "free-teacher-card-t-higher-SATURDAY-09:00-10:30"
-    )
-    expect(freeTeacherCard).toBeInTheDocument()
+    // In expanded mode, card matches class card height h-[134px] and reveals start ~ end level range and status footer
+    expect(freeTeacherCard).not.toHaveAttribute("data-collapsed")
+    expect(freeTeacherCard).toHaveClass("h-[134px]")
     expect(freeTeacherCard).toHaveTextContent("نیلوفر صادقی")
     expect(freeTeacherCard).toHaveTextContent("AME ۳-۱ ~ AME ۴-۲")
     expect(freeTeacherCard).not.toHaveTextContent("AME ۳-۲")
     expect(freeTeacherCard).not.toHaveTextContent("AME ۴-۱")
     expect(freeTeacherCard).toHaveTextContent("پیشنهاد برای AME ۲-۲")
+    expect(freeTeacherDetails).toHaveAttribute("aria-hidden", "false")
+    expect(freeTeacherDetails).toHaveClass("grid-rows-[1fr]")
   })
 })

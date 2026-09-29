@@ -321,6 +321,8 @@
       "showFreeTeachers": "نمایش استادان آزاد",
       "hideFreeTeachers": "پنهان‌کردن استادان آزاد",
       "freeTeachersLabel": "استادان آزاد:",
+      "freeTeacherBadge": "استاد آزاد",
+      "freeTeacherStatusLabel": "وضعیت",
       "suggestedForCourse": "پیشنهاد برای {course}",
       "assignToTeacher": "تخصیص به استاد"
     },

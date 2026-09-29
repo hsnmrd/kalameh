@@ -321,7 +321,10 @@
       "showFreeTeachers": "Show free teachers",
       "hideFreeTeachers": "Hide free teachers",
       "freeTeachersLabel": "Free teachers:",
-      "suggestedForCourse": "Suggested for {course}"
+      "freeTeacherBadge": "Free Teacher",
+      "freeTeacherStatusLabel": "Status",
+      "suggestedForCourse": "Suggested for {course}",
+      "assignToTeacher": "Assign to teacher"
     },
     "weekDays": {
       "SATURDAY": "Saturday",
@@ -474,6 +477,8 @@
         "friday": "Fri"
       },
       "levels": "Teachable levels",
+      "suggestedCourse": "Suggested for {course} ({slot})",
+      "assignToTeacher": "Assign to teacher",
       "allFilled": "All teacher availability hours are fully occupied with classes in this plan.",
       "viewCalendar": "View all teachers' calendar",
       "count": "{count} teacher(s)"
