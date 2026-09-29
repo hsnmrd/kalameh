@@ -39,7 +39,7 @@ export interface SwapClassDialogProps {
   sourceProposal: Proposal | null
   target: SwapTarget | null
   evaluation: SwapEvaluationResult | null
-  onSwapSuccess?: () => void
+  onSwapSuccess?: (updatedProposals: Proposal[]) => void
 }
 
 export function SwapClassDialog({
@@ -120,6 +120,25 @@ export function SwapClassDialog({
     target.kind === "PROPOSAL" ? target.proposal.endTime : target.endTime
   const targetScheduleLabel = `${formatDays(targetDays)} · ${targetStartTime}–${targetEndTime}`
 
+  const previewSourceTeacherName = flags.changeTeacher
+    ? targetTeacherName
+    : sourceTeacherName
+  const previewTargetTeacherName = flags.changeTeacher
+    ? sourceTeacherName
+    : targetTeacherName
+  const previewSourceRoomName = flags.changeClassroom
+    ? targetRoomName
+    : sourceRoomName
+  const previewTargetRoomName = flags.changeClassroom
+    ? sourceRoomName
+    : targetRoomName
+  const previewSourceScheduleLabel = flags.changeDate
+    ? targetScheduleLabel
+    : sourceScheduleLabel
+  const previewTargetScheduleLabel = flags.changeDate
+    ? sourceScheduleLabel
+    : targetScheduleLabel
+
   const handleToggleFlag = (
     key: keyof SwapCombinationFlags,
     checked: boolean
@@ -130,118 +149,227 @@ export function SwapClassDialog({
       setOverrideState({ key: selectionKey, flags: next })
       return
     }
-    // If toggling changeDate requires pairing changeClassroom (or vice versa), auto-pair when valid
-    if (key === "changeDate" && checked && evaluation.canChangeClassroom) {
-      const withRoom = { ...next, changeClassroom: true }
-      if (isCombinationValid(evaluation, withRoom)) {
-        setOverrideState({ key: selectionKey, flags: withRoom })
+    if (checked) {
+      if (key === "changeDate" && evaluation.canChangeClassroom) {
+        const withRoom = { ...next, changeClassroom: true }
+        if (isCombinationValid(evaluation, withRoom)) {
+          setOverrideState({ key: selectionKey, flags: withRoom })
+          return
+        }
+      }
+      if (key === "changeClassroom" && evaluation.canChangeDate) {
+        const withDate = { ...next, changeDate: true }
+        if (isCombinationValid(evaluation, withDate)) {
+          setOverrideState({ key: selectionKey, flags: withDate })
+          return
+        }
+      }
+      const fallbackValid = evaluation.validCombinations.find(
+        (combo) => combo[key]
+      )
+      if (fallbackValid) {
+        setOverrideState({ key: selectionKey, flags: fallbackValid })
         return
       }
-    }
-    if (
-      key === "changeDate" &&
-      !checked &&
-      prev.changeClassroom &&
-      !isCombinationValid(evaluation, next)
-    ) {
-      const withoutRoom = { ...next, changeClassroom: false }
-      if (isCombinationValid(evaluation, withoutRoom)) {
-        setOverrideState({ key: selectionKey, flags: withoutRoom })
-        return
+    } else {
+      if (key === "changeDate" && prev.changeClassroom) {
+        const withoutRoom = { ...next, changeClassroom: false }
+        if (isCombinationValid(evaluation, withoutRoom)) {
+          setOverrideState({ key: selectionKey, flags: withoutRoom })
+          return
+        }
+      }
+      if (key === "changeClassroom" && prev.changeDate) {
+        const withoutDate = { ...next, changeDate: false }
+        if (isCombinationValid(evaluation, withoutDate)) {
+          setOverrideState({ key: selectionKey, flags: withoutDate })
+          return
+        }
       }
     }
     setOverrideState({ key: selectionKey, flags: next })
+  }
+
+  const handleOptionCardClick = (
+    e: React.MouseEvent<HTMLDivElement>,
+    key: keyof SwapCombinationFlags
+  ) => {
+    const targetEl = e.target as HTMLElement
+    if (targetEl.closest('[role="checkbox"], input')) return
+    handleToggleFlag(key, !flags[key])
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!isSelectionValid || updateMutation.isPending) return
 
+    const effectiveInstituteId = activeInstituteId || sourceProposal.instituteId
     const sourceTeacherId = getProposalTeacherId(sourceProposal)
     const sourceClassroomId = getProposalClassroomId(sourceProposal)
+    const updatedProposals: Proposal[] = []
 
-    if (target.kind === "PROPOSAL") {
-      const targetProposal = target.proposal
-      const targetTeacherId = getProposalTeacherId(targetProposal)
-      const targetClassroomId = getProposalClassroomId(targetProposal)
+    try {
+      if (target.kind === "PROPOSAL") {
+        const targetProposal = target.proposal
+        const targetTeacherId = getProposalTeacherId(targetProposal)
+        const targetClassroomId = getProposalClassroomId(targetProposal)
 
-      await updateMutation.mutateAsync({
-        planId: sourceProposal.planId,
-        proposalId: sourceProposal.id,
-        instituteId: activeInstituteId,
-        body: {
-          teacherId:
-            (flags.changeTeacher ? targetTeacherId : sourceTeacherId) ??
-            undefined,
-          classroomId: flags.changeClassroom
-            ? targetClassroomId
-            : sourceClassroomId,
-          daysOfWeek: flags.changeDate
-            ? targetProposal.daysOfWeek
-            : sourceProposal.daysOfWeek,
-          startTime: flags.changeDate
-            ? targetProposal.startTime
-            : sourceProposal.startTime,
-          endTime: flags.changeDate
-            ? targetProposal.endTime
-            : sourceProposal.endTime,
-        },
+        await updateMutation.mutateAsync({
+          planId: sourceProposal.planId,
+          proposalId: sourceProposal.id,
+          instituteId: effectiveInstituteId,
+          body: {
+            ...(flags.changeTeacher
+              ? { teacherId: targetTeacherId ?? undefined }
+              : {}),
+            ...(flags.changeClassroom
+              ? { classroomId: targetClassroomId }
+              : {}),
+            ...(flags.changeDate
+              ? {
+                  daysOfWeek: targetProposal.daysOfWeek,
+                  startTime: targetProposal.startTime,
+                  endTime: targetProposal.endTime,
+                }
+              : {}),
+          },
+        })
+
+        await updateMutation.mutateAsync({
+          planId: targetProposal.planId,
+          proposalId: targetProposal.id,
+          instituteId: effectiveInstituteId,
+          body: {
+            ...(flags.changeTeacher
+              ? { teacherId: sourceTeacherId ?? undefined }
+              : {}),
+            ...(flags.changeClassroom
+              ? { classroomId: sourceClassroomId }
+              : {}),
+            ...(flags.changeDate
+              ? {
+                  daysOfWeek: sourceProposal.daysOfWeek,
+                  startTime: sourceProposal.startTime,
+                  endTime: sourceProposal.endTime,
+                }
+              : {}),
+          },
+        })
+
+        updatedProposals.push(
+          {
+            ...sourceProposal,
+            ...(flags.changeTeacher
+              ? {
+                  teacherId: targetTeacherId ?? undefined,
+                  teacher: targetProposal.teacher,
+                }
+              : {}),
+            ...(flags.changeClassroom
+              ? {
+                  classroomId: targetClassroomId,
+                  classroom: targetProposal.classroom,
+                }
+              : {}),
+            ...(flags.changeDate
+              ? {
+                  daysOfWeek: targetProposal.daysOfWeek,
+                  startTime: targetProposal.startTime,
+                  endTime: targetProposal.endTime,
+                }
+              : {}),
+            isManuallyEdited: true,
+          },
+          {
+            ...targetProposal,
+            ...(flags.changeTeacher
+              ? {
+                  teacherId: sourceTeacherId ?? undefined,
+                  teacher: sourceProposal.teacher,
+                }
+              : {}),
+            ...(flags.changeClassroom
+              ? {
+                  classroomId: sourceClassroomId,
+                  classroom: sourceProposal.classroom,
+                }
+              : {}),
+            ...(flags.changeDate
+              ? {
+                  daysOfWeek: sourceProposal.daysOfWeek,
+                  startTime: sourceProposal.startTime,
+                  endTime: sourceProposal.endTime,
+                }
+              : {}),
+            isManuallyEdited: true,
+          }
+        )
+      } else {
+        await updateMutation.mutateAsync({
+          planId: sourceProposal.planId,
+          proposalId: sourceProposal.id,
+          instituteId: effectiveInstituteId,
+          body: {
+            ...(flags.changeTeacher ? { teacherId: target.teacher.id } : {}),
+            ...(flags.changeDate
+              ? {
+                  daysOfWeek: targetDays,
+                  startTime: target.startTime,
+                  endTime: target.endTime,
+                }
+              : {}),
+          },
+        })
+
+        updatedProposals.push({
+          ...sourceProposal,
+          ...(flags.changeTeacher
+            ? {
+                teacherId: target.teacher.id,
+                teacher: target.teacher,
+              }
+            : {}),
+          ...(flags.changeDate
+            ? {
+                daysOfWeek: targetDays,
+                startTime: target.startTime,
+                endTime: target.endTime,
+              }
+            : {}),
+          isManuallyEdited: true,
+        })
+      }
+
+      const updatedMap = new Map(updatedProposals.map((p) => [p.id, p]))
+      queryClient.setQueriesData<SchedulingPlanDetailsDto>(
+        { queryKey: schedulingResource.planDetail.baseKey() },
+        (current) => {
+          if (!current || current.id !== sourceProposal.planId) return current
+          return {
+            ...current,
+            proposals: current.proposals.map((p) => updatedMap.get(p.id) ?? p),
+          }
+        }
+      )
+
+      await queryClient.invalidateQueries({
+        queryKey: schedulingResource.planDetail.baseKey(),
       })
 
-      await updateMutation.mutateAsync({
-        planId: targetProposal.planId,
-        proposalId: targetProposal.id,
-        instituteId: activeInstituteId,
-        body: {
-          teacherId:
-            (flags.changeTeacher ? sourceTeacherId : targetTeacherId) ??
-            undefined,
-          classroomId: flags.changeClassroom
-            ? sourceClassroomId
-            : targetClassroomId,
-          daysOfWeek: flags.changeDate
-            ? sourceProposal.daysOfWeek
-            : targetProposal.daysOfWeek,
-          startTime: flags.changeDate
-            ? sourceProposal.startTime
-            : targetProposal.startTime,
-          endTime: flags.changeDate
-            ? sourceProposal.endTime
-            : targetProposal.endTime,
-        },
-      })
-    } else {
-      await updateMutation.mutateAsync({
-        planId: sourceProposal.planId,
-        proposalId: sourceProposal.id,
-        instituteId: activeInstituteId,
-        body: {
-          teacherId: flags.changeTeacher
-            ? target.teacher.id
-            : (sourceTeacherId ?? undefined),
-          daysOfWeek: flags.changeDate ? targetDays : sourceProposal.daysOfWeek,
-          startTime: flags.changeDate
-            ? target.startTime
-            : sourceProposal.startTime,
-          endTime: flags.changeDate ? target.endTime : sourceProposal.endTime,
-        },
-      })
+      toast.success(t("calendarView.swapDialog.success"))
+      onSwapSuccess?.(updatedProposals)
+      onOpenChange(false)
+    } catch {
+      // Errors are handled by the global API error toast in createMicroApi
     }
-
-    await queryClient.invalidateQueries({
-      queryKey: schedulingResource.planDetail.key({
-        planId: sourceProposal.planId,
-        instituteId: activeInstituteId,
-      }),
-    })
-    toast.success(t("calendarView.swapDialog.success"))
-    onOpenChange(false)
-    onSwapSuccess?.()
   }
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className="overflow-hidden p-0 sm:max-w-lg">
+      <ResponsiveDialogContent
+        className="overflow-hidden p-0 sm:max-w-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
         <ResponsiveDialogHeader className="border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <ResponsiveDialogTitle className="flex items-center gap-2 text-base font-bold text-foreground">
@@ -259,7 +387,10 @@ export function SwapClassDialog({
           <div className="flex flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
             {/* Source & Target Summary Cards */}
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5 rounded-xl border border-primary/40 bg-primary/5 p-3">
+              <div
+                data-testid="swap-source-card"
+                className="flex flex-col gap-1.5 rounded-xl border border-primary/40 bg-primary/5 p-3"
+              >
                 <div className="flex items-center justify-between gap-1.5">
                   <span className="text-[11px] font-semibold text-muted-foreground">
                     {t("calendarView.swapDialog.sourceCardLabel")}
@@ -269,14 +400,20 @@ export function SwapClassDialog({
                   </Badge>
                 </div>
                 <p className="truncate text-xs font-bold text-foreground">
-                  {sourceTeacherName}
+                  {previewSourceTeacherName}
                 </p>
                 <p className="truncate text-[11px] text-muted-foreground">
-                  {sourceScheduleLabel}
+                  {previewSourceRoomName}
+                </p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {previewSourceScheduleLabel}
                 </p>
               </div>
 
-              <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-muted/30 p-3">
+              <div
+                data-testid="swap-target-card"
+                className="flex flex-col gap-1.5 rounded-xl border border-border bg-muted/30 p-3"
+              >
                 <div className="flex items-center justify-between gap-1.5">
                   <span className="text-[11px] font-semibold text-muted-foreground">
                     {t("calendarView.swapDialog.targetCardLabel")}
@@ -288,10 +425,13 @@ export function SwapClassDialog({
                   </Badge>
                 </div>
                 <p className="truncate text-xs font-bold text-foreground">
-                  {targetTeacherName}
+                  {previewTargetTeacherName}
                 </p>
                 <p className="truncate text-[11px] text-muted-foreground">
-                  {targetScheduleLabel}
+                  {previewTargetRoomName}
+                </p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {previewTargetScheduleLabel}
                 </p>
               </div>
             </div>
@@ -303,11 +443,11 @@ export function SwapClassDialog({
               </span>
 
               {evaluation.canChangeTeacher && (
-                <label
-                  htmlFor="swap-option-teacher"
+                <div
                   data-testid="swap-option-teacher-label"
+                  onClick={(e) => handleOptionCardClick(e, "changeTeacher")}
                   className={cn(
-                    "flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-colors",
+                    "flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-colors select-none",
                     flags.changeTeacher
                       ? "border-primary bg-primary/5"
                       : "border-border bg-card hover:bg-muted/30"
@@ -334,15 +474,15 @@ export function SwapClassDialog({
                       })}
                     </span>
                   </div>
-                </label>
+                </div>
               )}
 
               {evaluation.canChangeClassroom && (
-                <label
-                  htmlFor="swap-option-classroom"
+                <div
                   data-testid="swap-option-classroom-label"
+                  onClick={(e) => handleOptionCardClick(e, "changeClassroom")}
                   className={cn(
-                    "flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-colors",
+                    "flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-colors select-none",
                     flags.changeClassroom
                       ? "border-primary bg-primary/5"
                       : "border-border bg-card hover:bg-muted/30"
@@ -374,15 +514,15 @@ export function SwapClassDialog({
                       })}
                     </span>
                   </div>
-                </label>
+                </div>
               )}
 
               {evaluation.canChangeDate && (
-                <label
-                  htmlFor="swap-option-date"
+                <div
                   data-testid="swap-option-date-label"
+                  onClick={(e) => handleOptionCardClick(e, "changeDate")}
                   className={cn(
-                    "flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-colors",
+                    "flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-colors select-none",
                     flags.changeDate
                       ? "border-primary bg-primary/5"
                       : "border-border bg-card hover:bg-muted/30"
@@ -412,7 +552,7 @@ export function SwapClassDialog({
                       })}
                     </span>
                   </div>
-                </label>
+                </div>
               )}
 
               {!isSelectionValid && (

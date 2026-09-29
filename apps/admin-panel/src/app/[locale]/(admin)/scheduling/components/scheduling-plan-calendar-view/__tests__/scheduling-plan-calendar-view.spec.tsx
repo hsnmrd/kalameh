@@ -3,9 +3,11 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "../../../../../../../test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
+import { schedulingResource } from "@/lib/api"
 import { SchedulingPlanCalendarView } from "../index"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
@@ -1084,5 +1086,224 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.getByTestId("swap-option-classroom")).toBeInTheDocument()
     expect(screen.getByTestId("swap-option-date")).toBeInTheDocument()
     expect(screen.getByTestId("swap-confirm-btn")).not.toBeDisabled()
+  })
+
+  it("keeps the swap dialog open when clicking checkboxes, option cards, or summary cards, and applies swap changes on submit", async () => {
+    const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+    const toMutationSpy = vi
+      .spyOn(schedulingResource.updateProposal, "toMutation")
+      .mockReturnValue({
+        mutationKey: ["scheduling", "updateProposal"],
+        mutationFn: updateProposalMutationFn,
+      })
+
+    const swappableProposals: Proposal[] = [
+      ...mockProposals,
+      {
+        id: "prop-swap-target",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "کلاس صبح موازی A1",
+        course: { id: "c1", title: "American English File 1" },
+        teacher: { id: "t-swap", firstName: "رضا", lastName: "نوری" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr3", name: "کلاس ۱۰۳", capacity: 18 },
+        capacity: 14,
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "11:00",
+        endTime: "12:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={swappableProposals}
+        canEdit={true}
+        defaultCollapsed={false}
+      />
+    )
+
+    // 1. Select prop-1 and click prop-swap-target to open SwapClassDialog
+    fireEvent.click(screen.getAllByTestId("calendar-class-card-prop-1")[0]!)
+    fireEvent.click(
+      screen.getAllByTestId("calendar-class-card-prop-swap-target")[0]!
+    )
+
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+
+    const sourceCard = screen.getByTestId("swap-source-card")
+    const targetCard = screen.getByTestId("swap-target-card")
+    const teacherCheckbox = screen.getByTestId("swap-option-teacher")
+    const classroomCheckbox = screen.getByTestId("swap-option-classroom")
+    const classroomOptionCard = screen.getByTestId(
+      "swap-option-classroom-label"
+    )
+    const dateOptionCard = screen.getByTestId("swap-option-date-label")
+
+    // Default selection is changeTeacher = true
+    expect(teacherCheckbox).toHaveAttribute("aria-checked", "true")
+    expect(classroomCheckbox).toHaveAttribute("aria-checked", "false")
+    expect(sourceCard).toHaveTextContent("رضا نوری")
+    expect(targetCard).toHaveTextContent("علی محمدی")
+
+    // 2. Clicking on the summary cards inside the dialog must NOT close the dialog
+    fireEvent.click(sourceCard)
+    fireEvent.click(targetCard)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+
+    // 3. Clicking on the classroom option card toggles changeClassroom ON without closing the dialog
+    fireEvent.click(classroomOptionCard)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    expect(classroomCheckbox).toHaveAttribute("aria-checked", "true")
+    expect(sourceCard).toHaveTextContent("کلاس ۱۰۳")
+    expect(targetCard).toHaveTextContent("کلاس ۱۰۱")
+
+    // 4. Clicking directly on the checkbox toggles it OFF and back ON without closing the dialog
+    fireEvent.click(classroomCheckbox)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    expect(classroomCheckbox).toHaveAttribute("aria-checked", "false")
+
+    fireEvent.click(dateOptionCard)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
+      "aria-checked",
+      "true"
+    )
+
+    // 5. Clicking the submit button calls updateProposal for both classes and updates the calendar
+    const confirmBtn = screen.getByTestId("swap-confirm-btn")
+    expect(confirmBtn).not.toBeDisabled()
+    fireEvent.click(confirmBtn)
+
+    await waitFor(() => {
+      expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+    })
+
+    expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual({
+      planId: "plan-1",
+      proposalId: "prop-1",
+      instituteId: "inst-1",
+      body: {
+        teacherId: "t-swap",
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "11:00",
+        endTime: "12:30",
+      },
+    })
+    expect(updateProposalMutationFn.mock.calls[1]?.[0]).toEqual({
+      planId: "plan-1",
+      proposalId: "prop-swap-target",
+      instituteId: "inst-1",
+      body: {
+        teacherId: "t1",
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "09:00",
+        endTime: "10:30",
+      },
+    })
+
+    // Dialog closes and calendar reflects the swapped teachers and dates
+    await waitFor(() => {
+      expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
+    })
+
+    const updatedProp1Card = screen.getAllByTestId(
+      "calendar-class-card-prop-1"
+    )[0]!
+    expect(updatedProp1Card).toHaveTextContent("رضا نوری")
+
+    toMutationSpy.mockRestore()
+  })
+
+  it("does not mark two same-course classes as swappable when teachers are only available in their own slots and share the same classroom", () => {
+    const sameCourseLockedToOwnSlotProposals: Proposal[] = [
+      {
+        id: "prop-a",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "کلاس صبح A1",
+        course: { id: "c1", title: "American English File 1" },
+        teacher: { id: "t1", firstName: "علی", lastName: "محمدی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr1", name: "کلاس ۱۰۱", capacity: 15 },
+        capacity: 15,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "09:00",
+        endTime: "10:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-b",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "کلاس ظهر A1",
+        course: { id: "c1", title: "American English File 1" },
+        teacher: { id: "t2", firstName: "رضا", lastName: "نوری" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr1", name: "کلاس ۱۰۱", capacity: 15 },
+        capacity: 15,
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "11:00",
+        endTime: "12:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={sameCourseLockedToOwnSlotProposals}
+        canEdit={true}
+        teacherCalendars={[
+          {
+            teacher: { id: "t1", firstName: "علی", lastName: "محمدی" },
+            teachableCourses: [{ id: "c1", title: "American English File 1" }],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "09:00",
+                endTime: "10:30",
+                status: "BUSY",
+                title: "کلاس صبح A1",
+                source: "PLAN",
+              },
+            ],
+          },
+          {
+            teacher: { id: "t2", firstName: "رضا", lastName: "نوری" },
+            teachableCourses: [{ id: "c1", title: "American English File 1" }],
+            slots: [
+              {
+                dayOfWeek: "SUNDAY",
+                startTime: "11:00",
+                endTime: "12:30",
+                status: "BUSY",
+                title: "کلاس ظهر A1",
+                source: "PLAN",
+              },
+            ],
+          },
+        ]}
+      />
+    )
+
+    const propACard = screen.getAllByTestId("calendar-class-card-prop-a")[0]!
+    const propBCard = screen.getAllByTestId("calendar-class-card-prop-b")[0]!
+
+    fireEvent.click(propACard)
+    expect(propBCard).not.toHaveAttribute("data-swappable")
+    expect(propBCard).toHaveAttribute("data-dimmed", "true")
   })
 })
