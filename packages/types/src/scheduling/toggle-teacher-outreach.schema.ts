@@ -13,7 +13,7 @@ export const ToggleTeacherOutreachInputSchema = z.object({
   daysOfWeek: z.array(z.enum(WEEK_DAYS)).min(1),
   startTime: z.string().regex(SCHEDULING_TIME_REGEX),
   endTime: z.string().regex(SCHEDULING_TIME_REGEX),
-  availabilityChangeDays: z.array(z.enum(WEEK_DAYS)).min(1),
+  availabilityChangeDays: z.array(z.enum(WEEK_DAYS)).default([]),
   classroomId: z.string().uuid().nullable().optional(),
 })
 

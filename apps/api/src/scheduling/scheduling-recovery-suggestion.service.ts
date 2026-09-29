@@ -74,41 +74,48 @@ export class SchedulingRecoverySuggestionService {
       ),
     );
     const classroomIds = snapshot.classrooms.map(({ id }) => id);
-    const [teachers, classrooms, existingClasses, term] = await Promise.all([
-      this.prisma.user.findMany({
-        where: { id: { in: teacherIds }, instituteId: input.instituteId },
-        select: { id: true, firstName: true, lastName: true },
-      }),
-      this.prisma.classroom.findMany({
-        where: { id: { in: classroomIds }, instituteId: input.instituteId },
-        select: { id: true, name: true, capacity: true },
-      }),
-      this.prisma.class.findMany({
-        where: {
-          id: { in: snapshot.existingClasses.map(({ id }) => id) },
-          instituteId: input.instituteId,
-        },
-        select: { id: true, title: true },
-      }),
-      this.prisma.term.findFirst({
-        where: { id: snapshot.term.id, instituteId: input.instituteId },
-        select: {
-          operatingPhase: {
-            select: {
-              id: true,
-              title: true,
-              startTime: true,
-              endTime: true,
-              slotDurationMinutes: true,
-              daysOfWeek: true,
-              hasBreak: true,
-              breakStartTime: true,
-              breakEndTime: true,
+    const [teachers, classrooms, existingClasses, term, courses = []] =
+      await Promise.all([
+        this.prisma.user.findMany({
+          where: { id: { in: teacherIds }, instituteId: input.instituteId },
+          select: { id: true, firstName: true, lastName: true },
+        }),
+        this.prisma.classroom.findMany({
+          where: { id: { in: classroomIds }, instituteId: input.instituteId },
+          select: { id: true, name: true, capacity: true },
+        }),
+        this.prisma.class.findMany({
+          where: {
+            id: { in: snapshot.existingClasses.map(({ id }) => id) },
+            instituteId: input.instituteId,
+          },
+          select: { id: true, title: true },
+        }),
+        this.prisma.term.findFirst({
+          where: { id: snapshot.term.id, instituteId: input.instituteId },
+          select: {
+            operatingPhase: {
+              select: {
+                id: true,
+                title: true,
+                startTime: true,
+                endTime: true,
+                slotDurationMinutes: true,
+                daysOfWeek: true,
+                hasBreak: true,
+                breakStartTime: true,
+                breakEndTime: true,
+              },
             },
           },
-        },
-      }),
-    ]);
+        }),
+        this.prisma.course?.findMany
+          ? this.prisma.course.findMany({
+              where: { instituteId: input.instituteId },
+              select: { id: true, title: true, prerequisiteId: true },
+            })
+          : Promise.resolve([]),
+      ]);
     const operatingPhase = snapshot.term.operatingPhase ?? term?.operatingPhase;
     const candidates = operatingPhase
       ? this.candidateSlotService.generate({
@@ -215,6 +222,7 @@ export class SchedulingRecoverySuggestionService {
             operatingPhase: operatingPhase ?? null,
             teacherById,
             classroomById,
+            courses,
           }),
           acceptedRecords,
         );

@@ -880,4 +880,94 @@ describe("SchedulingPlanCalendarView Component", () => {
       screen.queryByTestId("free-teachers-SATURDAY-09:00-10:30")
     ).not.toBeInTheDocument()
   })
+
+  it("shows teacher start ~ end course level range and lower-level missed class suggestion on free teacher card in expanded mode", () => {
+    render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={true}
+        hiringPlan={{
+          daysOfWeek: ["SATURDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+          totalClassCount: 1,
+          requiredCourses: [{ id: "c-ame-2-2", title: "AME ۲-۲" }],
+          assignments: [
+            {
+              key: "missed-ame-2-2",
+              requirementId: "req-ame-2-2",
+              course: { id: "c-ame-2-2", title: "AME ۲-۲" },
+              classNumber: 1,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["SATURDAY"],
+              startTime: "09:00",
+              endTime: "10:30",
+              classroom: { id: "cr2", name: "کلاس ۱۰۲", capacity: 20 },
+            },
+          ],
+        }}
+        missedClassesAssignments={{
+          "missed-ame-2-2": {
+            daysOfWeek: ["SATURDAY"],
+            startTime: "09:00",
+            endTime: "10:30",
+            classroomId: "cr2",
+            classroomName: "کلاس ۱۰۲",
+            isAssigned: true,
+          },
+        }}
+        teacherCalendars={[
+          {
+            teacher: {
+              id: "t-higher",
+              firstName: "نیلوفر",
+              lastName: "صادقی",
+            },
+            teachableCourses: [
+              { id: "c-ame-3-1", title: "AME ۳-۱" },
+              { id: "c-ame-3-2", title: "AME ۳-۲" },
+              { id: "c-ame-4-1", title: "AME ۴-۱" },
+              { id: "c-ame-4-2", title: "AME ۴-۲" },
+            ],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "09:00",
+                endTime: "10:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+            ],
+          },
+        ]}
+      />
+    )
+
+    // Turn on free teachers display
+    fireEvent.click(screen.getByTestId("toggle-free-teachers-btn"))
+
+    // In collapsed mode (default), only teacher name badge is rendered without expanded level card
+    const satFreeTeachers = screen.getByTestId(
+      "free-teachers-SATURDAY-09:00-10:30"
+    )
+    expect(satFreeTeachers).toHaveTextContent("نیلوفر صادقی")
+    expect(
+      screen.queryByTestId("free-teacher-card-t-higher-SATURDAY-09:00-10:30")
+    ).not.toBeInTheDocument()
+
+    // Expand all rows
+    fireEvent.click(screen.getByTestId("toggle-collapse-all-btn"))
+
+    // In expanded mode, free teacher card shows start ~ end level range and suggestion for lower-level missed class
+    const freeTeacherCard = screen.getByTestId(
+      "free-teacher-card-t-higher-SATURDAY-09:00-10:30"
+    )
+    expect(freeTeacherCard).toBeInTheDocument()
+    expect(freeTeacherCard).toHaveTextContent("نیلوفر صادقی")
+    expect(freeTeacherCard).toHaveTextContent("AME ۳-۱ ~ AME ۴-۲")
+    expect(freeTeacherCard).not.toHaveTextContent("AME ۳-۲")
+    expect(freeTeacherCard).not.toHaveTextContent("AME ۴-۱")
+    expect(freeTeacherCard).toHaveTextContent("پیشنهاد برای AME ۲-۲")
+  })
 })

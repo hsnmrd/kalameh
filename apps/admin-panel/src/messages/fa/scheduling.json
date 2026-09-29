@@ -320,7 +320,8 @@
       "expandAll": "باز کردن همه",
       "showFreeTeachers": "نمایش استادان آزاد",
       "hideFreeTeachers": "پنهان‌کردن استادان آزاد",
-      "freeTeachersLabel": "استادان آزاد:"
+      "freeTeachersLabel": "استادان آزاد:",
+      "suggestedForCourse": "پیشنهاد برای {course}"
     },
     "weekDays": {
       "SATURDAY": "شنبه",
@@ -398,13 +399,16 @@
       "title": "راه‌حل تأمین استاد",
       "description": "سامانه دو مسیر تأمین استاد را بررسی می‌کند: افزایش زمان حضور استادان واجد شرایط یا افزودن استاد جدید برای این سطح. هر پیشنهاد افزایش زمان حضور فقط یک کلاس تأمین‌نشده را پوشش می‌دهد.",
       "outreachBadge": "افزایش زمان حضور استاد",
+      "higherLevelTeacherBadge": "استاد سطح بالاتر (آزاد در این بازه)",
       "suggestedTimesTitle": "زمان‌های پیشنهادی برای یک کلاس اضافه",
       "suggestedTimesRanking": "گزینه‌ها به‌ترتیب فضای فیزیکی آماده، کمترین تغییر در روزهای حضور، نزدیک‌بودن به کلاس‌های فعلی استاد و سپس زودترین ساعت مرتب شده‌اند.",
       "bestTimeBadge": "بهترین بازه پیشنهادی",
       "alternativeTimeBadge": "گزینه جایگزین {rank}",
       "outreachTitle": "با {teacher} درباره برگزاری یک کلاس اضافه گفتگو کنید",
+      "higherLevelTeacherTitle": "تخصیص این کلاس به {teacher} (دارای سطح بالاتر: {course})",
       "noClassConflict": "{teacher} در این بازه هیچ کلاس دیگری در آموزشگاه ندارد.",
       "availabilityChange": "برای برگزاری یک کلاس اضافه، زمان حضور استاد در {days} باید برای {start}–{end} اضافه یا گسترش داده شود.",
+      "alreadyAvailableInSlot": "استاد در روزهای {days} ساعت {start}–{end} زمان آزاد دارد و نیازی به تغییر ساعت حضور نیست.",
       "availabilityEmptyTitle": "بازه مناسبی برای افزایش زمان حضور پیدا نشد",
       "availabilityEmptyDescription": "هیچ استاد واجد شرایطی در یک بازه بدون کلاس پیدا نشد. پیشنهاد افزودن استاد جدید همچنان برقرار است.",
       "availableRooms": "فضای فیزیکی آماده برای این بازه",

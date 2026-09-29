@@ -4,6 +4,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import {
+  findHigherLevelCourse,
   ROLES,
   ToggleTeacherOutreachInputSchema,
   type JwtPayload,
@@ -209,16 +210,47 @@ export class SchedulingTeacherOutreachToggleService {
               },
             },
             teachableCourses: {
-              where: { instituteId, courseId: requirement.courseId },
-              select: { id: true },
+              where: { instituteId },
+              select: {
+                id: true,
+                courseId: true,
+                course: { select: { id: true, title: true } },
+              },
             },
           },
         },
       },
     });
-    const qualification = teacher.teacherProfile?.teachableCourses[0];
-    if (!teacher.teacherProfile || !qualification) {
+    if (!teacher.teacherProfile) {
       throw new BadRequestException('Selected teacher is not qualified');
+    }
+
+    const directQualification = teacher.teacherProfile.teachableCourses.find(
+      (item) => !item.courseId || item.courseId === requirement.courseId,
+    );
+    let higherLevelCourseTitle: string | null = null;
+    if (!directQualification) {
+      const allCourses = this.prisma.course?.findMany
+        ? await this.prisma.course.findMany({
+            where: { instituteId },
+            select: { id: true, title: true, prerequisiteId: true },
+          })
+        : [];
+      const teacherCourses = teacher.teacherProfile.teachableCourses
+        .map(
+          (tc) =>
+            tc.course ?? allCourses.find((course) => course.id === tc.courseId),
+        )
+        .filter((c): c is NonNullable<typeof c> => Boolean(c));
+      const higherCourse = findHigherLevelCourse(
+        requirement.course,
+        teacherCourses,
+        allCourses,
+      );
+      if (!higherCourse) {
+        throw new BadRequestException('Selected teacher is not qualified');
+      }
+      higherLevelCourseTitle = higherCourse.title;
     }
 
     const chosenClassroom =
@@ -240,6 +272,21 @@ export class SchedulingTeacherOutreachToggleService {
           swappedOut,
         );
       }
+      let qualificationId = directQualification?.id;
+      let createdQualificationId: string | null = null;
+      if (!qualificationId) {
+        const createdQual = await tx.teacherCourseQualification.create({
+          data: {
+            instituteId,
+            teacherProfileId: teacher.teacherProfile!.id,
+            courseId: requirement.courseId,
+          },
+          select: { id: true },
+        });
+        qualificationId = createdQual.id;
+        createdQualificationId = createdQual.id;
+      }
+
       const createdAvailabilityIds: string[] = [];
       for (const dayOfWeek of input.daysOfWeek) {
         const covered = teacher.teacherProfile!.availabilities.some(
@@ -275,7 +322,7 @@ export class SchedulingTeacherOutreachToggleService {
             input.deliveryMode === 'ONLINE'
               ? null
               : (chosenClassroom?.id ?? null),
-          teacherQualificationId: qualification.id,
+          teacherQualificationId: qualificationId,
           qualificationCheckedAt: changedAt,
           title: requirement.course.title,
           capacity: requirement.capacity,
@@ -297,7 +344,7 @@ export class SchedulingTeacherOutreachToggleService {
         proposalId: createdProposal.id,
         startDate: plan.run.term.startDate,
         endDate: plan.run.term.endDate,
-        daysOfWeek: input.daysOfWeek as WeekDay[],
+        daysOfWeek: input.daysOfWeek,
         startTime: input.startTime,
         endTime: input.endTime,
       });
@@ -316,12 +363,14 @@ export class SchedulingTeacherOutreachToggleService {
           lastName: teacher.lastName,
         },
         deliveryMode: input.deliveryMode,
-        daysOfWeek: input.daysOfWeek as WeekDay[],
+        daysOfWeek: input.daysOfWeek,
         startTime: input.startTime,
         endTime: input.endTime,
-        availabilityChangeDays: input.availabilityChangeDays as WeekDay[],
+        availabilityChangeDays: input.availabilityChangeDays,
         availableClassrooms: chosenClassroom ? [chosenClassroom] : [],
         createdAvailabilityIds,
+        ...(createdQualificationId ? { createdQualificationId } : {}),
+        ...(higherLevelCourseTitle ? { higherLevelCourseTitle } : {}),
       };
 
       await tx.schedulingUnresolvedRequirement.update({

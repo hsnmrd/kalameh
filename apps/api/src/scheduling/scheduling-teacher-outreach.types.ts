@@ -26,6 +26,8 @@ export type AcceptedTeacherOutreachRecord = {
     capacity: number;
   }>;
   createdAvailabilityIds: string[];
+  createdQualificationId?: string | null;
+  higherLevelCourseTitle?: string | null;
 };
 
 export function readAcceptedOutreachRecords(
@@ -79,6 +81,9 @@ export function mergeAcceptedOutreachIntoOptions(
       endTime: rec.endTime,
       availabilityChangeDays: rec.availabilityChangeDays,
       availableClassrooms: rec.availableClassrooms,
+      ...(rec.higherLevelCourseTitle
+        ? { higherLevelCourseTitle: rec.higherLevelCourseTitle }
+        : {}),
       isAccepted: true,
       acceptedProposalId: rec.proposalId,
     }));
@@ -145,6 +150,14 @@ export async function removeAcceptedOutreachInTransaction(
       where: {
         id: { in: record.createdAvailabilityIds },
         teacherProfile: { user: { instituteId } },
+      },
+    });
+  }
+  if (record.createdQualificationId) {
+    await tx.teacherCourseQualification?.deleteMany?.({
+      where: {
+        id: record.createdQualificationId,
+        instituteId,
       },
     });
   }

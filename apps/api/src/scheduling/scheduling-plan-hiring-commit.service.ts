@@ -177,7 +177,7 @@ export class SchedulingPlanHiringCommitService {
           const schedule = calculateTermScheduleFromDateRange({
             startDate: termStartDate,
             endDate: termEndDate,
-            daysOfWeek: assignment.daysOfWeek as WeekDay[],
+            daysOfWeek: assignment.daysOfWeek,
             skipHolidays: true,
             observeOfficialHolidays: true,
           });

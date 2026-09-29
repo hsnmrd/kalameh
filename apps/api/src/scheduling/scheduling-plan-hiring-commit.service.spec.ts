@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { ROLES, type JwtPayload } from '@workspace/types';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';

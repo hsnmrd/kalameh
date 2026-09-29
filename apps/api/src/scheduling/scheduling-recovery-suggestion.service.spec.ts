@@ -62,6 +62,9 @@ describe('SchedulingRecoverySuggestionService', () => {
         },
       }),
     },
+    course: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
   };
   const service = new SchedulingRecoverySuggestionService(
     prisma as unknown as PrismaService,
@@ -360,5 +363,113 @@ describe('SchedulingRecoverySuggestionService', () => {
     expect(
       noRoomResult[ids.requirement]?.staffingFallback.availabilityOptions,
     ).toEqual([]);
+  });
+
+  it('suggests a free higher-level teacher when an unresolved class has a lower course level', async () => {
+    const lowerCourseId = uuid(20);
+    const higherCourseId = uuid(21);
+    const higherTeacherId = uuid(22);
+
+    prisma.user.findMany.mockResolvedValueOnce([
+      { id: higherTeacherId, firstName: 'نیلوفر', lastName: 'صادقی' },
+    ]);
+    prisma.course.findMany.mockResolvedValueOnce([
+      { id: lowerCourseId, title: 'AME ۲-۲', prerequisiteId: null },
+      { id: higherCourseId, title: 'AME ۳-۱', prerequisiteId: lowerCourseId },
+    ]);
+
+    const result = await service.analyze({
+      instituteId: ids.institute,
+      unresolvedRequirementIds: [ids.requirement],
+      inputSnapshot: {
+        schemaVersion: '1',
+        request: {
+          termId: ids.term,
+          branchId: null,
+          requirementIds: [ids.requirement],
+          alternativePlanCount: 1,
+        },
+        term: {
+          id: ids.term,
+          startDate: '2026-09-01T00:00:00.000Z',
+          endDate: '2026-12-31T00:00:00.000Z',
+        },
+        requirements: [
+          {
+            id: ids.requirement,
+            courseId: lowerCourseId,
+            branchId: null,
+            requiredClassCount: 1,
+            capacity: 12,
+            sessionDurationMinutes: 90,
+            deliveryMode: 'IN_PERSON',
+          },
+        ],
+        teachers: [
+          {
+            id: uuid(23),
+            courseId: higherCourseId,
+            teacherProfile: {
+              userId: higherTeacherId,
+              user: {
+                isActive: true,
+                role: 'TEACHER',
+                branchId: null,
+              },
+              availabilities: [
+                {
+                  id: uuid(24),
+                  dayOfWeek: 'SUNDAY',
+                  startTime: '10:30',
+                  endTime: '12:00',
+                },
+                {
+                  id: uuid(25),
+                  dayOfWeek: 'TUESDAY',
+                  startTime: '10:30',
+                  endTime: '12:00',
+                },
+                {
+                  id: uuid(26),
+                  dayOfWeek: 'THURSDAY',
+                  startTime: '10:30',
+                  endTime: '12:00',
+                },
+              ],
+            },
+          },
+        ],
+        students: [],
+        existingClasses: [],
+        classrooms: [
+          {
+            id: ids.roomOne,
+            branchId: null,
+            capacity: 20,
+            isActive: true,
+          },
+        ],
+      },
+      settingsSnapshot: {
+        schemaVersion: '1',
+        ...DEFAULT_SCHEDULING_SETTINGS,
+      },
+      proposals: [],
+    });
+
+    expect(
+      result[ids.requirement]?.staffingFallback.availabilityOptions[0],
+    ).toMatchObject({
+      startTime: '10:30',
+      endTime: '12:00',
+      daysOfWeek: ['SUNDAY', 'TUESDAY', 'THURSDAY'],
+      availabilityChangeDays: [],
+      higherLevelCourseTitle: 'AME ۳-۱',
+      teacher: {
+        id: higherTeacherId,
+        firstName: 'نیلوفر',
+        lastName: 'صادقی',
+      },
+    });
   });
 });

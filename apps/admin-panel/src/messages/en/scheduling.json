@@ -320,7 +320,8 @@
       "expandAll": "Expand all",
       "showFreeTeachers": "Show free teachers",
       "hideFreeTeachers": "Hide free teachers",
-      "freeTeachersLabel": "Free teachers:"
+      "freeTeachersLabel": "Free teachers:",
+      "suggestedForCourse": "Suggested for {course}"
     },
     "weekDays": {
       "SATURDAY": "Saturday",
@@ -398,13 +399,16 @@
       "title": "Teacher staffing options",
       "description": "The system evaluates two staffing paths: expanding a qualified current teacher’s availability or adding a new teacher for this level. Each availability-expansion option covers only one unscheduled class.",
       "outreachBadge": "Increase teacher availability",
+      "higherLevelTeacherBadge": "Higher-level teacher (Free in this slot)",
       "suggestedTimesTitle": "Suggested times for one additional class",
       "suggestedTimesRanking": "Options are ranked by having a room ready, requiring the fewest availability-day changes, being closest to the teacher’s existing classes, and then starting earliest.",
       "bestTimeBadge": "Best suggested time",
       "alternativeTimeBadge": "Alternative {rank}",
       "outreachTitle": "Ask {teacher} about teaching one additional class",
+      "higherLevelTeacherTitle": "Assign this class to {teacher} (higher level: {course})",
       "noClassConflict": "{teacher} has no other institute class during this window.",
       "availabilityChange": "For one additional class, add or extend the teacher’s availability on {days} to cover {start}–{end}.",
+      "alreadyAvailableInSlot": "Teacher is already free on {days} from {start} to {end}; no availability change needed.",
       "availabilityEmptyTitle": "No suitable availability expansion was found",
       "availabilityEmptyDescription": "No qualified teacher has a class-free window. Adding a new teacher remains an available staffing option.",
       "availableRooms": "Physical rooms ready for this time",

@@ -61,7 +61,9 @@ export function OutreachOptionItem({
           <div>
             <div className="flex flex-wrap gap-1.5">
               <Badge variant="secondary">
-                {t("staffingFallback.outreachBadge")}
+                {option.higherLevelCourseTitle
+                  ? t("staffingFallback.higherLevelTeacherBadge")
+                  : t("staffingFallback.outreachBadge")}
               </Badge>
               <Badge variant={index === 0 ? "success" : "outline"}>
                 {index === 0
@@ -77,9 +79,14 @@ export function OutreachOptionItem({
               )}
             </div>
             <p className="mt-2 text-xs font-semibold text-foreground">
-              {t("staffingFallback.outreachTitle", {
-                teacher: teacherName,
-              })}
+              {option.higherLevelCourseTitle
+                ? t("staffingFallback.higherLevelTeacherTitle", {
+                    teacher: teacherName,
+                    course: option.higherLevelCourseTitle,
+                  })
+                : t("staffingFallback.outreachTitle", {
+                    teacher: teacherName,
+                  })}
             </p>
           </div>
         </div>
@@ -100,11 +107,17 @@ export function OutreachOptionItem({
             className="mt-0.5 size-4 shrink-0 text-muted-foreground"
           />
           <p className="text-xs leading-5 text-muted-foreground">
-            {t("staffingFallback.availabilityChange", {
-              days: availabilityChangeDays,
-              start: option.startTime,
-              end: option.endTime,
-            })}
+            {option.availabilityChangeDays.length > 0
+              ? t("staffingFallback.availabilityChange", {
+                  days: availabilityChangeDays,
+                  start: option.startTime,
+                  end: option.endTime,
+                })
+              : t("staffingFallback.alreadyAvailableInSlot", {
+                  days,
+                  start: option.startTime,
+                  end: option.endTime,
+                })}
           </p>
         </div>
       </div>

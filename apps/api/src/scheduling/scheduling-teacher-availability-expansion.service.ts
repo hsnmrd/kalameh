@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
+  findHigherLevelCourse,
+  type CourseLevelNode,
   type SchedulingEngineInputSnapshot,
   type SchedulingEngineSettingsSnapshot,
   type SchedulingTeacherOutreachOption,
@@ -24,6 +26,7 @@ type AvailabilityExpansionInput = {
   operatingPhase: SchedulingWindowOperatingPhase | null;
   teacherById: Map<string, { id: string; firstName: string; lastName: string }>;
   classroomById: Map<string, { id: string; name: string; capacity: number }>;
+  courses?: ReadonlyArray<CourseLevelNode>;
 };
 
 @Injectable()
@@ -60,10 +63,32 @@ export class SchedulingTeacherAvailabilityExpansionService {
     const dayGroups = this.dayGroups(input.settings, phase.daysOfWeek);
     const rooms = this.compatibleRooms(input);
     const options = new Map<string, SchedulingTeacherOutreachOption>();
+    const courseById = new Map(
+      (input.courses ?? []).map((course) => [course.id, course]),
+    );
+    const targetCourse = courseById.get(input.requirement.courseId);
 
+    const teacherEntries = new Map<
+      string,
+      {
+        profile: SchedulingEngineInputSnapshot['teachers'][number]['teacherProfile'];
+        courseIds: Set<string>;
+      }
+    >();
     for (const qualification of input.snapshot.teachers) {
-      if (qualification.courseId !== input.requirement.courseId) continue;
-      const profile = qualification.teacherProfile;
+      const userId = qualification.teacherProfile.userId;
+      const existing = teacherEntries.get(userId);
+      if (existing) {
+        existing.courseIds.add(qualification.courseId);
+      } else {
+        teacherEntries.set(userId, {
+          profile: qualification.teacherProfile,
+          courseIds: new Set([qualification.courseId]),
+        });
+      }
+    }
+
+    for (const { profile, courseIds } of teacherEntries.values()) {
       if (
         !profile.user.isActive ||
         profile.user.role !== 'TEACHER' ||
@@ -73,6 +98,19 @@ export class SchedulingTeacherAvailabilityExpansionService {
       ) {
         continue;
       }
+      const isDirectlyQualified = courseIds.has(input.requirement.courseId);
+      const teacherCourses = Array.from(courseIds)
+        .map((id) => courseById.get(id))
+        .filter((c): c is CourseLevelNode => c !== undefined);
+      const higherLevelCourse =
+        !isDirectlyQualified && targetCourse
+          ? findHigherLevelCourse(targetCourse, teacherCourses, input.courses)
+          : null;
+
+      if (!isDirectlyQualified && !higherLevelCourse) {
+        continue;
+      }
+
       const teacher = input.teacherById.get(profile.userId);
       if (!teacher) continue;
 
@@ -104,7 +142,13 @@ export class SchedulingTeacherAvailabilityExpansionService {
                   availability.endTime >= endTime,
               ),
           );
-          if (availabilityChangeDays.length === 0) continue;
+          if (
+            isDirectlyQualified
+              ? availabilityChangeDays.length === 0
+              : availabilityChangeDays.length > 0
+          ) {
+            continue;
+          }
 
           const availableClassrooms = rooms.filter(
             (room) =>
@@ -141,6 +185,9 @@ export class SchedulingTeacherAvailabilityExpansionService {
             endTime,
             availabilityChangeDays,
             availableClassrooms,
+            ...(higherLevelCourse
+              ? { higherLevelCourseTitle: higherLevelCourse.title }
+              : {}),
           });
         }
       }

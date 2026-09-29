@@ -95,8 +95,9 @@ export const SchedulingTeacherOutreachOptionSchema = z.object({
   startTime: z.string().regex(SCHEDULING_TIME_REGEX),
   endTime: z.string().regex(SCHEDULING_TIME_REGEX),
   teacher: SchedulingRecoveryTeacherSchema,
-  availabilityChangeDays: z.array(z.enum(WEEK_DAYS)).min(1),
+  availabilityChangeDays: z.array(z.enum(WEEK_DAYS)),
   availableClassrooms: z.array(SchedulingRecoveryClassroomSchema),
+  higherLevelCourseTitle: z.string().trim().min(1).nullable().optional(),
   isAccepted: z.boolean().optional(),
   acceptedProposalId: z.string().uuid().nullable().optional(),
 })

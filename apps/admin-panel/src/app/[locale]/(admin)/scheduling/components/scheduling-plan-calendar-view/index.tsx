@@ -12,13 +12,15 @@ import {
   Plus,
   UserCheck,
 } from "lucide-react"
-import type {
-  SchedulingNewTeacherHiringAssignment,
-  SchedulingNewTeacherHiringPlan,
-  SchedulingNewTeacherHiringSlotOption,
-  SchedulingPlanDetailsDto,
-  SchedulingTeacherCalendar,
-  WeekDay,
+import {
+  findHigherLevelCourse,
+  summarizeCourseLevelRange,
+  type SchedulingNewTeacherHiringAssignment,
+  type SchedulingNewTeacherHiringPlan,
+  type SchedulingNewTeacherHiringSlotOption,
+  type SchedulingPlanDetailsDto,
+  type SchedulingTeacherCalendar,
+  type WeekDay,
 } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -192,13 +194,24 @@ export function SchedulingPlanCalendarView({
   ])
 
   const freeTeachersByDayAndSlot = React.useMemo(() => {
-    const map = new Map<string, Array<SchedulingTeacherCalendar["teacher"]>>()
+    const map = new Map<
+      string,
+      Array<{
+        teacher: SchedulingTeacherCalendar["teacher"]
+        teachableCourses: SchedulingTeacherCalendar["teachableCourses"]
+        levelRange: string | null
+      }>
+    >()
     if (!teacherCalendars?.length) return map
 
     for (const slot of timeSlots) {
       for (const day of ORDERED_WEEK_DAYS) {
         const key = `${day}-${slot.startTime}-${slot.endTime}`
-        const freeTeachers: Array<SchedulingTeacherCalendar["teacher"]> = []
+        const freeTeachers: Array<{
+          teacher: SchedulingTeacherCalendar["teacher"]
+          teachableCourses: SchedulingTeacherCalendar["teachableCourses"]
+          levelRange: string | null
+        }> = []
         for (const calendar of teacherCalendars) {
           const isFreeInPeriod = calendar.slots.some(
             (s) =>
@@ -208,7 +221,12 @@ export function SchedulingPlanCalendarView({
               s.endTime >= slot.endTime
           )
           if (isFreeInPeriod) {
-            freeTeachers.push(calendar.teacher)
+            const teachableCourses = calendar.teachableCourses ?? []
+            freeTeachers.push({
+              teacher: calendar.teacher,
+              teachableCourses,
+              levelRange: summarizeCourseLevelRange(teachableCourses),
+            })
           }
         }
         if (freeTeachers.length > 0) {
@@ -892,16 +910,75 @@ export function SchedulingPlanCalendarView({
                             <span className="text-[10px] font-semibold text-muted-foreground">
                               {t("calendarView.freeTeachersLabel")}
                             </span>
-                            <div className="flex flex-wrap gap-1">
-                              {cellFreeTeachers.map((teacher) => (
-                                <Badge
-                                  key={teacher.id}
-                                  variant="secondary"
-                                  className="h-5 rounded-md px-1.5 py-0 text-[10px] font-medium text-foreground"
-                                >
-                                  {teacher.firstName} {teacher.lastName}
-                                </Badge>
-                              ))}
+                            <div
+                              className={cn(
+                                "flex",
+                                isCollapsed
+                                  ? "flex-wrap gap-1"
+                                  : "flex-col gap-1.5"
+                              )}
+                            >
+                              {cellFreeTeachers.map(
+                                ({ teacher, teachableCourses, levelRange }) => {
+                                  const suggestedCourseTitle =
+                                    cellMissed.find(
+                                      ({ assignment }) =>
+                                        teachableCourses.some(
+                                          (tc) => tc.id === assignment.course.id
+                                        ) ||
+                                        Boolean(
+                                          findHigherLevelCourse(
+                                            assignment.course,
+                                            teachableCourses
+                                          )
+                                        )
+                                    )?.assignment.course.title ?? null
+
+                                  return isCollapsed ? (
+                                    <Badge
+                                      key={teacher.id}
+                                      variant="secondary"
+                                      className="h-5 rounded-md px-1.5 py-0 text-[10px] font-medium text-foreground"
+                                    >
+                                      {teacher.firstName} {teacher.lastName}
+                                    </Badge>
+                                  ) : (
+                                    <div
+                                      key={teacher.id}
+                                      data-testid={`free-teacher-card-${teacher.id}-${day}-${slot.key}`}
+                                      className="flex flex-col gap-1 rounded-lg border border-border/60 bg-background/70 px-2 py-1.5"
+                                    >
+                                      <div className="flex flex-wrap items-center justify-between gap-1">
+                                        <span className="text-[11px] font-semibold text-foreground">
+                                          {teacher.firstName} {teacher.lastName}
+                                        </span>
+                                        {levelRange && (
+                                          <Badge
+                                            variant="outline"
+                                            dir="ltr"
+                                            className="h-4 rounded-md px-1.5 py-0 text-[9px] font-medium text-muted-foreground"
+                                          >
+                                            {levelRange}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      {suggestedCourseTitle && (
+                                        <Badge
+                                          variant="secondary"
+                                          className="h-4 w-fit rounded-md px-1.5 py-0 text-[9px] font-semibold text-primary"
+                                        >
+                                          {t(
+                                            "calendarView.suggestedForCourse",
+                                            {
+                                              course: suggestedCourseTitle,
+                                            }
+                                          )}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  )
+                                }
+                              )}
                             </div>
                           </div>
                         )}
