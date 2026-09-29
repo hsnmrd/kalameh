@@ -324,7 +324,24 @@
       "freeTeacherBadge": "Free Teacher",
       "freeTeacherStatusLabel": "Status",
       "suggestedForCourse": "Suggested for {course}",
-      "assignToTeacher": "Assign to teacher"
+      "assignToTeacher": "Assign to teacher",
+      "swapDialog": {
+        "title": "Swap Class",
+        "sourceCardLabel": "Selected Class",
+        "targetCardLabel": "Target Card",
+        "optionsTitle": "Available Swap Options",
+        "changeTeacher": "Change Teacher",
+        "changeTeacherHint": "{from} ⇄ {to}",
+        "changeClassroom": "Change Classroom",
+        "changeClassroomHint": "{from} ⇄ {to}",
+        "changeDate": "Change Date & Time",
+        "changeDateHint": "{from} ⇄ {to}",
+        "roomPairedHint": "Classroom swap is paired with time swap to avoid room conflicts.",
+        "invalidCombination": "This selected combination is not feasible due to teacher or classroom constraints.",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "success": "Class swap completed successfully."
+      }
     },
     "weekDays": {
       "SATURDAY": "Saturday",

@@ -976,4 +976,113 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(freeTeacherDetails).toHaveAttribute("aria-hidden", "false")
     expect(freeTeacherDetails).toHaveClass("grid-rows-[1fr]")
   })
+
+  it("shakes compatible class cards and free teacher cards when a class card is clicked and opens the swap dialog on click", () => {
+    const swappableProposals: Proposal[] = [
+      ...mockProposals, // prop-1 (unlocked, 09:00-10:30, A1, cr1 cap 15) & prop-2 (locked)
+      {
+        id: "prop-swap-target",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "کلاس صبح موازی A1",
+        course: { id: "c1", title: "American English File 1" },
+        teacher: { id: "t-swap", firstName: "رضا", lastName: "نوری" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr3", name: "کلاس ۱۰۳", capacity: 18 },
+        capacity: 14,
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "11:00",
+        endTime: "12:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={swappableProposals}
+        canEdit={true}
+        teacherCalendars={[
+          {
+            teacher: {
+              id: "t-free-swap",
+              firstName: "سارا",
+              lastName: "احمدی",
+            },
+            teachableCourses: [{ id: "c1", title: "American English File 1" }],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "09:00",
+                endTime: "10:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "MONDAY",
+                startTime: "09:00",
+                endTime: "10:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "WEDNESDAY",
+                startTime: "09:00",
+                endTime: "10:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+            ],
+          },
+        ]}
+      />
+    )
+
+    // Turn on free teachers display
+    fireEvent.click(screen.getByTestId("toggle-free-teachers-btn"))
+
+    const prop1Card = screen.getAllByTestId("calendar-class-card-prop-1")[0]!
+    const prop2LockedCard = screen.getByTestId("calendar-class-card-prop-2")
+    const swapTargetCard = screen.getAllByTestId(
+      "calendar-class-card-prop-swap-target"
+    )[0]!
+    const freeTeacherCard = screen.getByTestId(
+      "free-teacher-card-t-free-swap-SATURDAY-09:00-10:30"
+    )
+
+    // Click prop-1 to enter swap mode
+    fireEvent.click(prop1Card)
+
+    // prop-1 is active
+    expect(prop1Card).toHaveAttribute("data-active", "true")
+
+    // prop-2 is locked, so it cannot swap and is dimmed
+    expect(prop2LockedCard).not.toHaveAttribute("data-swappable")
+    expect(prop2LockedCard).toHaveAttribute("data-dimmed", "true")
+
+    // prop-swap-target is compatible, so it shakes and is not dimmed
+    expect(swapTargetCard).toHaveAttribute("data-swappable", "true")
+    expect(swapTargetCard).toHaveClass("animate-calendar-card-shake")
+    expect(swapTargetCard).not.toHaveAttribute("data-dimmed")
+
+    // freeTeacherCard is qualified and free across SAT/MON/WED 09:00-10:30, so it also shakes
+    expect(freeTeacherCard).toHaveAttribute("data-swappable", "true")
+    expect(freeTeacherCard).toHaveClass("animate-calendar-card-shake")
+    expect(freeTeacherCard).not.toHaveAttribute("data-dimmed")
+
+    // Clicking on the shaking swapTargetCard opens the SwapClassDialog with checkbox options
+    fireEvent.click(swapTargetCard)
+
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    expect(screen.getByTestId("swap-option-teacher")).toBeInTheDocument()
+    expect(screen.getByTestId("swap-option-classroom")).toBeInTheDocument()
+    expect(screen.getByTestId("swap-option-date")).toBeInTheDocument()
+    expect(screen.getByTestId("swap-confirm-btn")).not.toBeDisabled()
+  })
 })

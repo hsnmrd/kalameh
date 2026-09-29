@@ -11,6 +11,7 @@ import {
   SetSchedulingProposalLockSchema,
   UpdateSchedulingProposalSchema,
   calculateTermScheduleFromDateRange,
+  findHigherLevelCourse,
   type JwtPayload,
   type SchedulingPlanSelectionResult,
   type SchedulingProposalDto,
@@ -217,21 +218,11 @@ export class SchedulingPlanReviewService {
 
     const [qualification, , classroom] = await Promise.all([
       merged.teacherId
-        ? this.prisma.teacherCourseQualification.findFirstOrThrow({
-            where: {
-              instituteId,
-              courseId: proposal.courseId,
-              teacherProfile: {
-                userId: merged.teacherId,
-                user: {
-                  instituteId,
-                  role: 'TEACHER',
-                  isActive: true,
-                },
-              },
-            },
-            select: { id: true },
-          })
+        ? this.resolveTeacherQualification(
+            instituteId,
+            proposal.courseId,
+            merged.teacherId,
+          )
         : Promise.resolve(null),
       merged.branchId
         ? this.prisma.branch.findFirstOrThrow({
@@ -451,6 +442,84 @@ export class SchedulingPlanReviewService {
 
   private toJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
+
+  private async resolveTeacherQualification(
+    instituteId: string,
+    courseId: string,
+    teacherId: string,
+  ): Promise<{ id: string }> {
+    try {
+      return await this.prisma.teacherCourseQualification.findFirstOrThrow({
+        where: {
+          instituteId,
+          courseId,
+          teacherProfile: {
+            userId: teacherId,
+            user: {
+              instituteId,
+              role: 'TEACHER',
+              isActive: true,
+            },
+          },
+        },
+        select: { id: true },
+      });
+    } catch (error) {
+      if (
+        !this.prisma.teacherCourseQualification?.findMany ||
+        !this.prisma.course?.findMany
+      ) {
+        throw error;
+      }
+      const [teacherQualifications, allCourses] = await Promise.all([
+        this.prisma.teacherCourseQualification.findMany({
+          where: {
+            instituteId,
+            teacherProfile: {
+              userId: teacherId,
+              user: {
+                instituteId,
+                role: 'TEACHER',
+                isActive: true,
+              },
+            },
+          },
+          select: {
+            id: true,
+            courseId: true,
+            course: { select: { id: true, title: true } },
+          },
+        }),
+        this.prisma.course.findMany({
+          where: { instituteId },
+          select: { id: true, title: true, prerequisiteId: true },
+        }),
+      ]);
+      const targetCourse = allCourses.find((course) => course.id === courseId);
+      if (!targetCourse) throw error;
+      const teacherCourses = teacherQualifications
+        .map(
+          (qualification) =>
+            qualification.course ??
+            allCourses.find((course) => course.id === qualification.courseId),
+        )
+        .filter((course): course is NonNullable<typeof course> =>
+          Boolean(course),
+        );
+      const higherCourse = findHigherLevelCourse(
+        targetCourse,
+        teacherCourses,
+        allCourses,
+      );
+      const matchingQualification = higherCourse
+        ? teacherQualifications.find(
+            (qualification) => qualification.courseId === higherCourse.id,
+          )
+        : undefined;
+      if (!matchingQualification) throw error;
+      return { id: matchingQualification.id };
+    }
   }
 
   private assertValidDate(value: Date): void {

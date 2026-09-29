@@ -18,7 +18,9 @@ export interface SchedulingPlanCalendarFreeTeacherCardProps {
   levelRange: string | null
   suggestedCourseTitle: string | null
   isCollapsed?: boolean
+  isSwappable?: boolean
   isDimmed?: boolean
+  onClick?: () => void
 }
 
 export function SchedulingPlanCalendarFreeTeacherCard({
@@ -28,7 +30,9 @@ export function SchedulingPlanCalendarFreeTeacherCard({
   levelRange,
   suggestedCourseTitle,
   isCollapsed = false,
+  isSwappable = false,
   isDimmed = false,
+  onClick,
 }: SchedulingPlanCalendarFreeTeacherCardProps) {
   const t = useTranslations("scheduling.planDetails")
   const teacherName = `${teacher.firstName} ${teacher.lastName}`
@@ -39,10 +43,32 @@ export function SchedulingPlanCalendarFreeTeacherCard({
   return (
     <article
       data-testid={`free-teacher-card-${teacher.id}-${day}-${slotKey}`}
+      data-swappable={isSwappable ? "true" : undefined}
       data-collapsed={isCollapsed ? "true" : undefined}
+      onClick={
+        isSwappable && onClick
+          ? (e) => {
+              e.stopPropagation()
+              onClick()
+            }
+          : undefined
+      }
+      tabIndex={isSwappable ? 0 : undefined}
+      onKeyDown={
+        isSwappable && onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                onClick()
+              }
+            }
+          : undefined
+      }
       className={cn(
         "group relative flex flex-col justify-between overflow-hidden rounded-xl border-2 border-dashed border-destructive/70 bg-destructive/10 shadow-2xs transition-[height,padding,background-color,border-color,box-shadow] duration-300 ease-in-out select-none",
         isCollapsed ? "h-[52px] p-2" : "h-[134px] p-2.5",
+        isSwappable &&
+          "animate-calendar-card-shake z-10 cursor-pointer opacity-100 ring-2 ring-primary/60 hover:animate-none",
         isDimmed && "opacity-25"
       )}
       aria-label={teacherName}

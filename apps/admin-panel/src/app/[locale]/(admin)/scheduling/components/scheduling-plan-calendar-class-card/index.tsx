@@ -112,6 +112,7 @@ export interface SchedulingPlanCalendarClassCardProps {
   canEdit: boolean
   colorIndex?: number
   isActive?: boolean
+  isSwappable?: boolean
   isDimmed?: boolean
   isCollapsed?: boolean
   onHover?: (id: string | null) => void
@@ -123,6 +124,7 @@ export function SchedulingPlanCalendarClassCard({
   canEdit,
   colorIndex,
   isActive = false,
+  isSwappable = false,
   isDimmed = false,
   isCollapsed = false,
   onHover,
@@ -155,6 +157,7 @@ export function SchedulingPlanCalendarClassCard({
         data-class-id={proposal.id}
         data-color-index={themeIndex}
         data-active={isActive ? "true" : undefined}
+        data-swappable={isSwappable ? "true" : undefined}
         data-dimmed={isDimmed ? "true" : undefined}
         data-collapsed={isCollapsed ? "true" : undefined}
         onMouseEnter={() => onHover?.(proposal.id)}
@@ -178,6 +181,8 @@ export function SchedulingPlanCalendarClassCard({
           theme.bg,
           isActive &&
             "z-10 scale-[1.02] opacity-100 shadow-md ring-2 ring-primary",
+          isSwappable &&
+            "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
           isDimmed && "opacity-25 hover:opacity-60"
         )}
         aria-label={proposal.course.title}

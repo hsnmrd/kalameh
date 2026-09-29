@@ -40,6 +40,14 @@ import {
   type CurrentAssignmentState,
   type TargetSlotInfo,
 } from "./assign-slot-dialog"
+import {
+  evaluateFreeTeacherSwap,
+  evaluateProposalSwap,
+  type FreeTeacherSwapTarget,
+  type SwapEvaluationResult,
+  type SwapTarget,
+} from "./helper/swap-eligibility.helper"
+import { SwapClassDialog } from "./swap-class-dialog"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
@@ -91,6 +99,10 @@ export function SchedulingPlanCalendarView({
   const [selectedClassId, setSelectedClassId] = React.useState<string | null>(
     null
   )
+  const [swapDialogState, setSwapDialogState] = React.useState<{
+    target: SwapTarget
+    evaluation: SwapEvaluationResult
+  } | null>(null)
   const [showFreeTeachers, setShowFreeTeachers] = React.useState(
     defaultShowFreeTeachers
   )
@@ -103,9 +115,49 @@ export function SchedulingPlanCalendarView({
   const activeClassId = selectedClassId
   const isAnyClassActive = activeClassId !== null
 
-  const handleCardClick = React.useCallback((id: string) => {
-    setSelectedClassId((prev) => (prev === id ? null : id))
-  }, [])
+  const activeProposal = React.useMemo(
+    () =>
+      activeClassId && !activeClassId.startsWith("missed:")
+        ? (proposals.find((p) => p.id === activeClassId) ?? null)
+        : null,
+    [activeClassId, proposals]
+  )
+
+  const swappableByProposalId = React.useMemo(() => {
+    const map = new Map<string, SwapEvaluationResult>()
+    if (!canEdit || !activeProposal) return map
+    for (const proposal of proposals) {
+      if (proposal.id === activeProposal.id) continue
+      const evaluation = evaluateProposalSwap(
+        activeProposal,
+        proposal,
+        proposals,
+        teacherCalendars
+      )
+      if (evaluation.canSwap) {
+        map.set(proposal.id, evaluation)
+      }
+    }
+    return map
+  }, [canEdit, activeProposal, proposals, teacherCalendars])
+
+  const handleCardClick = React.useCallback(
+    (id: string) => {
+      if (activeProposal && id !== activeProposal.id) {
+        const swapEvaluation = swappableByProposalId.get(id)
+        const targetProposal = proposals.find((p) => p.id === id)
+        if (swapEvaluation && targetProposal) {
+          setSwapDialogState({
+            target: { kind: "PROPOSAL", proposal: targetProposal },
+            evaluation: swapEvaluation,
+          })
+          return
+        }
+      }
+      setSelectedClassId((prev) => (prev === id ? null : id))
+    },
+    [activeProposal, proposals, swappableByProposalId]
+  )
 
   // Clear selected class on Escape key
   React.useEffect(() => {
@@ -763,7 +815,11 @@ export function SchedulingPlanCalendarView({
                           <>
                             {cellProposals.map((proposal) => {
                               const isActive = activeClassId === proposal.id
-                              const isDimmed = isAnyClassActive && !isActive
+                              const isSwappable = swappableByProposalId.has(
+                                proposal.id
+                              )
+                              const isDimmed =
+                                isAnyClassActive && !isActive && !isSwappable
                               return (
                                 <SchedulingPlanCalendarClassCard
                                   key={`${proposal.id}-${day}`}
@@ -771,6 +827,7 @@ export function SchedulingPlanCalendarView({
                                   canEdit={canEdit}
                                   colorIndex={proposalColorMap.get(proposal.id)}
                                   isActive={isActive}
+                                  isSwappable={isSwappable}
                                   isDimmed={isDimmed}
                                   isCollapsed={isCollapsed}
                                   onClick={handleCardClick}
@@ -924,6 +981,28 @@ export function SchedulingPlanCalendarView({
                                       )
                                   )?.assignment.course.title ?? null
 
+                                const freeTarget: FreeTeacherSwapTarget = {
+                                  kind: "FREE_TEACHER",
+                                  teacher,
+                                  teachableCourses,
+                                  levelRange,
+                                  dayOfWeek: day,
+                                  startTime: slot.startTime,
+                                  endTime: slot.endTime,
+                                }
+                                const freeEvaluation =
+                                  canEdit && activeProposal
+                                    ? evaluateFreeTeacherSwap(
+                                        activeProposal,
+                                        freeTarget,
+                                        proposals,
+                                        teacherCalendars
+                                      )
+                                    : null
+                                const isFreeSwappable = Boolean(
+                                  freeEvaluation?.canSwap
+                                )
+
                                 return (
                                   <SchedulingPlanCalendarFreeTeacherCard
                                     key={teacher.id}
@@ -933,7 +1012,18 @@ export function SchedulingPlanCalendarView({
                                     levelRange={levelRange}
                                     suggestedCourseTitle={suggestedCourseTitle}
                                     isCollapsed={isCollapsed}
-                                    isDimmed={isAnyClassActive}
+                                    isSwappable={isFreeSwappable}
+                                    isDimmed={
+                                      isAnyClassActive && !isFreeSwappable
+                                    }
+                                    onClick={() => {
+                                      if (freeEvaluation?.canSwap) {
+                                        setSwapDialogState({
+                                          target: freeTarget,
+                                          evaluation: freeEvaluation,
+                                        })
+                                      }
+                                    }}
                                   />
                                 )
                               }
@@ -964,6 +1054,20 @@ export function SchedulingPlanCalendarView({
             const slotKey = `${assignSlotTarget.daysOfWeek.join(",")}|${assignSlotTarget.startTime}|${assignSlotTarget.endTime}`
             onAssignMissedClass(assignmentKey, slotKey)
           }
+        }}
+      />
+
+      {/* Swap Class Dialog */}
+      <SwapClassDialog
+        open={Boolean(swapDialogState && activeProposal)}
+        onOpenChange={(open) => {
+          if (!open) setSwapDialogState(null)
+        }}
+        sourceProposal={activeProposal}
+        target={swapDialogState?.target ?? null}
+        evaluation={swapDialogState?.evaluation ?? null}
+        onSwapSuccess={() => {
+          setSelectedClassId(null)
         }}
       />
     </div>

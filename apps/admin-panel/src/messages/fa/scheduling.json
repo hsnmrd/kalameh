@@ -324,7 +324,24 @@
       "freeTeacherBadge": "استاد آزاد",
       "freeTeacherStatusLabel": "وضعیت",
       "suggestedForCourse": "پیشنهاد برای {course}",
-      "assignToTeacher": "تخصیص به استاد"
+      "assignToTeacher": "تخصیص به استاد",
+      "swapDialog": {
+        "title": "جابجایی کلاس",
+        "sourceCardLabel": "کلاس انتخاب‌شده",
+        "targetCardLabel": "کارت هدف",
+        "optionsTitle": "گزینه‌های قابل جابجایی",
+        "changeTeacher": "تغییر استاد",
+        "changeTeacherHint": "{from} ⇄ {to}",
+        "changeClassroom": "تغییر اتاق",
+        "changeClassroomHint": "{from} ⇄ {to}",
+        "changeDate": "تغییر روز و ساعت",
+        "changeDateHint": "{from} ⇄ {to}",
+        "roomPairedHint": "برای جلوگیری از تداخل اتاق، جابجایی اتاق به‌همراه تغییر ساعت اعمال می‌شود.",
+        "invalidCombination": "این ترکیب انتخاب‌شده به دلیل محدودیت استاد یا تداخل اتاق قابل اجرا نیست.",
+        "confirm": "تأیید",
+        "cancel": "انصراف",
+        "success": "جابجایی کلاس با موفقیت انجام شد."
+      }
     },
     "weekDays": {
       "SATURDAY": "شنبه",

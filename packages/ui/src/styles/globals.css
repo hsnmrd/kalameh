@@ -150,6 +150,23 @@ html[lang^="fa"],
   --sidebar-ring: oklch(0.65 0.19 250);
 }
 
+@keyframes calendar-card-shake {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(-1.5px, 0, 0) rotate(-0.8deg);
+  }
+  75% {
+    transform: translate3d(1.5px, 0, 0) rotate(0.8deg);
+  }
+}
+
+.animate-calendar-card-shake {
+  animation: calendar-card-shake 0.38s ease-in-out infinite;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
