@@ -9,9 +9,11 @@ export default async function TeachersLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const [common, teachers] = await Promise.all([
+  const [common, teachers, classes, scheduling] = await Promise.all([
     import(`@/messages/${locale}/common.json`),
     import(`@/messages/${locale}/teachers.json`),
+    import(`@/messages/${locale}/classes.json`),
+    import(`@/messages/${locale}/scheduling.json`),
   ])
 
   return (
@@ -20,6 +22,8 @@ export default async function TeachersLayout({
       messages={{
         common: common.default,
         teachers: teachers.default,
+        classes: classes.default,
+        scheduling: scheduling.default,
       }}
     >
       {children}

@@ -83,7 +83,8 @@ export function TeacherCalendarFilter({
         </Field>
       }
       actions={actions}
-      hasActiveFilters={hasActiveFilter}
+      activeFiltersCount={activeFiltersCount}
+      isPinned={hasActiveFilter}
       onClearFilters={handleClearFilters}
     />
   )
