@@ -423,9 +423,9 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     expect(regularCard).toHaveClass("h-[134px]")
     expect(regularCard).toHaveClass(
-      "border-chart-1/20",
-      "border-s-chart-1/45",
-      "bg-chart-1/[0.04]"
+      "border-border/80",
+      "border-s-chart-1",
+      "bg-card"
     )
     expect(missedCard).toHaveClass("h-[134px]")
     expect(missedCard).toHaveClass(
