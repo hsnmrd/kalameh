@@ -69,6 +69,7 @@ interface TimeSlot {
 export interface SchedulingPlanCalendarViewProps {
   proposals: Proposal[]
   canEdit: boolean
+  canSwap?: boolean
   hiringPlan?: SchedulingNewTeacherHiringPlan | null
   missedClassesAssignments?: Record<string, CurrentAssignmentState>
   onAssignMissedClass?: (assignmentKey: string, slotKey: string) => void
@@ -82,6 +83,7 @@ export interface SchedulingPlanCalendarViewProps {
 export function SchedulingPlanCalendarView({
   proposals,
   canEdit,
+  canSwap = true,
   hiringPlan,
   missedClassesAssignments,
   onAssignMissedClass,
@@ -125,7 +127,7 @@ export function SchedulingPlanCalendarView({
 
   const swappableByProposalId = React.useMemo(() => {
     const map = new Map<string, SwapEvaluationResult>()
-    if (!canEdit || !activeProposal) return map
+    if (!canSwap || !activeProposal) return map
     for (const proposal of proposals) {
       if (proposal.id === activeProposal.id) continue
       const evaluation = evaluateProposalSwap(
@@ -139,7 +141,7 @@ export function SchedulingPlanCalendarView({
       }
     }
     return map
-  }, [canEdit, activeProposal, proposals, teacherCalendars])
+  }, [canSwap, activeProposal, proposals, teacherCalendars])
 
   const handleCardClick = React.useCallback(
     (id: string) => {
@@ -991,7 +993,7 @@ export function SchedulingPlanCalendarView({
                                   endTime: slot.endTime,
                                 }
                                 const freeEvaluation =
-                                  canEdit && activeProposal
+                                  canSwap && activeProposal
                                     ? evaluateFreeTeacherSwap(
                                         activeProposal,
                                         freeTarget,

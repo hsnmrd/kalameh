@@ -112,6 +112,9 @@ export function evaluateProposalSwap(
     if (flags.changeTeacher && !hasDifferentTeacher) return false
     if (flags.changeClassroom && !hasDifferentClassroom) return false
     if (flags.changeDate && !hasDifferentDate) return false
+    if (flags.changeClassroom && !flags.changeDate && hasDifferentDate) {
+      return false
+    }
     return isProposalCombinationValid(
       source,
       target,

@@ -254,6 +254,7 @@ export function Content({
         <SchedulingPlanCalendarView
           proposals={plan.proposals}
           canEdit={isSelected && plan.status === "SELECTED"}
+          canSwap={plan.status === "DRAFT" || plan.status === "SELECTED"}
           hiringPlan={plan.newTeacherHiringPlan}
           missedClassesAssignments={assignmentsState}
           onAssignMissedClass={handleAssignMissedClass}
