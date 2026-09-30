@@ -11,9 +11,11 @@ import { cn, formatNumber } from "@workspace/ui/lib/utils"
 export interface SchedulingPlanCalendarMissedClassCardProps {
   assignment: SchedulingNewTeacherHiringAssignment
   assignedRoomName?: string | null
+  assignedRoomCapacity?: number | null
   canEdit: boolean
   onUnassign?: () => void
   isActive?: boolean
+  isSwappable?: boolean
   isDimmed?: boolean
   isCollapsed?: boolean
   onHover?: (id: string | null) => void
@@ -23,9 +25,11 @@ export interface SchedulingPlanCalendarMissedClassCardProps {
 export function SchedulingPlanCalendarMissedClassCard({
   assignment,
   assignedRoomName,
+  assignedRoomCapacity,
   canEdit,
   onUnassign,
   isActive = false,
+  isSwappable = false,
   isDimmed = false,
   isCollapsed = false,
   onHover,
@@ -40,6 +44,8 @@ export function SchedulingPlanCalendarMissedClassCard({
     : assignedRoomName
       ? t("hiringPlan.room", { room: assignedRoomName })
       : t("calendarView.roomNeeded")
+  const effectiveRoomCapacity =
+    assignedRoomCapacity ?? assignment.classroom?.capacity
 
   const classKey = `missed:${assignment.key}`
 
@@ -48,6 +54,7 @@ export function SchedulingPlanCalendarMissedClassCard({
       data-testid={`missed-class-card-${assignment.key}`}
       data-class-id={classKey}
       data-active={isActive ? "true" : undefined}
+      data-swappable={isSwappable ? "true" : undefined}
       data-dimmed={isDimmed ? "true" : undefined}
       data-collapsed={isCollapsed ? "true" : undefined}
       onMouseEnter={() => onHover?.(classKey)}
@@ -68,6 +75,8 @@ export function SchedulingPlanCalendarMissedClassCard({
         isCollapsed ? "h-[52px] p-2" : "h-[134px] p-2.5",
         isActive &&
           "z-10 scale-[1.02] opacity-100 shadow-md ring-2 ring-warning",
+        isSwappable &&
+          "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
         isDimmed && "opacity-25 hover:opacity-60"
       )}
       aria-label={assignment.course.title}
@@ -175,9 +184,9 @@ export function SchedulingPlanCalendarMissedClassCard({
               <span className="text-[10px] font-medium">{t("capacity")}</span>
             </div>
             <div className="flex items-center gap-1 text-xs font-semibold text-foreground tabular-nums">
-              {assignment.classroom?.capacity ? (
+              {effectiveRoomCapacity ? (
                 <span className="text-[10px] font-medium text-warning-foreground">
-                  {formatNumber(assignment.classroom.capacity, locale)} نفر
+                  {formatNumber(effectiveRoomCapacity, locale)} نفر
                 </span>
               ) : (
                 <span className="text-[10px] font-medium text-warning-foreground">

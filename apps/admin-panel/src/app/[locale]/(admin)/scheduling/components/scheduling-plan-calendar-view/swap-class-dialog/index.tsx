@@ -217,48 +217,54 @@ export function SwapClassDialog({
         const targetProposal = target.proposal
         const targetTeacherId = getProposalTeacherId(targetProposal)
         const targetClassroomId = getProposalClassroomId(targetProposal)
+        const isSourceMissed = sourceProposal.id.startsWith("missed:")
+        const isTargetMissed = targetProposal.id.startsWith("missed:")
 
-        await updateMutation.mutateAsync({
-          planId: sourceProposal.planId,
-          proposalId: sourceProposal.id,
-          instituteId: effectiveInstituteId,
-          body: {
-            ...(flags.changeTeacher
-              ? { teacherId: targetTeacherId ?? undefined }
-              : {}),
-            ...(flags.changeClassroom
-              ? { classroomId: targetClassroomId }
-              : {}),
-            ...(flags.changeDate
-              ? {
-                  daysOfWeek: targetProposal.daysOfWeek,
-                  startTime: targetProposal.startTime,
-                  endTime: targetProposal.endTime,
-                }
-              : {}),
-          },
-        })
+        if (!isSourceMissed) {
+          await updateMutation.mutateAsync({
+            planId: sourceProposal.planId,
+            proposalId: sourceProposal.id,
+            instituteId: effectiveInstituteId,
+            body: {
+              ...(flags.changeTeacher
+                ? { teacherId: targetTeacherId ?? undefined }
+                : {}),
+              ...(flags.changeClassroom
+                ? { classroomId: targetClassroomId }
+                : {}),
+              ...(flags.changeDate
+                ? {
+                    daysOfWeek: targetProposal.daysOfWeek,
+                    startTime: targetProposal.startTime,
+                    endTime: targetProposal.endTime,
+                  }
+                : {}),
+            },
+          })
+        }
 
-        await updateMutation.mutateAsync({
-          planId: targetProposal.planId,
-          proposalId: targetProposal.id,
-          instituteId: effectiveInstituteId,
-          body: {
-            ...(flags.changeTeacher
-              ? { teacherId: sourceTeacherId ?? undefined }
-              : {}),
-            ...(flags.changeClassroom
-              ? { classroomId: sourceClassroomId }
-              : {}),
-            ...(flags.changeDate
-              ? {
-                  daysOfWeek: sourceProposal.daysOfWeek,
-                  startTime: sourceProposal.startTime,
-                  endTime: sourceProposal.endTime,
-                }
-              : {}),
-          },
-        })
+        if (!isTargetMissed) {
+          await updateMutation.mutateAsync({
+            planId: targetProposal.planId,
+            proposalId: targetProposal.id,
+            instituteId: effectiveInstituteId,
+            body: {
+              ...(flags.changeTeacher
+                ? { teacherId: sourceTeacherId ?? undefined }
+                : {}),
+              ...(flags.changeClassroom
+                ? { classroomId: sourceClassroomId }
+                : {}),
+              ...(flags.changeDate
+                ? {
+                    daysOfWeek: sourceProposal.daysOfWeek,
+                    startTime: sourceProposal.startTime,
+                    endTime: sourceProposal.endTime,
+                  }
+                : {}),
+            },
+          })
+        }
 
         updatedProposals.push(
           {
@@ -344,21 +350,28 @@ export function SwapClassDialog({
         })
       }
 
-      const updatedMap = new Map(updatedProposals.map((p) => [p.id, p]))
-      queryClient.setQueriesData<SchedulingPlanDetailsDto>(
-        { queryKey: schedulingResource.planDetail.baseKey() },
-        (current) => {
-          if (!current || current.id !== sourceProposal.planId) return current
-          return {
-            ...current,
-            proposals: current.proposals.map((p) => updatedMap.get(p.id) ?? p),
-          }
-        }
+      const realUpdatedProposals = updatedProposals.filter(
+        (p) => !p.id.startsWith("missed:")
       )
+      if (realUpdatedProposals.length > 0) {
+        const updatedMap = new Map(realUpdatedProposals.map((p) => [p.id, p]))
+        queryClient.setQueriesData<SchedulingPlanDetailsDto>(
+          { queryKey: schedulingResource.planDetail.baseKey() },
+          (current) => {
+            if (!current || current.id !== sourceProposal.planId) return current
+            return {
+              ...current,
+              proposals: current.proposals.map(
+                (p) => updatedMap.get(p.id) ?? p
+              ),
+            }
+          }
+        )
 
-      await queryClient.invalidateQueries({
-        queryKey: schedulingResource.planDetail.baseKey(),
-      })
+        await queryClient.invalidateQueries({
+          queryKey: schedulingResource.planDetail.baseKey(),
+        })
+      }
 
       toast.success(t("calendarView.swapDialog.success"))
       onSwapSuccess?.(updatedProposals)

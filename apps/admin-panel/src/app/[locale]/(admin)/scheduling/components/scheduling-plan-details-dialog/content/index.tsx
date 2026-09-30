@@ -29,6 +29,24 @@ interface ContentProps {
   className?: string
 }
 
+function buildDefaultAssignments(
+  hiringPlan: SchedulingPlanDetailsDto["newTeacherHiringPlan"]
+): Record<string, CurrentAssignmentState> {
+  if (!hiringPlan) return {}
+  const initial: Record<string, CurrentAssignmentState> = {}
+  for (const a of hiringPlan.assignments) {
+    initial[a.key] = {
+      daysOfWeek: a.daysOfWeek as WeekDay[],
+      startTime: a.startTime,
+      endTime: a.endTime,
+      classroomId: a.classroom?.id ?? null,
+      classroomName: a.classroom?.name ?? null,
+      isAssigned: true,
+    }
+  }
+  return initial
+}
+
 export function Content({
   plan,
   isSelected,
@@ -43,42 +61,39 @@ export function Content({
     0
   )
 
-  const [assignmentsState, setAssignmentsState] = React.useState<
-    Record<string, CurrentAssignmentState>
-  >(() => {
-    if (!plan.newTeacherHiringPlan) return {}
-    const initial: Record<string, CurrentAssignmentState> = {}
-    for (const a of plan.newTeacherHiringPlan.assignments) {
-      initial[a.key] = {
-        daysOfWeek: a.daysOfWeek as WeekDay[],
-        startTime: a.startTime,
-        endTime: a.endTime,
-        classroomId: a.classroom?.id ?? null,
-        classroomName: a.classroom?.name ?? null,
-        isAssigned: true,
-      }
-    }
-    return initial
+  const [assignmentOverrides, setAssignmentOverrides] = React.useState<{
+    plan: SchedulingPlanDetailsDto
+    state: Record<string, CurrentAssignmentState>
+  }>({
+    plan,
+    state: buildDefaultAssignments(plan.newTeacherHiringPlan),
   })
 
-  React.useEffect(() => {
-    if (!plan.newTeacherHiringPlan) {
-      setAssignmentsState({})
-      return
-    }
-    const next: Record<string, CurrentAssignmentState> = {}
-    for (const a of plan.newTeacherHiringPlan.assignments) {
-      next[a.key] = {
-        daysOfWeek: a.daysOfWeek as WeekDay[],
-        startTime: a.startTime,
-        endTime: a.endTime,
-        classroomId: a.classroom?.id ?? null,
-        classroomName: a.classroom?.name ?? null,
-        isAssigned: true,
-      }
-    }
-    setAssignmentsState(next)
-  }, [plan.newTeacherHiringPlan])
+  const assignmentsState =
+    assignmentOverrides.plan === plan
+      ? assignmentOverrides.state
+      : buildDefaultAssignments(plan.newTeacherHiringPlan)
+
+  const setAssignmentsState = React.useCallback(
+    (
+      updater:
+        | Record<string, CurrentAssignmentState>
+        | ((
+            prev: Record<string, CurrentAssignmentState>
+          ) => Record<string, CurrentAssignmentState>)
+    ) => {
+      setAssignmentOverrides((prev) => {
+        const currentState =
+          prev.plan === plan
+            ? prev.state
+            : buildDefaultAssignments(plan.newTeacherHiringPlan)
+        const nextState =
+          typeof updater === "function" ? updater(currentState) : updater
+        return { plan, state: nextState }
+      })
+    },
+    [plan]
+  )
 
   const handleAssignMissedClass = React.useCallback(
     (assignmentKey: string, slotKey: string) => {
@@ -150,7 +165,7 @@ export function Content({
         }
       })
     },
-    [plan.newTeacherHiringPlan, plan.proposals]
+    [plan.newTeacherHiringPlan, plan.proposals, setAssignmentsState]
   )
 
   const handleUnassignMissedClass = React.useCallback(
@@ -172,7 +187,7 @@ export function Content({
         }
       })
     },
-    []
+    [setAssignmentsState]
   )
 
   const handleResetAssignments = React.useCallback(() => {
@@ -189,7 +204,17 @@ export function Content({
       }
     }
     setAssignmentsState(next)
-  }, [plan.newTeacherHiringPlan])
+  }, [plan.newTeacherHiringPlan, setAssignmentsState])
+
+  const handleUpdateMissedClassesAssignments = React.useCallback(
+    (updates: Record<string, CurrentAssignmentState>) => {
+      setAssignmentsState((prev) => ({
+        ...prev,
+        ...updates,
+      }))
+    },
+    [setAssignmentsState]
+  )
 
   return (
     <div
@@ -259,6 +284,9 @@ export function Content({
           missedClassesAssignments={assignmentsState}
           onAssignMissedClass={handleAssignMissedClass}
           onUnassignMissedClass={handleUnassignMissedClass}
+          onUpdateMissedClassesAssignments={
+            handleUpdateMissedClassesAssignments
+          }
           teacherCalendars={plan.teacherCalendars}
         />
       </section>

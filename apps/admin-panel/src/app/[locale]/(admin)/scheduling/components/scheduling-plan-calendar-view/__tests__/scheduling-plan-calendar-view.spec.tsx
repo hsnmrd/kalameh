@@ -1762,4 +1762,412 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.getByTestId("swap-source-card")).toHaveTextContent("کلاس ۱۰۲")
     expect(screen.getByTestId("swap-target-card")).toHaveTextContent("کلاس ۱۰۱")
   })
+
+  it("allows swapping time and classroom with an unknown master (missed class), shaking and updating both classes on submit", async () => {
+    const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+    const toMutationSpy = vi
+      .spyOn(schedulingResource.updateProposal, "toMutation")
+      .mockReturnValue({
+        mutationKey: ["scheduling", "updateProposal"],
+        mutationFn: updateProposalMutationFn,
+      })
+
+    const onUpdateMissedSpy = vi.fn()
+
+    const proposalsWithKnownTeacher: Proposal[] = [
+      {
+        id: "prop-maryam",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-1",
+        course: { id: "c-ame-1", title: "AME 1-1" },
+        teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr101", name: "کلاس ۱۰۱", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    const assignmentsState = {
+      "missed-unknown": {
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"] as const,
+        startTime: "17:00",
+        endTime: "18:30",
+        classroomId: "cr102",
+        classroomName: "کلاس ۱۰۲",
+        isAssigned: true,
+      },
+    }
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={proposalsWithKnownTeacher}
+        canEdit={true}
+        defaultCollapsed={false}
+        hiringPlan={{
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "17:00",
+          endTime: "18:30",
+          totalClassCount: 1,
+          requiredCourses: [{ id: "c-ame-2", title: "AME 2-2" }],
+          assignments: [
+            {
+              key: "missed-unknown",
+              requirementId: "req-unknown",
+              course: { id: "c-ame-2", title: "AME 2-2" },
+              classNumber: 1,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+              startTime: "17:00",
+              endTime: "18:30",
+              classroom: { id: "cr102", name: "کلاس ۱۰۲", capacity: 18 },
+            },
+          ],
+        }}
+        missedClassesAssignments={assignmentsState}
+        onUpdateMissedClassesAssignments={onUpdateMissedSpy}
+        teacherCalendars={[
+          {
+            teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+            teachableCourses: [{ id: "c-ame-1", title: "AME 1-1" }],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "MONDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "WEDNESDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+            ],
+          },
+        ]}
+      />
+    )
+
+    const maryamCard = screen.getAllByTestId(
+      "calendar-class-card-prop-maryam"
+    )[0]!
+    const missedCard = screen.getAllByTestId(
+      "missed-class-card-missed-unknown"
+    )[0]!
+
+    // 1. Click Maryam card -> Missed card (Unknown Master) shakes!
+    fireEvent.click(maryamCard)
+    expect(maryamCard).toHaveAttribute("data-active", "true")
+    expect(missedCard).toHaveAttribute("data-swappable", "true")
+    expect(missedCard).toHaveClass("animate-calendar-card-shake")
+    expect(missedCard).not.toHaveAttribute("data-dimmed")
+
+    // 2. Click the shaking missed card -> Swap dialog opens
+    fireEvent.click(missedCard)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+
+    // Source is Maryam Kazemi, Target is Unknown Master
+    const sourceCard = screen.getByTestId("swap-source-card")
+    const targetCard = screen.getByTestId("swap-target-card")
+    expect(sourceCard).toHaveTextContent("مریم کاظمی")
+    expect(targetCard).toHaveTextContent("استاد جدید (در انتظار جذب)")
+
+    // Change Date and Change Classroom are active; Change Teacher is not offered (unknown master has no teacher)
+    expect(screen.queryByTestId("swap-option-teacher")).not.toBeInTheDocument()
+    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
+      "aria-checked",
+      "true"
+    )
+    expect(screen.getByTestId("swap-option-classroom")).toHaveAttribute(
+      "aria-checked",
+      "true"
+    )
+
+    // 3. Confirm swap
+    const confirmBtn = screen.getByTestId("swap-confirm-btn")
+    fireEvent.click(confirmBtn)
+
+    await waitFor(() => {
+      // updateProposal is called ONLY for the real proposal (prop-maryam)
+      expect(updateProposalMutationFn).toHaveBeenCalledTimes(1)
+    })
+
+    expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual({
+      planId: "plan-1",
+      proposalId: "prop-maryam",
+      instituteId: "inst-1",
+      body: {
+        classroomId: "cr102",
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "17:00",
+        endTime: "18:30",
+      },
+    })
+
+    // onUpdateMissedClassesAssignments was called to update the unknown master's schedule and room
+    expect(onUpdateMissedSpy).toHaveBeenCalledWith({
+      "missed-unknown": {
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        classroomId: "cr101",
+        classroomName: "کلاس ۱۰۱",
+        isAssigned: true,
+      },
+    })
+
+    toMutationSpy.mockRestore()
+  })
+
+  it("allows selecting an unknown master class first to swap with a compatible regular class", () => {
+    const proposalsWithKnownTeacher: Proposal[] = [
+      {
+        id: "prop-maryam",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-1",
+        course: { id: "c-ame-1", title: "AME 1-1" },
+        teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr101", name: "کلاس ۱۰۱", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    const assignmentsState = {
+      "missed-unknown": {
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"] as const,
+        startTime: "17:00",
+        endTime: "18:30",
+        classroomId: "cr102",
+        classroomName: "کلاس ۱۰۲",
+        isAssigned: true,
+      },
+    }
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={proposalsWithKnownTeacher}
+        canEdit={true}
+        defaultCollapsed={false}
+        hiringPlan={{
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "17:00",
+          endTime: "18:30",
+          totalClassCount: 1,
+          requiredCourses: [{ id: "c-ame-2", title: "AME 2-2" }],
+          assignments: [
+            {
+              key: "missed-unknown",
+              requirementId: "req-unknown",
+              course: { id: "c-ame-2", title: "AME 2-2" },
+              classNumber: 1,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+              startTime: "17:00",
+              endTime: "18:30",
+              classroom: { id: "cr102", name: "کلاس ۱۰۲", capacity: 18 },
+            },
+          ],
+        }}
+        missedClassesAssignments={assignmentsState}
+        teacherCalendars={[
+          {
+            teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+            teachableCourses: [{ id: "c-ame-1", title: "AME 1-1" }],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "MONDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "WEDNESDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+            ],
+          },
+        ]}
+      />
+    )
+
+    const maryamCard = screen.getAllByTestId(
+      "calendar-class-card-prop-maryam"
+    )[0]!
+    const missedCard = screen.getAllByTestId(
+      "missed-class-card-missed-unknown"
+    )[0]!
+
+    // Click Missed class (Unknown Master) first
+    fireEvent.click(missedCard)
+    expect(missedCard).toHaveAttribute("data-active", "true")
+
+    // Maryam card is compatible and shakes!
+    expect(maryamCard).toHaveAttribute("data-swappable", "true")
+    expect(maryamCard).toHaveClass("animate-calendar-card-shake")
+    expect(maryamCard).not.toHaveAttribute("data-dimmed")
+
+    // Clicking Maryam card opens swap dialog with Missed class as source
+    fireEvent.click(maryamCard)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    expect(screen.getByTestId("swap-source-card")).toHaveTextContent(
+      "استاد جدید (در انتظار جذب)"
+    )
+    expect(screen.getByTestId("swap-target-card")).toHaveTextContent(
+      "مریم کاظمی"
+    )
+  })
+
+  it("allows swapping time between a regular class and an unknown master of the SAME course", () => {
+    const sameCourseWithUnknownTeacher: Proposal[] = [
+      {
+        id: "prop-same-course-maryam",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "Touchstone 1",
+        course: { id: "c-same", title: "Touchstone 1" },
+        teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr101", name: "کلاس ۱۰۱", capacity: 16 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    const assignmentsState = {
+      "missed-same-course": {
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"] as const,
+        startTime: "17:00",
+        endTime: "18:30",
+        classroomId: "cr102",
+        classroomName: "کلاس ۱۰۲",
+        isAssigned: true,
+      },
+    }
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={sameCourseWithUnknownTeacher}
+        canEdit={true}
+        defaultCollapsed={false}
+        hiringPlan={{
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "17:00",
+          endTime: "18:30",
+          totalClassCount: 1,
+          requiredCourses: [{ id: "c-same", title: "Touchstone 1" }],
+          assignments: [
+            {
+              key: "missed-same-course",
+              requirementId: "req-same",
+              course: { id: "c-same", title: "Touchstone 1" },
+              classNumber: 2,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+              startTime: "17:00",
+              endTime: "18:30",
+              classroom: { id: "cr102", name: "کلاس ۱۰۲", capacity: 18 },
+            },
+          ],
+        }}
+        missedClassesAssignments={assignmentsState}
+        teacherCalendars={[
+          {
+            teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+            teachableCourses: [{ id: "c-same", title: "Touchstone 1" }],
+            slots: [
+              {
+                dayOfWeek: "SATURDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "MONDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+              {
+                dayOfWeek: "WEDNESDAY",
+                startTime: "15:30",
+                endTime: "18:30",
+                status: "FREE",
+                title: null,
+                source: "AVAILABILITY",
+              },
+            ],
+          },
+        ]}
+      />
+    )
+
+    const maryamCard = screen.getAllByTestId(
+      "calendar-class-card-prop-same-course-maryam"
+    )[0]!
+    const missedCard = screen.getAllByTestId(
+      "missed-class-card-missed-same-course"
+    )[0]!
+
+    // Clicking Maryam's Touchstone 1 card must make the Unknown Master's Touchstone 1 card shake
+    fireEvent.click(maryamCard)
+    expect(maryamCard).toHaveAttribute("data-active", "true")
+    expect(missedCard).toHaveAttribute("data-swappable", "true")
+    expect(missedCard).toHaveClass("animate-calendar-card-shake")
+  })
 })
