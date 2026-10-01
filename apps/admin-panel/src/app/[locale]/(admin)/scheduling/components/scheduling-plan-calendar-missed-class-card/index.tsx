@@ -2,7 +2,14 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { DoorOpen, GraduationCap, Users, X } from "lucide-react"
+import {
+  Building2,
+  DoorOpen,
+  Globe,
+  GraduationCap,
+  Users,
+  X,
+} from "lucide-react"
 import type { SchedulingNewTeacherHiringAssignment } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -90,7 +97,7 @@ export function SchedulingPlanCalendarMissedClassCard({
       )}
       aria-label={assignment.course.title}
     >
-      {/* Section 1: Course Title, Badges, Actions */}
+      {/* Section 1: Course Title, Delivery Mode, Badges, Actions */}
       <div className="flex min-w-0 items-center justify-between gap-1.5">
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <span
@@ -120,6 +127,24 @@ export function SchedulingPlanCalendarMissedClassCard({
               {t("calendarView.sameCourseBadge")}
             </span>
           )}
+          {/* Delivery mode badge pill */}
+          <span
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1 rounded-md border border-warning/30 bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning-foreground transition-opacity",
+              isCollapsed && "hidden sm:inline-flex"
+            )}
+          >
+            {isOnline ? (
+              <Globe aria-hidden className="size-2.5 text-inherit" />
+            ) : (
+              <Building2 aria-hidden className="size-2.5 text-inherit" />
+            )}
+            <span>
+              {isOnline
+                ? t("deliveryModes.ONLINE")
+                : t("deliveryModes.IN_PERSON")}
+            </span>
+          </span>
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
@@ -151,15 +176,15 @@ export function SchedulingPlanCalendarMissedClassCard({
         </div>
       </div>
 
-      {/* Section 2: Teacher & Room Meta */}
+      {/* Section 2: Teacher & Room Meta (Horizontal Split) */}
       <div
         className={cn(
-          "flex flex-col gap-1 text-[11px] text-muted-foreground transition-all duration-300",
+          "flex items-center justify-between gap-2 text-[11px] text-muted-foreground transition-all duration-300",
           !isCollapsed && "border-t border-warning/20 pt-1.5"
         )}
       >
         {/* Teacher (Always visible) */}
-        <div className="flex items-center gap-1.5 truncate">
+        <div className="flex min-w-0 items-center gap-1.5 truncate">
           <GraduationCap aria-hidden className="size-3 shrink-0" />
           <span className="truncate font-medium text-foreground/90">
             {t("hiringPlan.pendingTeacher")}
@@ -169,26 +194,20 @@ export function SchedulingPlanCalendarMissedClassCard({
         {/* Room (Collapsible) */}
         <div
           className={cn(
-            "grid transition-[grid-template-rows,opacity] duration-300 ease-in-out",
-            isCollapsed
-              ? "pointer-events-none grid-rows-[0fr] opacity-0"
-              : "grid-rows-[1fr] opacity-100"
+            "flex shrink-0 items-center gap-1.5 truncate text-[11px] transition-opacity duration-200",
+            isCollapsed ? "hidden" : "flex"
           )}
         >
-          <div className="overflow-hidden">
-            <div className="flex items-center gap-1.5 truncate pt-0.5">
-              <DoorOpen aria-hidden className="size-3 shrink-0" />
-              <span
-                className={
-                  !assignedRoomName && !isOnline
-                    ? "truncate font-medium text-warning-foreground"
-                    : "truncate text-foreground/90"
-                }
-              >
-                {roomLabel}
-              </span>
-            </div>
-          </div>
+          <DoorOpen aria-hidden className="size-3 shrink-0" />
+          <span
+            className={
+              !assignedRoomName && !isOnline
+                ? "truncate font-medium text-warning-foreground"
+                : "truncate text-foreground/90"
+            }
+          >
+            {roomLabel}
+          </span>
         </div>
       </div>
 

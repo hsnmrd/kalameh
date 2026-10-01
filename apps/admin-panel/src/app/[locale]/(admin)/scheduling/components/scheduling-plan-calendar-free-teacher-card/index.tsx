@@ -103,15 +103,15 @@ export function SchedulingPlanCalendarFreeTeacherCard({
         </div>
       </div>
 
-      {/* Section 2: Teacher Name & Level Range Meta */}
+      {/* Section 2: Teacher Name & Level Range Meta (Horizontal Split) */}
       <div
         className={cn(
-          "flex flex-col gap-1 text-[11px] text-muted-foreground transition-all duration-300",
+          "flex items-center justify-between gap-2 text-[11px] text-muted-foreground transition-all duration-300",
           !isCollapsed && "border-t border-destructive/20 pt-1.5"
         )}
       >
         {/* Teacher Name (Always visible) */}
-        <div className="flex items-center gap-1.5 truncate">
+        <div className="flex min-w-0 items-center gap-1.5 truncate">
           <User aria-hidden className="size-3 shrink-0" />
           <span className="truncate font-medium text-foreground/90">
             {teacherName}
@@ -121,28 +121,18 @@ export function SchedulingPlanCalendarFreeTeacherCard({
         {/* Level Range (Collapsible) */}
         <div
           className={cn(
-            "grid transition-[grid-template-rows,opacity] duration-300 ease-in-out",
-            isCollapsed
-              ? "pointer-events-none grid-rows-[0fr] opacity-0"
-              : "grid-rows-[1fr] opacity-100"
+            "flex shrink-0 items-center gap-1.5 truncate text-[11px] transition-opacity duration-200",
+            isCollapsed ? "hidden" : "flex",
+            isDimmed && "opacity-30 group-hover:opacity-100"
           )}
         >
-          <div
-            className={cn(
-              "overflow-hidden transition-opacity duration-200",
-              isDimmed && "opacity-30 group-hover:opacity-100"
-            )}
+          <GraduationCap aria-hidden className="size-3 shrink-0" />
+          <span
+            dir={levelRange ? "ltr" : undefined}
+            className="truncate text-foreground/90"
           >
-            <div className="flex items-center gap-1.5 truncate pt-0.5">
-              <GraduationCap aria-hidden className="size-3 shrink-0" />
-              <span
-                dir={levelRange ? "ltr" : undefined}
-                className="truncate text-foreground/90"
-              >
-                {levelRange ?? t("teacherCalendar.noTeachableLevels")}
-              </span>
-            </div>
-          </div>
+            {levelRange ?? t("teacherCalendar.noTeachableLevels")}
+          </span>
         </div>
       </div>
 

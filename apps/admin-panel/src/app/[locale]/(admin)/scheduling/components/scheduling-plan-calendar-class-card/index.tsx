@@ -204,7 +204,7 @@ export function SchedulingPlanCalendarClassCard({
         )}
         aria-label={proposal.course.title}
       >
-        {/* Section 1: Course Title, Indicator, Badges, Actions */}
+        {/* Section 1: Course Title, Indicator, Badges, Delivery Mode, Actions */}
         <div className="flex min-w-0 items-center justify-between gap-1.5">
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
             <span
@@ -237,7 +237,7 @@ export function SchedulingPlanCalendarClassCard({
             {proposal.title && proposal.title !== proposal.course.title && (
               <span
                 className={cn(
-                  "inline-block max-w-[100px] truncate rounded border px-1 py-0.5 text-[10px] font-semibold transition-opacity duration-200",
+                  "inline-block max-w-[160px] truncate rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-opacity duration-200",
                   isCollapsed && "hidden",
                   theme.badge
                 )}
@@ -246,6 +246,24 @@ export function SchedulingPlanCalendarClassCard({
                 {proposal.title}
               </span>
             )}
+            {/* Delivery mode badge pill */}
+            <span
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-opacity",
+                isCollapsed && "hidden sm:inline-flex"
+              )}
+            >
+              {isOnline ? (
+                <Globe aria-hidden className="size-2.5 text-inherit" />
+              ) : (
+                <Building2 aria-hidden className="size-2.5 text-inherit" />
+              )}
+              <span>
+                {isOnline
+                  ? t("deliveryModes.ONLINE")
+                  : t("deliveryModes.IN_PERSON")}
+              </span>
+            </span>
           </div>
 
           <div className="flex shrink-0 items-center gap-0.5">
@@ -289,15 +307,15 @@ export function SchedulingPlanCalendarClassCard({
           </div>
         </div>
 
-        {/* Section 2: Teacher & Location Meta */}
+        {/* Section 2: Teacher & Location Meta (Horizontal Split) */}
         <div
           className={cn(
-            "flex flex-col gap-1 text-[11px] text-muted-foreground transition-all duration-300",
+            "flex items-center justify-between gap-2 text-[11px] text-muted-foreground transition-all duration-300",
             !isCollapsed && cn("border-t pt-1.5", theme.divider)
           )}
         >
           {/* Teacher (Always visible) */}
-          <div className="flex items-center gap-1.5 truncate">
+          <div className="flex min-w-0 items-center gap-1.5 truncate">
             <User
               aria-hidden
               className={cn(
@@ -318,7 +336,7 @@ export function SchedulingPlanCalendarClassCard({
               <span
                 data-testid={`same-teacher-badge-${proposal.id}`}
                 className={cn(
-                  "ms-auto shrink-0 rounded border border-primary/40 bg-primary/15 px-1 text-[9px] font-bold text-primary",
+                  "shrink-0 rounded border border-primary/40 bg-primary/15 px-1 text-[9px] font-bold text-primary",
                   isCollapsed && "hidden"
                 )}
               >
@@ -330,26 +348,20 @@ export function SchedulingPlanCalendarClassCard({
           {/* Location (Collapsible) */}
           <div
             className={cn(
-              "grid transition-[grid-template-rows,opacity] duration-300 ease-in-out",
-              isCollapsed
-                ? "pointer-events-none grid-rows-[0fr] opacity-0"
-                : "grid-rows-[1fr] opacity-100"
+              "flex shrink-0 items-center gap-1.5 truncate text-[11px] text-muted-foreground transition-opacity duration-200",
+              isCollapsed ? "hidden" : "flex"
             )}
           >
-            <div className="overflow-hidden">
-              <div className="flex items-center gap-1.5 truncate pt-0.5">
-                {isOnline ? (
-                  <Globe aria-hidden className="size-3 shrink-0" />
-                ) : (
-                  <Building2 aria-hidden className="size-3 shrink-0" />
-                )}
-                <span className="truncate">{locationName}</span>
-              </div>
-            </div>
+            {isOnline ? (
+              <Globe aria-hidden className="size-3 shrink-0" />
+            ) : (
+              <Building2 aria-hidden className="size-3 shrink-0" />
+            )}
+            <span className="truncate">{locationName}</span>
           </div>
         </div>
 
-        {/* Section 3: Capacity Info (Collapsible) */}
+        {/* Section 3: Capacity Info & Visual Meter (Collapsible) */}
         <div
           data-testid={`calendar-class-card-details-${proposal.id}`}
           aria-hidden={isCollapsed}
@@ -375,13 +387,36 @@ export function SchedulingPlanCalendarClassCard({
                 <Users aria-hidden className="size-3 shrink-0" />
                 <span className="text-[10px] font-medium">{t("capacity")}</span>
               </div>
-              <div className="flex items-center gap-1 text-xs font-semibold text-foreground tabular-nums">
-                <span>{formatNumber(proposal.capacity, locale)}</span>
+              <div className="flex items-center gap-2">
                 {proposal.classroom?.capacity && (
-                  <span className="text-[10px] font-normal text-muted-foreground">
-                    / {formatNumber(maxCapacity, locale)}
-                  </span>
+                  <div
+                    className="hidden h-1.5 w-16 overflow-hidden rounded-full bg-muted/80 sm:block sm:w-24"
+                    title={`${Math.round((proposal.capacity / maxCapacity) * 100)}%`}
+                  >
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all duration-300",
+                        proposal.capacity >= maxCapacity
+                          ? "bg-warning"
+                          : "bg-primary"
+                      )}
+                      style={{
+                        width: `${Math.min(
+                          Math.round((proposal.capacity / maxCapacity) * 100),
+                          100
+                        )}%`,
+                      }}
+                    />
+                  </div>
                 )}
+                <div className="flex items-center gap-1 text-xs font-semibold text-foreground tabular-nums">
+                  <span>{formatNumber(proposal.capacity, locale)}</span>
+                  {proposal.classroom?.capacity && (
+                    <span className="text-[10px] font-normal text-muted-foreground">
+                      / {formatNumber(maxCapacity, locale)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
