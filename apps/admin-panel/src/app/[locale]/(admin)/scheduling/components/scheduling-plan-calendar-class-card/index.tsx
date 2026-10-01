@@ -222,7 +222,7 @@ export function SchedulingPlanCalendarClassCard({
               title={proposal.course.title}
             >
               {hasSameCourse ? (
-                <mark className="inline-block max-w-full truncate rounded-md border border-primary/40 bg-primary/15 px-1 py-0.5 font-bold text-primary">
+                <mark className="inline-block max-w-full truncate rounded-none bg-[#ffff00] px-0.5 text-black">
                   {proposal.course.title}
                 </mark>
               ) : (
@@ -317,7 +317,7 @@ export function SchedulingPlanCalendarClassCard({
               )}
             />
             {hasSameTeacher ? (
-              <mark className="inline-block max-w-full truncate rounded-md border border-primary/40 bg-primary/15 px-1 py-0.5 font-bold text-primary">
+              <mark className="inline-block max-w-full truncate rounded-none bg-[#ffff00] px-0.5 text-black">
                 {teacherName}
               </mark>
             ) : (
