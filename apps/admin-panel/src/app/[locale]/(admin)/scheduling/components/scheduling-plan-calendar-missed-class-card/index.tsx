@@ -18,6 +18,8 @@ export interface SchedulingPlanCalendarMissedClassCardProps {
   isSwappable?: boolean
   isDimmed?: boolean
   isCollapsed?: boolean
+  hasSameCourse?: boolean
+  sameCourseCount?: number
   onHover?: (id: string | null) => void
   onClick?: (id: string) => void
 }
@@ -32,6 +34,8 @@ export function SchedulingPlanCalendarMissedClassCard({
   isSwappable = false,
   isDimmed = false,
   isCollapsed = false,
+  hasSameCourse = false,
+  sameCourseCount,
   onHover,
   onClick,
 }: SchedulingPlanCalendarMissedClassCardProps) {
@@ -57,6 +61,8 @@ export function SchedulingPlanCalendarMissedClassCard({
       data-swappable={isSwappable ? "true" : undefined}
       data-dimmed={isDimmed ? "true" : undefined}
       data-collapsed={isCollapsed ? "true" : undefined}
+      data-same-course={hasSameCourse ? "true" : undefined}
+      data-same-course-count={sameCourseCount}
       onMouseEnter={() => onHover?.(classKey)}
       onMouseLeave={() => onHover?.(null)}
       onClick={(e) => {
@@ -89,11 +95,26 @@ export function SchedulingPlanCalendarMissedClassCard({
             aria-hidden="true"
           />
           <h5
-            className="truncate text-xs font-bold text-foreground"
+            className={cn(
+              "truncate text-xs font-bold text-foreground",
+              hasSameCourse &&
+                "rounded-md border border-primary/40 bg-primary/10 px-1 py-0.5 text-primary"
+            )}
             title={assignment.course.title}
           >
             {assignment.course.title}
           </h5>
+          {hasSameCourse && (
+            <span
+              data-testid={`same-course-badge-${assignment.key}`}
+              className={cn(
+                "shrink-0 rounded border border-primary/40 bg-primary/15 px-1 py-0.5 text-[9px] font-bold text-primary transition-opacity duration-200",
+                isCollapsed && "hidden"
+              )}
+            >
+              {t("calendarView.sameCourseBadge")}
+            </span>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center gap-1">

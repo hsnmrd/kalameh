@@ -325,6 +325,11 @@
       "freeTeacherStatusLabel": "Status",
       "suggestedForCourse": "Suggested for {course}",
       "assignToTeacher": "Assign to teacher",
+      "highlightMatches": "Highlight Teacher & Course",
+      "sameTeacherBadge": "Same Teacher",
+      "sameCourseBadge": "Same Course",
+      "sameTeacherCountBadge": "This teacher: {count} classes",
+      "sameCourseCountBadge": "Same course: {count} classes",
       "swapDialog": {
         "title": "Swap Class",
         "sourceCardLabel": "Selected Class",

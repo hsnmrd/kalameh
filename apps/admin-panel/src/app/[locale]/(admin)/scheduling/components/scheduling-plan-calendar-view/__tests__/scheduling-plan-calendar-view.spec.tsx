@@ -1316,6 +1316,15 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     fireEvent.click(propACard)
     expect(propBCard).not.toHaveAttribute("data-swappable")
+    // When highlight matches is active (default), same-course classes are highlighted and NOT dimmed
+    expect(propBCard).toHaveAttribute("data-same-course", "true")
+    expect(propBCard).not.toHaveAttribute("data-dimmed")
+
+    // When the supervisor turns off the highlight toggle, non-swappable same-course classes are dimmed
+    const toggleHighlightBtn = screen.getByTestId(
+      "toggle-highlight-matches-btn"
+    )
+    fireEvent.click(toggleHighlightBtn)
     expect(propBCard).toHaveAttribute("data-dimmed", "true")
   })
 
@@ -2475,5 +2484,211 @@ describe("SchedulingPlanCalendarView Component", () => {
     )[0]!
     expect(rerenderedMissedCard).toBeInTheDocument()
     expect(rerenderedMissedCard).toHaveTextContent("کلاس ۱۰۱")
+  })
+
+  it("highlights master and course title in other cards, shows counts, keeps related cards undimmed, and supports toolbar toggle", () => {
+    const proposalsForHighlight: Proposal[] = [
+      {
+        id: "prop-target",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 2-3",
+        course: { id: "c-ame-2", title: "American English File 2" },
+        teacher: { id: "t-alireza", firstName: "علیرضا", lastName: "شمس" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr-a", name: "کلاس A", capacity: 15 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      // Same teacher, different course (e.g. Alireza teaching AME 3 in another period)
+      {
+        id: "prop-same-teacher",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 3-1",
+        course: { id: "c-ame-3", title: "American English File 3" },
+        teacher: { id: "t-alireza", firstName: "علیرضا", lastName: "شمس" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr-b", name: "کلاس B", capacity: 15 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY"],
+        startTime: "17:00",
+        endTime: "18:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      // Same course, different teacher (e.g. Maryam teaching AME 2 in another period)
+      {
+        id: "prop-same-course",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 2-1",
+        course: { id: "c-ame-2", title: "American English File 2" },
+        teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr-c", name: "کلاس C", capacity: 15 },
+        capacity: 12,
+        daysOfWeek: ["SUNDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      // Completely unrelated class (different teacher and different course)
+      {
+        id: "prop-unrelated",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "IELTS 1",
+        course: { id: "c-ielts", title: "IELTS Preparation" },
+        teacher: { id: "t-zahra", firstName: "زهرا", lastName: "کریمی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr-d", name: "کلاس D", capacity: 15 },
+        capacity: 10,
+        daysOfWeek: ["MONDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    const hiringPlan: SchedulingNewTeacherHiringPlan = {
+      isFeasible: true,
+      hasEnoughFreeSlots: true,
+      totalUnfilledClasses: 1,
+      scheduledUnfilledClasses: 1,
+      assignments: [
+        {
+          key: "missed-ame-2",
+          course: { id: "c-ame-2", title: "American English File 2" },
+          classroom: { id: "cr-b", name: "کلاس B", capacity: 15 },
+          deliveryMode: "IN_PERSON",
+          classIndex: 1,
+        },
+      ],
+      availableTimeSlots: [],
+      recommendedTrack: "ODD_DAYS",
+    }
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={proposalsForHighlight}
+        canEdit={true}
+        canSwap={false}
+        defaultCollapsed={false}
+        hiringPlan={hiringPlan}
+        missedClassesAssignments={{
+          "missed-ame-2": {
+            daysOfWeek: ["TUESDAY"] as WeekDay[],
+            startTime: "15:30",
+            endTime: "17:00",
+            classroomId: "cr-b",
+            classroomName: "کلاس B",
+            isAssigned: true,
+          },
+        }}
+      />
+    )
+
+    // Initially no class is selected
+    expect(
+      screen.queryByTestId("selected-class-match-summary")
+    ).not.toBeInTheDocument()
+
+    // Click on target card (AME 2-3 taught by Alireza Shams)
+    const targetCard = screen.getAllByTestId(
+      "calendar-class-card-prop-target"
+    )[0]!
+    fireEvent.click(targetCard)
+
+    // Summary chip should appear in toolbar with count badges
+    const summary = screen.getByTestId("selected-class-match-summary")
+    expect(summary).toBeInTheDocument()
+
+    // Same course total count: 3 (prop-target, prop-same-course, missed-ame-2)
+    const courseCountChip = screen.getByTestId("same-course-count-chip")
+    expect(courseCountChip).toHaveTextContent("۳")
+
+    // Same teacher total count: 2 (prop-target, prop-same-teacher)
+    const teacherCountChip = screen.getByTestId("same-teacher-count-chip")
+    expect(teacherCountChip).toHaveTextContent("۲")
+
+    // Card with same teacher (prop-same-teacher) should be highlighted and NOT dimmed
+    const sameTeacherCard = screen.getAllByTestId(
+      "calendar-class-card-prop-same-teacher"
+    )[0]!
+    expect(sameTeacherCard).toHaveAttribute("data-same-teacher", "true")
+    expect(sameTeacherCard).not.toHaveAttribute("data-dimmed")
+    expect(
+      within(sameTeacherCard).getByTestId(
+        "same-teacher-badge-prop-same-teacher"
+      )
+    ).toBeInTheDocument()
+
+    // Card with same course (prop-same-course) should be highlighted and NOT dimmed
+    const sameCourseCard = screen.getAllByTestId(
+      "calendar-class-card-prop-same-course"
+    )[0]!
+    expect(sameCourseCard).toHaveAttribute("data-same-course", "true")
+    expect(sameCourseCard).not.toHaveAttribute("data-dimmed")
+    expect(
+      within(sameCourseCard).getByTestId("same-course-badge-prop-same-course")
+    ).toBeInTheDocument()
+
+    // Missed class card with same course (missed-ame-2) should also be highlighted and NOT dimmed
+    const missedSameCourseCard = screen.getAllByTestId(
+      "missed-class-card-missed-ame-2"
+    )[0]!
+    expect(missedSameCourseCard).toHaveAttribute("data-same-course", "true")
+    expect(missedSameCourseCard).not.toHaveAttribute("data-dimmed")
+    expect(
+      within(missedSameCourseCard).getByTestId("same-course-badge-missed-ame-2")
+    ).toBeInTheDocument()
+
+    // Unrelated card must be dimmed (opacity-25)
+    const unrelatedCard = screen.getAllByTestId(
+      "calendar-class-card-prop-unrelated"
+    )[0]!
+    expect(unrelatedCard).toHaveAttribute("data-dimmed", "true")
+    expect(unrelatedCard).not.toHaveAttribute("data-same-teacher")
+    expect(unrelatedCard).not.toHaveAttribute("data-same-course")
+
+    // Toggle highlight matches OFF via toolbar button
+    const toggleBtn = screen.getByTestId("toggle-highlight-matches-btn")
+    fireEvent.click(toggleBtn)
+
+    // Now same-teacher and same-course cards should lose highlight and become dimmed (since canSwap is false)
+    expect(sameTeacherCard).not.toHaveAttribute("data-same-teacher")
+    expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
+    expect(sameCourseCard).not.toHaveAttribute("data-same-course")
+    expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
+    expect(missedSameCourseCard).not.toHaveAttribute("data-same-course")
+    expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
+
+    // Toggle highlight back ON
+    fireEvent.click(toggleBtn)
+    expect(sameTeacherCard).toHaveAttribute("data-same-teacher", "true")
+    expect(sameTeacherCard).not.toHaveAttribute("data-dimmed")
+    expect(sameCourseCard).toHaveAttribute("data-same-course", "true")
+    expect(sameCourseCard).not.toHaveAttribute("data-dimmed")
+    expect(missedSameCourseCard).toHaveAttribute("data-same-course", "true")
+    expect(missedSameCourseCard).not.toHaveAttribute("data-dimmed")
   })
 })

@@ -325,6 +325,11 @@
       "freeTeacherStatusLabel": "وضعیت",
       "suggestedForCourse": "پیشنهاد برای {course}",
       "assignToTeacher": "تخصیص به استاد",
+      "highlightMatches": "هایلایت استاد و درس",
+      "sameTeacherBadge": "همین استاد",
+      "sameCourseBadge": "همین درس",
+      "sameTeacherCountBadge": "این استاد: {count} کلاس",
+      "sameCourseCountBadge": "همین درس: {count} کلاس",
       "swapDialog": {
         "title": "جابجایی کلاس",
         "sourceCardLabel": "کلاس انتخاب‌شده",

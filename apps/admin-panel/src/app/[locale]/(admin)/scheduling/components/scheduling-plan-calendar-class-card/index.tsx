@@ -115,6 +115,10 @@ export interface SchedulingPlanCalendarClassCardProps {
   isSwappable?: boolean
   isDimmed?: boolean
   isCollapsed?: boolean
+  hasSameTeacher?: boolean
+  hasSameCourse?: boolean
+  sameTeacherCount?: number
+  sameCourseCount?: number
   onHover?: (id: string | null) => void
   onClick?: (id: string) => void
 }
@@ -127,6 +131,10 @@ export function SchedulingPlanCalendarClassCard({
   isSwappable = false,
   isDimmed = false,
   isCollapsed = false,
+  hasSameTeacher = false,
+  hasSameCourse = false,
+  sameTeacherCount,
+  sameCourseCount,
   onHover,
   onClick,
 }: SchedulingPlanCalendarClassCardProps) {
@@ -160,6 +168,10 @@ export function SchedulingPlanCalendarClassCard({
         data-swappable={isSwappable ? "true" : undefined}
         data-dimmed={isDimmed ? "true" : undefined}
         data-collapsed={isCollapsed ? "true" : undefined}
+        data-same-teacher={hasSameTeacher ? "true" : undefined}
+        data-same-course={hasSameCourse ? "true" : undefined}
+        data-same-teacher-count={sameTeacherCount}
+        data-same-course-count={sameCourseCount}
         onMouseEnter={() => onHover?.(proposal.id)}
         onMouseLeave={() => onHover?.(null)}
         onClick={(e) => {
@@ -195,11 +207,26 @@ export function SchedulingPlanCalendarClassCard({
               aria-hidden="true"
             />
             <h5
-              className="truncate text-xs font-bold text-foreground"
+              className={cn(
+                "truncate text-xs font-bold text-foreground",
+                hasSameCourse &&
+                  "rounded-md border border-primary/40 bg-primary/10 px-1 py-0.5 text-primary"
+              )}
               title={proposal.course.title}
             >
               {proposal.course.title}
             </h5>
+            {hasSameCourse && (
+              <span
+                data-testid={`same-course-badge-${proposal.id}`}
+                className={cn(
+                  "shrink-0 rounded border border-primary/40 bg-primary/15 px-1 py-0.5 text-[9px] font-bold text-primary transition-opacity duration-200",
+                  isCollapsed && "hidden"
+                )}
+              >
+                {t("calendarView.sameCourseBadge")}
+              </span>
+            )}
             {proposal.title && proposal.title !== proposal.course.title && (
               <span
                 className={cn(
@@ -263,11 +290,39 @@ export function SchedulingPlanCalendarClassCard({
           )}
         >
           {/* Teacher (Always visible) */}
-          <div className="flex items-center gap-1.5 truncate">
-            <User aria-hidden className="size-3 shrink-0" />
-            <span className="truncate font-medium text-foreground/90">
+          <div
+            className={cn(
+              "flex items-center gap-1.5 truncate",
+              hasSameTeacher &&
+                "rounded-md border border-primary/40 bg-primary/10 px-1 py-0.5"
+            )}
+          >
+            <User
+              aria-hidden
+              className={cn(
+                "size-3 shrink-0",
+                hasSameTeacher ? "text-primary" : "text-muted-foreground"
+              )}
+            />
+            <span
+              className={cn(
+                "truncate font-medium",
+                hasSameTeacher ? "font-bold text-primary" : "text-foreground/90"
+              )}
+            >
               {teacherName}
             </span>
+            {hasSameTeacher && (
+              <span
+                data-testid={`same-teacher-badge-${proposal.id}`}
+                className={cn(
+                  "ms-auto shrink-0 rounded border border-primary/40 bg-primary/15 px-1 text-[9px] font-bold text-primary",
+                  isCollapsed && "hidden"
+                )}
+              >
+                {t("calendarView.sameTeacherBadge")}
+              </span>
+            )}
           </div>
 
           {/* Location (Collapsible) */}

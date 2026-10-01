@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Clock3,
+  Highlighter,
   Info,
   Plus,
   UserCheck,
@@ -140,6 +141,7 @@ export function SchedulingPlanCalendarView({
   const [showFreeTeachers, setShowFreeTeachers] = React.useState(
     defaultShowFreeTeachers
   )
+  const [highlightRelated, setHighlightRelated] = React.useState(true)
   const [userExpandedSlots, setUserExpandedSlots] =
     React.useState<Set<string> | null>(() => {
       if (initialExpandedSlots) return new Set(initialExpandedSlots)
@@ -298,6 +300,31 @@ export function SchedulingPlanCalendarView({
         : null,
     [activeClassId, allSwappableProposals]
   )
+
+  const activeTeacherId = React.useMemo(() => {
+    if (!activeProposal) return null
+    return activeProposal.teacherId ?? activeProposal.teacher?.id ?? null
+  }, [activeProposal])
+
+  const activeCourseId = activeProposal?.course?.id ?? null
+  const activeCourseTitle = activeProposal?.course?.title ?? null
+
+  const sameTeacherTotalCount = React.useMemo(() => {
+    if (!activeTeacherId) return 0
+    return proposals.filter(
+      (p) => (p.teacherId ?? p.teacher?.id) === activeTeacherId
+    ).length
+  }, [activeTeacherId, proposals])
+
+  const sameCourseTotalCount = React.useMemo(() => {
+    if (!activeProposal) return 0
+    return allSwappableProposals.filter((p) => {
+      if (activeCourseId && p.course?.id === activeCourseId) return true
+      if (activeCourseTitle && p.course?.title === activeCourseTitle)
+        return true
+      return false
+    }).length
+  }, [activeProposal, activeCourseId, activeCourseTitle, allSwappableProposals])
 
   const occupiedClassroomSlots = React.useMemo<OccupiedClassroomSlot[]>(() => {
     if (!hiringPlan?.assignments || !missedClassesAssignments) return []
@@ -759,14 +786,40 @@ export function SchedulingPlanCalendarView({
       >
         {/* Informational Subtitle & Legend */}
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Info
               aria-hidden
               className="size-4 shrink-0 text-muted-foreground"
             />
             <span>{t("calendarView.allInOneNotice")}</span>
+            {selectedClassId && activeProposal && (
+              <div
+                data-testid="selected-class-match-summary"
+                className="flex flex-wrap items-center gap-1.5 font-medium text-foreground"
+              >
+                <span className="text-muted-foreground">·</span>
+                <span
+                  data-testid="same-course-count-chip"
+                  className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary"
+                >
+                  {t("calendarView.sameCourseCountBadge", {
+                    count: formatNumber(sameCourseTotalCount, locale),
+                  })}
+                </span>
+                {activeTeacherId && (
+                  <span
+                    data-testid="same-teacher-count-chip"
+                    className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary"
+                  >
+                    {t("calendarView.sameTeacherCountBadge", {
+                      count: formatNumber(sameTeacherTotalCount, locale),
+                    })}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             {selectedClassId && (
               <Button
                 type="button"
@@ -790,6 +843,25 @@ export function SchedulingPlanCalendarView({
             )}
             {timeSlots.length > 0 && (
               <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="xs"
+                  data-testid="toggle-highlight-matches-btn"
+                  aria-pressed={highlightRelated}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setHighlightRelated((prev) => !prev)
+                  }}
+                  className={cn(
+                    "h-6 gap-1 rounded-lg px-2 text-xs font-medium",
+                    highlightRelated &&
+                      "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                  )}
+                >
+                  <Highlighter aria-hidden className="size-3" />
+                  <span>{t("calendarView.highlightMatches")}</span>
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
@@ -1039,8 +1111,34 @@ export function SchedulingPlanCalendarView({
                                 const isSwappable = swappableByProposalId.has(
                                   proposal.id
                                 )
+                                const propTeacherId =
+                                  proposal.teacherId ??
+                                  proposal.teacher?.id ??
+                                  null
+                                const hasSameTeacher = Boolean(
+                                  highlightRelated &&
+                                  activeTeacherId &&
+                                  !isActive &&
+                                  propTeacherId === activeTeacherId
+                                )
+                                const hasSameCourse = Boolean(
+                                  highlightRelated &&
+                                  (activeCourseId || activeCourseTitle) &&
+                                  !isActive &&
+                                  ((activeCourseId &&
+                                    proposal.course?.id === activeCourseId) ||
+                                    (activeCourseTitle &&
+                                      proposal.course?.title ===
+                                        activeCourseTitle))
+                                )
+                                const isRelated =
+                                  hasSameTeacher || hasSameCourse
                                 const isDimmed =
-                                  isAnyClassActive && !isActive && !isSwappable
+                                  isAnyClassActive &&
+                                  !isActive &&
+                                  !isSwappable &&
+                                  !isRelated
+
                                 return (
                                   <SchedulingPlanCalendarClassCard
                                     key={`${proposal.id}-${day}`}
@@ -1053,6 +1151,18 @@ export function SchedulingPlanCalendarView({
                                     isSwappable={isSwappable}
                                     isDimmed={isDimmed}
                                     isCollapsed={isCollapsed}
+                                    hasSameTeacher={hasSameTeacher}
+                                    hasSameCourse={hasSameCourse}
+                                    sameTeacherCount={
+                                      isActive
+                                        ? sameTeacherTotalCount
+                                        : undefined
+                                    }
+                                    sameCourseCount={
+                                      isActive
+                                        ? sameCourseTotalCount
+                                        : undefined
+                                    }
                                     onClick={handleCardClick}
                                   />
                                 )
@@ -1062,8 +1172,21 @@ export function SchedulingPlanCalendarView({
                                 const isActive = activeClassId === missedKey
                                 const isSwappable =
                                   swappableByProposalId.has(missedKey)
+                                const hasSameCourse = Boolean(
+                                  highlightRelated &&
+                                  (activeCourseId || activeCourseTitle) &&
+                                  !isActive &&
+                                  ((activeCourseId &&
+                                    assignment.course?.id === activeCourseId) ||
+                                    (activeCourseTitle &&
+                                      assignment.course?.title ===
+                                        activeCourseTitle))
+                                )
                                 const isDimmed =
-                                  isAnyClassActive && !isActive && !isSwappable
+                                  isAnyClassActive &&
+                                  !isActive &&
+                                  !isSwappable &&
+                                  !hasSameCourse
                                 const effectiveRoomId =
                                   state.classroomId ??
                                   assignment.classroom?.id ??
@@ -1095,6 +1218,12 @@ export function SchedulingPlanCalendarView({
                                     isSwappable={isSwappable}
                                     isDimmed={isDimmed}
                                     isCollapsed={isCollapsed}
+                                    hasSameCourse={hasSameCourse}
+                                    sameCourseCount={
+                                      isActive
+                                        ? sameCourseTotalCount
+                                        : undefined
+                                    }
                                     onClick={handleCardClick}
                                     onUnassign={() =>
                                       onUnassignMissedClass?.(assignment.key)
