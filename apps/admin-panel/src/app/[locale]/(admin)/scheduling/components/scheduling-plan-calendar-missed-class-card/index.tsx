@@ -51,10 +51,6 @@ export function SchedulingPlanCalendarMissedClassCard({
   const effectiveRoomCapacity =
     assignedRoomCapacity ?? assignment.classroom?.capacity
 
-  const isShowingHighlight = !isActive && !isSwappable && hasSameCourse
-  const isCourseDimmed = isShowingHighlight && !hasSameCourse
-  const isMissedDimmed = isShowingHighlight
-
   const classKey = `missed:${assignment.key}`
 
   return (
@@ -87,18 +83,14 @@ export function SchedulingPlanCalendarMissedClassCard({
           "z-10 scale-[1.02] opacity-100 shadow-md ring-2 ring-warning",
         isSwappable &&
           "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
+        hasSameCourse && !isActive && !isSwappable && "opacity-100",
         isDimmed && "opacity-25 hover:opacity-60"
       )}
       aria-label={assignment.course.title}
     >
       {/* Section 1: Course Title, Badges, Actions */}
       <div className="flex min-w-0 items-center justify-between gap-1.5">
-        <div
-          className={cn(
-            "flex min-w-0 flex-1 items-center gap-1.5 transition-opacity duration-200",
-            isCourseDimmed && "opacity-30 group-hover:opacity-100"
-          )}
-        >
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <span
             className="size-2 shrink-0 rounded-full bg-warning"
             aria-hidden="true"
@@ -128,16 +120,11 @@ export function SchedulingPlanCalendarMissedClassCard({
           )}
         </div>
 
-        <div
-          className={cn(
-            "flex shrink-0 items-center gap-1 transition-opacity duration-200",
-            isMissedDimmed && "opacity-30 group-hover:opacity-100"
-          )}
-        >
+        <div className="flex shrink-0 items-center gap-1">
           <Badge
             variant="warning"
             className={cn(
-              "h-4 px-1.5 py-0 text-[10px] transition-opacity duration-200",
+              "h-4 px-1.5 py-0 text-[10px]",
               isCollapsed && "hidden"
             )}
           >
@@ -170,12 +157,7 @@ export function SchedulingPlanCalendarMissedClassCard({
         )}
       >
         {/* Teacher (Always visible) */}
-        <div
-          className={cn(
-            "flex items-center gap-1.5 truncate transition-opacity duration-200",
-            isMissedDimmed && "opacity-30 group-hover:opacity-100"
-          )}
-        >
+        <div className="flex items-center gap-1.5 truncate">
           <GraduationCap aria-hidden className="size-3 shrink-0" />
           <span className="truncate font-medium text-foreground/90">
             {t("hiringPlan.pendingTeacher")}
@@ -191,12 +173,7 @@ export function SchedulingPlanCalendarMissedClassCard({
               : "grid-rows-[1fr] opacity-100"
           )}
         >
-          <div
-            className={cn(
-              "overflow-hidden transition-opacity duration-200",
-              isMissedDimmed && "opacity-30 group-hover:opacity-100"
-            )}
-          >
+          <div className="overflow-hidden">
             <div className="flex items-center gap-1.5 truncate pt-0.5">
               <DoorOpen aria-hidden className="size-3 shrink-0" />
               <span
@@ -224,12 +201,7 @@ export function SchedulingPlanCalendarMissedClassCard({
             : "grid-rows-[1fr] opacity-100"
         )}
       >
-        <div
-          className={cn(
-            "overflow-hidden transition-opacity duration-200",
-            isMissedDimmed && "opacity-30 group-hover:opacity-100"
-          )}
-        >
+        <div className="overflow-hidden">
           <div className="flex items-center justify-between border-t border-warning/20 pt-1.5 text-[11px]">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Users aria-hidden className="size-3 shrink-0" />

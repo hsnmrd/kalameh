@@ -158,12 +158,6 @@ export function SchedulingPlanCalendarClassCard({
 
   const maxCapacity = proposal.classroom?.capacity ?? proposal.capacity
 
-  const isShowingHighlight =
-    !isActive && !isSwappable && (hasSameTeacher || hasSameCourse)
-  const isCourseDimmed = isShowingHighlight && !hasSameCourse
-  const isTeacherDimmed = isShowingHighlight && !hasSameTeacher
-  const isMetaDimmed = isShowingHighlight
-
   return (
     <>
       <article
@@ -201,18 +195,17 @@ export function SchedulingPlanCalendarClassCard({
             "z-10 scale-[1.02] opacity-100 shadow-md ring-2 ring-primary",
           isSwappable &&
             "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
+          (hasSameTeacher || hasSameCourse) &&
+            !isActive &&
+            !isSwappable &&
+            "opacity-100",
           isDimmed && "opacity-25 hover:opacity-60"
         )}
         aria-label={proposal.course.title}
       >
         {/* Section 1: Course Title, Indicator, Badges, Actions */}
         <div className="flex min-w-0 items-center justify-between gap-1.5">
-          <div
-            className={cn(
-              "flex min-w-0 flex-1 items-center gap-1.5 transition-opacity duration-200",
-              isCourseDimmed && "opacity-30 group-hover:opacity-100"
-            )}
-          >
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
             <span
               className={cn("size-2 shrink-0 rounded-full", theme.dot)}
               aria-hidden="true"
@@ -303,12 +296,7 @@ export function SchedulingPlanCalendarClassCard({
           )}
         >
           {/* Teacher (Always visible) */}
-          <div
-            className={cn(
-              "flex items-center gap-1.5 truncate transition-opacity duration-200",
-              isTeacherDimmed && "opacity-30 group-hover:opacity-100"
-            )}
-          >
+          <div className="flex items-center gap-1.5 truncate">
             <User
               aria-hidden
               className={cn(
@@ -347,12 +335,7 @@ export function SchedulingPlanCalendarClassCard({
                 : "grid-rows-[1fr] opacity-100"
             )}
           >
-            <div
-              className={cn(
-                "overflow-hidden transition-opacity duration-200",
-                isMetaDimmed && "opacity-30 group-hover:opacity-100"
-              )}
-            >
+            <div className="overflow-hidden">
               <div className="flex items-center gap-1.5 truncate pt-0.5">
                 {isOnline ? (
                   <Globe aria-hidden className="size-3 shrink-0" />
@@ -376,12 +359,7 @@ export function SchedulingPlanCalendarClassCard({
               : "grid-rows-[1fr] opacity-100"
           )}
         >
-          <div
-            className={cn(
-              "overflow-hidden transition-opacity duration-200",
-              isMetaDimmed && "opacity-30 group-hover:opacity-100"
-            )}
-          >
+          <div className="overflow-hidden">
             <div
               className={cn(
                 "flex items-center justify-between border-t pt-1.5 text-[11px]",
