@@ -48,110 +48,105 @@ export function OutreachOptionItem({
   return (
     <li
       className={cn(
-        "rounded-xl p-3.5 transition-colors",
-        isAccepted ? "border border-success/40 bg-success/5" : "bg-muted/40"
+        "rounded-xl border p-3.5 transition-all sm:p-4",
+        isAccepted
+          ? "border-success/40 bg-success/5 shadow-xs"
+          : "border-border/60 bg-card hover:border-border hover:shadow-xs"
       )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="flex min-w-0 items-start gap-2">
-          <MessageCircleMore
-            aria-hidden
-            className="mt-0.5 size-4 shrink-0 text-foreground"
-          />
-          <div>
-            <div className="flex flex-wrap gap-1.5">
-              <Badge variant="secondary">
-                {option.higherLevelCourseTitle
-                  ? t("staffingFallback.higherLevelTeacherBadge")
-                  : t("staffingFallback.outreachBadge")}
-              </Badge>
-              <Badge variant={index === 0 ? "success" : "outline"}>
-                {index === 0
-                  ? t("staffingFallback.bestTimeBadge")
-                  : t("staffingFallback.alternativeTimeBadge", {
-                      rank: formatNumber(index + 1, locale),
-                    })}
-              </Badge>
-              {isAccepted && (
-                <Badge variant="success">
-                  {t("staffingFallback.acceptedBadge")}
-                </Badge>
-              )}
-            </div>
-            <p className="mt-2 text-xs font-semibold text-foreground">
-              {option.higherLevelCourseTitle
-                ? t("staffingFallback.higherLevelTeacherTitle", {
-                    teacher: teacherName,
-                    course: option.higherLevelCourseTitle,
-                  })
-                : t("staffingFallback.outreachTitle", {
-                    teacher: teacherName,
-                  })}
-            </p>
-          </div>
+      {/* Top Row: Teacher, Level, Priority and Schedule */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-bold text-foreground">
+            {teacherName}
+          </span>
+          {option.higherLevelCourseTitle ? (
+            <Badge variant="secondary" className="text-xs">
+              {t("staffingFallback.higherLevelTeacherBadge")}:{" "}
+              {option.higherLevelCourseTitle}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-xs">
+              {t("staffingFallback.outreachBadge")}
+            </Badge>
+          )}
+          <Badge
+            variant={index === 0 ? "success" : "outline"}
+            className="text-xs"
+          >
+            {index === 0
+              ? t("staffingFallback.bestTimeBadge")
+              : t("staffingFallback.alternativeTimeBadge", {
+                  rank: formatNumber(index + 1, locale),
+                })}
+          </Badge>
+          {isAccepted && (
+            <Badge variant="success" className="text-xs">
+              {t("staffingFallback.acceptedBadge")}
+            </Badge>
+          )}
         </div>
-        <span className="text-xs font-medium text-muted-foreground">
-          {days} · {option.startTime}–{option.endTime}
-        </span>
-      </div>
 
-      <div className="mt-3 rounded-lg bg-background px-3 py-2.5">
-        <p className="text-xs leading-5 font-medium text-foreground">
-          {t("staffingFallback.noClassConflict", {
-            teacher: teacherName,
-          })}
-        </p>
-        <div className="mt-2 flex items-start gap-2">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
           <CalendarClock
             aria-hidden
-            className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+            className="size-3.5 text-muted-foreground"
           />
-          <p className="text-xs leading-5 text-muted-foreground">
-            {option.availabilityChangeDays.length > 0
-              ? t("staffingFallback.availabilityChange", {
-                  days: availabilityChangeDays,
-                  start: option.startTime,
-                  end: option.endTime,
-                })
-              : t("staffingFallback.alreadyAvailableInSlot", {
-                  days,
-                  start: option.startTime,
-                  end: option.endTime,
-                })}
-          </p>
+          <span>{days}</span>
+          <span className="text-muted-foreground">·</span>
+          <span>
+            {option.startTime}–{option.endTime}
+          </span>
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-        <div
-          className={
-            needsRoom
-              ? "flex items-start gap-2 text-warning-foreground"
-              : "flex items-start gap-2 text-muted-foreground"
-          }
-        >
-          <DoorOpen aria-hidden className="mt-0.5 size-4 shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xs">
-              {option.deliveryMode === "ONLINE"
-                ? t("staffingFallback.online")
-                : needsRoom
-                  ? t("staffingFallback.roomNeeded")
-                  : t("staffingFallback.availableRooms")}
-            </p>
-            {option.deliveryMode === "IN_PERSON" && (
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {option.availableClassrooms.map((room) => (
-                  <Badge key={room.id} variant="outline">
-                    {t("recovery.roomWithCapacity", {
-                      room: room.name,
-                      capacity: formatNumber(room.capacity, locale),
-                    })}
-                  </Badge>
-                ))}
-              </div>
-            )}
+      {/* Middle Row: Concise Status & Schedule Notice */}
+      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+        {option.availabilityChangeDays.length > 0 ? (
+          <div className="flex items-center gap-1.5 font-medium text-warning-foreground">
+            <CalendarClock aria-hidden className="size-3.5 shrink-0" />
+            <span>
+              {t("staffingFallback.availabilityChange", {
+                days: availabilityChangeDays,
+                start: option.startTime,
+                end: option.endTime,
+              })}
+            </span>
           </div>
+        ) : (
+          <div className="flex items-center gap-1.5 font-medium text-success">
+            <Check aria-hidden className="size-3.5 shrink-0" />
+            <span>{t("staffingFallback.teacherFreeNotice")}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Row: Classrooms on side, Action Button on the other */}
+      <div className="mt-3 flex flex-col gap-3 border-t border-border/40 pt-3 sm:flex-row sm:items-center sm:justify-between">
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-1.5 text-xs",
+            needsRoom ? "text-warning-foreground" : "text-muted-foreground"
+          )}
+        >
+          <DoorOpen aria-hidden className="size-3.5 shrink-0" />
+          <span className="font-medium">
+            {option.deliveryMode === "ONLINE"
+              ? t("staffingFallback.online")
+              : needsRoom
+                ? t("staffingFallback.roomNeeded")
+                : t("staffingFallback.availableRoomsLabel")}
+          </span>
+          {option.deliveryMode === "IN_PERSON" &&
+            option.availableClassrooms.map((room) => (
+              <Badge
+                key={room.id}
+                variant="outline"
+                className="text-[11px] font-normal"
+              >
+                {room.name} ({formatNumber(room.capacity, locale)} نفر)
+              </Badge>
+            ))}
         </div>
 
         {canClickToggle && (
@@ -161,7 +156,7 @@ export function OutreachOptionItem({
             aria-pressed={isAccepted}
             disabled={isPending}
             onClick={() => onToggle(option)}
-            className="w-full sm:w-auto"
+            className="w-full shrink-0 font-medium sm:w-auto"
           >
             {isPending ? (
               <Spinner className="size-4 shrink-0" />

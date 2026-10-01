@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { CalendarX2, UserPlus } from "lucide-react"
 import type {
@@ -10,6 +10,7 @@ import type {
 } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { toast } from "@workspace/ui/components/sonner"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
 import { useActiveInstitute } from "@/lib/stores"
 import {
@@ -36,6 +37,7 @@ export function SchedulingStaffingFallback({
   unresolvedRequirementId,
 }: SchedulingStaffingFallbackProps) {
   const t = useTranslations("scheduling.planDetails")
+  const locale = useLocale()
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
   const [pendingOptionKey, setPendingOptionKey] = React.useState<string | null>(
@@ -107,30 +109,25 @@ export function SchedulingStaffingFallback({
       aria-label={t("staffingFallback.title")}
       className="rounded-xl border border-border p-3.5"
     >
-      <div className="flex items-start gap-2">
-        <UserPlus
-          aria-hidden
-          className="mt-0.5 size-4 shrink-0 text-foreground"
-        />
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <UserPlus aria-hidden className="size-4 shrink-0 text-foreground" />
           <h5 className="text-xs font-semibold text-foreground">
             {t("staffingFallback.title")}
           </h5>
-          <p className="mt-1 max-w-3xl text-xs leading-5 text-muted-foreground">
-            {t("staffingFallback.description")}
-          </p>
         </div>
+        {fallback.availabilityOptions.length > 0 && (
+          <Badge variant="secondary" className="text-xs font-medium">
+            {t("staffingFallback.solutionsCount", {
+              count: formatNumber(fallback.availabilityOptions.length, locale),
+            })}
+          </Badge>
+        )}
       </div>
 
       {fallback.availabilityOptions.length > 0 ? (
         <div className="mt-3">
-          <p className="text-xs font-semibold text-foreground">
-            {t("staffingFallback.suggestedTimesTitle")}
-          </p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            {t("staffingFallback.suggestedTimesRanking")}
-          </p>
-          <ul className="mt-2.5 flex flex-col gap-2.5">
+          <ul className="flex flex-col gap-2.5">
             {fallback.availabilityOptions.map((option, index) => (
               <OutreachOptionItem
                 key={option.key}

@@ -102,62 +102,67 @@ export function SchedulingUnresolvedRequirementItem({
         )}
       </div>
 
-      <div className="rounded-xl bg-muted/40 p-3.5">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="flex items-start gap-2">
-            <SearchCheck
-              aria-hidden
-              className="mt-0.5 size-4 shrink-0 text-foreground"
-            />
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-foreground">
-                {t("recovery.title")}
-              </p>
+      {visibleOptions.length > 0 ? (
+        <div className="rounded-xl bg-muted/40 p-3.5">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="flex items-start gap-2">
+              <SearchCheck
+                aria-hidden
+                className="mt-0.5 size-4 shrink-0 text-foreground"
+              />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground">
+                  {t("recovery.title")}
+                </p>
+              </div>
             </div>
+            {recovery.totalOptionCount > 0 && (
+              <Badge variant="secondary">
+                {t("recovery.optionCount", {
+                  total: formatNumber(recovery.totalOptionCount, locale),
+                  shown: formatNumber(visibleOptions.length, locale),
+                })}
+              </Badge>
+            )}
           </div>
-          {recovery.totalOptionCount > 0 && (
-            <Badge variant="secondary">
-              {t("recovery.optionCount", {
-                total: formatNumber(recovery.totalOptionCount, locale),
-                shown: formatNumber(visibleOptions.length, locale),
-              })}
-            </Badge>
-          )}
-        </div>
 
-        {visibleOptions.length > 0 ? (
           <ul className="mt-3 space-y-2.5">
             {visibleOptions.map((option) => (
               <SchedulingRecoveryOption key={option.key} option={option} />
             ))}
           </ul>
-        ) : (
-          <div className="mt-3 flex items-start gap-2 rounded-lg bg-background px-3 py-2.5">
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border/60 bg-muted/20 px-3.5 py-3">
+          <div className="flex items-start gap-2.5">
             <Lightbulb
               aria-hidden
               className="mt-0.5 size-4 shrink-0 text-muted-foreground"
             />
-            <div>
-              <p className="text-xs font-semibold text-foreground">
-                {t(
-                  recovery.busyTeachers.length > 0
-                    ? "recovery.teacherConflictTitle"
-                    : "recovery.noOptionTitle"
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-semibold text-foreground">
+                  {t(
+                    recovery.busyTeachers.length > 0
+                      ? "recovery.teacherConflictTitle"
+                      : "recovery.noOptionTitle"
+                  )}
+                </p>
+                {recovery.busyTeachers.length > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    ·{" "}
+                    {t("recovery.teacherConflictDescriptionWithoutSuggestion")}
+                  </span>
                 )}
-              </p>
-              <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                {recovery.busyTeachers.length > 0
-                  ? t(
-                      recovery.staffingFallback.availabilityOptions.length > 0
-                        ? "recovery.teacherConflictDescriptionWithSuggestion"
-                        : "recovery.teacherConflictDescriptionWithoutSuggestion"
-                    )
-                  : t(`unresolvedSuggestions.${requirement.reasonCode}`)}
-              </p>
+              </div>
               {recovery.busyTeachers.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                   {recovery.busyTeachers.map((teacher) => (
-                    <Badge key={teacher.id} variant="outline">
+                    <Badge
+                      key={teacher.id}
+                      variant="outline"
+                      className="text-xs"
+                    >
                       {teacher.firstName} {teacher.lastName}
                     </Badge>
                   ))}
@@ -165,8 +170,8 @@ export function SchedulingUnresolvedRequirementItem({
               )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <SchedulingTeacherReassignmentAnalysis
         chains={recovery.reassignmentChains}
