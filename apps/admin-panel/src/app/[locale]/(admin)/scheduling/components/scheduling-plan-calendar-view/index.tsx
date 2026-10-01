@@ -800,8 +800,12 @@ export function SchedulingPlanCalendarView({
                 <span className="text-muted-foreground">·</span>
                 <span
                   data-testid="same-course-count-chip"
-                  className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-1.5 py-0.5 text-[11px] font-medium text-foreground"
                 >
+                  <span
+                    className="inline-block size-2 shrink-0 rounded-xs bg-[#ffff00]"
+                    aria-hidden="true"
+                  />
                   {t("calendarView.sameCourseCountBadge", {
                     count: formatNumber(sameCourseTotalCount, locale),
                   })}
@@ -809,8 +813,12 @@ export function SchedulingPlanCalendarView({
                 {activeTeacherId && (
                   <span
                     data-testid="same-teacher-count-chip"
-                    className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-1.5 py-0.5 text-[11px] font-medium text-foreground"
                   >
+                    <span
+                      className="inline-block size-2 shrink-0 rounded-xs bg-[#67e8f9]"
+                      aria-hidden="true"
+                    />
                     {t("calendarView.sameTeacherCountBadge", {
                       count: formatNumber(sameTeacherTotalCount, locale),
                     })}

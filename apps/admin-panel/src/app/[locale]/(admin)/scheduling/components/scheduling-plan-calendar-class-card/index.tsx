@@ -301,7 +301,7 @@ export function SchedulingPlanCalendarClassCard({
               )}
             />
             {hasSameTeacher ? (
-              <mark className="inline-block max-w-full truncate rounded-none bg-[#ffff00] px-0.5 text-black">
+              <mark className="inline-block max-w-full truncate rounded-none bg-[#67e8f9] px-0.5 text-black">
                 {teacherName}
               </mark>
             ) : (
