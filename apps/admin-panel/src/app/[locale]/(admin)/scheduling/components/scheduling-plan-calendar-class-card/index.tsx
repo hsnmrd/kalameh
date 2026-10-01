@@ -4,6 +4,7 @@ import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
   Building2,
+  DoorOpen,
   Globe,
   LockKeyhole,
   Pencil,
@@ -157,6 +158,8 @@ export function SchedulingPlanCalendarClassCard({
     : proposal.classroom?.name || proposal.branch?.name || t("location")
 
   const maxCapacity = proposal.classroom?.capacity ?? proposal.capacity
+  const capacityPercent =
+    maxCapacity > 0 ? Math.round((proposal.capacity / maxCapacity) * 100) : 0
 
   const hasHighlightTag = hasSameTeacher || hasSameCourse
   const isGrayscale = isDimmed && !isActive && !isSwappable && !hasHighlightTag
@@ -204,8 +207,9 @@ export function SchedulingPlanCalendarClassCard({
         )}
         aria-label={proposal.course.title}
       >
-        {/* Section 1: Course Title, Indicator, Badges, Delivery Mode, Actions */}
-        <div className="flex min-w-0 items-center justify-between gap-1.5">
+        {/* Section 1: Course Title, Location, Quick Capacity, Status & Actions */}
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          {/* Start (Right): Course Title & Delivery Mode */}
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
             <span
               className={cn("size-2 shrink-0 rounded-full", theme.dot)}
@@ -237,7 +241,7 @@ export function SchedulingPlanCalendarClassCard({
             {proposal.title && proposal.title !== proposal.course.title && (
               <span
                 className={cn(
-                  "inline-block max-w-[160px] truncate rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-opacity duration-200",
+                  "hidden max-w-[130px] truncate rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-opacity duration-200 xl:inline-block",
                   isCollapsed && "hidden",
                   theme.badge
                 )}
@@ -247,12 +251,7 @@ export function SchedulingPlanCalendarClassCard({
               </span>
             )}
             {/* Delivery mode badge pill */}
-            <span
-              className={cn(
-                "inline-flex shrink-0 items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-opacity",
-                isCollapsed && "hidden sm:inline-flex"
-              )}
-            >
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
               {isOnline ? (
                 <Globe aria-hidden className="size-2.5 text-inherit" />
               ) : (
@@ -266,7 +265,46 @@ export function SchedulingPlanCalendarClassCard({
             </span>
           </div>
 
-          <div className="flex shrink-0 items-center gap-0.5">
+          {/* Center: Location (Classroom / Room) */}
+          <div className="flex shrink-0 items-center gap-1 rounded-md bg-muted/40 px-2 py-0.5 text-[11px] text-muted-foreground">
+            {isOnline ? (
+              <Globe
+                aria-hidden
+                className="size-3 shrink-0 text-muted-foreground"
+              />
+            ) : (
+              <DoorOpen
+                aria-hidden
+                className="size-3 shrink-0 text-muted-foreground"
+              />
+            )}
+            <span className="max-w-[130px] truncate font-medium text-foreground/90">
+              {locationName}
+            </span>
+          </div>
+
+          {/* End (Left): Capacity Quick Badge, Status Icons & Actions */}
+          <div className="flex shrink-0 items-center gap-1.5">
+            {/* Capacity quick pill */}
+            <div
+              className="flex items-center gap-1 rounded-md bg-muted/40 px-2 py-0.5 text-[11px] font-semibold text-foreground/90 tabular-nums"
+              title={t("calendarView.capacityLabel", {
+                current: formatNumber(proposal.capacity, locale),
+                max: formatNumber(maxCapacity, locale),
+              })}
+            >
+              <Users
+                aria-hidden
+                className="size-3 shrink-0 text-muted-foreground"
+              />
+              <span>{formatNumber(proposal.capacity, locale)}</span>
+              {proposal.classroom?.capacity && (
+                <span className="text-[10px] font-normal text-muted-foreground">
+                  /{formatNumber(maxCapacity, locale)}
+                </span>
+              )}
+            </div>
+
             {proposal.isLocked && (
               <span
                 title={t("states.locked")}
@@ -307,7 +345,7 @@ export function SchedulingPlanCalendarClassCard({
           </div>
         </div>
 
-        {/* Section 2: Teacher & Location Meta (Horizontal Split across Wide Card) */}
+        {/* Section 2: Teacher, Branch Meta & Occupancy Progress */}
         <div
           className={cn(
             "flex items-center justify-between gap-2 text-[11px] text-muted-foreground transition-all duration-300",
@@ -315,7 +353,7 @@ export function SchedulingPlanCalendarClassCard({
           )}
         >
           {/* Teacher (Always visible) */}
-          <div className="flex min-w-0 items-center gap-2 truncate">
+          <div className="flex min-w-0 items-center gap-1.5 truncate">
             <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted/70 text-muted-foreground">
               <User
                 aria-hidden
@@ -326,7 +364,7 @@ export function SchedulingPlanCalendarClassCard({
               />
             </div>
             {hasSameTeacher ? (
-              <mark className="inline-block max-w-full truncate rounded-none bg-[#67e8f9] px-0.5 text-black">
+              <mark className="inline-block max-w-full truncate rounded-none bg-[#67e8f9] px-0.5 font-semibold text-black">
                 {teacherName}
               </mark>
             ) : (
@@ -347,25 +385,50 @@ export function SchedulingPlanCalendarClassCard({
             )}
           </div>
 
-          {/* Location (Collapsible) */}
-          <div
-            className={cn(
-              "flex shrink-0 items-center gap-1.5 truncate text-[11px] text-muted-foreground transition-opacity duration-200",
-              isCollapsed ? "hidden" : "flex"
+          {/* Branch / Secondary venue details (Center) */}
+          <div className="hidden min-w-0 items-center gap-1 truncate text-[10px] text-muted-foreground sm:flex">
+            {proposal.branch?.name && (
+              <>
+                <Building2
+                  aria-hidden
+                  className="size-3 shrink-0 text-muted-foreground"
+                />
+                <span className="truncate">{proposal.branch.name}</span>
+              </>
             )}
-          >
-            <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted/70 text-muted-foreground">
-              {isOnline ? (
-                <Globe aria-hidden className="size-3 shrink-0" />
-              ) : (
-                <Building2 aria-hidden className="size-3 shrink-0" />
-              )}
-            </div>
-            <span className="truncate font-medium">{locationName}</span>
           </div>
+
+          {/* Occupancy Progress Bar (End) */}
+          {proposal.classroom?.capacity ? (
+            <div className="flex shrink-0 items-center gap-1.5">
+              <div
+                className="h-1.5 w-16 overflow-hidden rounded-full bg-muted/80 sm:w-24"
+                title={`${capacityPercent}%`}
+              >
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-300",
+                    proposal.capacity >= maxCapacity
+                      ? "bg-warning"
+                      : "bg-primary"
+                  )}
+                  style={{
+                    width: `${Math.min(capacityPercent, 100)}%`,
+                  }}
+                />
+              </div>
+              <span className="text-[10px] font-bold text-muted-foreground tabular-nums">
+                {formatNumber(capacityPercent, locale)}%
+              </span>
+            </div>
+          ) : (
+            <span className="text-[10px] text-muted-foreground">
+              {formatNumber(proposal.capacity, locale)} نفر
+            </span>
+          )}
         </div>
 
-        {/* Section 3: Capacity Info & Visual Meter (Collapsible) */}
+        {/* Section 3: Capacity Info & Visual Meter (Expanded View) */}
         <div
           data-testid={`calendar-class-card-details-${proposal.id}`}
           aria-hidden={isCollapsed}
@@ -396,7 +459,7 @@ export function SchedulingPlanCalendarClassCard({
                   <div className="hidden items-center gap-1.5 sm:flex">
                     <div
                       className="h-2 w-24 overflow-hidden rounded-full bg-muted/80 sm:w-32"
-                      title={`${Math.round((proposal.capacity / maxCapacity) * 100)}%`}
+                      title={`${capacityPercent}%`}
                     >
                       <div
                         className={cn(
@@ -406,19 +469,12 @@ export function SchedulingPlanCalendarClassCard({
                             : "bg-primary"
                         )}
                         style={{
-                          width: `${Math.min(
-                            Math.round((proposal.capacity / maxCapacity) * 100),
-                            100
-                          )}%`,
+                          width: `${Math.min(capacityPercent, 100)}%`,
                         }}
                       />
                     </div>
                     <span className="text-[10px] font-bold text-muted-foreground tabular-nums">
-                      {formatNumber(
-                        Math.round((proposal.capacity / maxCapacity) * 100),
-                        locale
-                      )}
-                      %
+                      {formatNumber(capacityPercent, locale)}%
                     </span>
                   </div>
                 )}

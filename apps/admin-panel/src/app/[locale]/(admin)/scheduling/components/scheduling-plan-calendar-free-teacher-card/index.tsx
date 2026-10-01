@@ -75,8 +75,8 @@ export function SchedulingPlanCalendarFreeTeacherCard({
       data-grayscale={isDimmed ? "true" : undefined}
       aria-label={teacherName}
     >
-      {/* Section 1: Header Title & Badge */}
-      <div className="flex min-w-0 items-center justify-between gap-1.5">
+      {/* Section 1: Header Title, Level Range & Badge */}
+      <div className="flex min-w-0 items-center justify-between gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <span
             className="size-2 shrink-0 rounded-full bg-destructive"
@@ -90,20 +90,27 @@ export function SchedulingPlanCalendarFreeTeacherCard({
           </h5>
         </div>
 
+        {/* Center: Level Range Chip */}
+        {levelRange && (
+          <div className="flex shrink-0 items-center gap-1 rounded-md bg-destructive/15 px-2 py-0.5 text-[11px] text-destructive">
+            <GraduationCap aria-hidden className="size-3 shrink-0" />
+            <span dir="ltr" className="max-w-[130px] truncate font-medium">
+              {levelRange}
+            </span>
+          </div>
+        )}
+
         <div className="flex shrink-0 items-center gap-1">
           <Badge
             variant="outline"
-            className={cn(
-              "h-4 border-destructive/30 bg-background/80 px-1.5 py-0 text-[10px] transition-opacity duration-200",
-              isCollapsed && "hidden"
-            )}
+            className="h-4 border-destructive/30 bg-background/80 px-1.5 py-0 text-[10px]"
           >
             {t("calendarView.freeTeacherBadge")}
           </Badge>
         </div>
       </div>
 
-      {/* Section 2: Teacher Name & Level Range Meta (Horizontal Split across Wide Card) */}
+      {/* Section 2: Teacher Name & Status Meta */}
       <div
         className={cn(
           "flex items-center justify-between gap-2 text-[11px] text-muted-foreground transition-all duration-300",
@@ -111,7 +118,7 @@ export function SchedulingPlanCalendarFreeTeacherCard({
         )}
       >
         {/* Teacher Name (Always visible) */}
-        <div className="flex min-w-0 items-center gap-2 truncate">
+        <div className="flex min-w-0 items-center gap-1.5 truncate">
           <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-destructive/20 text-destructive">
             <User aria-hidden className="size-3 shrink-0" />
           </div>
@@ -120,7 +127,7 @@ export function SchedulingPlanCalendarFreeTeacherCard({
           </span>
         </div>
 
-        {/* Level Range (Collapsible) */}
+        {/* Level Range (Expanded or secondary) */}
         <div
           className={cn(
             "flex shrink-0 items-center gap-1.5 truncate text-[11px] transition-opacity duration-200",
@@ -128,9 +135,6 @@ export function SchedulingPlanCalendarFreeTeacherCard({
             isDimmed && "opacity-30 group-hover:opacity-100"
           )}
         >
-          <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-destructive/20 text-destructive">
-            <GraduationCap aria-hidden className="size-3 shrink-0" />
-          </div>
           <span
             dir={levelRange ? "ltr" : undefined}
             className="truncate font-medium text-foreground/90"

@@ -97,8 +97,9 @@ export function SchedulingPlanCalendarMissedClassCard({
       )}
       aria-label={assignment.course.title}
     >
-      {/* Section 1: Course Title, Delivery Mode, Badges, Actions */}
-      <div className="flex min-w-0 items-center justify-between gap-1.5">
+      {/* Section 1: Course Title, Room Location, Quick Capacity & Actions */}
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        {/* Start (Right): Course Title & Delivery Mode */}
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <span
             className="size-2 shrink-0 rounded-full bg-warning"
@@ -128,12 +129,7 @@ export function SchedulingPlanCalendarMissedClassCard({
             </span>
           )}
           {/* Delivery mode badge pill */}
-          <span
-            className={cn(
-              "inline-flex shrink-0 items-center gap-1 rounded-md border border-warning/30 bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning-foreground transition-opacity",
-              isCollapsed && "hidden sm:inline-flex"
-            )}
-          >
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-warning/30 bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning-foreground">
             {isOnline ? (
               <Globe aria-hidden className="size-2.5 text-inherit" />
             ) : (
@@ -147,12 +143,31 @@ export function SchedulingPlanCalendarMissedClassCard({
           </span>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        {/* Center: Room / Location */}
+        <div className="flex shrink-0 items-center gap-1 rounded-md bg-warning/20 px-2 py-0.5 text-[11px] text-warning-foreground">
+          {isOnline ? (
+            <Globe aria-hidden className="size-3 shrink-0 text-inherit" />
+          ) : (
+            <DoorOpen aria-hidden className="size-3 shrink-0 text-inherit" />
+          )}
+          <span className="max-w-[130px] truncate font-medium">
+            {roomLabel}
+          </span>
+        </div>
+
+        {/* End (Left): Capacity Quick Badge, New Teacher Badge & Unassign Button */}
+        <div className="flex shrink-0 items-center gap-1.5">
+          {effectiveRoomCapacity && (
+            <div className="flex items-center gap-1 rounded-md bg-warning/20 px-2 py-0.5 text-[11px] font-semibold text-warning-foreground tabular-nums">
+              <Users aria-hidden className="size-3 shrink-0 text-inherit" />
+              <span>{formatNumber(effectiveRoomCapacity, locale)} نفر</span>
+            </div>
+          )}
           <Badge
             variant="warning"
             className={cn(
               "h-4 px-1.5 py-0 text-[10px]",
-              isCollapsed && "hidden"
+              isCollapsed && "hidden sm:inline-flex"
             )}
           >
             {t("calendarView.newTeacherBadge")}
@@ -176,7 +191,7 @@ export function SchedulingPlanCalendarMissedClassCard({
         </div>
       </div>
 
-      {/* Section 2: Teacher & Room Meta (Horizontal Split across Wide Card) */}
+      {/* Section 2: Teacher (Pending) & Delivery Details */}
       <div
         className={cn(
           "flex items-center justify-between gap-2 text-[11px] text-muted-foreground transition-all duration-300",
@@ -184,7 +199,7 @@ export function SchedulingPlanCalendarMissedClassCard({
         )}
       >
         {/* Teacher (Always visible) */}
-        <div className="flex min-w-0 items-center gap-2 truncate">
+        <div className="flex min-w-0 items-center gap-1.5 truncate">
           <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-warning/20 text-warning-foreground">
             <GraduationCap aria-hidden className="size-3 shrink-0" />
           </div>
@@ -193,29 +208,22 @@ export function SchedulingPlanCalendarMissedClassCard({
           </span>
         </div>
 
-        {/* Room (Collapsible) */}
-        <div
-          className={cn(
-            "flex shrink-0 items-center gap-1.5 truncate text-[11px] transition-opacity duration-200",
-            isCollapsed ? "hidden" : "flex"
+        {/* Center: Requirement status note */}
+        <div className="hidden min-w-0 items-center gap-1 truncate text-[10px] text-warning-foreground sm:flex">
+          <span>{t("calendarView.newTeacherBadge")}</span>
+        </div>
+
+        {/* End: Capacity or room note */}
+        <div className="flex items-center gap-1 text-[11px] font-semibold text-warning-foreground tabular-nums">
+          {effectiveRoomCapacity ? (
+            <span>{formatNumber(effectiveRoomCapacity, locale)} نفر ظرفیت</span>
+          ) : (
+            <span>{t("calendarView.roomNeeded")}</span>
           )}
-        >
-          <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-warning/20 text-warning-foreground">
-            <DoorOpen aria-hidden className="size-3 shrink-0" />
-          </div>
-          <span
-            className={
-              !assignedRoomName && !isOnline
-                ? "truncate font-medium text-warning-foreground"
-                : "truncate text-foreground/90"
-            }
-          >
-            {roomLabel}
-          </span>
         </div>
       </div>
 
-      {/* Section 3: Capacity Info (Collapsible) */}
+      {/* Section 3: Capacity Info (Expanded View) */}
       <div
         data-testid={`missed-class-card-details-${assignment.key}`}
         aria-hidden={isCollapsed}
