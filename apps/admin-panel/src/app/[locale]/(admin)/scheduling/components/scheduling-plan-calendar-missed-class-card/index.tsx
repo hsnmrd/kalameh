@@ -83,7 +83,6 @@ export function SchedulingPlanCalendarMissedClassCard({
           "z-10 scale-[1.02] opacity-100 shadow-md ring-2 ring-warning",
         isSwappable &&
           "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
-        hasSameCourse && !isActive && !isSwappable && "opacity-100",
         isDimmed && "opacity-25 hover:opacity-60"
       )}
       aria-label={assignment.course.title}

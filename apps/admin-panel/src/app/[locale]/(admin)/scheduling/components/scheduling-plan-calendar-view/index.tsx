@@ -1131,13 +1131,8 @@ export function SchedulingPlanCalendarView({
                                       proposal.course?.title ===
                                         activeCourseTitle))
                                 )
-                                const isRelated =
-                                  hasSameTeacher || hasSameCourse
                                 const isDimmed =
-                                  isAnyClassActive &&
-                                  !isActive &&
-                                  !isSwappable &&
-                                  !isRelated
+                                  isAnyClassActive && !isActive && !isSwappable
 
                                 return (
                                   <SchedulingPlanCalendarClassCard
@@ -1183,10 +1178,7 @@ export function SchedulingPlanCalendarView({
                                         activeCourseTitle))
                                 )
                                 const isDimmed =
-                                  isAnyClassActive &&
-                                  !isActive &&
-                                  !isSwappable &&
-                                  !hasSameCourse
+                                  isAnyClassActive && !isActive && !isSwappable
                                 const effectiveRoomId =
                                   state.classroomId ??
                                   assignment.classroom?.id ??
