@@ -594,10 +594,10 @@ describe("SchedulingPlanCalendarView Component", () => {
       expect(card).toHaveClass("opacity-100")
     })
 
-    // prop-2 is an unrelated card without highlight words, so its container is dimmed with opacity-25
+    // prop-2 is an unrelated card without highlight words, so its container is dimmed with opacity-25 and grayscale
     expect(prop2Cards[0]?.getAttribute("data-dimmed")).toBe("true")
     expect(prop2Cards[0]).toHaveClass("opacity-25")
-    expect(prop2Cards[0]).not.toHaveClass("grayscale")
+    expect(prop2Cards[0]).toHaveClass("grayscale")
 
     // Clear selection button is displayed in the header
     const clearBtn = screen.getByTestId("clear-selection-btn")
@@ -2633,13 +2633,14 @@ describe("SchedulingPlanCalendarView Component", () => {
     const teacherCountChip = screen.getByTestId("same-teacher-count-chip")
     expect(teacherCountChip).toHaveTextContent("۲")
 
-    // Card with same teacher (prop-same-teacher) is not swappable, so it has the same dimmed opacity as other non-shaking cards, but highlights content with mark tag
+    // Card with same teacher (prop-same-teacher) is not swappable, so it has the same dimmed opacity as other non-shaking cards, but highlights content with mark tag and does NOT have grayscale
     const sameTeacherCard = screen.getAllByTestId(
       "calendar-class-card-prop-same-teacher"
     )[0]!
     expect(sameTeacherCard).toHaveAttribute("data-same-teacher", "true")
     expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
     expect(sameTeacherCard).toHaveClass("opacity-25")
+    expect(sameTeacherCard).not.toHaveClass("grayscale")
     expect(sameTeacherCard.querySelector("mark")).toHaveTextContent(
       "علیرضا شمس"
     )
@@ -2649,13 +2650,14 @@ describe("SchedulingPlanCalendarView Component", () => {
       )
     ).toBeInTheDocument()
 
-    // Card with same course (prop-same-course) is not swappable, so it has the same dimmed opacity as other non-shaking cards, but highlights content with mark tag
+    // Card with same course (prop-same-course) is not swappable, so it has the same dimmed opacity as other non-shaking cards, but highlights content with mark tag and does NOT have grayscale
     const sameCourseCard = screen.getAllByTestId(
       "calendar-class-card-prop-same-course"
     )[0]!
     expect(sameCourseCard).toHaveAttribute("data-same-course", "true")
     expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
     expect(sameCourseCard).toHaveClass("opacity-25")
+    expect(sameCourseCard).not.toHaveClass("grayscale")
     expect(sameCourseCard.querySelector("mark")).toHaveTextContent(
       "American English File 2"
     )
@@ -2663,13 +2665,14 @@ describe("SchedulingPlanCalendarView Component", () => {
       within(sameCourseCard).getByTestId("same-course-badge-prop-same-course")
     ).toBeInTheDocument()
 
-    // Missed class card with same course (missed-ame-2) is not swappable, so it has the same dimmed opacity, but highlights content with mark tag
+    // Missed class card with same course (missed-ame-2) is not swappable, so it has the same dimmed opacity, but highlights content with mark tag and does NOT have grayscale
     const missedSameCourseCard = screen.getAllByTestId(
       "missed-class-card-missed-ame-2"
     )[0]!
     expect(missedSameCourseCard).toHaveAttribute("data-same-course", "true")
     expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
     expect(missedSameCourseCard).toHaveClass("opacity-25")
+    expect(missedSameCourseCard).not.toHaveClass("grayscale")
     expect(missedSameCourseCard.querySelector("mark")).toHaveTextContent(
       "American English File 2"
     )
@@ -2677,12 +2680,13 @@ describe("SchedulingPlanCalendarView Component", () => {
       within(missedSameCourseCard).getByTestId("same-course-badge-missed-ame-2")
     ).toBeInTheDocument()
 
-    // Unrelated card (which does not show highlight words) also has container-level opacity-25
+    // Unrelated card (which does not show highlight words) has container-level opacity-25 AND grayscale
     const unrelatedCard = screen.getAllByTestId(
       "calendar-class-card-prop-unrelated"
     )[0]!
     expect(unrelatedCard).toHaveAttribute("data-dimmed", "true")
     expect(unrelatedCard).toHaveClass("opacity-25")
+    expect(unrelatedCard).toHaveClass("grayscale")
     expect(unrelatedCard).not.toHaveAttribute("data-same-teacher")
     expect(unrelatedCard).not.toHaveAttribute("data-same-course")
     expect(unrelatedCard.querySelector("mark")).toBeNull()
@@ -2691,18 +2695,21 @@ describe("SchedulingPlanCalendarView Component", () => {
     const toggleBtn = screen.getByTestId("toggle-highlight-matches-btn")
     fireEvent.click(toggleBtn)
 
-    // Now same-teacher and same-course cards should lose highlight mark tags
+    // Now same-teacher and same-course cards should lose highlight mark tags and gain grayscale
     expect(sameTeacherCard).not.toHaveAttribute("data-same-teacher")
     expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
     expect(sameTeacherCard).toHaveClass("opacity-25")
+    expect(sameTeacherCard).toHaveClass("grayscale")
     expect(sameTeacherCard.querySelector("mark")).toBeNull()
     expect(sameCourseCard).not.toHaveAttribute("data-same-course")
     expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
     expect(sameCourseCard).toHaveClass("opacity-25")
+    expect(sameCourseCard).toHaveClass("grayscale")
     expect(sameCourseCard.querySelector("mark")).toBeNull()
     expect(missedSameCourseCard).not.toHaveAttribute("data-same-course")
     expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
     expect(missedSameCourseCard).toHaveClass("opacity-25")
+    expect(missedSameCourseCard).toHaveClass("grayscale")
     expect(missedSameCourseCard.querySelector("mark")).toBeNull()
 
     // Toggle highlight back ON
@@ -2710,18 +2717,21 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(sameTeacherCard).toHaveAttribute("data-same-teacher", "true")
     expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
     expect(sameTeacherCard).toHaveClass("opacity-25")
+    expect(sameTeacherCard).not.toHaveClass("grayscale")
     expect(sameTeacherCard.querySelector("mark")).toHaveTextContent(
       "علیرضا شمس"
     )
     expect(sameCourseCard).toHaveAttribute("data-same-course", "true")
     expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
     expect(sameCourseCard).toHaveClass("opacity-25")
+    expect(sameCourseCard).not.toHaveClass("grayscale")
     expect(sameCourseCard.querySelector("mark")).toHaveTextContent(
       "American English File 2"
     )
     expect(missedSameCourseCard).toHaveAttribute("data-same-course", "true")
     expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
     expect(missedSameCourseCard).toHaveClass("opacity-25")
+    expect(missedSameCourseCard).not.toHaveClass("grayscale")
     expect(missedSameCourseCard.querySelector("mark")).toHaveTextContent(
       "American English File 2"
     )

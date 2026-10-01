@@ -158,6 +158,9 @@ export function SchedulingPlanCalendarClassCard({
 
   const maxCapacity = proposal.classroom?.capacity ?? proposal.capacity
 
+  const hasHighlightTag = hasSameTeacher || hasSameCourse
+  const isGrayscale = isDimmed && !isActive && !isSwappable && !hasHighlightTag
+
   return (
     <>
       <article
@@ -167,6 +170,7 @@ export function SchedulingPlanCalendarClassCard({
         data-active={isActive ? "true" : undefined}
         data-swappable={isSwappable ? "true" : undefined}
         data-dimmed={isDimmed ? "true" : undefined}
+        data-grayscale={isGrayscale ? "true" : undefined}
         data-collapsed={isCollapsed ? "true" : undefined}
         data-same-teacher={hasSameTeacher ? "true" : undefined}
         data-same-course={hasSameCourse ? "true" : undefined}
@@ -186,7 +190,7 @@ export function SchedulingPlanCalendarClassCard({
           }
         }}
         className={cn(
-          "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-xl border border-s-2 shadow-2xs transition-[height,padding,background-color,border-color,box-shadow] duration-300 ease-in-out select-none",
+          "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-xl border border-s-2 shadow-2xs transition-[height,padding,background-color,border-color,box-shadow,filter] duration-300 ease-in-out select-none",
           isCollapsed ? "h-[52px] p-2" : "h-[134px] p-2.5",
           theme.border,
           theme.borderStart,
@@ -195,7 +199,8 @@ export function SchedulingPlanCalendarClassCard({
             "z-10 scale-[1.02] opacity-100 shadow-md ring-2 ring-primary",
           isSwappable &&
             "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
-          isDimmed && "opacity-25 hover:opacity-60"
+          isDimmed && "opacity-25 hover:opacity-60",
+          isGrayscale && "grayscale hover:grayscale-0"
         )}
         aria-label={proposal.course.title}
       >

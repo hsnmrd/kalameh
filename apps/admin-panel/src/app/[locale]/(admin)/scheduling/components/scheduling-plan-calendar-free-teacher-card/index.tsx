@@ -70,8 +70,9 @@ export function SchedulingPlanCalendarFreeTeacherCard({
         isCollapsed ? "h-[52px] p-2" : "h-[134px] p-2.5",
         isSwappable &&
           "animate-calendar-card-shake z-10 cursor-pointer opacity-100 ring-2 ring-primary/60 hover:animate-none",
-        isDimmed && "opacity-25"
+        isDimmed && "opacity-25 grayscale hover:opacity-60 hover:grayscale-0"
       )}
+      data-grayscale={isDimmed ? "true" : undefined}
       aria-label={teacherName}
     >
       {/* Section 1: Header Title & Badge */}
