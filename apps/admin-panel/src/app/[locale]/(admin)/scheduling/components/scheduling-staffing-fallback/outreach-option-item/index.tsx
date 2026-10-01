@@ -46,18 +46,18 @@ export function OutreachOptionItem({
   const canClickToggle = canToggle && (!needsRoom || isAccepted)
 
   return (
-    <li
+    <div
       className={cn(
-        "rounded-xl border p-3.5 transition-all sm:p-4",
+        "rounded-2xl border p-4 transition-all sm:p-5",
         isAccepted
           ? "border-success/40 bg-success/5 shadow-xs"
           : "border-border/60 bg-card hover:border-border hover:shadow-xs"
       )}
     >
       {/* Top Row: Teacher, Level, Priority and Schedule */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-bold text-foreground">
+          <span className="text-base font-bold text-foreground">
             {teacherName}
           </span>
           {option.higherLevelCourseTitle ? (
@@ -101,7 +101,7 @@ export function OutreachOptionItem({
       </div>
 
       {/* Middle Row: Concise Status & Schedule Notice */}
-      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
         {option.availabilityChangeDays.length > 0 ? (
           <div className="flex items-center gap-1.5 font-medium text-warning-foreground">
             <CalendarClock aria-hidden className="size-3.5 shrink-0" />
@@ -122,7 +122,7 @@ export function OutreachOptionItem({
       </div>
 
       {/* Bottom Row: Classrooms on side, Action Button on the other */}
-      <div className="mt-3 flex flex-col gap-3 border-t border-border/40 pt-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-4 flex flex-col gap-3 border-t border-border/40 pt-3 sm:flex-row sm:items-center sm:justify-between">
         <div
           className={cn(
             "flex flex-wrap items-center gap-1.5 text-xs",
@@ -169,6 +169,6 @@ export function OutreachOptionItem({
           </Button>
         )}
       </div>
-    </li>
+    </div>
   )
 }

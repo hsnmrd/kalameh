@@ -426,6 +426,7 @@
       "title": "راه‌حل‌های تأمین استاد",
       "description": "سامانه دو مسیر تأمین استاد را بررسی می‌کند: افزایش زمان حضور استادان واجد شرایط یا افزودن استاد جدید برای این سطح.",
       "solutionsCount": "{count} زمان پیشنهادی",
+      "carouselCounter": "گزینه {current} از {total}",
       "outreachBadge": "افزایش زمان حضور استاد",
       "higherLevelTeacherBadge": "استاد سطح بالاتر",
       "suggestedTimesTitle": "زمان‌های پیشنهادی برای تشکیل کلاس",

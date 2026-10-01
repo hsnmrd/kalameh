@@ -17,7 +17,7 @@ import {
   SchedulingNewTeacherAssignmentList,
   type NewTeacherAssignment,
 } from "../scheduling-new-teacher-assignment-list"
-import { OutreachOptionItem } from "./outreach-option-item"
+import { OutreachCarousel } from "./outreach-carousel"
 
 interface SchedulingStaffingFallbackProps {
   fallback: StaffingFallbackDto
@@ -127,20 +127,14 @@ export function SchedulingStaffingFallback({
 
       {fallback.availabilityOptions.length > 0 ? (
         <div className="mt-3">
-          <ul className="flex flex-col gap-2.5">
-            {fallback.availabilityOptions.map((option, index) => (
-              <OutreachOptionItem
-                key={option.key}
-                option={option}
-                index={index}
-                canToggle={canToggle}
-                isPending={
-                  toggleMutation.isPending && pendingOptionKey === option.key
-                }
-                onToggle={handleToggleOption}
-              />
-            ))}
-          </ul>
+          <OutreachCarousel
+            options={fallback.availabilityOptions}
+            canToggle={canToggle}
+            isPending={(key) =>
+              toggleMutation.isPending && pendingOptionKey === key
+            }
+            onToggle={handleToggleOption}
+          />
         </div>
       ) : (
         <div className="mt-3 flex items-start gap-2 border-y border-border py-3">

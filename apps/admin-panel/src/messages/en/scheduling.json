@@ -426,6 +426,7 @@
       "title": "Teacher staffing options",
       "description": "The system evaluates two staffing paths: expanding a qualified teacher’s availability or adding a new teacher for this level.",
       "solutionsCount": "{count} suggested options",
+      "carouselCounter": "Option {current} of {total}",
       "outreachBadge": "Increase availability",
       "higherLevelTeacherBadge": "Higher-level teacher",
       "suggestedTimesTitle": "Suggested times for unscheduled class",
