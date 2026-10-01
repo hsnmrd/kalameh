@@ -51,6 +51,10 @@ export function SchedulingPlanCalendarMissedClassCard({
   const effectiveRoomCapacity =
     assignedRoomCapacity ?? assignment.classroom?.capacity
 
+  const isShowingHighlight = !isActive && !isSwappable && hasSameCourse
+  const isCourseDimmed = isShowingHighlight && !hasSameCourse
+  const isMissedDimmed = isShowingHighlight
+
   const classKey = `missed:${assignment.key}`
 
   return (
@@ -89,20 +93,27 @@ export function SchedulingPlanCalendarMissedClassCard({
     >
       {/* Section 1: Course Title, Badges, Actions */}
       <div className="flex min-w-0 items-center justify-between gap-1.5">
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 items-center gap-1.5 transition-opacity duration-200",
+            isCourseDimmed && "opacity-30 group-hover:opacity-100"
+          )}
+        >
           <span
             className="size-2 shrink-0 rounded-full bg-warning"
             aria-hidden="true"
           />
           <h5
-            className={cn(
-              "truncate text-xs font-bold text-foreground",
-              hasSameCourse &&
-                "rounded-md border border-primary/40 bg-primary/10 px-1 py-0.5 text-primary"
-            )}
+            className="truncate text-xs font-bold text-foreground"
             title={assignment.course.title}
           >
-            {assignment.course.title}
+            {hasSameCourse ? (
+              <mark className="inline-block max-w-full truncate rounded-md border border-primary/40 bg-primary/15 px-1 py-0.5 font-bold text-primary">
+                {assignment.course.title}
+              </mark>
+            ) : (
+              assignment.course.title
+            )}
           </h5>
           {hasSameCourse && (
             <span
@@ -117,7 +128,12 @@ export function SchedulingPlanCalendarMissedClassCard({
           )}
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div
+          className={cn(
+            "flex shrink-0 items-center gap-1 transition-opacity duration-200",
+            isMissedDimmed && "opacity-30 group-hover:opacity-100"
+          )}
+        >
           <Badge
             variant="warning"
             className={cn(
@@ -154,7 +170,12 @@ export function SchedulingPlanCalendarMissedClassCard({
         )}
       >
         {/* Teacher (Always visible) */}
-        <div className="flex items-center gap-1.5 truncate">
+        <div
+          className={cn(
+            "flex items-center gap-1.5 truncate transition-opacity duration-200",
+            isMissedDimmed && "opacity-30 group-hover:opacity-100"
+          )}
+        >
           <GraduationCap aria-hidden className="size-3 shrink-0" />
           <span className="truncate font-medium text-foreground/90">
             {t("hiringPlan.pendingTeacher")}
@@ -170,7 +191,12 @@ export function SchedulingPlanCalendarMissedClassCard({
               : "grid-rows-[1fr] opacity-100"
           )}
         >
-          <div className="overflow-hidden">
+          <div
+            className={cn(
+              "overflow-hidden transition-opacity duration-200",
+              isMissedDimmed && "opacity-30 group-hover:opacity-100"
+            )}
+          >
             <div className="flex items-center gap-1.5 truncate pt-0.5">
               <DoorOpen aria-hidden className="size-3 shrink-0" />
               <span
@@ -198,7 +224,12 @@ export function SchedulingPlanCalendarMissedClassCard({
             : "grid-rows-[1fr] opacity-100"
         )}
       >
-        <div className="overflow-hidden">
+        <div
+          className={cn(
+            "overflow-hidden transition-opacity duration-200",
+            isMissedDimmed && "opacity-30 group-hover:opacity-100"
+          )}
+        >
           <div className="flex items-center justify-between border-t border-warning/20 pt-1.5 text-[11px]">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Users aria-hidden className="size-3 shrink-0" />

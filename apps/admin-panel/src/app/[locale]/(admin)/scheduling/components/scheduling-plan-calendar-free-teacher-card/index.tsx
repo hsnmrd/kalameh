@@ -75,7 +75,12 @@ export function SchedulingPlanCalendarFreeTeacherCard({
       aria-label={teacherName}
     >
       {/* Section 1: Header Title & Badge */}
-      <div className="flex min-w-0 items-center justify-between gap-1.5">
+      <div
+        className={cn(
+          "flex min-w-0 items-center justify-between gap-1.5 transition-opacity duration-200",
+          isDimmed && "opacity-30 group-hover:opacity-100"
+        )}
+      >
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <span
             className="size-2 shrink-0 rounded-full bg-destructive"
@@ -110,7 +115,12 @@ export function SchedulingPlanCalendarFreeTeacherCard({
         )}
       >
         {/* Teacher Name (Always visible) */}
-        <div className="flex items-center gap-1.5 truncate">
+        <div
+          className={cn(
+            "flex items-center gap-1.5 truncate transition-opacity duration-200",
+            isDimmed && "opacity-30 group-hover:opacity-100"
+          )}
+        >
           <User aria-hidden className="size-3 shrink-0" />
           <span className="truncate font-medium text-foreground/90">
             {teacherName}
@@ -126,7 +136,12 @@ export function SchedulingPlanCalendarFreeTeacherCard({
               : "grid-rows-[1fr] opacity-100"
           )}
         >
-          <div className="overflow-hidden">
+          <div
+            className={cn(
+              "overflow-hidden transition-opacity duration-200",
+              isDimmed && "opacity-30 group-hover:opacity-100"
+            )}
+          >
             <div className="flex items-center gap-1.5 truncate pt-0.5">
               <GraduationCap aria-hidden className="size-3 shrink-0" />
               <span
@@ -151,7 +166,12 @@ export function SchedulingPlanCalendarFreeTeacherCard({
             : "grid-rows-[1fr] opacity-100"
         )}
       >
-        <div className="overflow-hidden">
+        <div
+          className={cn(
+            "overflow-hidden transition-opacity duration-200",
+            isDimmed && "opacity-30 group-hover:opacity-100"
+          )}
+        >
           <div className="flex items-center justify-between border-t border-destructive/20 pt-1.5 text-[11px]">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Clock3 aria-hidden className="size-3 shrink-0" />

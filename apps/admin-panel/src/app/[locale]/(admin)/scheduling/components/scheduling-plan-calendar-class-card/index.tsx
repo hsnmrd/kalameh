@@ -158,6 +158,12 @@ export function SchedulingPlanCalendarClassCard({
 
   const maxCapacity = proposal.classroom?.capacity ?? proposal.capacity
 
+  const isShowingHighlight =
+    !isActive && !isSwappable && (hasSameTeacher || hasSameCourse)
+  const isCourseDimmed = isShowingHighlight && !hasSameCourse
+  const isTeacherDimmed = isShowingHighlight && !hasSameTeacher
+  const isMetaDimmed = isShowingHighlight
+
   return (
     <>
       <article
@@ -201,20 +207,27 @@ export function SchedulingPlanCalendarClassCard({
       >
         {/* Section 1: Course Title, Indicator, Badges, Actions */}
         <div className="flex min-w-0 items-center justify-between gap-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+          <div
+            className={cn(
+              "flex min-w-0 flex-1 items-center gap-1.5 transition-opacity duration-200",
+              isCourseDimmed && "opacity-30 group-hover:opacity-100"
+            )}
+          >
             <span
               className={cn("size-2 shrink-0 rounded-full", theme.dot)}
               aria-hidden="true"
             />
             <h5
-              className={cn(
-                "truncate text-xs font-bold text-foreground",
-                hasSameCourse &&
-                  "rounded-md border border-primary/40 bg-primary/10 px-1 py-0.5 text-primary"
-              )}
+              className="truncate text-xs font-bold text-foreground"
               title={proposal.course.title}
             >
-              {proposal.course.title}
+              {hasSameCourse ? (
+                <mark className="inline-block max-w-full truncate rounded-md border border-primary/40 bg-primary/15 px-1 py-0.5 font-bold text-primary">
+                  {proposal.course.title}
+                </mark>
+              ) : (
+                proposal.course.title
+              )}
             </h5>
             {hasSameCourse && (
               <span
@@ -292,9 +305,8 @@ export function SchedulingPlanCalendarClassCard({
           {/* Teacher (Always visible) */}
           <div
             className={cn(
-              "flex items-center gap-1.5 truncate",
-              hasSameTeacher &&
-                "rounded-md border border-primary/40 bg-primary/10 px-1 py-0.5"
+              "flex items-center gap-1.5 truncate transition-opacity duration-200",
+              isTeacherDimmed && "opacity-30 group-hover:opacity-100"
             )}
           >
             <User
@@ -304,14 +316,15 @@ export function SchedulingPlanCalendarClassCard({
                 hasSameTeacher ? "text-primary" : "text-muted-foreground"
               )}
             />
-            <span
-              className={cn(
-                "truncate font-medium",
-                hasSameTeacher ? "font-bold text-primary" : "text-foreground/90"
-              )}
-            >
-              {teacherName}
-            </span>
+            {hasSameTeacher ? (
+              <mark className="inline-block max-w-full truncate rounded-md border border-primary/40 bg-primary/15 px-1 py-0.5 font-bold text-primary">
+                {teacherName}
+              </mark>
+            ) : (
+              <span className="truncate font-medium text-foreground/90">
+                {teacherName}
+              </span>
+            )}
             {hasSameTeacher && (
               <span
                 data-testid={`same-teacher-badge-${proposal.id}`}
@@ -334,7 +347,12 @@ export function SchedulingPlanCalendarClassCard({
                 : "grid-rows-[1fr] opacity-100"
             )}
           >
-            <div className="overflow-hidden">
+            <div
+              className={cn(
+                "overflow-hidden transition-opacity duration-200",
+                isMetaDimmed && "opacity-30 group-hover:opacity-100"
+              )}
+            >
               <div className="flex items-center gap-1.5 truncate pt-0.5">
                 {isOnline ? (
                   <Globe aria-hidden className="size-3 shrink-0" />
@@ -358,7 +376,12 @@ export function SchedulingPlanCalendarClassCard({
               : "grid-rows-[1fr] opacity-100"
           )}
         >
-          <div className="overflow-hidden">
+          <div
+            className={cn(
+              "overflow-hidden transition-opacity duration-200",
+              isMetaDimmed && "opacity-30 group-hover:opacity-100"
+            )}
+          >
             <div
               className={cn(
                 "flex items-center justify-between border-t pt-1.5 text-[11px]",
