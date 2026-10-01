@@ -307,28 +307,30 @@ export function SchedulingPlanCalendarClassCard({
           </div>
         </div>
 
-        {/* Section 2: Teacher & Location Meta (Horizontal Split) */}
+        {/* Section 2: Teacher & Location Meta (Horizontal Split across Wide Card) */}
         <div
           className={cn(
             "flex items-center justify-between gap-2 text-[11px] text-muted-foreground transition-all duration-300",
-            !isCollapsed && cn("border-t pt-1.5", theme.divider)
+            !isCollapsed && cn("border-t pt-2", theme.divider)
           )}
         >
           {/* Teacher (Always visible) */}
-          <div className="flex min-w-0 items-center gap-1.5 truncate">
-            <User
-              aria-hidden
-              className={cn(
-                "size-3 shrink-0",
-                hasSameTeacher ? "text-primary" : "text-muted-foreground"
-              )}
-            />
+          <div className="flex min-w-0 items-center gap-2 truncate">
+            <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted/70 text-muted-foreground">
+              <User
+                aria-hidden
+                className={cn(
+                  "size-3 shrink-0",
+                  hasSameTeacher ? "text-primary" : "text-muted-foreground"
+                )}
+              />
+            </div>
             {hasSameTeacher ? (
               <mark className="inline-block max-w-full truncate rounded-none bg-[#67e8f9] px-0.5 text-black">
                 {teacherName}
               </mark>
             ) : (
-              <span className="truncate font-medium text-foreground/90">
+              <span className="truncate font-semibold text-foreground/90">
                 {teacherName}
               </span>
             )}
@@ -352,12 +354,14 @@ export function SchedulingPlanCalendarClassCard({
               isCollapsed ? "hidden" : "flex"
             )}
           >
-            {isOnline ? (
-              <Globe aria-hidden className="size-3 shrink-0" />
-            ) : (
-              <Building2 aria-hidden className="size-3 shrink-0" />
-            )}
-            <span className="truncate">{locationName}</span>
+            <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted/70 text-muted-foreground">
+              {isOnline ? (
+                <Globe aria-hidden className="size-3 shrink-0" />
+              ) : (
+                <Building2 aria-hidden className="size-3 shrink-0" />
+              )}
+            </div>
+            <span className="truncate font-medium">{locationName}</span>
           </div>
         </div>
 
@@ -375,7 +379,7 @@ export function SchedulingPlanCalendarClassCard({
           <div className="overflow-hidden">
             <div
               className={cn(
-                "flex items-center justify-between border-t pt-1.5 text-[11px]",
+                "flex items-center justify-between border-t pt-2 text-[11px]",
                 theme.divider
               )}
               aria-label={t("calendarView.capacityLabel", {
@@ -384,32 +388,41 @@ export function SchedulingPlanCalendarClassCard({
               })}
             >
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Users aria-hidden className="size-3 shrink-0" />
+                <Users aria-hidden className="size-3.5 shrink-0" />
                 <span className="text-[10px] font-medium">{t("capacity")}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 {proposal.classroom?.capacity && (
-                  <div
-                    className="hidden h-1.5 w-16 overflow-hidden rounded-full bg-muted/80 sm:block sm:w-24"
-                    title={`${Math.round((proposal.capacity / maxCapacity) * 100)}%`}
-                  >
+                  <div className="hidden items-center gap-1.5 sm:flex">
                     <div
-                      className={cn(
-                        "h-full rounded-full transition-all duration-300",
-                        proposal.capacity >= maxCapacity
-                          ? "bg-warning"
-                          : "bg-primary"
+                      className="h-2 w-24 overflow-hidden rounded-full bg-muted/80 sm:w-32"
+                      title={`${Math.round((proposal.capacity / maxCapacity) * 100)}%`}
+                    >
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-all duration-300",
+                          proposal.capacity >= maxCapacity
+                            ? "bg-warning"
+                            : "bg-primary"
+                        )}
+                        style={{
+                          width: `${Math.min(
+                            Math.round((proposal.capacity / maxCapacity) * 100),
+                            100
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-bold text-muted-foreground tabular-nums">
+                      {formatNumber(
+                        Math.round((proposal.capacity / maxCapacity) * 100),
+                        locale
                       )}
-                      style={{
-                        width: `${Math.min(
-                          Math.round((proposal.capacity / maxCapacity) * 100),
-                          100
-                        )}%`,
-                      }}
-                    />
+                      %
+                    </span>
                   </div>
                 )}
-                <div className="flex items-center gap-1 text-xs font-semibold text-foreground tabular-nums">
+                <div className="flex items-center gap-1 text-xs font-bold text-foreground tabular-nums">
                   <span>{formatNumber(proposal.capacity, locale)}</span>
                   {proposal.classroom?.capacity && (
                     <span className="text-[10px] font-normal text-muted-foreground">

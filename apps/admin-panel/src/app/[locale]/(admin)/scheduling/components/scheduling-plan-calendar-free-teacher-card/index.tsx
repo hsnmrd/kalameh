@@ -103,17 +103,19 @@ export function SchedulingPlanCalendarFreeTeacherCard({
         </div>
       </div>
 
-      {/* Section 2: Teacher Name & Level Range Meta (Horizontal Split) */}
+      {/* Section 2: Teacher Name & Level Range Meta (Horizontal Split across Wide Card) */}
       <div
         className={cn(
           "flex items-center justify-between gap-2 text-[11px] text-muted-foreground transition-all duration-300",
-          !isCollapsed && "border-t border-destructive/20 pt-1.5"
+          !isCollapsed && "border-t border-destructive/20 pt-2"
         )}
       >
         {/* Teacher Name (Always visible) */}
-        <div className="flex min-w-0 items-center gap-1.5 truncate">
-          <User aria-hidden className="size-3 shrink-0" />
-          <span className="truncate font-medium text-foreground/90">
+        <div className="flex min-w-0 items-center gap-2 truncate">
+          <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-destructive/20 text-destructive">
+            <User aria-hidden className="size-3 shrink-0" />
+          </div>
+          <span className="truncate font-semibold text-foreground/90">
             {teacherName}
           </span>
         </div>
@@ -126,10 +128,12 @@ export function SchedulingPlanCalendarFreeTeacherCard({
             isDimmed && "opacity-30 group-hover:opacity-100"
           )}
         >
-          <GraduationCap aria-hidden className="size-3 shrink-0" />
+          <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-destructive/20 text-destructive">
+            <GraduationCap aria-hidden className="size-3 shrink-0" />
+          </div>
           <span
             dir={levelRange ? "ltr" : undefined}
-            className="truncate text-foreground/90"
+            className="truncate font-medium text-foreground/90"
           >
             {levelRange ?? t("teacherCalendar.noTeachableLevels")}
           </span>

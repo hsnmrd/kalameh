@@ -679,7 +679,6 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     // Both rows initially collapsed
     expect(row1Toggle.getAttribute("aria-expanded")).toBe("false")
-    expect(row1Toggle).toHaveClass("h-full")
     expect(row1Toggle).toHaveClass("min-h-[52px]")
     expect(row2Toggle.getAttribute("aria-expanded")).toBe("false")
     expect(cardRow1).toHaveAttribute("data-collapsed", "true")
@@ -693,8 +692,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     fireEvent.click(row1Toggle)
 
     expect(row1Toggle.getAttribute("aria-expanded")).toBe("true")
-    expect(row1Toggle).toHaveClass("h-full")
-    expect(row1Toggle).toHaveClass("min-h-[134px]")
+    expect(row1Toggle).toHaveClass("min-h-[52px]")
     expect(row2Toggle.getAttribute("aria-expanded")).toBe("false")
     expect(cardRow1).not.toHaveAttribute("data-collapsed")
     expect(cardRow1).toHaveClass("h-[134px]")

@@ -176,17 +176,19 @@ export function SchedulingPlanCalendarMissedClassCard({
         </div>
       </div>
 
-      {/* Section 2: Teacher & Room Meta (Horizontal Split) */}
+      {/* Section 2: Teacher & Room Meta (Horizontal Split across Wide Card) */}
       <div
         className={cn(
           "flex items-center justify-between gap-2 text-[11px] text-muted-foreground transition-all duration-300",
-          !isCollapsed && "border-t border-warning/20 pt-1.5"
+          !isCollapsed && "border-t border-warning/20 pt-2"
         )}
       >
         {/* Teacher (Always visible) */}
-        <div className="flex min-w-0 items-center gap-1.5 truncate">
-          <GraduationCap aria-hidden className="size-3 shrink-0" />
-          <span className="truncate font-medium text-foreground/90">
+        <div className="flex min-w-0 items-center gap-2 truncate">
+          <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-warning/20 text-warning-foreground">
+            <GraduationCap aria-hidden className="size-3 shrink-0" />
+          </div>
+          <span className="truncate font-semibold text-foreground/90">
             {t("hiringPlan.pendingTeacher")}
           </span>
         </div>
@@ -198,7 +200,9 @@ export function SchedulingPlanCalendarMissedClassCard({
             isCollapsed ? "hidden" : "flex"
           )}
         >
-          <DoorOpen aria-hidden className="size-3 shrink-0" />
+          <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-warning/20 text-warning-foreground">
+            <DoorOpen aria-hidden className="size-3 shrink-0" />
+          </div>
           <span
             className={
               !assignedRoomName && !isOnline
