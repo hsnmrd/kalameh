@@ -62,18 +62,20 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.getByText("کلاس قابل اجرا ساخته نشد")).toBeInTheDocument()
   })
 
-  it("renders Time column header and 6 week days in Persian calendar order (excluding Friday)", () => {
+  it("renders Time column header and day tracks (Even and Odd days) in Persian calendar order", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
     expect(screen.getByText("ساعت")).toBeInTheDocument()
-    expect(screen.getByText("شنبه")).toBeInTheDocument()
-    expect(screen.getByText("یکشنبه")).toBeInTheDocument()
-    expect(screen.getByText("دوشنبه")).toBeInTheDocument()
-    expect(screen.getByText("سه‌شنبه")).toBeInTheDocument()
-    expect(screen.getByText("چهارشنبه")).toBeInTheDocument()
-    expect(screen.getByText("پنجشنبه")).toBeInTheDocument()
+    expect(screen.getAllByText("روزهای زوج").length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText("روزهای فرد").length).toBeGreaterThanOrEqual(1)
+    expect(
+      screen.getAllByText("شنبه، دوشنبه، چهارشنبه").length
+    ).toBeGreaterThanOrEqual(1)
+    expect(
+      screen.getAllByText("یکشنبه، سه‌شنبه، پنج‌شنبه").length
+    ).toBeGreaterThanOrEqual(1)
     expect(screen.queryByText("جمعه")).not.toBeInTheDocument()
   })
 
@@ -87,7 +89,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     ).toBeInTheDocument()
   })
 
-  it("renders time slot rows with time column and day cells", () => {
+  it("renders time slot rows with time column and day track cells", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
@@ -102,29 +104,25 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(within(row1).getByText("09:00")).toBeInTheDocument()
     expect(within(row1).getByText("10:30")).toBeInTheDocument()
 
-    // Saturday in Row 1 has A1
-    const satCellRow1 = row1.querySelector('[data-day="SATURDAY"]')
-    expect(satCellRow1).toHaveTextContent("American English File 1")
+    // Even track in Row 1 has A1 (prop-1 on Sat, Mon, Wed)
+    const evenCellRow1 = row1.querySelector('[data-day="EVEN"]')
+    expect(evenCellRow1).toHaveTextContent("American English File 1")
 
-    // Monday in Row 1 has A1
-    const monCellRow1 = row1.querySelector('[data-day="MONDAY"]')
-    expect(monCellRow1).toHaveTextContent("American English File 1")
-
-    // Sunday in Row 1 has empty placeholder with low opacity
-    const sunCellRow1 = row1.querySelector('[data-day="SUNDAY"]')
-    expect(sunCellRow1).toHaveTextContent("بدون کلاس")
+    // Odd track in Row 1 has empty placeholder with low opacity
+    const oddCellRow1 = row1.querySelector('[data-day="ODD"]')
+    expect(oddCellRow1).toHaveTextContent("بدون کلاس")
 
     // Row 2 (16:00 - 17:30)
     expect(within(row2).getByText("16:00")).toBeInTheDocument()
     expect(within(row2).getByText("17:30")).toBeInTheDocument()
 
-    // Saturday in Row 2 has A2
-    const satCellRow2 = row2.querySelector('[data-day="SATURDAY"]')
-    expect(satCellRow2).toHaveTextContent("American English File 2")
+    // Even track in Row 2 has A2 (prop-2 on Sat)
+    const evenCellRow2 = row2.querySelector('[data-day="EVEN"]')
+    expect(evenCellRow2).toHaveTextContent("American English File 2")
 
-    // Monday in Row 2 has empty placeholder with low opacity
-    const monCellRow2 = row2.querySelector('[data-day="MONDAY"]')
-    expect(monCellRow2).toHaveTextContent("بدون کلاس")
+    // Odd track in Row 2 has empty placeholder with low opacity
+    const oddCellRow2 = row2.querySelector('[data-day="ODD"]')
+    expect(oddCellRow2).toHaveTextContent("بدون کلاس")
   })
 
   it("displays teacher name, location, and capacity without time inside the card when expanded", () => {
@@ -148,18 +146,18 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(card).not.toHaveTextContent("09:00 تا 10:30")
   })
 
-  it("shows day header summary badges", () => {
+  it("shows day track header summary badges", () => {
     const { container } = render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    const satHeader = container.querySelector('[data-day-header="SATURDAY"]')
-    expect(satHeader).toHaveTextContent("شنبه")
-    expect(satHeader).toHaveTextContent("۲ کلاس")
+    const evenHeader = container.querySelector('[data-day-header="EVEN"]')
+    expect(evenHeader).toHaveTextContent("روزهای زوج")
+    expect(evenHeader).toHaveTextContent("۲ کلاس")
 
-    const sunHeader = container.querySelector('[data-day-header="SUNDAY"]')
-    expect(sunHeader).toHaveTextContent("یکشنبه")
-    expect(sunHeader).toHaveTextContent("تعطیل هفتگی")
+    const oddHeader = container.querySelector('[data-day-header="ODD"]')
+    expect(oddHeader).toHaveTextContent("روزهای فرد")
+    expect(oddHeader).toHaveTextContent("تعطیل هفتگی")
   })
 
   it("renders clean capacity display with limits and without stepper buttons", () => {
@@ -216,22 +214,50 @@ describe("SchedulingPlanCalendarView Component", () => {
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    // mockProposals[0] (prop-1) is on SATURDAY, MONDAY, WEDNESDAY
+    // mockProposals[0] (prop-1) is on SATURDAY, MONDAY, WEDNESDAY, which maps to EVEN track once
     const prop1Cards = container.querySelectorAll('[data-class-id="prop-1"]')
-    expect(prop1Cards.length).toBe(3)
+    expect(prop1Cards.length).toBe(1)
 
-    // All sessions of prop-1 must have the same color index
     const prop1ColorIndex = prop1Cards[0]?.getAttribute("data-color-index")
     expect(prop1ColorIndex).toBeDefined()
-    prop1Cards.forEach((card) => {
-      expect(card.getAttribute("data-color-index")).toBe(prop1ColorIndex)
-    })
 
     // mockProposals[1] (prop-2) is a different class, should have a different color index
     const prop2Cards = container.querySelectorAll('[data-class-id="prop-2"]')
     expect(prop2Cards.length).toBe(1)
     const prop2ColorIndex = prop2Cards[0]?.getAttribute("data-color-index")
     expect(prop2ColorIndex).not.toBe(prop1ColorIndex)
+  })
+
+  it("provides a mobile switcher that toggles between Even Days and Odd Days", () => {
+    const { container } = render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    const evenBtn = screen.getByTestId("mobile-track-even-btn")
+    const oddBtn = screen.getByTestId("mobile-track-odd-btn")
+    expect(evenBtn).toBeInTheDocument()
+    expect(oddBtn).toBeInTheDocument()
+
+    // Initially Even track is active on mobile
+    expect(evenBtn).toHaveAttribute("aria-selected", "true")
+    expect(oddBtn).toHaveAttribute("aria-selected", "false")
+
+    // Even day header is visible on mobile; Odd day header has hidden md:flex
+    const evenHeader = container.querySelector('[data-day-header="EVEN"]')
+    const oddHeader = container.querySelector('[data-day-header="ODD"]')
+    expect(evenHeader).not.toHaveClass("hidden")
+    expect(oddHeader).toHaveClass("hidden")
+    expect(oddHeader).toHaveClass("md:flex")
+
+    // Click Odd days tab on mobile
+    fireEvent.click(oddBtn)
+    expect(oddBtn).toHaveAttribute("aria-selected", "true")
+    expect(evenBtn).toHaveAttribute("aria-selected", "false")
+
+    // Now Even header is hidden on mobile, and Odd header is visible
+    expect(evenHeader).toHaveClass("hidden")
+    expect(evenHeader).toHaveClass("md:flex")
+    expect(oddHeader).not.toHaveClass("hidden")
   })
 
   it("renders missed classes with distinct amber warning styling and new teacher badge", () => {
@@ -355,28 +381,16 @@ describe("SchedulingPlanCalendarView Component", () => {
       />
     )
 
-    // Tuesday has 0 classes in mockProposals, header is dimmed
-    const tuesdayHeader = container.querySelector('[data-day-header="TUESDAY"]')
-    expect(tuesdayHeader).toHaveClass("opacity-50")
+    // Odd track has 0 classes in mockProposals, header is dimmed
+    const oddHeader = container.querySelector('[data-day-header="ODD"]')
+    expect(oddHeader).toHaveClass("opacity-50")
 
-    // Friday column must not be present
-    expect(container.querySelector('[data-day-header="FRIDAY"]')).toBeNull()
-
-    // Empty cell in Tuesday Row 1 has noClasses text and low opacity
-    const tuesdayEmptyCell = screen.getByTestId(
-      "empty-cell-TUESDAY-09:00-10:30"
-    )
-    expect(tuesdayEmptyCell).toBeInTheDocument()
-    expect(tuesdayEmptyCell).toHaveClass("opacity-40")
-    expect(tuesdayEmptyCell).toHaveClass("h-[134px]")
-    expect(tuesdayEmptyCell).toHaveTextContent("بدون کلاس")
-
-    // Empty cell in Sunday Row 1 has noClasses text and low opacity
-    const sundayEmptyCell = screen.getByTestId("empty-cell-SUNDAY-09:00-10:30")
-    expect(sundayEmptyCell).toBeInTheDocument()
-    expect(sundayEmptyCell).toHaveClass("opacity-40")
-    expect(sundayEmptyCell).toHaveClass("h-[134px]")
-    expect(sundayEmptyCell).toHaveTextContent("بدون کلاس")
+    // Empty cell in Odd Row 1 has noClasses text and low opacity
+    const oddEmptyCell = screen.getByTestId("empty-cell-ODD-09:00-10:30")
+    expect(oddEmptyCell).toBeInTheDocument()
+    expect(oddEmptyCell).toHaveClass("opacity-40")
+    expect(oddEmptyCell).toHaveClass("h-[134px]")
+    expect(oddEmptyCell).toHaveTextContent("بدون کلاس")
   })
 
   it("equalizes height between regular class cards and missed class cards", () => {
@@ -560,14 +574,14 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     const prop1Cards = container.querySelectorAll('[data-class-id="prop-1"]')
     const prop2Cards = container.querySelectorAll('[data-class-id="prop-2"]')
-    expect(prop1Cards.length).toBe(3)
+    expect(prop1Cards.length).toBe(1)
     expect(prop2Cards.length).toBe(1)
 
     // Initially nothing is active or dimmed
     expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
     expect(prop2Cards[0]?.getAttribute("data-dimmed")).toBeNull()
 
-    // Hover over the first instance of prop-1 (Saturday)
+    // Hover over prop-1 (Even days)
     fireEvent.mouseEnter(prop1Cards[0]!)
 
     // Hover does NOT trigger calendar-wide dimming or active states
@@ -611,7 +625,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.queryByTestId("clear-selection-btn")).toBeNull()
 
     // Test Escape key unpins
-    fireEvent.click(prop1Cards[1]!)
+    fireEvent.click(prop1Cards[0]!)
     expect(prop1Cards[0]?.getAttribute("data-active")).toBe("true")
     fireEvent.keyDown(window, { key: "Escape" })
     expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
@@ -854,32 +868,32 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     // Initially hidden
     expect(
-      screen.queryByTestId("free-teachers-SATURDAY-09:00-10:30")
+      screen.queryByTestId("free-teachers-EVEN-09:00-10:30")
     ).not.toBeInTheDocument()
 
     // Toggle on
     fireEvent.click(toggleFreeTeachersBtn)
     expect(toggleFreeTeachersBtn).toHaveAttribute("aria-pressed", "true")
 
-    // Saturday 09:00-10:30 has both حسین مرادی (09:00-12:00 covers 09:00-10:30) and زهرا کریمی under the class card
-    const satFreeTeachers = screen.getByTestId(
-      "free-teachers-SATURDAY-09:00-10:30"
+    // Even track 09:00-10:30 has both حسین مرادی and زهرا کریمی under the class card
+    const evenFreeTeachers = screen.getByTestId(
+      "free-teachers-EVEN-09:00-10:30"
     )
-    expect(satFreeTeachers).toBeInTheDocument()
-    expect(satFreeTeachers).toHaveTextContent("استاد آزاد")
-    expect(satFreeTeachers).toHaveTextContent("حسین مرادی")
-    expect(satFreeTeachers).toHaveTextContent("زهرا کریمی")
+    expect(evenFreeTeachers).toBeInTheDocument()
+    expect(evenFreeTeachers).toHaveTextContent("استاد آزاد")
+    expect(evenFreeTeachers).toHaveTextContent("حسین مرادی")
+    expect(evenFreeTeachers).toHaveTextContent("زهرا کریمی")
 
-    // Monday 09:00-10:30 is BUSY for حسین مرادی, so no free teachers are shown there
+    // Odd track 09:00-10:30 has no free teachers
     expect(
-      screen.queryByTestId("free-teachers-MONDAY-09:00-10:30")
+      screen.queryByTestId("free-teachers-ODD-09:00-10:30")
     ).not.toBeInTheDocument()
 
     // Toggle off
     fireEvent.click(toggleFreeTeachersBtn)
     expect(toggleFreeTeachersBtn).toHaveAttribute("aria-pressed", "false")
     expect(
-      screen.queryByTestId("free-teachers-SATURDAY-09:00-10:30")
+      screen.queryByTestId("free-teachers-EVEN-09:00-10:30")
     ).not.toBeInTheDocument()
   })
 
@@ -950,10 +964,10 @@ describe("SchedulingPlanCalendarView Component", () => {
     fireEvent.click(screen.getByTestId("toggle-free-teachers-btn"))
 
     const freeTeacherCard = screen.getByTestId(
-      "free-teacher-card-t-higher-SATURDAY-09:00-10:30"
+      "free-teacher-card-t-higher-EVEN-09:00-10:30"
     )
     const freeTeacherDetails = screen.getByTestId(
-      "free-teacher-card-details-t-higher-SATURDAY-09:00-10:30"
+      "free-teacher-card-details-t-higher-EVEN-09:00-10:30"
     )
 
     // In collapsed mode (default), card has compact h-[52px] height and collapses details
@@ -1055,7 +1069,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       "calendar-class-card-prop-swap-target"
     )[0]!
     const freeTeacherCard = screen.getByTestId(
-      "free-teacher-card-t-free-swap-SATURDAY-09:00-10:30"
+      "free-teacher-card-t-free-swap-EVEN-09:00-10:30"
     )
 
     // Click prop-1 to enter swap mode
@@ -1744,7 +1758,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       "calendar-class-card-prop-p2-room102"
     )[0]!
     const freeTeacherP2Card = screen.getByTestId(
-      "free-teacher-card-t-free-p2-SATURDAY-17:00-18:30"
+      "free-teacher-card-t-free-p2-EVEN-17:00-18:30"
     )
 
     // Select prop-p1-room101 (15:30-17:00 in Room 101)

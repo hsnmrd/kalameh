@@ -13,7 +13,7 @@ export interface SchedulingPlanCalendarFreeTeacherCardProps {
     firstName: string
     lastName: string
   }
-  day: WeekDay
+  day: WeekDay | "EVEN" | "ODD" | string
   slotKey: string
   levelRange: string | null
   suggestedCourseTitle: string | null

@@ -53,6 +53,32 @@ import { SwapClassDialog } from "./swap-class-dialog"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
+export type DayTrack = "EVEN" | "ODD"
+export const DAY_TRACKS: readonly DayTrack[] = ["EVEN", "ODD"] as const
+export const EVEN_DAYS: readonly WeekDay[] = [
+  "SATURDAY",
+  "MONDAY",
+  "WEDNESDAY",
+] as const
+export const ODD_DAYS: readonly WeekDay[] = [
+  "SUNDAY",
+  "TUESDAY",
+  "THURSDAY",
+] as const
+
+export function getDaysOfWeekTracks(
+  days: readonly (WeekDay | string)[]
+): DayTrack[] {
+  const tracks: DayTrack[] = []
+  if (days.some((d) => EVEN_DAYS.includes(d as WeekDay))) {
+    tracks.push("EVEN")
+  }
+  if (days.some((d) => ODD_DAYS.includes(d as WeekDay))) {
+    tracks.push("ODD")
+  }
+  return tracks
+}
+
 export const ORDERED_WEEK_DAYS = [
   "SATURDAY",
   "SUNDAY",
@@ -142,6 +168,7 @@ export function SchedulingPlanCalendarView({
     defaultShowFreeTeachers
   )
   const [highlightRelated, setHighlightRelated] = React.useState(true)
+  const [mobileTrack, setMobileTrack] = React.useState<DayTrack>("EVEN")
   const [userExpandedSlots, setUserExpandedSlots] =
     React.useState<Set<string> | null>(() => {
       if (initialExpandedSlots) return new Set(initialExpandedSlots)
@@ -188,12 +215,13 @@ export function SchedulingPlanCalendarView({
     return map
   }, [proposals, hiringPlan])
 
-  const slotOptionsByDayAndSlot = React.useMemo(() => {
+  const slotOptionsByTrackAndSlot = React.useMemo(() => {
     const map = new Map<string, SchedulingNewTeacherHiringSlotOption>()
     if (!hiringPlan?.availableTimeSlots) return map
     for (const opt of hiringPlan.availableTimeSlots) {
-      for (const day of opt.daysOfWeek) {
-        map.set(`${day}-${opt.startTime}-${opt.endTime}`, opt)
+      const tracks = getDaysOfWeekTracks(opt.daysOfWeek)
+      for (const track of tracks) {
+        map.set(`${track}-${opt.startTime}-${opt.endTime}`, opt)
       }
     }
     return map
@@ -220,6 +248,24 @@ export function SchedulingPlanCalendarView({
       return !hasRoomConflictWithProposal
     },
     [proposals]
+  )
+
+  const canPlaceMissedClassOnTrack = React.useCallback(
+    (
+      assignment: SchedulingNewTeacherHiringAssignment,
+      state: CurrentAssignmentState,
+      track: DayTrack
+    ): boolean => {
+      const trackDays = track === "EVEN" ? EVEN_DAYS : ODD_DAYS
+      const applicableDays = state.daysOfWeek.filter((d) =>
+        trackDays.includes(d)
+      )
+      if (applicableDays.length === 0) return false
+      return applicableDays.every((day) =>
+        canPlaceMissedClassOnDay(assignment, state, day)
+      )
+    },
+    [canPlaceMissedClassOnDay]
   )
 
   const missedClassProposals = React.useMemo<Proposal[]>(() => {
@@ -527,30 +573,36 @@ export function SchedulingPlanCalendarView({
     teacherCalendars,
   ])
 
-  const freeTeachersByDayAndSlot = React.useMemo(() => {
+  const freeTeachersByTrackAndSlot = React.useMemo(() => {
     const map = new Map<
       string,
       Array<{
         teacher: SchedulingTeacherCalendar["teacher"]
         teachableCourses: SchedulingTeacherCalendar["teachableCourses"]
         levelRange: string | null
+        representativeDay: WeekDay
       }>
     >()
     if (!teacherCalendars?.length) return map
 
     for (const slot of timeSlots) {
-      for (const day of ORDERED_WEEK_DAYS) {
-        const key = `${day}-${slot.startTime}-${slot.endTime}`
+      for (const track of DAY_TRACKS) {
+        const trackDays = track === "EVEN" ? EVEN_DAYS : ODD_DAYS
+        const representativeDay: WeekDay =
+          track === "EVEN" ? "SATURDAY" : "SUNDAY"
+        const key = `${track}-${slot.startTime}-${slot.endTime}`
         const freeTeachers: Array<{
           teacher: SchedulingTeacherCalendar["teacher"]
           teachableCourses: SchedulingTeacherCalendar["teachableCourses"]
           levelRange: string | null
+          representativeDay: WeekDay
         }> = []
+
         for (const calendar of teacherCalendars) {
           const isFreeInPeriod = calendar.slots.some(
             (s) =>
               s.status === "FREE" &&
-              s.dayOfWeek === day &&
+              trackDays.includes(s.dayOfWeek) &&
               s.startTime <= slot.startTime &&
               s.endTime >= slot.endTime
           )
@@ -560,6 +612,7 @@ export function SchedulingPlanCalendarView({
               teacher: calendar.teacher,
               teachableCourses,
               levelRange: summarizeCourseLevelRange(teachableCourses),
+              representativeDay,
             })
           }
         }
@@ -611,11 +664,12 @@ export function SchedulingPlanCalendarView({
     setUserExpandedSlots(new Set())
   }, [])
 
-  const proposalsByDayAndSlot = React.useMemo(() => {
+  const proposalsByTrackAndSlot = React.useMemo(() => {
     const map = new Map<string, Proposal[]>()
     for (const proposal of proposals) {
-      for (const day of proposal.daysOfWeek) {
-        const key = `${day}-${proposal.startTime}-${proposal.endTime}`
+      const tracks = getDaysOfWeekTracks(proposal.daysOfWeek)
+      for (const track of tracks) {
+        const key = `${track}-${proposal.startTime}-${proposal.endTime}`
         const existing = map.get(key)
         if (existing) {
           existing.push(proposal)
@@ -639,7 +693,7 @@ export function SchedulingPlanCalendarView({
     return map
   }, [proposals])
 
-  const missedClassesByDayAndSlot = React.useMemo(() => {
+  const missedClassesByTrackAndSlot = React.useMemo(() => {
     const map = new Map<
       string,
       Array<{
@@ -654,9 +708,10 @@ export function SchedulingPlanCalendarView({
       if (!state || state.isAssigned === false || !state.daysOfWeek.length) {
         continue
       }
-      for (const day of state.daysOfWeek) {
-        if (!canPlaceMissedClassOnDay(assignment, state, day)) continue
-        const key = `${day}-${state.startTime}-${state.endTime}`
+      const tracks = getDaysOfWeekTracks(state.daysOfWeek)
+      for (const track of tracks) {
+        if (!canPlaceMissedClassOnTrack(assignment, state, track)) continue
+        const key = `${track}-${state.startTime}-${state.endTime}`
         const existing = map.get(key)
         if (existing) {
           existing.push({ assignment, state })
@@ -666,27 +721,26 @@ export function SchedulingPlanCalendarView({
       }
     }
     return map
-  }, [hiringPlan, missedClassesAssignments, canPlaceMissedClassOnDay])
+  }, [hiringPlan, missedClassesAssignments, canPlaceMissedClassOnTrack])
 
-  const proposalsByDay = React.useMemo(() => {
-    const map: Record<string, Proposal[]> = {}
-    for (const day of ORDERED_WEEK_DAYS) {
-      map[day] = []
+  const proposalsByTrack = React.useMemo(() => {
+    const map: Record<DayTrack, Proposal[]> = {
+      EVEN: [],
+      ODD: [],
     }
     for (const proposal of proposals) {
-      for (const day of proposal.daysOfWeek) {
-        if (map[day]) {
-          map[day].push(proposal)
-        }
+      const tracks = getDaysOfWeekTracks(proposal.daysOfWeek)
+      for (const track of tracks) {
+        map[track].push(proposal)
       }
     }
     return map
   }, [proposals])
 
-  const missedClassesByDay = React.useMemo(() => {
-    const map: Record<string, number> = {}
-    for (const day of ORDERED_WEEK_DAYS) {
-      map[day] = 0
+  const missedClassesByTrack = React.useMemo(() => {
+    const map: Record<DayTrack, number> = {
+      EVEN: 0,
+      ODD: 0,
     }
     if (!hiringPlan?.assignments || !missedClassesAssignments) return map
     for (const assignment of hiringPlan.assignments) {
@@ -694,15 +748,14 @@ export function SchedulingPlanCalendarView({
       if (!state || state.isAssigned === false || !state.daysOfWeek.length) {
         continue
       }
-      for (const day of state.daysOfWeek) {
-        if (!canPlaceMissedClassOnDay(assignment, state, day)) continue
-        if (map[day] !== undefined) {
-          map[day] += 1
-        }
+      const tracks = getDaysOfWeekTracks(state.daysOfWeek)
+      for (const track of tracks) {
+        if (!canPlaceMissedClassOnTrack(assignment, state, track)) continue
+        map[track] += 1
       }
     }
     return map
-  }, [hiringPlan, missedClassesAssignments, canPlaceMissedClassOnDay])
+  }, [hiringPlan, missedClassesAssignments, canPlaceMissedClassOnTrack])
 
   const getFreeClassrooms = React.useCallback(
     (option: SchedulingNewTeacherHiringSlotOption) => {
@@ -916,11 +969,83 @@ export function SchedulingPlanCalendarView({
           </div>
         </div>
 
-        {/* Timetable Matrix Grid with Horizontal Scroll */}
+        {/* Mobile Day Track Switcher (visible on mobile, hidden on md+) */}
+        <div
+          role="tablist"
+          aria-label={t("calendarView.mobileTrackAria")}
+          className="flex w-full rounded-xl bg-muted/60 p-1 md:hidden"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileTrack === "EVEN"}
+            data-testid="mobile-track-even-btn"
+            onClick={() => setMobileTrack("EVEN")}
+            className={cn(
+              "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1.5 text-center transition-all",
+              mobileTrack === "EVEN"
+                ? "bg-card font-bold text-foreground shadow-2xs"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold">
+                {t("calendarView.evenDays")}
+              </span>
+              <Badge
+                variant={mobileTrack === "EVEN" ? "secondary" : "outline"}
+                className="h-4 px-1 py-0 text-[9px]"
+              >
+                {formatNumber(
+                  (proposalsByTrack.EVEN?.length ?? 0) +
+                    (missedClassesByTrack.EVEN ?? 0),
+                  locale
+                )}
+              </Badge>
+            </div>
+            <span className="text-[10px] opacity-80">
+              {t("calendarView.evenDaysSubtitle")}
+            </span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileTrack === "ODD"}
+            data-testid="mobile-track-odd-btn"
+            onClick={() => setMobileTrack("ODD")}
+            className={cn(
+              "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1.5 text-center transition-all",
+              mobileTrack === "ODD"
+                ? "bg-card font-bold text-foreground shadow-2xs"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold">
+                {t("calendarView.oddDays")}
+              </span>
+              <Badge
+                variant={mobileTrack === "ODD" ? "secondary" : "outline"}
+                className="h-4 px-1 py-0 text-[9px]"
+              >
+                {formatNumber(
+                  (proposalsByTrack.ODD?.length ?? 0) +
+                    (missedClassesByTrack.ODD ?? 0),
+                  locale
+                )}
+              </Badge>
+            </div>
+            <span className="text-[10px] opacity-80">
+              {t("calendarView.oddDaysSubtitle")}
+            </span>
+          </button>
+        </div>
+
+        {/* Timetable Matrix Grid with Responsive Columns */}
         <div className="max-h-[75vh] overflow-x-auto rounded-2xl border border-border bg-background/60 lg:max-h-none lg:overflow-visible">
-          <div className="min-w-[840px]">
+          <div className="w-full">
             {/* Header Row */}
-            <div className="grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] gap-2 rounded-t-2xl border-b border-border bg-muted/60 p-2.5 shadow-2xs backdrop-blur-md">
+            <div className="grid grid-cols-[80px_1fr] gap-2 rounded-t-2xl border-b border-border bg-muted/60 p-2.5 shadow-2xs backdrop-blur-md md:grid-cols-[96px_1fr_1fr]">
               {/* Time Column Header */}
               <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground">
                 <Clock3
@@ -930,32 +1055,40 @@ export function SchedulingPlanCalendarView({
                 <span>{t("calendarView.timeColumn")}</span>
               </div>
 
-              {/* 6 Day Column Headers (Saturday - Thursday) */}
-              {ORDERED_WEEK_DAYS.map((day) => {
-                const dayProposalsCount =
-                  (proposalsByDay[day]?.length ?? 0) +
-                  (missedClassesByDay[day] ?? 0)
-                const isDayEmpty = dayProposalsCount === 0
+              {/* Day Track Column Headers (Even & Odd Days) */}
+              {DAY_TRACKS.map((track) => {
+                const trackProposalsCount =
+                  (proposalsByTrack[track]?.length ?? 0) +
+                  (missedClassesByTrack[track] ?? 0)
+                const isTrackEmpty = trackProposalsCount === 0
 
                 return (
                   <div
-                    key={day}
-                    data-day-header={day}
+                    key={track}
+                    data-day-header={track}
                     className={cn(
-                      "flex flex-col items-center justify-center gap-1 p-1 text-center transition-opacity",
-                      isDayEmpty && "opacity-50"
+                      "flex flex-col items-center justify-center gap-0.5 p-1 text-center transition-opacity",
+                      track !== mobileTrack && "hidden md:flex",
+                      isTrackEmpty && "opacity-50"
                     )}
                   >
                     <span className="text-xs font-bold text-foreground">
-                      {t(`weekDays.${day}`)}
+                      {track === "EVEN"
+                        ? t("calendarView.evenDays")
+                        : t("calendarView.oddDays")}
                     </span>
-                    {dayProposalsCount > 0 ? (
+                    <span className="text-[10px] text-muted-foreground">
+                      {track === "EVEN"
+                        ? t("calendarView.evenDaysSubtitle")
+                        : t("calendarView.oddDaysSubtitle")}
+                    </span>
+                    {trackProposalsCount > 0 ? (
                       <Badge
                         variant="secondary"
                         className="h-4 px-1.5 py-0 text-[10px]"
                       >
                         {t("calendarView.classesCount", {
-                          count: formatNumber(dayProposalsCount, locale),
+                          count: formatNumber(trackProposalsCount, locale),
                         })}
                       </Badge>
                     ) : (
@@ -980,7 +1113,7 @@ export function SchedulingPlanCalendarView({
                   <div
                     key={slot.key}
                     data-testid={`time-slot-row-${slot.key}`}
-                    className="grid grid-cols-[96px_repeat(6,minmax(120px,1fr))] items-stretch gap-2 p-2 transition-all duration-300 ease-in-out"
+                    className="grid grid-cols-[80px_1fr] items-stretch gap-2 p-2 transition-all duration-300 ease-in-out md:grid-cols-[96px_1fr_1fr]"
                   >
                     {/* Time Column Cell */}
                     <button
@@ -1041,17 +1174,17 @@ export function SchedulingPlanCalendarView({
                       )}
                     </button>
 
-                    {/* Day Cells */}
-                    {ORDERED_WEEK_DAYS.map((day) => {
-                      const cellKey = `${day}-${slot.startTime}-${slot.endTime}`
+                    {/* Day Track Cells */}
+                    {DAY_TRACKS.map((track) => {
+                      const cellKey = `${track}-${slot.startTime}-${slot.endTime}`
                       const cellProposals =
-                        proposalsByDayAndSlot.get(cellKey) ?? []
+                        proposalsByTrackAndSlot.get(cellKey) ?? []
                       const cellMissed =
-                        missedClassesByDayAndSlot.get(cellKey) ?? []
+                        missedClassesByTrackAndSlot.get(cellKey) ?? []
                       const cellFreeTeachers =
-                        freeTeachersByDayAndSlot.get(cellKey) ?? []
+                        freeTeachersByTrackAndSlot.get(cellKey) ?? []
                       const matchingOption =
-                        slotOptionsByDayAndSlot.get(cellKey)
+                        slotOptionsByTrackAndSlot.get(cellKey)
                       const freeRooms = matchingOption
                         ? getFreeClassrooms(matchingOption)
                         : []
@@ -1071,12 +1204,12 @@ export function SchedulingPlanCalendarView({
                           }
                           const state =
                             missedClassesAssignments?.[assignment.key]
-                          const isPlacedOnDay =
+                          const isPlacedOnTrack =
                             state &&
                             state.isAssigned !== false &&
                             state.daysOfWeek.length > 0 &&
-                            canPlaceMissedClassOnDay(assignment, state, day)
-                          if (!isPlacedOnDay || !state) {
+                            canPlaceMissedClassOnTrack(assignment, state, track)
+                          if (!isPlacedOnTrack || !state) {
                             return true
                           }
                           const itemKey = `${state.daysOfWeek.join(",")}|${state.startTime}|${state.endTime}`
@@ -1102,11 +1235,12 @@ export function SchedulingPlanCalendarView({
 
                       return (
                         <div
-                          key={`${day}-${slot.key}`}
-                          data-day={day}
+                          key={`${track}-${slot.key}`}
+                          data-day={track}
                           data-slot={slot.key}
                           className={cn(
                             "flex flex-col transition-all duration-300 ease-in-out",
+                            track !== mobileTrack && "hidden md:flex",
                             isCollapsed
                               ? "min-h-[52px] gap-1.5"
                               : "min-h-[134px] gap-2"
@@ -1144,7 +1278,7 @@ export function SchedulingPlanCalendarView({
 
                                 return (
                                   <SchedulingPlanCalendarClassCard
-                                    key={`${proposal.id}-${day}`}
+                                    key={`${proposal.id}-${track}`}
                                     proposal={proposal}
                                     canEdit={canEdit}
                                     colorIndex={proposalColorMap.get(
@@ -1200,7 +1334,7 @@ export function SchedulingPlanCalendarView({
 
                                 return (
                                   <SchedulingPlanCalendarMissedClassCard
-                                    key={`${assignment.key}-${day}`}
+                                    key={`${assignment.key}-${track}`}
                                     assignment={assignment}
                                     assignedRoomName={
                                       state.classroomName ??
@@ -1309,7 +1443,7 @@ export function SchedulingPlanCalendarView({
                             </Button>
                           ) : (
                             <div
-                              data-testid={`empty-cell-${day}-${slot.key}`}
+                              data-testid={`empty-cell-${track}-${slot.key}`}
                               className={cn(
                                 "flex w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-border/50 bg-muted/15 transition-[height,padding,opacity,background-color] duration-300 ease-in-out select-none hover:bg-muted/25",
                                 isCollapsed
@@ -1341,14 +1475,19 @@ export function SchedulingPlanCalendarView({
                           )}
                           {showFreeTeachers && cellFreeTeachers.length > 0 && (
                             <div
-                              data-testid={`free-teachers-${day}-${slot.key}`}
+                              data-testid={`free-teachers-${track}-${slot.key}`}
                               className={cn(
                                 "flex flex-col transition-all duration-300 ease-in-out",
                                 isCollapsed ? "gap-1.5" : "gap-2"
                               )}
                             >
                               {cellFreeTeachers.map(
-                                ({ teacher, teachableCourses, levelRange }) => {
+                                ({
+                                  teacher,
+                                  teachableCourses,
+                                  levelRange,
+                                  representativeDay,
+                                }) => {
                                   const suggestedCourseTitle =
                                     cellMissed.find(
                                       ({ assignment }) =>
@@ -1368,7 +1507,7 @@ export function SchedulingPlanCalendarView({
                                     teacher,
                                     teachableCourses,
                                     levelRange,
-                                    dayOfWeek: day,
+                                    dayOfWeek: representativeDay,
                                     startTime: slot.startTime,
                                     endTime: slot.endTime,
                                   }
@@ -1390,7 +1529,7 @@ export function SchedulingPlanCalendarView({
                                     <SchedulingPlanCalendarFreeTeacherCard
                                       key={teacher.id}
                                       teacher={teacher}
-                                      day={day}
+                                      day={track}
                                       slotKey={slot.key}
                                       levelRange={levelRange}
                                       suggestedCourseTitle={
