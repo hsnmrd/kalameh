@@ -67,7 +67,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    expect(screen.getByText("ساعت")).toBeInTheDocument()
+    expect(screen.getAllByText("ساعت").length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText("روزهای زوج").length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText("روزهای فرد").length).toBeGreaterThanOrEqual(1)
     expect(
@@ -147,17 +147,17 @@ describe("SchedulingPlanCalendarView Component", () => {
   })
 
   it("shows day track header summary badges", () => {
-    const { container } = render(
+    render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    const evenHeader = container.querySelector('[data-day-header="EVEN"]')
-    expect(evenHeader).toHaveTextContent("روزهای زوج")
-    expect(evenHeader).toHaveTextContent("۲ کلاس")
+    const evenBtn = screen.getByTestId("mobile-track-even-btn")
+    expect(evenBtn).toHaveTextContent("روزهای زوج")
+    expect(evenBtn).toHaveTextContent("۲")
 
-    const oddHeader = container.querySelector('[data-day-header="ODD"]')
-    expect(oddHeader).toHaveTextContent("روزهای فرد")
-    expect(oddHeader).toHaveTextContent("تعطیل هفتگی")
+    const oddBtn = screen.getByTestId("mobile-track-odd-btn")
+    expect(oddBtn).toHaveTextContent("روزهای فرد")
+    expect(oddBtn).toHaveTextContent("۰")
   })
 
   it("renders clean capacity display with limits and without stepper buttons", () => {
@@ -242,22 +242,22 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(evenBtn).toHaveAttribute("aria-selected", "true")
     expect(oddBtn).toHaveAttribute("aria-selected", "false")
 
-    // Even day header is visible on mobile; Odd day header has hidden md:flex
-    const evenHeader = container.querySelector('[data-day-header="EVEN"]')
-    const oddHeader = container.querySelector('[data-day-header="ODD"]')
-    expect(evenHeader).not.toHaveClass("hidden")
-    expect(oddHeader).toHaveClass("hidden")
-    expect(oddHeader).toHaveClass("md:flex")
+    // Even day column is visible on mobile; Odd day column has hidden md:flex
+    const evenColumn = container.querySelector('[data-day="EVEN"]')
+    const oddColumn = container.querySelector('[data-day="ODD"]')
+    expect(evenColumn).not.toHaveClass("hidden")
+    expect(oddColumn).toHaveClass("hidden")
+    expect(oddColumn).toHaveClass("md:flex")
 
     // Click Odd days tab on mobile
     fireEvent.click(oddBtn)
     expect(oddBtn).toHaveAttribute("aria-selected", "true")
     expect(evenBtn).toHaveAttribute("aria-selected", "false")
 
-    // Now Even header is hidden on mobile, and Odd header is visible
-    expect(evenHeader).toHaveClass("hidden")
-    expect(evenHeader).toHaveClass("md:flex")
-    expect(oddHeader).not.toHaveClass("hidden")
+    // Now Even column is hidden on mobile, and Odd column is visible
+    expect(evenColumn).toHaveClass("hidden")
+    expect(evenColumn).toHaveClass("md:flex")
+    expect(oddColumn).not.toHaveClass("hidden")
   })
 
   it("renders missed classes with distinct amber warning styling and new teacher badge", () => {
@@ -373,17 +373,13 @@ describe("SchedulingPlanCalendarView Component", () => {
   })
 
   it("renders low opacity empty cell placeholders in calendar grid", () => {
-    const { container } = render(
+    render(
       <SchedulingPlanCalendarView
         proposals={mockProposals}
         canEdit={false}
         defaultCollapsed={false}
       />
     )
-
-    // Odd track has 0 classes in mockProposals, header is dimmed
-    const oddHeader = container.querySelector('[data-day-header="ODD"]')
-    expect(oddHeader).toHaveClass("opacity-50")
 
     // Empty cell in Odd Row 1 has noClasses text and low opacity
     const oddEmptyCell = screen.getByTestId("empty-cell-ODD-09:00-10:30")

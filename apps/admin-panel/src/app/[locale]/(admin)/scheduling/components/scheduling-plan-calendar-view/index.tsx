@@ -1041,65 +1041,6 @@ export function SchedulingPlanCalendarView({
           </button>
         </div>
 
-        {/* Day Track Column Headers (Even & Odd Days Overview Bar) */}
-        <div className="grid grid-cols-[80px_1fr] items-center gap-2.5 rounded-2xl border border-border/80 bg-muted/40 p-2.5 shadow-2xs backdrop-blur-md md:grid-cols-[100px_1fr_1fr]">
-          {/* Time Column Header */}
-          <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground">
-            <Clock3 aria-hidden className="size-3.5 text-muted-foreground" />
-            <span>{t("calendarView.timeColumn")}</span>
-          </div>
-
-          {/* Day Track Column Headers (Even & Odd Days) */}
-          {DAY_TRACKS.map((track) => {
-            const trackProposalsCount =
-              (proposalsByTrack[track]?.length ?? 0) +
-              (missedClassesByTrack[track] ?? 0)
-            const isTrackEmpty = trackProposalsCount === 0
-
-            return (
-              <div
-                key={track}
-                data-day-header={track}
-                className={cn(
-                  "flex items-center justify-between rounded-xl border border-border/40 bg-card/60 px-3.5 py-2 transition-opacity",
-                  track !== mobileTrack && "hidden md:flex",
-                  isTrackEmpty && "opacity-50"
-                )}
-              >
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-foreground">
-                    {track === "EVEN"
-                      ? t("calendarView.evenDays")
-                      : t("calendarView.oddDays")}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {track === "EVEN"
-                      ? t("calendarView.evenDaysSubtitle")
-                      : t("calendarView.oddDaysSubtitle")}
-                  </span>
-                </div>
-                {trackProposalsCount > 0 ? (
-                  <Badge
-                    variant="secondary"
-                    className="h-5 px-2 py-0 text-xs font-bold"
-                  >
-                    {t("calendarView.classesCount", {
-                      count: formatNumber(trackProposalsCount, locale),
-                    })}
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="outline"
-                    className="h-5 border-border/50 px-2 py-0 text-[11px] text-muted-foreground"
-                  >
-                    {t("calendarView.weekendOff")}
-                  </Badge>
-                )}
-              </div>
-            )
-          })}
-        </div>
-
         {/* Hour-Grouped Time Slots (Modular Sections with Time at Top) */}
         <div className="flex flex-col gap-4">
           {timeSlots.map((slot) => {
@@ -1133,6 +1074,9 @@ export function SchedulingPlanCalendarView({
                       <Clock3 aria-hidden className="size-4 text-primary" />
                     </div>
                     <div className="flex items-center gap-1.5 font-bold text-foreground">
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        {t("calendarView.timeColumn")}
+                      </span>
                       <span className="text-base font-black tabular-nums">
                         {slot.startTime}
                       </span>
