@@ -102,37 +102,30 @@ export function SchedulingPlanCalendarView({
   const locale = useLocale()
 
   const [proposalOverrides, setProposalOverrides] = React.useState<{
-    base: Proposal[]
     byId: Record<string, Proposal>
-  }>({ base: incomingProposals, byId: {} })
+  }>({ byId: {} })
 
   const proposals = React.useMemo(() => {
-    const activeOverrides =
-      proposalOverrides.base === incomingProposals ? proposalOverrides.byId : {}
-    if (Object.keys(activeOverrides).length === 0) return incomingProposals
-    return incomingProposals.map((p) => activeOverrides[p.id] ?? p)
-  }, [incomingProposals, proposalOverrides])
+    if (Object.keys(proposalOverrides.byId).length === 0)
+      return incomingProposals
+    return incomingProposals.map((p) => proposalOverrides.byId[p.id] ?? p)
+  }, [incomingProposals, proposalOverrides.byId])
 
   const [missedAssignmentOverrides, setMissedAssignmentOverrides] =
     React.useState<{
-      base: Record<string, CurrentAssignmentState> | undefined
       byKey: Record<string, CurrentAssignmentState>
-    }>({ base: incomingMissedClassesAssignments, byKey: {} })
+    }>({ byKey: {} })
 
   const missedClassesAssignments = React.useMemo(() => {
     if (!incomingMissedClassesAssignments) return undefined
-    const activeOverrides =
-      missedAssignmentOverrides.base === incomingMissedClassesAssignments
-        ? missedAssignmentOverrides.byKey
-        : {}
-    if (Object.keys(activeOverrides).length === 0) {
+    if (Object.keys(missedAssignmentOverrides.byKey).length === 0) {
       return incomingMissedClassesAssignments
     }
     return {
       ...incomingMissedClassesAssignments,
-      ...activeOverrides,
+      ...missedAssignmentOverrides.byKey,
     }
-  }, [incomingMissedClassesAssignments, missedAssignmentOverrides])
+  }, [incomingMissedClassesAssignments, missedAssignmentOverrides.byKey])
 
   const [assignSlotTarget, setAssignSlotTarget] =
     React.useState<TargetSlotInfo | null>(null)
@@ -215,22 +208,6 @@ export function SchedulingPlanCalendarView({
         state.classroomId ?? assignment.classroom?.id ?? null
       if (!effectiveRoomId) return false
 
-      const isInitialPlacement =
-        state.startTime === assignment.startTime &&
-        state.endTime === assignment.endTime &&
-        (state.classroomId ?? null) === (assignment.classroom?.id ?? null)
-      const slotOption = slotOptionsByDayAndSlot.get(
-        `${day}-${state.startTime}-${state.endTime}`
-      )
-      if (
-        isInitialPlacement &&
-        slotOption &&
-        (slotOption.isFullyBooked ||
-          slotOption.availableClassrooms.length === 0)
-      ) {
-        return false
-      }
-
       const hasRoomConflictWithProposal = proposals.some(
         (proposal) =>
           proposal.classroom?.id === effectiveRoomId &&
@@ -240,7 +217,7 @@ export function SchedulingPlanCalendarView({
       )
       return !hasRoomConflictWithProposal
     },
-    [proposals, slotOptionsByDayAndSlot]
+    [proposals]
   )
 
   const missedClassProposals = React.useMemo<Proposal[]>(() => {
@@ -400,12 +377,11 @@ export function SchedulingPlanCalendarView({
 
       if (realProposals.length > 0) {
         setProposalOverrides((prev) => {
-          const baseOverrides = prev.base === incomingProposals ? prev.byId : {}
-          const nextById = { ...baseOverrides }
+          const nextById = { ...prev.byId }
           for (const p of realProposals) {
             nextById[p.id] = p
           }
-          return { base: incomingProposals, byId: nextById }
+          return { byId: nextById }
         })
       }
 
@@ -422,28 +398,19 @@ export function SchedulingPlanCalendarView({
             isAssigned: true,
           }
         }
-        setMissedAssignmentOverrides((prev) => {
-          const baseOverrides =
-            prev.base === incomingMissedClassesAssignments ? prev.byKey : {}
-          return {
-            base: incomingMissedClassesAssignments,
-            byKey: {
-              ...baseOverrides,
-              ...missedUpdates,
-            },
-          }
-        })
+        setMissedAssignmentOverrides((prev) => ({
+          byKey: {
+            ...prev.byKey,
+            ...missedUpdates,
+          },
+        }))
         onUpdateMissedClassesAssignments?.(missedUpdates)
       }
 
       setSwapDialogState(null)
       setSelectedClassId(null)
     },
-    [
-      incomingProposals,
-      incomingMissedClassesAssignments,
-      onUpdateMissedClassesAssignments,
-    ]
+    [onUpdateMissedClassesAssignments]
   )
 
   // Clear selected class on Escape key when no modal dialog is open
@@ -1112,7 +1079,16 @@ export function SchedulingPlanCalendarView({
                                   <SchedulingPlanCalendarMissedClassCard
                                     key={`${assignment.key}-${day}`}
                                     assignment={assignment}
-                                    assignedRoomName={state.classroomName}
+                                    assignedRoomName={
+                                      state.classroomName ??
+                                      (effectiveRoomId
+                                        ? knownClassroomsById.get(
+                                            effectiveRoomId
+                                          )?.name
+                                        : null) ??
+                                      assignment.classroom?.name ??
+                                      null
+                                    }
                                     assignedRoomCapacity={roomCapacity}
                                     canEdit={canEdit}
                                     isActive={isActive}

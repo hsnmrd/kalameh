@@ -6,7 +6,7 @@ import {
   waitFor,
   within,
 } from "../../../../../../../test/test-utils"
-import type { SchedulingPlanDetailsDto } from "@workspace/types"
+import type { SchedulingPlanDetailsDto, WeekDay } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import { SchedulingPlanCalendarView } from "../index"
 
@@ -2169,5 +2169,182 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(maryamCard).toHaveAttribute("data-active", "true")
     expect(missedCard).toHaveAttribute("data-swappable", "true")
     expect(missedCard).toHaveClass("animate-calendar-card-shake")
+  })
+
+  it("preserves unknown master missed class card on the calendar and updates classroom when swapped with a proposal", async () => {
+    const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+    vi.spyOn(schedulingResource.updateProposal, "toMutation").mockReturnValue({
+      mutationKey: ["scheduling", "updateProposal"],
+      mutationFn: updateProposalMutationFn,
+    })
+
+    const onUpdateMissedClassesAssignments = vi.fn()
+
+    const initialProposals: Proposal[] = [
+      {
+        id: "prop-known-teacher",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "کلاس با استاد",
+        course: { id: "c-1", title: "Touchstone 1" },
+        teacher: { id: "t-ali", firstName: "علی", lastName: "محمدی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr101", name: "کلاس ۱۰۱", capacity: 20 },
+        capacity: 15,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    const hiringPlan = {
+      daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"] as WeekDay[],
+      startTime: "15:30",
+      endTime: "17:00",
+      totalClassCount: 1,
+      requiredCourses: [{ id: "c-1", title: "Touchstone 1" }],
+      assignments: [
+        {
+          key: "missed-req-1",
+          requirementId: "req-1",
+          course: { id: "c-1", title: "Touchstone 1" },
+          classNumber: 1,
+          deliveryMode: "IN_PERSON" as const,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"] as WeekDay[],
+          startTime: "15:30",
+          endTime: "17:00",
+          classroom: { id: "cr102", name: "کلاس ۱۰۲", capacity: 20 },
+        },
+      ],
+    }
+
+    const assignmentsState = {
+      "missed-req-1": {
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"] as WeekDay[],
+        startTime: "15:30",
+        endTime: "17:00",
+        classroomId: "cr102",
+        classroomName: "کلاس ۱۰۲",
+        isAssigned: true,
+      },
+    }
+
+    const { rerender } = render(
+      <SchedulingPlanCalendarView
+        proposals={initialProposals}
+        canEdit={true}
+        canSwap={true}
+        defaultCollapsed={false}
+        hiringPlan={hiringPlan}
+        missedClassesAssignments={assignmentsState}
+        onUpdateMissedClassesAssignments={onUpdateMissedClassesAssignments}
+      />
+    )
+
+    // Initially, both cards are rendered on the calendar in their respective rooms
+    const knownCard = screen.getAllByTestId(
+      "calendar-class-card-prop-known-teacher"
+    )[0]!
+    const missedCard = screen.getAllByTestId(
+      "missed-class-card-missed-req-1"
+    )[0]!
+    expect(knownCard).toBeInTheDocument()
+    expect(missedCard).toBeInTheDocument()
+    expect(missedCard).toHaveTextContent("کلاس ۱۰۲")
+    expect(knownCard).toHaveTextContent("کلاس ۱۰۱")
+
+    // Click known teacher card to enter swap mode
+    fireEvent.click(knownCard)
+    expect(knownCard).toHaveAttribute("data-active", "true")
+    expect(missedCard).toHaveAttribute("data-swappable", "true")
+
+    // Click missed card to open SwapClassDialog
+    fireEvent.click(missedCard)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+
+    // Verify changeClassroom is checked by default
+    const classroomCheckbox = screen.getByTestId("swap-option-classroom")
+    expect(classroomCheckbox).toHaveAttribute("aria-checked", "true")
+
+    // Submit the swap
+    const confirmBtn = screen.getByTestId("swap-confirm-btn")
+    expect(confirmBtn).not.toBeDisabled()
+    fireEvent.click(confirmBtn)
+
+    // Verify backend update was called for the proposal with classroom cr102
+    await waitFor(() => {
+      expect(updateProposalMutationFn).toHaveBeenCalledTimes(1)
+    })
+    expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        proposalId: "prop-known-teacher",
+        body: expect.objectContaining({
+          classroomId: "cr102",
+        }),
+      })
+    )
+
+    // Verify parent onUpdateMissedClassesAssignments was called for the missed class with cr101
+    expect(onUpdateMissedClassesAssignments).toHaveBeenCalledWith({
+      "missed-req-1": expect.objectContaining({
+        classroomId: "cr101",
+        classroomName: "کلاس ۱۰۱",
+        isAssigned: true,
+      }),
+    })
+
+    // The unknown master missed class card must NOT hide, and must be visible with updated room name
+    await waitFor(() => {
+      const updatedMissedCard = screen.getAllByTestId(
+        "missed-class-card-missed-req-1"
+      )[0]!
+      expect(updatedMissedCard).toBeInTheDocument()
+      expect(updatedMissedCard).toHaveTextContent("کلاس ۱۰۱")
+    })
+
+    const updatedKnownCard = screen.getAllByTestId(
+      "calendar-class-card-prop-known-teacher"
+    )[0]!
+    expect(updatedKnownCard).toHaveTextContent("کلاس ۱۰۲")
+
+    // Simulate query refetch where proposals and missedClassesAssignments update with fresh objects
+    rerender(
+      <SchedulingPlanCalendarView
+        proposals={[
+          {
+            ...initialProposals[0]!,
+            classroom: { id: "cr102", name: "کلاس ۱۰۲", capacity: 20 },
+            classroomId: "cr102",
+          },
+        ]}
+        canEdit={true}
+        canSwap={true}
+        defaultCollapsed={false}
+        hiringPlan={hiringPlan}
+        missedClassesAssignments={{
+          "missed-req-1": {
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"] as WeekDay[],
+            startTime: "15:30",
+            endTime: "17:00",
+            classroomId: "cr101",
+            classroomName: "کلاس ۱۰۱",
+            isAssigned: true,
+          },
+        }}
+        onUpdateMissedClassesAssignments={onUpdateMissedClassesAssignments}
+      />
+    )
+
+    // The missed class card must STILL be visible in the document with the swapped classroom
+    const rerenderedMissedCard = screen.getAllByTestId(
+      "missed-class-card-missed-req-1"
+    )[0]!
+    expect(rerenderedMissedCard).toBeInTheDocument()
+    expect(rerenderedMissedCard).toHaveTextContent("کلاس ۱۰۱")
   })
 })

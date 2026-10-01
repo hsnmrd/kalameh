@@ -353,12 +353,23 @@ export function SwapClassDialog({
       const realUpdatedProposals = updatedProposals.filter(
         (p) => !p.id.startsWith("missed:")
       )
+
+      toast.success(t("calendarView.swapDialog.success"))
+      onSwapSuccess?.(updatedProposals)
+      onOpenChange(false)
+
       if (realUpdatedProposals.length > 0) {
+        const planId =
+          (sourceProposal.planId && sourceProposal.planId !== "plan-missed"
+            ? sourceProposal.planId
+            : target.kind === "PROPOSAL"
+              ? target.proposal.planId
+              : "") || ""
         const updatedMap = new Map(realUpdatedProposals.map((p) => [p.id, p]))
         queryClient.setQueriesData<SchedulingPlanDetailsDto>(
           { queryKey: schedulingResource.planDetail.baseKey() },
           (current) => {
-            if (!current || current.id !== sourceProposal.planId) return current
+            if (!current || (planId && current.id !== planId)) return current
             return {
               ...current,
               proposals: current.proposals.map(
@@ -372,10 +383,6 @@ export function SwapClassDialog({
           queryKey: schedulingResource.planDetail.baseKey(),
         })
       }
-
-      toast.success(t("calendarView.swapDialog.success"))
-      onSwapSuccess?.(updatedProposals)
-      onOpenChange(false)
     } catch {
       // Errors are handled by the global API error toast in createMicroApi
     }

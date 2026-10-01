@@ -62,17 +62,30 @@ export function Content({
   )
 
   const [assignmentOverrides, setAssignmentOverrides] = React.useState<{
-    plan: SchedulingPlanDetailsDto
+    planId: string
     state: Record<string, CurrentAssignmentState>
   }>({
-    plan,
+    planId: plan.id,
     state: buildDefaultAssignments(plan.newTeacherHiringPlan),
   })
 
-  const assignmentsState =
-    assignmentOverrides.plan === plan
-      ? assignmentOverrides.state
-      : buildDefaultAssignments(plan.newTeacherHiringPlan)
+  if (assignmentOverrides.planId !== plan.id) {
+    setAssignmentOverrides({
+      planId: plan.id,
+      state: buildDefaultAssignments(plan.newTeacherHiringPlan),
+    })
+  }
+
+  const assignmentsState = React.useMemo(() => {
+    const currentState =
+      assignmentOverrides.planId === plan.id
+        ? assignmentOverrides.state
+        : buildDefaultAssignments(plan.newTeacherHiringPlan)
+    return {
+      ...buildDefaultAssignments(plan.newTeacherHiringPlan),
+      ...currentState,
+    }
+  }, [plan.id, plan.newTeacherHiringPlan, assignmentOverrides])
 
   const setAssignmentsState = React.useCallback(
     (
@@ -84,15 +97,15 @@ export function Content({
     ) => {
       setAssignmentOverrides((prev) => {
         const currentState =
-          prev.plan === plan
+          prev.planId === plan.id
             ? prev.state
             : buildDefaultAssignments(plan.newTeacherHiringPlan)
         const nextState =
           typeof updater === "function" ? updater(currentState) : updater
-        return { plan, state: nextState }
+        return { planId: plan.id, state: nextState }
       })
     },
-    [plan]
+    [plan.id, plan.newTeacherHiringPlan]
   )
 
   const handleAssignMissedClass = React.useCallback(
@@ -203,8 +216,11 @@ export function Content({
         isAssigned: true,
       }
     }
-    setAssignmentsState(next)
-  }, [plan.newTeacherHiringPlan, setAssignmentsState])
+    setAssignmentOverrides({
+      planId: plan.id,
+      state: next,
+    })
+  }, [plan.id, plan.newTeacherHiringPlan])
 
   const handleUpdateMissedClassesAssignments = React.useCallback(
     (updates: Record<string, CurrentAssignmentState>) => {
