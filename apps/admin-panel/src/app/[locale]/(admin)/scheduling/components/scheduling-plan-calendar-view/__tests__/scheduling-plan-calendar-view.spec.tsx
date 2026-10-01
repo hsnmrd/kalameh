@@ -1750,17 +1750,146 @@ describe("SchedulingPlanCalendarView Component", () => {
     fireEvent.click(p2Room102Card)
     expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
 
-    // Both changeDate and changeClassroom are checked together by default
+    // changeDate is checked by default; changeClassroom option is hidden because Room 101 is occupied at 17:00-18:30
     expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
       "aria-checked",
       "true"
     )
-    expect(screen.getByTestId("swap-option-classroom")).toHaveAttribute(
+    expect(
+      screen.queryByTestId("swap-option-classroom")
+    ).not.toBeInTheDocument()
+    expect(screen.getByTestId("swap-source-card")).toHaveTextContent("کلاس ۱۰۲")
+    expect(screen.getByTestId("swap-target-card")).toHaveTextContent("کلاس ۱۰۱")
+  })
+
+  it("does not show change room option in modal when swapping classes across periods where the target physical room is already occupied during the source period", () => {
+    const proposals: Proposal[] = [
+      {
+        id: "prop-ame-1-3",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-3",
+        course: { id: "c-ame-1-3", title: "AME 1-3" },
+        teacher: null,
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: {
+          id: "cr-d",
+          name: "کلاس D (آزمایشگاه زبان)",
+          capacity: 30,
+        },
+        capacity: 25,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "20:00",
+        endTime: "21:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-ame-1-2",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-2",
+        course: { id: "c-ame-1-2", title: "AME 1-2" },
+        teacher: null,
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr-b", name: "کلاس B (اتاق ۱۰۲)", capacity: 30 },
+        capacity: 18,
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "20:00",
+        endTime: "21:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-ame-2-3",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 2-3",
+        course: { id: "c-ame-2-3", title: "AME 2-3" },
+        teacher: { id: "t-maryam", firstName: "مریم", lastName: "کاظمی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr-b", name: "کلاس B (اتاق ۱۰۲)", capacity: 18 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "20:00",
+        endTime: "21:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-ame-1-1",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-1",
+        course: { id: "c-ame-1-1", title: "AME 1-1" },
+        teacher: { id: "t-amir", firstName: "امیرحسین", lastName: "رضایی" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: {
+          id: "cr-d",
+          name: "کلاس D (آزمایشگاه زبان)",
+          capacity: 25,
+        },
+        capacity: 13,
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "20:00",
+        endTime: "21:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={proposals}
+        canEdit={true}
+        defaultCollapsed={false}
+      />
+    )
+
+    const ame13Card = screen.getAllByTestId(
+      "calendar-class-card-prop-ame-1-3"
+    )[0]!
+    const ame12Card = screen.getAllByTestId(
+      "calendar-class-card-prop-ame-1-2"
+    )[0]!
+
+    // 1. Click AME 1-3: AME 1-2 is swappable by swapping days & time slots
+    fireEvent.click(ame13Card)
+    expect(ame12Card).toHaveAttribute("data-swappable", "true")
+
+    // 2. Click AME 1-2 to open the swap modal
+    fireEvent.click(ame12Card)
+    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+
+    // 3. Changing room option MUST NOT be shown in the modal because Class B is occupied on Saturday by AME 2-3
+    expect(
+      screen.queryByTestId("swap-option-classroom")
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId("swap-option-classroom-label")
+    ).not.toBeInTheDocument()
+
+    // 4. Changing date and time IS shown and checked by default
+    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
       "aria-checked",
       "true"
     )
-    expect(screen.getByTestId("swap-source-card")).toHaveTextContent("کلاس ۱۰۲")
-    expect(screen.getByTestId("swap-target-card")).toHaveTextContent("کلاس ۱۰۱")
+
+    // 5. Summary preview correctly reflects destination slots
+    expect(screen.getByTestId("swap-source-card")).toHaveTextContent("کلاس B")
+    expect(screen.getByTestId("swap-target-card")).toHaveTextContent("کلاس D")
   })
 
   it("allows swapping time and classroom with an unknown master (missed class), shaking and updating both classes on submit", async () => {

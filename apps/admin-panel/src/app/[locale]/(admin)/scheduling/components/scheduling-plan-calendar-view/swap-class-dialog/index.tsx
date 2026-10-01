@@ -150,7 +150,7 @@ export function SwapClassDialog({
       return
     }
     if (checked) {
-      if (key === "changeDate" && evaluation.canChangeClassroom) {
+      if (key === "changeDate") {
         const withRoom = {
           changeTeacher: false,
           changeClassroom: true,

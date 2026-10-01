@@ -148,8 +148,39 @@ export function evaluateProposalSwap(
 
   if (validCombinations.length === 0) return emptyResult
 
+  const isTargetRoomOccupiedAtSourceTime =
+    source.deliveryMode === "IN_PERSON" &&
+    Boolean(targetClassroomId) &&
+    !isClassroomAvailableForSchedule(
+      targetClassroomId,
+      source.deliveryMode,
+      source.daysOfWeek,
+      source.startTime,
+      source.endTime,
+      [source.id, target.id],
+      allProposals,
+      occupiedClassroomSlots
+    )
+
+  const isSourceRoomOccupiedAtTargetTime =
+    target.deliveryMode === "IN_PERSON" &&
+    Boolean(sourceClassroomId) &&
+    !isClassroomAvailableForSchedule(
+      sourceClassroomId,
+      target.deliveryMode,
+      target.daysOfWeek,
+      target.startTime,
+      target.endTime,
+      [source.id, target.id],
+      allProposals,
+      occupiedClassroomSlots
+    )
+
   const canChangeTeacher = validCombinations.some((c) => c.changeTeacher)
-  const canChangeClassroom = validCombinations.some((c) => c.changeClassroom)
+  const canChangeClassroom =
+    !isTargetRoomOccupiedAtSourceTime &&
+    !isSourceRoomOccupiedAtTargetTime &&
+    validCombinations.some((c) => c.changeClassroom)
   const canChangeDate = validCombinations.some((c) => c.changeDate)
 
   return {
