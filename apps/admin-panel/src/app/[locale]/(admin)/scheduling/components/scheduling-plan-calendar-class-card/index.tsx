@@ -30,72 +30,165 @@ export interface ClassCardColorTheme {
   dot: string
 }
 
-export const CLASS_CARD_THEMES: readonly ClassCardColorTheme[] = [
+export interface ColorTone {
+  borderStart: string
+  dot: string
+}
+
+export interface ColorFamily {
+  name: string
+  tones: readonly ColorTone[]
+}
+
+export const COLOR_FAMILIES: readonly ColorFamily[] = [
   {
-    border: "border-border/80 hover:border-border",
-    borderStart: "border-s-chart-1",
-    bg: "bg-card hover:bg-muted/30",
-    divider: "border-border/50",
-    badge: "bg-muted text-muted-foreground border-border/60",
-    dot: "bg-chart-1",
+    name: "blue",
+    tones: [
+      { borderStart: "border-s-blue-500", dot: "bg-blue-500" },
+      { borderStart: "border-s-sky-500", dot: "bg-sky-500" },
+      { borderStart: "border-s-indigo-500", dot: "bg-indigo-500" },
+      { borderStart: "border-s-blue-600", dot: "bg-blue-600" },
+      { borderStart: "border-s-sky-400", dot: "bg-sky-400" },
+      { borderStart: "border-s-indigo-600", dot: "bg-indigo-600" },
+    ],
   },
   {
-    border: "border-border/80 hover:border-border",
-    borderStart: "border-s-chart-2",
-    bg: "bg-card hover:bg-muted/30",
-    divider: "border-border/50",
-    badge: "bg-muted text-muted-foreground border-border/60",
-    dot: "bg-chart-2",
+    name: "emerald",
+    tones: [
+      { borderStart: "border-s-emerald-500", dot: "bg-emerald-500" },
+      { borderStart: "border-s-green-500", dot: "bg-green-500" },
+      { borderStart: "border-s-teal-500", dot: "bg-teal-500" },
+      { borderStart: "border-s-emerald-600", dot: "bg-emerald-600" },
+      { borderStart: "border-s-green-600", dot: "bg-green-600" },
+      { borderStart: "border-s-teal-600", dot: "bg-teal-600" },
+    ],
   },
   {
-    border: "border-border/80 hover:border-border",
-    borderStart: "border-s-chart-3",
-    bg: "bg-card hover:bg-muted/30",
-    divider: "border-border/50",
-    badge: "bg-muted text-muted-foreground border-border/60",
-    dot: "bg-chart-3",
+    name: "violet",
+    tones: [
+      { borderStart: "border-s-violet-500", dot: "bg-violet-500" },
+      { borderStart: "border-s-purple-500", dot: "bg-purple-500" },
+      { borderStart: "border-s-fuchsia-500", dot: "bg-fuchsia-500" },
+      { borderStart: "border-s-violet-600", dot: "bg-violet-600" },
+      { borderStart: "border-s-purple-600", dot: "bg-purple-600" },
+      { borderStart: "border-s-fuchsia-600", dot: "bg-fuchsia-600" },
+    ],
   },
   {
-    border: "border-border/80 hover:border-border",
-    borderStart: "border-s-chart-4",
-    bg: "bg-card hover:bg-muted/30",
-    divider: "border-border/50",
-    badge: "bg-muted text-muted-foreground border-border/60",
-    dot: "bg-chart-4",
+    name: "amber",
+    tones: [
+      { borderStart: "border-s-amber-500", dot: "bg-amber-500" },
+      { borderStart: "border-s-orange-500", dot: "bg-orange-500" },
+      { borderStart: "border-s-yellow-500", dot: "bg-yellow-500" },
+      { borderStart: "border-s-amber-600", dot: "bg-amber-600" },
+      { borderStart: "border-s-orange-600", dot: "bg-orange-600" },
+      { borderStart: "border-s-yellow-600", dot: "bg-yellow-600" },
+    ],
   },
   {
-    border: "border-border/80 hover:border-border",
-    borderStart: "border-s-chart-5",
-    bg: "bg-card hover:bg-muted/30",
-    divider: "border-border/50",
-    badge: "bg-muted text-muted-foreground border-border/60",
-    dot: "bg-chart-5",
+    name: "rose",
+    tones: [
+      { borderStart: "border-s-rose-500", dot: "bg-rose-500" },
+      { borderStart: "border-s-pink-500", dot: "bg-pink-500" },
+      { borderStart: "border-s-rose-600", dot: "bg-rose-600" },
+      { borderStart: "border-s-pink-600", dot: "bg-pink-600" },
+      { borderStart: "border-s-rose-400", dot: "bg-rose-400" },
+      { borderStart: "border-s-pink-400", dot: "bg-pink-400" },
+    ],
   },
   {
-    border: "border-border/80 hover:border-border",
-    borderStart: "border-s-chart-6",
-    bg: "bg-card hover:bg-muted/30",
-    divider: "border-border/50",
-    badge: "bg-muted text-muted-foreground border-border/60",
-    dot: "bg-chart-6",
+    name: "cyan",
+    tones: [
+      { borderStart: "border-s-cyan-500", dot: "bg-cyan-500" },
+      { borderStart: "border-s-sky-500", dot: "bg-sky-500" },
+      { borderStart: "border-s-teal-400", dot: "bg-teal-400" },
+      { borderStart: "border-s-cyan-600", dot: "bg-cyan-600" },
+      { borderStart: "border-s-sky-600", dot: "bg-sky-600" },
+      { borderStart: "border-s-cyan-400", dot: "bg-cyan-400" },
+    ],
   },
   {
-    border: "border-border/80 hover:border-border",
-    borderStart: "border-s-chart-7",
-    bg: "bg-card hover:bg-muted/30",
-    divider: "border-border/50",
-    badge: "bg-muted text-muted-foreground border-border/60",
-    dot: "bg-chart-7",
+    name: "coral",
+    tones: [
+      { borderStart: "border-s-red-500", dot: "bg-red-500" },
+      { borderStart: "border-s-rose-600", dot: "bg-rose-600" },
+      { borderStart: "border-s-orange-600", dot: "bg-orange-600" },
+      { borderStart: "border-s-red-600", dot: "bg-red-600" },
+      { borderStart: "border-s-red-400", dot: "bg-red-400" },
+      { borderStart: "border-s-rose-700", dot: "bg-rose-700" },
+    ],
   },
   {
-    border: "border-border/80 hover:border-border",
-    borderStart: "border-s-chart-8",
-    bg: "bg-card hover:bg-muted/30",
-    divider: "border-border/50",
-    badge: "bg-muted text-muted-foreground border-border/60",
-    dot: "bg-chart-8",
+    name: "lime",
+    tones: [
+      { borderStart: "border-s-lime-500", dot: "bg-lime-500" },
+      { borderStart: "border-s-green-400", dot: "bg-green-400" },
+      { borderStart: "border-s-emerald-400", dot: "bg-emerald-400" },
+      { borderStart: "border-s-lime-600", dot: "bg-lime-600" },
+      { borderStart: "border-s-green-500", dot: "bg-green-500" },
+      { borderStart: "border-s-lime-400", dot: "bg-lime-400" },
+    ],
+  },
+  {
+    name: "indigo",
+    tones: [
+      { borderStart: "border-s-indigo-600", dot: "bg-indigo-600" },
+      { borderStart: "border-s-blue-700", dot: "bg-blue-700" },
+      { borderStart: "border-s-violet-600", dot: "bg-violet-600" },
+      { borderStart: "border-s-indigo-500", dot: "bg-indigo-500" },
+      { borderStart: "border-s-indigo-400", dot: "bg-indigo-400" },
+      { borderStart: "border-s-slate-500", dot: "bg-slate-500" },
+    ],
+  },
+  {
+    name: "fuchsia",
+    tones: [
+      { borderStart: "border-s-fuchsia-600", dot: "bg-fuchsia-600" },
+      { borderStart: "border-s-pink-600", dot: "bg-pink-600" },
+      { borderStart: "border-s-purple-700", dot: "bg-purple-700" },
+      { borderStart: "border-s-fuchsia-500", dot: "bg-fuchsia-500" },
+      { borderStart: "border-s-rose-600", dot: "bg-rose-600" },
+      { borderStart: "border-s-fuchsia-400", dot: "bg-fuchsia-400" },
+    ],
+  },
+  {
+    name: "teal",
+    tones: [
+      { borderStart: "border-s-teal-600", dot: "bg-teal-600" },
+      { borderStart: "border-s-emerald-600", dot: "bg-emerald-600" },
+      { borderStart: "border-s-cyan-700", dot: "bg-cyan-700" },
+      { borderStart: "border-s-teal-500", dot: "bg-teal-500" },
+      { borderStart: "border-s-teal-400", dot: "bg-teal-400" },
+      { borderStart: "border-s-emerald-500", dot: "bg-emerald-500" },
+    ],
+  },
+  {
+    name: "yellow",
+    tones: [
+      { borderStart: "border-s-yellow-500", dot: "bg-yellow-500" },
+      { borderStart: "border-s-amber-400", dot: "bg-amber-400" },
+      { borderStart: "border-s-orange-400", dot: "bg-orange-400" },
+      { borderStart: "border-s-yellow-600", dot: "bg-yellow-600" },
+      { borderStart: "border-s-amber-500", dot: "bg-amber-500" },
+      { borderStart: "border-s-yellow-400", dot: "bg-yellow-400" },
+    ],
   },
 ] as const
+
+export const TONES_PER_FAMILY = 6
+export const TOTAL_COLOR_THEMES = COLOR_FAMILIES.length * TONES_PER_FAMILY
+
+export const CLASS_CARD_THEMES: readonly ClassCardColorTheme[] =
+  COLOR_FAMILIES.flatMap((family) =>
+    family.tones.map((tone) => ({
+      border: "border-border/80 hover:border-border",
+      borderStart: tone.borderStart,
+      bg: "bg-card hover:bg-muted/30",
+      divider: "border-border/50",
+      badge: "bg-muted text-muted-foreground border-border/60",
+      dot: tone.dot,
+    }))
+  )
 
 export function getProposalColorIndex(
   id: string,

@@ -49,6 +49,7 @@ import {
   type SwapEvaluationResult,
   type SwapTarget,
 } from "./helper/swap-eligibility.helper"
+import { buildProposalColorMap } from "./helper/course-color-group.helper"
 import { SwapClassDialog } from "./swap-class-dialog"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
@@ -681,17 +682,10 @@ export function SchedulingPlanCalendarView({
     return map
   }, [proposals])
 
-  const proposalColorMap = React.useMemo(() => {
-    const map = new Map<string, number>()
-    let counter = 0
-    for (const proposal of proposals) {
-      if (!map.has(proposal.id)) {
-        map.set(proposal.id, counter)
-        counter++
-      }
-    }
-    return map
-  }, [proposals])
+  const proposalColorMap = React.useMemo(
+    () => buildProposalColorMap(proposals),
+    [proposals]
+  )
 
   const missedClassesByTrackAndSlot = React.useMemo(() => {
     const map = new Map<
