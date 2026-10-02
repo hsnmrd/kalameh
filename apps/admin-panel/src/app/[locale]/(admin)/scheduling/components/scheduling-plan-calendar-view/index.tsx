@@ -1125,9 +1125,7 @@ export function SchedulingPlanCalendarView({
                 data-testid={`time-slot-row-${slot.key}`}
                 className={cn(
                   "flex flex-col transition-all duration-300",
-                  isCollapsed
-                    ? "gap-0 border-transparent bg-transparent p-0 shadow-none"
-                    : "gap-3 rounded-2xl border border-border/80 bg-card/40 p-3 shadow-2xs hover:border-border hover:bg-card/60"
+                  isCollapsed ? "gap-0" : "gap-2.5"
                 )}
               >
                 {/* Time at Top of Group List */}
@@ -1136,8 +1134,10 @@ export function SchedulingPlanCalendarView({
                   onClick={() => toggleSlotCollapse(slot.key)}
                   data-testid={`time-slot-toggle-${slot.key}`}
                   className={cn(
-                    "group flex min-h-[52px] w-full cursor-pointer items-center justify-between overflow-hidden border border-border/60 bg-muted/40 px-3.5 py-2 text-center transition-all duration-300 ease-in-out select-none hover:border-primary/40 hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                    isCollapsed ? "rounded-2xl" : "rounded-xl"
+                    "group flex min-h-[52px] w-full cursor-pointer items-center justify-between overflow-hidden transition-all duration-300 ease-in-out select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                    isCollapsed
+                      ? "rounded-2xl border border-border/60 bg-muted/40 px-3.5 py-2 hover:border-primary/40 hover:bg-muted/70"
+                      : "rounded-xl border-0 bg-transparent px-1 py-1 hover:bg-muted/20"
                   )}
                   aria-expanded={!isCollapsed}
                   aria-label={
@@ -1169,31 +1169,30 @@ export function SchedulingPlanCalendarView({
                       </span>
                     </div>
 
-                    <span className="mx-1 text-muted-foreground/40">·</span>
+                    {isCollapsed && (
+                      <>
+                        <span className="mx-1 text-muted-foreground/40">·</span>
 
-                    {totalSlotClasses > 0 ? (
-                      <Badge
-                        variant="secondary"
-                        data-testid={`slot-classes-badge-${slot.key}`}
-                        className="h-5 px-2 text-xs font-bold"
-                      >
-                        {t("calendarView.classesCount", {
-                          count: formatNumber(totalSlotClasses, locale),
-                        })}
-                      </Badge>
-                    ) : (
-                      <span className="text-xs text-muted-foreground/70">
-                        {t("calendarView.noClasses")}
-                      </span>
+                        {totalSlotClasses > 0 ? (
+                          <Badge
+                            variant="secondary"
+                            data-testid={`slot-classes-badge-${slot.key}`}
+                            className="h-5 px-2 text-xs font-bold"
+                          >
+                            {t("calendarView.classesCount", {
+                              count: formatNumber(totalSlotClasses, locale),
+                            })}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/70">
+                            {t("calendarView.noClasses")}
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground group-hover:text-foreground">
-                    <span>
-                      {isCollapsed
-                        ? t("calendarView.expandSlot", { time: "" }).trim()
-                        : t("calendarView.collapseSlot", { time: "" }).trim()}
-                    </span>
+                  <div className="flex items-center text-muted-foreground transition-colors group-hover:text-foreground">
                     <ChevronDown
                       aria-hidden
                       className={cn(

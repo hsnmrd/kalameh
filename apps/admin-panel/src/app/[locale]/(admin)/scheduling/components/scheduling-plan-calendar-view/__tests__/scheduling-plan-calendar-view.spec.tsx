@@ -708,6 +708,16 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(content1).toHaveClass("grid-rows-[0fr]")
     expect(content2).toHaveClass("grid-rows-[0fr]")
 
+    // Both rows initially collapsed with class count badge visible
+    expect(
+      screen.getByTestId("slot-classes-badge-09:00-10:30")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByTestId("slot-classes-badge-16:00-17:30")
+    ).toBeInTheDocument()
+    expect(screen.queryByText("بستن بازه")).not.toBeInTheDocument()
+    expect(screen.queryByText("باز کردن بازه")).not.toBeInTheDocument()
+
     // Expand Row 1
     fireEvent.click(row1Toggle)
 
@@ -716,14 +726,25 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(row2Toggle.getAttribute("aria-expanded")).toBe("false")
     expect(content1).toHaveClass("grid-rows-[1fr]")
     expect(content1).toHaveClass("opacity-100")
-    // Row 2 remains collapsed
+    // When expanded, the class count badge is hidden for Row 1
+    expect(
+      screen.queryByTestId("slot-classes-badge-09:00-10:30")
+    ).not.toBeInTheDocument()
+    // Row 2 remains collapsed, so its badge is still present
     expect(content2).toHaveClass("grid-rows-[0fr]")
+    expect(
+      screen.getByTestId("slot-classes-badge-16:00-17:30")
+    ).toBeInTheDocument()
 
     // Collapse Row 1 back
     fireEvent.click(row1Toggle)
 
     expect(row1Toggle.getAttribute("aria-expanded")).toBe("false")
     expect(content1).toHaveClass("grid-rows-[0fr]")
+    // When collapsed again, the class count badge reappears
+    expect(
+      screen.getByTestId("slot-classes-badge-09:00-10:30")
+    ).toBeInTheDocument()
   })
 
   it("expands and collapses all rows via the global expand/collapse all button", () => {
