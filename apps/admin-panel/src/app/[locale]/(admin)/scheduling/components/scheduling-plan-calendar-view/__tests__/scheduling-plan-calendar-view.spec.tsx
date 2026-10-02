@@ -194,7 +194,7 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     // prop-1 has capacity 15 and max room capacity 15 (at max)
     // prop-3 has capacity 14 and max room capacity 20
-    expect(screen.getAllByText("ظرفیت").length).toBeGreaterThanOrEqual(2)
+    expect(screen.getAllByText(/نفر/).length).toBeGreaterThanOrEqual(2)
 
     // Check displays formatted capacity
     expect(screen.getAllByText(/\/\s*(15|۱۵)/).length).toBeGreaterThanOrEqual(1)
@@ -385,7 +385,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     const oddEmptyCell = screen.getByTestId("empty-cell-ODD-09:00-10:30")
     expect(oddEmptyCell).toBeInTheDocument()
     expect(oddEmptyCell).toHaveClass("opacity-40")
-    expect(oddEmptyCell).toHaveClass("h-[134px]")
+    expect(oddEmptyCell).toHaveClass("min-h-[84px]")
     expect(oddEmptyCell).toHaveTextContent("بدون کلاس")
   })
 
@@ -433,19 +433,18 @@ describe("SchedulingPlanCalendarView Component", () => {
     const regularCard = screen.getAllByTestId("calendar-class-card-prop-1")[0]!
     const missedCard = screen.getByTestId("missed-class-card-missed-1")
 
-    expect(regularCard).toHaveClass("h-[134px]")
+    expect(regularCard).toHaveClass("min-h-[84px]")
     expect(regularCard).toHaveClass(
       "border-border/80",
       "border-s-chart-1",
       "bg-card"
     )
-    expect(missedCard).toHaveClass("h-[134px]")
+    expect(missedCard).toHaveClass("min-h-[84px]")
     expect(missedCard).toHaveClass(
       "border-dashed",
       "border-warning/70",
       "bg-warning/10"
     )
-    expect(missedCard).toHaveTextContent("ظرفیت")
     expect(missedCard).toHaveTextContent("۱۵ نفر")
   })
 
@@ -503,7 +502,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.getByText("زمان آزاد")).toBeInTheDocument()
     expect(screen.getByText("تخصیص کلاس")).toBeInTheDocument()
     const freeSlotButton = screen.getByRole("button", { name: /زمان آزاد/ })
-    expect(freeSlotButton).toHaveClass("h-[134px]")
+    expect(freeSlotButton).toHaveClass("min-h-[84px]")
   })
 
   it("does not place an IN_PERSON missed class orange card in a day or slot where all physical classrooms are full", () => {
@@ -627,32 +626,28 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
   })
 
-  it("defaults to collapsed state where class cards show course title and teacher name, while collapsing location and capacity", () => {
+  it("defaults to collapsed state where time slots are collapsed showing period time and class count summary", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    // Class title is visible
-    expect(
-      screen.getAllByText("American English File 1").length
-    ).toBeGreaterThanOrEqual(1)
+    // Time slot toggles are collapsed by default
+    const row1Toggle = screen.getByTestId("time-slot-toggle-09:00-10:30")
+    const row2Toggle = screen.getByTestId("time-slot-toggle-16:00-17:30")
+    expect(row1Toggle).toHaveAttribute("aria-expanded", "false")
+    expect(row2Toggle).toHaveAttribute("aria-expanded", "false")
 
-    // Teacher name is visible in collapsed state
-    expect(screen.getAllByText("علی محمدی").length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText("مریم رضایی").length).toBeGreaterThanOrEqual(1)
+    // Content of both rows is collapsed (0fr and opacity-0)
+    const content1 = screen.getByTestId("time-slot-content-09:00-10:30")
+    const content2 = screen.getByTestId("time-slot-content-16:00-17:30")
+    expect(content1).toHaveClass("grid-rows-[0fr]")
+    expect(content1).toHaveClass("opacity-0")
+    expect(content2).toHaveClass("grid-rows-[0fr]")
+    expect(content2).toHaveClass("opacity-0")
 
-    // Cards have compact collapsed height and collapsed data attribute
-    const card = screen.getAllByTestId("calendar-class-card-prop-1")[0]!
-    expect(card).toHaveAttribute("data-collapsed", "true")
-    expect(card).toHaveClass("h-[52px]")
-    expect(card).not.toHaveClass("h-[134px]")
-
-    // Collapsible details section is aria-hidden when collapsed
-    const details = screen.getAllByTestId(
-      "calendar-class-card-details-prop-1"
-    )[0]!
-    expect(details).toHaveAttribute("aria-hidden", "true")
-    expect(details).toHaveClass("grid-rows-[0fr]")
+    // Time slot header badges display classes count
+    const badge1 = screen.getByTestId("slot-classes-badge-09:00-10:30")
+    expect(badge1).toHaveTextContent("۱ کلاس")
 
     // Global expand/collapse toggle shows "باز کردن همه"
     const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
@@ -666,23 +661,15 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     const row1Toggle = screen.getByTestId("time-slot-toggle-09:00-10:30")
     const row2Toggle = screen.getByTestId("time-slot-toggle-16:00-17:30")
-    const cardRow1 = screen.getAllByTestId("calendar-class-card-prop-1")[0]!
-    const detailsRow1 = screen.getAllByTestId(
-      "calendar-class-card-details-prop-1"
-    )[0]!
-    const cardRow2 = screen.getByTestId("calendar-class-card-prop-2")
-    const detailsRow2 = screen.getByTestId("calendar-class-card-details-prop-2")
+    const content1 = screen.getByTestId("time-slot-content-09:00-10:30")
+    const content2 = screen.getByTestId("time-slot-content-16:00-17:30")
 
     // Both rows initially collapsed
     expect(row1Toggle.getAttribute("aria-expanded")).toBe("false")
     expect(row1Toggle).toHaveClass("min-h-[52px]")
     expect(row2Toggle.getAttribute("aria-expanded")).toBe("false")
-    expect(cardRow1).toHaveAttribute("data-collapsed", "true")
-    expect(cardRow1).toHaveClass("h-[52px]")
-    expect(detailsRow1).toHaveAttribute("aria-hidden", "true")
-    expect(detailsRow1).toHaveClass("grid-rows-[0fr]")
-    expect(cardRow2).toHaveAttribute("data-collapsed", "true")
-    expect(detailsRow2).toHaveAttribute("aria-hidden", "true")
+    expect(content1).toHaveClass("grid-rows-[0fr]")
+    expect(content2).toHaveClass("grid-rows-[0fr]")
 
     // Expand Row 1
     fireEvent.click(row1Toggle)
@@ -690,22 +677,16 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(row1Toggle.getAttribute("aria-expanded")).toBe("true")
     expect(row1Toggle).toHaveClass("min-h-[52px]")
     expect(row2Toggle.getAttribute("aria-expanded")).toBe("false")
-    expect(cardRow1).not.toHaveAttribute("data-collapsed")
-    expect(cardRow1).toHaveClass("h-[134px]")
-    expect(detailsRow1).toHaveAttribute("aria-hidden", "false")
-    expect(detailsRow1).toHaveClass("grid-rows-[1fr]")
+    expect(content1).toHaveClass("grid-rows-[1fr]")
+    expect(content1).toHaveClass("opacity-100")
     // Row 2 remains collapsed
-    expect(cardRow2).toHaveAttribute("data-collapsed", "true")
-    expect(cardRow2).toHaveClass("h-[52px]")
-    expect(detailsRow2).toHaveAttribute("aria-hidden", "true")
+    expect(content2).toHaveClass("grid-rows-[0fr]")
 
     // Collapse Row 1 back
     fireEvent.click(row1Toggle)
 
     expect(row1Toggle.getAttribute("aria-expanded")).toBe("false")
-    expect(cardRow1).toHaveAttribute("data-collapsed", "true")
-    expect(cardRow1).toHaveClass("h-[52px]")
-    expect(detailsRow1).toHaveAttribute("aria-hidden", "true")
+    expect(content1).toHaveClass("grid-rows-[0fr]")
   })
 
   it("expands and collapses all rows via the global expand/collapse all button", () => {
@@ -714,39 +695,31 @@ describe("SchedulingPlanCalendarView Component", () => {
     )
 
     const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
-    const cardRow1 = screen.getAllByTestId("calendar-class-card-prop-1")[0]!
-    const detailsRow1 = screen.getAllByTestId(
-      "calendar-class-card-details-prop-1"
-    )[0]!
-    const cardRow2 = screen.getByTestId("calendar-class-card-prop-2")
-    const detailsRow2 = screen.getByTestId("calendar-class-card-details-prop-2")
+    const content1 = screen.getByTestId("time-slot-content-09:00-10:30")
+    const content2 = screen.getByTestId("time-slot-content-16:00-17:30")
 
     expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
-    expect(cardRow1).toHaveClass("h-[52px]")
-    expect(detailsRow1).toHaveAttribute("aria-hidden", "true")
-    expect(cardRow2).toHaveClass("h-[52px]")
-    expect(detailsRow2).toHaveAttribute("aria-hidden", "true")
+    expect(content1).toHaveClass("grid-rows-[0fr]")
+    expect(content2).toHaveClass("grid-rows-[0fr]")
 
     // Expand all
     fireEvent.click(toggleAllBtn)
 
     expect(toggleAllBtn).toHaveTextContent("بستن همه")
-    expect(cardRow1).toHaveClass("h-[134px]")
-    expect(detailsRow1).toHaveAttribute("aria-hidden", "false")
-    expect(cardRow2).toHaveClass("h-[134px]")
-    expect(detailsRow2).toHaveAttribute("aria-hidden", "false")
+    expect(content1).toHaveClass("grid-rows-[1fr]")
+    expect(content1).toHaveClass("opacity-100")
+    expect(content2).toHaveClass("grid-rows-[1fr]")
+    expect(content2).toHaveClass("opacity-100")
 
     // Collapse all
     fireEvent.click(toggleAllBtn)
 
     expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
-    expect(cardRow1).toHaveClass("h-[52px]")
-    expect(detailsRow1).toHaveAttribute("aria-hidden", "true")
-    expect(cardRow2).toHaveClass("h-[52px]")
-    expect(detailsRow2).toHaveAttribute("aria-hidden", "true")
+    expect(content1).toHaveClass("grid-rows-[0fr]")
+    expect(content2).toHaveClass("grid-rows-[0fr]")
   })
 
-  it("renders missed classes with title and teacher when collapsed and reveals room and capacity when expanded", () => {
+  it("renders missed classes with title and teacher within the time slot accordion", () => {
     const assignmentsState = {
       "missed-1": {
         daysOfWeek: ["SUNDAY"] as const,
@@ -786,28 +759,19 @@ describe("SchedulingPlanCalendarView Component", () => {
       />
     )
 
-    const missedCard = screen.getByTestId("missed-class-card-missed-1")
-    const missedDetails = screen.getByTestId(
-      "missed-class-card-details-missed-1"
-    )
-
-    expect(missedCard).toHaveAttribute("data-collapsed", "true")
-    expect(missedCard).toHaveClass("h-[52px]")
-    expect(missedCard).toHaveTextContent("Touchstone 1")
-    expect(missedCard).toHaveTextContent("استاد جدید (در انتظار جذب)")
-    expect(missedDetails).toHaveAttribute("aria-hidden", "true")
-    expect(missedDetails).toHaveClass("grid-rows-[0fr]")
+    const slotContent = screen.getByTestId("time-slot-content-09:00-10:30")
+    expect(slotContent).toHaveClass("grid-rows-[0fr]")
 
     // Expand slot 09:00-10:30
     const toggleBtn = screen.getByTestId("time-slot-toggle-09:00-10:30")
     fireEvent.click(toggleBtn)
 
-    expect(missedCard).not.toHaveAttribute("data-collapsed")
-    expect(missedCard).toHaveClass("h-[134px]")
+    expect(slotContent).toHaveClass("grid-rows-[1fr]")
+    const missedCard = screen.getByTestId("missed-class-card-missed-1")
+    expect(missedCard).toHaveClass("min-h-[84px]")
     expect(missedCard).toHaveTextContent("Touchstone 1")
     expect(missedCard).toHaveTextContent("استاد جدید (در انتظار جذب)")
-    expect(missedDetails).toHaveAttribute("aria-hidden", "false")
-    expect(missedDetails).toHaveClass("grid-rows-[1fr]")
+    expect(missedCard).toHaveTextContent("۱۵ نفر")
   })
 
   it("toggles showing free teacher names under class cards of each period", () => {
@@ -957,34 +921,19 @@ describe("SchedulingPlanCalendarView Component", () => {
     // Turn on free teachers display
     fireEvent.click(screen.getByTestId("toggle-free-teachers-btn"))
 
+    // Expand all rows to view inside accordion
+    fireEvent.click(screen.getByTestId("toggle-collapse-all-btn"))
+
     const freeTeacherCard = screen.getByTestId(
       "free-teacher-card-t-higher-EVEN-09:00-10:30"
     )
-    const freeTeacherDetails = screen.getByTestId(
-      "free-teacher-card-details-t-higher-EVEN-09:00-10:30"
-    )
 
-    // In collapsed mode (default), card has compact h-[52px] height and collapses details
-    expect(freeTeacherCard).toHaveAttribute("data-collapsed", "true")
-    expect(freeTeacherCard).toHaveClass("h-[52px]")
+    expect(freeTeacherCard).toHaveClass("min-h-[84px]")
     expect(freeTeacherCard).toHaveTextContent("نیلوفر صادقی")
     expect(freeTeacherCard).toHaveTextContent("پیشنهاد برای AME ۲-۲")
-    expect(freeTeacherDetails).toHaveAttribute("aria-hidden", "true")
-    expect(freeTeacherDetails).toHaveClass("grid-rows-[0fr]")
-
-    // Expand all rows
-    fireEvent.click(screen.getByTestId("toggle-collapse-all-btn"))
-
-    // In expanded mode, card matches class card height h-[134px] and reveals start ~ end level range and status footer
-    expect(freeTeacherCard).not.toHaveAttribute("data-collapsed")
-    expect(freeTeacherCard).toHaveClass("h-[134px]")
-    expect(freeTeacherCard).toHaveTextContent("نیلوفر صادقی")
     expect(freeTeacherCard).toHaveTextContent("AME ۳-۱ ~ AME ۴-۲")
     expect(freeTeacherCard).not.toHaveTextContent("AME ۳-۲")
     expect(freeTeacherCard).not.toHaveTextContent("AME ۴-۱")
-    expect(freeTeacherCard).toHaveTextContent("پیشنهاد برای AME ۲-۲")
-    expect(freeTeacherDetails).toHaveAttribute("aria-hidden", "false")
-    expect(freeTeacherDetails).toHaveClass("grid-rows-[1fr]")
   })
 
   it("shakes compatible class cards and free teacher cards when a class card is clicked and opens the swap dialog on click", () => {

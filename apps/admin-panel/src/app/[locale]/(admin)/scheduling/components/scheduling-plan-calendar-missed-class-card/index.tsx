@@ -86,10 +86,9 @@ export function SchedulingPlanCalendarMissedClassCard({
         }
       }}
       className={cn(
-        "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-xl border-2 border-dashed border-warning/70 bg-warning/10 shadow-2xs transition-[height,padding,background-color,border-color,box-shadow,filter] duration-300 ease-in-out select-none",
-        isCollapsed ? "h-[52px] p-2" : "h-[134px] p-2.5",
+        "group relative flex min-h-[84px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl border-2 border-dashed border-warning/70 bg-warning/10 p-3 shadow-2xs transition-[background-color,border-color,box-shadow,filter,transform] duration-200 ease-in-out select-none",
         isActive &&
-          "z-10 scale-[1.02] opacity-100 shadow-md ring-2 ring-warning",
+          "z-10 scale-[1.01] opacity-100 shadow-md ring-2 ring-warning",
         isSwappable &&
           "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
         isDimmed && "opacity-25 hover:opacity-60",
@@ -97,16 +96,16 @@ export function SchedulingPlanCalendarMissedClassCard({
       )}
       aria-label={assignment.course.title}
     >
-      {/* Section 1: Course Title, Room Location, Quick Capacity & Actions */}
+      {/* Row 1: Course Title & Level, Mode, Location, Status & Unassign */}
       <div className="flex min-w-0 items-center justify-between gap-2">
-        {/* Start (Right): Course Title & Delivery Mode */}
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+        {/* Start (Right in RTL): Dot, Course Title, Badges */}
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <span
-            className="size-2 shrink-0 rounded-full bg-warning"
+            className="size-2.5 shrink-0 rounded-full bg-warning"
             aria-hidden="true"
           />
           <h5
-            className="truncate text-xs font-bold text-foreground"
+            className="truncate text-sm font-bold text-foreground"
             title={assignment.course.title}
           >
             {hasSameCourse ? (
@@ -120,10 +119,7 @@ export function SchedulingPlanCalendarMissedClassCard({
           {hasSameCourse && (
             <span
               data-testid={`same-course-badge-${assignment.key}`}
-              className={cn(
-                "shrink-0 rounded border border-primary/40 bg-primary/15 px-1 py-0.5 text-[9px] font-bold text-primary transition-opacity duration-200",
-                isCollapsed && "hidden"
-              )}
+              className="shrink-0 rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold text-primary"
             >
               {t("calendarView.sameCourseBadge")}
             </span>
@@ -131,9 +127,9 @@ export function SchedulingPlanCalendarMissedClassCard({
           {/* Delivery mode badge pill */}
           <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-warning/30 bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning-foreground">
             {isOnline ? (
-              <Globe aria-hidden className="size-2.5 text-inherit" />
+              <Globe aria-hidden className="size-3 text-inherit" />
             ) : (
-              <Building2 aria-hidden className="size-2.5 text-inherit" />
+              <Building2 aria-hidden className="size-3 text-inherit" />
             )}
             <span>
               {isOnline
@@ -143,35 +139,27 @@ export function SchedulingPlanCalendarMissedClassCard({
           </span>
         </div>
 
-        {/* Center: Room / Location */}
-        <div className="flex shrink-0 items-center gap-1 rounded-md bg-warning/20 px-2 py-0.5 text-[11px] text-warning-foreground">
-          {isOnline ? (
-            <Globe aria-hidden className="size-3 shrink-0 text-inherit" />
-          ) : (
-            <DoorOpen aria-hidden className="size-3 shrink-0 text-inherit" />
-          )}
-          <span className="max-w-[130px] truncate font-medium">
-            {roomLabel}
-          </span>
-        </div>
-
-        {/* End (Left): Capacity Quick Badge, New Teacher Badge & Unassign Button */}
-        <div className="flex shrink-0 items-center gap-1.5">
-          {effectiveRoomCapacity && (
-            <div className="flex items-center gap-1 rounded-md bg-warning/20 px-2 py-0.5 text-[11px] font-semibold text-warning-foreground tabular-nums">
-              <Users aria-hidden className="size-3 shrink-0 text-inherit" />
-              <span>{formatNumber(effectiveRoomCapacity, locale)} نفر</span>
-            </div>
-          )}
-          <Badge
-            variant="warning"
-            className={cn(
-              "h-4 px-1.5 py-0 text-[10px]",
-              isCollapsed && "hidden sm:inline-flex"
+        {/* End (Left in RTL): Location, New Teacher Badge & Unassign */}
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Room / Location */}
+          <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-warning/20 px-2 py-0.5 text-xs text-warning-foreground">
+            {isOnline ? (
+              <Globe aria-hidden className="size-3.5 shrink-0 text-inherit" />
+            ) : (
+              <DoorOpen
+                aria-hidden
+                className="size-3.5 shrink-0 text-inherit"
+              />
             )}
-          >
+            <span className="max-w-[140px] truncate font-medium">
+              {roomLabel}
+            </span>
+          </div>
+
+          <Badge variant="warning" className="h-5 px-1.5 py-0 text-[10px]">
             {t("calendarView.newTeacherBadge")}
           </Badge>
+
           {canEdit && onUnassign && (
             <Button
               type="button"
@@ -181,77 +169,36 @@ export function SchedulingPlanCalendarMissedClassCard({
                 e.stopPropagation()
                 onUnassign()
               }}
-              className="size-5 rounded-md p-0 text-muted-foreground hover:bg-warning/20 hover:text-foreground"
+              className="size-6 rounded-md p-0 text-muted-foreground hover:bg-warning/20 hover:text-foreground"
               title={t("calendarView.unassign")}
               aria-label={t("calendarView.unassign")}
             >
-              <X className="size-3" />
+              <X className="size-3.5" />
             </Button>
           )}
         </div>
       </div>
 
-      {/* Section 2: Teacher (Pending) & Delivery Details */}
-      <div
-        className={cn(
-          "flex items-center justify-between gap-2 text-[11px] text-muted-foreground transition-all duration-300",
-          !isCollapsed && "border-t border-warning/20 pt-2"
-        )}
-      >
-        {/* Teacher (Always visible) */}
-        <div className="flex min-w-0 items-center gap-1.5 truncate">
-          <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-warning/20 text-warning-foreground">
-            <GraduationCap aria-hidden className="size-3 shrink-0" />
+      {/* Row 2: Teacher Pending Placeholder & Capacity */}
+      <div className="flex items-center justify-between gap-3 border-t border-warning/20 pt-2 text-xs">
+        {/* Start (Right in RTL): Teacher Pending Info */}
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          <div className="relative flex size-7.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-warning/20 text-warning-foreground ring-1 ring-warning/30">
+            <GraduationCap aria-hidden className="size-4 shrink-0" />
           </div>
-          <span className="truncate font-semibold text-foreground/90">
+          <span className="truncate text-xs font-bold text-foreground">
             {t("hiringPlan.pendingTeacher")}
           </span>
         </div>
 
-        {/* Center: Requirement status note */}
-        <div className="hidden min-w-0 items-center gap-1 truncate text-[10px] text-warning-foreground sm:flex">
-          <span>{t("calendarView.newTeacherBadge")}</span>
-        </div>
-
-        {/* End: Capacity or room note */}
-        <div className="flex items-center gap-1 text-[11px] font-semibold text-warning-foreground tabular-nums">
+        {/* End (Left in RTL): Capacity or room note */}
+        <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-warning/20 px-2 py-0.5 text-xs font-semibold text-warning-foreground tabular-nums">
+          <Users aria-hidden className="size-3.5 shrink-0 text-inherit" />
           {effectiveRoomCapacity ? (
-            <span>{formatNumber(effectiveRoomCapacity, locale)} نفر ظرفیت</span>
+            <span>{formatNumber(effectiveRoomCapacity, locale)} نفر</span>
           ) : (
-            <span>{t("calendarView.roomNeeded")}</span>
+            <span className="font-normal">{t("calendarView.roomNeeded")}</span>
           )}
-        </div>
-      </div>
-
-      {/* Section 3: Capacity Info (Expanded View) */}
-      <div
-        data-testid={`missed-class-card-details-${assignment.key}`}
-        aria-hidden={isCollapsed}
-        className={cn(
-          "grid transition-[grid-template-rows,opacity] duration-300 ease-in-out",
-          isCollapsed
-            ? "pointer-events-none grid-rows-[0fr] opacity-0"
-            : "grid-rows-[1fr] opacity-100"
-        )}
-      >
-        <div className="overflow-hidden">
-          <div className="flex items-center justify-between border-t border-warning/20 pt-1.5 text-[11px]">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Users aria-hidden className="size-3 shrink-0" />
-              <span className="text-[10px] font-medium">{t("capacity")}</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs font-semibold text-foreground tabular-nums">
-              {effectiveRoomCapacity ? (
-                <span className="text-[10px] font-medium text-warning-foreground">
-                  {formatNumber(effectiveRoomCapacity, locale)} نفر
-                </span>
-              ) : (
-                <span className="text-[10px] font-medium text-warning-foreground">
-                  {t("calendarView.roomNeeded")}
-                </span>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </article>
