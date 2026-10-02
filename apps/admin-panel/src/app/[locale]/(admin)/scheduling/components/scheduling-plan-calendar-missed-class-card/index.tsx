@@ -97,7 +97,7 @@ export function SchedulingPlanCalendarMissedClassCard({
       aria-label={assignment.course.title}
     >
       {/* Row 1: Course Title & Level, Mode, Location, Status & Unassign */}
-      <div className="flex min-w-0 items-center justify-between gap-2">
+      <div className="flex min-w-0 items-center justify-between gap-2 pb-2.5">
         {/* Start (Right in RTL): Dot, Course Title, Badges */}
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <span
@@ -180,7 +180,7 @@ export function SchedulingPlanCalendarMissedClassCard({
       </div>
 
       {/* Row 2: Teacher Pending Placeholder & Capacity */}
-      <div className="flex items-center justify-between gap-3 border-t border-warning/20 pt-2 text-xs">
+      <div className="flex items-center justify-between gap-3 border-t border-warning/20 pt-2.5 text-xs">
         {/* Start (Right in RTL): Teacher Pending Info */}
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <div className="relative flex size-7.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-warning/20 text-warning-foreground ring-1 ring-warning/30">

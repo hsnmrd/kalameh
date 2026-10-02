@@ -77,7 +77,7 @@ export function SchedulingPlanCalendarFreeTeacherCard({
       aria-label={teacherName}
     >
       {/* Row 1: Header Title, Level Range & Badge */}
-      <div className="flex min-w-0 items-center justify-between gap-2">
+      <div className="flex min-w-0 items-center justify-between gap-2 pb-2.5">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <span
             className="size-2.5 shrink-0 rounded-full bg-destructive"
@@ -110,7 +110,7 @@ export function SchedulingPlanCalendarFreeTeacherCard({
       </div>
 
       {/* Row 2: Teacher Avatar & Status Meta */}
-      <div className="flex items-center justify-between gap-3 border-t border-destructive/20 pt-2 text-xs">
+      <div className="flex items-center justify-between gap-3 border-t border-destructive/20 pt-2.5 text-xs">
         {/* Start (Right in RTL): Teacher Avatar & Name */}
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <div className="relative flex size-7.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-destructive/20 text-destructive ring-1 ring-border/80">

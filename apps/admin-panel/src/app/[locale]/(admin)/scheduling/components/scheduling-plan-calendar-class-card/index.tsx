@@ -299,7 +299,7 @@ export function SchedulingPlanCalendarClassCard({
         aria-label={proposal.course.title}
       >
         {/* Row 1: Course Title & Level, Mode, Location, Status & Actions */}
-        <div className="flex min-w-0 items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center justify-between gap-2 pb-2.5">
           {/* Start (Right in RTL): Dot, Course Title, Badges */}
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span
@@ -415,7 +415,7 @@ export function SchedulingPlanCalendarClassCard({
         {/* Row 2: Teacher Focal Point, Branch, and Subtle Capacity Badge */}
         <div
           className={cn(
-            "flex items-center justify-between gap-3 border-t pt-2 text-xs",
+            "flex items-center justify-between gap-3 border-t pt-2.5 text-xs",
             theme.divider
           )}
         >
