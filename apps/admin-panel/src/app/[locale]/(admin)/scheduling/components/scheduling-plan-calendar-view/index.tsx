@@ -1063,14 +1063,22 @@ export function SchedulingPlanCalendarView({
               <div
                 key={slot.key}
                 data-testid={`time-slot-row-${slot.key}`}
-                className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card/40 p-3 shadow-2xs transition-all duration-300 hover:border-border hover:bg-card/60"
+                className={cn(
+                  "flex flex-col transition-all duration-300",
+                  isCollapsed
+                    ? "gap-0 border-transparent bg-transparent p-0 shadow-none"
+                    : "gap-3 rounded-2xl border border-border/80 bg-card/40 p-3 shadow-2xs hover:border-border hover:bg-card/60"
+                )}
               >
                 {/* Time at Top of Group List */}
                 <button
                   type="button"
                   onClick={() => toggleSlotCollapse(slot.key)}
                   data-testid={`time-slot-toggle-${slot.key}`}
-                  className="group flex min-h-[52px] w-full cursor-pointer items-center justify-between overflow-hidden rounded-xl border border-border/60 bg-muted/40 px-3.5 py-2 text-center transition-all duration-300 ease-in-out select-none hover:border-primary/40 hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  className={cn(
+                    "group flex min-h-[52px] w-full cursor-pointer items-center justify-between overflow-hidden border border-border/60 bg-muted/40 px-3.5 py-2 text-center transition-all duration-300 ease-in-out select-none hover:border-primary/40 hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                    isCollapsed ? "rounded-2xl" : "rounded-xl"
+                  )}
                   aria-expanded={!isCollapsed}
                   aria-label={
                     isCollapsed
