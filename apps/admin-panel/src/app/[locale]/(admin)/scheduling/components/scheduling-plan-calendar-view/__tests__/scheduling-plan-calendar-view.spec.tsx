@@ -146,6 +146,31 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(card).not.toHaveTextContent("09:00 تا 10:30")
   })
 
+  it("renders delivery mode as icon-only and room name with ellipsis truncation to prioritize session title", () => {
+    render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    // The session cards should not contain visible text "حضوری" or "آنلاین" in delivery mode badge
+    const card = screen.getAllByRole("article")[0]!
+    expect(within(card).queryByText("حضوری")).not.toBeInTheDocument()
+    expect(within(card).queryByText("آنلاین")).not.toBeInTheDocument()
+
+    // But delivery mode is accessible via title / aria-label on the icon container
+    const deliveryIcon = card.querySelector('[aria-label="حضوری"]')
+    expect(deliveryIcon).toBeInTheDocument()
+    expect(deliveryIcon).toHaveAttribute("title", "حضوری")
+
+    // Session title is rendered prominently with full course title
+    expect(
+      within(card).getByText("American English File 1")
+    ).toBeInTheDocument()
+
+    // Room name is inside a truncating container
+    const roomSpan = within(card).getByText("کلاس ۱۰۱")
+    expect(roomSpan).toHaveClass("truncate")
+  })
+
   it("does not render top mobile track switcher buttons", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />

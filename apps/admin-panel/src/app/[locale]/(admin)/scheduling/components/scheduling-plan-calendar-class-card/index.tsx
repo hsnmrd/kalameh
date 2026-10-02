@@ -337,25 +337,35 @@ export function SchedulingPlanCalendarClassCard({
                 {proposal.title}
               </span>
             )}
-            {/* Delivery mode badge pill */}
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+            {/* Delivery mode icon (online / in-person) */}
+            <span
+              title={
+                isOnline
+                  ? t("deliveryModes.ONLINE")
+                  : t("deliveryModes.IN_PERSON")
+              }
+              aria-label={
+                isOnline
+                  ? t("deliveryModes.ONLINE")
+                  : t("deliveryModes.IN_PERSON")
+              }
+              className="inline-flex size-5 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/60 text-muted-foreground"
+            >
               {isOnline ? (
                 <Globe aria-hidden className="size-3 text-inherit" />
               ) : (
                 <Building2 aria-hidden className="size-3 text-inherit" />
               )}
-              <span>
-                {isOnline
-                  ? t("deliveryModes.ONLINE")
-                  : t("deliveryModes.IN_PERSON")}
-              </span>
             </span>
           </div>
 
           {/* End (Left in RTL): Location, Status Icons & Actions */}
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex min-w-0 shrink items-center gap-1.5">
             {/* Location (Classroom / Room) */}
-            <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted/40 px-2 py-0.5 text-xs text-muted-foreground">
+            <div
+              className="flex max-w-[110px] min-w-0 shrink items-center gap-1 rounded-md bg-muted/40 px-1.5 py-0.5 text-xs text-muted-foreground sm:max-w-[130px] md:max-w-[140px]"
+              title={locationName}
+            >
               {isOnline ? (
                 <Globe
                   aria-hidden
@@ -367,7 +377,7 @@ export function SchedulingPlanCalendarClassCard({
                   className="size-3.5 shrink-0 text-muted-foreground"
                 />
               )}
-              <span className="max-w-[140px] truncate font-medium text-foreground/90">
+              <span className="truncate font-medium text-foreground/90">
                 {locationName}
               </span>
             </div>
@@ -375,7 +385,7 @@ export function SchedulingPlanCalendarClassCard({
             {proposal.isLocked && (
               <span
                 title={t("states.locked")}
-                className="flex size-4 items-center justify-center text-muted-foreground"
+                className="flex size-4 shrink-0 items-center justify-center text-muted-foreground"
               >
                 <LockKeyhole aria-hidden className="size-3.5" />
               </span>
@@ -383,7 +393,7 @@ export function SchedulingPlanCalendarClassCard({
             {proposal.isManuallyEdited && (
               <span
                 title={t("states.edited")}
-                className="flex size-4 items-center justify-center text-warning"
+                className="flex size-4 shrink-0 items-center justify-center text-warning"
               >
                 <Pencil aria-hidden className="size-3.5" />
               </span>
@@ -391,13 +401,13 @@ export function SchedulingPlanCalendarClassCard({
             {proposal.warnings.length > 0 && (
               <span
                 title={`${proposal.warnings.length} warning(s)`}
-                className="flex size-4 items-center justify-center text-warning"
+                className="flex size-4 shrink-0 items-center justify-center text-warning"
               >
                 <TriangleAlert aria-hidden className="size-3.5" />
               </span>
             )}
             {canEdit && !proposal.publishedClassId && (
-              <div onClick={(e) => e.stopPropagation()}>
+              <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
                 <PermissionGuard
                   permission={PERMISSIONS.MANAGE_CLASSES}
                   mode="hide"

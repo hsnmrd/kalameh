@@ -124,25 +124,35 @@ export function SchedulingPlanCalendarMissedClassCard({
               {t("calendarView.sameCourseBadge")}
             </span>
           )}
-          {/* Delivery mode badge pill */}
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-warning/30 bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning-foreground">
+          {/* Delivery mode icon (online / in-person) */}
+          <span
+            title={
+              isOnline
+                ? t("deliveryModes.ONLINE")
+                : t("deliveryModes.IN_PERSON")
+            }
+            aria-label={
+              isOnline
+                ? t("deliveryModes.ONLINE")
+                : t("deliveryModes.IN_PERSON")
+            }
+            className="inline-flex size-5 shrink-0 items-center justify-center rounded-md border border-warning/30 bg-warning/15 text-warning-foreground"
+          >
             {isOnline ? (
               <Globe aria-hidden className="size-3 text-inherit" />
             ) : (
               <Building2 aria-hidden className="size-3 text-inherit" />
             )}
-            <span>
-              {isOnline
-                ? t("deliveryModes.ONLINE")
-                : t("deliveryModes.IN_PERSON")}
-            </span>
           </span>
         </div>
 
         {/* End (Left in RTL): Location, New Teacher Badge & Unassign */}
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex min-w-0 shrink items-center gap-1.5">
           {/* Room / Location */}
-          <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-warning/20 px-2 py-0.5 text-xs text-warning-foreground">
+          <div
+            className="flex max-w-[110px] min-w-0 shrink items-center gap-1 rounded-md bg-warning/20 px-1.5 py-0.5 text-xs text-warning-foreground sm:max-w-[130px] md:max-w-[140px]"
+            title={roomLabel}
+          >
             {isOnline ? (
               <Globe aria-hidden className="size-3.5 shrink-0 text-inherit" />
             ) : (
@@ -151,12 +161,13 @@ export function SchedulingPlanCalendarMissedClassCard({
                 className="size-3.5 shrink-0 text-inherit"
               />
             )}
-            <span className="max-w-[140px] truncate font-medium">
-              {roomLabel}
-            </span>
+            <span className="truncate font-medium">{roomLabel}</span>
           </div>
 
-          <Badge variant="warning" className="h-5 px-1.5 py-0 text-[10px]">
+          <Badge
+            variant="warning"
+            className="h-5 shrink-0 px-1.5 py-0 text-[10px]"
+          >
             {t("calendarView.newTeacherBadge")}
           </Badge>
 
@@ -169,7 +180,7 @@ export function SchedulingPlanCalendarMissedClassCard({
                 e.stopPropagation()
                 onUnassign()
               }}
-              className="size-6 rounded-md p-0 text-muted-foreground hover:bg-warning/20 hover:text-foreground"
+              className="size-6 shrink-0 rounded-md p-0 text-muted-foreground hover:bg-warning/20 hover:text-foreground"
               title={t("calendarView.unassign")}
               aria-label={t("calendarView.unassign")}
             >
