@@ -86,9 +86,10 @@ export function SchedulingPlanCalendarMissedClassCard({
         }
       }}
       className={cn(
-        "group relative flex min-h-[84px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl border-2 border-dashed border-warning/70 bg-warning/10 p-3 shadow-2xs transition-[background-color,border-color,box-shadow,filter,transform] duration-200 ease-in-out select-none",
-        isActive &&
-          "z-10 scale-[1.01] opacity-100 shadow-md ring-2 ring-warning",
+        "group relative flex min-h-[84px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl border-2 border-dashed p-3 shadow-2xs transition-[background-color,border-color,box-shadow,filter,transform] duration-200 ease-in-out select-none",
+        isActive
+          ? "z-10 scale-[1.01] border-warning bg-warning/25 opacity-100 shadow-md ring-2 ring-warning"
+          : "border-warning/70 bg-warning/10",
         isSwappable &&
           "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
         isDimmed && "opacity-25 hover:opacity-60",

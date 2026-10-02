@@ -810,8 +810,10 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(prop1Card).toBeInTheDocument()
     fireEvent.click(prop1Card)
 
-    // The session card becomes active
+    // The session card becomes active with distinct background and border
     expect(prop1Card).toHaveAttribute("data-active", "true")
+    expect(prop1Card).toHaveClass("bg-primary/15")
+    expect(prop1Card).toHaveClass("border-primary")
 
     // Both time slots automatically expand so user can see all swappable target cards across all periods
     expect(content1).toHaveClass("grid-rows-[1fr]")

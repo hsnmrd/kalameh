@@ -286,9 +286,9 @@ export function SchedulingPlanCalendarClassCard({
         }}
         className={cn(
           "group relative flex min-h-[84px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl border border-s-4 p-3 shadow-2xs transition-[background-color,border-color,box-shadow,filter,transform] duration-200 ease-in-out select-none",
-          theme.border,
+          isActive ? "border-primary" : theme.border,
           theme.borderStart,
-          theme.bg,
+          isActive ? "bg-primary/15 hover:bg-primary/20" : theme.bg,
           isActive &&
             "z-10 scale-[1.01] opacity-100 shadow-md ring-2 ring-primary",
           isSwappable &&
