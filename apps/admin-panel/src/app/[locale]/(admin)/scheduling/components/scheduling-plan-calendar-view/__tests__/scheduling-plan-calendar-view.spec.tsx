@@ -2718,8 +2718,8 @@ describe("SchedulingPlanCalendarView Component", () => {
       "American English File 2"
     )
     expect(
-      within(sameCourseCard).getByTestId("same-course-badge-prop-same-course")
-    ).toBeInTheDocument()
+      within(sameCourseCard).queryByText("همین درس")
+    ).not.toBeInTheDocument()
 
     // Missed class card with same course (missed-ame-2) is not swappable, so it has the same dimmed opacity, but highlights content with mark tag and does NOT have grayscale
     const missedSameCourseCard = screen.getAllByTestId(
@@ -2733,8 +2733,8 @@ describe("SchedulingPlanCalendarView Component", () => {
       "American English File 2"
     )
     expect(
-      within(missedSameCourseCard).getByTestId("same-course-badge-missed-ame-2")
-    ).toBeInTheDocument()
+      within(missedSameCourseCard).queryByText("همین درس")
+    ).not.toBeInTheDocument()
 
     // Unrelated card (which does not show highlight words) has container-level opacity-25 AND grayscale
     const unrelatedCard = screen.getAllByTestId(

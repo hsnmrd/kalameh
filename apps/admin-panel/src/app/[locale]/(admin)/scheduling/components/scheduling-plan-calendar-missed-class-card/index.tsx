@@ -116,14 +116,6 @@ export function SchedulingPlanCalendarMissedClassCard({
               assignment.course.title
             )}
           </h5>
-          {hasSameCourse && (
-            <span
-              data-testid={`same-course-badge-${assignment.key}`}
-              className="shrink-0 rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold text-primary"
-            >
-              {t("calendarView.sameCourseBadge")}
-            </span>
-          )}
           {/* Delivery mode icon (online / in-person) */}
           <span
             title={
