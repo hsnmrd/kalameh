@@ -85,12 +85,18 @@ export class SchedulingGenerationEngineService {
         );
       }
 
+      const yieldToEventLoop = () =>
+        new Promise<void>((resolve) => setImmediate(resolve));
+
+      await yieldToEventLoop();
       const candidates = this.candidateSlotService.generate({
         requirements: snapshot.requirements,
         qualifications: snapshot.teachers,
         timeGroups: settings.timeGroups,
         operatingPhase: snapshot.term.operatingPhase,
       });
+
+      await yieldToEventLoop();
       const hardConstraints = this.hardConstraintService.evaluate({
         candidates,
         requirements: snapshot.requirements,
@@ -98,6 +104,8 @@ export class SchedulingGenerationEngineService {
         classrooms: snapshot.classrooms,
         existingClasses: snapshot.existingClasses,
       });
+
+      await yieldToEventLoop();
       const coverage = this.studentCoverageService.evaluate({
         candidates: hardConstraints.accepted,
         courseIds: Array.from(
@@ -109,6 +117,8 @@ export class SchedulingGenerationEngineService {
         termStartDate: snapshot.term.startDate,
         termEndDate: snapshot.term.endDate,
       });
+
+      await yieldToEventLoop();
       const generation = this.alternativePlanService.generate({
         requirements: snapshot.requirements,
         feasibleCandidates: hardConstraints.accepted,
@@ -119,6 +129,8 @@ export class SchedulingGenerationEngineService {
           timeDiversity: settings.weights.timeDiversity,
         },
       });
+
+      await yieldToEventLoop();
       const unresolvedByPlanKey: Record<
         string,
         SchedulingUnresolvedEvaluation
@@ -140,6 +152,7 @@ export class SchedulingGenerationEngineService {
         ]),
       );
 
+      await yieldToEventLoop();
       return await this.persistenceService.persist({
         instituteId,
         runId,

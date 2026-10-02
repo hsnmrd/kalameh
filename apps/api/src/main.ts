@@ -33,6 +33,8 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ZodValidationPipe());
-  await app.listen(process.env.PORT ?? 8000, '0.0.0.0');
+  const server = await app.listen(process.env.PORT ?? 8000, '0.0.0.0');
+  server.keepAliveTimeout = 65000;
+  server.headersTimeout = 66000;
 }
 void bootstrap();

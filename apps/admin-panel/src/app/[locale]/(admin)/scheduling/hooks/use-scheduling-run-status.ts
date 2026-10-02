@@ -1,6 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
+import { MicroApiError } from "micro-rq"
 import type { SchedulingRunStatusDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
@@ -24,7 +25,21 @@ export function useSchedulingRunStatus(runId: string) {
       instituteId: activeInstituteId,
     }),
     enabled: Boolean(runId && activeInstituteId),
-    retry: false,
+    retry:
+      process.env.NODE_ENV === "test"
+        ? false
+        : (failureCount, error) => {
+            if (
+              error instanceof MicroApiError &&
+              (error.status === 401 ||
+                error.status === 403 ||
+                error.status === 404)
+            ) {
+              return false
+            }
+            return failureCount < 2
+          },
+    retryDelay: 1000,
     refetchInterval: (query) =>
       getSchedulingRunPollInterval({
         data: query.state.data,
