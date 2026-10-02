@@ -189,17 +189,6 @@ export function SchedulingPlanCalendarView({
     })
   }, [mobileTrack])
 
-  const handleTrackSwitch = React.useCallback((track: DayTrack) => {
-    setMobileTrack(track)
-    mobileTrackRef.current = track
-    const targetIndex = track === "EVEN" ? 0 : 1
-    carouselApisRef.current.forEach((api) => {
-      if (api && api.selectedScrollSnap() !== targetIndex) {
-        api.scrollTo(targetIndex)
-      }
-    })
-  }, [])
-
   const handleSetCarouselApi = React.useCallback(
     (slotKey: string, api: CarouselApi | undefined) => {
       if (!api) {
@@ -783,40 +772,6 @@ export function SchedulingPlanCalendarView({
     return map
   }, [hiringPlan, missedClassesAssignments, canPlaceMissedClassOnTrack])
 
-  const proposalsByTrack = React.useMemo(() => {
-    const map: Record<DayTrack, Proposal[]> = {
-      EVEN: [],
-      ODD: [],
-    }
-    for (const proposal of proposals) {
-      const tracks = getDaysOfWeekTracks(proposal.daysOfWeek)
-      for (const track of tracks) {
-        map[track].push(proposal)
-      }
-    }
-    return map
-  }, [proposals])
-
-  const missedClassesByTrack = React.useMemo(() => {
-    const map: Record<DayTrack, number> = {
-      EVEN: 0,
-      ODD: 0,
-    }
-    if (!hiringPlan?.assignments || !missedClassesAssignments) return map
-    for (const assignment of hiringPlan.assignments) {
-      const state = missedClassesAssignments[assignment.key]
-      if (!state || state.isAssigned === false || !state.daysOfWeek.length) {
-        continue
-      }
-      const tracks = getDaysOfWeekTracks(state.daysOfWeek)
-      for (const track of tracks) {
-        if (!canPlaceMissedClassOnTrack(assignment, state, track)) continue
-        map[track] += 1
-      }
-    }
-    return map
-  }, [hiringPlan, missedClassesAssignments, canPlaceMissedClassOnTrack])
-
   const getFreeClassrooms = React.useCallback(
     (option: SchedulingNewTeacherHiringSlotOption) => {
       if (option.isFullyBooked) return []
@@ -1027,78 +982,6 @@ export function SchedulingPlanCalendarView({
               </>
             )}
           </div>
-        </div>
-
-        {/* Mobile Day Track Switcher (visible on mobile, hidden on md+) */}
-        <div
-          role="tablist"
-          aria-label={t("calendarView.mobileTrackAria")}
-          className="flex w-full rounded-xl bg-muted/60 p-1 md:hidden"
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mobileTrack === "EVEN"}
-            data-testid="mobile-track-even-btn"
-            onClick={() => handleTrackSwitch("EVEN")}
-            className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1.5 text-center transition-all",
-              mobileTrack === "EVEN"
-                ? "bg-card font-bold text-foreground shadow-2xs"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold">
-                {t("calendarView.evenDays")}
-              </span>
-              <Badge
-                variant={mobileTrack === "EVEN" ? "secondary" : "outline"}
-                className="h-4 px-1 py-0 text-[9px]"
-              >
-                {formatNumber(
-                  (proposalsByTrack.EVEN?.length ?? 0) +
-                    (missedClassesByTrack.EVEN ?? 0),
-                  locale
-                )}
-              </Badge>
-            </div>
-            <span className="text-[10px] opacity-80">
-              {t("calendarView.evenDaysSubtitle")}
-            </span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mobileTrack === "ODD"}
-            data-testid="mobile-track-odd-btn"
-            onClick={() => handleTrackSwitch("ODD")}
-            className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1.5 text-center transition-all",
-              mobileTrack === "ODD"
-                ? "bg-card font-bold text-foreground shadow-2xs"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold">
-                {t("calendarView.oddDays")}
-              </span>
-              <Badge
-                variant={mobileTrack === "ODD" ? "secondary" : "outline"}
-                className="h-4 px-1 py-0 text-[9px]"
-              >
-                {formatNumber(
-                  (proposalsByTrack.ODD?.length ?? 0) +
-                    (missedClassesByTrack.ODD ?? 0),
-                  locale
-                )}
-              </Badge>
-            </div>
-            <span className="text-[10px] opacity-80">
-              {t("calendarView.oddDaysSubtitle")}
-            </span>
-          </button>
         </div>
 
         {/* Hour-Grouped Time Slots (Modular Sections with Time at Top) */}

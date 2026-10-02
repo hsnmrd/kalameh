@@ -71,10 +71,10 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.getAllByText("روزهای زوج").length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText("روزهای فرد").length).toBeGreaterThanOrEqual(1)
     expect(
-      screen.getAllByText("شنبه، دوشنبه، چهارشنبه").length
+      screen.getAllByText(/شنبه، دوشنبه، چهارشنبه/).length
     ).toBeGreaterThanOrEqual(1)
     expect(
-      screen.getAllByText("یکشنبه، سه‌شنبه، پنج‌شنبه").length
+      screen.getAllByText(/یکشنبه، سه‌شنبه، پنج‌شنبه/).length
     ).toBeGreaterThanOrEqual(1)
     expect(screen.queryByText("جمعه")).not.toBeInTheDocument()
   })
@@ -146,18 +146,15 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(card).not.toHaveTextContent("09:00 تا 10:30")
   })
 
-  it("shows day track header summary badges", () => {
+  it("does not render top mobile track switcher buttons", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    const evenBtn = screen.getByTestId("mobile-track-even-btn")
-    expect(evenBtn).toHaveTextContent("روزهای زوج")
-    expect(evenBtn).toHaveTextContent("۲")
-
-    const oddBtn = screen.getByTestId("mobile-track-odd-btn")
-    expect(oddBtn).toHaveTextContent("روزهای فرد")
-    expect(oddBtn).toHaveTextContent("۰")
+    expect(
+      screen.queryByTestId("mobile-track-even-btn")
+    ).not.toBeInTheDocument()
+    expect(screen.queryByTestId("mobile-track-odd-btn")).not.toBeInTheDocument()
   })
 
   it("renders clean capacity display with limits and without stepper buttons", () => {
@@ -228,19 +225,16 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(prop2ColorIndex).not.toBe(prop1ColorIndex)
   })
 
-  it("provides a mobile switcher and snap carousel that toggles between Even Days and Odd Days", () => {
+  it("provides a mobile snap carousel that mounts day columns with 10% peek affordance without top switcher buttons", () => {
     const { container } = render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    const evenBtn = screen.getByTestId("mobile-track-even-btn")
-    const oddBtn = screen.getByTestId("mobile-track-odd-btn")
-    expect(evenBtn).toBeInTheDocument()
-    expect(oddBtn).toBeInTheDocument()
-
-    // Initially Even track is active on mobile
-    expect(evenBtn).toHaveAttribute("aria-selected", "true")
-    expect(oddBtn).toHaveAttribute("aria-selected", "false")
+    // The top button switcher is deleted in mobile view
+    expect(
+      screen.queryByTestId("mobile-track-even-btn")
+    ).not.toBeInTheDocument()
+    expect(screen.queryByTestId("mobile-track-odd-btn")).not.toBeInTheDocument()
 
     // Both day columns are mounted in the carousel slides with basis-[88%] for 10% peek affordance
     const carouselItems = container.querySelectorAll(
@@ -253,16 +247,6 @@ describe("SchedulingPlanCalendarView Component", () => {
     const oddColumn = container.querySelector('[data-day="ODD"]')
     expect(evenColumn).toBeInTheDocument()
     expect(oddColumn).toBeInTheDocument()
-
-    // Click Odd days tab on mobile
-    fireEvent.click(oddBtn)
-    expect(oddBtn).toHaveAttribute("aria-selected", "true")
-    expect(evenBtn).toHaveAttribute("aria-selected", "false")
-
-    // Click Even days tab back
-    fireEvent.click(evenBtn)
-    expect(evenBtn).toHaveAttribute("aria-selected", "true")
-    expect(oddBtn).toHaveAttribute("aria-selected", "false")
   })
 
   it("renders mobile snap carousel slides with 10% peek width and desktop 2-column grid adaptation", () => {
