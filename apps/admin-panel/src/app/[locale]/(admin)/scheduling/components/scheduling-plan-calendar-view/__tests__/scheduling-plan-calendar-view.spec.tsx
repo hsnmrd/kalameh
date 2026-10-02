@@ -228,7 +228,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(prop2ColorIndex).not.toBe(prop1ColorIndex)
   })
 
-  it("provides a mobile switcher that toggles between Even Days and Odd Days", () => {
+  it("provides a mobile switcher and snap carousel that toggles between Even Days and Odd Days", () => {
     const { container } = render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
@@ -242,22 +242,59 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(evenBtn).toHaveAttribute("aria-selected", "true")
     expect(oddBtn).toHaveAttribute("aria-selected", "false")
 
-    // Even day column is visible on mobile; Odd day column has hidden md:flex
+    // Both day columns are mounted in the carousel slides with basis-[88%] for 10% peek affordance
+    const carouselItems = container.querySelectorAll(
+      '[data-slot="carousel-item"]'
+    )
+    expect(carouselItems.length).toBeGreaterThanOrEqual(2)
+    expect(carouselItems[0]).toHaveClass("basis-[88%]")
+
     const evenColumn = container.querySelector('[data-day="EVEN"]')
     const oddColumn = container.querySelector('[data-day="ODD"]')
-    expect(evenColumn).not.toHaveClass("hidden")
-    expect(oddColumn).toHaveClass("hidden")
-    expect(oddColumn).toHaveClass("md:flex")
+    expect(evenColumn).toBeInTheDocument()
+    expect(oddColumn).toBeInTheDocument()
 
     // Click Odd days tab on mobile
     fireEvent.click(oddBtn)
     expect(oddBtn).toHaveAttribute("aria-selected", "true")
     expect(evenBtn).toHaveAttribute("aria-selected", "false")
 
-    // Now Even column is hidden on mobile, and Odd column is visible
-    expect(evenColumn).toHaveClass("hidden")
-    expect(evenColumn).toHaveClass("md:flex")
-    expect(oddColumn).not.toHaveClass("hidden")
+    // Click Even days tab back
+    fireEvent.click(evenBtn)
+    expect(evenBtn).toHaveAttribute("aria-selected", "true")
+    expect(oddBtn).toHaveAttribute("aria-selected", "false")
+  })
+
+  it("renders mobile snap carousel slides with 10% peek width and desktop 2-column grid adaptation", () => {
+    const { container } = render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    // Verify CarouselContent has desktop grid classes and mobile flex
+    const carouselContent = container.querySelector(
+      '[data-slot="carousel-content"]'
+    )
+    expect(carouselContent).toBeInTheDocument()
+    const innerWrapper = carouselContent?.firstElementChild
+    expect(innerWrapper).toHaveClass(
+      "md:grid",
+      "md:grid-cols-2",
+      "md:gap-3.5",
+      "md:items-start"
+    )
+
+    // Verify CarouselItem slides have basis-[88%] for mobile and md:basis-full for desktop
+    const carouselItems = container.querySelectorAll(
+      '[data-slot="carousel-item"]'
+    )
+    carouselItems.forEach((item) => {
+      expect(item).toHaveClass(
+        "basis-[88%]",
+        "ps-2.5",
+        "md:basis-full",
+        "md:ps-0"
+      )
+    })
   })
 
   it("renders missed classes with distinct amber warning styling and new teacher badge", () => {
