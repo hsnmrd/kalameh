@@ -732,6 +732,9 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     expect(row1Toggle.getAttribute("aria-expanded")).toBe("true")
     expect(row1Toggle).toHaveClass("min-h-[52px]")
+    expect(row1Toggle).toHaveClass("sticky")
+    expect(row1Toggle).toHaveClass("bg-background")
+    expect(row1Toggle).toHaveClass("z-20")
     expect(row2Toggle.getAttribute("aria-expanded")).toBe("false")
     expect(content1).toHaveClass("grid-rows-[1fr]")
     expect(content1).toHaveClass("opacity-100")

@@ -116,6 +116,7 @@ export interface SchedulingPlanCalendarViewProps {
   defaultShowFreeTeachers?: boolean
   defaultCollapsed?: boolean
   initialExpandedSlots?: string[]
+  stickyTop?: "page" | "dialog"
 }
 
 export function SchedulingPlanCalendarView({
@@ -131,6 +132,7 @@ export function SchedulingPlanCalendarView({
   defaultShowFreeTeachers = false,
   defaultCollapsed = true,
   initialExpandedSlots,
+  stickyTop = "page",
 }: SchedulingPlanCalendarViewProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -1027,7 +1029,10 @@ export function SchedulingPlanCalendarView({
                     "group flex min-h-[52px] w-full cursor-pointer items-center justify-between overflow-hidden transition-all duration-300 ease-in-out select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                     isCollapsed
                       ? "rounded-2xl border border-border/60 bg-muted/40 px-3.5 py-2 hover:border-primary/40 hover:bg-muted/70"
-                      : "rounded-xl border-0 bg-transparent px-1 py-1 hover:bg-muted/20"
+                      : cn(
+                          "sticky z-20 rounded-xl border border-border/50 bg-background px-3.5 py-2 shadow-2xs hover:bg-muted/20",
+                          stickyTop === "page" ? "top-16" : "top-0"
+                        )
                   )}
                   aria-expanded={!isCollapsed}
                   aria-label={

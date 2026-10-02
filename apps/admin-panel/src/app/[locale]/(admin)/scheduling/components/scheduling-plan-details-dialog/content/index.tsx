@@ -304,6 +304,7 @@ export function Content({
             handleUpdateMissedClassesAssignments
           }
           teacherCalendars={plan.teacherCalendars}
+          stickyTop={stickyTop}
         />
       </section>
       <Separator />
