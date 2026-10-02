@@ -1181,6 +1181,82 @@ export function SchedulingPlanCalendarView({
                                 )
                               ))
 
+                          const visibleProposals = isAnyClassActive
+                            ? cellProposals.filter((proposal) => {
+                                const isActive = activeClassId === proposal.id
+                                const isSwappable = swappableByProposalId.has(
+                                  proposal.id
+                                )
+                                return isActive || isSwappable
+                              })
+                            : cellProposals
+
+                          const visibleMissed = isAnyClassActive
+                            ? cellMissed.filter(({ assignment }) => {
+                                const missedKey = `missed:${assignment.key}`
+                                const isActive = activeClassId === missedKey
+                                const isSwappable =
+                                  swappableByProposalId.has(missedKey)
+                                return isActive || isSwappable
+                              })
+                            : cellMissed
+
+                          const visibleFreeTeachers = cellFreeTeachers
+                            .map((item) => {
+                              const suggestedCourseTitle =
+                                cellMissed.find(
+                                  ({ assignment }) =>
+                                    item.teachableCourses.some(
+                                      (tc) => tc.id === assignment.course.id
+                                    ) ||
+                                    Boolean(
+                                      findHigherLevelCourse(
+                                        assignment.course,
+                                        item.teachableCourses
+                                      )
+                                    )
+                                )?.assignment.course.title ?? null
+
+                              const freeTarget: FreeTeacherSwapTarget = {
+                                kind: "FREE_TEACHER",
+                                teacher: item.teacher,
+                                teachableCourses: item.teachableCourses,
+                                levelRange: item.levelRange,
+                                dayOfWeek: item.representativeDay,
+                                startTime: slot.startTime,
+                                endTime: slot.endTime,
+                              }
+                              const freeEvaluation =
+                                canSwap && activeProposal
+                                  ? evaluateFreeTeacherSwap(
+                                      activeProposal,
+                                      freeTarget,
+                                      proposals,
+                                      teacherCalendars,
+                                      occupiedClassroomSlots
+                                    )
+                                  : null
+                              const isFreeSwappable = Boolean(
+                                freeEvaluation?.canSwap
+                              )
+
+                              return {
+                                ...item,
+                                suggestedCourseTitle,
+                                freeTarget,
+                                freeEvaluation,
+                                isFreeSwappable,
+                              }
+                            })
+                            .filter((item) => {
+                              if (!isAnyClassActive) return true
+                              return item.isFreeSwappable
+                            })
+
+                          const trackClassesCount = isAnyClassActive
+                            ? visibleProposals.length + visibleMissed.length
+                            : cellProposals.length + cellMissed.length
+
                           const hasClasses =
                             cellProposals.length > 0 || cellMissed.length > 0
 
@@ -1210,15 +1286,14 @@ export function SchedulingPlanCalendarView({
                                       )
                                     </span>
                                   </div>
-                                  {hasClasses && (
+                                  {trackClassesCount > 0 && (
                                     <Badge
                                       variant="secondary"
                                       className="h-4 px-1.5 py-0 text-[10px]"
                                     >
                                       {t("calendarView.classesCount", {
                                         count: formatNumber(
-                                          cellProposals.length +
-                                            cellMissed.length,
+                                          trackClassesCount,
                                           locale
                                         ),
                                       })}
@@ -1227,7 +1302,7 @@ export function SchedulingPlanCalendarView({
                                 </div>
                                 {hasClasses ? (
                                   <>
-                                    {cellProposals.map((proposal) => {
+                                    {visibleProposals.map((proposal) => {
                                       const isActive =
                                         activeClassId === proposal.id
                                       const isSwappable =
@@ -1286,75 +1361,78 @@ export function SchedulingPlanCalendarView({
                                         />
                                       )
                                     })}
-                                    {cellMissed.map(({ assignment, state }) => {
-                                      const missedKey = `missed:${assignment.key}`
-                                      const isActive =
-                                        activeClassId === missedKey
-                                      const isSwappable =
-                                        swappableByProposalId.has(missedKey)
-                                      const hasSameCourse = Boolean(
-                                        highlightRelated &&
-                                        (activeCourseId || activeCourseTitle) &&
-                                        !isActive &&
-                                        ((activeCourseId &&
-                                          assignment.course?.id ===
-                                            activeCourseId) ||
-                                          (activeCourseTitle &&
-                                            assignment.course?.title ===
-                                              activeCourseTitle))
-                                      )
-                                      const isDimmed =
-                                        isAnyClassActive &&
-                                        !isActive &&
-                                        !isSwappable
-                                      const effectiveRoomId =
-                                        state.classroomId ??
-                                        assignment.classroom?.id ??
-                                        null
-                                      const roomCapacity = effectiveRoomId
-                                        ? (knownClassroomsById.get(
-                                            effectiveRoomId
-                                          )?.capacity ??
-                                          assignment.classroom?.capacity ??
-                                          null)
-                                        : (assignment.classroom?.capacity ??
-                                          null)
+                                    {visibleMissed.map(
+                                      ({ assignment, state }) => {
+                                        const missedKey = `missed:${assignment.key}`
+                                        const isActive =
+                                          activeClassId === missedKey
+                                        const isSwappable =
+                                          swappableByProposalId.has(missedKey)
+                                        const hasSameCourse = Boolean(
+                                          highlightRelated &&
+                                          (activeCourseId ||
+                                            activeCourseTitle) &&
+                                          !isActive &&
+                                          ((activeCourseId &&
+                                            assignment.course?.id ===
+                                              activeCourseId) ||
+                                            (activeCourseTitle &&
+                                              assignment.course?.title ===
+                                                activeCourseTitle))
+                                        )
+                                        const isDimmed =
+                                          isAnyClassActive &&
+                                          !isActive &&
+                                          !isSwappable
+                                        const effectiveRoomId =
+                                          state.classroomId ??
+                                          assignment.classroom?.id ??
+                                          null
+                                        const roomCapacity = effectiveRoomId
+                                          ? (knownClassroomsById.get(
+                                              effectiveRoomId
+                                            )?.capacity ??
+                                            assignment.classroom?.capacity ??
+                                            null)
+                                          : (assignment.classroom?.capacity ??
+                                            null)
 
-                                      return (
-                                        <SchedulingPlanCalendarMissedClassCard
-                                          key={`${assignment.key}-${track}`}
-                                          assignment={assignment}
-                                          assignedRoomName={
-                                            state.classroomName ??
-                                            (effectiveRoomId
-                                              ? knownClassroomsById.get(
-                                                  effectiveRoomId
-                                                )?.name
-                                              : null) ??
-                                            assignment.classroom?.name ??
-                                            null
-                                          }
-                                          assignedRoomCapacity={roomCapacity}
-                                          canEdit={canEdit}
-                                          isActive={isActive}
-                                          isSwappable={isSwappable}
-                                          isDimmed={isDimmed}
-                                          isCollapsed={isCollapsed}
-                                          hasSameCourse={hasSameCourse}
-                                          sameCourseCount={
-                                            isActive
-                                              ? sameCourseTotalCount
-                                              : undefined
-                                          }
-                                          onClick={handleCardClick}
-                                          onUnassign={() =>
-                                            onUnassignMissedClass?.(
-                                              assignment.key
-                                            )
-                                          }
-                                        />
-                                      )
-                                    })}
+                                        return (
+                                          <SchedulingPlanCalendarMissedClassCard
+                                            key={`${assignment.key}-${track}`}
+                                            assignment={assignment}
+                                            assignedRoomName={
+                                              state.classroomName ??
+                                              (effectiveRoomId
+                                                ? knownClassroomsById.get(
+                                                    effectiveRoomId
+                                                  )?.name
+                                                : null) ??
+                                              assignment.classroom?.name ??
+                                              null
+                                            }
+                                            assignedRoomCapacity={roomCapacity}
+                                            canEdit={canEdit}
+                                            isActive={isActive}
+                                            isSwappable={isSwappable}
+                                            isDimmed={isDimmed}
+                                            isCollapsed={isCollapsed}
+                                            hasSameCourse={hasSameCourse}
+                                            sameCourseCount={
+                                              isActive
+                                                ? sameCourseTotalCount
+                                                : undefined
+                                            }
+                                            onClick={handleCardClick}
+                                            onUnassign={() =>
+                                              onUnassignMissedClass?.(
+                                                assignment.key
+                                              )
+                                            }
+                                          />
+                                        )
+                                      }
+                                    )}
                                     {canAssignHere && matchingOption && (
                                       <Button
                                         type="button"
@@ -1428,90 +1506,47 @@ export function SchedulingPlanCalendarView({
                                   </div>
                                 )}
                                 {showFreeTeachers &&
-                                  cellFreeTeachers.length > 0 && (
+                                  visibleFreeTeachers.length > 0 && (
                                     <div
                                       data-testid={`free-teachers-${track}-${slot.key}`}
                                       className="flex flex-col gap-2 transition-all duration-300 ease-in-out"
                                     >
-                                      {cellFreeTeachers.map(
+                                      {visibleFreeTeachers.map(
                                         ({
                                           teacher,
-                                          teachableCourses,
                                           levelRange,
-                                          representativeDay,
-                                        }) => {
-                                          const suggestedCourseTitle =
-                                            cellMissed.find(
-                                              ({ assignment }) =>
-                                                teachableCourses.some(
-                                                  (tc) =>
-                                                    tc.id ===
-                                                    assignment.course.id
-                                                ) ||
-                                                Boolean(
-                                                  findHigherLevelCourse(
-                                                    assignment.course,
-                                                    teachableCourses
-                                                  )
-                                                )
-                                            )?.assignment.course.title ?? null
-
-                                          const freeTarget: FreeTeacherSwapTarget =
-                                            {
-                                              kind: "FREE_TEACHER",
-                                              teacher,
-                                              teachableCourses,
-                                              levelRange,
-                                              dayOfWeek: representativeDay,
-                                              startTime: slot.startTime,
-                                              endTime: slot.endTime,
+                                          suggestedCourseTitle,
+                                          freeTarget,
+                                          freeEvaluation,
+                                          isFreeSwappable,
+                                        }) => (
+                                          <SchedulingPlanCalendarFreeTeacherCard
+                                            key={teacher.id}
+                                            teacher={teacher}
+                                            day={track}
+                                            slotKey={slot.key}
+                                            levelRange={levelRange}
+                                            suggestedCourseTitle={
+                                              suggestedCourseTitle
                                             }
-                                          const freeEvaluation =
-                                            canSwap && activeProposal
-                                              ? evaluateFreeTeacherSwap(
-                                                  activeProposal,
-                                                  freeTarget,
-                                                  proposals,
-                                                  teacherCalendars,
-                                                  occupiedClassroomSlots
-                                                )
-                                              : null
-                                          const isFreeSwappable = Boolean(
-                                            freeEvaluation?.canSwap
-                                          )
-
-                                          return (
-                                            <SchedulingPlanCalendarFreeTeacherCard
-                                              key={teacher.id}
-                                              teacher={teacher}
-                                              day={track}
-                                              slotKey={slot.key}
-                                              levelRange={levelRange}
-                                              suggestedCourseTitle={
-                                                suggestedCourseTitle
+                                            isCollapsed={isCollapsed}
+                                            isSwappable={isFreeSwappable}
+                                            isDimmed={false}
+                                            onClick={() => {
+                                              if (
+                                                activeProposal &&
+                                                freeEvaluation?.canSwap
+                                              ) {
+                                                setSwapDialogState({
+                                                  sourceProposal:
+                                                    activeProposal,
+                                                  target: freeTarget,
+                                                  evaluation: freeEvaluation,
+                                                })
                                               }
-                                              isCollapsed={isCollapsed}
-                                              isSwappable={isFreeSwappable}
-                                              isDimmed={
-                                                isAnyClassActive &&
-                                                !isFreeSwappable
-                                              }
-                                              onClick={() => {
-                                                if (
-                                                  activeProposal &&
-                                                  freeEvaluation?.canSwap
-                                                ) {
-                                                  setSwapDialogState({
-                                                    sourceProposal:
-                                                      activeProposal,
-                                                    target: freeTarget,
-                                                    evaluation: freeEvaluation,
-                                                  })
-                                                }
-                                              }}
-                                            />
-                                          )
-                                        }
+                                            }}
+                                          />
+                                        )
                                       )}
                                     </div>
                                   )}
