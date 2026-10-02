@@ -720,6 +720,13 @@ export function SchedulingPlanCalendarView({
     setUserExpandedSlots(new Set())
   }, [])
 
+  // Automatically expand all time slots when a specific session is selected so all shaking/swappable cards are visible
+  React.useEffect(() => {
+    if (selectedClassId && timeSlots.length > 0) {
+      setUserExpandedSlots(new Set(timeSlots.map((s) => s.key)))
+    }
+  }, [selectedClassId, timeSlots])
+
   const proposalsByTrackAndSlot = React.useMemo(() => {
     const map = new Map<string, Proposal[]>()
     for (const proposal of proposals) {

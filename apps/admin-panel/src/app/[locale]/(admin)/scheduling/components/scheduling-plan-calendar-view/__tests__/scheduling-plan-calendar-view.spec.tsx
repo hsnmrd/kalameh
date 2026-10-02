@@ -786,6 +786,35 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(content2).toHaveClass("grid-rows-[0fr]")
   })
 
+  it("automatically expands all time slots when a session card is clicked to enter swap mode", () => {
+    const { container } = render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={true}
+        defaultCollapsed={true}
+      />
+    )
+
+    const content1 = screen.getByTestId("time-slot-content-09:00-10:30")
+    const content2 = screen.getByTestId("time-slot-content-16:00-17:30")
+
+    // Initially both rows are collapsed
+    expect(content1).toHaveClass("grid-rows-[0fr]")
+    expect(content2).toHaveClass("grid-rows-[0fr]")
+
+    // Click on a session card in the calendar
+    const prop1Card = container.querySelector('[data-class-id="prop-1"]')!
+    expect(prop1Card).toBeInTheDocument()
+    fireEvent.click(prop1Card)
+
+    // The session card becomes active
+    expect(prop1Card).toHaveAttribute("data-active", "true")
+
+    // Both time slots automatically expand so user can see all swappable target cards across all periods
+    expect(content1).toHaveClass("grid-rows-[1fr]")
+    expect(content2).toHaveClass("grid-rows-[1fr]")
+  })
+
   it("renders missed classes with title and teacher within the time slot accordion", () => {
     const assignmentsState = {
       "missed-1": {
