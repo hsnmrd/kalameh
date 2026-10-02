@@ -40,6 +40,8 @@ export function CreateTeacherModal({
   const schema = useCreateTeacherSchema()
   const defaults = React.useMemo(
     () => ({
+      avatar: null,
+      avatarUrl: null,
       firstName: "",
       lastName: "",
       phone: "",
@@ -78,6 +80,9 @@ export function CreateTeacherModal({
   })
   const onSubmit = (data: CreateTeacherInput) => {
     const body = new FormData()
+    if (data.avatar instanceof File) {
+      body.append("avatar", data.avatar)
+    }
     body.append("firstName", data.firstName)
     body.append("lastName", data.lastName)
     body.append("phone", data.phone)

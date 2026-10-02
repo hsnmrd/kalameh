@@ -78,7 +78,12 @@ export class SchedulingRecoverySuggestionService {
       await Promise.all([
         this.prisma.user.findMany({
           where: { id: { in: teacherIds }, instituteId: input.instituteId },
-          select: { id: true, firstName: true, lastName: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+          },
         }),
         this.prisma.classroom.findMany({
           where: { id: { in: classroomIds }, instituteId: input.instituteId },

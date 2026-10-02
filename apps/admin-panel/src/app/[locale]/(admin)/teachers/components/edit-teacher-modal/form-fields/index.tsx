@@ -5,8 +5,10 @@ import { useTranslations } from "next-intl"
 import type { CourseDto } from "@workspace/types"
 import type { ComboboxOption } from "@workspace/ui/components/combobox"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
+import { Attachment } from "@workspace/ui/components/attachment"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
+import { getAssetUrl } from "@workspace/ui/lib/utils"
 import type { UpdateTeacherInput } from "../../../hooks/use-teacher-schemas"
 import { CourseQualificationsEditor } from "../../course-qualifications-editor"
 
@@ -27,11 +29,37 @@ export function FormFields({
   const {
     register,
     control,
+    watch,
+    setValue,
     formState: { errors },
   } = form
 
+  const avatar = watch("avatar")
+  const avatarUrl = watch("avatarUrl")
+
   return (
     <>
+      <Field>
+        <FieldLabel>{t("createModal.avatar")}</FieldLabel>
+        <Controller
+          control={control}
+          name="avatar"
+          render={({ field }) => (
+            <Attachment
+              value={avatar || (avatarUrl ? getAssetUrl(avatarUrl) : null)}
+              onChange={(file) => {
+                field.onChange(file)
+                if (file === null) {
+                  setValue("avatarUrl", null, { shouldDirty: true })
+                }
+              }}
+              placeholder={t("createModal.avatarPlaceholder")}
+              description={t("createModal.avatarDescription")}
+              removeLabel={t("createModal.removeAvatar")}
+            />
+          )}
+        />
+      </Field>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field data-invalid={Boolean(errors.firstName)}>
           <FieldLabel>{t("createModal.firstName")}</FieldLabel>

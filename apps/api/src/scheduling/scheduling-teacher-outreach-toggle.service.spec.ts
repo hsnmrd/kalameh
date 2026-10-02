@@ -115,7 +115,9 @@ describe('SchedulingTeacherOutreachToggleService', () => {
           },
         ]),
       },
-      $transaction: jest.fn().mockImplementation(async (cb) => cb(txMocks)),
+      $transaction: jest
+        .fn()
+        .mockImplementation(async (cb) => await cb(txMocks)),
     };
 
     auditLogsService = {

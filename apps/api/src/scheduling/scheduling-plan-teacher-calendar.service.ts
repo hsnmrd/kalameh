@@ -44,6 +44,7 @@ export class SchedulingPlanTeacherCalendarService {
           id: true,
           firstName: true,
           lastName: true,
+          avatarUrl: true,
           teacherProfile: {
             select: {
               availabilities: {

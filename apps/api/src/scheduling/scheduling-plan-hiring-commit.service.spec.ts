@@ -96,7 +96,7 @@ describe('SchedulingPlanHiringCommitService', () => {
             update: jest.fn().mockResolvedValue({ id: ids.unresolved }),
           },
         };
-        return callback(tx);
+        return await callback(tx);
       }),
     };
 

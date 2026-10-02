@@ -1,17 +1,19 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { Clock3, GraduationCap, User } from "lucide-react"
 import type { WeekDay } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
-import { cn } from "@workspace/ui/lib/utils"
+import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
 
 export interface SchedulingPlanCalendarFreeTeacherCardProps {
   teacher: {
     id: string
     firstName: string
     lastName: string
+    avatarUrl?: string | null
   }
   day: WeekDay | "EVEN" | "ODD" | string
   slotKey: string
@@ -119,8 +121,19 @@ export function SchedulingPlanCalendarFreeTeacherCard({
       >
         {/* Teacher Name (Always visible) */}
         <div className="flex min-w-0 items-center gap-1.5 truncate">
-          <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-destructive/20 text-destructive">
-            <User aria-hidden className="size-3 shrink-0" />
+          <div className="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md bg-destructive/20 text-destructive">
+            {teacher.avatarUrl ? (
+              <Image
+                src={getAssetUrl(teacher.avatarUrl)}
+                alt={teacherName}
+                width={20}
+                height={20}
+                unoptimized
+                className="size-full object-cover"
+              />
+            ) : (
+              <User aria-hidden className="size-3 shrink-0" />
+            )}
           </div>
           <span className="truncate font-semibold text-foreground/90">
             {teacherName}

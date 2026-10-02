@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
 import {
   Building2,
@@ -13,7 +14,7 @@ import {
   Users,
 } from "lucide-react"
 import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
-import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
 import { SchedulingProposalActions } from "../scheduling-proposal-actions"
 import { SchedulingProposalEditDialog } from "../scheduling-proposal-edit-dialog"
@@ -354,14 +355,25 @@ export function SchedulingPlanCalendarClassCard({
         >
           {/* Teacher (Always visible) */}
           <div className="flex min-w-0 items-center gap-1.5 truncate">
-            <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted/70 text-muted-foreground">
-              <User
-                aria-hidden
-                className={cn(
-                  "size-3 shrink-0",
-                  hasSameTeacher ? "text-primary" : "text-muted-foreground"
-                )}
-              />
+            <div className="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/70 text-muted-foreground">
+              {proposal.teacher?.avatarUrl ? (
+                <Image
+                  src={getAssetUrl(proposal.teacher.avatarUrl)}
+                  alt={teacherName}
+                  width={20}
+                  height={20}
+                  unoptimized
+                  className="size-full object-cover"
+                />
+              ) : (
+                <User
+                  aria-hidden
+                  className={cn(
+                    "size-3 shrink-0",
+                    hasSameTeacher ? "text-primary" : "text-muted-foreground"
+                  )}
+                />
+              )}
             </div>
             {hasSameTeacher ? (
               <mark className="inline-block max-w-full truncate rounded-none bg-[#67e8f9] px-0.5 font-semibold text-black">

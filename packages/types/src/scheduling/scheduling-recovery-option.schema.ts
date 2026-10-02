@@ -9,6 +9,7 @@ const SchedulingRecoveryTeacherSchema = z.object({
   id: z.string().uuid(),
   firstName: z.string(),
   lastName: z.string(),
+  avatarUrl: z.string().nullable().optional(),
 })
 
 const SchedulingRecoveryClassroomSchema = z.object({

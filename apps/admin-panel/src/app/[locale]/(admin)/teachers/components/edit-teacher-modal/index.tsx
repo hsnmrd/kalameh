@@ -57,6 +57,8 @@ export function EditTeacherModal({
   React.useEffect(() => {
     if (teacher && open) {
       reset({
+        avatar: null,
+        avatarUrl: teacher.avatarUrl || null,
         firstName: teacher.firstName,
         lastName: teacher.lastName,
         phone: teacher.phone,
@@ -87,6 +89,11 @@ export function EditTeacherModal({
     if (!teacher) return
 
     const formData = new FormData()
+    if (data.avatar instanceof File) {
+      formData.append("avatar", data.avatar)
+    } else if (data.avatarUrl === null) {
+      formData.append("avatarUrl", "")
+    }
     if (data.firstName) formData.append("firstName", data.firstName)
     if (data.lastName) formData.append("lastName", data.lastName)
     if (data.phone) formData.append("phone", data.phone)

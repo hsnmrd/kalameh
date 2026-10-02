@@ -17,6 +17,7 @@ type TeacherReference = {
   id: string;
   firstName: string;
   lastName: string;
+  avatarUrl?: string | null;
   availabilities?: TeacherAvailability[];
   teachableCourses?: Array<{ id: string; title: string }>;
 };

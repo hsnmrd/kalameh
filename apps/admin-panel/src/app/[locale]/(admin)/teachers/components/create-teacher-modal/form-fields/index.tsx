@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl"
 import { Controller, type UseFormReturn } from "react-hook-form"
+import { Attachment } from "@workspace/ui/components/attachment"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { PasswordInput } from "@workspace/ui/components/password-input"
@@ -28,6 +29,22 @@ export function FormFields({
   } = form
   return (
     <>
+      <Field>
+        <FieldLabel>{t("createModal.avatar")}</FieldLabel>
+        <Controller
+          control={control}
+          name="avatar"
+          render={({ field }) => (
+            <Attachment
+              value={field.value}
+              onChange={(file) => field.onChange(file)}
+              placeholder={t("createModal.avatarPlaceholder")}
+              description={t("createModal.avatarDescription")}
+              removeLabel={t("createModal.removeAvatar")}
+            />
+          )}
+        />
+      </Field>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field data-invalid={Boolean(errors.firstName)}>
           <FieldLabel>{t("createModal.firstName")}</FieldLabel>

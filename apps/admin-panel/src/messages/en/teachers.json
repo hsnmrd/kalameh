@@ -53,6 +53,10 @@
     "degreePlaceholder": "e.g. M.A. in TEFL",
     "bio": "Bio & Experience",
     "bioPlaceholder": "Brief teaching background and credentials...",
+    "avatar": "Avatar Image",
+    "avatarPlaceholder": "Select or drag an image",
+    "avatarDescription": "Supported formats: JPG, PNG, WebP (Max 5MB)",
+    "removeAvatar": "Remove image",
     "submit": "Save Teacher",
     "cancel": "Cancel",
     "success": "Teacher added successfully",
@@ -61,6 +65,7 @@
   "editModal": {
     "title": "Edit Teacher",
     "description": "Modify teacher personal information and credentials.",
+    "avatar": "Avatar Image",
     "status": "Account Status",
     "submit": "Save Changes",
     "cancel": "Cancel",
