@@ -228,4 +228,73 @@ describe('MVP-031 SchedulingPlanValidationService', () => {
     ).rejects.toThrow(BadRequestException);
     expect(prisma.schedulingPlan.findFirstOrThrow).not.toHaveBeenCalled();
   });
+
+  it('accepts a teacher with a higher-level course qualification even without direct qualification for the proposal course', async () => {
+    const higherCourseId = uuid(99);
+    plan.proposals[0].course = {
+      instituteId: ids.institute,
+      id: ids.course,
+      title: 'AME 1-5',
+    };
+    plan.proposals[0].teacher.teacherProfile.teachableCourses = [
+      {
+        id: uuid(98),
+        instituteId: ids.institute,
+        courseId: higherCourseId,
+        course: {
+          id: higherCourseId,
+          title: 'AME 2-1',
+          prerequisiteId: null,
+        },
+      },
+    ];
+
+    const result = await service.validate(
+      admin,
+      ids.plan,
+      undefined,
+      'fa',
+      now,
+    );
+
+    expect(result.isValid).toBe(true);
+    expect(result.violations).toEqual([]);
+  });
+
+  it('rejects a teacher when their course qualifications are lower-level or unrelated', async () => {
+    const lowerCourseId = uuid(97);
+    plan.proposals[0].course = {
+      instituteId: ids.institute,
+      id: ids.course,
+      title: 'AME 1-5',
+    };
+    plan.proposals[0].teacher.teacherProfile.teachableCourses = [
+      {
+        id: uuid(96),
+        instituteId: ids.institute,
+        courseId: lowerCourseId,
+        course: {
+          id: lowerCourseId,
+          title: 'AME 1-2',
+          prerequisiteId: null,
+        },
+      },
+    ];
+
+    const result = await service.validate(
+      admin,
+      ids.plan,
+      undefined,
+      'fa',
+      now,
+    );
+
+    expect(result.isValid).toBe(false);
+    expect(result.violations).toContainEqual(
+      expect.objectContaining({
+        code: 'TEACHER_NOT_QUALIFIED',
+        proposalId: ids.proposal,
+      }),
+    );
+  });
 });

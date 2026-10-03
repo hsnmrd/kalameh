@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@workspace/database';
 import {
   calculatePhaseSlots,
+  findHigherLevelCourse,
   ROLES,
   SchedulingPlanValidationSchema,
   type JwtPayload,
@@ -27,7 +28,9 @@ type Schedule = {
 type ValidationDatabase = Pick<
   Prisma.TransactionClient,
   'schedulingPlan' | 'class'
->;
+> & {
+  course?: Pick<Prisma.TransactionClient['course'], 'findMany'>;
+};
 
 @Injectable()
 export class SchedulingPlanValidationService {
@@ -54,117 +57,143 @@ export class SchedulingPlanValidationService {
       requestedInstituteId,
       locale,
     );
-    const plan = await database.schedulingPlan.findFirstOrThrow({
-      where: {
-        id: planId,
-        instituteId,
-        status: 'SELECTED',
-        run: { instituteId, status: 'COMPLETED' },
-      },
-      select: {
-        id: true,
-        run: {
-          select: {
-            termId: true,
-            branchId: true,
-            term: {
-              select: {
-                instituteId: true,
-                startDate: true,
-                endDate: true,
-                isActive: true,
-                operatingPhase: {
-                  select: {
-                    startTime: true,
-                    endTime: true,
-                    slotDurationMinutes: true,
-                    daysOfWeek: true,
-                    hasBreak: true,
-                    breakStartTime: true,
-                    breakEndTime: true,
+    const [plan, allCourses] = await Promise.all([
+      database.schedulingPlan.findFirstOrThrow({
+        where: {
+          id: planId,
+          instituteId,
+          status: 'SELECTED',
+          run: { instituteId, status: 'COMPLETED' },
+        },
+        select: {
+          id: true,
+          run: {
+            select: {
+              termId: true,
+              branchId: true,
+              term: {
+                select: {
+                  instituteId: true,
+                  startDate: true,
+                  endDate: true,
+                  isActive: true,
+                  operatingPhase: {
+                    select: {
+                      startTime: true,
+                      endTime: true,
+                      slotDurationMinutes: true,
+                      daysOfWeek: true,
+                      hasBreak: true,
+                      breakStartTime: true,
+                      breakEndTime: true,
+                    },
                   },
                 },
               },
             },
           },
-        },
-        proposals: {
-          select: {
-            id: true,
-            instituteId: true,
-            classRequirementId: true,
-            courseId: true,
-            branchId: true,
-            teacherId: true,
-            classroomId: true,
-            capacity: true,
-            deliveryMode: true,
-            daysOfWeek: true,
-            startTime: true,
-            endTime: true,
-            publishedClassId: true,
-            course: { select: { instituteId: true } },
-            branch: { select: { instituteId: true, isActive: true } },
-            classroom: {
-              select: {
-                instituteId: true,
-                branchId: true,
-                capacity: true,
-                isActive: true,
+          proposals: {
+            select: {
+              id: true,
+              instituteId: true,
+              classRequirementId: true,
+              courseId: true,
+              branchId: true,
+              teacherId: true,
+              classroomId: true,
+              capacity: true,
+              deliveryMode: true,
+              daysOfWeek: true,
+              startTime: true,
+              endTime: true,
+              publishedClassId: true,
+              course: {
+                select: {
+                  instituteId: true,
+                  id: true,
+                  title: true,
+                  prerequisiteId: true,
+                },
               },
-            },
-            teacher: {
-              select: {
-                instituteId: true,
-                role: true,
-                isActive: true,
-                branchId: true,
-                teacherProfile: {
-                  select: {
-                    availabilities: {
-                      select: {
-                        dayOfWeek: true,
-                        startTime: true,
-                        endTime: true,
+              branch: { select: { instituteId: true, isActive: true } },
+              classroom: {
+                select: {
+                  instituteId: true,
+                  branchId: true,
+                  capacity: true,
+                  isActive: true,
+                },
+              },
+              teacher: {
+                select: {
+                  instituteId: true,
+                  role: true,
+                  isActive: true,
+                  branchId: true,
+                  teacherProfile: {
+                    select: {
+                      availabilities: {
+                        select: {
+                          dayOfWeek: true,
+                          startTime: true,
+                          endTime: true,
+                        },
+                      },
+                      teachableCourses: {
+                        select: {
+                          id: true,
+                          instituteId: true,
+                          courseId: true,
+                          course: {
+                            select: {
+                              id: true,
+                              title: true,
+                              prerequisiteId: true,
+                            },
+                          },
+                        },
                       },
                     },
-                    teachableCourses: {
-                      select: { id: true, instituteId: true, courseId: true },
-                    },
                   },
                 },
               },
-            },
-            classRequirement: {
-              select: {
-                instituteId: true,
-                termId: true,
-                courseId: true,
-                branchId: true,
-                requiredClassCount: true,
-                capacity: true,
-                sessionDurationMinutes: true,
-                sessionsPerWeek: true,
-                totalSessions: true,
-                deliveryMode: true,
-                isActive: true,
+              classRequirement: {
+                select: {
+                  instituteId: true,
+                  termId: true,
+                  courseId: true,
+                  branchId: true,
+                  requiredClassCount: true,
+                  capacity: true,
+                  sessionDurationMinutes: true,
+                  sessionsPerWeek: true,
+                  totalSessions: true,
+                  deliveryMode: true,
+                  isActive: true,
+                },
+              },
+              sessions: {
+                select: {
+                  id: true,
+                  instituteId: true,
+                  sessionDate: true,
+                  startTime: true,
+                  endTime: true,
+                },
+                orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }],
               },
             },
-            sessions: {
-              select: {
-                id: true,
-                instituteId: true,
-                sessionDate: true,
-                startTime: true,
-                endTime: true,
-              },
-              orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }],
-            },
+            orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
           },
-          orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
         },
-      },
-    });
+      }),
+      database.course?.findMany
+        ? database.course.findMany({
+            where: { instituteId },
+            select: { id: true, title: true, prerequisiteId: true },
+          })
+        : Promise.resolve([]),
+    ]);
     const existingClasses = await database.class.findMany({
       where: { instituteId, termId: plan.run.termId },
       select: {
@@ -265,10 +294,36 @@ export class SchedulingPlanValidationService {
         ) {
           add('INVALID_TEACHER', proposal.id, [proposal.teacherId]);
         }
-        const qualified =
+        let qualified =
           proposal.teacher?.teacherProfile?.teachableCourses.some(
             (qualification) => qualification.courseId === proposal.courseId,
           ) ?? false;
+        if (
+          !qualified &&
+          proposal.teacher?.teacherProfile?.teachableCourses?.length
+        ) {
+          const targetCourse = proposal.course?.title
+            ? proposal.course
+            : allCourses.find((course) => course.id === proposal.courseId);
+          if (targetCourse) {
+            const teacherCourses =
+              proposal.teacher.teacherProfile.teachableCourses
+                .map(
+                  (tc) =>
+                    tc.course ??
+                    allCourses.find((course) => course.id === tc.courseId),
+                )
+                .filter((c): c is NonNullable<typeof c> => Boolean(c));
+            const higherCourse = findHigherLevelCourse(
+              targetCourse,
+              teacherCourses,
+              allCourses,
+            );
+            if (higherCourse) {
+              qualified = true;
+            }
+          }
+        }
         if (!qualified) {
           add('TEACHER_NOT_QUALIFIED', proposal.id, [proposal.teacherId]);
         }
