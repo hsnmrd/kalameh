@@ -72,7 +72,7 @@ export function TeacherCalendarFilter({
           <ResponsiveCombobox
             items={termOptions}
             value={selectedTermId}
-            onValueChange={onTermChange}
+            onValueChange={(val) => onTermChange(val ?? "")}
             placeholder={tClasses("termFilter")}
             searchPlaceholder={tClasses("termFilter")}
             emptyMessage={tTeachers("table.empty")}

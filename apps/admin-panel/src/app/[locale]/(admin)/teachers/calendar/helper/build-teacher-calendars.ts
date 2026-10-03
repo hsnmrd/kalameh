@@ -70,7 +70,9 @@ export function buildTeacherCalendars(
   return teachers.map((teacher) => {
     const availabilities = teacher.teacherProfile?.availabilities ?? []
     const teachableCourses =
-      teacher.teacherProfile?.teachableCourses?.map((tc) => tc.course) ?? []
+      teacher.teacherProfile?.teachableCourses
+        ?.map((tc) => tc.course)
+        .filter((c): c is NonNullable<typeof c> => Boolean(c)) ?? []
 
     const teacherClasses = classes.filter(
       (c) => c.teacherId === teacher.id && c.startTime && c.endTime

@@ -192,7 +192,9 @@ export class SchedulingPlanValidationService {
             where: { instituteId },
             select: { id: true, title: true, prerequisiteId: true },
           })
-        : Promise.resolve([]),
+        : Promise.resolve<
+            Array<{ id: string; title: string; prerequisiteId: string | null }>
+          >([]),
     ]);
     const existingClasses = await database.class.findMany({
       where: { instituteId, termId: plan.run.termId },
