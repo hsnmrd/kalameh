@@ -99,33 +99,6 @@ export function SchedulingPlanValidationResult({
         </Badge>
       </div>
 
-      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-        {[
-          {
-            label: t("summary.proposals"),
-            value: result.summary.proposalCount,
-          },
-          {
-            label: t("summary.violations"),
-            value: result.summary.violationCount,
-          },
-          {
-            label: t("summary.invalidProposals"),
-            value: result.summary.invalidProposalCount,
-          },
-        ].map((item) => (
-          <div
-            key={item.label}
-            className="rounded-xl bg-background px-3 py-2.5"
-          >
-            <dt className="text-xs text-muted-foreground">{item.label}</dt>
-            <dd className="mt-1 font-bold text-foreground">
-              {formatNumber(item.value, locale)}
-            </dd>
-          </div>
-        ))}
-      </dl>
-
       {result.violations.length > 0 && (
         <ul className="mt-4 flex flex-col gap-3">
           {result.violations.map((violation, index) => {
