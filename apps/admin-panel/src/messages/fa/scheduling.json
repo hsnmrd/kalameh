@@ -658,6 +658,11 @@
     "wholePlan": "کل برنامه",
     "unknownProposal": "کلاس پیشنهادی نامشخص",
     "relatedConflicts": "{count} مورد تداخل مرتبط شناسایی شد.",
+    "teacher": "استاد",
+    "noTeacher": "بدون استاد",
+    "online": "آنلاین",
+    "notSpecified": "مشخص‌نشده",
+    "viewInCalendar": "مشاهده در تقویم",
     "summary": {
       "proposals": "کلاس‌های بررسی‌شده",
       "violations": "تخلف‌ها",

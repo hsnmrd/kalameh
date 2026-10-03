@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "../../../../../test/test-utils"
 import type {
   SchedulingPlanDetailsDto,
@@ -143,6 +144,22 @@ describe("MVP-041 scheduling plan validation", () => {
     expect(
       screen.getByText("۱ مورد تداخل مرتبط شناسایی شد.")
     ).toBeInTheDocument()
+    const violationItem = screen.getByTestId(`violation-item-${proposalId}`)
+    expect(within(violationItem).getByText("A2")).toBeInTheDocument()
+    expect(within(violationItem).getByText("کلاس سطح A2")).toBeInTheDocument()
+    expect(
+      within(violationItem).getByText("استاد: سارا احمدی")
+    ).toBeInTheDocument()
+    expect(within(violationItem).getByText("شنبه")).toBeInTheDocument()
+    expect(
+      within(violationItem).getByText("09:00 تا 10:30")
+    ).toBeInTheDocument()
+    expect(within(violationItem).getByText("آنلاین")).toBeInTheDocument()
+    const viewInCalendarBtn = within(violationItem).getByRole("button", {
+      name: "مشاهده در تقویم",
+    })
+    expect(viewInCalendarBtn).toBeInTheDocument()
+    fireEvent.click(viewInCalendarBtn)
     expect(
       screen.getByRole("button", { name: "اعتبارسنجی دوباره" })
     ).toBeEnabled()
