@@ -2,16 +2,8 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import {
-  Building2,
-  DoorOpen,
-  Globe,
-  GraduationCap,
-  Users,
-  X,
-} from "lucide-react"
+import { DoorOpen, Globe, GraduationCap, Users, X } from "lucide-react"
 import type { SchedulingNewTeacherHiringAssignment } from "@workspace/types"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
 
@@ -52,9 +44,7 @@ export function SchedulingPlanCalendarMissedClassCard({
   const isOnline = assignment.deliveryMode === "ONLINE"
   const roomLabel = isOnline
     ? t("hiringPlan.online")
-    : assignedRoomName
-      ? t("hiringPlan.room", { room: assignedRoomName })
-      : t("calendarView.roomNeeded")
+    : assignedRoomName || t("calendarView.roomNeeded")
   const effectiveRoomCapacity =
     assignedRoomCapacity ?? assignment.classroom?.capacity
 
@@ -117,26 +107,6 @@ export function SchedulingPlanCalendarMissedClassCard({
               assignment.course.title
             )}
           </h5>
-          {/* Delivery mode icon (online / in-person) */}
-          <span
-            title={
-              isOnline
-                ? t("deliveryModes.ONLINE")
-                : t("deliveryModes.IN_PERSON")
-            }
-            aria-label={
-              isOnline
-                ? t("deliveryModes.ONLINE")
-                : t("deliveryModes.IN_PERSON")
-            }
-            className="inline-flex size-5 shrink-0 items-center justify-center rounded-md border border-warning/30 bg-warning/15 text-warning-foreground"
-          >
-            {isOnline ? (
-              <Globe aria-hidden className="size-3 text-inherit" />
-            ) : (
-              <Building2 aria-hidden className="size-3 text-inherit" />
-            )}
-          </span>
         </div>
 
         {/* End (Left in RTL): Location, New Teacher Badge & Unassign */}
@@ -156,13 +126,6 @@ export function SchedulingPlanCalendarMissedClassCard({
             )}
             <span className="truncate font-medium">{roomLabel}</span>
           </div>
-
-          <Badge
-            variant="warning"
-            className="h-5 shrink-0 px-1.5 py-0 text-[10px]"
-          >
-            {t("calendarView.newTeacherBadge")}
-          </Badge>
 
           {canEdit && onUnassign && (
             <Button
@@ -191,7 +154,7 @@ export function SchedulingPlanCalendarMissedClassCard({
             <GraduationCap aria-hidden className="size-4 shrink-0" />
           </div>
           <span className="truncate text-xs font-bold text-foreground">
-            {t("hiringPlan.pendingTeacher")}
+            {t("calendarView.newTeacherBadge")}
           </span>
         </div>
 

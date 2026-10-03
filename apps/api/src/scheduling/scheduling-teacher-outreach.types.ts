@@ -48,10 +48,23 @@ export function readAcceptedOutreachRecords(
   );
 }
 
+export function readRejectedOutreachOptionKeys(details: unknown): string[] {
+  if (!details || typeof details !== 'object' || Array.isArray(details)) {
+    return [];
+  }
+  const raw = (details as Record<string, unknown>).rejectedOutreachOptionKeys;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (item): item is string => typeof item === 'string' && item.length > 0,
+  );
+}
+
 export function mergeAcceptedOutreachIntoOptions(
   computedOptions: SchedulingTeacherOutreachOption[],
   acceptedRecords: AcceptedTeacherOutreachRecord[],
+  rejectedKeys: string[] = [],
 ): SchedulingTeacherOutreachOption[] {
+  const rejectedSet = new Set(rejectedKeys);
   const acceptedByKey = new Map(
     acceptedRecords.map((rec) => [rec.optionKey, rec]),
   );
@@ -61,11 +74,13 @@ export function mergeAcceptedOutreachIntoOptions(
       ? {
           ...option,
           isAccepted: true,
+          isRejected: false,
           acceptedProposalId: accepted.proposalId,
         }
       : {
           ...option,
           isAccepted: false,
+          isRejected: rejectedSet.has(option.key),
           acceptedProposalId: null,
         };
   });
@@ -85,10 +100,25 @@ export function mergeAcceptedOutreachIntoOptions(
         ? { higherLevelCourseTitle: rec.higherLevelCourseTitle }
         : {}),
       isAccepted: true,
+      isRejected: false,
       acceptedProposalId: rec.proposalId,
     }));
 
-  return [...missingAccepted, ...mappedComputed];
+  const missingRejected = computedOptions
+    .slice(3)
+    .filter(
+      (opt) =>
+        rejectedSet.has(opt.key) &&
+        !mappedComputed.some((m) => m.key === opt.key),
+    )
+    .map((opt) => ({
+      ...opt,
+      isAccepted: false,
+      isRejected: true,
+      acceptedProposalId: null,
+    }));
+
+  return [...missingAccepted, ...mappedComputed, ...missingRejected];
 }
 
 export function appendOutreachAvailabilitiesToQualifications<
@@ -201,6 +231,7 @@ export async function createProposalSessionsForTerm(
 export function buildUpdatedUnresolvedDetails(
   currentDetails: unknown,
   acceptedOutreachOptions: AcceptedTeacherOutreachRecord[],
+  rejectedOutreachOptionKeys?: string[],
 ): Prisma.InputJsonValue {
   const base =
     currentDetails &&
@@ -212,6 +243,9 @@ export function buildUpdatedUnresolvedDetails(
     JSON.stringify({
       ...base,
       acceptedOutreachOptions,
+      rejectedOutreachOptionKeys:
+        rejectedOutreachOptionKeys ??
+        readRejectedOutreachOptionKeys(currentDetails),
     }),
   ) as Prisma.InputJsonValue;
 }

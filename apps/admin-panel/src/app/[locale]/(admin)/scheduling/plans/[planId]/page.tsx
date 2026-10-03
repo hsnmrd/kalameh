@@ -45,6 +45,9 @@ export default function SchedulingPlanDetailsPage() {
 
   const planQuery = useSchedulingPlanDetail(planId)
   const plan = planQuery.data
+  const [selectedTeacherId, setSelectedTeacherId] = React.useState<
+    string | null
+  >(null)
 
   const validation = useSchedulingPlanValidation(
     plan?.id ?? "",
@@ -129,12 +132,16 @@ export default function SchedulingPlanDetailsPage() {
                 onSelect={handleSelect}
                 onValidate={validation.validate}
                 onValidationBlocked={validation.setResult}
+                selectedTeacherId={selectedTeacherId}
+                onTeacherChange={setSelectedTeacherId}
               />
               <SchedulingPlanDetailsContent
                 plan={plan}
                 isSelected={plan.status === "SELECTED"}
                 validationResult={validation.result}
                 stickyTop="page"
+                selectedTeacherId={selectedTeacherId}
+                onTeacherChange={setSelectedTeacherId}
               />
             </div>
           ) : (

@@ -2,24 +2,18 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { CalendarRange, CircleAlert, MapPin } from "lucide-react"
+import { CalendarRange, MapPin } from "lucide-react"
 import type {
   SchedulingPlanDetailsDto,
   SchedulingPlanValidation,
   WeekDay,
 } from "@workspace/types"
-import { Badge } from "@workspace/ui/components/badge"
 import { Separator } from "@workspace/ui/components/separator"
-import { cn, formatDate, formatNumber } from "@workspace/ui/lib/utils"
+import { cn, formatDate } from "@workspace/ui/lib/utils"
 import { SchedulingPlanCalendarView } from "../../scheduling-plan-calendar-view"
-import {
-  SchedulingNewTeacherHiringPlan,
-  type CurrentAssignmentState,
-} from "../../scheduling-new-teacher-hiring-plan"
+import type { CurrentAssignmentState } from "../../scheduling-new-teacher-hiring-plan"
 import { SchedulingPlanPublicationStatus } from "../../scheduling-plan-publication-status"
 import { SchedulingPlanValidationResult } from "../../scheduling-plan-validation-result"
-import { SchedulingPlanUnfilledTeachers } from "../../scheduling-plan-unfilled-teachers"
-import { SchedulingUnresolvedRequirementItem } from "../../scheduling-unresolved-requirement-item"
 
 interface ContentProps {
   plan: SchedulingPlanDetailsDto
@@ -27,6 +21,8 @@ interface ContentProps {
   validationResult: SchedulingPlanValidation | undefined
   stickyTop?: "page" | "dialog"
   className?: string
+  selectedTeacherId?: string | null
+  onTeacherChange?: (teacherId: string | null) => void
 }
 
 function buildDefaultAssignments(
@@ -53,13 +49,11 @@ export function Content({
   validationResult,
   stickyTop = "dialog",
   className,
+  selectedTeacherId,
+  onTeacherChange,
 }: ContentProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
-  const missingClassCount = plan.unresolvedRequirements.reduce(
-    (sum, requirement) => sum + requirement.missingClassCount,
-    0
-  )
 
   const [assignmentOverrides, setAssignmentOverrides] = React.useState<{
     planId: string
@@ -203,25 +197,6 @@ export function Content({
     [setAssignmentsState]
   )
 
-  const handleResetAssignments = React.useCallback(() => {
-    if (!plan.newTeacherHiringPlan) return
-    const next: Record<string, CurrentAssignmentState> = {}
-    for (const a of plan.newTeacherHiringPlan.assignments) {
-      next[a.key] = {
-        daysOfWeek: a.daysOfWeek as WeekDay[],
-        startTime: a.startTime,
-        endTime: a.endTime,
-        classroomId: a.classroom?.id ?? null,
-        classroomName: a.classroom?.name ?? null,
-        isAssigned: true,
-      }
-    }
-    setAssignmentOverrides({
-      planId: plan.id,
-      state: next,
-    })
-  }, [plan.id, plan.newTeacherHiringPlan])
-
   const handleUpdateMissedClassesAssignments = React.useCallback(
     (updates: Record<string, CurrentAssignmentState>) => {
       setAssignmentsState((prev) => ({
@@ -304,60 +279,14 @@ export function Content({
             handleUpdateMissedClassesAssignments
           }
           teacherCalendars={plan.teacherCalendars}
+          unresolvedRequirements={plan.unresolvedRequirements}
+          planId={plan.id}
+          planStatus={plan.status}
           stickyTop={stickyTop}
+          selectedTeacherId={selectedTeacherId}
+          onTeacherChange={onTeacherChange}
         />
       </section>
-      <Separator />
-      <SchedulingPlanUnfilledTeachers calendars={plan.teacherCalendars ?? []} />
-      {plan.unresolvedRequirements.length > 0 && (
-        <section aria-labelledby="plan-unresolved-title">
-          <div className="flex items-center justify-between gap-3">
-            <h3
-              id="plan-unresolved-title"
-              className="flex items-center gap-2 font-bold text-foreground"
-            >
-              <CircleAlert aria-hidden className="size-5" />
-              {t("unresolvedTitle")}
-            </h3>
-            {missingClassCount > 0 ? (
-              <Badge variant="warning">
-                {t("missingCount", {
-                  count: formatNumber(missingClassCount, locale),
-                })}
-              </Badge>
-            ) : (
-              <Badge variant="success">
-                {t("staffingFallback.resolvedBadge")}
-              </Badge>
-            )}
-          </div>
-          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-            {t("unresolvedDescription")}
-          </p>
-          {(missingClassCount > 0 || plan.newTeacherHiringPlan !== null) && (
-            <SchedulingNewTeacherHiringPlan
-              plan={plan.newTeacherHiringPlan}
-              missingClassCount={missingClassCount}
-              planId={plan.id}
-              planStatus={plan.status}
-              assignmentsState={assignmentsState}
-              onResetAssignments={handleResetAssignments}
-            />
-          )}
-          <ul className="mt-4 flex flex-col gap-3">
-            {plan.unresolvedRequirements.map((requirement) => (
-              <SchedulingUnresolvedRequirementItem
-                key={requirement.id}
-                requirement={requirement}
-                newTeacherHiringPlan={plan.newTeacherHiringPlan}
-                planId={plan.id}
-                planStatus={plan.status}
-                assignmentsState={assignmentsState}
-              />
-            ))}
-          </ul>
-        </section>
-      )}
     </div>
   )
 }

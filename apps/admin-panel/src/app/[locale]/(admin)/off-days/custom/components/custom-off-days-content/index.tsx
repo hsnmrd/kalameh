@@ -58,7 +58,7 @@ export function CustomOffDaysContent() {
           backHref="/off-days"
           backLabel={t("backToCalendar")}
           items={[
-            { label: t("calendarTitle"), href: "/off-days" },
+            { label: t("backToCalendar"), href: "/off-days" },
             { label: t("customOffDaysTitle") },
           ]}
         />

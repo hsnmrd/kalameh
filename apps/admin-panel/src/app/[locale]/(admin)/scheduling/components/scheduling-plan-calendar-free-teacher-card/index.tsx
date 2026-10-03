@@ -19,10 +19,13 @@ export interface SchedulingPlanCalendarFreeTeacherCardProps {
   slotKey: string
   levelRange: string | null
   suggestedCourseTitle: string | null
+  trackLabel?: string
+  isSelected?: boolean
   isCollapsed?: boolean
   isSwappable?: boolean
   isDimmed?: boolean
   onClick?: () => void
+  testId?: string
 }
 
 export function SchedulingPlanCalendarFreeTeacherCard({
@@ -31,10 +34,13 @@ export function SchedulingPlanCalendarFreeTeacherCard({
   slotKey,
   levelRange,
   suggestedCourseTitle,
+  trackLabel,
+  isSelected = false,
   isCollapsed = false,
   isSwappable = false,
   isDimmed = false,
   onClick,
+  testId,
 }: SchedulingPlanCalendarFreeTeacherCardProps) {
   const t = useTranslations("scheduling.planDetails")
   const teacherName = `${teacher.firstName} ${teacher.lastName}`
@@ -44,21 +50,24 @@ export function SchedulingPlanCalendarFreeTeacherCard({
 
   return (
     <article
-      data-testid={`free-teacher-card-${teacher.id}-${day}-${slotKey}`}
+      data-testid={
+        testId ?? `free-teacher-card-${teacher.id}-${day}-${slotKey}`
+      }
       data-swappable={isSwappable ? "true" : undefined}
       data-dimmed={isDimmed ? "true" : undefined}
       data-collapsed={isCollapsed ? "true" : undefined}
+      data-selected={isSelected ? "true" : undefined}
       onClick={
-        isSwappable && onClick
+        onClick
           ? (e) => {
               e.stopPropagation()
               onClick()
             }
           : undefined
       }
-      tabIndex={isSwappable ? 0 : undefined}
+      tabIndex={isSwappable || onClick ? 0 : undefined}
       onKeyDown={
-        isSwappable && onClick
+        onClick
           ? (e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault()
@@ -69,8 +78,13 @@ export function SchedulingPlanCalendarFreeTeacherCard({
       }
       className={cn(
         "group relative flex min-h-[84px] flex-col justify-between overflow-hidden rounded-xl border-2 border-dashed border-destructive/70 bg-destructive/10 p-3 shadow-2xs transition-[background-color,border-color,box-shadow] duration-200 ease-in-out select-none",
+        isSelected &&
+          "border-solid border-success bg-success/15 ring-2 ring-success/60",
         isSwappable &&
           "animate-calendar-card-shake z-10 cursor-pointer opacity-100 ring-2 ring-primary/60 hover:animate-none",
+        !isSwappable &&
+          onClick &&
+          "cursor-pointer hover:border-destructive hover:bg-destructive/15",
         isDimmed && "opacity-25 grayscale hover:opacity-60 hover:grayscale-0"
       )}
       data-grayscale={isDimmed ? "true" : undefined}
@@ -80,7 +94,10 @@ export function SchedulingPlanCalendarFreeTeacherCard({
       <div className="flex min-w-0 items-center justify-between gap-2 pb-2.5">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <span
-            className="size-2.5 shrink-0 rounded-full bg-destructive"
+            className={cn(
+              "size-2.5 shrink-0 rounded-full",
+              isSelected ? "bg-success" : "bg-destructive"
+            )}
             aria-hidden="true"
           />
           <h5
@@ -100,6 +117,15 @@ export function SchedulingPlanCalendarFreeTeacherCard({
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
+          {trackLabel && (
+            <Badge
+              variant="secondary"
+              data-testid={`free-teacher-track-badge-${teacher.id}-${slotKey}`}
+              className="h-5 px-1.5 py-0 text-[10px] font-medium"
+            >
+              {trackLabel}
+            </Badge>
+          )}
           <Badge
             variant="outline"
             className="h-5 border-destructive/30 bg-background/80 px-1.5 py-0 text-[10px]"

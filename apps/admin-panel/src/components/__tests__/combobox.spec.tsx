@@ -168,7 +168,7 @@ describe("Combobox Component", () => {
     const overlay = document.querySelector('[data-slot="drawer-overlay"]')
     expect(overlay).toBeInTheDocument()
     expect(overlay).toHaveClass("z-[60]")
-    expect(overlay).toHaveClass("backdrop-blur-xs")
+    expect(overlay).toHaveClass("backdrop-blur-sm")
 
     // Close the top drawer by clicking close
     const closeButtons = screen.getAllByRole("button", { name: "بستن" })

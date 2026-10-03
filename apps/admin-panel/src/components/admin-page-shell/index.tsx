@@ -7,6 +7,10 @@ import { useHeaderActions } from "../admin-base-layout/header-actions-context"
 export interface AdminPageShellProps {
   /** Optional breadcrumb navigation displayed on top of the filter section (standard for inner/sub-pages) */
   breadcrumb?: React.ReactNode
+  /** Optional back link URL displayed as an icon button in the header next to the page title */
+  backHref?: string
+  /** Optional accessible label for the back button */
+  backLabel?: string
   /** Optional actions (e.g. three-dot action menu) rendered dynamically in the header next to the page title */
   actions?: React.ReactNode
   filter?: React.ReactNode
@@ -20,6 +24,8 @@ export interface AdminPageShellProps {
 
 export function AdminPageShell({
   breadcrumb,
+  backHref,
+  backLabel,
   actions,
   filter,
   filters,
@@ -28,12 +34,19 @@ export function AdminPageShell({
   fab,
   className,
 }: AdminPageShellProps) {
-  const { setHeaderActions } = useHeaderActions()
+  const { setHeaderActions, setBackNavigation } = useHeaderActions()
 
   React.useEffect(() => {
     setHeaderActions(actions ?? null)
     return () => setHeaderActions(null)
   }, [actions, setHeaderActions])
+
+  React.useEffect(() => {
+    if (backHref) {
+      setBackNavigation({ backHref, backLabel })
+      return () => setBackNavigation(null)
+    }
+  }, [backHref, backLabel, setBackNavigation])
 
   const resolvedFilter = filter ?? filters
 

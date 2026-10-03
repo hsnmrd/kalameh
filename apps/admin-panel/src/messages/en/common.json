@@ -60,6 +60,7 @@
     "system": "System"
   },
   "language": "Language",
+  "back": "Back",
   "settings": "Settings",
   "logout": "Sign Out",
   "filter": {

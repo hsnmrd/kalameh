@@ -2,9 +2,11 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 import { type Role, type AuthUser } from "@workspace/types"
+import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
-import { usePathname } from "@/i18n/routing"
+import { Link, useIsRtl, usePathname } from "@/i18n/routing"
 import { useHeaderActions } from "../header-actions-context"
 import { UserBadge } from "./user-badge"
 
@@ -91,7 +93,9 @@ export function AdminHeader({ role, user, onLogout }: AdminHeaderProps) {
   const t = useTranslations("common")
   const pathname = usePathname()
   const pageTitle = getPageTitle(pathname, t)
-  const { headerActions } = useHeaderActions()
+  const { headerActions, backNavigation } = useHeaderActions()
+  const isRtl = useIsRtl()
+  const BackIcon = isRtl ? ArrowRight : ArrowLeft
 
   const [isScrolled, setIsScrolled] = React.useState(false)
 
@@ -114,7 +118,21 @@ export function AdminHeader({ role, user, onLogout }: AdminHeaderProps) {
           : "border-b border-transparent bg-transparent"
       )}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        {backNavigation && (
+          <Button
+            render={<Link href={backNavigation.backHref} />}
+            nativeButton={false}
+            variant="ghost"
+            size="icon"
+            data-testid="admin-header-back-btn"
+            className="size-8 cursor-pointer rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label={backNavigation.backLabel ?? t("back")}
+            title={backNavigation.backLabel ?? t("back")}
+          >
+            <BackIcon className="size-4" />
+          </Button>
+        )}
         {headerActions}
         <h1 className="text-lg font-bold tracking-tight text-foreground sm:text-xl lg:text-2xl">
           {pageTitle}

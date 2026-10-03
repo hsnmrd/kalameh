@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "../../../../../../../test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
@@ -276,6 +277,53 @@ describe("SchedulingPlanDetailsPage", () => {
       queryKey: schedulingResource.planDetail.key({ planId, instituteId }),
       queryFn: async () =>
         createPlan(planId, 1, {
+          proposals: [
+            ...createPlan(planId, 1).proposals,
+            {
+              id: "prop-unassigned-ame",
+              instituteId,
+              planId,
+              courseId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+              teacherId: null,
+              teacher: null,
+              branchId: "77777777-7777-4777-8777-777777777777",
+              classroomId: "88888888-8888-4888-8888-888888888888",
+              title: "AME 3-5",
+              capacity: 15,
+              deliveryMode: "IN_PERSON",
+              daysOfWeek: ["SATURDAY", "MONDAY"],
+              startTime: "11:00",
+              endTime: "12:30",
+              course: {
+                id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+                title: "AME 3-5",
+              },
+              branch: {
+                id: "77777777-7777-4777-8777-777777777777",
+                name: "مرکزی",
+              },
+              classroom: {
+                id: "88888888-8888-4888-8888-888888888888",
+                name: "کلاس ۱",
+                capacity: 15,
+              },
+              sessions: [
+                {
+                  sessionNumber: 1,
+                  dayOfWeek: "SATURDAY",
+                  startTime: "11:00",
+                  endTime: "12:30",
+                },
+              ],
+              warnings: [],
+              selectionReasons: [],
+              isLocked: false,
+              isManuallyEdited: false,
+              lastEditedAt: timestamp,
+              editedFields: [],
+              publishedClassId: null,
+            },
+          ],
           unresolvedRequirements: [
             {
               id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
@@ -345,7 +393,22 @@ describe("SchedulingPlanDetailsPage", () => {
 
     render(<SchedulingPlanDetailsPage />)
 
-    const acceptButton = await screen.findByRole("button", {
+    const unassignedCard = await screen.findByTestId(
+      "calendar-class-card-prop-unassigned-ame"
+    )
+    fireEvent.click(unassignedCard)
+
+    const dialog = await screen.findByTestId("staffing-fallback-dialog")
+    expect(dialog).toBeInTheDocument()
+    expect(
+      within(dialog).getByText(/زمان‌های ممکن با برنامه استاد تداخل دارند/)
+    ).toBeInTheDocument()
+    expect(within(dialog).getAllByText(/دکتر بهنام/)[0]).toBeInTheDocument()
+    expect(
+      within(dialog).getByText("تحلیل جابه‌جایی استادان:")
+    ).toBeInTheDocument()
+
+    const acceptButton = await within(dialog).findByRole("button", {
       name: /استاد پذیرفت/,
     })
     expect(acceptButton).toHaveAttribute("aria-pressed", "false")
@@ -367,9 +430,65 @@ describe("SchedulingPlanDetailsPage", () => {
           endTime: "19:00",
           classroomId: "88888888-8888-4888-8888-888888888888",
           availabilityChangeDays: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          action: "ACCEPT",
         },
       },
       expect.any(Object)
     )
+  })
+
+  it("opens filter dialog and renders teacher combobox in AdminFilterBar", async () => {
+    const teacherId = "66666666-6666-4666-8666-666666666666"
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.planDetail, "toQuery").mockReturnValue({
+      queryKey: schedulingResource.planDetail.key({ planId, instituteId }),
+      queryFn: async () =>
+        createPlan(planId, 1, {
+          teacherCalendars: [
+            {
+              teacher: {
+                id: teacherId,
+                firstName: "سارا",
+                lastName: "احمدی",
+                avatarUrl: null,
+              },
+              teachableCourses: [
+                {
+                  id: "55555555-5555-4555-8555-555555555555",
+                  title: "A2",
+                },
+              ],
+              slots: [
+                {
+                  dayOfWeek: "SATURDAY",
+                  startTime: "09:00",
+                  endTime: "10:30",
+                  status: "FREE",
+                  title: null,
+                  source: "AVAILABILITY",
+                },
+              ],
+            },
+          ],
+        }),
+    } as never)
+
+    render(<SchedulingPlanDetailsPage />)
+
+    expect(await screen.findByText("جزئیات برنامه ۱")).toBeInTheDocument()
+
+    // Find and click the filter button
+    const filterButton = screen.getByRole("button", { name: /فیلتر/ })
+    expect(filterButton).toBeInTheDocument()
+    fireEvent.click(filterButton)
+    // The filter dialog is open, showing teacher filter modal and combobox trigger
+    expect(
+      (await screen.findAllByText("فیلتر بر اساس استاد")).length
+    ).toBeGreaterThanOrEqual(1)
+    expect(
+      screen.getByRole("combobox", { name: "انتخاب استاد..." })
+    ).toBeInTheDocument()
   })
 })

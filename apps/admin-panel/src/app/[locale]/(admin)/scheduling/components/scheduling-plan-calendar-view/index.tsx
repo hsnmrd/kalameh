@@ -11,7 +11,7 @@ import {
   Highlighter,
   Info,
   Plus,
-  UserCheck,
+  X,
 } from "lucide-react"
 import {
   findHigherLevelCourse,
@@ -20,6 +20,7 @@ import {
   type SchedulingNewTeacherHiringPlan,
   type SchedulingNewTeacherHiringSlotOption,
   type SchedulingPlanDetailsDto,
+  type SchedulingStaffingFallback as StaffingFallbackDto,
   type SchedulingTeacherCalendar,
   type WeekDay,
 } from "@workspace/types"
@@ -40,8 +41,12 @@ import {
 } from "@workspace/ui/components/empty"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { SchedulingPlanCalendarClassCard } from "../scheduling-plan-calendar-class-card"
-import { SchedulingPlanCalendarFreeTeacherCard } from "../scheduling-plan-calendar-free-teacher-card"
 import { SchedulingPlanCalendarMissedClassCard } from "../scheduling-plan-calendar-missed-class-card"
+import { StaffingFallbackDialog } from "./staffing-fallback-dialog"
+import {
+  SchedulingPlanCalendarGroupTeachersCarousel,
+  type GroupTeacherAccessibilityItem,
+} from "../scheduling-plan-calendar-group-teachers-carousel"
 import {
   AssignSlotDialog,
   type CurrentAssignmentState,
@@ -113,10 +118,14 @@ export interface SchedulingPlanCalendarViewProps {
     updates: Record<string, CurrentAssignmentState>
   ) => void
   teacherCalendars?: SchedulingTeacherCalendar[]
-  defaultShowFreeTeachers?: boolean
+  unresolvedRequirements?: SchedulingPlanDetailsDto["unresolvedRequirements"]
+  planId?: string
+  planStatus?: string
   defaultCollapsed?: boolean
   initialExpandedSlots?: string[]
   stickyTop?: "page" | "dialog"
+  selectedTeacherId?: string | null
+  onTeacherChange?: (teacherId: string | null) => void
 }
 
 export function SchedulingPlanCalendarView({
@@ -129,13 +138,32 @@ export function SchedulingPlanCalendarView({
   onUnassignMissedClass,
   onUpdateMissedClassesAssignments,
   teacherCalendars,
-  defaultShowFreeTeachers = false,
-  defaultCollapsed = true,
+  unresolvedRequirements,
+  planId,
+  planStatus,
+  defaultCollapsed = false,
   initialExpandedSlots,
   stickyTop = "page",
+  selectedTeacherId,
+  onTeacherChange,
 }: SchedulingPlanCalendarViewProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
+
+  const [internalTeacherId, setInternalTeacherId] = React.useState<
+    string | null
+  >(null)
+  const activeTeacherFilterId =
+    selectedTeacherId !== undefined ? selectedTeacherId : internalTeacherId
+  const handleTeacherChange = onTeacherChange ?? setInternalTeacherId
+
+  const selectedTeacherCalendar = React.useMemo(() => {
+    if (!activeTeacherFilterId || !teacherCalendars) return null
+    return (
+      teacherCalendars.find((c) => c.teacher.id === activeTeacherFilterId) ??
+      null
+    )
+  }, [activeTeacherFilterId, teacherCalendars])
 
   const [proposalOverrides, setProposalOverrides] = React.useState<{
     byId: Record<string, Proposal>
@@ -173,9 +201,14 @@ export function SchedulingPlanCalendarView({
     target: SwapTarget
     evaluation: SwapEvaluationResult
   } | null>(null)
-  const [showFreeTeachers, setShowFreeTeachers] = React.useState(
-    defaultShowFreeTeachers
-  )
+  const [staffingDialogSession, setStaffingDialogSession] = React.useState<{
+    courseTitle: string
+    unresolvedRequirementId?: string
+    fallback: StaffingFallbackDto
+    hiringAssignments: SchedulingNewTeacherHiringAssignment[]
+    requirement?:
+      SchedulingPlanDetailsDto["unresolvedRequirements"][number] | null
+  } | null>(null)
   const [highlightRelated, setHighlightRelated] = React.useState(true)
   const [mobileTrack, setMobileTrack] = React.useState<DayTrack>("EVEN")
   const mobileTrackRef = React.useRef<DayTrack>(mobileTrack)
@@ -326,75 +359,9 @@ export function SchedulingPlanCalendarView({
     [canPlaceMissedClassOnDay]
   )
 
-  const missedClassProposals = React.useMemo<Proposal[]>(() => {
-    if (!hiringPlan?.assignments || !missedClassesAssignments) return []
-    const fallbackPlanId = proposals[0]?.planId ?? "plan-missed"
-    const fallbackInstituteId = proposals[0]?.instituteId ?? "inst-missed"
-    const list: Proposal[] = []
-
-    for (const assignment of hiringPlan.assignments) {
-      const state = missedClassesAssignments[assignment.key]
-      if (!state || state.isAssigned === false || !state.daysOfWeek.length) {
-        continue
-      }
-      const placableDays = state.daysOfWeek.filter((day) =>
-        canPlaceMissedClassOnDay(assignment, state, day)
-      )
-      if (placableDays.length === 0) continue
-
-      const effectiveRoomId =
-        state.classroomId ?? assignment.classroom?.id ?? null
-      const effectiveRoomName =
-        state.classroomName ?? assignment.classroom?.name ?? null
-      const knownRoom = effectiveRoomId
-        ? knownClassroomsById.get(effectiveRoomId)
-        : undefined
-
-      const classroomObj =
-        assignment.deliveryMode === "IN_PERSON" && effectiveRoomId
-          ? {
-              id: effectiveRoomId,
-              name: effectiveRoomName ?? knownRoom?.name ?? "",
-              capacity:
-                knownRoom?.capacity ?? assignment.classroom?.capacity ?? 999,
-            }
-          : null
-
-      list.push({
-        id: `missed:${assignment.key}`,
-        planId: fallbackPlanId,
-        instituteId: fallbackInstituteId,
-        title: assignment.course.title,
-        course: assignment.course,
-        teacher: null,
-        teacherId: null,
-        branch: null,
-        branchId: null,
-        classroom: classroomObj,
-        classroomId: classroomObj?.id ?? null,
-        capacity: 1,
-        daysOfWeek: placableDays,
-        startTime: state.startTime,
-        endTime: state.endTime,
-        deliveryMode: assignment.deliveryMode,
-        isLocked: false,
-        isManuallyEdited: false,
-        warnings: [],
-        scoreBreakdown: [],
-      } as unknown as Proposal)
-    }
-    return list
-  }, [
-    hiringPlan,
-    missedClassesAssignments,
-    proposals,
-    canPlaceMissedClassOnDay,
-    knownClassroomsById,
-  ])
-
   const allSwappableProposals = React.useMemo(
-    () => [...proposals, ...missedClassProposals],
-    [proposals, missedClassProposals]
+    () => proposals.filter((p) => Boolean(p.teacherId || p.teacher)),
+    [proposals]
   )
 
   const activeProposal = React.useMemo(
@@ -422,13 +389,32 @@ export function SchedulingPlanCalendarView({
 
   const sameCourseTotalCount = React.useMemo(() => {
     if (!activeProposal) return 0
-    return allSwappableProposals.filter((p) => {
+    let count = proposals.filter((p) => {
       if (activeCourseId && p.course?.id === activeCourseId) return true
       if (activeCourseTitle && p.course?.title === activeCourseTitle)
         return true
       return false
     }).length
-  }, [activeProposal, activeCourseId, activeCourseTitle, allSwappableProposals])
+    for (const assignment of hiringPlan?.assignments ?? []) {
+      const state = missedClassesAssignments?.[assignment.key]
+      if (state && state.isAssigned !== false && state.daysOfWeek.length > 0) {
+        if (
+          (activeCourseId && assignment.course?.id === activeCourseId) ||
+          (activeCourseTitle && assignment.course?.title === activeCourseTitle)
+        ) {
+          count++
+        }
+      }
+    }
+    return count
+  }, [
+    activeProposal,
+    activeCourseId,
+    activeCourseTitle,
+    proposals,
+    hiringPlan,
+    missedClassesAssignments,
+  ])
 
   const occupiedClassroomSlots = React.useMemo<OccupiedClassroomSlot[]>(() => {
     if (!hiringPlan?.assignments || !missedClassesAssignments) return []
@@ -478,15 +464,120 @@ export function SchedulingPlanCalendarView({
     occupiedClassroomSlots,
   ])
 
+  const handleMissedCardClick = React.useCallback(
+    (assignment: SchedulingNewTeacherHiringAssignment) => {
+      const matchedReq = unresolvedRequirements?.find(
+        (req) =>
+          req.id === assignment.requirementId ||
+          req.classRequirement?.id === assignment.requirementId ||
+          req.classRequirement?.course.id === assignment.course.id
+      )
+      const fallback: StaffingFallbackDto = matchedReq?.recovery
+        ?.staffingFallback ?? {
+        addTeacherSuggested: true,
+        availabilityOptions: [],
+      }
+      const targetCourseTitle =
+        matchedReq?.classRequirement?.course.title ?? assignment.course.title
+
+      const matchingAssignments =
+        hiringPlan?.assignments
+          .filter(
+            (a) =>
+              a.requirementId === assignment.requirementId ||
+              a.course.id === assignment.course.id
+          )
+          .map((a) => {
+            const ov = missedClassesAssignments?.[a.key]
+            if (!ov || ov.isAssigned === false || !ov.daysOfWeek.length) {
+              return a
+            }
+            return {
+              ...a,
+              daysOfWeek: ov.daysOfWeek,
+              startTime: ov.startTime,
+              endTime: ov.endTime,
+              classroom:
+                a.deliveryMode === "ONLINE"
+                  ? null
+                  : ov.classroomId && ov.classroomName
+                    ? {
+                        id: ov.classroomId,
+                        name: ov.classroomName,
+                        capacity: a.classroom?.capacity ?? 1,
+                      }
+                    : a.classroom,
+            }
+          }) ?? []
+
+      setStaffingDialogSession({
+        courseTitle: targetCourseTitle,
+        unresolvedRequirementId: matchedReq?.id ?? assignment.requirementId,
+        fallback,
+        requirement: matchedReq ?? null,
+        hiringAssignments:
+          matchingAssignments.length > 0 ? matchingAssignments : [assignment],
+      })
+    },
+    [unresolvedRequirements, hiringPlan, missedClassesAssignments]
+  )
+
   const handleCardClick = React.useCallback(
     (id: string) => {
+      const targetProposal = proposals.find((p) => p.id === id)
+      if (
+        targetProposal &&
+        !targetProposal.teacherId &&
+        !targetProposal.teacher
+      ) {
+        const matchedReq = unresolvedRequirements?.find(
+          (req) =>
+            req.classRequirement?.course.id === targetProposal.course?.id ||
+            req.classRequirement?.id === targetProposal.courseId ||
+            req.id === targetProposal.courseId
+        )
+        const fallback: StaffingFallbackDto = matchedReq?.recovery
+          ?.staffingFallback ?? {
+          addTeacherSuggested: true,
+          availabilityOptions: [],
+        }
+        const targetCourseTitle =
+          matchedReq?.classRequirement?.course.title ??
+          targetProposal.course?.title ??
+          targetProposal.title
+
+        setStaffingDialogSession({
+          courseTitle: targetCourseTitle,
+          unresolvedRequirementId: matchedReq?.id,
+          fallback,
+          requirement: matchedReq ?? null,
+          hiringAssignments: [
+            {
+              key: `prop-${targetProposal.id}`,
+              requirementId: matchedReq?.id ?? targetProposal.id,
+              course: {
+                id: targetProposal.course?.id ?? "",
+                title: targetCourseTitle,
+              },
+              classNumber: 1,
+              deliveryMode: targetProposal.deliveryMode,
+              daysOfWeek: targetProposal.daysOfWeek,
+              startTime: targetProposal.startTime,
+              endTime: targetProposal.endTime,
+              classroom: targetProposal.classroom,
+            },
+          ],
+        })
+        return
+      }
+
       if (activeProposal && id !== activeProposal.id) {
         const swapEvaluation = swappableByProposalId.get(id)
-        const targetProposal = allSwappableProposals.find((p) => p.id === id)
-        if (swapEvaluation && targetProposal) {
+        const swappableTarget = allSwappableProposals.find((p) => p.id === id)
+        if (swapEvaluation && swappableTarget) {
           setSwapDialogState({
             sourceProposal: activeProposal,
-            target: { kind: "PROPOSAL", proposal: targetProposal },
+            target: { kind: "PROPOSAL", proposal: swappableTarget },
             evaluation: swapEvaluation,
           })
           return
@@ -494,7 +585,13 @@ export function SchedulingPlanCalendarView({
       }
       setSelectedClassId((prev) => (prev === id ? null : id))
     },
-    [activeProposal, allSwappableProposals, swappableByProposalId]
+    [
+      activeProposal,
+      allSwappableProposals,
+      proposals,
+      swappableByProposalId,
+      unresolvedRequirements,
+    ]
   )
 
   const handleSwapSuccess = React.useCallback(
@@ -594,93 +691,12 @@ export function SchedulingPlanCalendarView({
         }
       }
     }
-    if (showFreeTeachers && teacherCalendars) {
-      const baseSlots = Array.from(slotsMap.values())
-      for (const calendar of teacherCalendars) {
-        for (const slot of calendar.slots) {
-          if (
-            slot.status === "FREE" &&
-            (ORDERED_WEEK_DAYS as readonly string[]).includes(slot.dayOfWeek)
-          ) {
-            const key = `${slot.startTime}-${slot.endTime}`
-            const overlapsBaseSlot = baseSlots.some(
-              (base) =>
-                base.startTime < slot.endTime && slot.startTime < base.endTime
-            )
-            if (!overlapsBaseSlot && !slotsMap.has(key)) {
-              slotsMap.set(key, {
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                key,
-              })
-            }
-          }
-        }
-      }
-    }
     return Array.from(slotsMap.values()).sort(
       (a, b) =>
         a.startTime.localeCompare(b.startTime) ||
         a.endTime.localeCompare(b.endTime)
     )
-  }, [
-    proposals,
-    hiringPlan,
-    missedClassesAssignments,
-    showFreeTeachers,
-    teacherCalendars,
-  ])
-
-  const freeTeachersByTrackAndSlot = React.useMemo(() => {
-    const map = new Map<
-      string,
-      Array<{
-        teacher: SchedulingTeacherCalendar["teacher"]
-        teachableCourses: SchedulingTeacherCalendar["teachableCourses"]
-        levelRange: string | null
-        representativeDay: WeekDay
-      }>
-    >()
-    if (!teacherCalendars?.length) return map
-
-    for (const slot of timeSlots) {
-      for (const track of DAY_TRACKS) {
-        const trackDays = track === "EVEN" ? EVEN_DAYS : ODD_DAYS
-        const representativeDay: WeekDay =
-          track === "EVEN" ? "SATURDAY" : "SUNDAY"
-        const key = `${track}-${slot.startTime}-${slot.endTime}`
-        const freeTeachers: Array<{
-          teacher: SchedulingTeacherCalendar["teacher"]
-          teachableCourses: SchedulingTeacherCalendar["teachableCourses"]
-          levelRange: string | null
-          representativeDay: WeekDay
-        }> = []
-
-        for (const calendar of teacherCalendars) {
-          const isFreeInPeriod = calendar.slots.some(
-            (s) =>
-              s.status === "FREE" &&
-              trackDays.includes(s.dayOfWeek) &&
-              s.startTime <= slot.startTime &&
-              s.endTime >= slot.endTime
-          )
-          if (isFreeInPeriod) {
-            const teachableCourses = calendar.teachableCourses ?? []
-            freeTeachers.push({
-              teacher: calendar.teacher,
-              teachableCourses,
-              levelRange: summarizeCourseLevelRange(teachableCourses),
-              representativeDay,
-            })
-          }
-        }
-        if (freeTeachers.length > 0) {
-          map.set(key, freeTeachers)
-        }
-      }
-    }
-    return map
-  }, [teacherCalendars, timeSlots])
+  }, [proposals, hiringPlan, missedClassesAssignments])
 
   const expandedSlots = React.useMemo(() => {
     if (userExpandedSlots !== null) return userExpandedSlots
@@ -689,9 +705,6 @@ export function SchedulingPlanCalendarView({
     }
     return new Set<string>()
   }, [userExpandedSlots, defaultCollapsed, timeSlots])
-
-  const areAllExpanded =
-    timeSlots.length > 0 && expandedSlots.size >= timeSlots.length
 
   const toggleSlotCollapse = React.useCallback(
     (slotKey: string) => {
@@ -780,6 +793,199 @@ export function SchedulingPlanCalendarView({
     }
     return map
   }, [hiringPlan, missedClassesAssignments, canPlaceMissedClassOnTrack])
+
+  const groupTeachersByTrackAndSlot = React.useMemo(() => {
+    const map = new Map<string, GroupTeacherAccessibilityItem[]>()
+    if (!teacherCalendars?.length && !proposals.length) return map
+
+    for (const slot of timeSlots) {
+      for (const track of DAY_TRACKS) {
+        const trackDays = track === "EVEN" ? EVEN_DAYS : ODD_DAYS
+        const cellKey = `${track}-${slot.startTime}-${slot.endTime}`
+        const cellProposals = proposalsByTrackAndSlot.get(cellKey) ?? []
+        const cellMissed = missedClassesByTrackAndSlot.get(cellKey) ?? []
+
+        const items: GroupTeacherAccessibilityItem[] = []
+        const addedTeacherIds = new Set<string>()
+
+        // 1. Teachers currently teaching proposals in this cell
+        for (const proposal of cellProposals) {
+          const teacherId = proposal.teacherId ?? proposal.teacher?.id
+          if (!teacherId || addedTeacherIds.has(teacherId)) continue
+
+          const calendar = teacherCalendars?.find(
+            (c) => c.teacher.id === teacherId
+          )
+          const teacher = proposal.teacher ?? calendar?.teacher
+          if (!teacher) continue
+
+          const teachableCourses = calendar?.teachableCourses ?? []
+          const levelRange = summarizeCourseLevelRange(teachableCourses)
+          const isSelected = activeTeacherFilterId === teacher.id
+          const isDimmed = isAnyClassActive && !isSelected
+
+          items.push({
+            teacher,
+            status: "TEACHING",
+            teachingClassTitle:
+              proposal.course?.title ?? proposal.title ?? null,
+            levelRange,
+            isSelected,
+            isDimmed,
+            isSwappable: false,
+          })
+          addedTeacherIds.add(teacherId)
+        }
+
+        // 2. Teachers from teacherCalendars
+        if (teacherCalendars) {
+          for (const calendar of teacherCalendars) {
+            if (addedTeacherIds.has(calendar.teacher.id)) continue
+
+            // Check if teacher has teaching proposals in this track & slot
+            const teachingProposal = proposals.find(
+              (p) =>
+                (p.teacherId ?? p.teacher?.id) === calendar.teacher.id &&
+                p.daysOfWeek.some((d) => trackDays.includes(d as WeekDay)) &&
+                p.startTime < slot.endTime &&
+                slot.startTime < p.endTime
+            )
+
+            // Check matching slots in calendar
+            const matchingSlots = calendar.slots.filter(
+              (s) =>
+                trackDays.includes(s.dayOfWeek) &&
+                s.startTime <= slot.startTime &&
+                s.endTime >= slot.endTime
+            )
+
+            if (teachingProposal) {
+              const teachableCourses = calendar.teachableCourses ?? []
+              const levelRange = summarizeCourseLevelRange(teachableCourses)
+              const isSelected = activeTeacherFilterId === calendar.teacher.id
+              const isDimmed = isAnyClassActive && !isSelected
+
+              items.push({
+                teacher: calendar.teacher,
+                status: "TEACHING",
+                teachingClassTitle:
+                  teachingProposal.course?.title ??
+                  teachingProposal.title ??
+                  null,
+                levelRange,
+                isSelected,
+                isDimmed,
+                isSwappable: false,
+              })
+              addedTeacherIds.add(calendar.teacher.id)
+            } else if (matchingSlots.some((s) => s.status === "FREE")) {
+              const teachableCourses = calendar.teachableCourses ?? []
+              const levelRange = summarizeCourseLevelRange(teachableCourses)
+              const representativeDay: WeekDay =
+                track === "EVEN" ? "SATURDAY" : "SUNDAY"
+
+              const suggestedCourseTitle =
+                cellMissed.find(
+                  ({ assignment }) =>
+                    teachableCourses.some(
+                      (tc) => tc.id === assignment.course.id
+                    ) ||
+                    Boolean(
+                      findHigherLevelCourse(assignment.course, teachableCourses)
+                    )
+                )?.assignment.course.title ?? null
+
+              const freeTarget: FreeTeacherSwapTarget = {
+                kind: "FREE_TEACHER",
+                teacher: calendar.teacher,
+                teachableCourses,
+                levelRange,
+                dayOfWeek: representativeDay,
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+              }
+
+              const freeEvaluation =
+                canSwap && activeProposal
+                  ? evaluateFreeTeacherSwap(
+                      activeProposal,
+                      freeTarget,
+                      proposals,
+                      teacherCalendars,
+                      occupiedClassroomSlots
+                    )
+                  : null
+
+              const isFreeSwappable = Boolean(freeEvaluation?.canSwap)
+              const isDimmed = isAnyClassActive && !isFreeSwappable
+              const isSelected = activeTeacherFilterId === calendar.teacher.id
+
+              items.push({
+                teacher: calendar.teacher,
+                status: "AVAILABLE",
+                levelRange,
+                suggestedCourseTitle,
+                swapTarget: freeTarget,
+                swapEvaluation: freeEvaluation,
+                isSwappable: isFreeSwappable,
+                isDimmed,
+                isSelected,
+              })
+              addedTeacherIds.add(calendar.teacher.id)
+            } else if (matchingSlots.some((s) => s.status === "BUSY")) {
+              const busySlot = matchingSlots.find((s) => s.status === "BUSY")
+              const teachableCourses = calendar.teachableCourses ?? []
+              const levelRange = summarizeCourseLevelRange(teachableCourses)
+              const isSelected = activeTeacherFilterId === calendar.teacher.id
+              const isDimmed = isAnyClassActive && !isSelected
+
+              items.push({
+                teacher: calendar.teacher,
+                status: "TEACHING",
+                teachingClassTitle: busySlot?.title ?? null,
+                levelRange,
+                isSelected,
+                isDimmed,
+                isSwappable: false,
+              })
+              addedTeacherIds.add(calendar.teacher.id)
+            }
+          }
+        }
+
+        // Sort: AVAILABLE first, then TEACHING, then by name
+        items.sort((a, b) => {
+          if (a.status === "AVAILABLE" && b.status !== "AVAILABLE") return -1
+          if (a.status !== "AVAILABLE" && b.status === "AVAILABLE") return 1
+          return `${a.teacher.firstName} ${a.teacher.lastName}`.localeCompare(
+            `${b.teacher.firstName} ${b.teacher.lastName}`,
+            locale
+          )
+        })
+
+        if (items.length > 0) {
+          map.set(cellKey, items)
+        }
+      }
+    }
+
+    return map
+  }, [
+    teacherCalendars,
+    proposals,
+    timeSlots,
+    proposalsByTrackAndSlot,
+    missedClassesByTrackAndSlot,
+    activeTeacherFilterId,
+    isAnyClassActive,
+    canSwap,
+    activeProposal,
+    occupiedClassroomSlots,
+    locale,
+  ])
+
+  const areAllExpanded =
+    timeSlots.length > 0 && timeSlots.every((s) => expandedSlots.has(s.key))
 
   const getFreeClassrooms = React.useCallback(
     (option: SchedulingNewTeacherHiringSlotOption) => {
@@ -903,6 +1109,31 @@ export function SchedulingPlanCalendarView({
                 )}
               </div>
             )}
+            {activeTeacherFilterId && selectedTeacherCalendar && (
+              <div
+                data-testid="selected-teacher-filter-chip"
+                className="inline-flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2 py-0.5 text-[11px] font-medium text-success-foreground"
+              >
+                <span className="inline-block size-2 rounded-full bg-success" />
+                <span>
+                  {t("calendarView.selectedTeacherFilter", {
+                    name: `${selectedTeacherCalendar.teacher.firstName} ${selectedTeacherCalendar.teacher.lastName}`.trim(),
+                  })}
+                </span>
+                <button
+                  type="button"
+                  data-testid="clear-teacher-filter-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleTeacherChange(null)
+                  }}
+                  className="ms-1 cursor-pointer rounded-xs text-muted-foreground hover:text-foreground"
+                  aria-label={t("calendarView.clearTeacherFilter")}
+                >
+                  <X aria-hidden className="size-3" />
+                </button>
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {selectedClassId && (
@@ -946,25 +1177,6 @@ export function SchedulingPlanCalendarView({
                 >
                   <Highlighter aria-hidden className="size-3" />
                   <span>{t("calendarView.highlightMatches")}</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="xs"
-                  data-testid="toggle-free-teachers-btn"
-                  aria-pressed={showFreeTeachers}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowFreeTeachers((prev) => !prev)
-                  }}
-                  className={cn(
-                    "h-6 gap-1 rounded-lg px-2 text-xs font-medium",
-                    showFreeTeachers &&
-                      "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                  )}
-                >
-                  <UserCheck aria-hidden className="size-3" />
-                  <span>{t("calendarView.showFreeTeachers")}</span>
                 </Button>
                 <Button
                   type="button"
@@ -1015,10 +1227,7 @@ export function SchedulingPlanCalendarView({
               <div
                 key={slot.key}
                 data-testid={`time-slot-row-${slot.key}`}
-                className={cn(
-                  "flex flex-col transition-all duration-300",
-                  isCollapsed ? "gap-0" : "gap-2.5"
-                )}
+                className="flex flex-col transition-all duration-300"
               >
                 {/* Time at Top of Group List */}
                 <button
@@ -1030,7 +1239,7 @@ export function SchedulingPlanCalendarView({
                     isCollapsed
                       ? "rounded-2xl border border-border/60 bg-muted/40 px-3.5 py-2 hover:border-primary/40 hover:bg-muted/70"
                       : cn(
-                          "sticky z-20 rounded-xl border border-border/50 bg-background px-3.5 py-2 shadow-2xs hover:bg-muted/20",
+                          "sticky z-20 rounded-none bg-background px-3.5 py-2.5 hover:bg-muted/20 sm:py-3 lg:py-3.5",
                           stickyTop === "page" ? "top-16" : "top-0"
                         )
                   )}
@@ -1045,21 +1254,64 @@ export function SchedulingPlanCalendarView({
                         })
                   }
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Clock3 aria-hidden className="size-4 text-primary" />
-                    </div>
-                    <div className="flex items-center gap-1.5 font-bold text-foreground">
-                      <span className="text-xs font-semibold text-muted-foreground">
+                  <div
+                    className={cn(
+                      "flex items-center transition-all duration-300",
+                      isCollapsed ? "gap-2.5" : "gap-2.5 sm:gap-3 lg:gap-3.5"
+                    )}
+                  >
+                    {isCollapsed && (
+                      <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all duration-300">
+                        <Clock3
+                          aria-hidden
+                          className="size-4 text-primary transition-all duration-300"
+                        />
+                      </div>
+                    )}
+                    <div
+                      className={cn(
+                        "flex items-center font-bold text-foreground transition-all duration-300",
+                        isCollapsed ? "gap-1.5" : "gap-1.5 sm:gap-2 lg:gap-2.5"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "font-semibold text-muted-foreground transition-all duration-300",
+                          isCollapsed
+                            ? "text-xs"
+                            : "text-xs font-semibold sm:text-sm"
+                        )}
+                      >
                         {t("calendarView.timeColumn")}
                       </span>
-                      <span className="text-base font-black tabular-nums">
+                      <span
+                        className={cn(
+                          "tracking-tight tabular-nums transition-all duration-300",
+                          isCollapsed
+                            ? "text-base font-bold"
+                            : "text-xl font-bold sm:text-2xl lg:text-3xl"
+                        )}
+                      >
                         {slot.startTime}
                       </span>
-                      <span className="text-xs font-semibold text-muted-foreground">
+                      <span
+                        className={cn(
+                          "font-semibold text-muted-foreground transition-all duration-300",
+                          isCollapsed
+                            ? "text-xs"
+                            : "text-xs font-semibold sm:text-sm"
+                        )}
+                      >
                         {t("calendarView.timeTo")}
                       </span>
-                      <span className="text-base font-black tabular-nums">
+                      <span
+                        className={cn(
+                          "tracking-tight tabular-nums transition-all duration-300",
+                          isCollapsed
+                            ? "text-base font-bold"
+                            : "text-xl font-bold sm:text-2xl lg:text-3xl"
+                        )}
+                      >
                         {slot.endTime}
                       </span>
                     </div>
@@ -1119,7 +1371,7 @@ export function SchedulingPlanCalendarView({
                           "(min-width: 768px)": { active: false },
                         },
                       }}
-                      className="w-full pt-1"
+                      className="w-full"
                     >
                       <CarouselContent className="-ms-2.5 md:-ms-0 md:grid md:grid-cols-2 md:items-start md:gap-3.5">
                         {DAY_TRACKS.map((track) => {
@@ -1128,8 +1380,6 @@ export function SchedulingPlanCalendarView({
                             proposalsByTrackAndSlot.get(cellKey) ?? []
                           const cellMissed =
                             missedClassesByTrackAndSlot.get(cellKey) ?? []
-                          const cellFreeTeachers =
-                            freeTeachersByTrackAndSlot.get(cellKey) ?? []
                           const matchingOption =
                             slotOptionsByTrackAndSlot.get(cellKey)
                           const freeRooms = matchingOption
@@ -1181,81 +1431,32 @@ export function SchedulingPlanCalendarView({
                                 )
                               ))
 
-                          const visibleProposals = isAnyClassActive
-                            ? cellProposals.filter((proposal) => {
-                                const isActive = activeClassId === proposal.id
-                                const isSwappable = swappableByProposalId.has(
-                                  proposal.id
-                                )
-                                return isActive || isSwappable
-                              })
-                            : cellProposals
+                          const trackDays =
+                            track === "EVEN" ? EVEN_DAYS : ODD_DAYS
 
-                          const visibleMissed = isAnyClassActive
-                            ? cellMissed.filter(({ assignment }) => {
-                                const missedKey = `missed:${assignment.key}`
-                                const isActive = activeClassId === missedKey
-                                const isSwappable =
-                                  swappableByProposalId.has(missedKey)
-                                return isActive || isSwappable
-                              })
-                            : cellMissed
+                          const isTeacherTeachingHere = Boolean(
+                            activeTeacherFilterId &&
+                            cellProposals.some(
+                              (p) =>
+                                (p.teacherId ?? p.teacher?.id) ===
+                                activeTeacherFilterId
+                            )
+                          )
 
-                          const visibleFreeTeachers = cellFreeTeachers
-                            .map((item) => {
-                              const suggestedCourseTitle =
-                                cellMissed.find(
-                                  ({ assignment }) =>
-                                    item.teachableCourses.some(
-                                      (tc) => tc.id === assignment.course.id
-                                    ) ||
-                                    Boolean(
-                                      findHigherLevelCourse(
-                                        assignment.course,
-                                        item.teachableCourses
-                                      )
-                                    )
-                                )?.assignment.course.title ?? null
+                          const isTeacherAccessible = Boolean(
+                            selectedTeacherCalendar &&
+                            !isTeacherTeachingHere &&
+                            selectedTeacherCalendar.slots.some(
+                              (s) =>
+                                s.status === "FREE" &&
+                                trackDays.includes(s.dayOfWeek) &&
+                                s.startTime <= slot.startTime &&
+                                s.endTime >= slot.endTime
+                            )
+                          )
 
-                              const freeTarget: FreeTeacherSwapTarget = {
-                                kind: "FREE_TEACHER",
-                                teacher: item.teacher,
-                                teachableCourses: item.teachableCourses,
-                                levelRange: item.levelRange,
-                                dayOfWeek: item.representativeDay,
-                                startTime: slot.startTime,
-                                endTime: slot.endTime,
-                              }
-                              const freeEvaluation =
-                                canSwap && activeProposal
-                                  ? evaluateFreeTeacherSwap(
-                                      activeProposal,
-                                      freeTarget,
-                                      proposals,
-                                      teacherCalendars,
-                                      occupiedClassroomSlots
-                                    )
-                                  : null
-                              const isFreeSwappable = Boolean(
-                                freeEvaluation?.canSwap
-                              )
-
-                              return {
-                                ...item,
-                                suggestedCourseTitle,
-                                freeTarget,
-                                freeEvaluation,
-                                isFreeSwappable,
-                              }
-                            })
-                            .filter((item) => {
-                              if (!isAnyClassActive) return true
-                              return item.isFreeSwappable
-                            })
-
-                          const trackClassesCount = isAnyClassActive
-                            ? visibleProposals.length + visibleMissed.length
-                            : cellProposals.length + cellMissed.length
+                          const trackClassesCount =
+                            cellProposals.length + cellMissed.length
 
                           const hasClasses =
                             cellProposals.length > 0 || cellMissed.length > 0
@@ -1263,12 +1464,26 @@ export function SchedulingPlanCalendarView({
                           return (
                             <CarouselItem
                               key={`${track}-${slot.key}`}
+                              data-track-carousel-item="true"
                               className="basis-[88%] ps-2.5 md:basis-full md:ps-0"
                             >
                               <div
                                 data-day={track}
                                 data-slot={slot.key}
-                                className="flex flex-col gap-2.5 rounded-xl border border-border/50 bg-background/50 p-2.5 transition-all duration-300 ease-in-out"
+                                data-teacher-accessible={
+                                  isTeacherAccessible ? "true" : undefined
+                                }
+                                data-teacher-teaching={
+                                  isTeacherTeachingHere ? "true" : undefined
+                                }
+                                className={cn(
+                                  "flex flex-col gap-2.5 rounded-xl border p-2.5 transition-all duration-300 ease-in-out",
+                                  isTeacherAccessible
+                                    ? "border-2 border-success bg-success/5 shadow-xs"
+                                    : isTeacherTeachingHere
+                                      ? "border-2 border-primary bg-primary/5 shadow-xs"
+                                      : "border-border/50 bg-background/50"
+                                )}
                               >
                                 {/* Header for this vertical view */}
                                 <div className="mb-1 flex items-center justify-between border-b border-border/40 pb-1.5 text-xs">
@@ -1286,153 +1501,180 @@ export function SchedulingPlanCalendarView({
                                       )
                                     </span>
                                   </div>
-                                  {trackClassesCount > 0 && (
-                                    <Badge
-                                      variant="secondary"
-                                      className="h-4 px-1.5 py-0 text-[10px]"
-                                    >
-                                      {t("calendarView.classesCount", {
-                                        count: formatNumber(
-                                          trackClassesCount,
-                                          locale
-                                        ),
-                                      })}
-                                    </Badge>
-                                  )}
+                                  <div className="flex items-center gap-1.5">
+                                    {isTeacherAccessible && (
+                                      <Badge
+                                        variant="outline"
+                                        data-testid={`teacher-accessible-badge-${track}-${slot.key}`}
+                                        className="h-4 border-success/60 bg-success/15 px-1.5 py-0 text-[10px] font-medium text-success-foreground"
+                                      >
+                                        {t(
+                                          "calendarView.teacherAccessibleBadge"
+                                        )}
+                                      </Badge>
+                                    )}
+                                    {isTeacherTeachingHere && (
+                                      <Badge
+                                        variant="outline"
+                                        data-testid={`teacher-teaching-badge-${track}-${slot.key}`}
+                                        className="h-4 border-primary/60 bg-primary/15 px-1.5 py-0 text-[10px] font-medium text-primary"
+                                      >
+                                        {t("calendarView.teacherTeachingBadge")}
+                                      </Badge>
+                                    )}
+                                    {trackClassesCount > 0 && (
+                                      <Badge
+                                        variant="secondary"
+                                        className="h-4 px-1.5 py-0 text-[10px]"
+                                      >
+                                        {t("calendarView.classesCount", {
+                                          count: formatNumber(
+                                            trackClassesCount,
+                                            locale
+                                          ),
+                                        })}
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                                 {hasClasses ? (
                                   <>
-                                    {visibleProposals.map((proposal) => {
-                                      const isActive =
-                                        activeClassId === proposal.id
-                                      const isSwappable =
-                                        swappableByProposalId.has(proposal.id)
-                                      const propTeacherId =
-                                        proposal.teacherId ??
-                                        proposal.teacher?.id ??
-                                        null
-                                      const hasSameTeacher = Boolean(
-                                        highlightRelated &&
-                                        activeTeacherId &&
-                                        !isActive &&
-                                        propTeacherId === activeTeacherId
-                                      )
-                                      const hasSameCourse = Boolean(
-                                        highlightRelated &&
-                                        (activeCourseId || activeCourseTitle) &&
-                                        !isActive &&
-                                        ((activeCourseId &&
-                                          proposal.course?.id ===
-                                            activeCourseId) ||
-                                          (activeCourseTitle &&
-                                            proposal.course?.title ===
-                                              activeCourseTitle))
-                                      )
-                                      const isDimmed =
-                                        isAnyClassActive &&
-                                        !isActive &&
-                                        !isSwappable
-
-                                      return (
-                                        <SchedulingPlanCalendarClassCard
-                                          key={`${proposal.id}-${track}`}
-                                          proposal={proposal}
-                                          canEdit={canEdit}
-                                          colorIndex={proposalColorMap.get(
-                                            proposal.id
-                                          )}
-                                          isActive={isActive}
-                                          isSwappable={isSwappable}
-                                          isDimmed={isDimmed}
-                                          isCollapsed={isCollapsed}
-                                          hasSameTeacher={hasSameTeacher}
-                                          hasSameCourse={hasSameCourse}
-                                          sameTeacherCount={
-                                            isActive
-                                              ? sameTeacherTotalCount
-                                              : undefined
-                                          }
-                                          sameCourseCount={
-                                            isActive
-                                              ? sameCourseTotalCount
-                                              : undefined
-                                          }
-                                          onClick={handleCardClick}
-                                        />
-                                      )
-                                    })}
-                                    {visibleMissed.map(
-                                      ({ assignment, state }) => {
-                                        const missedKey = `missed:${assignment.key}`
+                                    <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+                                      {cellProposals.map((proposal) => {
                                         const isActive =
-                                          activeClassId === missedKey
+                                          activeClassId === proposal.id
                                         const isSwappable =
-                                          swappableByProposalId.has(missedKey)
+                                          swappableByProposalId.has(proposal.id)
+                                        const propTeacherId =
+                                          proposal.teacherId ??
+                                          proposal.teacher?.id ??
+                                          null
+                                        const hasSameTeacher = Boolean(
+                                          (highlightRelated &&
+                                            activeTeacherId &&
+                                            !isActive &&
+                                            propTeacherId ===
+                                              activeTeacherId) ||
+                                          (activeTeacherFilterId &&
+                                            propTeacherId ===
+                                              activeTeacherFilterId)
+                                        )
                                         const hasSameCourse = Boolean(
                                           highlightRelated &&
                                           (activeCourseId ||
                                             activeCourseTitle) &&
                                           !isActive &&
                                           ((activeCourseId &&
-                                            assignment.course?.id ===
+                                            proposal.course?.id ===
                                               activeCourseId) ||
                                             (activeCourseTitle &&
-                                              assignment.course?.title ===
+                                              proposal.course?.title ===
                                                 activeCourseTitle))
                                         )
                                         const isDimmed =
                                           isAnyClassActive &&
                                           !isActive &&
                                           !isSwappable
-                                        const effectiveRoomId =
-                                          state.classroomId ??
-                                          assignment.classroom?.id ??
-                                          null
-                                        const roomCapacity = effectiveRoomId
-                                          ? (knownClassroomsById.get(
-                                              effectiveRoomId
-                                            )?.capacity ??
-                                            assignment.classroom?.capacity ??
-                                            null)
-                                          : (assignment.classroom?.capacity ??
-                                            null)
+                                        const hasTeacher = Boolean(
+                                          proposal.teacherId || proposal.teacher
+                                        )
+                                        const isProposalSwappable =
+                                          hasTeacher && isSwappable
 
                                         return (
-                                          <SchedulingPlanCalendarMissedClassCard
-                                            key={`${assignment.key}-${track}`}
-                                            assignment={assignment}
-                                            assignedRoomName={
-                                              state.classroomName ??
-                                              (effectiveRoomId
-                                                ? knownClassroomsById.get(
-                                                    effectiveRoomId
-                                                  )?.name
-                                                : null) ??
-                                              assignment.classroom?.name ??
-                                              null
-                                            }
-                                            assignedRoomCapacity={roomCapacity}
+                                          <SchedulingPlanCalendarClassCard
+                                            key={`${proposal.id}-${track}`}
+                                            proposal={proposal}
                                             canEdit={canEdit}
+                                            colorIndex={proposalColorMap.get(
+                                              proposal.id
+                                            )}
                                             isActive={isActive}
-                                            isSwappable={isSwappable}
+                                            isSwappable={isProposalSwappable}
                                             isDimmed={isDimmed}
                                             isCollapsed={isCollapsed}
+                                            hasSameTeacher={hasSameTeacher}
                                             hasSameCourse={hasSameCourse}
+                                            sameTeacherCount={
+                                              isActive
+                                                ? sameTeacherTotalCount
+                                                : undefined
+                                            }
                                             sameCourseCount={
                                               isActive
                                                 ? sameCourseTotalCount
                                                 : undefined
                                             }
                                             onClick={handleCardClick}
-                                            onUnassign={() =>
-                                              onUnassignMissedClass?.(
-                                                assignment.key
-                                              )
-                                            }
                                           />
                                         )
-                                      }
-                                    )}
+                                      })}
+                                      {cellMissed.map(
+                                        ({ assignment, state }) => {
+                                          const hasSameCourse = Boolean(
+                                            highlightRelated &&
+                                            (activeCourseId ||
+                                              activeCourseTitle) &&
+                                            ((activeCourseId &&
+                                              assignment.course?.id ===
+                                                activeCourseId) ||
+                                              (activeCourseTitle &&
+                                                assignment.course?.title ===
+                                                  activeCourseTitle))
+                                          )
+                                          const isDimmed = isAnyClassActive
+                                          const effectiveRoomId =
+                                            state.classroomId ??
+                                            assignment.classroom?.id ??
+                                            null
+                                          const roomCapacity = effectiveRoomId
+                                            ? (knownClassroomsById.get(
+                                                effectiveRoomId
+                                              )?.capacity ??
+                                              assignment.classroom?.capacity ??
+                                              null)
+                                            : (assignment.classroom?.capacity ??
+                                              null)
+
+                                          return (
+                                            <SchedulingPlanCalendarMissedClassCard
+                                              key={`${assignment.key}-${track}`}
+                                              assignment={assignment}
+                                              assignedRoomName={
+                                                state.classroomName ??
+                                                (effectiveRoomId
+                                                  ? knownClassroomsById.get(
+                                                      effectiveRoomId
+                                                    )?.name
+                                                  : null) ??
+                                                assignment.classroom?.name ??
+                                                null
+                                              }
+                                              assignedRoomCapacity={
+                                                roomCapacity
+                                              }
+                                              canEdit={canEdit}
+                                              isActive={false}
+                                              isSwappable={false}
+                                              isDimmed={isDimmed}
+                                              isCollapsed={isCollapsed}
+                                              hasSameCourse={hasSameCourse}
+                                              sameCourseCount={undefined}
+                                              onClick={() =>
+                                                handleMissedCardClick(
+                                                  assignment
+                                                )
+                                              }
+                                              onUnassign={() =>
+                                                onUnassignMissedClass?.(
+                                                  assignment.key
+                                                )
+                                              }
+                                            />
+                                          )
+                                        }
+                                      )}
+                                    </div>
                                     {canAssignHere && matchingOption && (
                                       <Button
                                         type="button"
@@ -1505,51 +1747,32 @@ export function SchedulingPlanCalendarView({
                                     </span>
                                   </div>
                                 )}
-                                {showFreeTeachers &&
-                                  visibleFreeTeachers.length > 0 && (
-                                    <div
-                                      data-testid={`free-teachers-${track}-${slot.key}`}
-                                      className="flex flex-col gap-2 transition-all duration-300 ease-in-out"
-                                    >
-                                      {visibleFreeTeachers.map(
-                                        ({
-                                          teacher,
-                                          levelRange,
-                                          suggestedCourseTitle,
-                                          freeTarget,
-                                          freeEvaluation,
-                                          isFreeSwappable,
-                                        }) => (
-                                          <SchedulingPlanCalendarFreeTeacherCard
-                                            key={teacher.id}
-                                            teacher={teacher}
-                                            day={track}
-                                            slotKey={slot.key}
-                                            levelRange={levelRange}
-                                            suggestedCourseTitle={
-                                              suggestedCourseTitle
-                                            }
-                                            isCollapsed={isCollapsed}
-                                            isSwappable={isFreeSwappable}
-                                            isDimmed={false}
-                                            onClick={() => {
-                                              if (
-                                                activeProposal &&
-                                                freeEvaluation?.canSwap
-                                              ) {
-                                                setSwapDialogState({
-                                                  sourceProposal:
-                                                    activeProposal,
-                                                  target: freeTarget,
-                                                  evaluation: freeEvaluation,
-                                                })
-                                              }
-                                            }}
-                                          />
-                                        )
-                                      )}
-                                    </div>
-                                  )}
+
+                                <SchedulingPlanCalendarGroupTeachersCarousel
+                                  track={track}
+                                  slotKey={slot.key}
+                                  teachers={
+                                    groupTeachersByTrackAndSlot.get(cellKey) ??
+                                    []
+                                  }
+                                  isCollapsed={isCollapsed}
+                                  onSelectTeacher={(teacherId) => {
+                                    handleTeacherChange(
+                                      activeTeacherFilterId === teacherId
+                                        ? null
+                                        : teacherId
+                                    )
+                                  }}
+                                  onSwapWithTeacher={(target, evaluation) => {
+                                    if (activeProposal) {
+                                      setSwapDialogState({
+                                        sourceProposal: activeProposal,
+                                        target,
+                                        evaluation,
+                                      })
+                                    }
+                                  }}
+                                />
                               </div>
                             </CarouselItem>
                           )
@@ -1591,6 +1814,21 @@ export function SchedulingPlanCalendarView({
         target={swapDialogState?.target ?? null}
         evaluation={swapDialogState?.evaluation ?? null}
         onSwapSuccess={handleSwapSuccess}
+      />
+
+      {/* Staffing Fallback Dialog */}
+      <StaffingFallbackDialog
+        open={Boolean(staffingDialogSession)}
+        onOpenChange={(open) => {
+          if (!open) setStaffingDialogSession(null)
+        }}
+        fallback={staffingDialogSession?.fallback}
+        targetCourseTitle={staffingDialogSession?.courseTitle ?? ""}
+        hiringAssignments={staffingDialogSession?.hiringAssignments ?? []}
+        planId={planId}
+        planStatus={planStatus}
+        unresolvedRequirementId={staffingDialogSession?.unresolvedRequirementId}
+        requirement={staffingDialogSession?.requirement}
       />
     </>
   )

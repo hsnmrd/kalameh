@@ -22,6 +22,7 @@ import {
   buildUpdatedUnresolvedDetails,
   createProposalSessionsForTerm,
   readAcceptedOutreachRecords,
+  readRejectedOutreachOptionKeys,
   removeAcceptedOutreachInTransaction,
   type AcceptedTeacherOutreachRecord,
 } from './scheduling-teacher-outreach.types';
@@ -122,9 +123,121 @@ export class SchedulingTeacherOutreachToggleService {
     const existingAccepted = readAcceptedOutreachRecords(
       unresolved.details,
     ).filter((rec) => proposalIds.has(rec.proposalId));
+    const existingRejectedKeys = readRejectedOutreachOptionKeys(
+      unresolved.details,
+    );
     const targetAccepted = existingAccepted.find(
       (rec) => rec.optionKey === input.optionKey,
     );
+    const isAlreadyRejected = existingRejectedKeys.includes(input.optionKey);
+
+    if (input.action === 'REJECT') {
+      if (isAlreadyRejected) {
+        const nextRejectedKeys = existingRejectedKeys.filter(
+          (key) => key !== input.optionKey,
+        );
+        await this.prisma.$transaction(async (tx) => {
+          await tx.schedulingUnresolvedRequirement.update({
+            where: { id: unresolved.id },
+            data: {
+              details: buildUpdatedUnresolvedDetails(
+                unresolved.details,
+                existingAccepted,
+                nextRejectedKeys,
+              ),
+            },
+          });
+          await tx.schedulingPlan.update({
+            where: { id: plan.id },
+            data: {
+              updatedAt: changedAt,
+              firstReviewStartedAt: plan.firstReviewStartedAt ?? changedAt,
+            },
+          });
+        });
+
+        await this.auditLogsService.log({
+          instituteId,
+          userId: currentUser.sub,
+          module: 'SCHEDULING',
+          entityId: plan.id,
+          action: 'TEACHER_OUTREACH_UNREJECTED',
+          metadata: {
+            runId: plan.runId,
+            unresolvedRequirementId: unresolved.id,
+            optionKey: input.optionKey,
+            teacherId: input.teacherId,
+          },
+        });
+
+        return this.planQueryService.findOne(
+          currentUser,
+          plan.id,
+          requestedInstituteId,
+          locale,
+        );
+      }
+
+      const nextRejectedKeys = [...existingRejectedKeys, input.optionKey];
+      await this.prisma.$transaction(async (tx) => {
+        if (targetAccepted) {
+          await removeAcceptedOutreachInTransaction(
+            tx,
+            instituteId,
+            plan.id,
+            targetAccepted,
+          );
+        }
+        await tx.schedulingUnresolvedRequirement.update({
+          where: { id: unresolved.id },
+          data: {
+            ...(targetAccepted
+              ? { missingClassCount: unresolved.missingClassCount + 1 }
+              : {}),
+            details: buildUpdatedUnresolvedDetails(
+              unresolved.details,
+              targetAccepted
+                ? existingAccepted.filter(
+                    (rec) => rec.optionKey !== targetAccepted.optionKey,
+                  )
+                : existingAccepted,
+              nextRejectedKeys,
+            ),
+          },
+        });
+        await tx.schedulingPlan.update({
+          where: { id: plan.id },
+          data: {
+            updatedAt: changedAt,
+            firstReviewStartedAt: plan.firstReviewStartedAt ?? changedAt,
+          },
+        });
+      });
+
+      await this.auditLogsService.log({
+        instituteId,
+        userId: currentUser.sub,
+        module: 'SCHEDULING',
+        entityId: plan.id,
+        action: 'TEACHER_OUTREACH_REJECTED',
+        metadata: {
+          runId: plan.runId,
+          unresolvedRequirementId: unresolved.id,
+          optionKey: input.optionKey,
+          teacherId: input.teacherId,
+          ...(targetAccepted
+            ? { revertedProposalId: targetAccepted.proposalId }
+            : {}),
+        },
+      });
+
+      return this.planQueryService.findOne(
+        currentUser,
+        plan.id,
+        requestedInstituteId,
+        locale,
+      );
+    }
 
     if (targetAccepted) {
       await this.prisma.$transaction(async (tx) => {
@@ -143,6 +256,7 @@ export class SchedulingTeacherOutreachToggleService {
               existingAccepted.filter(
                 (rec) => rec.optionKey !== targetAccepted.optionKey,
               ),
+              existingRejectedKeys,
             ),
           },
         });
@@ -373,16 +487,21 @@ export class SchedulingTeacherOutreachToggleService {
         ...(higherLevelCourseTitle ? { higherLevelCourseTitle } : {}),
       };
 
+      const nextRejectedKeys = existingRejectedKeys.filter(
+        (key) => key !== input.optionKey,
+      );
+
       await tx.schedulingUnresolvedRequirement.update({
         where: { id: unresolved.id },
         data: {
           missingClassCount: swappedOut
             ? unresolved.missingClassCount
             : Math.max(0, unresolved.missingClassCount - 1),
-          details: buildUpdatedUnresolvedDetails(unresolved.details, [
-            ...baseAccepted,
-            nextRecord,
-          ]),
+          details: buildUpdatedUnresolvedDetails(
+            unresolved.details,
+            [...baseAccepted, nextRecord],
+            nextRejectedKeys,
+          ),
         },
       });
       await tx.schedulingPlan.update({

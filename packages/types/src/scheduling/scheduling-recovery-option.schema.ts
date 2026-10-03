@@ -100,6 +100,7 @@ export const SchedulingTeacherOutreachOptionSchema = z.object({
   availableClassrooms: z.array(SchedulingRecoveryClassroomSchema),
   higherLevelCourseTitle: z.string().trim().min(1).nullable().optional(),
   isAccepted: z.boolean().optional(),
+  isRejected: z.boolean().optional(),
   acceptedProposalId: z.string().uuid().nullable().optional(),
 })
 

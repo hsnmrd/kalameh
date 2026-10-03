@@ -149,11 +149,9 @@ All inner pages, sub-pages, or nested resource views (e.g. `/off-days/custom`, `
 
 ### 2. Back Navigation & Trail Hierarchy
 
-- Inner breadcrumbs must include:
-  - `backHref`: URL string navigating back to the parent section (e.g. `/off-days`, `/classes`).
-  - `backLabel`: Localized concise text for the back target (e.g. `t("backToCalendar")`, `t("backToClasses")`).
-  - `items`: Hierarchical trail array `[{ label: t("parentTitle"), href: "/parent" }, { label: t("currentPageTitle") }]`.
-- Back and trail icons are automatically RTL/LTR-aware (`ArrowRight` for back in RTL / `ArrowLeft` in LTR; `ChevronLeft` in RTL / `ChevronRight` in LTR).
+- Back button is rendered as a compact icon button in `AdminHeader` next to the page title via `HeaderActionsContext` (`backNavigation`), automatically RTL/LTR-aware (`ArrowRight` for back in RTL / `ArrowLeft` in LTR).
+- Inner pages provide `backHref` (and optional `backLabel`) via `<AdminBreadcrumb backHref="..." backLabel="..." items={...} />` or directly via `<AdminPageShell backHref="..." backLabel="..." />`.
+- `AdminBreadcrumb` renders the clean hierarchical trail array `items`: `[{ label: t("parentTitle"), href: "/parent" }, { label: t("currentPageTitle") }]`.
 
 ### 3. No In-Page Description or Title
 

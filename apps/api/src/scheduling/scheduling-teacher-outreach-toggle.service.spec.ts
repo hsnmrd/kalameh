@@ -324,4 +324,170 @@ describe('SchedulingTeacherOutreachToggleService', () => {
       }),
     ).rejects.toThrow(BadRequestException);
   });
+
+  it('records teacher decline when action is REJECT and logs TEACHER_OUTREACH_REJECTED', async () => {
+    await service.toggle(admin, ids.plan, {
+      ...validInput,
+      action: 'REJECT',
+      daysOfWeek: [...validInput.daysOfWeek],
+      availabilityChangeDays: [...validInput.availabilityChangeDays],
+    });
+
+    expect(txMocks.schedulingUnresolvedRequirement.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: ids.unresolved },
+        data: expect.objectContaining({
+          details: expect.objectContaining({
+            rejectedOutreachOptionKeys: [validInput.optionKey],
+          }),
+        }),
+      }),
+    );
+    expect(auditLogsService.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'TEACHER_OUTREACH_REJECTED',
+        metadata: expect.objectContaining({
+          optionKey: validInput.optionKey,
+        }),
+      }),
+    );
+  });
+
+  it('un-rejects when action is REJECT and option was already rejected', async () => {
+    prisma.schedulingUnresolvedRequirement.findFirstOrThrow.mockResolvedValueOnce(
+      {
+        id: ids.unresolved,
+        classRequirementId: ids.requirement,
+        missingClassCount: 1,
+        details: {
+          rejectedOutreachOptionKeys: [validInput.optionKey],
+        },
+        classRequirement: {
+          id: ids.requirement,
+          courseId: ids.course,
+          branchId: null,
+          capacity: 15,
+          deliveryMode: 'IN_PERSON',
+          course: { id: ids.course, title: 'AME 5-3' },
+        },
+      },
+    );
+
+    await service.toggle(admin, ids.plan, {
+      ...validInput,
+      action: 'REJECT',
+      daysOfWeek: [...validInput.daysOfWeek],
+      availabilityChangeDays: [...validInput.availabilityChangeDays],
+    });
+
+    expect(txMocks.schedulingUnresolvedRequirement.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: ids.unresolved },
+        data: expect.objectContaining({
+          details: expect.objectContaining({
+            rejectedOutreachOptionKeys: [],
+          }),
+        }),
+      }),
+    );
+    expect(auditLogsService.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'TEACHER_OUTREACH_UNREJECTED',
+        metadata: expect.objectContaining({
+          optionKey: validInput.optionKey,
+        }),
+      }),
+    );
+  });
+
+  it('reverts accepted proposal when action is REJECT on an already accepted option', async () => {
+    prisma.schedulingPlan.findFirstOrThrow.mockResolvedValueOnce({
+      id: ids.plan,
+      runId: ids.run,
+      firstReviewStartedAt: null,
+      proposals: [{ id: ids.proposal }],
+      run: {
+        termId: ids.term,
+        term: {
+          startDate: new Date('2026-09-23T00:00:00.000Z'),
+          endDate: new Date('2026-11-20T00:00:00.000Z'),
+        },
+      },
+    });
+
+    prisma.schedulingUnresolvedRequirement.findFirstOrThrow.mockResolvedValueOnce(
+      {
+        id: ids.unresolved,
+        classRequirementId: ids.requirement,
+        missingClassCount: 0,
+        details: {
+          acceptedOutreachOptions: [
+            {
+              optionKey: validInput.optionKey,
+              proposalId: ids.proposal,
+              teacher: {
+                id: ids.teacher,
+                firstName: 'Ali',
+                lastName: 'Rezaei',
+              },
+              deliveryMode: 'IN_PERSON',
+              daysOfWeek: ['SATURDAY', 'MONDAY', 'WEDNESDAY'],
+              startTime: '14:00',
+              endTime: '15:30',
+              availabilityChangeDays: ['SATURDAY'],
+              availableClassrooms: [
+                { id: ids.classroom, name: '101', capacity: 20 },
+              ],
+              createdAvailabilityIds: [ids.availability],
+            },
+          ],
+        },
+        classRequirement: {
+          id: ids.requirement,
+          courseId: ids.course,
+          branchId: null,
+          capacity: 15,
+          deliveryMode: 'IN_PERSON',
+          course: { id: ids.course, title: 'AME 5-3' },
+        },
+      },
+    );
+
+    await service.toggle(admin, ids.plan, {
+      ...validInput,
+      action: 'REJECT',
+      daysOfWeek: [...validInput.daysOfWeek],
+      availabilityChangeDays: [...validInput.availabilityChangeDays],
+    });
+
+    expect(txMocks.schedulingProposal.deleteMany).toHaveBeenCalledWith({
+      where: {
+        id: ids.proposal,
+        planId: ids.plan,
+        instituteId: ids.institute,
+        publishedClassId: null,
+      },
+    });
+    expect(txMocks.schedulingUnresolvedRequirement.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: ids.unresolved },
+        data: expect.objectContaining({
+          missingClassCount: 1,
+          details: expect.objectContaining({
+            acceptedOutreachOptions: [],
+            rejectedOutreachOptionKeys: [validInput.optionKey],
+          }),
+        }),
+      }),
+    );
+    expect(auditLogsService.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'TEACHER_OUTREACH_REJECTED',
+        metadata: expect.objectContaining({
+          optionKey: validInput.optionKey,
+          revertedProposalId: ids.proposal,
+        }),
+      }),
+    );
+  });
 });

@@ -64,9 +64,9 @@ describe("OutreachCarousel Component", () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it("renders carousel items and navigates between outreach options", () => {
+  it("renders carousel items filling 90% width when multiple options exist, and navigates between options", () => {
     const onToggle = vi.fn()
-    render(
+    const { container } = render(
       <OutreachCarousel
         options={mockOptions}
         canToggle={true}
@@ -75,19 +75,73 @@ describe("OutreachCarousel Component", () => {
       />
     )
 
+    // Verify CarouselItem slides have basis-[90%] to give 10% peek affordance
+    const carouselItems = container.querySelectorAll(
+      '[data-slot="carousel-item"]'
+    )
+    expect(carouselItems.length).toBe(2)
+    expect(carouselItems[0]).toHaveClass("basis-[90%]")
+    expect(carouselItems[1]).toHaveClass("basis-[90%]")
+
     // Option 1 content
     expect(screen.getByText("کامران حسینی")).toBeInTheDocument()
     expect(screen.getByText(/کلاس A/)).toBeInTheDocument()
+    expect(screen.getAllByText(/17:00–18:30/).length).toBe(2)
 
     // Option 2 content
     expect(screen.getByText("فاطمه مرادنژاد")).toBeInTheDocument()
     expect(screen.getByText(/کلاس B/)).toBeInTheDocument()
 
     // Toggle button on option 1
-    const buttons = screen.getAllByRole("button", { name: /استاد پذیرفت/ })
-    expect(buttons.length).toBeGreaterThan(0)
+    const acceptButtons = screen.getAllByRole("button", {
+      name: /استاد پذیرفت/,
+    })
+    expect(acceptButtons.length).toBeGreaterThan(0)
+    fireEvent.click(acceptButtons[0]!)
+    expect(onToggle).toHaveBeenCalledWith(mockOptions[0], "ACCEPT")
 
-    fireEvent.click(buttons[0]!)
-    expect(onToggle).toHaveBeenCalledWith(mockOptions[0])
+    const rejectButtons = screen.getAllByRole("button", {
+      name: /استاد رد کرد/,
+    })
+    expect(rejectButtons.length).toBeGreaterThan(0)
+    fireEvent.click(rejectButtons[0]!)
+    expect(onToggle).toHaveBeenCalledWith(mockOptions[0], "REJECT")
+  })
+
+  it("renders rejected badge and destructive state when option isRejected is true", () => {
+    const rejectedOption: SchedulingTeacherOutreachOption = {
+      ...mockOptions[0]!,
+      isRejected: true,
+    }
+    render(
+      <OutreachCarousel
+        options={[rejectedOption]}
+        canToggle={true}
+        isPending={() => false}
+        onToggle={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText("رد شده توسط استاد")).toBeInTheDocument()
+    const rejectBtn = screen.getByRole("button", { name: /استاد رد کرد/ })
+    expect(rejectBtn).toHaveAttribute("aria-pressed", "true")
+  })
+
+  it("renders carousel item with basis-full when only a single option exists", () => {
+    const { container } = render(
+      <OutreachCarousel
+        options={[mockOptions[0]!]}
+        canToggle={true}
+        isPending={() => false}
+        onToggle={vi.fn()}
+      />
+    )
+
+    const carouselItems = container.querySelectorAll(
+      '[data-slot="carousel-item"]'
+    )
+    expect(carouselItems.length).toBe(1)
+    expect(carouselItems[0]).toHaveClass("basis-full")
+    expect(carouselItems[0]).not.toHaveClass("basis-[90%]")
   })
 })

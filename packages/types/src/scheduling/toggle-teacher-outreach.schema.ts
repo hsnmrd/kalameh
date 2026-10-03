@@ -15,6 +15,7 @@ export const ToggleTeacherOutreachInputSchema = z.object({
   endTime: z.string().regex(SCHEDULING_TIME_REGEX),
   availabilityChangeDays: z.array(z.enum(WEEK_DAYS)).default([]),
   classroomId: z.string().uuid().nullable().optional(),
+  action: z.enum(["ACCEPT", "REJECT"]).default("ACCEPT"),
 })
 
 export type ToggleTeacherOutreachInput = z.infer<

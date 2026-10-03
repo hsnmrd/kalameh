@@ -3,16 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
-import {
-  Building2,
-  DoorOpen,
-  Globe,
-  LockKeyhole,
-  Pencil,
-  TriangleAlert,
-  User,
-  Users,
-} from "lucide-react"
+import { DoorOpen, Globe, LockKeyhole, Pencil, User, Users } from "lucide-react"
 import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
 import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -20,6 +11,15 @@ import { SchedulingProposalActions } from "../scheduling-proposal-actions"
 import { SchedulingProposalEditDialog } from "../scheduling-proposal-edit-dialog"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
+
+const KNOWN_WARNING_CODES = new Set([
+  "GENERATION_PENDING",
+  "MISSING_SCHEDULED_CLASSES",
+  "NEUTRAL_TIME_GROUP_USED",
+  "TIME_PATTERN_NOT_DIVERSE",
+  "TIME_GROUP_IMBALANCED",
+  "MANUAL_EDIT_REQUIRES_VALIDATION",
+])
 
 export interface ClassCardColorTheme {
   border: string
@@ -245,16 +245,26 @@ export function SchedulingPlanCalendarClassCard({
 
   const teacherName = proposal.teacher
     ? `${proposal.teacher.firstName} ${proposal.teacher.lastName}`
-    : t("hiringPlan.pendingTeacher")
+    : t("calendarView.newTeacherBadge")
   const isOnline = proposal.deliveryMode === "ONLINE"
   const locationName = isOnline
     ? t("deliveryModes.ONLINE")
-    : proposal.classroom?.name || proposal.branch?.name || t("location")
+    : proposal.classroom?.name || t("location")
 
   const maxCapacity = proposal.classroom?.capacity ?? proposal.capacity
 
   const hasHighlightTag = hasSameTeacher || hasSameCourse
   const isGrayscale = isDimmed && !isActive && !isSwappable && !hasHighlightTag
+  const hasWarnings = proposal.warnings.length > 0
+  const warningTitle = hasWarnings
+    ? proposal.warnings
+        .map((w) =>
+          KNOWN_WARNING_CODES.has(w.code)
+            ? t(`warningMessages.${w.code}`)
+            : w.code
+        )
+        .join(" · ")
+    : undefined
 
   return (
     <>
@@ -271,6 +281,8 @@ export function SchedulingPlanCalendarClassCard({
         data-same-course={hasSameCourse ? "true" : undefined}
         data-same-teacher-count={sameTeacherCount}
         data-same-course-count={sameCourseCount}
+        data-has-warnings={hasWarnings ? "true" : undefined}
+        title={warningTitle}
         onMouseEnter={() => onHover?.(proposal.id)}
         onMouseLeave={() => onHover?.(null)}
         onClick={(e) => {
@@ -286,7 +298,11 @@ export function SchedulingPlanCalendarClassCard({
         }}
         className={cn(
           "group relative flex min-h-[84px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl border border-s-4 p-3 shadow-2xs transition-[background-color,border-color,box-shadow,filter,transform] duration-200 ease-in-out select-none",
-          isActive ? "border-primary" : theme.border,
+          isActive
+            ? "border-primary"
+            : hasWarnings
+              ? "border-warning/80 hover:border-warning"
+              : theme.border,
           theme.borderStart,
           isActive ? "bg-primary/15 hover:bg-primary/20" : theme.bg,
           isActive &&
@@ -329,26 +345,6 @@ export function SchedulingPlanCalendarClassCard({
                 {proposal.title}
               </span>
             )}
-            {/* Delivery mode icon (online / in-person) */}
-            <span
-              title={
-                isOnline
-                  ? t("deliveryModes.ONLINE")
-                  : t("deliveryModes.IN_PERSON")
-              }
-              aria-label={
-                isOnline
-                  ? t("deliveryModes.ONLINE")
-                  : t("deliveryModes.IN_PERSON")
-              }
-              className="inline-flex size-5 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/60 text-muted-foreground"
-            >
-              {isOnline ? (
-                <Globe aria-hidden className="size-3 text-inherit" />
-              ) : (
-                <Building2 aria-hidden className="size-3 text-inherit" />
-              )}
-            </span>
           </div>
 
           {/* End (Left in RTL): Location, Status Icons & Actions */}
@@ -388,14 +384,6 @@ export function SchedulingPlanCalendarClassCard({
                 className="flex size-4 shrink-0 items-center justify-center text-warning"
               >
                 <Pencil aria-hidden className="size-3.5" />
-              </span>
-            )}
-            {proposal.warnings.length > 0 && (
-              <span
-                title={`${proposal.warnings.length} warning(s)`}
-                className="flex size-4 shrink-0 items-center justify-center text-warning"
-              >
-                <TriangleAlert aria-hidden className="size-3.5" />
               </span>
             )}
             {canEdit && !proposal.publishedClassId && (
@@ -459,13 +447,6 @@ export function SchedulingPlanCalendarClassCard({
                   className="shrink-0 rounded border border-primary/40 bg-primary/15 px-1 py-0.5 text-[9px] font-bold text-primary"
                 >
                   {t("calendarView.sameTeacherBadge")}
-                </span>
-              )}
-              {proposal.branch?.name && (
-                <span className="hidden items-center gap-1 text-[11px] text-muted-foreground sm:inline-flex">
-                  <span>·</span>
-                  <Building2 aria-hidden className="size-3 shrink-0" />
-                  <span className="truncate">{proposal.branch.name}</span>
                 </span>
               )}
             </div>

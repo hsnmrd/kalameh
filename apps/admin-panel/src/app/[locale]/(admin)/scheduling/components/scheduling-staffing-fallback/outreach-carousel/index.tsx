@@ -11,32 +11,35 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@workspace/ui/components/carousel"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { OutreachOptionItem } from "../outreach-option-item"
 
 export interface OutreachCarouselProps {
   options: SchedulingTeacherOutreachOption[]
   canToggle: boolean
   isPending: (key: string) => boolean
-  onToggle: (option: SchedulingTeacherOutreachOption) => void
+  pendingAction?: "ACCEPT" | "REJECT" | null
+  onToggle: (
+    option: SchedulingTeacherOutreachOption,
+    action: "ACCEPT" | "REJECT"
+  ) => void
 }
 
 export function OutreachCarousel({
   options,
   canToggle,
   isPending,
+  pendingAction,
   onToggle,
 }: OutreachCarouselProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
   const [api, setApi] = React.useState<CarouselApi>()
   const [current, setCurrent] = React.useState(1)
-  const [count, setCount] = React.useState(options.length)
 
   React.useEffect(() => {
     if (!api) return
 
-    setCount(api.scrollSnapList().length)
     setCurrent(api.selectedScrollSnap() + 1)
 
     const onSelect = () => {
@@ -51,6 +54,8 @@ export function OutreachCarousel({
 
   if (options.length === 0) return null
 
+  const hasMultiple = options.length > 1
+
   return (
     <div className="w-full">
       <Carousel
@@ -62,12 +67,12 @@ export function OutreachCarousel({
         }}
         className="w-full"
       >
-        {options.length > 1 && (
+        {hasMultiple && (
           <div className="mb-2.5 flex items-center justify-between">
             <span className="text-xs font-semibold text-muted-foreground">
               {t("staffingFallback.carouselCounter", {
                 current: formatNumber(current, locale),
-                total: formatNumber(count, locale),
+                total: formatNumber(options.length, locale),
               })}
             </span>
             <div className="flex items-center gap-1.5">
@@ -85,12 +90,16 @@ export function OutreachCarousel({
 
         <CarouselContent className="-ms-3">
           {options.map((option, index) => (
-            <CarouselItem key={option.key} className="basis-full ps-3">
+            <CarouselItem
+              key={option.key}
+              className={cn("ps-3", hasMultiple ? "basis-[90%]" : "basis-full")}
+            >
               <OutreachOptionItem
                 option={option}
                 index={index}
                 canToggle={canToggle}
                 isPending={isPending(option.key)}
+                pendingAction={isPending(option.key) ? pendingAction : null}
                 onToggle={onToggle}
               />
             </CarouselItem>

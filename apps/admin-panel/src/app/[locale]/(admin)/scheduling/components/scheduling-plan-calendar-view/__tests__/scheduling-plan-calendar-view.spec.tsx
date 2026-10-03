@@ -6,7 +6,11 @@ import {
   waitFor,
   within,
 } from "../../../../../../../test/test-utils"
-import type { SchedulingPlanDetailsDto, WeekDay } from "@workspace/types"
+import type {
+  SchedulingPlanDetailsDto,
+  SchedulingTeacherCalendar,
+  WeekDay,
+} from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import { SchedulingPlanCalendarView } from "../index"
 
@@ -146,20 +150,16 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(card).not.toHaveTextContent("09:00 تا 10:30")
   })
 
-  it("renders delivery mode as icon-only and room name with ellipsis truncation to prioritize session title", () => {
+  it("does not render delivery mode icon and renders room name with ellipsis truncation to prioritize session title", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    // The session cards should not contain visible text "حضوری" or "آنلاین" in delivery mode badge
+    // The session cards should not contain delivery mode icon or text "حضوری" / "آنلاین"
     const card = screen.getAllByRole("article")[0]!
     expect(within(card).queryByText("حضوری")).not.toBeInTheDocument()
     expect(within(card).queryByText("آنلاین")).not.toBeInTheDocument()
-
-    // But delivery mode is accessible via title / aria-label on the icon container
-    const deliveryIcon = card.querySelector('[aria-label="حضوری"]')
-    expect(deliveryIcon).toBeInTheDocument()
-    expect(deliveryIcon).toHaveAttribute("title", "حضوری")
+    expect(card.querySelector('[aria-label="حضوری"]')).not.toBeInTheDocument()
 
     // Session title is rendered prominently with full course title
     expect(
@@ -169,6 +169,24 @@ describe("SchedulingPlanCalendarView Component", () => {
     // Room name is inside a truncating container
     const roomSpan = within(card).getByText("کلاس ۱۰۱")
     expect(roomSpan).toHaveClass("truncate")
+  })
+
+  it("uses warning border instead of warning icon when session has warnings", () => {
+    render(
+      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
+    )
+
+    // prop-2 has warnings
+    const warningCard = screen.getByTestId("calendar-class-card-prop-2")
+    expect(warningCard).toHaveClass("border-warning/80")
+    expect(warningCard).toHaveAttribute("data-has-warnings", "true")
+    expect(warningCard).toHaveAttribute(
+      "title",
+      "این کلاس پس از ویرایش دستی باید دوباره اعتبارسنجی شود."
+    )
+
+    // No TriangleAlert warning icon rendered inside the card
+    expect(warningCard.querySelector(".lucide-triangle-alert")).toBeNull()
   })
 
   it("does not render top mobile track switcher buttons", () => {
@@ -294,7 +312,7 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     // Verify CarouselItem slides have basis-[88%] for mobile and md:basis-full for desktop
     const carouselItems = container.querySelectorAll(
-      '[data-slot="carousel-item"]'
+      '[data-track-carousel-item="true"]'
     )
     carouselItems.forEach((item) => {
       expect(item).toHaveClass(
@@ -356,14 +374,14 @@ describe("SchedulingPlanCalendarView Component", () => {
       />
     )
 
-    // Check legend / badge
-    expect(screen.getAllByText("استاد جدید").length).toBeGreaterThanOrEqual(1)
+    // Check legend / badge and card label
+    expect(screen.getAllByText("استاد جدید").length).toBeGreaterThanOrEqual(2)
 
     // Check missed class card is rendered
     expect(screen.getAllByText("Touchstone 1").length).toBeGreaterThanOrEqual(1)
     expect(
-      screen.getAllByText("استاد جدید (در انتظار جذب)").length
-    ).toBeGreaterThanOrEqual(1)
+      screen.queryByText("استاد جدید (در انتظار جذب)")
+    ).not.toBeInTheDocument()
   })
 
   it("allows unassigning a missed class from calendar via the X action", () => {
@@ -649,8 +667,16 @@ describe("SchedulingPlanCalendarView Component", () => {
       expect(card).toHaveClass("opacity-100")
     })
 
-    // prop-2 is an unrelated non-swappable card, so it is omitted from the DOM when a session is selected
-    expect(container.querySelector('[data-class-id="prop-2"]')).toBeNull()
+    // prop-2 is an unrelated non-swappable card, so it is dimmed when a session is selected
+    const prop2CardsAfterPin = container.querySelectorAll(
+      '[data-class-id="prop-2"]'
+    )
+    expect(prop2CardsAfterPin.length).toBeGreaterThan(0)
+    prop2CardsAfterPin.forEach((card) => {
+      expect(card.getAttribute("data-dimmed")).toBe("true")
+      expect(card).toHaveClass("opacity-25")
+      expect(card).toHaveClass("grayscale")
+    })
 
     // Clear selection button is displayed in the header
     const clearBtn = screen.getByTestId("clear-selection-btn")
@@ -660,30 +686,62 @@ describe("SchedulingPlanCalendarView Component", () => {
     fireEvent.click(clearBtn)
 
     expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
-    expect(container.querySelector('[data-class-id="prop-2"]')).not.toBeNull()
+    prop2Cards.forEach((card) => {
+      expect(card.getAttribute("data-dimmed")).toBeNull()
+    })
     expect(screen.queryByTestId("clear-selection-btn")).toBeNull()
 
     // Test Escape key unpins and restores all cards
     fireEvent.click(prop1Cards[0]!)
     expect(prop1Cards[0]?.getAttribute("data-active")).toBe("true")
-    expect(container.querySelector('[data-class-id="prop-2"]')).toBeNull()
+    prop2Cards.forEach((card) => {
+      expect(card.getAttribute("data-dimmed")).toBe("true")
+    })
     fireEvent.keyDown(window, { key: "Escape" })
     expect(prop1Cards[0]?.getAttribute("data-active")).toBeNull()
-    expect(container.querySelector('[data-class-id="prop-2"]')).not.toBeNull()
+    prop2Cards.forEach((card) => {
+      expect(card.getAttribute("data-dimmed")).toBeNull()
+    })
   })
 
-  it("defaults to collapsed state where time slots are collapsed showing period time and class count summary", () => {
+  it("defaults to expanded state where all time slots are expanded showing period content", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
 
-    // Time slot toggles are collapsed by default
+    // Time slot toggles are expanded by default
+    const row1Toggle = screen.getByTestId("time-slot-toggle-09:00-10:30")
+    const row2Toggle = screen.getByTestId("time-slot-toggle-16:00-17:30")
+    expect(row1Toggle).toHaveAttribute("aria-expanded", "true")
+    expect(row2Toggle).toHaveAttribute("aria-expanded", "true")
+
+    // Content of both rows is expanded (1fr and opacity-100)
+    const content1 = screen.getByTestId("time-slot-content-09:00-10:30")
+    const content2 = screen.getByTestId("time-slot-content-16:00-17:30")
+    expect(content1).toHaveClass("grid-rows-[1fr]")
+    expect(content1).toHaveClass("opacity-100")
+    expect(content2).toHaveClass("grid-rows-[1fr]")
+    expect(content2).toHaveClass("opacity-100")
+
+    // Global expand/collapse toggle shows "بستن همه"
+    const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
+    expect(toggleAllBtn).toHaveTextContent("بستن همه")
+  })
+
+  it("supports defaultCollapsed={true} where time slots are initially collapsed", () => {
+    render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={false}
+        defaultCollapsed={true}
+      />
+    )
+
     const row1Toggle = screen.getByTestId("time-slot-toggle-09:00-10:30")
     const row2Toggle = screen.getByTestId("time-slot-toggle-16:00-17:30")
     expect(row1Toggle).toHaveAttribute("aria-expanded", "false")
     expect(row2Toggle).toHaveAttribute("aria-expanded", "false")
 
-    // Content of both rows is collapsed (0fr and opacity-0)
     const content1 = screen.getByTestId("time-slot-content-09:00-10:30")
     const content2 = screen.getByTestId("time-slot-content-16:00-17:30")
     expect(content1).toHaveClass("grid-rows-[0fr]")
@@ -691,11 +749,6 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(content2).toHaveClass("grid-rows-[0fr]")
     expect(content2).toHaveClass("opacity-0")
 
-    // Time slot header badges display classes count
-    const badge1 = screen.getByTestId("slot-classes-badge-09:00-10:30")
-    expect(badge1).toHaveTextContent("۱ کلاس")
-
-    // Global expand/collapse toggle shows "باز کردن همه"
     const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
     expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
   })
@@ -710,53 +763,47 @@ describe("SchedulingPlanCalendarView Component", () => {
     const content1 = screen.getByTestId("time-slot-content-09:00-10:30")
     const content2 = screen.getByTestId("time-slot-content-16:00-17:30")
 
-    // Both rows initially collapsed
-    expect(row1Toggle.getAttribute("aria-expanded")).toBe("false")
+    // Both rows initially expanded
+    expect(row1Toggle.getAttribute("aria-expanded")).toBe("true")
     expect(row1Toggle).toHaveClass("min-h-[52px]")
-    expect(row2Toggle.getAttribute("aria-expanded")).toBe("false")
-    expect(content1).toHaveClass("grid-rows-[0fr]")
-    expect(content2).toHaveClass("grid-rows-[0fr]")
+    expect(within(row1Toggle).getByText("09:00")).toHaveClass(
+      "text-xl",
+      "sm:text-2xl",
+      "lg:text-3xl",
+      "font-bold"
+    )
+    expect(row2Toggle.getAttribute("aria-expanded")).toBe("true")
+    expect(content1).toHaveClass("grid-rows-[1fr]")
+    expect(content2).toHaveClass("grid-rows-[1fr]")
 
-    // Both rows initially collapsed with class count badge visible
+    // Collapse Row 1
+    fireEvent.click(row1Toggle)
+
+    expect(row1Toggle.getAttribute("aria-expanded")).toBe("false")
+    expect(row1Toggle).not.toHaveClass("rounded-none")
+    expect(row1Toggle).toHaveClass("rounded-2xl")
+    expect(content1).toHaveClass("grid-rows-[0fr]")
+    expect(content1).toHaveClass("opacity-0")
+    // When collapsed, the class count badge is visible for Row 1
     expect(
       screen.getByTestId("slot-classes-badge-09:00-10:30")
     ).toBeInTheDocument()
-    expect(
-      screen.getByTestId("slot-classes-badge-16:00-17:30")
-    ).toBeInTheDocument()
-    expect(screen.queryByText("بستن بازه")).not.toBeInTheDocument()
-    expect(screen.queryByText("باز کردن بازه")).not.toBeInTheDocument()
+    // Row 2 remains expanded
+    expect(row2Toggle.getAttribute("aria-expanded")).toBe("true")
+    expect(content2).toHaveClass("grid-rows-[1fr]")
 
-    // Expand Row 1
+    // Expand Row 1 back
     fireEvent.click(row1Toggle)
 
     expect(row1Toggle.getAttribute("aria-expanded")).toBe("true")
-    expect(row1Toggle).toHaveClass("min-h-[52px]")
-    expect(row1Toggle).toHaveClass("sticky")
-    expect(row1Toggle).toHaveClass("bg-background")
-    expect(row1Toggle).toHaveClass("z-20")
-    expect(row2Toggle.getAttribute("aria-expanded")).toBe("false")
+    expect(row1Toggle).toHaveClass("rounded-none")
+    expect(row1Toggle).not.toHaveClass("border-b")
     expect(content1).toHaveClass("grid-rows-[1fr]")
     expect(content1).toHaveClass("opacity-100")
-    // When expanded, the class count badge is hidden for Row 1
+    // When expanded again, the class count badge is hidden
     expect(
       screen.queryByTestId("slot-classes-badge-09:00-10:30")
     ).not.toBeInTheDocument()
-    // Row 2 remains collapsed, so its badge is still present
-    expect(content2).toHaveClass("grid-rows-[0fr]")
-    expect(
-      screen.getByTestId("slot-classes-badge-16:00-17:30")
-    ).toBeInTheDocument()
-
-    // Collapse Row 1 back
-    fireEvent.click(row1Toggle)
-
-    expect(row1Toggle.getAttribute("aria-expanded")).toBe("false")
-    expect(content1).toHaveClass("grid-rows-[0fr]")
-    // When collapsed again, the class count badge reappears
-    expect(
-      screen.getByTestId("slot-classes-badge-09:00-10:30")
-    ).toBeInTheDocument()
   })
 
   it("expands and collapses all rows via the global expand/collapse all button", () => {
@@ -768,18 +815,10 @@ describe("SchedulingPlanCalendarView Component", () => {
     const content1 = screen.getByTestId("time-slot-content-09:00-10:30")
     const content2 = screen.getByTestId("time-slot-content-16:00-17:30")
 
-    expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
-    expect(content1).toHaveClass("grid-rows-[0fr]")
-    expect(content2).toHaveClass("grid-rows-[0fr]")
-
-    // Expand all
-    fireEvent.click(toggleAllBtn)
-
+    // Initially all expanded
     expect(toggleAllBtn).toHaveTextContent("بستن همه")
     expect(content1).toHaveClass("grid-rows-[1fr]")
-    expect(content1).toHaveClass("opacity-100")
     expect(content2).toHaveClass("grid-rows-[1fr]")
-    expect(content2).toHaveClass("opacity-100")
 
     // Collapse all
     fireEvent.click(toggleAllBtn)
@@ -787,6 +826,15 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
     expect(content1).toHaveClass("grid-rows-[0fr]")
     expect(content2).toHaveClass("grid-rows-[0fr]")
+
+    // Expand all back
+    fireEvent.click(toggleAllBtn)
+
+    expect(toggleAllBtn).toHaveTextContent("بستن همه")
+    expect(content1).toHaveClass("grid-rows-[1fr]")
+    expect(content1).toHaveClass("opacity-100")
+    expect(content2).toHaveClass("grid-rows-[1fr]")
+    expect(content2).toHaveClass("opacity-100")
   })
 
   it("automatically expands all time slots when a session card is clicked to enter swap mode", () => {
@@ -815,9 +863,115 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(prop1Card).toHaveClass("bg-primary/15")
     expect(prop1Card).toHaveClass("border-primary")
 
-    // Both time slots automatically expand so user can see all swappable target cards across all periods
+    // All time slots automatically expand when entering swap mode
     expect(content1).toHaveClass("grid-rows-[1fr]")
     expect(content2).toHaveClass("grid-rows-[1fr]")
+    const prop2Card = container.querySelector('[data-class-id="prop-2"]')!
+    expect(prop2Card).toHaveAttribute("data-dimmed", "true")
+  })
+
+  it("when a session is selected, keeps all periods visible and dims non-swappable sessions", () => {
+    const proposalsWithSwapAndNonSwap: Proposal[] = [
+      {
+        id: "prop-active",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "کلاس فعال",
+        course: { id: "c1", title: "Course 1" },
+        teacher: { id: "t1", firstName: "استاد", lastName: "اول" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr1", name: "کلاس ۱۰۱", capacity: 15 },
+        capacity: 15,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "09:00",
+        endTime: "10:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-swappable",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "کلاس قابل تعویض",
+        course: { id: "c2", title: "Course 2" },
+        teacher: { id: "t2", firstName: "استاد", lastName: "دوم" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr2", name: "کلاس ۱۰۲", capacity: 20 },
+        capacity: 15,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "11:00",
+        endTime: "12:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+      {
+        id: "prop-locked-slot",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "کلاس قفل‌شده در بازه سوم",
+        course: { id: "c3", title: "Course 3" },
+        teacher: { id: "t3", firstName: "استاد", lastName: "سوم" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr3", name: "کلاس ۱۰۳", capacity: 20 },
+        capacity: 15,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "16:00",
+        endTime: "17:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: true,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    const { container } = render(
+      <SchedulingPlanCalendarView
+        proposals={proposalsWithSwapAndNonSwap}
+        canEdit={true}
+        canSwap={true}
+      />
+    )
+
+    // Initially all 3 periods are visible
+    expect(screen.getByTestId("time-slot-row-09:00-10:30")).toBeInTheDocument()
+    expect(screen.getByTestId("time-slot-row-11:00-12:30")).toBeInTheDocument()
+    expect(screen.getByTestId("time-slot-row-16:00-17:30")).toBeInTheDocument()
+
+    // Select the active session in 09:00-10:30
+    const activeCard = container.querySelector('[data-class-id="prop-active"]')!
+    fireEvent.click(activeCard)
+
+    // Slot 1 (active session) is visible
+    expect(screen.getByTestId("time-slot-row-09:00-10:30")).toBeInTheDocument()
+
+    // Slot 2 (has swappable option prop-swappable) is visible
+    expect(screen.getByTestId("time-slot-row-11:00-12:30")).toBeInTheDocument()
+
+    // Slot 3 (has only prop-locked-slot, no swap options) remains visible, and its card is dimmed
+    expect(screen.getByTestId("time-slot-row-16:00-17:30")).toBeInTheDocument()
+    const lockedCard = container.querySelector(
+      '[data-class-id="prop-locked-slot"]'
+    )!
+    expect(lockedCard).toHaveAttribute("data-dimmed", "true")
+    expect(lockedCard).toHaveClass("opacity-25")
+    expect(lockedCard).toHaveClass("grayscale")
+
+    // Clear selection
+    const clearBtn = screen.getByTestId("clear-selection-btn")
+    fireEvent.click(clearBtn)
+
+    // All 3 slots remain visible and lockedCard is no longer dimmed
+    expect(screen.getByTestId("time-slot-row-09:00-10:30")).toBeInTheDocument()
+    expect(screen.getByTestId("time-slot-row-11:00-12:30")).toBeInTheDocument()
+    expect(screen.getByTestId("time-slot-row-16:00-17:30")).toBeInTheDocument()
+    expect(lockedCard).not.toHaveAttribute("data-dimmed")
   })
 
   it("renders missed classes with title and teacher within the time slot accordion", () => {
@@ -861,21 +1015,18 @@ describe("SchedulingPlanCalendarView Component", () => {
     )
 
     const slotContent = screen.getByTestId("time-slot-content-09:00-10:30")
-    expect(slotContent).toHaveClass("grid-rows-[0fr]")
-
-    // Expand slot 09:00-10:30
-    const toggleBtn = screen.getByTestId("time-slot-toggle-09:00-10:30")
-    fireEvent.click(toggleBtn)
-
     expect(slotContent).toHaveClass("grid-rows-[1fr]")
     const missedCard = screen.getByTestId("missed-class-card-missed-1")
     expect(missedCard).toHaveClass("min-h-[84px]")
     expect(missedCard).toHaveTextContent("Touchstone 1")
-    expect(missedCard).toHaveTextContent("استاد جدید (در انتظار جذب)")
+    expect(missedCard).toHaveTextContent("استاد جدید")
+    expect(missedCard).not.toHaveTextContent("در انتظار جذب")
     expect(missedCard).toHaveTextContent("۱۵ نفر")
+    expect(missedCard).toHaveTextContent("کلاس ۱۰۱")
+    expect(missedCard).not.toHaveTextContent("فضای فیزیکی")
   })
 
-  it("toggles showing free teacher names under class cards of each period", () => {
+  it("does not render the obsolete free teachers toggle button and displays teachers in the group carousel instead", () => {
     render(
       <SchedulingPlanCalendarView
         proposals={mockProposals}
@@ -921,42 +1072,20 @@ describe("SchedulingPlanCalendarView Component", () => {
       />
     )
 
-    const toggleFreeTeachersBtn = screen.getByTestId("toggle-free-teachers-btn")
-    expect(toggleFreeTeachersBtn).toHaveTextContent("نمایش استادان آزاد")
-    expect(toggleFreeTeachersBtn).toHaveAttribute("aria-pressed", "false")
-
-    // Initially hidden
     expect(
-      screen.queryByTestId("free-teachers-EVEN-09:00-10:30")
+      screen.queryByTestId("toggle-free-teachers-btn")
     ).not.toBeInTheDocument()
 
-    // Toggle on
-    fireEvent.click(toggleFreeTeachersBtn)
-    expect(toggleFreeTeachersBtn).toHaveAttribute("aria-pressed", "true")
-
-    // Even track 09:00-10:30 has both حسین مرادی and زهرا کریمی under the class card
-    const evenFreeTeachers = screen.getByTestId(
-      "free-teachers-EVEN-09:00-10:30"
+    // Even track 09:00-10:30 has both حسین مرادی and زهرا کریمی in the period group teachers carousel
+    const evenGroupCarousel = screen.getByTestId(
+      "group-teachers-carousel-EVEN-09:00-10:30"
     )
-    expect(evenFreeTeachers).toBeInTheDocument()
-    expect(evenFreeTeachers).toHaveTextContent("استاد آزاد")
-    expect(evenFreeTeachers).toHaveTextContent("حسین مرادی")
-    expect(evenFreeTeachers).toHaveTextContent("زهرا کریمی")
-
-    // Odd track 09:00-10:30 has no free teachers
-    expect(
-      screen.queryByTestId("free-teachers-ODD-09:00-10:30")
-    ).not.toBeInTheDocument()
-
-    // Toggle off
-    fireEvent.click(toggleFreeTeachersBtn)
-    expect(toggleFreeTeachersBtn).toHaveAttribute("aria-pressed", "false")
-    expect(
-      screen.queryByTestId("free-teachers-EVEN-09:00-10:30")
-    ).not.toBeInTheDocument()
+    expect(evenGroupCarousel).toBeInTheDocument()
+    expect(evenGroupCarousel).toHaveTextContent("حسین مرادی")
+    expect(evenGroupCarousel).toHaveTextContent("زهرا کریمی")
   })
 
-  it("renders free teacher card with the same UI structure as class card in collapsed and expanded modes", () => {
+  it("renders teacher accessibility carousel under class card in period slot with qualified teachers", () => {
     render(
       <SchedulingPlanCalendarView
         proposals={mockProposals}
@@ -1019,25 +1148,14 @@ describe("SchedulingPlanCalendarView Component", () => {
       />
     )
 
-    // Turn on free teachers display
-    fireEvent.click(screen.getByTestId("toggle-free-teachers-btn"))
-
-    // Expand all rows to view inside accordion
-    fireEvent.click(screen.getByTestId("toggle-collapse-all-btn"))
-
-    const freeTeacherCard = screen.getByTestId(
-      "free-teacher-card-t-higher-EVEN-09:00-10:30"
+    const carousel = screen.getByTestId(
+      "group-teachers-carousel-EVEN-09:00-10:30"
     )
-
-    expect(freeTeacherCard).toHaveClass("min-h-[84px]")
-    expect(freeTeacherCard).toHaveTextContent("نیلوفر صادقی")
-    expect(freeTeacherCard).toHaveTextContent("پیشنهاد برای AME ۲-۲")
-    expect(freeTeacherCard).toHaveTextContent("AME ۳-۱ ~ AME ۴-۲")
-    expect(freeTeacherCard).not.toHaveTextContent("AME ۳-۲")
-    expect(freeTeacherCard).not.toHaveTextContent("AME ۴-۱")
+    expect(carousel).toBeInTheDocument()
+    expect(carousel).toHaveTextContent("نیلوفر صادقی")
   })
 
-  it("shakes compatible class cards and free teacher cards when a class card is clicked and opens the swap dialog on click", () => {
+  it("shakes compatible class cards when a class card is clicked and opens the swap dialog on click", () => {
     const swappableProposals: Proposal[] = [
       ...mockProposals, // prop-1 (unlocked, 09:00-10:30, A1, cr1 cap 15) & prop-2 (locked)
       {
@@ -1065,56 +1183,14 @@ describe("SchedulingPlanCalendarView Component", () => {
       <SchedulingPlanCalendarView
         proposals={swappableProposals}
         canEdit={true}
-        teacherCalendars={[
-          {
-            teacher: {
-              id: "t-free-swap",
-              firstName: "سارا",
-              lastName: "احمدی",
-            },
-            teachableCourses: [{ id: "c1", title: "American English File 1" }],
-            slots: [
-              {
-                dayOfWeek: "SATURDAY",
-                startTime: "09:00",
-                endTime: "10:30",
-                status: "FREE",
-                title: null,
-                source: "AVAILABILITY",
-              },
-              {
-                dayOfWeek: "MONDAY",
-                startTime: "09:00",
-                endTime: "10:30",
-                status: "FREE",
-                title: null,
-                source: "AVAILABILITY",
-              },
-              {
-                dayOfWeek: "WEDNESDAY",
-                startTime: "09:00",
-                endTime: "10:30",
-                status: "FREE",
-                title: null,
-                source: "AVAILABILITY",
-              },
-            ],
-          },
-        ]}
       />
     )
-
-    // Turn on free teachers display
-    fireEvent.click(screen.getByTestId("toggle-free-teachers-btn"))
 
     const prop1Card = screen.getAllByTestId("calendar-class-card-prop-1")[0]!
     const prop2LockedCard = screen.getByTestId("calendar-class-card-prop-2")
     const swapTargetCard = screen.getAllByTestId(
       "calendar-class-card-prop-swap-target"
     )[0]!
-    const freeTeacherCard = screen.getByTestId(
-      "free-teacher-card-t-free-swap-EVEN-09:00-10:30"
-    )
 
     // Click prop-1 to enter swap mode
     fireEvent.click(prop1Card)
@@ -1122,20 +1198,16 @@ describe("SchedulingPlanCalendarView Component", () => {
     // prop-1 is active
     expect(prop1Card).toHaveAttribute("data-active", "true")
 
-    // prop-2 is locked, so it cannot swap and is omitted
-    expect(
-      screen.queryByTestId("calendar-class-card-prop-2")
-    ).not.toBeInTheDocument()
+    // prop-2 is locked, so it cannot swap and is dimmed
+    expect(prop2LockedCard).toHaveAttribute("data-dimmed", "true")
+    expect(prop2LockedCard).toHaveClass("opacity-25")
+    expect(prop2LockedCard).toHaveClass("grayscale")
+    expect(prop2LockedCard).not.toHaveAttribute("data-swappable")
 
     // prop-swap-target is compatible, so it shakes and is not dimmed
     expect(swapTargetCard).toHaveAttribute("data-swappable", "true")
     expect(swapTargetCard).toHaveClass("animate-calendar-card-shake")
     expect(swapTargetCard).not.toHaveAttribute("data-dimmed")
-
-    // freeTeacherCard is qualified and free across SAT/MON/WED 09:00-10:30, so it also shakes
-    expect(freeTeacherCard).toHaveAttribute("data-swappable", "true")
-    expect(freeTeacherCard).toHaveClass("animate-calendar-card-shake")
-    expect(freeTeacherCard).not.toHaveAttribute("data-dimmed")
 
     // Clicking on the shaking swapTargetCard opens the SwapClassDialog with checkbox options
     fireEvent.click(swapTargetCard)
@@ -1374,15 +1446,14 @@ describe("SchedulingPlanCalendarView Component", () => {
     const propBCard = screen.getAllByTestId("calendar-class-card-prop-b")[0]!
 
     fireEvent.click(propACard)
-    // Non-swappable same-course class is omitted from the grid when prop-a is selected
-    expect(
-      screen.queryByTestId("calendar-class-card-prop-b")
-    ).not.toBeInTheDocument()
+    // Non-swappable same-course class remains in the grid with dimming
+    expect(propBCard).toHaveAttribute("data-dimmed", "true")
+    expect(propBCard).not.toHaveAttribute("data-swappable")
 
-    // When selection is cleared, prop-b is visible again
+    // When selection is cleared, prop-b is no longer dimmed
     const clearBtn = screen.getByTestId("clear-selection-btn")
     fireEvent.click(clearBtn)
-    expect(screen.getByTestId("calendar-class-card-prop-b")).toBeInTheDocument()
+    expect(propBCard).not.toHaveAttribute("data-dimmed")
   })
 
   it("does not suggest swapping with another teacher in a period where the selected teacher already teaches another class", () => {
@@ -1463,10 +1534,9 @@ describe("SchedulingPlanCalendarView Component", () => {
     fireEvent.click(maryam1700Card)
 
     expect(maryam1700Card).toHaveAttribute("data-active", "true")
-    // alireza1530Card cannot swap with maryam, so it is omitted from the grid
-    expect(
-      screen.queryByTestId("calendar-class-card-prop-alireza-1530")
-    ).not.toBeInTheDocument()
+    // alireza1530Card cannot swap with maryam, so it remains in the grid with dimming
+    expect(alireza1530Card).toHaveAttribute("data-dimmed", "true")
+    expect(alireza1530Card).not.toHaveAttribute("data-swappable")
   })
 
   it("does not allow swapping between odd days and even days when a teacher is only available on odd days (and vice versa)", () => {
@@ -1617,25 +1687,23 @@ describe("SchedulingPlanCalendarView Component", () => {
       "calendar-class-card-prop-arezoo-even"
     )[0]!
 
-    // 1. Select Maryam (odd days only) -> Arezoo on even days cannot swap and is omitted
+    // 1. Select Maryam (odd days only) -> Arezoo on even days cannot swap and is dimmed
     fireEvent.click(maryamOddCard)
     expect(maryamOddCard).toHaveAttribute("data-active", "true")
-    expect(
-      screen.queryByTestId("calendar-class-card-prop-arezoo-even")
-    ).not.toBeInTheDocument()
+    expect(arezooEvenCard).toHaveAttribute("data-dimmed", "true")
+    expect(arezooEvenCard).not.toHaveAttribute("data-swappable")
 
     // Clear selection
     fireEvent.click(screen.getByTestId("clear-selection-btn"))
 
-    // 2. Vice versa: Select Arezoo (even days) -> Maryam (odd days only) cannot swap and is omitted
+    // 2. Vice versa: Select Arezoo (even days) -> Maryam (odd days only) cannot swap and is dimmed
     const arezooCard = screen.getAllByTestId(
       "calendar-class-card-prop-arezoo-even"
     )[0]!
     fireEvent.click(arezooCard)
     expect(arezooCard).toHaveAttribute("data-active", "true")
-    expect(
-      screen.queryByTestId("calendar-class-card-prop-maryam-odd")
-    ).not.toBeInTheDocument()
+    expect(maryamOddCard).toHaveAttribute("data-dimmed", "true")
+    expect(maryamOddCard).not.toHaveAttribute("data-swappable")
   })
 
   it("swaps physical classrooms together when changing periods and prevents moving into a period where the physical classroom is already occupied", () => {
@@ -1799,26 +1867,15 @@ describe("SchedulingPlanCalendarView Component", () => {
       />
     )
 
-    fireEvent.click(screen.getByTestId("toggle-free-teachers-btn"))
-
     const p1Room101Card = screen.getAllByTestId(
       "calendar-class-card-prop-p1-room101"
     )[0]!
     const p2Room102Card = screen.getAllByTestId(
       "calendar-class-card-prop-p2-room102"
     )[0]!
-    const freeTeacherP2Card = screen.getByTestId(
-      "free-teacher-card-t-free-p2-EVEN-17:00-18:30"
-    )
 
     // Select prop-p1-room101 (15:30-17:00 in Room 101)
     fireEvent.click(p1Room101Card)
-
-    // Free teacher in 17:00-18:30 must NOT be swappable because moving prop-p1-room101 to 17:00-18:30
-    // while keeping Room 101 would collide with prop-p2-room101-occupied in Room 101, so it is omitted
-    expect(
-      screen.queryByTestId("free-teacher-card-t-free-p2-EVEN-17:00-18:30")
-    ).not.toBeInTheDocument()
 
     // However, prop-p2-room102 (17:00-18:30 in Room 102) IS swappable because swapping periods AND classrooms
     // puts prop-p1 into Room 102 at 17:00-18:30 and prop-p2 into Room 101 at 15:30-17:00 with zero room conflict!
@@ -1847,7 +1904,8 @@ describe("SchedulingPlanCalendarView Component", () => {
         instituteId: "inst-1",
         title: "AME 1-3",
         course: { id: "c-ame-1-3", title: "AME 1-3" },
-        teacher: null,
+        teacher: { id: "t-t1", firstName: "استاد", lastName: "یک" },
+        teacherId: "t-t1",
         branch: { id: "b1", name: "شعبه مرکزی" },
         classroom: {
           id: "cr-d",
@@ -1870,7 +1928,8 @@ describe("SchedulingPlanCalendarView Component", () => {
         instituteId: "inst-1",
         title: "AME 1-2",
         course: { id: "c-ame-1-2", title: "AME 1-2" },
-        teacher: null,
+        teacher: { id: "t-t2", firstName: "استاد", lastName: "دو" },
+        teacherId: "t-t2",
         branch: { id: "b1", name: "شعبه مرکزی" },
         classroom: { id: "cr-b", name: "کلاس B (اتاق ۱۰۲)", capacity: 30 },
         capacity: 18,
@@ -1969,7 +2028,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(screen.getByTestId("swap-target-card")).toHaveTextContent("کلاس D")
   })
 
-  it("allows swapping time and classroom with an unknown master (missed class), shaking and updating both classes on submit", async () => {
+  it("does not allow swapping with an unknown master missed class and opens staffing fallback dialog on click", async () => {
     const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
     const toMutationSpy = vi
       .spyOn(schedulingResource.updateProposal, "toMutation")
@@ -2082,71 +2141,21 @@ describe("SchedulingPlanCalendarView Component", () => {
       "missed-class-card-missed-unknown"
     )[0]!
 
-    // 1. Click Maryam card -> Missed card (Unknown Master) shakes!
+    // 1. Click Maryam card -> Missed card (Unknown Master) is not swappable and does not shake
     fireEvent.click(maryamCard)
     expect(maryamCard).toHaveAttribute("data-active", "true")
-    expect(missedCard).toHaveAttribute("data-swappable", "true")
-    expect(missedCard).toHaveClass("animate-calendar-card-shake")
-    expect(missedCard).not.toHaveAttribute("data-dimmed")
+    expect(missedCard).not.toHaveAttribute("data-swappable")
+    expect(missedCard).not.toHaveClass("animate-calendar-card-shake")
 
-    // 2. Click the shaking missed card -> Swap dialog opens
+    // 2. Click the missed card -> Staffing Fallback dialog opens instead of swap dialog
     fireEvent.click(missedCard)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
-
-    // Source is Maryam Kazemi, Target is Unknown Master
-    const sourceCard = screen.getByTestId("swap-source-card")
-    const targetCard = screen.getByTestId("swap-target-card")
-    expect(sourceCard).toHaveTextContent("مریم کاظمی")
-    expect(targetCard).toHaveTextContent("استاد جدید (در انتظار جذب)")
-
-    // Change Date and Change Classroom are active; Change Teacher is not offered (unknown master has no teacher)
-    expect(screen.queryByTestId("swap-option-teacher")).not.toBeInTheDocument()
-    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
-      "aria-checked",
-      "true"
-    )
-    expect(screen.getByTestId("swap-option-classroom")).toHaveAttribute(
-      "aria-checked",
-      "true"
-    )
-
-    // 3. Confirm swap
-    const confirmBtn = screen.getByTestId("swap-confirm-btn")
-    fireEvent.click(confirmBtn)
-
-    await waitFor(() => {
-      // updateProposal is called ONLY for the real proposal (prop-maryam)
-      expect(updateProposalMutationFn).toHaveBeenCalledTimes(1)
-    })
-
-    expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual({
-      planId: "plan-1",
-      proposalId: "prop-maryam",
-      instituteId: "inst-1",
-      body: {
-        classroomId: "cr102",
-        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
-        startTime: "17:00",
-        endTime: "18:30",
-      },
-    })
-
-    // onUpdateMissedClassesAssignments was called to update the unknown master's schedule and room
-    expect(onUpdateMissedSpy).toHaveBeenCalledWith({
-      "missed-unknown": {
-        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
-        startTime: "15:30",
-        endTime: "17:00",
-        classroomId: "cr101",
-        classroomName: "کلاس ۱۰۱",
-        isAssigned: true,
-      },
-    })
+    expect(screen.getByTestId("staffing-fallback-dialog")).toBeInTheDocument()
+    expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
 
     toMutationSpy.mockRestore()
   })
 
-  it("allows selecting an unknown master class first to swap with a compatible regular class", () => {
+  it("does not allow selecting an unknown master class to swap and opens staffing fallback dialog instead", () => {
     const proposalsWithKnownTeacher: Proposal[] = [
       {
         id: "prop-maryam",
@@ -2248,27 +2257,16 @@ describe("SchedulingPlanCalendarView Component", () => {
       "missed-class-card-missed-unknown"
     )[0]!
 
-    // Click Missed class (Unknown Master) first
+    // Click Missed class (Unknown Master) first -> does not enter swap mode and opens fallback dialog
     fireEvent.click(missedCard)
-    expect(missedCard).toHaveAttribute("data-active", "true")
-
-    // Maryam card is compatible and shakes!
-    expect(maryamCard).toHaveAttribute("data-swappable", "true")
-    expect(maryamCard).toHaveClass("animate-calendar-card-shake")
-    expect(maryamCard).not.toHaveAttribute("data-dimmed")
-
-    // Clicking Maryam card opens swap dialog with Missed class as source
-    fireEvent.click(maryamCard)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
-    expect(screen.getByTestId("swap-source-card")).toHaveTextContent(
-      "استاد جدید (در انتظار جذب)"
-    )
-    expect(screen.getByTestId("swap-target-card")).toHaveTextContent(
-      "مریم کاظمی"
-    )
+    expect(missedCard).not.toHaveAttribute("data-active")
+    expect(maryamCard).not.toHaveAttribute("data-swappable")
+    expect(maryamCard).not.toHaveClass("animate-calendar-card-shake")
+    expect(screen.getByTestId("staffing-fallback-dialog")).toBeInTheDocument()
+    expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
   })
 
-  it("allows swapping time between a regular class and an unknown master of the SAME course", () => {
+  it("does not allow swapping a regular class with an unknown master even of the SAME course and opens staffing fallback dialog", () => {
     const sameCourseWithUnknownTeacher: Proposal[] = [
       {
         id: "prop-same-course-maryam",
@@ -2370,20 +2368,19 @@ describe("SchedulingPlanCalendarView Component", () => {
       "missed-class-card-missed-same-course"
     )[0]!
 
-    // Clicking Maryam's Touchstone 1 card must make the Unknown Master's Touchstone 1 card shake
+    // Clicking Maryam's Touchstone 1 card: Missed class (Unknown Master) is not swappable
     fireEvent.click(maryamCard)
     expect(maryamCard).toHaveAttribute("data-active", "true")
-    expect(missedCard).toHaveAttribute("data-swappable", "true")
-    expect(missedCard).toHaveClass("animate-calendar-card-shake")
+    expect(missedCard).not.toHaveAttribute("data-swappable")
+    expect(missedCard).not.toHaveClass("animate-calendar-card-shake")
+
+    // Clicking the missed card opens staffing fallback dialog instead of swap dialog
+    fireEvent.click(missedCard)
+    expect(screen.getByTestId("staffing-fallback-dialog")).toBeInTheDocument()
+    expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
   })
 
-  it("preserves unknown master missed class card on the calendar and updates classroom when swapped with a proposal", async () => {
-    const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
-    vi.spyOn(schedulingResource.updateProposal, "toMutation").mockReturnValue({
-      mutationKey: ["scheduling", "updateProposal"],
-      mutationFn: updateProposalMutationFn,
-    })
-
+  it("preserves unknown master missed class card on the calendar while preventing swap and opening staffing fallback dialog", () => {
     const onUpdateMissedClassesAssignments = vi.fn()
 
     const initialProposals: Proposal[] = [
@@ -2467,91 +2464,36 @@ describe("SchedulingPlanCalendarView Component", () => {
     // Click known teacher card to enter swap mode
     fireEvent.click(knownCard)
     expect(knownCard).toHaveAttribute("data-active", "true")
-    expect(missedCard).toHaveAttribute("data-swappable", "true")
+    // Missed card does NOT become swappable
+    expect(missedCard).not.toHaveAttribute("data-swappable")
 
-    // Click missed card to open SwapClassDialog
+    // Click missed card -> opens Staffing Fallback Dialog instead of swap dialog
     fireEvent.click(missedCard)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    expect(screen.getByTestId("staffing-fallback-dialog")).toBeInTheDocument()
+    expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
 
-    // Verify changeClassroom is checked by default
-    const classroomCheckbox = screen.getByTestId("swap-option-classroom")
-    expect(classroomCheckbox).toHaveAttribute("aria-checked", "true")
+    // Missed card is preserved on calendar
+    expect(
+      screen.getAllByTestId("missed-class-card-missed-req-1")[0]
+    ).toBeInTheDocument()
 
-    // Submit the swap
-    const confirmBtn = screen.getByTestId("swap-confirm-btn")
-    expect(confirmBtn).not.toBeDisabled()
-    fireEvent.click(confirmBtn)
-
-    // Verify backend update was called for the proposal with classroom cr102
-    await waitFor(() => {
-      expect(updateProposalMutationFn).toHaveBeenCalledTimes(1)
-    })
-    expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual(
-      expect.objectContaining({
-        proposalId: "prop-known-teacher",
-        body: expect.objectContaining({
-          classroomId: "cr102",
-        }),
-      })
-    )
-
-    // Verify parent onUpdateMissedClassesAssignments was called for the missed class with cr101
-    expect(onUpdateMissedClassesAssignments).toHaveBeenCalledWith({
-      "missed-req-1": expect.objectContaining({
-        classroomId: "cr101",
-        classroomName: "کلاس ۱۰۱",
-        isAssigned: true,
-      }),
-    })
-
-    // The unknown master missed class card must NOT hide, and must be visible with updated room name
-    await waitFor(() => {
-      const updatedMissedCard = screen.getAllByTestId(
-        "missed-class-card-missed-req-1"
-      )[0]!
-      expect(updatedMissedCard).toBeInTheDocument()
-      expect(updatedMissedCard).toHaveTextContent("کلاس ۱۰۱")
-    })
-
-    const updatedKnownCard = screen.getAllByTestId(
-      "calendar-class-card-prop-known-teacher"
-    )[0]!
-    expect(updatedKnownCard).toHaveTextContent("کلاس ۱۰۲")
-
-    // Simulate query refetch where proposals and missedClassesAssignments update with fresh objects
+    // Simulate query refetch / state update
     rerender(
       <SchedulingPlanCalendarView
-        proposals={[
-          {
-            ...initialProposals[0]!,
-            classroom: { id: "cr102", name: "کلاس ۱۰۲", capacity: 20 },
-            classroomId: "cr102",
-          },
-        ]}
+        proposals={initialProposals}
         canEdit={true}
         canSwap={true}
         defaultCollapsed={false}
         hiringPlan={hiringPlan}
-        missedClassesAssignments={{
-          "missed-req-1": {
-            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"] as WeekDay[],
-            startTime: "15:30",
-            endTime: "17:00",
-            classroomId: "cr101",
-            classroomName: "کلاس ۱۰۱",
-            isAssigned: true,
-          },
-        }}
+        missedClassesAssignments={assignmentsState}
         onUpdateMissedClassesAssignments={onUpdateMissedClassesAssignments}
       />
     )
 
-    // The missed class card must STILL be visible in the document with the swapped classroom
-    const rerenderedMissedCard = screen.getAllByTestId(
-      "missed-class-card-missed-req-1"
-    )[0]!
-    expect(rerenderedMissedCard).toBeInTheDocument()
-    expect(rerenderedMissedCard).toHaveTextContent("کلاس ۱۰۱")
+    // Missed class card remains visible
+    expect(
+      screen.getAllByTestId("missed-class-card-missed-req-1")[0]
+    ).toBeInTheDocument()
   })
 
   it("highlights master and course title in other cards, shows counts, keeps related cards undimmed, and supports toolbar toggle", () => {
@@ -2698,41 +2640,394 @@ describe("SchedulingPlanCalendarView Component", () => {
     const teacherCountChip = screen.getByTestId("same-teacher-count-chip")
     expect(teacherCountChip).toHaveTextContent("۲")
 
-    // Non-swappable cards are omitted from the DOM when a session is selected so user only sees active and swappable shaking cards
+    // Card with same teacher (prop-same-teacher) is not swappable, so it has the same dimmed opacity as other non-shaking cards, but highlights content with mark tag and does NOT have grayscale
+    const sameTeacherCard = screen.getAllByTestId(
+      "calendar-class-card-prop-same-teacher"
+    )[0]!
+    expect(sameTeacherCard).toHaveAttribute("data-same-teacher", "true")
+    expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
+    expect(sameTeacherCard).toHaveClass("opacity-25")
+    expect(sameTeacherCard).not.toHaveClass("grayscale")
+    expect(sameTeacherCard.querySelector("mark")).toHaveTextContent(
+      "علیرضا شمس"
+    )
     expect(
-      screen.queryByTestId("calendar-class-card-prop-same-teacher")
-    ).not.toBeInTheDocument()
+      within(sameTeacherCard).getByTestId(
+        "same-teacher-badge-prop-same-teacher"
+      )
+    ).toBeInTheDocument()
+
+    // Card with same course (prop-same-course) is not swappable, so it has the same dimmed opacity as other non-shaking cards, but highlights content with mark tag and does NOT have grayscale
+    const sameCourseCard = screen.getAllByTestId(
+      "calendar-class-card-prop-same-course"
+    )[0]!
+    expect(sameCourseCard).toHaveAttribute("data-same-course", "true")
+    expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
+    expect(sameCourseCard).toHaveClass("opacity-25")
+    expect(sameCourseCard).not.toHaveClass("grayscale")
+    expect(sameCourseCard.querySelector("mark")).toHaveTextContent(
+      "American English File 2"
+    )
     expect(
-      screen.queryByTestId("calendar-class-card-prop-same-course")
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByTestId("missed-class-card-missed-ame-2")
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByTestId("calendar-class-card-prop-unrelated")
+      within(sameCourseCard).queryByText("همین درس")
     ).not.toBeInTheDocument()
 
-    // Target card itself is active
-    expect(targetCard).toHaveAttribute("data-active", "true")
-
-    // Clicking clear selection button unpins and restores all omitted cards back to view
-    const clearBtn = screen.getByTestId("clear-selection-btn")
-    fireEvent.click(clearBtn)
-
+    // Missed class card with same course (missed-ame-2) is not swappable, so it has the same dimmed opacity, but highlights content with mark tag and does NOT have grayscale
+    const missedSameCourseCard = screen.getAllByTestId(
+      "missed-class-card-missed-ame-2"
+    )[0]!
+    expect(missedSameCourseCard).toHaveAttribute("data-same-course", "true")
+    expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
+    expect(missedSameCourseCard).toHaveClass("opacity-25")
+    expect(missedSameCourseCard).not.toHaveClass("grayscale")
+    expect(missedSameCourseCard.querySelector("mark")).toHaveTextContent(
+      "American English File 2"
+    )
     expect(
-      screen.queryByTestId("selected-class-match-summary")
+      within(missedSameCourseCard).queryByText("همین درس")
     ).not.toBeInTheDocument()
-    expect(
-      screen.getByTestId("calendar-class-card-prop-same-teacher")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByTestId("calendar-class-card-prop-same-course")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByTestId("missed-class-card-missed-ame-2")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByTestId("calendar-class-card-prop-unrelated")
-    ).toBeInTheDocument()
+
+    // Unrelated card (which does not show highlight words) has container-level opacity-25 AND grayscale
+    const unrelatedCard = screen.getAllByTestId(
+      "calendar-class-card-prop-unrelated"
+    )[0]!
+    expect(unrelatedCard).toHaveAttribute("data-dimmed", "true")
+    expect(unrelatedCard).toHaveClass("opacity-25")
+    expect(unrelatedCard).toHaveClass("grayscale")
+    expect(unrelatedCard).not.toHaveAttribute("data-same-teacher")
+    expect(unrelatedCard).not.toHaveAttribute("data-same-course")
+    expect(unrelatedCard.querySelector("mark")).toBeNull()
+
+    // Toggle highlight matches OFF via toolbar button
+    const toggleBtn = screen.getByTestId("toggle-highlight-matches-btn")
+    fireEvent.click(toggleBtn)
+
+    // Now same-teacher and same-course cards should lose highlight mark tags and gain grayscale
+    expect(sameTeacherCard).not.toHaveAttribute("data-same-teacher")
+    expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
+    expect(sameTeacherCard).toHaveClass("opacity-25")
+    expect(sameTeacherCard).toHaveClass("grayscale")
+    expect(sameTeacherCard.querySelector("mark")).toBeNull()
+    expect(sameCourseCard).not.toHaveAttribute("data-same-course")
+    expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
+    expect(sameCourseCard).toHaveClass("opacity-25")
+    expect(sameCourseCard).toHaveClass("grayscale")
+    expect(sameCourseCard.querySelector("mark")).toBeNull()
+    expect(missedSameCourseCard).not.toHaveAttribute("data-same-course")
+    expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
+    expect(missedSameCourseCard).toHaveClass("opacity-25")
+    expect(missedSameCourseCard).toHaveClass("grayscale")
+    expect(missedSameCourseCard.querySelector("mark")).toBeNull()
+
+    // Toggle highlight back ON
+    fireEvent.click(toggleBtn)
+    expect(sameTeacherCard).toHaveAttribute("data-same-teacher", "true")
+    expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
+    expect(sameTeacherCard).toHaveClass("opacity-25")
+    expect(sameTeacherCard).not.toHaveClass("grayscale")
+    expect(sameTeacherCard.querySelector("mark")).toHaveTextContent(
+      "علیرضا شمس"
+    )
+    expect(sameCourseCard).toHaveAttribute("data-same-course", "true")
+    expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
+    expect(sameCourseCard).toHaveClass("opacity-25")
+    expect(sameCourseCard).not.toHaveClass("grayscale")
+    expect(sameCourseCard.querySelector("mark")).toHaveTextContent(
+      "American English File 2"
+    )
+    expect(missedSameCourseCard).toHaveAttribute("data-same-course", "true")
+    expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
+    expect(missedSameCourseCard).toHaveClass("opacity-25")
+    expect(missedSameCourseCard).not.toHaveClass("grayscale")
+    expect(missedSameCourseCard.querySelector("mark")).toHaveTextContent(
+      "American English File 2"
+    )
+  })
+
+  it("renders cards in a responsive 2-column grid at xl screens to save vertical height", () => {
+    const multiProposals = [
+      {
+        ...mockProposals[0]!,
+        id: "prop-multi-1",
+        daysOfWeek: ["SATURDAY"] as const,
+        startTime: "09:00",
+        endTime: "10:30",
+      },
+      {
+        ...mockProposals[0]!,
+        id: "prop-multi-2",
+        daysOfWeek: ["SATURDAY"] as const,
+        startTime: "09:00",
+        endTime: "10:30",
+      },
+    ]
+
+    const { container } = render(
+      <SchedulingPlanCalendarView
+        proposals={multiProposals}
+        canEdit={false}
+        defaultCollapsed={false}
+      />
+    )
+
+    const evenTrack = container.querySelector(
+      '[data-day="EVEN"][data-slot="09:00-10:30"]'
+    )!
+    expect(evenTrack).toBeInTheDocument()
+
+    const cardsGrid = evenTrack.querySelector(".grid.lg\\:grid-cols-2")
+    expect(cardsGrid).toBeInTheDocument()
+    expect(cardsGrid).toHaveClass("grid", "grid-cols-1", "lg:grid-cols-2")
+    expect(cardsGrid).not.toHaveClass("[&>*:only-child]:xl:col-span-2")
+  })
+
+  const mockCalendars: SchedulingTeacherCalendar[] = [
+    {
+      teacher: {
+        id: "t-accessible",
+        firstName: "سارا",
+        lastName: "حسینی",
+        avatarUrl: null,
+      },
+      teachableCourses: [{ id: "c1", title: "American English File 1" }],
+      slots: [
+        {
+          dayOfWeek: "SATURDAY",
+          startTime: "09:00",
+          endTime: "10:30",
+          status: "FREE",
+          title: null,
+          source: "AVAILABILITY",
+        },
+        {
+          dayOfWeek: "SUNDAY",
+          startTime: "16:00",
+          endTime: "17:30",
+          status: "FREE",
+          title: null,
+          source: "AVAILABILITY",
+        },
+      ],
+    },
+    {
+      teacher: {
+        id: "t1",
+        firstName: "علی",
+        lastName: "محمدی",
+        avatarUrl: null,
+      },
+      teachableCourses: [{ id: "c1", title: "American English File 1" }],
+      slots: [
+        {
+          dayOfWeek: "SATURDAY",
+          startTime: "09:00",
+          endTime: "10:30",
+          status: "BUSY",
+          title: "کلاس صبح سطح A1",
+          source: "PLAN",
+        },
+      ],
+    },
+  ]
+
+  describe("Teacher filter selection and accessible slot highlighting", () => {
+    it("highlights group card border and displays accessible badge when selected teacher is accessible", () => {
+      const { container } = render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          teacherCalendars={mockCalendars}
+          selectedTeacherId="t-accessible"
+          canEdit={false}
+          defaultCollapsed={false}
+        />
+      )
+
+      // Even track for 09:00-10:30 has Saturday free -> should be highlighted as accessible
+      const accessibleEvenSlot = container.querySelector(
+        '[data-day="EVEN"][data-slot="09:00-10:30"]'
+      )
+      expect(accessibleEvenSlot).toBeInTheDocument()
+      expect(accessibleEvenSlot).toHaveAttribute(
+        "data-teacher-accessible",
+        "true"
+      )
+      expect(accessibleEvenSlot).toHaveClass(
+        "border-2",
+        "border-success",
+        "bg-success/5"
+      )
+      expect(
+        screen.getByTestId("teacher-accessible-badge-EVEN-09:00-10:30")
+      ).toHaveTextContent("در دسترس")
+
+      // Odd track for 09:00-10:30 does NOT have availability -> should have default border
+      const regularOddSlot = container.querySelector(
+        '[data-day="ODD"][data-slot="09:00-10:30"]'
+      )
+      expect(regularOddSlot).toBeInTheDocument()
+      expect(regularOddSlot).not.toHaveAttribute("data-teacher-accessible")
+      expect(regularOddSlot).toHaveClass("border-border/50", "bg-background/50")
+
+      // Odd track for 16:00-17:30 has Sunday free -> should be highlighted as accessible
+      const accessibleOddSlot = container.querySelector(
+        '[data-day="ODD"][data-slot="16:00-17:30"]'
+      )
+      expect(accessibleOddSlot).toBeInTheDocument()
+      expect(accessibleOddSlot).toHaveAttribute(
+        "data-teacher-accessible",
+        "true"
+      )
+      expect(accessibleOddSlot).toHaveClass(
+        "border-2",
+        "border-success",
+        "bg-success/5"
+      )
+      expect(
+        screen.getByTestId("teacher-accessible-badge-ODD-16:00-17:30")
+      ).toHaveTextContent("در دسترس")
+
+      // Toolbar chip displays selected teacher name
+      const filterChip = screen.getByTestId("selected-teacher-filter-chip")
+      expect(filterChip).toBeInTheDocument()
+      expect(filterChip).toHaveTextContent("فیلتر استاد: سارا حسینی")
+    })
+
+    it("highlights group card border with primary and displays teaching badge when selected teacher is teaching in that slot", () => {
+      const { container } = render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          teacherCalendars={mockCalendars}
+          selectedTeacherId="t1"
+          canEdit={false}
+          defaultCollapsed={false}
+        />
+      )
+
+      // Teacher t1 is assigned to prop-1 on EVEN track 09:00-10:30
+      const teachingSlot = container.querySelector(
+        '[data-day="EVEN"][data-slot="09:00-10:30"]'
+      )
+      expect(teachingSlot).toBeInTheDocument()
+      expect(teachingSlot).toHaveAttribute("data-teacher-teaching", "true")
+      expect(teachingSlot).toHaveClass(
+        "border-2",
+        "border-primary",
+        "bg-primary/5"
+      )
+      expect(
+        screen.getByTestId("teacher-teaching-badge-EVEN-09:00-10:30")
+      ).toHaveTextContent("در حال تدریس")
+
+      // The class card taught by this teacher has data-same-teacher="true"
+      const prop1Card = container.querySelector('[data-class-id="prop-1"]')
+      expect(prop1Card).toHaveAttribute("data-same-teacher", "true")
+    })
+
+    it("invokes onTeacherChange when clear button on chip is clicked", () => {
+      const onTeacherChange = vi.fn()
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          teacherCalendars={mockCalendars}
+          selectedTeacherId="t-accessible"
+          onTeacherChange={onTeacherChange}
+          canEdit={false}
+          defaultCollapsed={false}
+        />
+      )
+
+      const clearBtn = screen.getByTestId("clear-teacher-filter-btn")
+      fireEvent.click(clearBtn)
+      expect(onTeacherChange).toHaveBeenCalledWith(null)
+    })
+
+    it("reverts group card border to default when no teacher is selected", () => {
+      const { container } = render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          teacherCalendars={mockCalendars}
+          selectedTeacherId={null}
+          canEdit={false}
+          defaultCollapsed={false}
+        />
+      )
+
+      const slot = container.querySelector(
+        '[data-day="EVEN"][data-slot="09:00-10:30"]'
+      )
+      expect(slot).toBeInTheDocument()
+      expect(slot).not.toHaveAttribute("data-teacher-accessible")
+      expect(slot).not.toHaveAttribute("data-teacher-teaching")
+      expect(slot).toHaveClass("border-border/50", "bg-background/50")
+      expect(
+        screen.queryByTestId("selected-teacher-filter-chip")
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  describe("Group Teachers Accessibility Carousel", () => {
+    it("renders carousel of masters accessibility below class session cards in each period group with available and teaching teachers", () => {
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          teacherCalendars={mockCalendars}
+          canEdit={false}
+          defaultCollapsed={false}
+        />
+      )
+
+      const carouselEven09 = screen.getByTestId(
+        "group-teachers-carousel-EVEN-09:00-10:30"
+      )
+      expect(carouselEven09).toBeInTheDocument()
+
+      expect(screen.getAllByText("دسترسی اساتید").length).toBeGreaterThan(0)
+      const countBadge = screen.getByTestId(
+        "group-teachers-count-badge-EVEN-09:00-10:30"
+      )
+      expect(countBadge).toHaveTextContent("۲ استاد")
+
+      // Free / Available teacher: سارا حسینی
+      const availableTeacherCard = screen.getByTestId(
+        "group-teacher-card-t-accessible-EVEN-09:00-10:30"
+      )
+      expect(availableTeacherCard).toBeInTheDocument()
+      expect(availableTeacherCard).toHaveTextContent("سارا حسینی")
+      expect(
+        screen.getByTestId("teacher-status-badge-t-accessible-EVEN-09:00-10:30")
+      ).toHaveTextContent("در دسترس")
+
+      // Teaching teacher (who has class in that time): علی محمدی
+      const teachingTeacherCard = screen.getByTestId(
+        "group-teacher-card-t1-EVEN-09:00-10:30"
+      )
+      expect(teachingTeacherCard).toBeInTheDocument()
+      expect(teachingTeacherCard).toHaveTextContent("علی محمدی")
+      expect(
+        screen.getByTestId("teacher-status-badge-t1-EVEN-09:00-10:30")
+      ).toHaveTextContent("در حال تدریس")
+    })
+
+    it("highlights teacher card in group carousel when selected in filter, and clicking toggles filter", () => {
+      const onTeacherChange = vi.fn()
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          teacherCalendars={mockCalendars}
+          selectedTeacherId="t-accessible"
+          onTeacherChange={onTeacherChange}
+          canEdit={false}
+          defaultCollapsed={false}
+        />
+      )
+
+      const teacherCard = screen.getByTestId(
+        "group-teacher-card-t-accessible-EVEN-09:00-10:30"
+      )
+      expect(teacherCard).toHaveAttribute("data-selected", "true")
+
+      fireEvent.click(teacherCard)
+      expect(onTeacherChange).toHaveBeenCalledWith(null)
+    })
   })
 })

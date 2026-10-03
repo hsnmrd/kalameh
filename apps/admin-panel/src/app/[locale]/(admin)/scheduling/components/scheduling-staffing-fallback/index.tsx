@@ -40,9 +40,10 @@ export function SchedulingStaffingFallback({
   const locale = useLocale()
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
-  const [pendingOptionKey, setPendingOptionKey] = React.useState<string | null>(
-    null
-  )
+  const [pendingOption, setPendingOption] = React.useState<{
+    key: string
+    action: "ACCEPT" | "REJECT"
+  } | null>(null)
 
   const canToggle =
     Boolean(planId) &&
@@ -55,14 +56,26 @@ export function SchedulingStaffingFallback({
       const targetOption = fallback.availabilityOptions.find(
         (opt) => opt.key === variables.body.optionKey
       )
-      const wasAccepted = Boolean(targetOption?.isAccepted)
-      toast.success(
-        t(
-          wasAccepted
-            ? "staffingFallback.revertSuccess"
-            : "staffingFallback.acceptSuccess"
+      const action = variables.body.action ?? "ACCEPT"
+      if (action === "REJECT") {
+        const wasRejected = Boolean(targetOption?.isRejected)
+        toast.success(
+          t(
+            wasRejected
+              ? "staffingFallback.revertRejectSuccess"
+              : "staffingFallback.rejectSuccess"
+          )
         )
-      )
+      } else {
+        const wasAccepted = Boolean(targetOption?.isAccepted)
+        toast.success(
+          t(
+            wasAccepted
+              ? "staffingFallback.revertSuccess"
+              : "staffingFallback.acceptSuccess"
+          )
+        )
+      }
       queryClient.setQueryData(
         schedulingResource.planDetail.key({
           planId: updatedPlan.id,
@@ -77,13 +90,16 @@ export function SchedulingStaffingFallback({
       })
     },
     onSettled: () => {
-      setPendingOptionKey(null)
+      setPendingOption(null)
     },
   })
 
-  const handleToggleOption = (option: SchedulingTeacherOutreachOption) => {
+  const handleToggleOption = (
+    option: SchedulingTeacherOutreachOption,
+    action: "ACCEPT" | "REJECT"
+  ) => {
     if (!planId || !unresolvedRequirementId || toggleMutation.isPending) return
-    setPendingOptionKey(option.key)
+    setPendingOption({ key: option.key, action })
     toggleMutation.mutate({
       planId,
       ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
@@ -100,6 +116,7 @@ export function SchedulingStaffingFallback({
           option.deliveryMode === "ONLINE"
             ? null
             : (option.availableClassrooms[0]?.id ?? null),
+        action,
       },
     })
   }
@@ -131,8 +148,9 @@ export function SchedulingStaffingFallback({
             options={fallback.availabilityOptions}
             canToggle={canToggle}
             isPending={(key) =>
-              toggleMutation.isPending && pendingOptionKey === key
+              toggleMutation.isPending && pendingOption?.key === key
             }
+            pendingAction={pendingOption?.action ?? null}
             onToggle={handleToggleOption}
           />
         </div>

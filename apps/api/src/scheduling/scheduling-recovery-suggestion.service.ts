@@ -18,6 +18,7 @@ import {
   appendOutreachAvailabilitiesToQualifications,
   mergeAcceptedOutreachIntoOptions,
   readAcceptedOutreachRecords,
+  readRejectedOutreachOptionKeys,
 } from './scheduling-teacher-outreach.types';
 import { SchedulingTeacherReassignmentChainService } from './scheduling-teacher-reassignment-chain.service';
 
@@ -167,6 +168,9 @@ export class SchedulingRecoverySuggestionService {
         const acceptedRecords = readAcceptedOutreachRecords(
           unresolvedItem?.details,
         ).filter((rec) => proposalIds.has(rec.proposalId));
+        const rejectedKeys = readRejectedOutreachOptionKeys(
+          unresolvedItem?.details,
+        );
         const acceptedProposalIds = new Set(
           acceptedRecords.map((rec) => rec.proposalId),
         );
@@ -230,6 +234,7 @@ export class SchedulingRecoverySuggestionService {
             courses,
           }),
           acceptedRecords,
+          rejectedKeys,
         );
 
         return [

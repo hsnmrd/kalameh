@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { Link, useIsRtl } from "@/i18n/routing"
+import { useHeaderActions } from "../admin-base-layout/header-actions-context"
 
 export interface BreadcrumbItem {
   label: string
@@ -24,31 +24,24 @@ export function AdminBreadcrumb({
   backLabel,
   className,
 }: AdminBreadcrumbProps) {
+  const { setBackNavigation } = useHeaderActions()
+
+  React.useEffect(() => {
+    if (backHref) {
+      setBackNavigation({ backHref, backLabel })
+      return () => setBackNavigation(null)
+    }
+  }, [backHref, backLabel, setBackNavigation])
+
   const isRtl = useIsRtl()
-  const BackIcon = isRtl ? ArrowRight : ArrowLeft
   const ChevronIcon = isRtl ? ChevronLeft : ChevronRight
+
+  if (items.length === 0) return null
 
   return (
     <div
       className={cn("flex flex-wrap items-center gap-2 sm:gap-3", className)}
     >
-      {backHref && (
-        <Button
-          render={<Link href={backHref} />}
-          nativeButton={false}
-          variant="ghost"
-          size="sm"
-          className="h-8 cursor-pointer gap-1.5 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-        >
-          <BackIcon className="size-3.5" />
-          {backLabel && <span>{backLabel}</span>}
-        </Button>
-      )}
-
-      {backHref && items.length > 0 && (
-        <div className="hidden h-4 w-px bg-border/60 sm:block" />
-      )}
-
       {items.length > 0 && (
         <nav
           aria-label="Breadcrumb"
