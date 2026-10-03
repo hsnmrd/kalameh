@@ -96,38 +96,38 @@ export function PlanDetailsHeader({
 
   const headerActions = (
     <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
-      {canValidate ? (
-        <>
-          <Button
-            type="button"
-            variant={canPublish ? "outline" : "default"}
-            disabled={isValidationPending || publication.isPending}
-            onClick={onValidate}
-            className="w-full shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs sm:w-auto"
-          >
-            {isValidationPending ? (
-              <Spinner data-icon="inline-start" />
-            ) : (
-              <ShieldCheck aria-hidden data-icon="inline-start" />
-            )}
-            {isValidationPending
-              ? t("validation.validating")
-              : hasValidationResult
-                ? t("validation.validateAgain")
-                : t("validation.validate")}
-          </Button>
-          {canPublish && (
-            <Button
-              type="button"
-              disabled={publication.isPending}
-              onClick={() => setIsConfirmationOpen(true)}
-              className="w-full shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs sm:w-auto"
-            >
-              <Send aria-hidden data-icon="inline-start" />
-              {t("publication.publish")}
-            </Button>
+      {canPublish ? (
+        <Button
+          type="button"
+          disabled={publication.isPending}
+          onClick={() => setIsConfirmationOpen(true)}
+          className="w-full shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs sm:w-auto"
+        >
+          {publication.isPending ? (
+            <Spinner data-icon="inline-start" />
+          ) : (
+            <Send aria-hidden data-icon="inline-start" />
           )}
-        </>
+          {t("publication.publish")}
+        </Button>
+      ) : canValidate ? (
+        <Button
+          type="button"
+          disabled={isValidationPending || publication.isPending}
+          onClick={onValidate}
+          className="w-full shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs sm:w-auto"
+        >
+          {isValidationPending ? (
+            <Spinner data-icon="inline-start" />
+          ) : (
+            <ShieldCheck aria-hidden data-icon="inline-start" />
+          )}
+          {isValidationPending
+            ? t("validation.validating")
+            : hasValidationResult
+              ? t("validation.validateAgain")
+              : t("validation.validate")}
+        </Button>
       ) : (
         plan.status === "DRAFT" && (
           <Button
