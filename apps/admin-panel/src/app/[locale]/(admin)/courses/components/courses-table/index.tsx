@@ -1,0 +1,129 @@
+"use client"
+
+import * as React from "react"
+import { useTranslations, useLocale } from "next-intl"
+import { type ColumnDef } from "@tanstack/react-table"
+import { BookOpen, Edit2 } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { DataTable } from "@workspace/ui/components/data-table"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@workspace/ui/components/empty"
+import { Price } from "@workspace/ui/components/price"
+import { formatNumber } from "@workspace/ui/lib/utils"
+import { PERMISSIONS, type CourseDto } from "@workspace/types"
+import { PermissionGuard } from "@/components/permission-guard"
+import { CoursePrerequisiteBadge } from "../course-prerequisite-badge"
+
+export interface CoursesTableProps {
+  courses: CourseDto[] | undefined
+  isLoading: boolean
+  onEdit: (course: CourseDto) => void
+}
+
+export function CoursesTable({
+  courses,
+  isLoading,
+  onEdit,
+}: CoursesTableProps) {
+  const t = useTranslations("courses")
+  const locale = useLocale()
+
+  const columns = React.useMemo<ColumnDef<CourseDto>[]>(
+    () => [
+      {
+        accessorKey: "title",
+        header: t("table.title"),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
+              <BookOpen className="size-4" />
+            </div>
+            <span className="text-sm font-semibold text-foreground">
+              {row.original.title}
+            </span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "baseFee",
+        header: t("table.baseFee"),
+        cell: ({ row }) => (
+          <Price
+            amount={row.original.baseFee}
+            locale={locale}
+            className="text-sm text-foreground"
+          />
+        ),
+      },
+      {
+        accessorKey: "prerequisite",
+        header: t("table.prerequisite"),
+        cell: ({ row }) => (
+          <CoursePrerequisiteBadge prerequisite={row.original.prerequisite} />
+        ),
+      },
+      {
+        accessorKey: "classesCount",
+        header: t("table.classesCount"),
+        cell: ({ row }) => (
+          <span className="inline-flex items-center rounded-lg bg-muted px-2.5 py-1 text-xs font-semibold text-foreground">
+            {formatNumber(row.original.classesCount ?? 0, locale)}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: t("table.actions"),
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-2">
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_COURSES}
+              mode="disable"
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(row.original)}
+                className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                aria-label={t("table.actions")}
+              >
+                <Edit2 className="size-4" />
+              </Button>
+            </PermissionGuard>
+          </div>
+        ),
+      },
+    ],
+    [t, locale, onEdit]
+  )
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
+        <Spinner className="size-8 text-foreground" />
+      </div>
+    )
+  }
+
+  if (!courses || courses.length === 0) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="default">
+            <BookOpen className="size-6" />
+          </EmptyMedia>
+          <EmptyTitle>{t("title")}</EmptyTitle>
+          <EmptyDescription>{t("table.empty")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    )
+  }
+
+  return <DataTable columns={columns} data={courses} />
+}

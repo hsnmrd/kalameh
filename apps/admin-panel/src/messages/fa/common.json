@@ -1,0 +1,160 @@
+{
+  "appName": "کلمه",
+  "superAdmin": "مدیر ارشد سامانه",
+  "instituteAdmin": "مدیر آموزشگاه",
+  "adminPanel": "پنل مدیریت",
+  "superAdminMode": "مدیریت آموزشگاه (ادمین کل)",
+  "nav": {
+    "dashboard": "داشبورد",
+    "institutes": "مدیریت آموزشگاه‌ها",
+    "classes": "مدیریت کلاس‌ها",
+    "scheduling": "زمان‌بندی هوشمند",
+    "classrooms": "مدیریت اتاق ها",
+    "branches": "مدیریت شعب",
+    "terms": "ترم‌ها و دوره‌ها",
+    "courses": "مدیریت دوره‌ها",
+    "classrooms": "کلاس‌های درس",
+    "teachers": "مدیریت اساتید",
+    "students": "مدیریت زبان‌آموزان",
+    "staff": "مدیریت پرسنل",
+    "rolePermissions": "نقش‌ها و دسترسی‌ها",
+    "finance": "تراکنش‌های مالی",
+    "operatingPhases": "فازهای زمانی آموزشگاه",
+    "offDays": "تعطیلات و تقویم",
+    "customOffDays": "تعطیلات اختصاصی موسسه",
+    "teachersCalendar": "تقویم همه استادان",
+    "classRequirements": "نیازهای کلاسی",
+    "superAdminSection": "مدیریت کل سامانه",
+    "instituteSection": "مدیریت آموزشگاه",
+    "academicSection": "امور آموزشی",
+    "peopleSection": "افراد",
+    "financeSection": "امور مالی",
+    "administrationSection": "مدیریت و دسترسی",
+    "menu": "منو",
+    "moreTitle": "سایر بخش‌ها",
+    "mobileNavigation": "ناوبری موبایل",
+    "noMoreLinks": "همه بخش‌های در دسترس در نوار پایین قرار دارند.",
+    "locked": "ماژول غیرفعال"
+  },
+  "navShort": {
+    "dashboard": "پیشخوان",
+    "institutes": "آموزشگاه‌ها",
+    "classes": "کلاس‌ها",
+    "scheduling": "زمان‌بندی",
+    "classrooms": "اتاق‌ها",
+    "branches": "شعب",
+    "terms": "ترم‌ها",
+    "courses": "دوره‌ها",
+    "operatingPhases": "فازهای زمانی",
+    "offDays": "تعطیلات",
+    "teachers": "اساتید",
+    "students": "زبان‌آموزان",
+    "staff": "پرسنل",
+    "rolePermissions": "دسترسی‌ها",
+    "finance": "امور مالی",
+    "menu": "منو"
+  },
+  "theme": {
+    "light": "روشن",
+    "dark": "تیره",
+    "system": "سیستم"
+  },
+  "language": "زبان",
+  "back": "بازگشت",
+  "settings": "تنظیمات",
+  "logout": "خروج از حساب",
+  "filter": {
+    "title": "فیلترها",
+    "button": "فیلتر",
+    "show": "نمایش",
+    "clear": "پاک‌کردن فیلترها"
+  },
+  "userProfile": {
+    "title": "اطلاعات کاربری",
+    "phone": "شماره تماس",
+    "role": "نقش کاربری",
+    "institute": "آموزشگاه",
+    "status": "وضعیت حساب",
+    "active": "فعال",
+    "inactive": "غیرفعال",
+    "changeInstitute": "تغییر آموزشگاه",
+    "closeInstitute": "خروج از آموزشگاه",
+    "selectInstitute": "انتخاب آموزشگاه",
+    "managingInstitute": "در حال مدیریت آموزشگاه",
+    "superAdminAccount": "حساب مدیر ارشد"
+  },
+  "importModal": {
+    "trigger": "ورود از اکسل"
+  },
+  "export": {
+    "trigger": "خروجی اکسل"
+  },
+  "en": "English",
+  "fa": "فارسی",
+  "footer": "سامانه آموزش زبان کلمه • نگارش ۱.۰",
+  "success": "عملیات با موفقیت انجام شد",
+  "error": "خطایی رخ داد",
+  "clearSearch": "پاک کردن جستجو",
+  "noPermission": "شما دسترسی لازم برای انجام این عملیات را ندارید",
+  "notFound": {
+    "title": "صفحه مورد نظر یافت نشد",
+    "description": "متأسفانه صفحه‌ای که به دنبال آن هستید وجود ندارد یا حذف شده است.",
+    "backHome": "بازگشت به پنل مدیریت"
+  },
+  "forbidden": {
+    "badge": "خطای ۴۰۳",
+    "title": "دسترسی غیرمجاز",
+    "description": "شما مجوز لازم برای مشاهده و دسترسی به این بخش را ندارید. در صورت نیاز با مدیر سامانه تماس بگیرید.",
+    "backHome": "بازگشت به پیشخوان"
+  },
+  "combobox": {
+    "placeholder": "انتخاب کنید...",
+    "searchPlaceholder": "جستجو",
+    "emptyMessage": "موردی یافت نشد."
+  },
+  "modules": {
+    "title": "ماژول‌های خریداری‌شده و فعال",
+    "description": "ماژول‌های مورد نظر را برای دسترسی این آموزشگاه انتخاب نمایید.",
+    "inactiveToast": "این ماژول در پلن اشتراک آموزشگاه شما فعال نمی‌باشد.",
+    "contactSalesCta": "تماس با پشتیبانی فروش",
+    "contactSalesToast": "جهت فعال‌سازی این ماژول با واحد فروش و پشتیبانی کلمه در ارتباط باشید.",
+    "presetsTitle": "بسته‌های پیش‌فرض:",
+    "presetStarter": "پایه",
+    "presetPro": "پیشرفته",
+    "presetEnterprise": "سازمانی (کامل)",
+    "items": {
+      "USERS_STAFF": {
+        "name": "کاربران و پرسنل",
+        "description": "مدیریت دسترسی‌ها، نقش‌ها و کارمندان آموزشگاه"
+      },
+      "STUDENTS": {
+        "name": "پرونده فراگیران",
+        "description": "ثبت‌نام، بایگانی اطلاعات و پرونده تحصیلی دانش‌آموزان"
+      },
+      "CLASSES_COURSES": {
+        "name": "دوره‌ها و کلاس‌ها",
+        "description": "تعریف دروس، ترم‌های تحصیلی، شعب و برنامه‌ریزی کلاس‌ها"
+      },
+      "GRADES_ASSESSMENTS": {
+        "name": "نمرات و ارزیابی",
+        "description": "ثبت نمرات، تعیین سطوح و صدور کارنامه آموزشی"
+      },
+      "FINANCE": {
+        "name": "حسابداری و امور مالی",
+        "description": "شهریه‌ها، تراکنش‌ها، صورتحساب‌ها و گزارش‌های مالی"
+      },
+      "ATTENDANCE": {
+        "name": "حضور و غیاب",
+        "description": "ثبت جلسات، پایش ورود و خروج و غیبت‌های فراگیران"
+      },
+      "SMS_NOTIFICATIONS": {
+        "name": "سامانه پیامک",
+        "description": "ارسال خودکار پیامک‌های اطلاع‌رسانی، یادآوری و ثبت‌نام"
+      },
+      "ONLINE_ROOMS": {
+        "name": "کلاس‌های آنلاین",
+        "description": "اتاق‌های مجازی و جلسات برخط و وبینار"
+      }
+    }
+  }
+}

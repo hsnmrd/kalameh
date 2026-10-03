@@ -1,0 +1,176 @@
+"use client"
+
+import * as React from "react"
+import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
+import { cn } from "@workspace/ui/lib/utils"
+import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+  DrawerFooter,
+} from "./drawer"
+import { Button } from "./button"
+
+const Popover = PopoverPrimitive.Root
+const PopoverTrigger = PopoverPrimitive.Trigger
+const PopoverPortal = PopoverPrimitive.Portal
+const PopoverClose = PopoverPrimitive.Close
+const PopoverPositioner = PopoverPrimitive.Positioner
+const PopoverArrow = PopoverPrimitive.Arrow
+
+function PopoverPopup({
+  className,
+  children,
+  side = "bottom",
+  sideOffset = 4,
+  align = "center",
+  alignOffset,
+  anchor,
+  positionMethod,
+  collisionBoundary,
+  collisionPadding,
+  sticky,
+  ...props
+}: PopoverPrimitive.Popup.Props & {
+  side?: PopoverPrimitive.Positioner.Props["side"]
+  sideOffset?: PopoverPrimitive.Positioner.Props["sideOffset"]
+  align?: PopoverPrimitive.Positioner.Props["align"]
+  alignOffset?: PopoverPrimitive.Positioner.Props["alignOffset"]
+  anchor?: PopoverPrimitive.Positioner.Props["anchor"]
+  positionMethod?: PopoverPrimitive.Positioner.Props["positionMethod"]
+  collisionBoundary?: PopoverPrimitive.Positioner.Props["collisionBoundary"]
+  collisionPadding?: PopoverPrimitive.Positioner.Props["collisionPadding"]
+  sticky?: PopoverPrimitive.Positioner.Props["sticky"]
+}) {
+  return (
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Positioner
+        anchor={anchor}
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+        positionMethod={positionMethod}
+        collisionBoundary={collisionBoundary}
+        collisionPadding={collisionPadding}
+        sticky={sticky}
+        className="z-50"
+      >
+        <PopoverPrimitive.Popup
+          className={cn(
+            "relative z-50 w-72 rounded-2xl border border-border bg-popover p-4 text-popover-foreground shadow-md outline-hidden transition-all data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </PopoverPrimitive.Popup>
+      </PopoverPrimitive.Positioner>
+    </PopoverPrimitive.Portal>
+  )
+}
+
+export {
+  Popover,
+  PopoverTrigger,
+  PopoverPortal,
+  PopoverClose,
+  PopoverPositioner,
+  PopoverArrow,
+  PopoverPopup,
+  PopoverPopup as PopoverContent,
+}
+
+export interface ResponsivePopoverProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  trigger: React.ReactElement
+  drawerTitle: React.ReactNode
+  onClear?: () => void
+  clearLabel?: string
+  closeLabel?: string
+  drawerFooter?: React.ReactNode
+  children: React.ReactNode
+  className?: string
+  drawerClassName?: string
+  drawerBodyClassName?: string
+  sideOffset?: number
+  align?: "start" | "center" | "end"
+}
+
+export function ResponsivePopover({
+  open,
+  onOpenChange,
+  trigger,
+  drawerTitle,
+  onClear,
+  clearLabel = "پاک کردن",
+  closeLabel = "بستن",
+  drawerFooter,
+  children,
+  className,
+  drawerClassName,
+  drawerBodyClassName,
+  sideOffset = 4,
+  align = "center",
+}: ResponsivePopoverProps) {
+  const isMobile = useIsMobile()
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerTrigger render={trigger} />
+        <DrawerContent className={drawerClassName}>
+          <DrawerHeader className="flex flex-row items-center justify-between">
+            <DrawerTitle>{drawerTitle}</DrawerTitle>
+            {onClear && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onClear}
+                className="h-auto p-1 text-xs font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                {clearLabel}
+              </Button>
+            )}
+          </DrawerHeader>
+          <div
+            className={cn(
+              "flex-1 overflow-y-auto px-4 pt-2",
+              drawerBodyClassName
+            )}
+          >
+            {children}
+          </div>
+          {drawerFooter !== undefined ? (
+            drawerFooter
+          ) : (
+            <DrawerFooter>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-14 w-full rounded-2xl text-base font-medium"
+                onClick={() => onOpenChange(false)}
+              >
+                {closeLabel}
+              </Button>
+            </DrawerFooter>
+          )}
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverTrigger render={trigger} />
+      <PopoverPopup className={className} sideOffset={sideOffset} align={align}>
+        {children}
+      </PopoverPopup>
+    </Popover>
+  )
+}

@@ -1,38 +1,115 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { prisma } from '@workspace/database';
+import { prisma, Prisma } from '@workspace/database';
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
-  get institute() {
+  get institute(): typeof prisma.institute {
     return prisma.institute;
   }
 
-  get user() {
+  get branch(): typeof prisma.branch {
+    return prisma.branch;
+  }
+
+  get user(): typeof prisma.user {
     return prisma.user;
   }
 
-  get course() {
+  get course(): typeof prisma.course {
     return prisma.course;
   }
 
-  get term() {
+  get term(): typeof prisma.term {
     return prisma.term;
   }
 
-  get class() {
+  get class(): typeof prisma.class {
     return prisma.class;
   }
 
-  get enrollment() {
+  get classroom(): typeof prisma.classroom {
+    return prisma.classroom;
+  }
+
+  get enrollment(): typeof prisma.enrollment {
     return prisma.enrollment;
   }
 
-  get transaction() {
+  get transaction(): typeof prisma.transaction {
     return prisma.transaction;
   }
 
-  get client() {
+  get rolePermission(): typeof prisma.rolePermission {
+    return prisma.rolePermission;
+  }
+
+  get studentProfile(): typeof prisma.studentProfile {
+    return prisma.studentProfile;
+  }
+
+  get studentNote(): typeof prisma.studentNote {
+    return prisma.studentNote;
+  }
+
+  get auditLog(): typeof prisma.auditLog {
+    return prisma.auditLog;
+  }
+
+  get teacherProfile(): typeof prisma.teacherProfile {
+    return prisma.teacherProfile;
+  }
+
+  get teacherAvailability(): typeof prisma.teacherAvailability {
+    return prisma.teacherAvailability;
+  }
+
+  get teacherCourseQualification(): typeof prisma.teacherCourseQualification {
+    return prisma.teacherCourseQualification;
+  }
+
+  get classRequirement(): typeof prisma.classRequirement {
+    return prisma.classRequirement;
+  }
+
+  get schedulingRun(): typeof prisma.schedulingRun {
+    return prisma.schedulingRun;
+  }
+
+  get schedulingPlan(): typeof prisma.schedulingPlan {
+    return prisma.schedulingPlan;
+  }
+
+  get schedulingProposal(): typeof prisma.schedulingProposal {
+    return prisma.schedulingProposal;
+  }
+
+  get schedulingProposalSession(): typeof prisma.schedulingProposalSession {
+    return prisma.schedulingProposalSession;
+  }
+
+  get schedulingUnresolvedRequirement(): typeof prisma.schedulingUnresolvedRequirement {
+    return prisma.schedulingUnresolvedRequirement;
+  }
+
+  get instituteOperatingPhase(): typeof prisma.instituteOperatingPhase {
+    return prisma.instituteOperatingPhase;
+  }
+
+  get instituteCustomOffDay(): typeof prisma.instituteCustomOffDay {
+    return prisma.instituteCustomOffDay;
+  }
+
+  get client(): typeof prisma {
     return prisma;
+  }
+
+  $transaction<T>(
+    arg:
+      | ((tx: Prisma.TransactionClient) => Promise<T>)
+      | Prisma.PrismaPromise<any>[],
+  ): Promise<T> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+    return (prisma.$transaction as any)(arg);
   }
 
   async onModuleInit() {

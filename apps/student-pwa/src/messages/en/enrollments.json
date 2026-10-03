@@ -1,0 +1,14 @@
+{
+  "title": "Payment & Receipts",
+  "subtitle": "Manage enrollment receipts and track payment status",
+  "statusPending": "Pending Approval",
+  "receiptNumber": "#REC-88421",
+  "className": "Starter 101 - Class A",
+  "submittedTime": "Submitted: Today at 11:30 AM",
+  "amount": "Amount: 1,500,000 Tomans",
+  "trackingCodeLabel": "Tracking Code:",
+  "trackingCodeValue": "9823104576",
+  "uploadTitle": "Upload Bank Receipt",
+  "uploadSubtitle": "Upload transfer screenshot or receipt slip for new enrollment",
+  "selectImageButton": "Select Receipt Image"
+}

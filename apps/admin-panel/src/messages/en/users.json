@@ -1,0 +1,155 @@
+{
+  "title": "Staff & Permission Management",
+  "subtitle": "View, create, edit and manage permissions for administrators, clerks, and institute staff",
+  "addUser": "Add New Staff Member",
+  "header": {
+    "create": "Add User",
+    "import": "Import from Excel",
+    "export": "Export to Excel"
+  },
+  "searchPlaceholder": "Search",
+  "filter": {
+    "role": "Staff Role",
+    "all": "All Roles",
+    "clerks": "Clerks",
+    "admins": "Institute Admins"
+  },
+  "roles": {
+    "STUDENT": "Student",
+    "SUPER_STUDENT": "Super Student",
+    "CLERK": "Clerk",
+    "SUPER_CLERK": "Super Clerk",
+    "TEACHER": "Teacher",
+    "SUPERVISOR": "Supervisor",
+    "ASSISTANT": "Assistant",
+    "ADMIN": "Institute Admin",
+    "SUPER_ADMIN": "Super Admin"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "table": {
+    "name": "Full Name",
+    "phone": "Phone Number",
+    "nationalCode": "National Code",
+    "role": "Role",
+    "status": "Status",
+    "createdAt": "Created At",
+    "actions": "Actions",
+    "empty": "No staff found matching the criteria."
+  },
+  "createModal": {
+    "title": "Add New Staff Member",
+    "description": "Enter the details to create a new admin panel user account.",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "John",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Doe",
+    "phone": "Phone Number (Login Username)",
+    "phonePlaceholder": "09123456789",
+    "nationalCode": "National Code (Optional)",
+    "nationalCodePlaceholder": "0012345678",
+    "role": "Role",
+    "avatar": "Profile Photo",
+    "avatarPlaceholder": "Upload profile photo",
+    "avatarDescription": "PNG, JPG, WEBP or SVG (Max 5MB)",
+    "removeAvatar": "Remove photo",
+    "password": "Initial Password",
+    "passwordPlaceholder": "Enter password",
+    "passwordHint": "If left empty, phone number will be used as default password.",
+    "submit": "Create User",
+    "cancel": "Cancel",
+    "success": "Staff member created successfully.",
+    "lookupFound": "User record found in system. Form auto-filled.",
+    "lookupNew": "New User",
+    "lookupChecking": "Checking user record..."
+  },
+  "editModal": {
+    "title": "Edit Staff Profile",
+    "description": "Update the staff member details and active account status.",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "First name",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Last name",
+    "phone": "Phone Number",
+    "phonePlaceholder": "Phone number",
+    "nationalCode": "National Code",
+    "nationalCodePlaceholder": "National Code",
+    "isActive": "Account Status (Active / Suspended)",
+    "avatar": "Profile Photo",
+    "avatarPlaceholder": "Upload profile photo",
+    "avatarDescription": "PNG, JPG, WEBP or SVG (Max 5MB)",
+    "removeAvatar": "Remove photo",
+    "submit": "Save Changes",
+    "cancel": "Cancel",
+    "success": "Staff member updated successfully."
+  },
+  "resetPasswordModal": {
+    "title": "Reset Staff Password",
+    "description": "Enter a new password for {name}. If left blank, it will reset to their phone number.",
+    "newPassword": "New Password (Optional)",
+    "passwordPlaceholder": "Enter new password",
+    "passwordHint": "Min 6 characters. If empty, phone number will be used.",
+    "submit": "Reset Password",
+    "cancel": "Cancel",
+    "success": "Password reset successfully."
+  },
+  "profileModal": {
+    "title": "Staff Profile",
+    "personalInfo": "Personal Details",
+    "identityInfo": "Identity Information",
+    "contactInfo": "Contact Information",
+    "systemInfo": "System & Access Details",
+    "close": "Close"
+  },
+  "actions": {
+    "viewProfile": "View Details",
+    "edit": "Edit Profile",
+    "resetPassword": "Reset Password",
+    "delete": "Delete Account"
+  },
+  "deleteModal": {
+    "title": "Delete Staff Member",
+    "description": "Are you sure you want to permanently delete this staff member? This action cannot be undone.",
+    "userName": "Full Name",
+    "phone": "Phone Number",
+    "role": "Role",
+    "cancel": "Cancel",
+    "confirm": "Delete User",
+    "deleting": "Deleting...",
+    "success": "User deleted successfully."
+  },
+  "validation": {
+    "firstNameMin": "First name must be at least 2 characters.",
+    "lastNameMin": "Last name must be at least 2 characters.",
+    "phoneRegex": "Phone number must be an 11-digit Iranian mobile (e.g. 09121234567).",
+    "passwordMin": "Password must be at least 6 characters."
+  },
+  "importModal": {
+    "trigger": "Import from Excel",
+    "title": "Bulk Import Staff from Excel",
+    "description": "Import staff members in bulk using an Excel or CSV spreadsheet.",
+    "downloadTemplate": "Download Template (.xlsx)",
+    "dragDropText": "Drag and drop your spreadsheet (.xlsx or .csv) here or click to browse",
+    "uploadHint": "Supported formats: XLSX and CSV",
+    "selectedFile": "Selected file:",
+    "submit": "Start Import",
+    "uploading": "Importing...",
+    "cancel": "Cancel",
+    "resultTitle": "Excel Import Results",
+    "totalRows": "Total Rows: {count}",
+    "importedRows": "Successfully Imported: {count}",
+    "failedRows": "Errors: {count}",
+    "errorListTitle": "Row Error Details:",
+    "rowNumber": "Row {row}",
+    "successMessage": "{count} staff members were imported successfully.",
+    "close": "Confirm & Close",
+    "templateDownloadError": "The template could not be downloaded."
+  },
+  "export": {
+    "trigger": "Export to Excel",
+    "exporting": "Generating Excel export...",
+    "error": "Failed to export Excel file"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "welcomeTitle": "Dashboard",
+  "allowedClasses": "Allowed Classes",
+  "allowedClassesDesc": "Select class & upload receipt",
+  "flashcards": "Flashcards",
+  "flashcardsDesc": "Daily Leitner practice",
+  "statusPendingApproval": "Pending Approval",
+  "term": "Fall 2026",
+  "className": "Starter 101 - Class A",
+  "receiptStatusDesc": "Your payment receipt has been submitted and is awaiting administrator verification.",
+  "viewReceiptDetails": "View payment receipt details"
+}

@@ -1,0 +1,160 @@
+{
+  "title": "Institutes Management",
+  "subtitle": "Super Admin control panel for language institutes and tenants",
+  "addInstitute": "Create Institute",
+  "searchPlaceholder": "Search institutes...",
+  "filter": {
+    "title": "Filter Institutes",
+    "status": "Institute Status",
+    "allStatus": "All Statuses",
+    "activeOnly": "Active Institutes Only",
+    "inactiveOnly": "Inactive Institutes Only"
+  },
+  "noInstitutes": "No institutes found.",
+  "manageInstitute": "Manage & Enter Institute Panel",
+  "currentlyManaging": "Currently Managing",
+  "classesCount": "Classes",
+  "usersCount": "Users",
+  "columns": {
+    "name": "Institute Name",
+    "subdomain": "Subdomain",
+    "status": "Status",
+    "studentsCount": "Enrolled Students",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "blocked": "Suspended / Blocked"
+  },
+  "edit": "Edit",
+  "delete": "Delete Institute",
+  "block": "Suspend Access",
+  "unblock": "Unsuspend & Activate",
+  "manage": "Manage",
+  "actions": "Institute Actions",
+  "switcher": {
+    "title": "Select Institute",
+    "description": "Choose an institute to manage its classes, students, and settings",
+    "searchPlaceholder": "Search",
+    "allInstitutes": "All Institutes",
+    "globalView": "Platform Overview",
+    "classes": "Classes",
+    "noResults": "No institutes matching your search",
+    "close": "Close"
+  },
+  "createModal": {
+    "title": "Create New Institute",
+    "description": "Enter institute details, subdomain, visual branding, modules, and contact info.",
+    "sectionGeneral": "General & Branding",
+    "sectionModules": "Modules & Plan",
+    "sectionContact": "Contact & Location",
+    "sectionBanking": "Banking Details (Optional)",
+    "name": "Institute Name",
+    "namePlaceholder": "e.g. Kalameh Language Institute",
+    "subdomain": "Dedicated Subdomain",
+    "subdomainPlaceholder": "tehran",
+    "subdomainSuffix": ".kalameh.ir",
+    "logo": "Institute Logo",
+    "logoPlaceholder": "Drag and drop or click to select institute logo",
+    "logoDescription": "PNG, JPG, WEBP or SVG up to 5MB",
+    "primaryColor": "Primary Brand Color",
+    "primaryColorCustom": "Custom Hex Color",
+    "primaryColorPlaceholder": "#10b981",
+    "status": "Institute Status",
+    "statusActive": "Institute is active by default",
+    "phones": "Contact Phone Numbers",
+    "phonePlaceholder": "02188776655",
+    "addPhone": "Add Phone Number",
+    "removePhone": "Remove",
+    "address": "Institute Physical Address",
+    "addressPlaceholder": "e.g. 123 Main Street, Suite 400",
+    "bankAccountName": "Bank Account Name",
+    "bankAccountNamePlaceholder": "e.g. John Doe",
+    "bankCardNumber": "Bank Card Number (16 digits)",
+    "bankCardNumberPlaceholder": "6037991812345678",
+    "bankShaba": "Shaba / IBAN Number",
+    "bankShabaPlaceholder": "IR120170000000123456789012",
+    "cancel": "Cancel",
+    "next": "Next",
+    "prev": "Previous",
+    "submit": "Create Institute",
+    "submitting": "Creating...",
+    "success": "New institute created successfully."
+  },
+  "editModal": {
+    "title": "Edit Institute Details",
+    "description": "Modify institute branding, operational status, and contact information.",
+    "submit": "Save Changes",
+    "submitting": "Saving Changes...",
+    "success": "Institute details updated successfully.",
+    "statusLabel": "Institute Operational Status",
+    "statusActiveHint": "When inactive or suspended, users belonging to this institute will not be able to log in."
+  },
+  "deleteModal": {
+    "title": "Delete Institute",
+    "description": "Are you sure you want to delete this institute? It will be deactivated and archived from the active list, while historical records remain intact in the database.",
+    "instituteName": "Institute Name:",
+    "subdomain": "Subdomain:",
+    "confirm": "Delete Institute",
+    "deleting": "Deleting...",
+    "cancel": "Cancel",
+    "success": "Institute deleted successfully."
+  },
+  "blockToggle": {
+    "blockTitle": "Suspend Institute",
+    "blockSuccess": "Institute has been suspended and deactivated.",
+    "unblockSuccess": "Institute has been activated successfully."
+  },
+  "modules": {
+    "title": "Purchased & Active Modules",
+    "description": "Select which functional modules are active for this institute.",
+    "inactiveToast": "This module is not active for your institute subscription plan.",
+    "contactSalesCta": "Contact Sales & Support",
+    "contactSalesToast": "Please contact Kalameh sales and support to activate this module.",
+    "presetsTitle": "Plan Presets:",
+    "presetStarter": "Starter",
+    "presetPro": "Pro",
+    "presetEnterprise": "Enterprise (All)",
+    "items": {
+      "USERS_STAFF": {
+        "name": "Users & Staff",
+        "description": "User roles, clerk permissions, and staff accounts"
+      },
+      "STUDENTS": {
+        "name": "Student Profiles",
+        "description": "Student registration, dossier, and academic records"
+      },
+      "CLASSES_COURSES": {
+        "name": "Classes & Courses",
+        "description": "Course catalog, academic terms, branches, and class schedules"
+      },
+      "GRADES_ASSESSMENTS": {
+        "name": "Grades & Evaluation",
+        "description": "Grade submission, leveling, and student report cards"
+      },
+      "FINANCE": {
+        "name": "Finance & Accounting",
+        "description": "Tuitions, payment tracking, invoices, and revenue reports"
+      },
+      "ATTENDANCE": {
+        "name": "Attendance Tracking",
+        "description": "Session attendance logs, student check-ins, and absence tracking"
+      },
+      "SMS_NOTIFICATIONS": {
+        "name": "SMS Gateway",
+        "description": "Automated SMS alerts for attendance, registration, and reminders"
+      },
+      "ONLINE_ROOMS": {
+        "name": "Online Classrooms",
+        "description": "Virtual classrooms, live video lectures, and webinars"
+      }
+    }
+  },
+  "validation": {
+    "nameMin": "Institute name must be at least 2 characters.",
+    "subdomainMin": "Subdomain must be at least 2 characters.",
+    "subdomainRegex": "Subdomain must contain only lowercase letters, numbers, and dashes.",
+    "primaryColorRegex": "Primary color must be a valid hex format (e.g. #10b981)."
+  }
+}

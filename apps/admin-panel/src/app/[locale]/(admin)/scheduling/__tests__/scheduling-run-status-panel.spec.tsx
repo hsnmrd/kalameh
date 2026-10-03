@@ -1,0 +1,247 @@
+import { afterEach, describe, expect, it, vi } from "vitest"
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "../../../../../test/test-utils"
+import type { SchedulingRunDto, SchedulingRunStatusDto } from "@workspace/types"
+import { schedulingResource } from "@/lib/api"
+import * as stores from "@/lib/stores"
+import { SchedulingRunStatusPanel } from "../components/scheduling-run-status-panel"
+import {
+  getSchedulingRunPollInterval,
+  SCHEDULING_RUN_POLL_INTERVAL,
+} from "../hooks/use-scheduling-run-status"
+
+const instituteId = "11111111-1111-4111-8111-111111111111"
+const runId = "22222222-2222-4222-8222-222222222222"
+const planId = "33333333-3333-4333-8333-333333333333"
+const timestamp = "2026-09-09T10:00:00.000Z"
+
+const queuedRun: SchedulingRunDto = {
+  id: runId,
+  instituteId,
+  termId: "44444444-4444-4444-8444-444444444444",
+  requestedByUserId: "55555555-5555-4555-8555-555555555555",
+  status: "QUEUED",
+  inputSnapshot: {},
+  settingsSnapshot: {},
+  plans: [],
+  createdAt: timestamp,
+  updatedAt: timestamp,
+}
+
+const completedStatus: SchedulingRunStatusDto = {
+  runId,
+  status: "COMPLETED",
+  isTerminal: true,
+  result: { planIds: [planId], recommendedPlanId: planId },
+  preflightReport: null,
+  failureCode: null,
+  failureMessage: null,
+  startedAt: timestamp,
+  completedAt: timestamp,
+  createdAt: timestamp,
+  updatedAt: timestamp,
+}
+
+describe("MVP-035 scheduling run status panel", () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it("polls active runs and stops for terminal or failed queries", () => {
+    expect(getSchedulingRunPollInterval({})).toBe(SCHEDULING_RUN_POLL_INTERVAL)
+    expect(getSchedulingRunPollInterval({ data: completedStatus })).toBe(false)
+    expect(getSchedulingRunPollInterval({ error: new Error("offline") })).toBe(
+      false
+    )
+  })
+
+  it("shows the completed result and allows starting another run", async () => {
+    const queryFn = vi.fn().mockResolvedValue(completedStatus)
+    const onReset = vi.fn()
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    const statusQuerySpy = vi
+      .spyOn(schedulingResource.runStatus, "toQuery")
+      .mockReturnValue({
+        queryKey: ["scheduling", "run-status", runId],
+        queryFn,
+      } as never)
+    vi.spyOn(schedulingResource.planDetail, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "plan-detail", planId],
+      queryFn: async () => Promise.reject(new Error("not needed here")),
+    } as never)
+
+    render(<SchedulingRunStatusPanel run={queuedRun} onReset={onReset} />)
+
+    expect(
+      await screen.findByRole("heading", { name: "پیشنهادها آماده‌اند" })
+    ).toBeInTheDocument()
+    expect(screen.getByText("تکمیل‌شده")).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "تولید با موفقیت تمام شد و برنامه‌ها برای بررسی سوپروایزر آماده هستند."
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText("۱ پیشنهاد زمان‌بندی ساخته شد")
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText(/شناسه اجرا/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/پیشنهاد موتور/)).not.toBeInTheDocument()
+    expect(statusQuerySpy).toHaveBeenCalledWith({ runId, instituteId })
+
+    fireEvent.click(screen.getByRole("button", { name: "ساخت اجرای دیگر" }))
+    expect(onReset).toHaveBeenCalledOnce()
+    await waitFor(() => expect(queryFn).toHaveBeenCalledOnce())
+  })
+
+  it("shows the engine message when preflight blocks generation", async () => {
+    const preflightFailure: SchedulingRunStatusDto = {
+      ...completedStatus,
+      status: "PREFLIGHT_FAILED",
+      isTerminal: true,
+      result: null,
+      failureCode: "PREFLIGHT_BLOCKED",
+      failureMessage: "هیچ استاد واجد شرایطی برای این دوره ثبت نشده است.",
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "failed"],
+      queryFn: async () => preflightFailure,
+    } as never)
+
+    render(<SchedulingRunStatusPanel run={queuedRun} onReset={vi.fn()} />)
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "داده‌های ورودی نیاز به بررسی دارند",
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText("هیچ استاد واجد شرایطی برای این دوره ثبت نشده است.")
+    ).toBeInTheDocument()
+  })
+
+  it("shows structured preflight blocking issues when preflight report is present", async () => {
+    const preflightFailureWithIssues: SchedulingRunStatusDto = {
+      ...completedStatus,
+      status: "PREFLIGHT_FAILED",
+      isTerminal: true,
+      result: null,
+      failureCode: "PREFLIGHT_BLOCKED",
+      failureMessage: "تولید برنامه متوقف شد",
+      preflightReport: {
+        schemaVersion: "1",
+        checkedAt: new Date().toISOString(),
+        passed: false,
+        summary: {
+          blockingIssueCount: 1,
+          warningCount: 0,
+          infoCount: 0,
+          requirementCount: 1,
+          courseCount: 1,
+          studentCount: 0,
+          completeStudentScheduleCount: 0,
+          activeTeacherCount: 1,
+          teacherWithoutQualificationCount: 0,
+        },
+        issues: [
+          {
+            code: "COURSE_WITHOUT_QUALIFIED_TEACHER",
+            severity: "BLOCKING",
+            scope: "COURSE",
+            entityId: "course-123",
+            context: {},
+          },
+        ],
+      },
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "failed-issues"],
+      queryFn: async () => preflightFailureWithIssues,
+    } as never)
+
+    const runWithSnapshot: SchedulingRunDto = {
+      ...queuedRun,
+      inputSnapshot: {
+        requirements: [
+          {
+            id: "req-1",
+            courseId: "course-123",
+            course: { id: "course-123", title: "دوره زبان آلمانی A2" },
+          },
+        ],
+      },
+    }
+
+    render(<SchedulingRunStatusPanel run={runWithSnapshot} onReset={vi.fn()} />)
+
+    expect(
+      await screen.findByText("علت توقف در پیش‌بررسی:")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        /دوره «دوره زبان آلمانی A2» استادی با صلاحیت تدریس فعال ندارد/i
+      )
+    ).toBeInTheDocument()
+  })
+
+  it("renders connection error with exact technical details and retry button", async () => {
+    const refetchMock = vi.fn().mockResolvedValue({} as never)
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "conn-error"],
+      queryFn: async () => Promise.reject(new Error("Network timeout: 504")),
+    } as never)
+
+    render(<SchedulingRunStatusPanel run={queuedRun} onReset={vi.fn()} />)
+
+    expect(
+      await screen.findByText("وضعیت اجرا به‌روزرسانی نشد")
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Network timeout: 504/i)).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "تلاش مجدد" })
+    ).toBeInTheDocument()
+  })
+
+  it("renders retry generation button when run fails", async () => {
+    const failedStatus: SchedulingRunStatusDto = {
+      ...completedStatus,
+      status: "FAILED",
+      isTerminal: true,
+      result: null,
+      failureCode: "ENGINE_FAILED",
+      failureMessage: "موتور به دلیل تداخل زمانی متوقف شد.",
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "engine-failed"],
+      queryFn: async () => failedStatus,
+    } as never)
+
+    render(<SchedulingRunStatusPanel run={queuedRun} onReset={vi.fn()} />)
+
+    expect(
+      await screen.findByRole("button", { name: "تلاش مجدد برای ساخت برنامه" })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText("موتور به دلیل تداخل زمانی متوقف شد.")
+    ).toBeInTheDocument()
+  })
+})

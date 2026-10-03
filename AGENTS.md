@@ -1,7 +1,110 @@
 # Repository Engineering Rules (Global Hub)
 
-- Follow SOLID principles across all apps and packages.
-- Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
+- **SOLID & Modular Design:** Follow SOLID principles across all apps and packages.
+- **Backend Service Separation:** Keep backend services focused on one domain responsibility. Target a maximum of 300 lines for production service files; split oversized services into injectable query, command, validation, persistence, composition, import/export, or calculation collaborators. Controllers and public service facades must remain thin, and refactors must preserve routes, DTOs, authorization, response shapes, transactions, and observable behavior. Register extracted collaborators through NestJS dependency injection and cover them with focused unit tests. Cohesive algorithm implementations may exceed the target only when splitting would obscure the algorithm; keep orchestration and I/O outside those files and document the exception beside the service.
+- **Testing:** Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
+- **Git Hooks & Quality Gate:** Prettier and ESLint are enforced by Husky (`.husky/pre-commit`) and `lint-staged` on every commit. Never bypass hooks.
+- **Environment Configuration:** All environment variables must be managed centrally in the root `.env` and declared in `turbo.json` under `globalEnv`. Do not create disconnected per-app `.env` files.
+- **API Request Architecture (micro-rq + React Query):**
+  - Always use `micro-rq` endpoint definitions via `.toQuery()` and `.toMutation()` passed directly into TanStack React Query (`useQuery`, `useMutation`).
+  - **NEVER** use the `.fn()` option of `micro-rq` directly inside React components for data fetching or form submissions, as this bypasses React Query's reactive state tracking (loading, error, caching).
+- **Authentication & HttpOnly Cookies:**
+  - Frontends must configure `credentials: "include"` in the `fetcher` of `createMicroApi`.
+  - `apps/api` must issue `httpOnly` secure cookies (`access_token`) on authentication alongside returning user payloads.
+- **Error Handling & Notifications:**
+  - Global API errors in `createMicroApi` (`onError`) must trigger the centralized shadcn `toast.error` notification.
+  - Do not render duplicate inline error banner cards inside pages/forms when toast notifications handle error presentation.
+  - Toast styling must inherit the application's configured typography font variable (`var(--font-sans)`).
+- **Loading UI Standard:**
+  - Always use the centralized shadcn `<Spinner />` component from `@workspace/ui/components/spinner` for loading states.
+  - Do not use raw icons like `Loader2` from `lucide-react` for loading indicators.
+- **Single Card Anti-Pattern:**
+  - Do NOT wrap an entire page inside a `<Card>` component if the whole content of the page is already housed in a single container (such as centered auth forms or fullscreen dashboard layouts).
+- **Card Action Architecture (Context Menu & Dropdown Standard):**
+  - When a card, tile, or grid item has multiple actions (e.g. edit, delete/soft-delete, ban/block, duplicate), use the shadcn / Base UI `<ContextMenu />` (and/or an accessible action dropdown menu) to keep card interfaces clean, uncluttered, and ergonomic.
+  - **Do NOT duplicate actions in the context menu / dropdown menu that already exist as primary interactive buttons on the card itself** (such as the main open/manage card button).
+- **Icon Color Consistency Standard:**
+  - Icons must always match and inherit the exact semantic text color of their accompanying sibling label/text (`text-muted-foreground`, `text-foreground`, `text-destructive`, etc.).
+  - **NEVER** apply disjoint or arbitrary colored utility classes (e.g. `text-sky-500`, `text-emerald-500`, `text-amber-500`) to an icon when its sibling text uses neutral or semantic typography colors.
+- **Page Collocation & Sibling Directory Architecture:**
+  - For named routes (e.g. `/classes`, `/institutes`, `/login`, `/profile`), use the route's own directory (`classes/`, `institutes/`, `login/`, etc.). Do not nest redundant route groups inside named directories.
+  - For index routes (e.g. `/` root dashboard), encapsulate `page.tsx` and its sibling directories within a route group `({page})` (e.g. `(dashboard)`) so the URL remains `/`.
+  - Page-specific artifacts must live as sibling directories directly alongside `page.tsx` (`components/`, `hooks/`, `helper/`, `mock-data/`, `modal/`).
+  - Components shared across multiple pages or layouts belong in the app root `components/` (`apps/{app}/components/`).
+  - Monorepo-wide UI primitives belong in `packages/ui`.
+- **Directory-Based Component Architecture & Single Component Per File:**
+  - All components must be created inside their own dedicated directory with an `index.tsx` file (e.g. `components/admin-base-layout/index.tsx`, `components/providers/index.tsx`).
+  - **Never create multiple components in a single file.** Every sub-component, header, brand, or list component must be extracted into its own dedicated sibling or nested directory with its own `index.tsx` (e.g. `components/admin-base-layout/sidebar-brand/index.tsx`, `components/admin-base-layout/nav-list/index.tsx`).
+- **UI Primitives & Elements Standard (No Raw HTML Controls & No Raw <img>):**
+  - **NEVER** use simple raw HTML elements (such as `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`) directly in application pages or components (`apps/*`).
+  - **NEVER** use raw `<img>` HTML tags. Always import and use Next.js `<Image />` component from `next/image` (with `unoptimized` where dynamic external / uploaded asset URLs are used) across all apps and packages.
+  - Always import and use centralized, accessible UI primitives from `@workspace/ui/components/*` (`Button`, `Input`, `Field`, `PasswordInput`, `DataTable`, `Table`, etc.).
+  - If a specific UI component or kit (e.g. Select, Dialog, Dropdown, Checkbox) is needed and does not yet exist in `@workspace/ui`, create an implementation plan to scaffold/install it into `packages/ui` first using Base UI / shadcn patterns before using it.
+- **No Vanilla JS Dialogs (`alert`, `prompt`):**
+  - **NEVER** use vanilla JavaScript `alert()` or `prompt()` (or `window.alert`, `window.prompt`) anywhere in applications (`apps/*`).
+  - For alerting users and displaying notifications, use centralized toast notifications (`toast.error`, `toast.success`, `toast.info` from `sonner`).
+  - For capturing user input, forms, or data presentation, use centralized modal dialogs (e.g. `Dialog`, `ResponsiveDialog`, `FormDialog` from `@workspace/ui/components/dialog`).
+- **Confirmation & Alert Dialog Standard (`AlertDialog`):**
+  - **For all confirmation scenarios where the user is asked "Are you sure?" (e.g. delete confirmations, destructive resets, irreversible actions), ALWAYS use `<AlertDialog />` from `@workspace/ui/components/alert-dialog` instead of `<Dialog />` or `<ResponsiveDialog />`.**
+  - Compose confirmation flows with `AlertDialog`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogAction`, and `AlertDialogCancel`.
+  - Regular `<Dialog />` / `<ResponsiveDialog />` / `<FormDialog />` are strictly reserved for forms, inputs, data viewers, and wizards.
+- **Modal Header & Divider Standard (No In-Header Description & Mandatory Dividers):**
+  - Standard modals and dialogs (`Dialog`, `ResponsiveDialog`, `FormDialog`) must **NEVER** render a description (`ResponsiveDialogDescription`, `FormDialogDescription`, `DialogDescription`) inside their header (`*Header`).
+  - Modal headers are strictly reserved for the concise title (`*Title`), status badges (if applicable), and close button (`*CloseButton`).
+  - **Always use a header divider:** All modal headers must be separated from the body by a bottom divider (`border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4`).
+  - **Always use a footer divider:** When a modal has a footer, it must be separated from the body by a top divider (`border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4`).
+  - Modal content containers must use `overflow-hidden p-0` so header and footer dividers span edge-to-edge, with the inner content wrapped in a scrollable, padded container (`overflow-y-auto px-4 py-4 sm:px-6 sm:py-5`).
+  - If descriptive guidance or context is needed, place it inside the modal body (e.g. as an informative banner, callout, or form field helper text).
+  - Confirmation dialogs (`AlertDialog`) are the only exception where `AlertDialogDescription` is used.
+- **Data Table & Data Grid Standard:**
+  - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying tabular data.
+  - Define columns using TanStack Table `ColumnDef` to ensure consistent typography, responsive design, empty states, and accessibility across all dashboards.
+  - Never render raw `<table>` or custom HTML table markups in application pages.
+- **Admin List Page & Filter Standard:**
+  - Follow the unified list page standard in `apps/admin-panel/AGENTS.md`: never render in-page titles or descriptions (page title is routed via root `AdminHeader`), always provide a filter bar with at least a search input, place the desktop Add button inside `AdminFilterBar`'s `actions` slot, use `FABSingle` on mobile, and ensure form dialogs wrap inputs in a scrollable container with proper padding (`px-4 py-4 sm:px-6 sm:py-5`).
+- **Admin Inner Page & Breadcrumb Standard:**
+  - For all sub-pages/inner pages (e.g. `/off-days/custom`, `/classes/[id]/grades`), render `<AdminBreadcrumb />` from `@/components/admin-breadcrumb` directly on top of the filter section via `AdminPageShell`'s `breadcrumb` prop. Provide back navigation (`backHref`, `backLabel`) rendered as a compact icon button next to the page title in `AdminHeader`, and hierarchical trail items in `AdminBreadcrumb`. Follow the Admin Inner Page Standard in `apps/admin-panel/AGENTS.md`.
+- **Price & Currency Standard:**
+  - Always use `<Price amount={value} />` from `@workspace/ui/components/price` (or `formatCurrency` from `@workspace/ui/lib/utils`) to format prices.
+  - **Always format price numbers with `toLocaleString("en-US")` (English digits e.g. `1,500,000 تومان`) even when the active locale is `fa`.**
+  - Do NOT implement ad-hoc `formatCurrency` functions in components or pages. The centralized helper handles 3-digit comma separation and localized currency units (`تومان` / `Toman`).
+- **Price Input Standard (Formatted Digits & Embedded Currency Unit):**
+  - For all price, tuition, fee, or monetary amount inputs across apps, always use `<PriceInput />` from `@workspace/ui/components/price-input`.
+  - **Always separate the input value with commas `","` 3 by 3 from the right** (e.g. `1,500,000`) for maximum user readability.
+  - **Always place the currency unit (`تومان` / `Toman`) inside the input at the end of the input.**
+  - **NEVER put the currency unit in the label of the input** (e.g. use "شهریه کلاس" or "Class Tuition" instead of "شهریه کلاس (تومان)").
+- **Form Input & Button Height Standard (Unified 56px / h-14 & rounded-2xl):**
+  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`, `ResponsiveCombobox`), password inputs (`PasswordInput`), price inputs (`PriceInput`), and primary/form/dialog/action buttons (`<Button />`) must strictly follow the standard height of **`h-14` (56px)**, **`rounded-2xl`**, and **`text-base`** typography.
+  - `<Button />` defaults directly to **`h-14` / `rounded-2xl` (`size: "default"`)**. Never handcraft repetitive `h-14 rounded-2xl ...` utility classes in callsites.
+  - **NEVER use arbitrary smaller heights (such as `h-9`, `h-10`, `h-11`, `h-12`) for standard buttons, inputs, date pickers, or selects in forms, dialogs, modals, drawers, or sheets.**
+  - **Exception Policy (The "Small Parts"):** Smaller button sizes (`size="sm"` / `h-8`, `size="icon"`, `size="icon-sm"`, `size="icon-xs"`) are strictly reserved for:
+    1. Inline data table cell actions (e.g. edit/delete row actions to preserve row density).
+    2. Internal input adornments (e.g. password visibility toggle, clear buttons).
+    3. Calendar day buttons and month navigation inside date pickers.
+    4. Compact header/toolbar icons (e.g. theme toggle, back navigation icon).
+  - **Rationale:** 56px (`h-14`) ensures an ergonomic, accessible touch target (> 48px WCAG recommendation) across mobile devices and effortless clickability on desktop, while guaranteeing perfect visual alignment between inputs and action buttons.
+  - Compact heights (`h-8` / `h-9` / `h-10` / `size="sm"`) are strictly reserved for inline table-cell editing and the above exceptions.
+- **General Number Formatting Standard:**
+  - Use `formatNumber` from `@workspace/ui/lib/utils` for counts, indexes, and statistical numbers, which formats digits dynamically based on the active locale (`fa-IR` vs `en-US`).
+- **Theme & Dark Mode Standard (Semantic CSS Variables Only):**
+  - All apps must wrap their provider tree with `<ThemeProvider />` from `@workspace/ui/components/theme-provider` and provide `<ThemeToggle />` from `@workspace/ui/components/theme-toggle` in headers/navigation.
+  - **NEVER use `dark:` Tailwind class variants.** All theme adaptations must be driven 100% through semantic CSS variables (`bg-background`, `text-foreground`, `bg-card`, `border-border`, `bg-muted`, etc.) configured in `globals.css`.
+- **Shared Roles & Permissions:**
+  - Roles and permissions must be defined as `const` in `@workspace/types` (`ROLES`, `PERMISSIONS`, `ROLE_PERMISSIONS`) and shared across all frontend apps and backend services.
+- **NextIntl Client Messages & Placeholder Localization Standard:**
+  - Every layout that mounts a `<NextIntlClientProvider>` MUST include `common` messages in its messages dictionary alongside any feature-specific message namespaces (e.g. `messages={{ common: common.default, feature: feature.default }}`).
+  - **NEVER hardcode static text in `placeholder="..."` attributes.** All placeholders, labels, hints, and error messages MUST be defined in locale message files (`messages/{fa,en}/*.json`) and loaded via `useTranslations` (`t(...)`).
+- **Typography & Font Standard (No fontMono in Persian / RTL):**
+  - In Persian (`fa` / RTL mode), **NEVER use `fontMono` / `Geist Mono`**.
+  - All typography in Persian (including monospace utility `font-mono`, numbers, codes, prices, dates, badges, tables) must use **Yekan Bakh** (`var(--font-sans)`).
+  - In English (`en` / LTR mode), use **Geist** for `--font-sans` and **Geist Mono** for `--font-mono`.
+- **Automated Database Migrations & Migration Immutability:**
+  - Whenever modifying `packages/database/schema.prisma` or altering database models, the agent MUST automatically create and execute the development migration via `pnpm run db:migrate:dev --name <descriptive_snake_case_name>` and regenerate Prisma Client types (`pnpm run db:generate`) without requiring manual prompting from the user.
+  - **NEVER edit or modify an existing `migration.sql` file once created, applied, or committed.** Modifying existing migration files corrupts the SHA-256 checksum recorded in `_prisma_migrations` and breaks builds and deployments in both development and production (`db:migrate:deploy`). Always generate a new incremental migration for any subsequent schema modifications, index updates, or data transformations.
+- **Concise Button Labels & Action Titles Standard (Short Titles over Verbose Phrases):**
+  - Buttons, submit actions, step transitions, and dialog triggers must **ALWAYS** use concise, succinct action titles (e.g. `ادامه` / `Continue`, `تأیید` / `Confirm`, `ذخیره` / `Save`, `انصراف` / `Cancel`, `بازگشت` / `Back`).
+  - **NEVER** use long, descriptive, or verbose phrases in button titles (e.g. avoid `ادامه و مشاهده پیش‌نمایش`, `ذخیره تغییرات و بازگشت به صفحه قبل`, `تأیید اطلاعات و رفتن به مرحله بعد`).
+  - Place descriptive context, explanations, or guidance in headers, descriptions, callouts, or form helper text — never inside the button text.
 
 ## Context Routing
 

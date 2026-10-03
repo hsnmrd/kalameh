@@ -1,0 +1,17 @@
+{
+  "title": "Settings",
+  "subtitle": "Customize app appearance, theme, and language",
+  "theme": {
+    "title": "Theme & Appearance",
+    "description": "Choose between light, dark, or system default mode.",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System Default"
+  },
+  "language": {
+    "title": "Display Language",
+    "description": "Select your preferred language and layout direction.",
+    "fa": "فارسی (RTL)",
+    "en": "English (LTR)"
+  }
+}

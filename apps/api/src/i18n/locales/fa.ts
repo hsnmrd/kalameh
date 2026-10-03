@@ -1,0 +1,146 @@
+import type { TranslationDictionary } from '../i18n.types';
+
+export const fa: TranslationDictionary = {
+  auth: {
+    instituteNotFound: 'آموزشگاه مورد نظر یافت نشد',
+    instituteBlocked: 'دسترسی این آموزشگاه مسدود شده است',
+    instituteDeactivated: 'آموزشگاه شما غیرفعال شده است',
+    invalidCredentials: 'شماره موبایل یا رمز عبور اشتباه است',
+    multipleInstitutesFound:
+      'این شماره در چند آموزشگاه ثبت شده است. لطفاً شناسه یا زیردامنه آموزشگاه را وارد کنید',
+    userDeactivated: 'حساب کاربری شما غیرفعال شده است',
+    userNotFound: 'کاربر یافت نشد',
+    invalidCurrentPassword: 'رمز عبور فعلی نادرست است',
+    passwordChangedSuccess: 'رمز عبور با موفقیت به‌روزرسانی شد',
+    logoutSuccess: 'با موفقیت خارج شدید',
+  },
+  users: {
+    userAlreadyExists:
+      'کاربری با این شماره تماس در این آموزشگاه قبلاً ثبت شده است',
+    instituteAdminAllowedRolesOnly:
+      'مدیر آموزشگاه تنها مجاز به ایجاد کاربران با نقش منشی یا زبان‌آموز است',
+    clerkAllowedRolesOnly: 'منشی آموزشگاه تنها مجاز به ثبت زبان‌آموز جدید است',
+    unauthorizedUserCreation: 'شما مجوز ایجاد کاربر را ندارید',
+    userNotFound: 'کاربر مورد نظر یافت نشد',
+    cannotAccessSuperAdmin: 'دسترسی به اطلاعات این کاربر مجاز نمی‌باشد',
+    clerkAccessStudentOnly: 'منشی تنها به اطلاعات زبان‌آموزان دسترسی دارد',
+    cannotEditSuperAdmin: 'شما اجازه ویرایش اطلاعات ادمین کل را ندارید',
+    clerkEditStudentOnly: 'منشی تنها اجازه ویرایش اطلاعات زبان‌آموزان را دارد',
+    phoneAlreadyInUse:
+      'این شماره تماس به کاربر دیگری در این آموزشگاه اختصاص یافته است',
+    cannotResetSuperAdminPassword:
+      'شما اجازه بازنشانی رمز عبور ادمین کل را ندارید',
+    clerkResetStudentPasswordOnly:
+      'منشی تنها اجازه بازنشانی رمز عبور زبان‌آموزان را دارد',
+    passwordResetSuccess: 'رمز عبور با موفقیت بازنشانی شد',
+    emptyImportFile: 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد',
+    cannotDeleteSelf: 'امکان حذف حساب کاربری خودتان وجود ندارد',
+    cannotDeleteSuperAdmin: 'امکان حذف مدیر کل سامانه وجود ندارد',
+    cannotDeleteWithDependencies:
+      'امکان حذف کاربر به دلیل وجود سوابق وابسته (ثبت‌نام در کلاس‌ها یا تراکنش‌های مالی) وجود ندارد. در صورت نیاز حساب کاربر را غیرفعال کنید',
+    userDeletedSuccess: 'کاربر با موفقیت حذف شد',
+  },
+  students: {
+    studentAlreadyExists:
+      'فراگیری با این شماره تماس در این آموزشگاه قبلاً ثبت شده است',
+    studentNotFound: 'فراگیر مورد نظر یافت نشد',
+    unauthorizedStudentCreation: 'شما مجوز ثبت فراگیر جدید را ندارید',
+    phoneAlreadyInUse:
+      'این شماره تماس به کاربر دیگری در این آموزشگاه اختصاص یافته است',
+    passwordResetSuccess: 'رمز عبور فراگیر با موفقیت بازنشانی شد',
+  },
+  teachers: {
+    invalidCourses:
+      'یک یا چند سطح انتخاب‌شده برای این استاد در آموزشگاه معتبر نیست',
+    instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
+  },
+  institutes: {
+    instituteNotFound: 'آموزشگاه مورد نظر یافت نشد',
+    subdomainAlreadyExists: 'آموزشگاهی با این زیردامنه قبلاً ثبت شده است',
+    cannotDeleteWithDependencies:
+      'امکان حذف آموزشگاه دارای اطلاعات وابسته وجود ندارد',
+    cannotDeleteSystemInstitute: 'امکان حذف آموزشگاه اصلی سامانه وجود ندارد',
+    instituteDeletedSuccess: 'آموزشگاه با موفقیت حذف گردید',
+    moduleNotActive: 'ماژول مورد نظر در پلن اشتراک آموزشگاه شما فعال نمی‌باشد',
+  },
+  branches: {
+    branchNotFound: 'شعبه مورد نظر یافت نشد',
+    branchAlreadyExists: 'شعبه‌ای با این نام قبلاً در آموزشگاه ثبت شده است',
+  },
+  classrooms: {
+    classroomNotFound: 'کلاس درس/اتاق مورد نظر یافت نشد',
+    classroomAlreadyExists:
+      'کلاس درس/اتاقی با این نام قبلاً در این شعبه ثبت شده است',
+  },
+  terms: {
+    termNotFound: 'ترم تحصیلی مورد نظر یافت نشد',
+    termAlreadyExists: 'ترمی با این عنوان قبلاً در آموزشگاه ثبت شده است',
+    invalidDateRange: 'تاریخ پایان ترم باید پس از تاریخ شروع باشد',
+    cannotDeleteActiveTerm:
+      'فقط ترم‌های پیش‌رو (که تاریخ شروع آن‌ها نرسیده است) قابل حذف هستند',
+    cannotDeleteWithClasses:
+      'این ترم دارای کلاس‌های وابسته است و نمی‌تواند حذف شود',
+    duplicatePhaseYear:
+      'ترم‌های این فاز برای سال تحصیلی انتخاب‌شده قبلاً ایجاد شده‌اند',
+  },
+  courses: {
+    courseNotFound: 'سطح/دوره آموزشی مورد نظر یافت نشد',
+    courseAlreadyExists: 'سطحی با این عنوان قبلاً در آموزشگاه ثبت شده است',
+    prerequisiteNotFound: 'سطح پیش‌نیاز انتخابی یافت نشد',
+    prerequisiteCycleDetected:
+      'امکان ایجاد حلقه بازگشتی در زنجیره پیش‌نیازها وجود ندارد',
+  },
+  classes: {
+    classNotFound: 'کلاس مورد نظر یافت نشد',
+    classAlreadyExists: 'کلاسی با این مشخصات قبلاً در این ترم ثبت شده است',
+    classFull: 'ظرفیت این کلاس تکمیل شده است',
+    invalidTermOrCourse: 'ترم یا سطح آموزشی انتخابی نامعتبر است',
+    classroomConflict:
+      'کلاس درس/اتاق انتخابی در این روزها و ساعات با کلاس "{conflictingClass}" تداخل دارد',
+    teacherConflict:
+      'استاد انتخابی در این روزها و ساعات در کلاس "{conflictingClass}" مشغول به تدریس است',
+    teacherFreeTimeConflict:
+      'زمان انتخابی کلاس خارج از ساعات آزاد اعلام‌شده برای استاد ({teacherName}) است',
+    cannotDeleteWithEnrollments:
+      'امکان حذف کلاسی که دارای زبان‌آموز یا ثبت‌نام است وجود ندارد',
+  },
+  classRequirements: {
+    instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
+    invalidCadence:
+      'دقیقاً یکی از تعداد جلسات هفتگی یا تعداد کل جلسات باید مشخص شود',
+  },
+  scheduling: {
+    instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
+    invalidScope: 'ترم یا شعبه انتخاب‌شده برای این آموزشگاه معتبر نیست',
+    invalidOperatingPhase:
+      'برای شروع زمان‌بندی، ترم فعال انتخاب‌شده باید فاز عملیاتی معتبر داشته باشد',
+    invalidRequirements:
+      'نیازهای کلاسی باید فعال و متعلق به ترم، شعبه و آموزشگاه انتخاب‌شده باشند',
+    sourceRunRequiredForLocks:
+      'برای حفظ پیشنهادهای قفل‌شده باید اجرای مبدا مشخص شود',
+    invalidSourceRun:
+      'اجرای مبدا با ترم، شعبه یا آموزشگاه انتخاب‌شده تطابق ندارد',
+    invalidLockedProposals:
+      'یک یا چند پیشنهاد قفل‌شده معتبر یا متعلق به اجرای مبدا نیستند',
+    preflightBlocked:
+      'تولید برنامه به دلیل وجود مشکل مسدودکننده در پیش‌بررسی متوقف شد',
+  },
+  grades: {
+    gradesSubmittedSuccess:
+      'نمرات کلاس با موفقیت ثبت و وضعیت قبولی زبان‌آموزان اعمال شد',
+    studentNotEnrolled: 'زبان‌آموز در این کلاس ثبت‌نام نکرده است',
+    invalidScoreRange: 'نمره باید عددی بین ۰ تا ۱۰۰ باشد',
+    studentLevelUpdatedSuccess: 'سطح مجاز زبان‌آموز با موفقیت تغییر یافت',
+  },
+  transactions: {
+    receiptRequired: 'تصویر رسید پرداخت الزامی است',
+    studentOnly: 'فقط حساب فراگیر می‌تواند رسید پرداخت ثبت کند',
+  },
+  common: {
+    internalServerError: 'خطای داخلی سرور رخ داده است',
+    unauthorized: 'عدم دسترسی، لطفاً مجدداً وارد شوید',
+    forbidden: 'شما دسترسی لازم برای انجام این عملیات را ندارید',
+    badRequest: 'درخواست نامعتبر است',
+    notFound: 'موردی یافت نشد',
+  },
+};

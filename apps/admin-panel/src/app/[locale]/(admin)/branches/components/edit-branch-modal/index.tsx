@@ -1,0 +1,245 @@
+"use client"
+
+import * as React from "react"
+import { useTranslations } from "next-intl"
+import { useForm, Controller, useWatch } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { Plus, Trash2 } from "lucide-react"
+import { toast } from "@workspace/ui/components/sonner"
+import {
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogCloseButton,
+  FormDialogFooter,
+} from "@workspace/ui/components/dialog"
+import { Button } from "@workspace/ui/components/button"
+import { Input } from "@workspace/ui/components/input"
+import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { branchesResource } from "@/lib/api"
+import {
+  useUpdateBranchSchema,
+  type UpdateBranchInput,
+} from "../../hooks/use-branch-schemas"
+import type { EditBranchModalProps } from "./types"
+
+export type { EditBranchModalProps } from "./types"
+
+export function EditBranchModal({
+  branch,
+  open,
+  onClose,
+}: EditBranchModalProps) {
+  const t = useTranslations("branches")
+  const queryClient = useQueryClient()
+  const updateBranchSchema = useUpdateBranchSchema()
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm<UpdateBranchInput>({
+    resolver: zodResolver(updateBranchSchema),
+    defaultValues: {
+      name: "",
+      address: "",
+      phones: [""],
+      isActive: true,
+    },
+  })
+
+  React.useEffect(() => {
+    if (branch) {
+      reset({
+        name: branch.name,
+        address: branch.address || "",
+        phones:
+          branch.phones && branch.phones.length > 0 ? branch.phones : [""],
+        isActive: branch.isActive,
+      })
+    }
+  }, [branch, reset])
+
+  const phones = useWatch({ control, name: "phones" }) || [""]
+
+  const handleAddPhone = () => {
+    const current = getValues("phones") || []
+    setValue("phones", [...current, ""])
+  }
+
+  const handleRemovePhone = (index: number) => {
+    const current = getValues("phones") || []
+    if (current.length === 1) {
+      setValue("phones", [""])
+      return
+    }
+    setValue(
+      "phones",
+      current.filter((_, i) => i !== index)
+    )
+  }
+
+  const updateMutation = useMutation({
+    ...branchesResource.update.toMutation(),
+    onSuccess: () => {
+      toast.success(t("editModal.success"))
+      queryClient.invalidateQueries({
+        queryKey: branchesResource.list.baseKey(),
+      })
+      onClose()
+    },
+  })
+
+  const onSubmit = (values: UpdateBranchInput) => {
+    if (!branch) return
+
+    const cleanedPhones = (values.phones || [])
+      .map((p) => p.trim())
+      .filter(Boolean)
+
+    updateMutation.mutate({
+      id: branch.id,
+      body: {
+        ...values,
+        address: values.address?.trim() || null,
+        phones: cleanedPhones,
+      },
+    })
+  }
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      onClose()
+    }
+  }
+
+  return (
+    <FormDialog open={open} onOpenChange={handleOpenChange}>
+      <FormDialogContent className="sm:max-w-lg">
+        <FormDialogHeader>
+          <FormDialogTitle>{t("editModal.title")}</FormDialogTitle>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
+        >
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+            {/* Branch Name */}
+            <Field>
+              <FieldLabel>{t("editModal.branchName")}</FieldLabel>
+              <Input
+                {...register("name")}
+                placeholder={t("editModal.branchNamePlaceholder")}
+              />
+              <FieldError>{errors.name?.message}</FieldError>
+            </Field>
+
+            {/* Address */}
+            <Field>
+              <FieldLabel>{t("editModal.address")}</FieldLabel>
+              <Input
+                {...register("address")}
+                placeholder={t("editModal.addressPlaceholder")}
+              />
+              <FieldError>{errors.address?.message}</FieldError>
+            </Field>
+
+            {/* Phones */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <FieldLabel>{t("editModal.phones")}</FieldLabel>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAddPhone}
+                  className="h-8 gap-1 px-2 text-xs text-primary"
+                >
+                  <Plus className="size-3.5" />
+                  {t("editModal.addPhone")}
+                </Button>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {phones.map((_, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      {...register(`phones.${index}` as const)}
+                      placeholder={t("editModal.phonePlaceholder")}
+                      dir="ltr"
+                      className="text-start font-mono"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemovePhone(index)}
+                      className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Active Switch / Checkbox */}
+            <div className="flex items-center gap-2 pt-1">
+              <Controller
+                control={control}
+                name="isActive"
+                render={({ field }) => (
+                  <input
+                    type="checkbox"
+                    id="edit-branch-active"
+                    checked={field.value ?? true}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    className="size-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                )}
+              />
+              <label
+                htmlFor="edit-branch-active"
+                className="cursor-pointer text-sm font-medium text-foreground"
+              >
+                {t("editModal.isActive")}
+              </label>
+            </div>
+          </div>
+
+          {/* Modal Actions */}
+          <FormDialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={updateMutation.isPending}
+              className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
+            >
+              {t("editModal.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              {updateMutation.isPending ? (
+                <Spinner className="me-2 size-5 text-primary-foreground" />
+              ) : null}
+              {t("editModal.submit")}
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </FormDialogContent>
+    </FormDialog>
+  )
+}

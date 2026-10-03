@@ -1,9 +1,23 @@
 {
-  "moduleFileExtensions": ["js", "json", "ts"],
+  "moduleFileExtensions": ["js", "json", "ts", "mjs"],
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j|mj)s$": [
+      "ts-jest",
+      {
+        "tsconfig": "<rootDir>/../tsconfig.spec.json",
+        "astTransformers": {
+          "before": ["ts-jest-mock-import-meta"]
+        }
+      }
+    ]
+  },
+  "transformIgnorePatterns": ["node_modules/(?!(@prisma)/)"],
+  "moduleNameMapper": {
+    "^@workspace/database$": "<rootDir>/../../../packages/database/src/index.ts",
+    "^@workspace/types$": "<rootDir>/../../../packages/types/src/index.ts",
+    "^(\\.{1,2}/.*)\\.js$": "$1"
   }
 }

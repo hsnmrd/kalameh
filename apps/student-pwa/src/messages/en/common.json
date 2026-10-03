@@ -1,0 +1,29 @@
+{
+  "appName": "Kalameh",
+  "portalName": "Student Portal",
+  "home": "Home",
+  "classes": "Classes",
+  "practice": "Practice",
+  "payments": "Payments",
+  "profile": "Profile",
+  "logout": "Log Out",
+  "back": "Back",
+  "language": "Language",
+  "settings": "Settings",
+  "en": "English",
+  "fa": "فارسی",
+  "loading": "Loading...",
+  "footer": "Kalameh Learning Platform • Student PWA v1.0",
+  "success": "Operation completed successfully",
+  "error": "An error occurred",
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "Sorry, the page you are looking for does not exist or has been moved.",
+    "backHome": "Back to Dashboard"
+  },
+  "combobox": {
+    "placeholder": "Select an option...",
+    "searchPlaceholder": "Search...",
+    "emptyMessage": "No items found."
+  }
+}

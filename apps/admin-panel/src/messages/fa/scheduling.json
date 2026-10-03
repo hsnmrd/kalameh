@@ -1,0 +1,878 @@
+{
+  "title": "زمان‌بندی هوشمند کلاس‌ها",
+  "subtitle": "از آماده‌سازی داده‌ها تا بررسی و انتشار برنامه پیشنهادی",
+  "workflow": {
+    "title": "مسیر ساخت برنامه",
+    "description": "سیستم ابتدا داده‌های ترم را بررسی می‌کند، چند برنامه معتبر می‌سازد و تصمیم نهایی را برای سوپروایزر نگه می‌دارد.",
+    "steps": {
+      "prepare": {
+        "title": "آماده‌سازی",
+        "description": "نیاز کلاس‌ها و زمان‌های در دسترس تکمیل می‌شوند."
+      },
+      "generate": {
+        "title": "تولید پیشنهاد",
+        "description": "الگوریتم گزینه‌های بدون تداخل را تولید و رتبه‌بندی می‌کند."
+      },
+      "review": {
+        "title": "بررسی سوپروایزر",
+        "description": "پیشنهادها مقایسه و در صورت نیاز دستی اصلاح می‌شوند."
+      },
+      "publish": {
+        "title": "انتشار کلاس‌ها",
+        "description": "برنامه منتخب پس از اعتبارسنجی به کلاس واقعی تبدیل می‌شود."
+      }
+    }
+  },
+  "ready": {
+    "title": "فضای زمان‌بندی آماده است",
+    "description": "پیش از ساخت اولین برنامه، ترم فعال، صلاحیت و زمان استادان و اطلاعات زمانی فراگیران را بررسی کنید.",
+    "links": {
+      "terms": "بررسی ترم‌ها",
+      "teachers": "بررسی استادان",
+      "students": "بررسی فراگیران"
+    }
+  },
+  "generation": {
+    "title": "ساخت پیشنهادهای زمان‌بندی",
+    "description": "محدوده‌ی برنامه و نیازهای کلاسی موردنظر برای الگوریتم را انتخاب کنید.",
+    "success": "درخواست زمان‌بندی با موفقیت ساخته شد.",
+    "fields": {
+      "term": {
+        "label": "ترم",
+        "placeholder": "انتخاب ترم",
+        "search": "جست‌وجوی ترم...",
+        "empty": "ترم فعالی پیدا نشد.",
+        "drawerTitle": "انتخاب ترم"
+      },
+      "branch": {
+        "label": "محدوده شعبه",
+        "placeholder": "همه شعبه‌ها",
+        "all": "همه شعبه‌ها",
+        "description": "اختیاری — پیشنهادها را به یک شعبه محدود کنید.",
+        "drawerTitle": "انتخاب شعبه"
+      },
+      "alternatives": {
+        "label": "تعداد پیشنهادها",
+        "placeholder": "انتخاب تعداد",
+        "drawerTitle": "تعداد پیشنهادها",
+        "option": "{count} پیشنهاد"
+      }
+    },
+    "requirements": {
+      "label": "نیازهای کلاسی",
+      "description": "حداقل یک نیاز فعال را برای زمان‌بندی انتخاب کنید.",
+      "selectAll": "انتخاب همه",
+      "clear": "پاک کردن",
+      "loading": "در حال دریافت نیازهای کلاسی",
+      "empty": "نیاز فعالی در این محدوده پیدا نشد",
+      "emptyHint": "ابتدا از تب «تقاضای دوره‌ها»، نیازهای کلاسی این ترم را محاسبه و ثبت کنید.",
+      "chooseTerm": "ابتدا یک ترم انتخاب کنید",
+      "chooseTermHint": "نیازهای کلاسی فعال آن ترم اینجا نمایش داده می‌شوند.",
+      "goToDemand": "رفتن به تب تقاضای دوره‌ها",
+      "unnamed": "دوره بدون عنوان",
+      "summary": "{classes} کلاس · ظرفیت {capacity} نفر",
+      "deliveryModes": {
+        "IN_PERSON": "حضوری",
+        "ONLINE": "آنلاین"
+      },
+      "allBranches": "همه شعبه‌ها"
+    },
+    "validation": {
+      "term": "یک ترم انتخاب کنید.",
+      "requirements": "حداقل یک نیاز کلاسی انتخاب کنید."
+    },
+    "selectionSummary": "{count} نیاز انتخاب شده",
+    "submit": "ساخت پیشنهادها",
+    "submitting": "در حال شروع زمان‌بندی...",
+    "instituteRequired": {
+      "title": "یک آموزشگاه انتخاب کنید",
+      "description": "پیش از شروع زمان‌بندی، آموزشگاه را از سربرگ انتخاب کنید."
+    }
+  },
+  "runStatus": {
+    "statuses": {
+      "QUEUED": {
+        "title": "در انتظار شروع",
+        "badge": "در صف",
+        "description": "درخواست در صف قرار دارد و به‌صورت خودکار شروع می‌شود. می‌توانید این صفحه را باز نگه دارید."
+      },
+      "GENERATING": {
+        "title": "در حال ساخت پیشنهادهای زمان‌بندی",
+        "badge": "در حال تولید",
+        "description": "موتور در حال بررسی محدودیت‌ها و رتبه‌بندی گزینه‌های قابل استفاده است."
+      },
+      "COMPLETED": {
+        "title": "پیشنهادها آماده‌اند",
+        "badge": "تکمیل‌شده",
+        "description": "تولید با موفقیت تمام شد و برنامه‌ها برای بررسی سوپروایزر آماده هستند."
+      },
+      "PREFLIGHT_FAILED": {
+        "title": "داده‌های ورودی نیاز به بررسی دارند",
+        "badge": "بررسی اولیه ناموفق",
+        "description": "به‌دلیل ناقص یا ناسازگار بودن یک یا چند ورودی ضروری، تولید برنامه شروع نشد."
+      },
+      "FAILED": {
+        "title": "تولید برنامه ناموفق بود",
+        "badge": "ناموفق",
+        "description": "موتور نتوانست این اجرا را کامل کند. پیام زیر را بررسی و دوباره تلاش کنید."
+      },
+      "CANCELLED": {
+        "title": "تولید برنامه لغو شد",
+        "badge": "لغوشده",
+        "description": "این اجرا پیش از ساخت پیشنهادهای زمان‌بندی متوقف شد."
+      }
+    },
+    "connectionError": {
+      "title": "وضعیت اجرا به‌روزرسانی نشد",
+      "description": "اجرای شما همچنان محفوظ است. اتصال را بررسی و وضعیت را دوباره دریافت کنید."
+    },
+    "retry": "تلاش مجدد",
+    "retryGeneration": "تلاش مجدد برای ساخت برنامه",
+    "exactError": "علت فنی: {error}",
+    "notFound": {
+      "title": "اجرای زمان‌بندی یافت نشد",
+      "description": "اطلاعات این اجرا در سامانه یافت نشد یا ممکن است متعلق به آموزشگاه دیگری باشد.",
+      "back": "بازگشت به زمان‌بندی"
+    },
+    "progress": {
+      "title": "مراحل تولید زمان‌بندی",
+      "stage1": "بررسی اولیه و کنترل پیش‌نیازها",
+      "stage2": "تحلیل بازه‌های زمانی اساتید و ظرفیت کلاس‌ها",
+      "stage3": "ارزیابی اولویت‌ها و شیفت‌های زبان‌آموزان",
+      "stage4": "تولید و رتبه‌بندی برنامه‌های جایگزین",
+      "stage5": "ثبت و نهایی‌سازی پیشنهادها",
+      "completed": "محاسبه با موفقیت تکمیل شد"
+    },
+    "result": {
+      "title": "{count} پیشنهاد زمان‌بندی ساخته شد",
+      "description": "گزینه‌های ساخته‌شده را بررسی و مناسب‌ترین برنامه را انتخاب کنید."
+    },
+    "runId": "شناسه اجرا: {id}",
+    "updatedAt": "آخرین به‌روزرسانی: {value}",
+    "refresh": "به‌روزرسانی وضعیت",
+    "another": "ساخت اجرای دیگر",
+    "pageTitle": "نتیجه زمانبندی",
+    "preflightIssues": {
+      "title": "علت توقف در پیش‌بررسی:",
+      "COURSE_WITHOUT_QUALIFIED_TEACHER": "دوره «{entity}» استادی با صلاحیت تدریس فعال ندارد. لطفاً در بخش اساتید، صلاحیت تدریس این دوره را به حداقل یک استاد اختصاص دهید.",
+      "COURSE_WITHOUT_AVAILABLE_TEACHER": "هیچ‌یک از اساتید واجد شرایط برای دوره «{entity}» زمان حضور تعریف نکرده‌اند.",
+      "COURSE_WITHOUT_PHASE_AVAILABILITY": "زمان حضور اساتید واجد شرایط دوره «{entity}» هیچ بازه کامل و دقیقی از فاز عملیاتی ترم انتخاب‌شده را پوشش نمی‌دهد.",
+      "NO_CLASSROOM_WITH_REQUIRED_CAPACITY": "کلاس درس با ظرفیت کافی برای یکی از نیازها تعریف نشده است.",
+      "INCOMPLETE_STUDENT_SCHEDULE_DATA": "اطلاعات زمان حضور برخی زبان‌آموزان ناقص است.",
+      "NO_ELIGIBLE_STUDENTS": "زبان‌آموز واجد شرایطی برای این دوره یافت نشد.",
+      "TEACHERS_WITHOUT_COURSE_QUALIFICATION": "برخی از اساتید فعال آموزشگاه فاقد صلاحیت تدریس هستند."
+    }
+  },
+  "comparison": {
+    "title": "مقایسه برنامه‌های پیشنهادی",
+    "description": "گزینه‌ها را با معیارهای یکسان بررسی و مناسب‌ترین برنامه را انتخاب کنید.",
+    "rank": "رتبه {rank}",
+    "plan": "برنامه {rank}",
+    "qualityIndex": "شاخص کیفیت",
+    "weightedPoints": "{earned} از {applicable} امتیاز قابل محاسبه",
+    "metrics": {
+      "coverage": "پوشش فراگیران",
+      "minimumCoverage": "کمترین پوشش سطح",
+      "timeDiversity": "تنوع زمانی",
+      "proposals": "کلاس پیشنهادی"
+    },
+    "table": {
+      "plan": "برنامه",
+      "issues": "موارد نیازمند توجه",
+      "actions": "اقدامات"
+    },
+    "missingClasses": "{count} کلاس تأمین‌نشده",
+    "warnings": "{count} هشدار",
+    "viewDetails": "مشاهده جزئیات",
+    "statuses": {
+      "published": "منتشرشده",
+      "rejected": "ردشده"
+    },
+    "selection": {
+      "badge": "انتخاب سوپروایزر",
+      "select": "انتخاب این برنامه",
+      "selecting": "در حال انتخاب...",
+      "selected": "برنامه انتخاب‌شده",
+      "success": "برنامه با موفقیت انتخاب شد."
+    },
+    "loading": {
+      "title": "در حال آماده‌سازی مقایسه",
+      "description": "جزئیات برنامه‌های تولیدشده در حال دریافت است."
+    },
+    "error": {
+      "title": "مقایسه برنامه‌ها بارگذاری نشد",
+      "description": "نتیجه اجرا محفوظ است. برای دریافت دوباره جزئیات تلاش کنید.",
+      "retry": "تلاش دوباره"
+    }
+  },
+  "planDetails": {
+    "title": "جزئیات برنامه {rank}",
+    "description": "کلاس‌های پیشنهادی و موارد حل‌نشده را پیش از تصمیم نهایی بررسی کنید.",
+    "publishedDescription": "این برنامه منتشر شده و کلاس‌های عملیاتی آن ساخته شده‌اند.",
+    "selected": "انتخاب سوپروایزر",
+    "published": "منتشرشده",
+    "rejected": "ردشده",
+    "notFound": {
+      "title": "برنامه زمان‌بندی یافت نشد",
+      "description": "اطلاعات این برنامه در سامانه یافت نشد یا ممکن است متعلق به آموزشگاه دیگری باشد.",
+      "back": "بازگشت به زمان‌بندی",
+      "retry": "تلاش مجدد"
+    },
+    "selection": {
+      "select": "انتخاب این برنامه",
+      "selecting": "در حال انتخاب...",
+      "selected": "برنامه انتخاب‌شده"
+    },
+    "teacherFilter": "فیلتر بر اساس استاد",
+    "selectTeacherPlaceholder": "انتخاب استاد...",
+    "searchTeacherPlaceholder": "جستجوی نام استاد...",
+    "noTeachersFound": "استادی یافت نشد",
+    "clearTeacherFilter": "حذف فیلتر استاد",
+    "filterButton": "فیلترها",
+    "term": "ترم",
+    "branch": "محدوده شعبه",
+    "status": "وضعیت",
+    "allBranches": "همه شعبه‌ها",
+    "generatedAt": "تاریخ تولید",
+    "qualityIndex": "شاخص کیفیت",
+    "proposalsTitle": "کلاس‌های پیشنهادی",
+    "proposalCount": "{count} کلاس",
+    "noProposals": {
+      "title": "کلاس قابل اجرا ساخته نشد",
+      "description": "علت‌های تأمین‌نشدن نیازها را در بخش بعد بررسی کنید."
+    },
+    "unresolvedTitle": "نیازهای حل‌نشده",
+    "unresolvedDescription": "تعداد زبان‌آموزان و تقاضای ترم فراتر از زمان آزاد اساتید یا ظرفیت فیزیکی کلاس‌ها بوده و این دوره‌ها نتوانستند در برنامه گنجانده شوند.",
+    "missingCount": "{count} کلاس کسری",
+    "warningCount": "{count} هشدار",
+    "planWarnings": "هشدارهای برنامه",
+    "proposalWarnings": "هشدارهای کلاس پیشنهادی",
+    "warningSeverities": {
+      "INFO": "اطلاع",
+      "WARNING": "نیازمند توجه"
+    },
+    "warningMessages": {
+      "GENERATION_PENDING": "تولید این برنامه هنوز کامل نشده است.",
+      "MISSING_SCHEDULED_CLASSES": "بخشی از کلاس‌های موردنیاز ساخته نشده‌اند.",
+      "NEUTRAL_TIME_GROUP_USED": "از یک گروه زمانی خنثی استفاده شده است.",
+      "TIME_PATTERN_NOT_DIVERSE": "تنوع فرد/زوج یا صبح/عصر کامل نیست.",
+      "TIME_GROUP_IMBALANCED": "توزیع کلاس‌ها میان گروه‌های زمانی متعادل نیست.",
+      "MANUAL_EDIT_REQUIRES_VALIDATION": "این کلاس پس از ویرایش دستی باید دوباره اعتبارسنجی شود."
+    },
+    "warningContexts": {
+      "classCount": "از {required} کلاس موردنیاز، {scheduled} کلاس قابل زمان‌بندی بوده است.",
+      "spread": "اختلاف بار میان گروه‌های زمانی: {count}",
+      "changedFields": "فیلدهای تغییرکرده: {fields}"
+    },
+    "editableFields": {
+      "title": "عنوان",
+      "teacherId": "استاد",
+      "branchId": "شعبه",
+      "classroomId": "کلاس‌درس",
+      "capacity": "ظرفیت",
+      "deliveryMode": "شیوه برگزاری",
+      "daysOfWeek": "روزهای برگزاری",
+      "startTime": "ساعت شروع",
+      "endTime": "ساعت پایان"
+    },
+    "days": "روزهای برگزاری",
+    "time": "ساعت کلاس",
+    "timeRange": "{start} تا {end}",
+    "location": "محل برگزاری",
+    "capacity": "ظرفیت",
+    "people": "{count} نفر",
+    "deliveryMode": "شیوه برگزاری",
+    "deliveryModes": {
+      "IN_PERSON": "حضوری",
+      "ONLINE": "آنلاین"
+    },
+    "sessions": "تعداد جلسات",
+    "selectionReasons": "دلایل پیشنهاد:",
+    "states": {
+      "locked": "قفل‌شده",
+      "edited": "ویرایش‌شده"
+    },
+    "calendarView": {
+      "toggleCalendar": "نمای تقویمی",
+      "toggleList": "نمای فهرستی",
+      "subtitle": "برنامه هفتگی کلاس‌ها بر اساس روز و ساعت برگزاری",
+      "evenDays": "روزهای زوج",
+      "oddDays": "روزهای فرد",
+      "evenDaysSubtitle": "شنبه، دوشنبه، چهارشنبه",
+      "oddDaysSubtitle": "یکشنبه، سه‌شنبه، پنج‌شنبه",
+      "mobileTrackAria": "انتخاب روزهای نمایش",
+      "classesCount": "{count} کلاس",
+      "noClasses": "بدون کلاس",
+      "weekendOff": "تعطیل هفتگی",
+      "allInOneNotice": "برنامه یک هفته نمونه (تکرار هفتگی در طول ترم)",
+      "timeColumn": "ساعت",
+      "timeTo": "تا",
+      "increaseCapacity": "افزایش ظرفیت",
+      "decreaseCapacity": "کاهش ظرفیت",
+      "maxCapacity": "حداکثر {max} نفر",
+      "capacityLabel": "ظرفیت: {current} از {max}",
+      "freeSlot": "زمان آزاد",
+      "assignClass": "تخصیص کلاس",
+      "assignSlotTitle": "تخصیص کلاس به این زمان",
+      "assignSlotDescription": "یک کلاس حل‌نشده را برای برگزاری در روزهای {days} ساعت {start} تا {end} انتخاب کنید.",
+      "newTeacherBadge": "استاد جدید",
+      "unassign": "حذف از جدول",
+      "changeSlot": "تغییر زمان",
+      "availableRooms": "{count} اتاق خالی",
+      "assignedInCalendar": "جانمایی‌شده در تقویم",
+      "unassignedInCalendar": "بدون زمان در تقویم",
+      "scrollToCalendar": "مشاهده در جدول هفتگی",
+      "noMissedClassesToAssign": "همه کلاس‌های حل‌نشده در جدول جانمایی شده‌اند.",
+      "roomNeeded": "نیازمند تأمین اتاق",
+      "emptyDaysNotice": "روزهای بدون کلاس در این برنامه: {days}",
+      "clearSelection": "لغو انتخاب کلاس",
+      "collapseSlot": "بستن بازه {time}",
+      "expandSlot": "باز کردن بازه {time}",
+      "collapseAll": "بستن همه",
+      "expandAll": "باز کردن همه",
+      "showFreeTeachers": "نمایش استادان آزاد",
+      "hideFreeTeachers": "پنهان‌کردن استادان آزاد",
+      "freeTeachersLabel": "استادان آزاد:",
+      "freeTeacherBadge": "استاد آزاد",
+      "freeTeacherStatusLabel": "وضعیت",
+      "suggestedForCourse": "پیشنهاد برای {course}",
+      "assignToTeacher": "تخصیص به استاد",
+      "highlightMatches": "هایلایت استاد و درس",
+      "sameTeacherBadge": "همین استاد",
+      "sameCourseBadge": "همین درس",
+      "sameTeacherCountBadge": "این استاد: {count} کلاس",
+      "sameCourseCountBadge": "همین درس: {count} کلاس",
+      "teacherAccessibleBadge": "در دسترس",
+      "teacherTeachingBadge": "در حال تدریس",
+      "teacherAccessible": "استاد در این بازه در دسترس است",
+      "teacherTeaching": "استاد در این بازه کلاس دارد",
+      "selectedTeacherFilter": "فیلتر استاد: {name}",
+      "clearTeacherFilter": "حذف فیلتر استاد",
+      "availableTeachersInPeriod": "استادان در دسترس در این بازه",
+      "bothTracks": "زوج و فرد",
+      "availableTeachersCount": "{count} استاد",
+      "mastersAccessibility": "دسترسی اساتید",
+      "availableBadge": "در دسترس",
+      "teachingBadge": "در حال تدریس",
+      "unavailableBadge": "عدم دسترسی",
+      "groupTeachersCount": "{count} استاد",
+      "swapDialog": {
+        "title": "جابجایی کلاس",
+        "sourceCardLabel": "کلاس انتخاب‌شده",
+        "targetCardLabel": "کارت هدف",
+        "optionsTitle": "گزینه‌های قابل جابجایی",
+        "changeTeacher": "تغییر استاد",
+        "changeTeacherHint": "{from} ⇄ {to}",
+        "changeClassroom": "تغییر اتاق",
+        "changeClassroomHint": "{from} ⇄ {to}",
+        "changeDate": "تغییر روز و ساعت",
+        "changeDateHint": "{from} ⇄ {to}",
+        "roomPairedHint": "برای جلوگیری از تداخل اتاق، جابجایی اتاق به‌همراه تغییر ساعت اعمال می‌شود.",
+        "invalidCombination": "این ترکیب انتخاب‌شده به دلیل محدودیت استاد یا تداخل اتاق قابل اجرا نیست.",
+        "confirm": "تأیید",
+        "cancel": "انصراف",
+        "success": "جابجایی کلاس با موفقیت انجام شد."
+      }
+    },
+    "weekDays": {
+      "SATURDAY": "شنبه",
+      "SUNDAY": "یکشنبه",
+      "MONDAY": "دوشنبه",
+      "TUESDAY": "سه‌شنبه",
+      "WEDNESDAY": "چهارشنبه",
+      "THURSDAY": "پنجشنبه",
+      "FRIDAY": "جمعه"
+    },
+    "daySeparator": "، ",
+    "reasons": {
+      "MAXIMIZES_STUDENT_COVERAGE": "بیشترین پوشش فراگیران",
+      "IMPROVES_TIME_DIVERSITY": "تنوع بهتر زمانی",
+      "MATCHES_TEACHER_QUALIFICATION": "تطابق با صلاحیت استاد",
+      "MATCHES_TEACHER_AVAILABILITY": "تطابق با زمان استاد",
+      "BALANCES_TEACHER_LOAD": "تعادل بار استادان",
+      "ONLY_FEASIBLE_HARD_CONSTRAINT_OPTION": "تنها گزینه بدون تداخل قطعی",
+      "MANUALLY_SELECTED": "انتخاب دستی"
+    },
+    "unresolvedReasons": {
+      "INVALID_REQUIREMENT": "اطلاعات نیاز کلاس کامل یا معتبر نیست.",
+      "NO_VALID_TEACHER": "استاد فعال و معتبری پیدا نشد.",
+      "NO_QUALIFIED_TEACHER": "استاد واجد صلاحیت برای این سطح وجود ندارد.",
+      "NO_TEACHER_AVAILABILITY": "زمان آزاد سازگار برای استاد پیدا نشد.",
+      "TEACHER_TIME_CONFLICT": "زمان‌های ممکن با برنامه استاد تداخل دارند.",
+      "NO_COMPATIBLE_CLASSROOM": "کلاس‌درس سازگار پیدا نشد.",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "ظرفیت کلاس‌درس‌های موجود کافی نیست.",
+      "CLASSROOM_TIME_CONFLICT": "کلاس‌درس در زمان‌های ممکن آزاد نیست.",
+      "NO_FEASIBLE_TIME_SLOT": "بازه زمانی قابل اجرا پیدا نشد.",
+      "INSUFFICIENT_FEASIBLE_CANDIDATES": "تعداد گزینه‌های قابل اجرا کافی نبود.",
+      "PLAN_COMBINATION_CONFLICT": "ترکیب این کلاس با برنامه نهایی تداخل داشت."
+    },
+    "recovery": {
+      "title": "راه‌های جای‌دادن این کلاس در برنامه",
+      "optionCount": "نمایش {shown} از {total} گزینه",
+      "statuses": {
+        "AVAILABLE_NOW": "همین حالا قابل اجرا",
+        "REQUIRES_PLAN_CHANGE": "قابل اجرا با آزادکردن اتاق"
+      },
+      "teacher": "استاد آزاد در این زمان",
+      "schedule": "زمان قابل بررسی",
+      "emptyRooms": "فضاهای فیزیکی خالی در این زمان",
+      "onlineRoom": "این کلاس آنلاین است و به فضای فیزیکی نیاز ندارد.",
+      "roomWithCapacity": "فضای فیزیکی «{room}» · ظرفیت {capacity} نفر",
+      "noEmptyRoom": "در این زمان هیچ فضای فیزیکی سازگار و خالی وجود ندارد.",
+      "changeNeeded": "برای آزادکردن یک فضای فیزیکی، یکی از کلاس‌های زیر را جابه‌جا کنید",
+      "blockingClass": "کلاس {title} در این بازه از فضای فیزیکی «{room}» استفاده می‌کند.",
+      "unknownPhysicalRoom": "نامشخص",
+      "teacherConflictTitle": "استاد آزاد پیدا نشد",
+      "teacherConflictDescriptionWithSuggestion": "استادان زیر صلاحیت تدریس این دوره را دارند، اما در بازه‌های فعلی کلاس دیگری دارند. بهترین زمان دقیق برای درخواست یک کلاس اضافه در بخش «راه‌حل تأمین استاد» نمایش داده شده است.",
+      "teacherConflictDescriptionWithoutSuggestion": "استادان زیر صلاحیت تدریس این دوره را دارند، اما در بازه‌های فعلی کلاس دیگری دارند و بازه بدون تداخل دیگری پیدا نشد. افزودن استاد واجد شرایط را بررسی کنید.",
+      "noOptionTitle": "هنوز زمان اجرایی مشخصی پیدا نشد"
+    },
+    "reassignment": {
+      "title": "تحلیل جابه‌جایی استادان",
+      "description": "سامانه بررسی می‌کند آیا استاد دیگری در همان زمان آزاد و برای همان سطح واجد صلاحیت است تا کلاس استاد درگیر را بپذیرد و او را برای حل این نیاز آزاد کند.",
+      "chainCount": "{count} زنجیره معتبر",
+      "validatedChain": "زنجیره اعتبارسنجی‌شده",
+      "changeCount": "{count} جابه‌جایی",
+      "moveTeacher": "{toTeacher} در همین زمان آزاد است و می‌تواند {classTitle} را به‌جای {fromTeacher} برگزار کند.",
+      "assignTarget": "{course}: تخصیص به {teacher}",
+      "online": "آنلاین",
+      "room": "فضای فیزیکی «{room}»",
+      "noChainTitle": "زنجیره جابه‌جایی معتبری پیدا نشد",
+      "noChainDescription": "هیچ ترکیب امنی با حداکثر سه جابه‌جایی پیدا نشد. کلاس‌های قفل‌شده تغییر نمی‌کنند و تمام صلاحیت‌ها، زمان‌های حضور، تداخل‌ها و فضای فیزیکی با هم بررسی می‌شوند.",
+      "showDetails": "مشاهده جزئیات",
+      "hideDetails": "بستن جزئیات",
+      "validation": {
+        "qualification": "صلاحیت تدریس تأیید شد",
+        "availability": "استاد جایگزین در این زمان آزاد است",
+        "teacherConflicts": "بدون تداخل استاد",
+        "room": "فضای فیزیکی آزاد است"
+      }
+    },
+    "staffingFallback": {
+      "title": "راه‌حل‌های تأمین استاد",
+      "description": "سامانه دو مسیر تأمین استاد را بررسی می‌کند: افزایش زمان حضور استادان واجد شرایط یا افزودن استاد جدید برای این سطح.",
+      "solutionsCount": "{count} زمان پیشنهادی",
+      "carouselCounter": "گزینه {current} از {total}",
+      "outreachBadge": "افزایش زمان حضور استاد",
+      "higherLevelTeacherBadge": "استاد سطح بالاتر",
+      "suggestedTimesTitle": "زمان‌های پیشنهادی برای تشکیل کلاس",
+      "suggestedTimesRanking": "گزینه‌ها بر اساس فضای فیزیکی آماده، تطابق ساعت و کمترین تغییر در برنامه مرتب شده‌اند.",
+      "bestTimeBadge": "بهترین گزینه",
+      "alternativeTimeBadge": "گزینه {rank}",
+      "outreachTitle": "هماهنگی با {teacher} برای یک کلاس اضافه",
+      "higherLevelTeacherTitle": "تخصیص به {teacher} (سطح بالاتر: {course})",
+      "noClassConflict": "{teacher} در این بازه هیچ کلاس دیگری در آموزشگاه ندارد.",
+      "availabilityChange": "نیاز به هماهنگی ساعت حضور در {days} ({start}–{end})",
+      "alreadyAvailableInSlot": "استاد در روزهای {days} ساعت {start}–{end} زمان آزاد دارد و نیازی به تغییر ساعت حضور نیست.",
+      "teacherFreeNotice": "استاد در این بازه آزاد است و نیازی به تغییر ساعت حضور نیست",
+      "availabilityEmptyTitle": "بازه مناسبی برای افزایش زمان حضور پیدا نشد",
+      "availabilityEmptyDescription": "هیچ استاد واجد شرایطی در یک بازه بدون کلاس پیدا نشد. پیشنهاد افزودن استاد جدید همچنان برقرار است.",
+      "availableRooms": "فضای فیزیکی آماده:",
+      "availableRoomsLabel": "اتاق‌های آماده:",
+      "roomNeeded": "این بازه مناسب استاد است، اما فضای فیزیکی باید جداگانه تأمین شود.",
+      "online": "این کلاس آنلاین است و پس از آزادشدن استاد به فضای فیزیکی نیاز ندارد.",
+      "addTeacherBadge": "افزودن استاد",
+      "addTeacherTitle": "یک استاد واجد شرایط برای {course} اضافه کنید",
+      "addTeacherDescriptionWithSchedule": "صلاحیت تدریس این سطح و زمان حضور زیر را برای استاد جدید ثبت کنید. این زمان مستقیماً از برنامه پیشنهادی کلاس‌های تأمین‌نشده گرفته شده است.",
+      "addTeacherDescription": "افزودن استاد جدید همچنان پیشنهاد می‌شود، اما برنامه فعلی نتوانست یک زمان دقیق و قابل اجرا برای این کلاس تولید کند.",
+      "newTeacherTimesTitle": "زمان پیشنهادی برای استاد جدید",
+      "newTeacherTimesDescription": "این کلاس را با روزها و ساعت زیر در قرارداد یا زمان حضور استاد جدید هماهنگ کنید.",
+      "newTeacherScheduleEmptyTitle": "زمان دقیق برای این کلاس پیدا نشد",
+      "newTeacherScheduleEmptyDescription": "ساعات فاز عملیاتی، زمان استراحت یا مدت کلاس را بازبینی کنید؛ پیشنهاد افزودن استاد جدید حذف نشده است.",
+      "teacherAcceptedButton": "استاد پذیرفت",
+      "teacherRejectedButton": "استاد رد کرد",
+      "acceptedBadge": "ثبت‌شده در برنامه",
+      "teacherRejectedBadge": "رد شده توسط استاد",
+      "acceptSuccess": "کلاس به نام استاد ثبت شد و زمان حضور او به‌روزرسانی گردید.",
+      "revertSuccess": "ثبت کلاس و تغییر زمان حضور استاد لغو شد.",
+      "rejectSuccess": "عدم پذیرش استاد با موفقیت ثبت شد.",
+      "revertRejectSuccess": "وضعیت عدم پذیرش استاد لغو شد.",
+      "resolvedBadge": "تأمین‌شده با استاد فعلی"
+    },
+    "hiringPlan": {
+      "title": "برنامه پیشنهادی برای جذب استاد جدید",
+      "description": "سامانه برای پوشش همه کلاس‌های تأمین‌نشده، الگوی سه‌روزه زوج یا فرد و ساعت‌های پشت‌سرهم را در اولویت می‌گذارد؛ اگر ممکن نباشد، بهترین ترکیب جایگزین را نشان می‌دهد.",
+      "infoTooltipLabel": "راهنمای اولویت‌بندی الگوی تدریس",
+      "classesCarouselTitle": "کلاس‌های پیشنهادی ({count})",
+      "classCount": "{count} کلاس",
+      "requiredAvailability": "زمان حضور موردنیاز استاد جدید",
+      "requiredQualifications": "سطوح موردنیاز برای تدریس",
+      "sequenceTitle": "برنامه کلاس‌های استاد جدید",
+      "preferredThreeDay": "الگوی سه‌روزه زوج/فرد",
+      "alternateDays": "الگوی روزهای جایگزین",
+      "consecutive": "ساعت‌های پیوسته",
+      "spacedTimes": "ساعت‌های با فاصله",
+      "courseClass": "{course} · کلاس {number}",
+      "online": "آنلاین",
+      "room": "فضای فیزیکی «{room}»",
+      "roomNeeded": "نیازمند تأمین فضای فیزیکی",
+      "validation": "سامانه فضای فیزیکی را برای روزها و ساعت‌های نمایش‌داده‌شده بررسی کرده است. الگوی سه‌روزه زوج/فرد و پیوستگی ساعت‌ها اولویت هستند، نه شرط حذف پیشنهاد.",
+      "validationWithRoomChanges": "این بهترین ترکیب زمانی پیدا‌شده است، اما برای یک یا چند کلاس باید فضای فیزیکی آزاد یا جدید تأمین شود. الگوی سه‌روزه زوج/فرد و پیوستگی ساعت‌ها اولویت هستند، نه شرط حذف پیشنهاد.",
+      "emptyTitle": "برنامه قابل اجرای کاملی پیدا نشد",
+      "emptyDescription": "افزودن استاد جدید همچنان پیشنهاد می‌شود، اما حتی با روزهای جایگزین و ساعت‌های با فاصله، همه کلاس‌های تأمین‌نشده در فاز عملیاتی فعلی جا نمی‌شوند. ساعات فاز عملیاتی، زمان استراحت یا مدت کلاس‌ها را بازبینی کنید.",
+      "pendingTeacher": "استاد جدید (در انتظار جذب)",
+      "selectSlotLabel": "انتخاب زمان کلاس",
+      "selectSlotPlaceholder": "انتخاب زمان برگزاری...",
+      "reservedByOther": "رزرو توسط کلاس دیگر",
+      "noRoomsAvailable": "اتاق خالی ندارد",
+      "roomOption": "اتاق {room}",
+      "noRoomAssigned": "بدون اتاق اختصاصی",
+      "commitButton": "ثبت کلاس‌های پیش‌نویس برنامه",
+      "committing": "در حال ثبت...",
+      "commitSuccess": "کلاس‌های پیش‌نویس با موفقیت به برنامه اضافه شدند.",
+      "resetSuggestion": "بازنشانی به پیشنهاد اولیه",
+      "trackEven": "زوج (یک/سه/پنج)",
+      "trackOdd": "فرد (شن/دو/چهار)"
+    },
+    "unfilledTeachers": {
+      "title": "استادان با زمان آزاد باقی‌مانده",
+      "description": "استادانی که در این پیشنهاد، تمام ساعات حضورشان با کلاس پر نشده و بازه آزاد دارند:",
+      "freeSlotsCount": "{count} بازه آزاد",
+      "freeSlotSummary": "{days} {start} - {end}",
+      "dayTracks": {
+        "even": "زوج",
+        "odd": "فرد",
+        "friday": "جمعه"
+      },
+      "levels": "سطوح قابل تدریس",
+      "suggestedCourse": "پیشنهاد تدریس {course} ({slot})",
+      "assignToTeacher": "تخصیص به استاد",
+      "allFilled": "تمامی زمان‌های حضور استادان در این برنامه با کلاس پوشش داده شده است.",
+      "viewCalendar": "مشاهده تقویم همه استادان",
+      "count": "{count} استاد"
+    },
+    "teacherCalendar": {
+      "all": {
+        "title": "تقویم همه استادان",
+        "description": "زمان حضور، زمان‌های آزاد و کلاس‌های در حال استفاده همه استادان فعال را در کنار هم بررسی کنید."
+      },
+      "qualified": {
+        "title": "تقویم استادان مرتبط با این مشکل",
+        "description": "زمان‌های آزاد و کلاس‌های ثبت‌شده استادانی را ببینید که می‌توانند در حل این نیاز نقش داشته باشند."
+      },
+      "legend": "راهنمای وضعیت زمان‌ها",
+      "teacherSelector": "انتخاب استاد برای مشاهده تقویم",
+      "searchTeacher": "جستجوی استاد...",
+      "noTeacherMatch": "استادی با این مشخصات پیدا نشد.",
+      "noTeachers": "استاد فعالی برای نمایش در تقویم وجود ندارد.",
+      "teachableLevels": "سطوح قابل تدریس استاد انتخاب‌شده",
+      "noTeachableLevels": "هنوز سطح قابل تدریسی برای این استاد ثبت نشده است.",
+      "states": {
+        "FREE": "آزاد",
+        "BUSY": "در حال تدریس",
+        "UNAVAILABLE": "خارج از زمان حضور"
+      },
+      "existingClass": "کلاس ثبت‌شده",
+      "noAvailability": "زمان حضوری برای این روز ثبت نشده است."
+    },
+    "unresolvedSuggestions": {
+      "INVALID_REQUIREMENT": "اطلاعات نیاز کلاس، تعداد کلاس‌ها و ظرفیت هدف را بازبینی و سپس زمان‌بندی را دوباره اجرا کنید.",
+      "NO_VALID_TEACHER": "حداقل یک استاد فعال ثبت کنید یا وضعیت استادان غیرفعال را در مدیریت اساتید بررسی کنید.",
+      "NO_QUALIFIED_TEACHER": "صلاحیت تدریس این دوره را به یک یا چند استاد فعال اختصاص دهید.",
+      "NO_TEACHER_AVAILABILITY": "برای استادان واجد شرایط، زمان حضور سازگار با فازهای زمانی آموزشگاه تعریف کنید.",
+      "TEACHER_TIME_CONFLICT": "زمان حضور استاد را گسترش دهید، استاد جایگزین تعیین کنید یا کلاس‌های هم‌زمان او را بازبینی کنید.",
+      "NO_COMPATIBLE_CLASSROOM": "یک کلاس‌درس سازگار با شعبه و شیوه برگزاری اضافه کنید یا شیوه برگزاری را بازبینی کنید.",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "کلاس‌درس بزرگ‌تری انتخاب کنید، ظرفیت گروه را کاهش دهید یا زبان‌آموزان را بین کلاس‌های بیشتری تقسیم کنید.",
+      "CLASSROOM_TIME_CONFLICT": "زمان‌های آزاد کلاس‌درس را افزایش دهید، کلاس‌درس دیگری اضافه کنید یا بازه برگزاری را تغییر دهید.",
+      "NO_FEASIBLE_TIME_SLOT": "فازهای زمانی، تعطیلات، تاریخ ترم و زمان حضور استادان را بازبینی و بازه‌های قابل اجرا را بیشتر کنید.",
+      "INSUFFICIENT_FEASIBLE_CANDIDATES": "با افزایش زمان‌های آزاد استادان و کلاس‌درس‌ها یا کاهش محدودیت‌های نیاز، گزینه‌های بیشتری ایجاد کنید.",
+      "PLAN_COMBINATION_CONFLICT": "زمان، استاد یا کلاس‌درس این نیاز را تغییر دهید یا محدودیت‌های سایر کلاس‌های هم‌زمان را بازبینی کنید."
+    },
+    "unknownCourse": "سطح نامشخص",
+    "notSpecified": "مشخص نشده",
+    "close": "بستن",
+    "actions": {
+      "title": "اقدامات کلاس پیشنهادی",
+      "edit": "ویرایش کلاس پیشنهادی",
+      "lock": "قفل برای تولید مجدد",
+      "unlock": "بازکردن قفل"
+    },
+    "validation": {
+      "validate": "اعتبارسنجی برنامه",
+      "validateAgain": "اعتبارسنجی دوباره",
+      "validating": "در حال اعتبارسنجی..."
+    },
+    "publication": {
+      "publish": "انتشار برنامه"
+    }
+  },
+  "proposalEdit": {
+    "title": "ویرایش کلاس پیشنهادی",
+    "description": "تخصیص و زمان‌بندی کلاس سطح {course} را اصلاح کنید.",
+    "titleField": "عنوان کلاس",
+    "titlePlaceholder": "عنوان کلاس را وارد کنید",
+    "teacher": "استاد",
+    "teacherPlaceholder": "استاد واجد صلاحیت را انتخاب کنید",
+    "noQualifiedTeachers": "استاد واجد صلاحیتی برای این سطح یافت نشد.",
+    "capacity": "ظرفیت",
+    "deliveryMode": "شیوه برگزاری",
+    "deliveryModes": {
+      "IN_PERSON": "حضوری",
+      "ONLINE": "آنلاین"
+    },
+    "branch": "شعبه",
+    "branchPlaceholder": "شعبه را انتخاب کنید",
+    "classroom": "کلاس‌درس",
+    "classroomPlaceholder": "کلاس‌درس سازگار را انتخاب کنید",
+    "onlineClassroom": "برای کلاس آنلاین نیاز نیست",
+    "classroomOption": "{name}، ظرفیت {capacity} نفر",
+    "days": "روزهای برگزاری",
+    "weekDays": {
+      "SATURDAY": "شنبه",
+      "SUNDAY": "یکشنبه",
+      "MONDAY": "دوشنبه",
+      "TUESDAY": "سه‌شنبه",
+      "WEDNESDAY": "چهارشنبه",
+      "THURSDAY": "پنجشنبه",
+      "FRIDAY": "جمعه"
+    },
+    "startTime": "ساعت شروع",
+    "endTime": "ساعت پایان",
+    "save": "ذخیره تغییرات",
+    "saving": "در حال ذخیره...",
+    "cancel": "انصراف",
+    "close": "بستن",
+    "success": "کلاس پیشنهادی با موفقیت ویرایش شد و برنامه نیازمند اعتبارسنجی مجدد است.",
+    "validation": {
+      "title": "عنوان کلاس باید حداقل ۲ نویسه باشد.",
+      "teacher": "انتخاب استاد واجد صلاحیت الزامی است.",
+      "capacity": "ظرفیت باید یک عدد مثبت باشد.",
+      "classroom": "برای کلاس حضوری انتخاب کلاس‌درس الزامی است.",
+      "classroomCapacity": "ظرفیت کلاس‌درس برای این کلاس کافی نیست.",
+      "days": "حداقل یک روز برگزاری انتخاب کنید.",
+      "time": "ساعت معتبر وارد کنید.",
+      "endTime": "ساعت پایان باید بعد از ساعت شروع باشد."
+    }
+  },
+  "proposalLock": {
+    "lockedSuccess": "پیشنهاد قفل شد و در تولید مجدد برنامه حفظ می‌شود.",
+    "unlockedSuccess": "قفل پیشنهاد باز شد."
+  },
+  "planValidation": {
+    "validTitle": "برنامه آماده انتشار است",
+    "invalidTitle": "برنامه نیاز به اصلاح دارد",
+    "validBadge": "معتبر",
+    "invalidBadge": "نامعتبر",
+    "validatedAt": "بررسی‌شده در {date}",
+    "validToast": "اعتبارسنجی با موفقیت انجام شد؛ برنامه آماده انتشار است.",
+    "invalidToast": "اعتبارسنجی انجام شد؛ موارد مشخص‌شده را اصلاح کنید.",
+    "wholePlan": "کل برنامه",
+    "unknownProposal": "کلاس پیشنهادی نامشخص",
+    "relatedConflicts": "{count} مورد تداخل مرتبط شناسایی شد.",
+    "teacher": "استاد",
+    "noTeacher": "بدون استاد",
+    "online": "آنلاین",
+    "notSpecified": "مشخص‌نشده",
+    "viewInCalendar": "مشاهده در تقویم",
+    "summary": {
+      "proposals": "کلاس‌های بررسی‌شده",
+      "violations": "تخلف‌ها",
+      "invalidProposals": "کلاس‌های نیازمند اصلاح"
+    },
+    "violations": {
+      "CROSS_INSTITUTE_REFERENCE": "مرجع متعلق به آموزشگاه دیگری است",
+      "INVALID_OR_INACTIVE_REFERENCE": "یکی از مراجع غیرفعال یا نامعتبر است",
+      "INCOMPLETE_CLASS_REQUIREMENT": "نیاز کلاسی ناقص یا ناسازگار است",
+      "INVALID_TIME_RANGE": "بازه یا مدت زمان کلاس نامعتبر است",
+      "OUTSIDE_OPERATING_PHASE": "روز و ساعت کلاس باید دقیقاً مطابق یکی از بازه‌های فاز عملیاتی ترم انتخاب‌شده باشد",
+      "SESSION_OUTSIDE_TERM": "جلسه‌ای خارج از بازه ترم قرار دارد",
+      "INVALID_TEACHER": "استاد غیرفعال یا نامعتبر است",
+      "TEACHER_NOT_QUALIFIED": "استاد صلاحیت تدریس این سطح را ندارد",
+      "OUTSIDE_TEACHER_AVAILABILITY": "زمان کلاس خارج از برنامه حضور استاد است",
+      "TEACHER_TIME_CONFLICT": "برنامه استاد تداخل دارد",
+      "INVALID_DELIVERY_LOCATION": "محل برگزاری با شیوه کلاس سازگار نیست",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "ظرفیت کلاس‌درس کافی نیست",
+      "CLASSROOM_TIME_CONFLICT": "برنامه کلاس‌درس تداخل دارد",
+      "REQUIREMENT_CADENCE_MISMATCH": "تعداد یا توالی جلسات با نیاز کلاسی سازگار نیست",
+      "INVALID_SESSION_DATES": "تاریخ یا ساعت جلسات نامعتبر است"
+    }
+  },
+  "planPublication": {
+    "success": "برنامه منتشر شد و {count} کلاس عملیاتی ساخته شد.",
+    "confirmation": {
+      "title": "انتشار برنامه نهایی",
+      "description": "با انتشار این برنامه، {count} کلاس پیشنهادی به کلاس عملیاتی تبدیل می‌شود.",
+      "term": "ترم",
+      "classes": "تعداد کلاس‌ها",
+      "consequence": "اگر ساخت هر کلاس شکست بخورد، هیچ کلاسی ساخته نمی‌شود. سایر برنامه‌های همین اجرا رد می‌شوند و برای اصلاح برنامه باید اجرای زمان‌بندی جدیدی بسازید.",
+      "cancel": "انصراف",
+      "confirm": "انتشار و ساخت {count} کلاس",
+      "publishing": "در حال انتشار..."
+    },
+    "published": {
+      "title": "برنامه با موفقیت منتشر شد",
+      "description": "از این برنامه {count} کلاس عملیاتی ساخته شده است.",
+      "at": "تاریخ انتشار: {date}",
+      "badge": "منتشرشده"
+    }
+  },
+  "demand": {
+    "smartHero": {
+      "title": "خلاصه هوشمند تقاضا",
+      "subtitle": "بر اساس ارتقای خودکار دانشجویان فعلی و تعیین‌سطح‌های جدید، {count} کلاس برای این ترم پیش‌بینی شده است.",
+      "generateButton": "ثبت و ادامه",
+      "noDemandSubtitle": "هیچ کلاسی برای این ترم پیش‌بینی نشده است. اطلاعات ترم و دانشجویان را بررسی کنید."
+    },
+    "applyAndContinue": "ثبت و ادامه",
+    "breakdown": {
+      "toggle": "مشاهده و ویرایش جزئیات دوره‌ها ({count} دوره)",
+      "course": "نام دوره",
+      "prerequisite": "پیشنیاز: {title}",
+      "prerequisiteColumn": "پیشنیاز",
+      "noPrerequisite": "—",
+      "students": "متقاضیان",
+      "studentsDetail": "{continuing} ارتقا از ترم قبل + {new} تعیین‌سطح = {total} نفر",
+      "classesCountColumn": "تعداد کلاس",
+      "classesCountSummary": "{count} کلاس",
+      "suggestedClasses": "تعداد کلاس پیشنهادی",
+      "capacity": "ظرفیت هر کلاس",
+      "classRows": "کلاس‌های پیشنهادی",
+      "classLabel": "کلاس {count}",
+      "coverage": "پوشش ظرفیت",
+      "statusColumn": "وضعیت",
+      "plannedSeats": "{count} صندلی برنامه‌ریزی‌شده",
+      "uncovered": "{count} نفر بدون ظرفیت",
+      "covered": "پوشش کامل",
+      "addClass": "افزودن کلاس",
+      "removeClass": "حذف کلاس",
+      "editClasses": "ویرایش کلاس‌ها",
+      "closeClasses": "بستن"
+    },
+    "summary": {
+      "eligible": "{count} زبان‌آموز واجد شرایط",
+      "effectiveLimit": "حداکثر {count} نفر در هر کلاس",
+      "uncovered": "{count} نفر بدون ظرفیت"
+    },
+    "warnings": {
+      "NO_ACTIVE_CLASSROOMS": "در این محدوده کلاس‌درس فعالی وجود ندارد. پیشنهادها با سقف تعیین‌شده ساخته شده‌اند، اما تولید برنامه ممکن است ناموفق باشد.",
+      "CLASS_LIMIT_CLAMPED": "سقف کلاس متناسب با بزرگ‌ترین کلاس‌درس فعال این محدوده کاهش یافت."
+    },
+    "shortfall": {
+      "title": "با وجود زبان‌آموز بدون ظرفیت ادامه می‌دهید؟",
+      "description": "کلاس‌های بررسی‌شده برای {count} زبان‌آموز واجد شرایط صندلی ندارند. می‌توانید آگاهانه ادامه دهید یا کلاس‌ها را اصلاح کنید.",
+      "cancel": "بررسی",
+      "confirm": "ادامه"
+    },
+    "tabTitle": "تقاضای دوره‌ها",
+    "generationTabTitle": "زمان‌بندی کلاس‌ها",
+    "calculateButton": "محاسبه تقاضا",
+    "manageRequirementsButton": "مدیریت نیازهای کلاسی",
+    "recalculateButton": "محاسبه مجدد",
+    "calculating": "در حال محاسبه...",
+    "applyButton": "ثبت نیازهای کلاسی",
+    "updateButton": "به‌روزرسانی نیازهای کلاسی",
+    "applying": "در حال ثبت...",
+    "applySuccess": "{count} نیاز کلاسی با موفقیت ثبت شد.",
+    "noRequestsYet": "بدون نیاز",
+    "selectTermPrompt": "برای مشاهده تقاضای دوره‌ها، ابتدا یک ترم انتخاب کنید.",
+    "selectTermPromptDesc": "سیستم بر اساس قبولی‌های ترم گذشته و نتایج تعیین‌سطح جدید، تقاضا و تعداد کلاس‌های مورد نیاز را محاسبه می‌کند.",
+    "emptyDemand": "هیچ فراگیر متقاضی دوره‌ای برای این ترم یافت نشد.",
+    "emptyDemandDesc": "فراگیران برای ورود به تقاضای ترم باید در ترم قبل قبول شده باشند یا تعیین‌سطح شده باشند.",
+    "stats": {
+      "totalStudents": "کل متقاضیان",
+      "passedStudents": "قبولی ترم قبل",
+      "placementStudents": "تعیین‌سطح جدید",
+      "suggestedClasses": "کلاس پیشنهادی",
+      "registeredClasses": "نیازهای ثبت‌شده"
+    },
+    "columns": {
+      "course": "نام دوره",
+      "totalStudents": "متقاضیان",
+      "passed": "قبولی",
+      "placement": "تعیین‌سطح",
+      "shifts": "شیفت مدرسه",
+      "days": "روزهای ترجیحی",
+      "suggestedClasses": "کلاس پیشنهادی",
+      "capacity": "ظرفیت",
+      "deliveryMode": "شیوه برگزاری",
+      "requirementStatus": "وضعیت ثبت نیاز",
+      "registeredCount": "ثبت‌شده ({count} کلاس)",
+      "notRegistered": "ثبت‌نشده",
+      "reviewNeeded": "پیشنهاد جدید: {count}",
+      "actions": "عملیات"
+    },
+    "shifts": {
+      "morning": "صبح: {count}",
+      "afternoon": "عصر: {count}",
+      "flexible": "شناور: {count}"
+    },
+    "days": {
+      "evenDays": "زوج: {count}",
+      "oddDays": "فرد: {count}",
+      "any": "شناور: {count}"
+    },
+    "deliveryModes": {
+      "IN_PERSON": "حضوری",
+      "ONLINE": "آنلاین"
+    },
+    "editModal": {
+      "title": "ویرایش تقاضای دوره {course}",
+      "description": "می‌توانید تعداد کلاس پیشنهادی، ظرفیت هر کلاس و شیوه برگزاری را پیش از ثبت تغییر دهید.",
+      "suggestedClasses": "تعداد کلاس‌های مورد نیاز",
+      "capacity": "ظرفیت هر کلاس",
+      "deliveryMode": "شیوه برگزاری",
+      "sessionsPerWeek": "الگوی برگزاری و جلسات هفتگی",
+      "cadence3": "۳ جلسه در هفته (روزهای زوج: شنبه، دوشنبه، چهارشنبه)",
+      "cadence2": "۲ جلسه در هفته (روزهای فرد: یکشنبه، سه‌شنبه)",
+      "cadence1": "۱ جلسه در هفته (تک جلسه)",
+      "save": "تأیید",
+      "cancel": "انصراف",
+      "success": "نیاز کلاسی با موفقیت به‌روزرسانی شد."
+    },
+    "filters": {
+      "term": "ترم",
+      "branch": "شعبه",
+      "allBranches": "همه شعبه‌ها",
+      "maxStudents": "حداکثر زبان‌آموز هر کلاس",
+      "roomCeiling": "بزرگ‌ترین کلاس‌درس موجود: {count} صندلی",
+      "noRoomCeiling": "در این محدوده کلاس‌درس فعالی وجود ندارد.",
+      "allTerms": "همه ترم‌ها",
+      "search": "جست‌وجوی دوره...",
+      "statusAll": "همه دوره‌ها ({count})",
+      "statusRegistered": "دارای درخواست ({count})",
+      "statusUnregistered": "بدون درخواست ({count})",
+      "registeredSummary": "{courses} دوره با مجموع {classes} کلاس ثبت شده است.",
+      "termsWithRequests": "ترم‌های دارای درخواست",
+      "noRequestsForTerm": "برای این ترم هنوز درخواستی ثبت نشده است."
+    }
+  },
+  "termsList": {
+    "title": "زمان‌بندی ترم‌ها",
+    "description": "فهرست ترم‌های آموزشی آموزشگاه به همراه وضعیت نیازهای کلاسی و برنامه‌های تولیدشده.",
+    "columns": {
+      "term": "عنوان ترم",
+      "dateRange": "بازه برگزاری",
+      "operatingPhase": "فاز عملیاتی",
+      "requirements": "نیازهای کلاسی",
+      "status": "وضعیت برنامه",
+      "actions": "عملیات"
+    },
+    "requirementsBadge": "{count} نیاز ({classes} کلاس)",
+    "noRequirements": "بدون نیاز کلاسی",
+    "noPhase": "عمومی",
+    "statuses": {
+      "PUBLISHED": "برنامه منتشر شده",
+      "SCHEDULED": "دارای پیشنهاد",
+      "GENERATING": "در حال تولید",
+      "READY_TO_SCHEDULE": "آماده تولید برنامه",
+      "NO_REQUIREMENTS": "نیازمند ثبت تقاضا"
+    },
+    "actions": {
+      "manageTerm": "مدیریت و زمان‌بندی",
+      "backToTerms": "بازگشت به فهرست ترم‌ها"
+    },
+    "filters": {
+      "searchPlaceholder": "جست‌وجوی عنوان ترم...",
+      "statusPlaceholder": "همه وضعیت‌ها",
+      "statusAll": "همه وضعیت‌ها"
+    },
+    "empty": {
+      "title": "ترمی یافت نشد",
+      "description": "برای استفاده از امکان زمان‌بندی، ابتدا از بخش مدیریت ترم‌ها ترم جدید ایجاد نمایید."
+    },
+    "notEligible": {
+      "title": "ترم فعالی برای زمان‌بندی وجود ندارد",
+      "description": "امکان ایجاد زمان‌بندی تنها از ۱۰ روز مانده به شروع ترم فعال می‌شود تا وضعیت تحصیلی و ارتقای زبان‌آموزان ترم قبل مشخص شده باشد."
+    }
+  }
+}

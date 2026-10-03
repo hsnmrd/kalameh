@@ -1,0 +1,31 @@
+export interface TermColorTheme {
+  id: string
+  badgeBg: string
+  badgeText: string
+  badgeBorder: string
+  dotColor: string
+  accentColor: string
+  evenColorHex: string
+  oddColorHex: string
+  rangeClassRtl: string
+  rangeClassLtr: string
+  rangeClass: string
+  evenSessionClassRtl: string
+  evenSessionClassLtr: string
+  evenSessionClass: string
+  oddSessionClassRtl: string
+  oddSessionClassLtr: string
+  oddSessionClass: string
+  startPillRtl: string
+  startPillLtr: string
+  endPillRtl: string
+  endPillLtr: string
+  singlePill: string
+  startClassRtl: string
+  startClassLtr: string
+  startClass: string
+  endClassRtl: string
+  endClassLtr: string
+  endClass: string
+  singleClass: string
+}

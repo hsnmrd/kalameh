@@ -1,0 +1,102 @@
+"use client"
+
+import * as React from "react"
+import { Select as SelectPrimitive } from "@base-ui/react/select"
+import { Check, ChevronDown } from "lucide-react"
+import { cn } from "@workspace/ui/lib/utils"
+
+const Select = SelectPrimitive.Root
+const SelectGroup = SelectPrimitive.Group
+const SelectValue = SelectPrimitive.Value
+
+function SelectTrigger({
+  className,
+  children,
+  ...props
+}: SelectPrimitive.Trigger.Props) {
+  return (
+    <SelectPrimitive.Trigger
+      className={cn(
+        "flex h-14 w-full items-center justify-between rounded-2xl border border-border bg-background px-4 py-2 text-base text-foreground shadow-2xs focus:border-2 focus:border-ring focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <SelectPrimitive.Icon className="size-4 shrink-0 text-muted-foreground">
+        <ChevronDown className="size-4" />
+      </SelectPrimitive.Icon>
+    </SelectPrimitive.Trigger>
+  )
+}
+
+function SelectPopup({
+  className,
+  children,
+  ...props
+}: SelectPrimitive.Popup.Props) {
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Positioner sideOffset={4} className="z-50">
+        <SelectPrimitive.Popup
+          className={cn(
+            "relative max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
+            className
+          )}
+          {...props}
+        >
+          <SelectPrimitive.List className="p-1">
+            {children}
+          </SelectPrimitive.List>
+        </SelectPrimitive.Popup>
+      </SelectPrimitive.Positioner>
+    </SelectPrimitive.Portal>
+  )
+}
+
+function SelectItem({
+  className,
+  children,
+  ...props
+}: SelectPrimitive.Item.Props) {
+  return (
+    <SelectPrimitive.Item
+      className={cn(
+        "relative flex w-full cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-base font-medium outline-hidden transition-colors select-none hover:bg-muted/60 focus:bg-muted/60 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted/60 data-[selected]:bg-primary/10 data-[selected]:font-semibold data-[selected]:text-primary data-[selected]:data-[highlighted]:bg-primary/15",
+        className
+      )}
+      {...props}
+    >
+      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemIndicator className="flex size-4.5 shrink-0 items-center justify-center text-primary">
+        <Check className="size-4.5 text-primary" />
+      </SelectPrimitive.ItemIndicator>
+    </SelectPrimitive.Item>
+  )
+}
+
+function SelectLabel({
+  className,
+  ...props
+}: SelectPrimitive.GroupLabel.Props) {
+  return (
+    <SelectPrimitive.GroupLabel
+      className={cn(
+        "px-2 py-1.5 text-xs font-semibold text-muted-foreground",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectPopup,
+  SelectPopup as SelectContent,
+  SelectItem,
+  SelectLabel,
+}

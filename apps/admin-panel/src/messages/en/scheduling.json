@@ -1,0 +1,878 @@
+{
+  "title": "Smart Class Scheduling",
+  "subtitle": "Prepare inputs, review suggested plans, and publish the final schedule",
+  "workflow": {
+    "title": "Scheduling workflow",
+    "description": "The system checks term data, creates valid alternatives, and keeps the final decision with the supervisor.",
+    "steps": {
+      "prepare": {
+        "title": "Prepare",
+        "description": "Complete class requirements and availability data."
+      },
+      "generate": {
+        "title": "Generate",
+        "description": "The engine creates and ranks conflict-free alternatives."
+      },
+      "review": {
+        "title": "Supervisor review",
+        "description": "Compare suggestions and adjust details when needed."
+      },
+      "publish": {
+        "title": "Publish classes",
+        "description": "Validate the selected plan and convert it into real classes."
+      }
+    }
+  },
+  "ready": {
+    "title": "Your scheduling workspace is ready",
+    "description": "Before creating the first plan, review the active term, teacher qualifications and availability, and student time profiles.",
+    "links": {
+      "terms": "Review terms",
+      "teachers": "Review teachers",
+      "students": "Review students"
+    }
+  },
+  "generation": {
+    "title": "Create scheduling suggestions",
+    "description": "Choose the scheduling scope and the class requirements the engine should include.",
+    "success": "The scheduling run was created.",
+    "fields": {
+      "term": {
+        "label": "Term",
+        "placeholder": "Select a term",
+        "search": "Search terms...",
+        "empty": "No active terms found.",
+        "drawerTitle": "Select term"
+      },
+      "branch": {
+        "label": "Branch scope",
+        "placeholder": "All branches",
+        "all": "All branches",
+        "description": "Optional — narrow the suggestions to one branch.",
+        "drawerTitle": "Select branch"
+      },
+      "alternatives": {
+        "label": "Number of suggestions",
+        "placeholder": "Select a number",
+        "drawerTitle": "Number of suggestions",
+        "option": "{count} suggestions"
+      }
+    },
+    "requirements": {
+      "label": "Class requirements",
+      "description": "Select at least one active requirement to schedule.",
+      "selectAll": "Select all",
+      "clear": "Clear",
+      "loading": "Loading class requirements",
+      "empty": "No active requirements match this scope",
+      "emptyHint": "First calculate and save class requirements for this term from the Course Demand tab.",
+      "chooseTerm": "Select a term first",
+      "chooseTermHint": "Active class requirements for that term will appear here.",
+      "goToDemand": "Go to Course Demand",
+      "unnamed": "Untitled course",
+      "summary": "{classes} classes · capacity {capacity}",
+      "deliveryModes": {
+        "IN_PERSON": "In-Person",
+        "ONLINE": "Online"
+      },
+      "allBranches": "All Branches"
+    },
+    "validation": {
+      "term": "Select a term.",
+      "requirements": "Select at least one class requirement."
+    },
+    "selectionSummary": "{count} requirements selected",
+    "submit": "Generate suggestions",
+    "submitting": "Starting generation...",
+    "instituteRequired": {
+      "title": "Select an institute",
+      "description": "Choose an institute from the header before starting a scheduling run."
+    }
+  },
+  "runStatus": {
+    "statuses": {
+      "QUEUED": {
+        "title": "Waiting to start",
+        "badge": "Queued",
+        "description": "The request is queued and will start automatically. You can keep this page open."
+      },
+      "GENERATING": {
+        "title": "Generating scheduling suggestions",
+        "badge": "Generating",
+        "description": "The engine is checking constraints and ranking the available scheduling options."
+      },
+      "COMPLETED": {
+        "title": "Suggestions are ready",
+        "badge": "Completed",
+        "description": "Generation finished successfully and the plans are ready for supervisor review."
+      },
+      "PREFLIGHT_FAILED": {
+        "title": "Inputs need attention",
+        "badge": "Preflight failed",
+        "description": "Generation could not start because one or more required inputs are incomplete or incompatible."
+      },
+      "FAILED": {
+        "title": "Generation failed",
+        "badge": "Failed",
+        "description": "The engine could not finish this run. Review the message below and try again."
+      },
+      "CANCELLED": {
+        "title": "Generation was cancelled",
+        "badge": "Cancelled",
+        "description": "This run stopped before producing scheduling suggestions."
+      }
+    },
+    "connectionError": {
+      "title": "Status could not be refreshed",
+      "description": "The run is still preserved. Check your connection and try refreshing its status."
+    },
+    "retry": "Retry",
+    "retryGeneration": "Retry Generation",
+    "exactError": "Technical details: {error}",
+    "notFound": {
+      "title": "Scheduling Run Not Found",
+      "description": "This run was not found or may belong to another institute.",
+      "back": "Back to Scheduling"
+    },
+    "progress": {
+      "title": "Scheduling Generation Progress",
+      "stage1": "Initial validation & prerequisites",
+      "stage2": "Evaluating teacher availability & classroom capacities",
+      "stage3": "Analyzing student preferences & school shifts",
+      "stage4": "Generating & ranking alternative plans",
+      "stage5": "Persisting & finalizing proposals",
+      "completed": "Calculation completed successfully"
+    },
+    "result": {
+      "title": "{count} scheduling suggestions generated",
+      "description": "Review the generated alternatives and choose the best fit."
+    },
+    "runId": "Run ID: {id}",
+    "updatedAt": "Last update: {value}",
+    "refresh": "Refresh status",
+    "another": "Create another run",
+    "pageTitle": "Scheduling results",
+    "preflightIssues": {
+      "title": "Preflight blocking issues:",
+      "COURSE_WITHOUT_QUALIFIED_TEACHER": "Course \"{entity}\" does not have an active qualified teacher. Please assign course qualification to at least one teacher.",
+      "COURSE_WITHOUT_AVAILABLE_TEACHER": "None of the qualified teachers for course \"{entity}\" have submitted time availabilities.",
+      "COURSE_WITHOUT_PHASE_AVAILABILITY": "Qualified teachers for course \"{entity}\" have no availability covering an exact slot in the selected term's operating phase.",
+      "NO_CLASSROOM_WITH_REQUIRED_CAPACITY": "No classroom meets the capacity requirement for one of the courses.",
+      "INCOMPLETE_STUDENT_SCHEDULE_DATA": "Some student schedules have incomplete availability data.",
+      "NO_ELIGIBLE_STUDENTS": "No eligible students found for this course.",
+      "TEACHERS_WITHOUT_COURSE_QUALIFICATION": "Some active teachers have no course qualifications assigned."
+    }
+  },
+  "comparison": {
+    "title": "Compare suggested plans",
+    "description": "Review every option against the same criteria and choose the best fit.",
+    "rank": "Rank {rank}",
+    "plan": "Plan {rank}",
+    "qualityIndex": "Quality index",
+    "weightedPoints": "{earned} of {applicable} applicable points",
+    "metrics": {
+      "coverage": "Student coverage",
+      "minimumCoverage": "Lowest course coverage",
+      "timeDiversity": "Time diversity",
+      "proposals": "Suggested classes"
+    },
+    "table": {
+      "plan": "Plan",
+      "issues": "Needs attention",
+      "actions": "Actions"
+    },
+    "missingClasses": "{count} unfilled classes",
+    "warnings": "{count} warnings",
+    "viewDetails": "View details",
+    "statuses": {
+      "published": "Published",
+      "rejected": "Rejected"
+    },
+    "selection": {
+      "badge": "Supervisor selection",
+      "select": "Select this plan",
+      "selecting": "Selecting...",
+      "selected": "Selected plan",
+      "success": "The plan was selected successfully."
+    },
+    "loading": {
+      "title": "Preparing the comparison",
+      "description": "Loading the details of the generated plans."
+    },
+    "error": {
+      "title": "Plan comparison could not be loaded",
+      "description": "The run result is safe. Try loading the plan details again.",
+      "retry": "Try again"
+    }
+  },
+  "planDetails": {
+    "title": "Plan {rank} details",
+    "description": "Review the suggested classes and unresolved requirements before making a final decision.",
+    "publishedDescription": "This plan is published and its operational classes have been created.",
+    "selected": "Supervisor selection",
+    "published": "Published",
+    "rejected": "Rejected",
+    "notFound": {
+      "title": "Scheduling plan not found",
+      "description": "The plan details could not be found or may belong to a different institute.",
+      "back": "Back to scheduling",
+      "retry": "Try again"
+    },
+    "selection": {
+      "select": "Select this plan",
+      "selecting": "Selecting...",
+      "selected": "Selected plan"
+    },
+    "teacherFilter": "Filter by Teacher",
+    "selectTeacherPlaceholder": "Select teacher...",
+    "searchTeacherPlaceholder": "Search teacher name...",
+    "noTeachersFound": "No teachers found",
+    "clearTeacherFilter": "Clear teacher filter",
+    "filterButton": "Filters",
+    "term": "Term",
+    "branch": "Branch scope",
+    "status": "Status",
+    "allBranches": "All branches",
+    "generatedAt": "Generated on",
+    "qualityIndex": "Quality index",
+    "proposalsTitle": "Suggested classes",
+    "proposalCount": "{count} classes",
+    "noProposals": {
+      "title": "No feasible classes were generated",
+      "description": "Review the unresolved requirements below to understand why."
+    },
+    "unresolvedTitle": "Unresolved requirements",
+    "unresolvedDescription": "Student demand exceeded available teacher hours or physical classroom capacity, so these courses could not be scheduled.",
+    "missingCount": "{count} missing classes",
+    "warningCount": "{count} warnings",
+    "planWarnings": "Plan warnings",
+    "proposalWarnings": "Suggested class warnings",
+    "warningSeverities": {
+      "INFO": "Information",
+      "WARNING": "Needs attention"
+    },
+    "warningMessages": {
+      "GENERATION_PENDING": "This plan has not finished generating.",
+      "MISSING_SCHEDULED_CLASSES": "Some required classes could not be generated.",
+      "NEUTRAL_TIME_GROUP_USED": "A neutral time group was used.",
+      "TIME_PATTERN_NOT_DIVERSE": "The odd/even or morning/evening mix is incomplete.",
+      "TIME_GROUP_IMBALANCED": "Classes are not balanced across time groups.",
+      "MANUAL_EDIT_REQUIRES_VALIDATION": "This class must be validated again after its manual edit."
+    },
+    "warningContexts": {
+      "classCount": "{scheduled} of {required} required classes could be scheduled.",
+      "spread": "Load difference across time groups: {count}",
+      "changedFields": "Changed fields: {fields}"
+    },
+    "editableFields": {
+      "title": "Title",
+      "teacherId": "Teacher",
+      "branchId": "Branch",
+      "classroomId": "Classroom",
+      "capacity": "Capacity",
+      "deliveryMode": "Delivery mode",
+      "daysOfWeek": "Class days",
+      "startTime": "Start time",
+      "endTime": "End time"
+    },
+    "days": "Class days",
+    "time": "Class time",
+    "timeRange": "{start} to {end}",
+    "location": "Location",
+    "capacity": "Capacity",
+    "people": "{count} people",
+    "deliveryMode": "Delivery mode",
+    "deliveryModes": {
+      "IN_PERSON": "In person",
+      "ONLINE": "Online"
+    },
+    "sessions": "Sessions",
+    "selectionReasons": "Why it was suggested:",
+    "states": {
+      "locked": "Locked",
+      "edited": "Edited"
+    },
+    "calendarView": {
+      "toggleCalendar": "Calendar View",
+      "toggleList": "List View",
+      "subtitle": "Weekly class schedule mapped by day and time",
+      "evenDays": "Even Days",
+      "oddDays": "Odd Days",
+      "evenDaysSubtitle": "Sat, Mon, Wed",
+      "oddDaysSubtitle": "Sun, Tue, Thu",
+      "mobileTrackAria": "Select day track",
+      "classesCount": "{count} classes",
+      "noClasses": "No classes",
+      "weekendOff": "Weekend off",
+      "allInOneNotice": "Sample week schedule (repeats weekly throughout the term)",
+      "timeColumn": "Time",
+      "timeTo": "to",
+      "increaseCapacity": "Increase capacity",
+      "decreaseCapacity": "Decrease capacity",
+      "maxCapacity": "Max {max} students",
+      "capacityLabel": "Capacity: {current} of {max}",
+      "freeSlot": "Free Slot",
+      "assignClass": "Assign Class",
+      "assignSlotTitle": "Assign Class to this Time",
+      "assignSlotDescription": "Select an unscheduled class to hold on {days} from {start} to {end}.",
+      "newTeacherBadge": "New Teacher",
+      "unassign": "Unassign from Calendar",
+      "changeSlot": "Change Time",
+      "availableRooms": "{count} room(s) available",
+      "assignedInCalendar": "Scheduled in Calendar",
+      "unassignedInCalendar": "Unscheduled",
+      "scrollToCalendar": "View in Weekly Calendar",
+      "noMissedClassesToAssign": "All unscheduled classes have been scheduled in the calendar.",
+      "roomNeeded": "Room needed",
+      "emptyDaysNotice": "Days without classes in this schedule: {days}",
+      "clearSelection": "Clear class selection",
+      "collapseSlot": "Collapse {time}",
+      "expandSlot": "Expand {time}",
+      "collapseAll": "Collapse all",
+      "expandAll": "Expand all",
+      "showFreeTeachers": "Show free teachers",
+      "hideFreeTeachers": "Hide free teachers",
+      "freeTeachersLabel": "Free teachers:",
+      "freeTeacherBadge": "Free Teacher",
+      "freeTeacherStatusLabel": "Status",
+      "suggestedForCourse": "Suggested for {course}",
+      "assignToTeacher": "Assign to teacher",
+      "highlightMatches": "Highlight Teacher & Course",
+      "sameTeacherBadge": "Same Teacher",
+      "sameCourseBadge": "Same Course",
+      "sameTeacherCountBadge": "This teacher: {count} classes",
+      "sameCourseCountBadge": "Same course: {count} classes",
+      "teacherAccessibleBadge": "Accessible",
+      "teacherTeachingBadge": "Teaching",
+      "teacherAccessible": "Teacher is accessible in this period",
+      "teacherTeaching": "Teacher is teaching in this period",
+      "selectedTeacherFilter": "Teacher filter: {name}",
+      "clearTeacherFilter": "Clear teacher filter",
+      "availableTeachersInPeriod": "Available Teachers in this Period",
+      "bothTracks": "Even & Odd",
+      "availableTeachersCount": "{count} teachers",
+      "mastersAccessibility": "Teacher Accessibility",
+      "availableBadge": "Available",
+      "teachingBadge": "Teaching",
+      "unavailableBadge": "Unavailable",
+      "groupTeachersCount": "{count} teacher(s)",
+      "swapDialog": {
+        "title": "Swap Class",
+        "sourceCardLabel": "Selected Class",
+        "targetCardLabel": "Target Card",
+        "optionsTitle": "Available Swap Options",
+        "changeTeacher": "Change Teacher",
+        "changeTeacherHint": "{from} ⇄ {to}",
+        "changeClassroom": "Change Classroom",
+        "changeClassroomHint": "{from} ⇄ {to}",
+        "changeDate": "Change Date & Time",
+        "changeDateHint": "{from} ⇄ {to}",
+        "roomPairedHint": "Classroom swap is paired with time swap to avoid room conflicts.",
+        "invalidCombination": "This selected combination is not feasible due to teacher or classroom constraints.",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "success": "Class swap completed successfully."
+      }
+    },
+    "weekDays": {
+      "SATURDAY": "Saturday",
+      "SUNDAY": "Sunday",
+      "MONDAY": "Monday",
+      "TUESDAY": "Tuesday",
+      "WEDNESDAY": "Wednesday",
+      "THURSDAY": "Thursday",
+      "FRIDAY": "Friday"
+    },
+    "daySeparator": ", ",
+    "reasons": {
+      "MAXIMIZES_STUDENT_COVERAGE": "Maximizes student coverage",
+      "IMPROVES_TIME_DIVERSITY": "Improves time diversity",
+      "MATCHES_TEACHER_QUALIFICATION": "Matches teacher qualification",
+      "MATCHES_TEACHER_AVAILABILITY": "Matches teacher availability",
+      "BALANCES_TEACHER_LOAD": "Balances teacher load",
+      "ONLY_FEASIBLE_HARD_CONSTRAINT_OPTION": "Only conflict-free option",
+      "MANUALLY_SELECTED": "Manually selected"
+    },
+    "unresolvedReasons": {
+      "INVALID_REQUIREMENT": "The class requirement is incomplete or invalid.",
+      "NO_VALID_TEACHER": "No active valid teacher was found.",
+      "NO_QUALIFIED_TEACHER": "No teacher is qualified for this course.",
+      "NO_TEACHER_AVAILABILITY": "No compatible teacher availability was found.",
+      "TEACHER_TIME_CONFLICT": "Available times conflict with the teacher schedule.",
+      "NO_COMPATIBLE_CLASSROOM": "No compatible classroom was found.",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "Available classrooms do not have enough capacity.",
+      "CLASSROOM_TIME_CONFLICT": "The classroom is unavailable at feasible times.",
+      "NO_FEASIBLE_TIME_SLOT": "No feasible time slot was found.",
+      "INSUFFICIENT_FEASIBLE_CANDIDATES": "There were not enough feasible candidates.",
+      "PLAN_COMBINATION_CONFLICT": "This class conflicted with the final plan combination."
+    },
+    "recovery": {
+      "title": "Ways to place this class",
+      "optionCount": "Showing {shown} of {total} options",
+      "statuses": {
+        "AVAILABLE_NOW": "Available now",
+        "REQUIRES_PLAN_CHANGE": "Available after freeing a room"
+      },
+      "teacher": "Teacher free at this time",
+      "schedule": "Possible schedule",
+      "emptyRooms": "Physical rooms currently empty at this time",
+      "onlineRoom": "No physical room is needed for this online class.",
+      "roomWithCapacity": "Room {room} · capacity {capacity}",
+      "noEmptyRoom": "No compatible physical room is empty at this time.",
+      "changeNeeded": "Move one of these classes to free a room",
+      "blockingClass": "Class {title} is using room {room} during this time.",
+      "unknownPhysicalRoom": "unknown",
+      "teacherConflictTitle": "No teacher is free",
+      "teacherConflictDescriptionWithSuggestion": "The teachers below are qualified for this course but teach another class during the current windows. The best exact time to request one additional class appears under Teacher staffing options.",
+      "teacherConflictDescriptionWithoutSuggestion": "The teachers below are qualified for this course but teach another class during the current windows, and no other conflict-free time was found. Consider adding another qualified teacher.",
+      "noOptionTitle": "No concrete slot is available yet"
+    },
+    "reassignment": {
+      "title": "Teacher reassignment analysis",
+      "description": "The system checks whether another teacher is free at the same time and qualified for the same level, so they can take the busy teacher’s class and free that teacher to resolve this requirement.",
+      "chainCount": "{count} valid chains",
+      "validatedChain": "Validated chain",
+      "changeCount": "{count} reassignments",
+      "moveTeacher": "{toTeacher} is free at this time and can teach {classTitle} instead of {fromTeacher}.",
+      "assignTarget": "{course}: assign to {teacher}",
+      "online": "Online",
+      "room": "Room {room}",
+      "noChainTitle": "No valid reassignment chain found",
+      "noChainDescription": "No safe combination was found within three reassignments. Locked classes remain unchanged, and qualifications, availability, conflicts, and the physical room are validated together.",
+      "showDetails": "Show details",
+      "hideDetails": "Hide details",
+      "validation": {
+        "qualification": "Qualifications verified",
+        "availability": "Replacement teacher is free at this time",
+        "teacherConflicts": "No teacher conflicts",
+        "room": "Physical room is free"
+      }
+    },
+    "staffingFallback": {
+      "title": "Teacher staffing options",
+      "description": "The system evaluates two staffing paths: expanding a qualified teacher’s availability or adding a new teacher for this level.",
+      "solutionsCount": "{count} suggested options",
+      "carouselCounter": "Option {current} of {total}",
+      "outreachBadge": "Increase availability",
+      "higherLevelTeacherBadge": "Higher-level teacher",
+      "suggestedTimesTitle": "Suggested times for unscheduled class",
+      "suggestedTimesRanking": "Options are ranked by available room, time fit, and minimal schedule disruption.",
+      "bestTimeBadge": "Best option",
+      "alternativeTimeBadge": "Option {rank}",
+      "outreachTitle": "Coordinate with {teacher} for an extra class",
+      "higherLevelTeacherTitle": "Assign to {teacher} (Higher level: {course})",
+      "noClassConflict": "{teacher} has no other institute class during this window.",
+      "availabilityChange": "Availability update needed for {days} ({start}–{end})",
+      "alreadyAvailableInSlot": "Teacher is already free on {days} from {start} to {end}; no schedule change needed.",
+      "teacherFreeNotice": "Teacher is free during this slot; no schedule change needed",
+      "availabilityEmptyTitle": "No suitable availability expansion was found",
+      "availabilityEmptyDescription": "No qualified teacher has a class-free window. Adding a new teacher remains an available staffing option.",
+      "availableRooms": "Ready rooms:",
+      "availableRoomsLabel": "Ready rooms:",
+      "roomNeeded": "This time works for the teacher, but a physical room must be arranged separately.",
+      "online": "This class is online and will not need a physical room after the teacher is freed.",
+      "addTeacherBadge": "Add a teacher",
+      "addTeacherTitle": "Add a teacher qualified for {course}",
+      "addTeacherDescriptionWithSchedule": "Record this teaching qualification and the availability below for the new teacher. The time comes directly from the suggested schedule for unscheduled classes.",
+      "addTeacherDescription": "Adding a new teacher is still recommended, but the current plan could not produce an exact feasible time for this class.",
+      "newTeacherTimesTitle": "Suggested time for the new teacher",
+      "newTeacherTimesDescription": "Use the following days and time when arranging the new teacher’s contract or availability.",
+      "newTeacherScheduleEmptyTitle": "No exact time was found for this class",
+      "newTeacherScheduleEmptyDescription": "Review operating hours, breaks, or class duration. The recommendation to add a new teacher remains visible.",
+      "teacherAcceptedButton": "Teacher Accepted",
+      "teacherRejectedButton": "Teacher Declined",
+      "acceptedBadge": "Scheduled",
+      "teacherRejectedBadge": "Declined by Teacher",
+      "acceptSuccess": "Class assigned to teacher and teacher availability updated.",
+      "revertSuccess": "Class assignment and teacher availability expansion reverted.",
+      "rejectSuccess": "Teacher decline recorded successfully.",
+      "revertRejectSuccess": "Teacher decline status cancelled.",
+      "resolvedBadge": "Resolved with current teacher"
+    },
+    "hiringPlan": {
+      "title": "Suggested schedule for a new teacher",
+      "description": "To cover every unscheduled class, the system prioritizes an odd/even three-day pattern and consecutive times; when that is not feasible, it shows the best alternative.",
+      "infoTooltipLabel": "Teaching schedule priority guidance",
+      "classesCarouselTitle": "Suggested Classes ({count})",
+      "classCount": "{count} classes",
+      "requiredAvailability": "Required new-teacher availability",
+      "requiredQualifications": "Required teaching levels",
+      "sequenceTitle": "New teacher class sequence",
+      "preferredThreeDay": "Odd/even three-day pattern",
+      "alternateDays": "Alternative day pattern",
+      "consecutive": "Consecutive times",
+      "spacedTimes": "Times include gaps",
+      "courseClass": "{course} · class {number}",
+      "online": "Online",
+      "room": "Room {room}",
+      "roomNeeded": "Physical room still required",
+      "validation": "The system checked physical rooms for the displayed days and times. An odd/even three-day pattern and consecutive times are preferences, not reasons to hide a suggestion.",
+      "validationWithRoomChanges": "This is the best time combination found, but one or more classes still need a free or additional physical room. An odd/even three-day pattern and consecutive times are preferences, not reasons to hide a suggestion.",
+      "emptyTitle": "No complete feasible schedule was found",
+      "emptyDescription": "Adding a new teacher is still recommended, but even with alternative days and time gaps, the current operating phase cannot fit every unscheduled class. Review operating hours, breaks, or class durations.",
+      "pendingTeacher": "New Teacher (Pending Hiring)",
+      "selectSlotLabel": "Select Class Time",
+      "selectSlotPlaceholder": "Select schedule slot...",
+      "reservedByOther": "Reserved by another class",
+      "noRoomsAvailable": "No rooms available",
+      "roomOption": "Room {room}",
+      "noRoomAssigned": "No room assigned",
+      "commitButton": "Commit as Draft Plan Classes",
+      "committing": "Committing...",
+      "commitSuccess": "Draft classes successfully added to plan.",
+      "resetSuggestion": "Reset to Initial Suggestion",
+      "trackEven": "Even (Sun/Tue/Thu)",
+      "trackOdd": "Odd (Sat/Mon/Wed)"
+    },
+    "unfilledTeachers": {
+      "title": "Teachers with remaining free time",
+      "description": "Teachers whose available hours were not fully filled with classes in this plan and have free slots:",
+      "freeSlotsCount": "{count} free slot(s)",
+      "freeSlotSummary": "{days} {start} - {end}",
+      "dayTracks": {
+        "even": "Even",
+        "odd": "Odd",
+        "friday": "Fri"
+      },
+      "levels": "Teachable levels",
+      "suggestedCourse": "Suggested for {course} ({slot})",
+      "assignToTeacher": "Assign to teacher",
+      "allFilled": "All teacher availability hours are fully occupied with classes in this plan.",
+      "viewCalendar": "View all teachers' calendar",
+      "count": "{count} teacher(s)"
+    },
+    "teacherCalendar": {
+      "all": {
+        "title": "All teacher calendars",
+        "description": "Review availability, free periods, and occupied classes for every active teacher in one place."
+      },
+      "qualified": {
+        "title": "Calendars for teachers related to this problem",
+        "description": "Review the free periods and scheduled classes of teachers who can help resolve this requirement."
+      },
+      "legend": "Time status legend",
+      "teacherSelector": "Select a teacher to view their calendar",
+      "searchTeacher": "Search teachers...",
+      "noTeacherMatch": "No matching teacher was found.",
+      "noTeachers": "There are no active teachers to show in the calendar.",
+      "teachableLevels": "Levels the selected teacher can teach",
+      "noTeachableLevels": "No teachable level has been recorded for this teacher yet.",
+      "states": {
+        "FREE": "Free",
+        "BUSY": "Teaching",
+        "UNAVAILABLE": "Outside availability"
+      },
+      "existingClass": "Existing class",
+      "noAvailability": "No availability is recorded for this day."
+    },
+    "unresolvedSuggestions": {
+      "INVALID_REQUIREMENT": "Review the class requirement, requested class count, and target capacity, then run scheduling again.",
+      "NO_VALID_TEACHER": "Add at least one active teacher or review inactive teachers in teacher management.",
+      "NO_QUALIFIED_TEACHER": "Assign this course qualification to one or more active teachers.",
+      "NO_TEACHER_AVAILABILITY": "Add availability for qualified teachers that overlaps the institute operating phases.",
+      "TEACHER_TIME_CONFLICT": "Expand teacher availability, assign another qualified teacher, or review their overlapping classes.",
+      "NO_COMPATIBLE_CLASSROOM": "Add a classroom compatible with the branch and delivery mode, or review the delivery mode.",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "Use a larger classroom, reduce the group size, or split students across more classes.",
+      "CLASSROOM_TIME_CONFLICT": "Expand classroom availability, add another classroom, or change the scheduling window.",
+      "NO_FEASIBLE_TIME_SLOT": "Review operating phases, holidays, term dates, and teacher availability to create more feasible time slots.",
+      "INSUFFICIENT_FEASIBLE_CANDIDATES": "Create more options by expanding teacher and classroom availability or relaxing the requirement constraints.",
+      "PLAN_COMBINATION_CONFLICT": "Change this requirement’s time, teacher, or classroom, or review constraints on overlapping classes."
+    },
+    "unknownCourse": "Unknown course",
+    "notSpecified": "Not specified",
+    "close": "Close",
+    "actions": {
+      "title": "Suggested class actions",
+      "edit": "Edit suggested class",
+      "lock": "Lock for regeneration",
+      "unlock": "Unlock"
+    },
+    "validation": {
+      "validate": "Validate plan",
+      "validateAgain": "Validate again",
+      "validating": "Validating..."
+    },
+    "publication": {
+      "publish": "Publish plan"
+    }
+  },
+  "proposalEdit": {
+    "title": "Edit suggested class",
+    "description": "Adjust the assignment and schedule for the {course} class.",
+    "titleField": "Class title",
+    "titlePlaceholder": "Enter the class title",
+    "teacher": "Teacher",
+    "teacherPlaceholder": "Select a qualified teacher",
+    "noQualifiedTeachers": "No qualified teacher was found for this course.",
+    "capacity": "Capacity",
+    "deliveryMode": "Delivery mode",
+    "deliveryModes": {
+      "IN_PERSON": "In person",
+      "ONLINE": "Online"
+    },
+    "branch": "Branch",
+    "branchPlaceholder": "Select a branch",
+    "classroom": "Classroom",
+    "classroomPlaceholder": "Select a compatible classroom",
+    "onlineClassroom": "Not required for online classes",
+    "classroomOption": "{name}, capacity {capacity}",
+    "days": "Class days",
+    "weekDays": {
+      "SATURDAY": "Saturday",
+      "SUNDAY": "Sunday",
+      "MONDAY": "Monday",
+      "TUESDAY": "Tuesday",
+      "WEDNESDAY": "Wednesday",
+      "THURSDAY": "Thursday",
+      "FRIDAY": "Friday"
+    },
+    "startTime": "Start time",
+    "endTime": "End time",
+    "save": "Save changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "close": "Close",
+    "success": "The suggested class was updated and the plan must be validated again.",
+    "validation": {
+      "title": "The class title must contain at least 2 characters.",
+      "teacher": "Select a qualified teacher.",
+      "capacity": "Capacity must be a positive number.",
+      "classroom": "Select a classroom for an in-person class.",
+      "classroomCapacity": "The classroom does not have enough capacity.",
+      "days": "Select at least one class day.",
+      "time": "Enter a valid time.",
+      "endTime": "End time must be after start time."
+    }
+  },
+  "proposalLock": {
+    "lockedSuccess": "The suggestion was locked and will be preserved during regeneration.",
+    "unlockedSuccess": "The suggestion was unlocked."
+  },
+  "planValidation": {
+    "validTitle": "The plan is ready to publish",
+    "invalidTitle": "The plan needs corrections",
+    "validBadge": "Valid",
+    "invalidBadge": "Invalid",
+    "validatedAt": "Checked at {date}",
+    "validToast": "Validation passed. The plan is ready to publish.",
+    "invalidToast": "Validation finished. Correct the listed issues before publishing.",
+    "wholePlan": "Entire plan",
+    "unknownProposal": "Unknown suggested class",
+    "relatedConflicts": "{count} related conflicts were detected.",
+    "teacher": "Teacher",
+    "noTeacher": "No teacher",
+    "online": "Online",
+    "notSpecified": "Not specified",
+    "viewInCalendar": "View in calendar",
+    "summary": {
+      "proposals": "Classes checked",
+      "violations": "Violations",
+      "invalidProposals": "Classes requiring changes"
+    },
+    "violations": {
+      "CROSS_INSTITUTE_REFERENCE": "A reference belongs to another institute",
+      "INVALID_OR_INACTIVE_REFERENCE": "A reference is inactive or invalid",
+      "INCOMPLETE_CLASS_REQUIREMENT": "The class requirement is incomplete or incompatible",
+      "INVALID_TIME_RANGE": "The class time range or duration is invalid",
+      "OUTSIDE_OPERATING_PHASE": "The class must use an exact time slot and weekday from the selected term's operating phase",
+      "SESSION_OUTSIDE_TERM": "A session falls outside the term",
+      "INVALID_TEACHER": "The teacher is inactive or invalid",
+      "TEACHER_NOT_QUALIFIED": "The teacher is not qualified for this course",
+      "OUTSIDE_TEACHER_AVAILABILITY": "The class is outside the teacher's availability",
+      "TEACHER_TIME_CONFLICT": "The teacher has a scheduling conflict",
+      "INVALID_DELIVERY_LOCATION": "The location does not match the delivery mode",
+      "INSUFFICIENT_CLASSROOM_CAPACITY": "The classroom capacity is insufficient",
+      "CLASSROOM_TIME_CONFLICT": "The classroom has a scheduling conflict",
+      "REQUIREMENT_CADENCE_MISMATCH": "The session cadence does not match the requirement",
+      "INVALID_SESSION_DATES": "The session dates or times are invalid"
+    }
+  },
+  "planPublication": {
+    "success": "The plan was published and {count} operational classes were created.",
+    "confirmation": {
+      "title": "Publish final plan",
+      "description": "Publishing converts {count} suggested classes into operational classes.",
+      "term": "Term",
+      "classes": "Classes",
+      "consequence": "If any class cannot be created, no classes are created. The other plans in this run are rejected; create a new scheduling run to revise the schedule.",
+      "cancel": "Cancel",
+      "confirm": "Publish and create {count} classes",
+      "publishing": "Publishing..."
+    },
+    "published": {
+      "title": "The plan was published successfully",
+      "description": "This plan created {count} operational classes.",
+      "at": "Published on {date}",
+      "badge": "Published"
+    }
+  },
+  "demand": {
+    "smartHero": {
+      "title": "Smart Demand Summary",
+      "subtitle": "Based on auto-progression of continuing students and new placements, {count} classes are projected for this term.",
+      "generateButton": "Save & Continue",
+      "noDemandSubtitle": "No classes are projected for this term. Please review term registrations and placements."
+    },
+    "applyAndContinue": "Save & Continue",
+    "breakdown": {
+      "toggle": "View & edit course details ({count} courses)",
+      "course": "Course",
+      "prerequisite": "Prerequisite: {title}",
+      "prerequisiteColumn": "Prerequisite",
+      "noPrerequisite": "—",
+      "students": "Applicants",
+      "studentsDetail": "{continuing} continuing + {new} placement = {total} students",
+      "classesCountColumn": "Class Count",
+      "classesCountSummary": "{count} classes",
+      "suggestedClasses": "Suggested Classes",
+      "capacity": "Class Capacity",
+      "classRows": "Suggested class rows",
+      "classLabel": "Class {count}",
+      "coverage": "Coverage",
+      "statusColumn": "Status",
+      "plannedSeats": "{count} planned seats",
+      "uncovered": "{count} uncovered",
+      "covered": "Covered",
+      "addClass": "Add class",
+      "removeClass": "Remove class",
+      "editClasses": "Edit classes",
+      "closeClasses": "Close"
+    },
+    "summary": {
+      "eligible": "{count} eligible students",
+      "effectiveLimit": "Maximum {count} per class",
+      "uncovered": "{count} students uncovered"
+    },
+    "warnings": {
+      "NO_ACTIVE_CLASSROOMS": "No active classroom is available in this scope. Suggestions use the supervisor limit, but timetable generation may fail.",
+      "CLASS_LIMIT_CLAMPED": "The class limit was reduced to fit the largest active classroom in this scope."
+    },
+    "shortfall": {
+      "title": "Continue with uncovered students?",
+      "description": "The reviewed classes leave {count} eligible students without seats. You can continue intentionally, or return and adjust the class rows.",
+      "cancel": "Review",
+      "confirm": "Continue"
+    },
+    "tabTitle": "Course Demand",
+    "generationTabTitle": "Class Scheduling",
+    "calculateButton": "Calculate Demand",
+    "manageRequirementsButton": "Manage Requirements",
+    "recalculateButton": "Recalculate",
+    "calculating": "Calculating...",
+    "applyButton": "Apply Class Requirements",
+    "updateButton": "Update Class Requirements",
+    "applying": "Applying...",
+    "applySuccess": "{count} class requirements saved successfully.",
+    "noRequestsYet": "No requests",
+    "selectTermPrompt": "Please select a term to view course demand.",
+    "selectTermPromptDesc": "The system calculates student demand and required classes based on previous term passings and placement test results.",
+    "emptyDemand": "No eligible students found for this term.",
+    "emptyDemandDesc": "Students must have passed a prerequisite course or completed a placement test to be included.",
+    "stats": {
+      "totalStudents": "Total Applicants",
+      "passedStudents": "Previous Passings",
+      "placementStudents": "New Placements",
+      "suggestedClasses": "Suggested Classes",
+      "registeredClasses": "Registered Requirements"
+    },
+    "columns": {
+      "course": "Course",
+      "totalStudents": "Applicants",
+      "passed": "Passed",
+      "placement": "Placement",
+      "shifts": "School Shift",
+      "days": "Day Preference",
+      "suggestedClasses": "Suggested Classes",
+      "capacity": "Capacity",
+      "deliveryMode": "Delivery Mode",
+      "requirementStatus": "Registration Status",
+      "registeredCount": "Registered ({count} classes)",
+      "notRegistered": "Not registered",
+      "reviewNeeded": "New suggestion: {count}",
+      "actions": "Actions"
+    },
+    "shifts": {
+      "morning": "Morning: {count}",
+      "afternoon": "Afternoon: {count}",
+      "flexible": "Flexible: {count}"
+    },
+    "days": {
+      "evenDays": "Even: {count}",
+      "oddDays": "Odd: {count}",
+      "any": "Any: {count}"
+    },
+    "deliveryModes": {
+      "IN_PERSON": "In-Person",
+      "ONLINE": "Online"
+    },
+    "editModal": {
+      "title": "Edit Demand for {course}",
+      "description": "Adjust the suggested class count, capacity, and delivery mode before saving.",
+      "suggestedClasses": "Required Class Count",
+      "capacity": "Class Capacity",
+      "deliveryMode": "Delivery Mode",
+      "sessionsPerWeek": "Schedule Pattern & Sessions Per Week",
+      "cadence3": "3 sessions/week (Even Days: Sat, Mon, Wed)",
+      "cadence2": "2 sessions/week (Odd Days: Sun, Tue)",
+      "cadence1": "1 session/week",
+      "save": "Confirm",
+      "cancel": "Cancel",
+      "success": "Class requirement updated successfully."
+    },
+    "filters": {
+      "term": "Term",
+      "branch": "Branch",
+      "allBranches": "All Branches",
+      "maxStudents": "Maximum students per class",
+      "roomCeiling": "Largest available classroom: {count} seats",
+      "noRoomCeiling": "No active classroom is available in this scope.",
+      "allTerms": "All Terms",
+      "search": "Search course...",
+      "statusAll": "All Courses ({count})",
+      "statusRegistered": "With Requests ({count})",
+      "statusUnregistered": "No Requests ({count})",
+      "registeredSummary": "{courses} courses with {classes} classes registered.",
+      "termsWithRequests": "Terms with Requests",
+      "noRequestsForTerm": "No requests have been submitted for this term yet."
+    }
+  },
+  "termsList": {
+    "title": "Terms Scheduling",
+    "description": "Overview of institute terms, class requirement dependencies, and generated weekly schedules.",
+    "columns": {
+      "term": "Term Title",
+      "dateRange": "Schedule Period",
+      "operatingPhase": "Operating Phase",
+      "requirements": "Class Requirements",
+      "status": "Schedule Status",
+      "actions": "Actions"
+    },
+    "requirementsBadge": "{count} requirements ({classes} classes)",
+    "noRequirements": "No requirements",
+    "noPhase": "General",
+    "statuses": {
+      "PUBLISHED": "Schedule Published",
+      "SCHEDULED": "Proposals Available",
+      "GENERATING": "Generating Schedule",
+      "READY_TO_SCHEDULE": "Ready to Schedule",
+      "NO_REQUIREMENTS": "Demand Required"
+    },
+    "actions": {
+      "manageTerm": "Manage & Schedule",
+      "backToTerms": "Back to Terms"
+    },
+    "filters": {
+      "searchPlaceholder": "Search term title...",
+      "statusPlaceholder": "All Statuses",
+      "statusAll": "All Statuses"
+    },
+    "empty": {
+      "title": "No terms found",
+      "description": "Create academic terms in the Terms module to start scheduling."
+    },
+    "notEligible": {
+      "title": "No Eligible Term for Scheduling",
+      "description": "Scheduling opens 10 days prior to term start so student progression and completion data from the previous term are finalized."
+    }
+  }
+}

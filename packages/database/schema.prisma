@@ -1,49 +1,102 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "./src/generated/client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Institute {
-  id        String  @id @default(uuid())
-  name      String
-  subdomain String  @unique
-  isActive  Boolean @default(true)
+  id             String    @id @default(uuid())
+  name           String
+  subdomain      String    @unique
+  isActive       Boolean   @default(true)
+  enabledModules String[]  @default(["USERS_STAFF", "STUDENTS", "CLASSES_COURSES"])
+  deletedAt      DateTime?
+
+  logoUrl      String?
+  primaryColor String?
+  address      String?
+  phones       String[] @default([])
 
   bankCardNumber  String?
   bankAccountName String?
   bankShaba       String?
 
+  observeOfficialHolidays Boolean  @default(true)
+  dismissedHolidays       String[] @default([])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users        User[]
-  courses      Course[]
-  terms        Term[]
-  classes      Class[]
-  transactions Transaction[]
+  branches                    Branch[]
+  users                       User[]
+  courses                     Course[]
+  terms                       Term[]
+  classes                     Class[]
+  classrooms                  Classroom[]
+  transactions                Transaction[]
+  rolePermissions             RolePermission[]
+  auditLogs                   AuditLog[]
+  teacherCourseQualifications TeacherCourseQualification[]
+  classRequirements           ClassRequirement[]
+  schedulingRuns              SchedulingRun[]
+  schedulingPlans             SchedulingPlan[]
+  schedulingProposals         SchedulingProposal[]
+  schedulingProposalSessions  SchedulingProposalSession[]
+  schedulingUnresolvedItems   SchedulingUnresolvedRequirement[]
+  operatingPhases             InstituteOperatingPhase[]
+  customOffDays               InstituteCustomOffDay[]
+}
+
+model Branch {
+  id          String   @id @default(uuid())
+  instituteId String
+  name        String
+  address     String?
+  phones      String[] @default([])
+  isActive    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institute           Institute            @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  classes             Class[]
+  classrooms          Classroom[]
+  users               User[]
+  classRequirements   ClassRequirement[]
+  schedulingRuns      SchedulingRun[]
+  schedulingProposals SchedulingProposal[]
+
+  @@unique([name, instituteId])
+  @@index([instituteId])
 }
 
 enum Role {
   SUPER_ADMIN
-  INSTITUTE_ADMIN
+  ADMIN
+  ASSISTANT
+  SUPERVISOR
+  SUPER_CLERK
   CLERK
+  TEACHER
+  SUPER_STUDENT
   STUDENT
 }
 
 model User {
-  id          String @id @default(uuid())
+  id          String  @id @default(uuid())
   instituteId String
-  role        Role   @default(STUDENT)
+  branchId    String?
+  role        Role    @default(STUDENT)
 
   firstName    String
   lastName     String
   phone        String
   password     String // Hashed
   nationalCode String?
+  avatarUrl    String?
   isActive     Boolean @default(true)
 
   currentAllowedCourseId String?
@@ -51,27 +104,130 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  institute            Institute     @relation(fields: [instituteId], references: [id])
-  currentAllowedCourse Course?       @relation("UserAllowedCourse", fields: [currentAllowedCourseId], references: [id])
-  enrollments          Enrollment[]
-  transactions         Transaction[]
+  institute               Institute            @relation(fields: [instituteId], references: [id])
+  branch                  Branch?              @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  currentAllowedCourse    Course?              @relation("UserAllowedCourse", fields: [currentAllowedCourseId], references: [id])
+  studentProfile          StudentProfile?
+  teacherProfile          TeacherProfile?
+  teachingClasses         Class[]              @relation("TeacherClasses")
+  enrollments             Enrollment[]
+  transactions            Transaction[]
+  studentNotesCreated     StudentNote[]        @relation("StudentNoteAuthor")
+  auditLogs               AuditLog[]
+  schedulingRunsRequested SchedulingRun[]      @relation("SchedulingRunRequester")
+  schedulingProposals     SchedulingProposal[] @relation("SchedulingProposalTeacher")
+  schedulingProposalLocks SchedulingProposal[] @relation("SchedulingProposalLocker")
 
   @@unique([phone, instituteId])
   @@index([instituteId])
+  @@index([branchId])
+}
+
+model StudentProfile {
+  id             String                @id @default(uuid())
+  userId         String                @unique
+  fatherName     String?
+  birthDate      DateTime?
+  gender         String?
+  emergencyPhone String?
+  address        String?
+  scheduleStatus StudentScheduleStatus @default(INCOMPLETE)
+  schoolShift    StudentSchoolShift    @default(FLEXIBLE)
+  dayPreference  StudentDayPreference  @default(ANY)
+  notes          StudentNote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([schoolShift])
+  @@index([dayPreference])
+}
+
+enum StudentScheduleStatus {
+  INCOMPLETE
+  COMPLETE
+}
+
+enum StudentSchoolShift {
+  MORNING
+  AFTERNOON
+  FLEXIBLE
+}
+
+enum StudentDayPreference {
+  EVEN_DAYS
+  ODD_DAYS
+  ANY
+}
+
+model StudentNote {
+  id               String @id @default(uuid())
+  studentProfileId String
+  createdByUserId  String
+
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  createdBy      User           @relation("StudentNoteAuthor", fields: [createdByUserId], references: [id])
+
+  @@index([studentProfileId])
+  @@index([createdByUserId])
+}
+
+model TeacherProfile {
+  id               String                       @id @default(uuid())
+  userId           String                       @unique
+  bio              String?
+  degree           String?
+  specialties      String[]                     @default([])
+  availabilities   TeacherAvailability[]
+  teachableCourses TeacherCourseQualification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TeacherAvailability {
+  id               String @id @default(uuid())
+  teacherProfileId String
+  dayOfWeek        String
+  startTime        String
+  endTime          String
+
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([teacherProfileId])
 }
 
 model Term {
-  id          String   @id @default(uuid())
-  instituteId String
-  title       String
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean  @default(true)
+  id               String   @id @default(uuid())
+  instituteId      String
+  title            String
+  startDate        DateTime
+  endDate          DateTime
+  isActive         Boolean  @default(true)
+  operatingPhaseId String?
 
-  institute Institute @relation(fields: [instituteId], references: [id])
-  classes   Class[]
+  institute         Institute                @relation(fields: [instituteId], references: [id])
+  operatingPhase    InstituteOperatingPhase? @relation(fields: [operatingPhaseId], references: [id], onDelete: SetNull)
+  classes           Class[]
+  classRequirements ClassRequirement[]
+  schedulingRuns    SchedulingRun[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
+  @@index([operatingPhaseId])
 }
 
 model Course {
@@ -84,31 +240,331 @@ model Course {
   prerequisite   Course?  @relation("Prerequisite", fields: [prerequisiteId], references: [id])
   nextCourses    Course[] @relation("Prerequisite")
 
-  institute    Institute @relation(fields: [instituteId], references: [id])
-  classes      Class[]
-  allowedUsers User[]    @relation("UserAllowedCourse")
+  institute           Institute                    @relation(fields: [instituteId], references: [id])
+  classes             Class[]
+  allowedUsers        User[]                       @relation("UserAllowedCourse")
+  qualifiedTeachers   TeacherCourseQualification[]
+  classRequirements   ClassRequirement[]
+  schedulingProposals SchedulingProposal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
+  @@index([prerequisiteId])
 }
 
-model Class {
-  id          String @id @default(uuid())
+model TeacherCourseQualification {
+  id               String @id @default(uuid())
+  instituteId      String
+  teacherProfileId String
+  courseId         String
+
+  institute      Institute      @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+  course         Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teacherProfileId, courseId])
+  @@index([instituteId])
+  @@index([teacherProfileId])
+  @@index([courseId])
+}
+
+enum ClassDeliveryMode {
+  IN_PERSON
+  ONLINE
+}
+
+model ClassRequirement {
+  id          String  @id @default(uuid())
   instituteId String
   termId      String
   courseId    String
+  branchId    String?
 
-  title       String
-  capacity    Int
-  fee         Int
-  teacherName String?
-  schedule    String?
+  requiredClassCount     Int
+  capacity               Int
+  sessionDurationMinutes Int
+  sessionsPerWeek        Int?
+  totalSessions          Int?
+  deliveryMode           ClassDeliveryMode @default(IN_PERSON)
+  isActive               Boolean           @default(true)
 
-  institute   Institute    @relation(fields: [instituteId], references: [id])
-  term        Term         @relation(fields: [termId], references: [id])
-  course      Course       @relation(fields: [courseId], references: [id])
-  enrollments Enrollment[]
+  institute                        Institute                         @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  term                             Term                              @relation(fields: [termId], references: [id], onDelete: Cascade)
+  course                           Course                            @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  branch                           Branch?                           @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  schedulingProposals              SchedulingProposal[]
+  unresolvedSchedulingRequirements SchedulingUnresolvedRequirement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([instituteId])
+  @@index([termId])
+  @@index([courseId])
+  @@index([branchId])
+  @@index([instituteId, termId, isActive])
+}
+
+enum SchedulingRunStatus {
+  QUEUED
+  PREFLIGHT_FAILED
+  GENERATING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum SchedulingPlanStatus {
+  DRAFT
+  SELECTED
+  PUBLISHED
+  REJECTED
+  SUPERSEDED
+}
+
+model SchedulingRun {
+  id                String              @id @default(uuid())
+  instituteId       String
+  termId            String
+  branchId          String?
+  requestedByUserId String
+  sourceRunId       String?
+  status            SchedulingRunStatus @default(QUEUED)
+
+  inputSnapshot    Json
+  settingsSnapshot Json
+  preflightReport  Json?
+  failureCode      String?
+  failureMessage   String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+
+  institute     Institute        @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  term          Term             @relation(fields: [termId], references: [id], onDelete: Cascade)
+  branch        Branch?          @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  requestedBy   User             @relation("SchedulingRunRequester", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+  sourceRun     SchedulingRun?   @relation("SchedulingRunRegenerations", fields: [sourceRunId], references: [id], onDelete: SetNull)
+  regenerations SchedulingRun[]  @relation("SchedulingRunRegenerations")
+  plans         SchedulingPlan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instituteId])
+  @@index([termId])
+  @@index([branchId])
+  @@index([requestedByUserId])
+  @@index([sourceRunId])
+  @@index([instituteId, status, createdAt])
+}
+
+model SchedulingPlan {
+  id            String               @id @default(uuid())
+  instituteId   String
+  runId         String
+  status        SchedulingPlanStatus @default(DRAFT)
+  rank          Int
+  isRecommended Boolean              @default(false)
+
+  earnedWeightedPoints         Float
+  applicableWeightedPoints     Float
+  qualityIndex                 Float?
+  coveragePercent              Float?
+  minimumCourseCoveragePercent Float?
+  scoreBreakdown               Json
+  metricsSnapshot              Json
+  weightsSnapshot              Json
+  timeGroupsSnapshot           Json
+  dataCompletenessSnapshot     Json
+  warnings                     Json?
+  formulaVersion               String
+  generatedAt                  DateTime @default(now())
+  lastScoredAt                 DateTime @default(now())
+
+  manualEditCount      Int       @default(0)
+  firstReviewStartedAt DateTime?
+  selectedAt           DateTime?
+  rejectedAt           DateTime?
+  publishedAt          DateTime?
+
+  institute              Institute                         @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  run                    SchedulingRun                     @relation(fields: [runId], references: [id], onDelete: Cascade)
+  proposals              SchedulingProposal[]
+  proposalSessions       SchedulingProposalSession[]
+  unresolvedRequirements SchedulingUnresolvedRequirement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([runId, rank])
+  @@index([instituteId])
+  @@index([runId])
+  @@index([instituteId, status, createdAt])
+}
+
+model SchedulingProposal {
+  id                     String    @id @default(uuid())
+  instituteId            String
+  planId                 String
+  classRequirementId     String?
+  courseId               String
+  branchId               String?
+  teacherId              String?
+  classroomId            String?
+  teacherQualificationId String?
+  qualificationCheckedAt DateTime?
+  publishedClassId       String?   @unique
+
+  title            String
+  capacity         Int
+  deliveryMode     ClassDeliveryMode
+  daysOfWeek       String[]          @default([])
+  startTime        String
+  endTime          String
+  timeGroup        String?
+  score            Float?
+  scoreBreakdown   Json              @default("{}")
+  selectionReasons Json              @default("[]")
+  scoredAt         DateTime?
+  isLocked         Boolean           @default(false)
+  lockedByUserId   String?
+  lockedAt         DateTime?
+  isManuallyEdited Boolean           @default(false)
+  editCount        Int               @default(0)
+  warnings         Json?
+
+  institute        Institute                   @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  plan             SchedulingPlan              @relation(fields: [planId], references: [id], onDelete: Cascade)
+  classRequirement ClassRequirement?           @relation(fields: [classRequirementId], references: [id], onDelete: SetNull)
+  course           Course                      @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  branch           Branch?                     @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  teacher          User?                       @relation("SchedulingProposalTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  classroom        Classroom?                  @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+  lockedBy         User?                       @relation("SchedulingProposalLocker", fields: [lockedByUserId], references: [id], onDelete: SetNull)
+  publishedClass   Class?                      @relation(fields: [publishedClassId], references: [id], onDelete: SetNull)
+  sessions         SchedulingProposalSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instituteId])
+  @@index([planId])
+  @@index([classRequirementId])
+  @@index([courseId])
+  @@index([branchId])
+  @@index([teacherId])
+  @@index([classroomId])
+  @@index([lockedByUserId])
+  @@index([planId, isLocked])
+}
+
+model SchedulingProposalSession {
+  id          String   @id @default(uuid())
+  instituteId String
+  planId      String
+  proposalId  String
+  sessionDate DateTime
+  startTime   String
+  endTime     String
+
+  institute Institute          @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  plan      SchedulingPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  proposal  SchedulingProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([proposalId, sessionDate, startTime])
+  @@index([instituteId])
+  @@index([planId, sessionDate])
+  @@index([proposalId])
+}
+
+model SchedulingUnresolvedRequirement {
+  id                 String  @id @default(uuid())
+  instituteId        String
+  planId             String
+  classRequirementId String?
+  reasonCode         String
+  missingClassCount  Int
+  details            Json?
+
+  institute        Institute         @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  plan             SchedulingPlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  classRequirement ClassRequirement? @relation(fields: [classRequirementId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instituteId])
+  @@index([planId])
+  @@index([classRequirementId])
+  @@index([planId, reasonCode])
+}
+
+model Class {
+  id          String  @id @default(uuid())
+  instituteId String
+  termId      String
+  courseId    String
+  branchId    String?
+  classroomId String?
+
+  title        String
+  capacity     Int
+  fee          Int
+  teacherId    String?
+  teacherName  String?
+  schedule     String?
+  daysOfWeek   String[] @default([])
+  sessionDates String[] @default([])
+  startTime    String?
+  endTime      String?
+
+  institute                Institute           @relation(fields: [instituteId], references: [id])
+  term                     Term                @relation(fields: [termId], references: [id])
+  course                   Course              @relation(fields: [courseId], references: [id])
+  branch                   Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  classroom                Classroom?          @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+  teacher                  User?               @relation("TeacherClasses", fields: [teacherId], references: [id], onDelete: SetNull)
+  enrollments              Enrollment[]
+  sourceSchedulingProposal SchedulingProposal?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([instituteId])
+  @@index([termId])
+  @@index([courseId])
+  @@index([branchId])
+  @@index([classroomId])
+  @@index([teacherId])
+}
+
+model Classroom {
+  id          String  @id @default(uuid())
+  instituteId String
+  branchId    String?
+  name        String
+  capacity    Int
+  description String?
+  isActive    Boolean @default(true)
+
+  institute           Institute            @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  branch              Branch?              @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  classes             Class[]
+  schedulingProposals SchedulingProposal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instituteId])
+  @@index([branchId])
 }
 
 enum EnrollmentStatus {
@@ -163,4 +619,81 @@ model Transaction {
   student   User      @relation(fields: [studentId], references: [id])
 
   @@index([instituteId])
+  @@index([studentId])
+}
+
+model RolePermission {
+  id          String   @id @default(uuid())
+  instituteId String
+  role        Role
+  permissions String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+
+  @@unique([instituteId, role])
+  @@index([instituteId])
+}
+
+model AuditLog {
+  id          String  @id @default(uuid())
+  instituteId String
+  userId      String
+  module      String
+  entityId    String
+  action      String
+  description String?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+
+  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([instituteId])
+  @@index([module, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model InstituteOperatingPhase {
+  id                  String   @id @default(uuid())
+  instituteId         String
+  title               String
+  months              Int[] // 1 to 12 (Farvardin to Esfand)
+  startTime           String // HH:mm
+  endTime             String // HH:mm
+  slotDurationMinutes Int      @default(90)
+  daysOfWeek          String[] @default(["SATURDAY", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY"])
+  hasBreak            Boolean  @default(false)
+  breakStartTime      String? // HH:mm
+  breakEndTime        String? // HH:mm
+  isActive            Boolean  @default(true)
+  order               Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  terms     Term[]
+
+  @@index([instituteId])
+  @@index([instituteId, isActive])
+}
+
+model InstituteCustomOffDay {
+  id          String   @id @default(uuid())
+  instituteId String
+  date        String // "YYYY-MM-DD"
+  title       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+
+  @@unique([instituteId, date])
+  @@index([instituteId])
+  @@index([instituteId, date])
 }

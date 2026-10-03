@@ -1,13 +1,26 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "ui": "tui",
+  "globalEnv": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "JWT_SECRET",
+    "PORT",
+    "INTERNAL_API_URL",
+    "ADMIN_PANEL_PORT",
+    "STUDENT_PWA_PORT",
+    "POSTGRES_PORT",
+    "REDIS_PORT",
+    "NEXT_PUBLIC_API_URL",
+    "ALLOWED_DEV_ORIGINS"
+  ],
   "tasks": {
     "db:generate": {
       "cache": false
     },
     "build": {
       "dependsOn": ["^db:generate", "^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "../../.env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "lint": {
@@ -17,10 +30,23 @@
       "dependsOn": ["^format"]
     },
     "typecheck": {
-      "dependsOn": ["^db:generate", "^typecheck"]
+      "dependsOn": ["^db:generate", "^build", "^typecheck"]
+    },
+    "test": {
+      "dependsOn": ["^db:generate"]
+    },
+    "storybook": {
+      "cache": false,
+      "persistent": true
+    },
+    "build-storybook": {
+      "outputs": ["storybook-static/**"]
+    },
+    "test-storybook": {
+      "cache": false
     },
     "dev": {
-      "dependsOn": ["^db:generate"],
+      "dependsOn": ["^db:generate", "^build"],
       "cache": false,
       "persistent": true
     }

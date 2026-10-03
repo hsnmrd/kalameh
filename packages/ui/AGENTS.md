@@ -1,7 +1,36 @@
 # Shared UI Library Rules (`packages/ui`)
 
 - **Role:** Centralized, reusable component library based on Tailwind CSS v4, Base UI, and shadcn/ui patterns.
-- **Component Installation & Kits:** When a new UI primitive or kit is needed (e.g. dialog, table, select, dropdown), install/scaffold it from shadcn headless UI (`@base-ui/react` primitives) directly inside `packages/ui`. if it does not exist, then ask me to talk about that.
+- **Component Installation & Kits:** When a new UI primitive or kit is needed (e.g. dialog, table, select, dropdown, context-menu), install/scaffold it from shadcn headless UI (`@base-ui/react` primitives) directly inside `packages/ui`. If it does not exist, discuss before adding custom raw HTML.
+- **Context Menu Standard:**
+  - Support and export `<ContextMenu />` (`src/components/context-menu.tsx`) based on Base UI primitives for multi-action card workflows (e.g. edit, delete, manage, ban/block).
+- **Alert Dialog Standard:**
+  - Support and export `<AlertDialog />` (`src/components/alert-dialog.tsx`) built on `@base-ui/react/alert-dialog` for all confirmation and "are you sure?" destructive modal flows across the monorepo.
+  - Export `AlertDialog`, `AlertDialogTrigger`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogFooter`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogAction`, and `AlertDialogCancel`.
+- **Data Table / Data Grid Standard:**
+  - Export and maintain `<DataTable />` (`src/components/data-table.tsx`) built on TanStack Table for consistent tabular data rendering across apps.
+- **Price & Currency Formatting Standard:**
+  - Export and maintain `<Price />` and `formatCurrency` (`src/components/price.tsx`, `src/lib/utils.ts`) for centralized 3-digit comma separation and localized currency units (`تومان` / `Toman`).
+  - **Always use `num.toLocaleString("en-US")` for formatting price numbers even when the active locale is `fa`.**
+- **Price Input Standard:**
+  - Export and maintain `<PriceInput />` (`src/components/price-input.tsx`) for all price, tuition, fee, or amount input fields across apps.
+  - **Always separate the input value with commas `","` 3 by 3 from the right** for optimal user readability.
+  - **Always place the currency unit (`تومان` / `Toman`) inside the input at the end of the input.**
+  - **NEVER put the currency unit in the label of the input** (e.g. use "شهریه کلاس" instead of "شهریه کلاس (تومان)").
+- **Form Input & Button Height Standard (Unified 56px / h-14 & rounded-2xl):**
+  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`), password inputs (`PasswordInput`), price inputs (`PriceInput`), and primary/action buttons (`<Button />`) must strictly default to **`h-14` (56px)** height, **`rounded-2xl`**, and **`text-base`** typography.
+  - `<Button />` defaults directly to **`h-14` / `rounded-2xl` (`size: "default"`)**.
+  - Smaller sizes (`size="sm"` / `h-8`, `size="icon"`, `size="icon-sm"`, `size="icon-xs"`) are strictly reserved for inline table cell actions, internal input adornments, date picker calendar days, and compact header/toolbar icons.
+  - Do not hardcode smaller heights (such as `h-10`) into base UI form primitives or standard dialog actions.
+- **General Number Formatting Standard:**
+  - `formatNumber` (`src/lib/utils.ts`) dynamically applies active locale (`fa-IR` vs `en-US`) for count badges, pagination, and statistical totals.
+- **Theme & Dark Mode Standard (Semantic CSS Variables Only):**
+  - Export and maintain `<ThemeProvider />` and `<ThemeToggle />` (`src/components/theme-provider.tsx`, `src/components/theme-toggle.tsx`).
+  - **NEVER use `dark:` Tailwind class variants.** All theme adaptations must be driven 100% through semantic CSS variables (`bg-background`, `text-foreground`, `bg-card`, `border-border`, `bg-muted`, etc.) configured in `src/styles/globals.css`.
+- **Loading UI Standard:**
+  - Always export and use the shadcn `<Spinner />` component (`src/components/spinner.tsx`) for all loading states across the monorepo instead of `lucide-react` icons (e.g. `Loader2`).
+- **Toast Notifications Standard:**
+  - Provide `<Toaster />` and `toast` via `src/components/sonner.tsx` configured to inherit the application's font typography (`var(--font-sans)`).
 - **Purely Presentational:** Keep UI components stateless or internally controlled; do NOT import business logic or app-specific state here.
 - **Design Tokens:** All colors, radius, shadows, and fonts are defined as CSS variables in `src/styles/globals.css`.
 - **Export Discipline:** Expose components through the `package.json` `exports` map (`./components/*`, `./lib/*`, `./hooks/*`, `./globals.css`).

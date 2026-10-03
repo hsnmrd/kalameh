@@ -1,0 +1,46 @@
+{
+  "title": "Financial Transactions",
+  "searchPlaceholder": "Search by student, phone, or tracking code...",
+  "filter": {
+    "title": "Filter transactions",
+    "status": "Transaction status",
+    "all": "All statuses",
+    "pending": "Pending review",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "table": {
+    "student": "Student",
+    "trackingCode": "Tracking code",
+    "amount": "Amount",
+    "paymentDate": "Payment date",
+    "status": "Status",
+    "actions": "Actions",
+    "review": "Review",
+    "reviewTransaction": "Review transaction for {student}",
+    "empty": "No transactions match the selected filters."
+  },
+  "status": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "reviewModal": {
+    "title": "Review payment receipt",
+    "description": "Verify the payment details and receipt before recording a decision.",
+    "receiptAlt": "Payment receipt submitted by {student}",
+    "receiptLoading": "Loading receipt...",
+    "receiptError": "The receipt could not be loaded. Decisions are unavailable until it is visible.",
+    "receiptRetry": "Try again",
+    "student": "Student",
+    "phone": "Phone",
+    "trackingCode": "Tracking code",
+    "amount": "Amount",
+    "paymentDate": "Payment date",
+    "approve": "Approve payment",
+    "reject": "Reject payment",
+    "close": "Close",
+    "approveSuccess": "The transaction was approved.",
+    "rejectSuccess": "The transaction was rejected."
+  }
+}

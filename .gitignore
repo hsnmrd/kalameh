@@ -20,6 +20,8 @@ out/
 # production
 build
 dist
+storybook-static
+packages/database/src/generated/
 
 # turbo
 .turbo
@@ -44,3 +46,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+*.d.ts.map
+
+# uploads
+uploads/
+**/uploads/

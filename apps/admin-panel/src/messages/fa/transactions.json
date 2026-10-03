@@ -1,0 +1,46 @@
+{
+  "title": "تراکنش‌های مالی",
+  "searchPlaceholder": "جستجو بر اساس نام فراگیر، تلفن یا کد پیگیری...",
+  "filter": {
+    "title": "فیلتر تراکنش‌ها",
+    "status": "وضعیت تراکنش",
+    "all": "همه وضعیت‌ها",
+    "pending": "در انتظار بررسی",
+    "approved": "تأیید شده",
+    "rejected": "رد شده"
+  },
+  "table": {
+    "student": "فراگیر",
+    "trackingCode": "کد پیگیری",
+    "amount": "مبلغ",
+    "paymentDate": "تاریخ پرداخت",
+    "status": "وضعیت",
+    "actions": "عملیات",
+    "review": "بررسی",
+    "reviewTransaction": "بررسی تراکنش {student}",
+    "empty": "تراکنشی مطابق فیلترهای انتخاب‌شده یافت نشد."
+  },
+  "status": {
+    "pending": "در انتظار بررسی",
+    "approved": "تأیید شده",
+    "rejected": "رد شده"
+  },
+  "reviewModal": {
+    "title": "بررسی رسید پرداخت",
+    "description": "پیش از ثبت نتیجه، مشخصات پرداخت و تصویر رسید را بررسی کنید.",
+    "receiptAlt": "رسید پرداخت ثبت‌شده توسط {student}",
+    "receiptLoading": "در حال بارگذاری رسید...",
+    "receiptError": "تصویر رسید بارگذاری نشد. تا زمان نمایش رسید، ثبت نتیجه ممکن نیست.",
+    "receiptRetry": "تلاش دوباره",
+    "student": "فراگیر",
+    "phone": "شماره تماس",
+    "trackingCode": "کد پیگیری",
+    "amount": "مبلغ",
+    "paymentDate": "تاریخ پرداخت",
+    "approve": "تأیید پرداخت",
+    "reject": "رد پرداخت",
+    "close": "بستن",
+    "approveSuccess": "تراکنش با موفقیت تأیید شد.",
+    "rejectSuccess": "تراکنش رد شد."
+  }
+}
