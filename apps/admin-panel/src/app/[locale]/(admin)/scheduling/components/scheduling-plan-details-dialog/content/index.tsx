@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import { CalendarRange, MapPin } from "lucide-react"
 import type {
   SchedulingPlanDetailsDto,
@@ -9,7 +9,7 @@ import type {
   WeekDay,
 } from "@workspace/types"
 import { Separator } from "@workspace/ui/components/separator"
-import { cn, formatDate } from "@workspace/ui/lib/utils"
+import { cn } from "@workspace/ui/lib/utils"
 import { SchedulingPlanCalendarView } from "../../scheduling-plan-calendar-view"
 import type { CurrentAssignmentState } from "../../scheduling-new-teacher-hiring-plan"
 import { SchedulingPlanPublicationStatus } from "../../scheduling-plan-publication-status"
@@ -53,7 +53,6 @@ export function Content({
   onTeacherChange,
 }: ContentProps) {
   const t = useTranslations("scheduling.planDetails")
-  const locale = useLocale()
 
   const [assignmentOverrides, setAssignmentOverrides] = React.useState<{
     planId: string
@@ -218,7 +217,7 @@ export function Content({
       )}
     >
       {stickyTop === "dialog" && (
-        <dl className="grid gap-4 rounded-2xl bg-muted/50 p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="grid gap-4 rounded-2xl bg-muted/50 p-4 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-xs text-muted-foreground">{t("term")}</dt>
             <dd className="mt-1 flex items-center gap-2 font-semibold text-foreground">
@@ -231,27 +230,6 @@ export function Content({
             <dd className="mt-1 flex items-center gap-2 font-semibold text-foreground">
               <MapPin aria-hidden className="size-4" />
               {plan.run.branch?.name ?? t("allBranches")}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">
-              {t("generatedAt")}
-            </dt>
-            <dd className="mt-1 font-semibold text-foreground">
-              {formatDate(plan.generatedAt, locale)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">
-              {t("qualityIndex")}
-            </dt>
-            <dd className="mt-1 font-semibold text-foreground">
-              {plan.qualityIndex == null
-                ? "—"
-                : new Intl.NumberFormat(locale, {
-                    style: "percent",
-                    maximumFractionDigits: 2,
-                  }).format(plan.qualityIndex / 100)}
             </dd>
           </div>
         </dl>

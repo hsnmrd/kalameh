@@ -231,6 +231,7 @@
     "filterButton": "Filters",
     "term": "Term",
     "branch": "Branch scope",
+    "status": "Status",
     "allBranches": "All branches",
     "generatedAt": "Generated on",
     "qualityIndex": "Quality index",

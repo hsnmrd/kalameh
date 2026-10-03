@@ -17,7 +17,6 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { formatDate } from "@workspace/ui/lib/utils"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   ResponsiveCombobox,
@@ -174,7 +173,7 @@ export function PlanDetailsHeader({
           </Field>
         }
         search={
-          <dl className="grid min-h-14 w-full min-w-0 grid-cols-2 items-center gap-3 rounded-2xl border border-border bg-card px-4 py-2 text-sm sm:grid-cols-4">
+          <dl className="grid min-h-14 w-full min-w-0 grid-cols-2 items-center gap-3 rounded-2xl border border-border bg-card px-4 py-2 text-sm sm:grid-cols-3">
             <div className="min-w-0">
               <dt className="text-xs text-muted-foreground">{t("term")}</dt>
               <dd className="flex items-center gap-2 truncate font-semibold text-foreground">
@@ -192,26 +191,8 @@ export function PlanDetailsHeader({
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className="text-xs text-muted-foreground">
-                {t("generatedAt")}
-              </dt>
-              <dd className="truncate font-semibold text-foreground">
-                {formatDate(plan.generatedAt, locale)}
-              </dd>
-            </div>
-            <div className="min-w-0">
-              <dt className="text-xs text-muted-foreground">
-                {t("qualityIndex")}
-              </dt>
-              <dd className="flex flex-wrap items-center gap-2 font-semibold text-foreground">
-                <span>
-                  {plan.qualityIndex == null
-                    ? "—"
-                    : new Intl.NumberFormat(locale, {
-                        style: "percent",
-                        maximumFractionDigits: 2,
-                      }).format(plan.qualityIndex / 100)}
-                </span>
+              <dt className="text-xs text-muted-foreground">{t("status")}</dt>
+              <dd className="flex items-center gap-2 font-semibold text-foreground">
                 {isSelected && <Badge>{t("selected")}</Badge>}
                 {plan.status === "PUBLISHED" && (
                   <Badge variant="success">{t("published")}</Badge>
@@ -219,6 +200,11 @@ export function PlanDetailsHeader({
                 {plan.status === "REJECTED" && (
                   <Badge variant="secondary">{t("rejected")}</Badge>
                 )}
+                {!isSelected &&
+                  plan.status !== "PUBLISHED" &&
+                  plan.status !== "REJECTED" && (
+                    <span className="text-muted-foreground">—</span>
+                  )}
               </dd>
             </div>
           </dl>

@@ -171,7 +171,7 @@ describe("SchedulingPlanDetailsPage", () => {
     expect(await screen.findByText("جزئیات برنامه ۱")).toBeInTheDocument()
     expect(screen.getAllByText("پاییز ۱۴۰۳").length).toBeGreaterThan(0)
     expect(screen.getAllByText("مرکزی").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("۸۴٪").length).toBeGreaterThan(0)
+    expect(screen.getByText("وضعیت")).toBeInTheDocument()
     expect(screen.getAllByText("کلاس ۱").length).toBeGreaterThan(0)
     expect(screen.queryByText("هشدارهای برنامه")).not.toBeInTheDocument()
   })
