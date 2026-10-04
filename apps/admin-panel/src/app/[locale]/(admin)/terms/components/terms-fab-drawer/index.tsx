@@ -35,7 +35,7 @@ export function TermsFabDrawer({
   return (
     <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
       <FABMenuTrigger onClick={() => setOpen(true)} aria-label={t("actions")}>
-        <Plus className="size-6" aria-hidden />
+        <Sparkles className="size-6" aria-hidden />
       </FABMenuTrigger>
 
       <Drawer open={open} onOpenChange={setOpen}>
@@ -47,21 +47,21 @@ export function TermsFabDrawer({
           <div className="flex flex-col gap-3 p-4">
             <Button
               type="button"
-              variant="outline"
-              onClick={() => handleSelect(onAddClick)}
-              className="h-14 w-full cursor-pointer justify-start gap-3 rounded-2xl border-border px-5 text-base font-semibold"
-            >
-              <Plus className="size-5 text-foreground" />
-              <span>{t("addTerm")}</span>
-            </Button>
-
-            <Button
-              type="button"
               onClick={() => handleSelect(onBatchClick)}
               className="h-14 w-full cursor-pointer justify-start gap-3 rounded-2xl px-5 text-base font-semibold"
             >
               <Sparkles className="size-5" />
               <span>{t("generatePhaseTerms")}</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSelect(onAddClick)}
+              className="h-14 w-full cursor-pointer justify-start gap-3 rounded-2xl border-border px-5 text-base font-semibold"
+            >
+              <Plus className="size-5 text-foreground" />
+              <span>{t("manualAdd")}</span>
             </Button>
           </div>
 

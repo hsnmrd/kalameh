@@ -28,28 +28,41 @@ export function TermsActionButton({
 
   if (!onAddClick && !onBatchClick) return null
 
+  const hasMultipleActions = Boolean(onBatchClick && onAddClick)
+
   return (
     <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
       <ButtonGroup className="shadow-xs">
-        {/* Primary Action: Add Term (Direct Click) */}
-        {onAddClick && (
+        {/* Primary Action: Smart Term Creation (Direct Click) */}
+        {onBatchClick ? (
+          <Button
+            type="button"
+            onClick={onBatchClick}
+            className={`h-14 cursor-pointer gap-2 px-5 text-sm font-semibold ${
+              hasMultipleActions ? "rounded-s-2xl" : "rounded-2xl"
+            }`}
+          >
+            <Sparkles className="size-5" />
+            <span>{t("generatePhaseTerms")}</span>
+          </Button>
+        ) : onAddClick ? (
           <Button
             type="button"
             onClick={onAddClick}
-            className="h-14 cursor-pointer gap-2 rounded-s-2xl px-5 text-sm font-semibold"
+            className="h-14 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold"
           >
             <Plus className="size-5" />
             <span>{t("addTerm")}</span>
           </Button>
-        )}
+        ) : null}
 
         {/* Separator between action buttons */}
-        {onAddClick && onBatchClick && (
+        {hasMultipleActions && (
           <ButtonGroupSeparator className="my-3 bg-primary-foreground/25" />
         )}
 
-        {/* Action Dropdown for Additional Options (e.g. Smart Phase Terms) */}
-        {onBatchClick && (
+        {/* Action Dropdown for Additional Options (e.g. Manual Term Creation) */}
+        {hasMultipleActions && (
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -64,22 +77,20 @@ export function TermsActionButton({
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="min-w-56 p-1.5">
-              {onAddClick && (
-                <DropdownMenuItem
-                  onClick={onAddClick}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-3 text-sm font-semibold"
-                >
-                  <Plus className="size-4.5" />
-                  <span>{t("manualAdd")}</span>
-                </DropdownMenuItem>
-              )}
-
               <DropdownMenuItem
                 onClick={onBatchClick}
                 className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-3 text-sm font-semibold"
               >
                 <Sparkles className="size-4.5" />
                 <span>{t("generatePhaseTerms")}</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={onAddClick}
+                className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-3 text-sm font-semibold"
+              >
+                <Plus className="size-4.5" />
+                <span>{t("manualAdd")}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
