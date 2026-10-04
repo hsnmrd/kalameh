@@ -73,7 +73,7 @@ export function SchedulingProposalEditFields({
                 drawerTitle={t("teacher")}
                 emptyMessage={t("noQualifiedTeachers")}
                 disabled={optionsPending}
-                clearable={false}
+                clearable={true}
                 data-invalid={Boolean(errors.teacherId)}
                 aria-label={t("teacher")}
                 className="w-full"

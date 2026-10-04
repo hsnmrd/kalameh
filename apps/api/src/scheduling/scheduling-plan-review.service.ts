@@ -193,7 +193,8 @@ export class SchedulingPlanReviewService {
     );
     const merged = {
       title: input.title ?? proposal.title,
-      teacherId: input.teacherId ?? proposal.teacherId,
+      teacherId:
+        input.teacherId !== undefined ? input.teacherId : proposal.teacherId,
       branchId:
         input.branchId !== undefined ? input.branchId : proposal.branchId,
       classroomId:

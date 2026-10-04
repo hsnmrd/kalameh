@@ -131,6 +131,7 @@ export function useSchedulingProposalEditForm(
       instituteId: activeInstituteId,
       body: {
         ...values,
+        teacherId: values.teacherId ?? null,
         branchId: values.branchId ?? null,
         classroomId:
           values.deliveryMode === "ONLINE"

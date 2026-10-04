@@ -307,7 +307,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       "md:grid",
       "md:grid-cols-2",
       "md:gap-3.5",
-      "md:items-start"
+      "md:items-stretch"
     )
 
     // Verify CarouselItem slides have basis-[88%] for mobile and md:basis-full for desktop
@@ -316,11 +316,45 @@ describe("SchedulingPlanCalendarView Component", () => {
     )
     carouselItems.forEach((item) => {
       expect(item).toHaveClass(
+        "h-full",
         "basis-[88%]",
         "ps-2.5",
         "md:basis-full",
         "md:ps-0"
       )
+    })
+  })
+
+  it("uses max height and space between classes and masters section when they need space", () => {
+    const { container } = render(
+      <SchedulingPlanCalendarView
+        proposals={mockProposals}
+        canEdit={false}
+        defaultCollapsed={false}
+      />
+    )
+
+    const evenTrack = container.querySelector('[data-day="EVEN"]')
+    const oddTrack = container.querySelector('[data-day="ODD"]')
+
+    expect(evenTrack).toHaveClass(
+      "flex",
+      "h-full",
+      "flex-col",
+      "justify-between"
+    )
+    expect(oddTrack).toHaveClass(
+      "flex",
+      "h-full",
+      "flex-col",
+      "justify-between"
+    )
+
+    const mastersCarousels = container.querySelectorAll(
+      '[data-testid^="group-teachers-carousel-"]'
+    )
+    mastersCarousels.forEach((carousel) => {
+      expect(carousel).toHaveClass("mt-auto")
     })
   })
 
@@ -3028,6 +3062,127 @@ describe("SchedulingPlanCalendarView Component", () => {
 
       fireEvent.click(teacherCard)
       expect(onTeacherChange).toHaveBeenCalledWith(null)
+    })
+  })
+
+  describe("Master Swap and Delete Actions on Card", () => {
+    it("renders swap and delete buttons for master on card when teacher is assigned and canEdit is true", () => {
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      expect(screen.getByTestId("swap-teacher-btn-prop-1")).toBeInTheDocument()
+      expect(
+        screen.getByTestId("delete-teacher-btn-prop-1")
+      ).toBeInTheDocument()
+    })
+
+    it("does not render swap and delete buttons when canEdit is false", () => {
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={false}
+          defaultCollapsed={false}
+        />
+      )
+
+      expect(
+        screen.queryByTestId("swap-teacher-btn-prop-1")
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByTestId("delete-teacher-btn-prop-1")
+      ).not.toBeInTheDocument()
+    })
+
+    it("does not render delete button when card has no master assigned", () => {
+      const proposalsWithoutTeacher: Proposal[] = [
+        {
+          ...mockProposals[0]!,
+          id: "prop-no-teacher",
+          teacher: null,
+          teacherId: null,
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={proposalsWithoutTeacher}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      expect(
+        screen.queryByTestId("delete-teacher-btn-prop-no-teacher")
+      ).not.toBeInTheDocument()
+    })
+
+    it("clicking swap button initiates swap selection for that class", () => {
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+      fireEvent.click(swapBtn)
+
+      const card = screen.getByTestId("calendar-class-card-prop-1")
+      expect(card).toHaveAttribute("data-active", "true")
+    })
+
+    it("clicking delete button opens confirmation dialog and confirms removing teacher from class", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "prop-1",
+        teacherId: null,
+        warnings: [],
+      } as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={true}
+          planId="plan-1"
+          defaultCollapsed={false}
+        />
+      )
+
+      const deleteBtn = screen.getByTestId("delete-teacher-btn-prop-1")
+      fireEvent.click(deleteBtn)
+
+      expect(screen.getByText("حذف استاد از کلاس")).toBeInTheDocument()
+      expect(
+        screen.getByText(/آیا از حذف استاد «علی محمدی» از کلاس/)
+      ).toBeInTheDocument()
+
+      const confirmBtn = screen.getByRole("button", { name: "حذف استاد" })
+      fireEvent.click(confirmBtn)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalled()
+      })
+
+      expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual(
+        expect.objectContaining({
+          planId: "plan-1",
+          proposalId: "prop-1",
+          body: { teacherId: null },
+        })
+      )
+
+      toMutationSpy.mockRestore()
     })
   })
 })

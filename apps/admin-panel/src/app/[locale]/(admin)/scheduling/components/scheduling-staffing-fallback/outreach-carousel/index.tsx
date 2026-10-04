@@ -12,7 +12,10 @@ import {
   type CarouselApi,
 } from "@workspace/ui/components/carousel"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
-import { OutreachOptionItem } from "../outreach-option-item"
+import {
+  OutreachOptionItem,
+  type TeacherOutreachGroup,
+} from "../outreach-option-item"
 
 export interface OutreachCarouselProps {
   options: SchedulingTeacherOutreachOption[]
@@ -37,6 +40,27 @@ export function OutreachCarousel({
   const [api, setApi] = React.useState<CarouselApi>()
   const [current, setCurrent] = React.useState(1)
 
+  const teacherGroups = React.useMemo<TeacherOutreachGroup[]>(() => {
+    const groupsMap = new Map<string, TeacherOutreachGroup>()
+    for (const option of options) {
+      const teacherId = option.teacher.id
+      const existing = groupsMap.get(teacherId)
+      if (existing) {
+        existing.options.push(option)
+        if (!existing.higherLevelCourseTitle && option.higherLevelCourseTitle) {
+          existing.higherLevelCourseTitle = option.higherLevelCourseTitle
+        }
+      } else {
+        groupsMap.set(teacherId, {
+          teacher: option.teacher,
+          higherLevelCourseTitle: option.higherLevelCourseTitle ?? null,
+          options: [option],
+        })
+      }
+    }
+    return Array.from(groupsMap.values())
+  }, [options])
+
   React.useEffect(() => {
     if (!api) return
 
@@ -52,9 +76,9 @@ export function OutreachCarousel({
     }
   }, [api])
 
-  if (options.length === 0) return null
+  if (teacherGroups.length === 0) return null
 
-  const hasMultiple = options.length > 1
+  const hasMultiple = teacherGroups.length > 1
 
   return (
     <div className="w-full">
@@ -70,9 +94,9 @@ export function OutreachCarousel({
         {hasMultiple && (
           <div className="mb-2.5 flex items-center justify-between">
             <span className="text-xs font-semibold text-muted-foreground">
-              {t("staffingFallback.carouselCounter", {
+              {t("staffingFallback.teacherCarouselCounter", {
                 current: formatNumber(current, locale),
-                total: formatNumber(options.length, locale),
+                total: formatNumber(teacherGroups.length, locale),
               })}
             </span>
             <div className="flex items-center gap-1.5">
@@ -89,17 +113,17 @@ export function OutreachCarousel({
         )}
 
         <CarouselContent className="-ms-3">
-          {options.map((option, index) => (
+          {teacherGroups.map((group, index) => (
             <CarouselItem
-              key={option.key}
+              key={group.teacher.id}
               className={cn("ps-3", hasMultiple ? "basis-[90%]" : "basis-full")}
             >
               <OutreachOptionItem
-                option={option}
+                group={group}
                 index={index}
                 canToggle={canToggle}
-                isPending={isPending(option.key)}
-                pendingAction={isPending(option.key) ? pendingAction : null}
+                isPending={isPending}
+                pendingAction={pendingAction}
                 onToggle={onToggle}
               />
             </CarouselItem>
