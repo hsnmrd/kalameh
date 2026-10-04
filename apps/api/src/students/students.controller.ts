@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Put,
   Param,
   Body,
   Query,
@@ -14,8 +15,10 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StudentsService } from './students.service';
+import { StudentAvailabilityService } from './student-availability.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { UpdateStudentAvailabilitiesDto } from './dto/update-student-availabilities.dto';
 import { AddStudentNoteDto } from './dto/add-student-note.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -37,7 +40,10 @@ import { StudentFilterDto } from './dto/student-filter.dto';
 @UseGuards(JwtAuthGuard, PermissionsGuard, ModulesGuard)
 @RequireModules(APP_MODULES.STUDENTS)
 export class StudentsController {
-  constructor(private readonly studentsService: StudentsService) {}
+  constructor(
+    private readonly studentsService: StudentsService,
+    private readonly studentAvailabilityService: StudentAvailabilityService,
+  ) {}
 
   @Post()
   @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
@@ -120,5 +126,35 @@ export class StudentsController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.studentsService.addNote(currentUser, id, dto, locale);
+  }
+
+  @Get(':id/availabilities')
+  @RequirePermissions(PERMISSIONS.VIEW_STUDENTS)
+  async getAvailabilities(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('id') id: string,
+    @Query('operatingPhaseId') operatingPhaseId?: string,
+  ) {
+    return this.studentAvailabilityService.getAvailabilities(
+      currentUser,
+      id,
+      operatingPhaseId,
+    );
+  }
+
+  @Put(':id/availabilities')
+  @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
+  async updateAvailabilities(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: UpdateStudentAvailabilitiesDto,
+    @CurrentLocale() locale?: SupportedLocale,
+  ) {
+    return this.studentAvailabilityService.updateAvailabilities(
+      currentUser,
+      id,
+      dto,
+      locale,
+    );
   }
 }

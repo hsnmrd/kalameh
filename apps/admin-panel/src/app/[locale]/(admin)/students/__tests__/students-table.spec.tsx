@@ -25,6 +25,7 @@ describe("StudentsTable & StudentsFilter Components", () => {
         fatherName: "Reza",
         gender: "MALE",
         emergencyPhone: "09129998877",
+        scheduleStatus: "COMPLETE",
       },
       enrollmentsCount: 1,
       createdAt: new Date().toISOString(),
@@ -43,6 +44,7 @@ describe("StudentsTable & StudentsFilter Components", () => {
       studentProfile: {
         fatherName: "Mohammad",
         gender: "FEMALE",
+        scheduleStatus: "INCOMPLETE",
       },
       enrollmentsCount: 0,
       createdAt: new Date().toISOString(),
@@ -99,6 +101,13 @@ describe("StudentsTable & StudentsFilter Components", () => {
       expect(screen.getAllByText("09121111111").length).toBeGreaterThan(0)
       expect(screen.getAllByText("Reza").length).toBeGreaterThan(0)
       expect(screen.getAllByText("Sara Ahmadi").length).toBeGreaterThan(0)
+      expect(
+        screen.getByText(/برنامه حضور|Availability Schedule/i)
+      ).toBeInTheDocument()
+      expect(
+        screen.getByText(/برنامه مشخص شده|Schedule Set/i)
+      ).toBeInTheDocument()
+      expect(screen.getByText(/نیاز به تماس|Needs Call/i)).toBeInTheDocument()
     })
 
     it("should trigger onViewProfile, onAddNote and onEdit callbacks when buttons are clicked", () => {

@@ -199,6 +199,22 @@ export class SchedulingService {
                 scheduleStatus: true,
                 schoolShift: true,
                 dayPreference: true,
+                availabilities: term.operatingPhase?.id
+                  ? {
+                      where: { operatingPhaseId: term.operatingPhase?.id },
+                      select: {
+                        dayOfWeek: true,
+                        startTime: true,
+                        endTime: true,
+                      },
+                    }
+                  : {
+                      select: {
+                        dayOfWeek: true,
+                        startTime: true,
+                        endTime: true,
+                      },
+                    },
                 updatedAt: true,
               },
             },
@@ -265,6 +281,7 @@ export class SchedulingService {
       studentProfile: s.studentProfile
         ? {
             ...s.studentProfile,
+            availabilities: s.studentProfile.availabilities ?? [],
             timeConstraints: [] as any[],
           }
         : null,

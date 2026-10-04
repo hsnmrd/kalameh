@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { StudentNoteSchema } from "./student-note.schema.js"
+import { StudentAvailabilitySchema } from "./student-availability.schema.js"
 
 export const STUDENT_SCHEDULE_STATUSES = ["INCOMPLETE", "COMPLETE"] as const
 export type StudentScheduleStatus = (typeof STUDENT_SCHEDULE_STATUSES)[number]
@@ -26,6 +27,7 @@ export const StudentProfileSchema = z.object({
   schoolShift: z.enum(STUDENT_SCHOOL_SHIFTS).default("FLEXIBLE"),
   dayPreference: z.enum(STUDENT_DAY_PREFERENCES).default("ANY"),
   notes: z.array(StudentNoteSchema).optional(),
+  availabilities: z.array(StudentAvailabilitySchema).optional(),
   createdAt: z.date().or(z.string()).optional(),
   updatedAt: z.date().or(z.string()).optional(),
 })

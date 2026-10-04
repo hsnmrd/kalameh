@@ -4,7 +4,14 @@ import * as React from "react"
 import Image from "next/image"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { GraduationCap, Edit2, KeyRound, Eye, FileText } from "lucide-react"
+import {
+  GraduationCap,
+  Edit2,
+  KeyRound,
+  Eye,
+  FileText,
+  Clock,
+} from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -20,6 +27,7 @@ import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { StudentStatusBadge } from "../student-status-badge"
+import { StudentScheduleStatusBadge } from "../student-schedule-status-badge"
 import type { StudentsTableProps } from "./types"
 
 export function StudentsTable({
@@ -29,6 +37,7 @@ export function StudentsTable({
   onAddNote,
   onEdit,
   onResetPassword,
+  onAvailability,
 }: StudentsTableProps) {
   const t = useTranslations("students")
   const locale = useLocale()
@@ -109,6 +118,15 @@ export function StudentsTable({
         },
       },
       {
+        accessorKey: "scheduleStatus",
+        header: t("table.scheduleStatus"),
+        cell: ({ row }) => (
+          <StudentScheduleStatusBadge
+            scheduleStatus={row.original.studentProfile?.scheduleStatus}
+          />
+        ),
+      },
+      {
         accessorKey: "isActive",
         header: t("table.status"),
         cell: ({ row }) => (
@@ -179,6 +197,23 @@ export function StudentsTable({
                 </Button>
               </PermissionGuard>
 
+              {onAvailability && (
+                <PermissionGuard
+                  permission={PERMISSIONS.MANAGE_STUDENTS}
+                  mode="disable"
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => onAvailability(student)}
+                    title={t("actions.availability")}
+                    className="cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    <Clock className="size-3.5" />
+                  </Button>
+                </PermissionGuard>
+              )}
+
               <PermissionGuard
                 permission={PERMISSIONS.MANAGE_STUDENTS}
                 mode="disable"
@@ -213,7 +248,15 @@ export function StudentsTable({
         },
       },
     ],
-    [locale, onAddNote, onEdit, onResetPassword, onViewProfile, t]
+    [
+      locale,
+      onAddNote,
+      onAvailability,
+      onEdit,
+      onResetPassword,
+      onViewProfile,
+      t,
+    ]
   )
 
   if (isLoading) {

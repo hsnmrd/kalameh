@@ -16,12 +16,19 @@ type CoverageTimeConstraint = {
   effectiveUntil?: Date | string | null;
 };
 
+type CoverageStudentAvailability = {
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+};
+
 type CoverageStudent = {
   id: string;
   currentAllowedCourseId: string | null;
   studentProfile: {
     scheduleStatus: StudentScheduleStatus;
-    timeConstraints: CoverageTimeConstraint[];
+    availabilities?: CoverageStudentAvailability[];
+    timeConstraints?: CoverageTimeConstraint[];
   } | null;
 };
 
@@ -79,17 +86,44 @@ export class SchedulingStudentCoverageService {
         const uncoveredStudentIds: string[] = [];
 
         for (const student of knownStudents) {
-          const unavailable =
-            student.studentProfile?.timeConstraints.some(
+          const profile = student.studentProfile;
+          if (!profile) continue;
+
+          if (
+            Array.isArray(profile.availabilities) &&
+            profile.availabilities.length > 0
+          ) {
+            const isCovered = profile.availabilities.some(
+              (slot) =>
+                slot.dayOfWeek === candidate.dayOfWeek &&
+                slot.startTime <= candidate.startTime &&
+                slot.endTime >= candidate.endTime,
+            );
+            (isCovered ? coveredStudentIds : uncoveredStudentIds).push(
+              student.id,
+            );
+          } else if (
+            Array.isArray(profile.timeConstraints) &&
+            profile.timeConstraints.length > 0
+          ) {
+            const unavailable = profile.timeConstraints.some(
               (constraint) =>
                 constraint.kind === 'UNAVAILABLE' &&
                 constraint.dayOfWeek === candidate.dayOfWeek &&
                 this.appliesDuringTerm(constraint, termStart, termEnd) &&
                 this.hasTimeOverlap(candidate, constraint),
-            ) ?? false;
-          (unavailable ? uncoveredStudentIds : coveredStudentIds).push(
-            student.id,
-          );
+            );
+            (unavailable ? uncoveredStudentIds : coveredStudentIds).push(
+              student.id,
+            );
+          } else if (
+            Array.isArray(profile.availabilities) &&
+            profile.availabilities.length === 0
+          ) {
+            uncoveredStudentIds.push(student.id);
+          } else {
+            coveredStudentIds.push(student.id);
+          }
         }
 
         const knownStudentCount = knownStudents.length;

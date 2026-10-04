@@ -13,10 +13,11 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
-import { Phone, GraduationCap } from "lucide-react"
+import { Phone, GraduationCap, Clock } from "lucide-react"
 import { type StudentDto } from "@workspace/types"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { StudentStatusBadge } from "../student-status-badge"
+import { StudentScheduleStatusBadge } from "../student-schedule-status-badge"
 import { StudentProfileNotes } from "./student-profile-notes"
 import { ProfileActions } from "./profile-actions"
 
@@ -24,6 +25,7 @@ export interface StudentProfileModalProps {
   student: StudentDto | null
   open: boolean
   onClose: () => void
+  onAvailability?: (student: StudentDto) => void
   onEdit?: (student: StudentDto) => void
   onAddNote?: (student: StudentDto) => void
   onResetPassword?: (student: StudentDto) => void
@@ -33,6 +35,7 @@ export function StudentProfileModal({
   student,
   open,
   onClose,
+  onAvailability,
   onEdit,
   onAddNote,
   onResetPassword,
@@ -71,6 +74,7 @@ export function StudentProfileModal({
               student={student}
               fullName={fullName}
               onClose={onClose}
+              onAvailability={onAvailability}
               onEdit={onEdit}
               onAddNote={onAddNote}
               onResetPassword={onResetPassword}
@@ -205,6 +209,16 @@ export function StudentProfileModal({
             </div>
             <div>
               <span className="text-xs text-muted-foreground">
+                {t("actions.availability")}
+              </span>
+              <div className="pt-1">
+                <StudentScheduleStatusBadge
+                  scheduleStatus={student.studentProfile?.scheduleStatus}
+                />
+              </div>
+            </div>
+            <div>
+              <span className="text-xs text-muted-foreground">
                 {t("table.createdAt")}
               </span>
               <p className="font-medium text-foreground">
@@ -215,14 +229,22 @@ export function StudentProfileModal({
         </div>
 
         <FormDialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="h-11 min-w-28 rounded-xl text-sm font-medium"
-          >
+          <Button type="button" variant="outline" onClick={onClose}>
             {t("profileModal.close")}
           </Button>
+          {onAvailability && (
+            <Button
+              type="button"
+              onClick={() => {
+                onClose()
+                onAvailability(student)
+              }}
+              className="gap-2"
+            >
+              <Clock className="size-4" />
+              <span>{t("actions.availability")}</span>
+            </Button>
+          )}
         </FormDialogFooter>
       </FormDialogContent>
     </FormDialog>

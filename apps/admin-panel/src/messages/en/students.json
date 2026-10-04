@@ -22,6 +22,7 @@
     "nationalCode": "National ID",
     "currentLevel": "Allowed Course Level",
     "noLevel": "Not Assigned (Root Level)",
+    "scheduleStatus": "Availability Schedule",
     "status": "Status",
     "enrollmentsCount": "Enrollments",
     "createdAt": "Registered At",
@@ -141,9 +142,30 @@
   },
   "actions": {
     "viewProfile": "View Profile",
+    "availability": "Availability Schedule",
     "addNote": "Add Note",
     "edit": "Edit Profile",
     "resetPassword": "Reset Password"
+  },
+  "scheduleStatus": {
+    "complete": "Schedule Set",
+    "incomplete": "Needs Call"
+  },
+  "availabilityModal": {
+    "title": "Student Availability Schedule",
+    "phaseSelectLabel": "Operating Phase",
+    "evenDaysTitle": "Even Days (Sat, Mon, Wed)",
+    "oddDaysTitle": "Odd Days (Sun, Tue, Thu)",
+    "fridayTitle": "Friday",
+    "selectAll": "Select All",
+    "clear": "Clear",
+    "noPhaseSelected": "Please select an operating phase first.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saveSuccess": "Student availability schedule saved successfully.",
+    "saveError": "Failed to save student availability schedule.",
+    "selectedSlotsCount": "{count} slots selected",
+    "noActivePhase": "No active operating phases found for this institute."
   },
   "validation": {
     "firstNameMin": "First name must be at least 2 characters.",

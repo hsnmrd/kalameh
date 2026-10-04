@@ -134,6 +134,7 @@ model StudentProfile {
   schoolShift    StudentSchoolShift    @default(FLEXIBLE)
   dayPreference  StudentDayPreference  @default(ANY)
   notes          StudentNote[]
+  availabilities StudentAvailability[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -675,11 +676,32 @@ model InstituteOperatingPhase {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
-  terms     Term[]
+  institute             Institute             @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  terms                 Term[]
+  studentAvailabilities StudentAvailability[]
 
   @@index([instituteId])
   @@index([instituteId, isActive])
+}
+
+model StudentAvailability {
+  id               String @id @default(uuid())
+  studentProfileId String
+  operatingPhaseId String
+  dayOfWeek        String
+  startTime        String
+  endTime          String
+
+  studentProfile StudentProfile          @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  operatingPhase InstituteOperatingPhase @relation(fields: [operatingPhaseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentProfileId, operatingPhaseId, dayOfWeek, startTime])
+  @@index([studentProfileId])
+  @@index([operatingPhaseId])
+  @@index([studentProfileId, operatingPhaseId])
 }
 
 model InstituteCustomOffDay {

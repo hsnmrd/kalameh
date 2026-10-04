@@ -22,6 +22,7 @@
     "nationalCode": "کد ملی",
     "currentLevel": "سطح مجاز فعلی",
     "noLevel": "تعیین سطح نشده (سطح پایه)",
+    "scheduleStatus": "برنامه حضور",
     "status": "وضعیت",
     "enrollmentsCount": "ثبت‌نام‌ها",
     "createdAt": "تاریخ ثبت‌نام",
@@ -141,9 +142,30 @@
   },
   "actions": {
     "viewProfile": "مشاهده پرونده",
+    "availability": "برنامه حضور",
     "addNote": "ثبت یادداشت",
     "edit": "ویرایش مشخصات",
     "resetPassword": "بازنشانی رمز عبور"
+  },
+  "scheduleStatus": {
+    "complete": "برنامه مشخص شده",
+    "incomplete": "نیاز به تماس"
+  },
+  "availabilityModal": {
+    "title": "برنامه حضور فراگیر",
+    "phaseSelectLabel": "فاز زمانی آموزشی",
+    "evenDaysTitle": "روزهای زوج (شنبه، دوشنبه، چهارشنبه)",
+    "oddDaysTitle": "روزهای فرد (یکشنبه، سه‌شنبه، پنجشنبه)",
+    "fridayTitle": "جمعه",
+    "selectAll": "انتخاب همه",
+    "clear": "پاک کردن",
+    "noPhaseSelected": "لطفاً ابتدا یک فاز زمانی را انتخاب کنید.",
+    "save": "ذخیره",
+    "cancel": "انصراف",
+    "saveSuccess": "برنامه حضور فراگیر با موفقیت ذخیره شد.",
+    "saveError": "خطا در ذخیره برنامه حضور فراگیر.",
+    "selectedSlotsCount": "{count} زنگ انتخاب شده",
+    "noActivePhase": "هیچ فاز زمانی فعالی برای این آموزشگاه یافت نشد."
   },
   "validation": {
     "firstNameMin": "نام باید حداقل ۲ کاراکتر باشد.",

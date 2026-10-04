@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { Edit2, FileText, KeyRound, MoreVertical } from "lucide-react"
+import { Clock, Edit2, FileText, KeyRound, MoreVertical } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,17 +15,25 @@ interface ProfileActionsProps {
   student: StudentDto
   fullName: string
   onClose: () => void
+  onAvailability?: (student: StudentDto) => void
   onEdit?: (student: StudentDto) => void
   onAddNote?: (student: StudentDto) => void
   onResetPassword?: (student: StudentDto) => void
 }
 
 export function ProfileActions(props: ProfileActionsProps) {
-  const { student, fullName, onClose, onEdit, onAddNote, onResetPassword } =
-    props
+  const {
+    student,
+    fullName,
+    onClose,
+    onAvailability,
+    onEdit,
+    onAddNote,
+    onResetPassword,
+  } = props
   const t = useTranslations("students")
 
-  if (!onAddNote && !onResetPassword && !onEdit) return null
+  if (!onAvailability && !onAddNote && !onResetPassword && !onEdit) return null
 
   const runAction = (action: (student: StudentDto) => void) => {
     onClose()
@@ -45,6 +53,14 @@ export function ProfileActions(props: ProfileActionsProps) {
         drawerTitle={fullName}
         className="min-w-48"
       >
+        {onAvailability && (
+          <PermissionGuard permission={PERMISSIONS.MANAGE_STUDENTS} mode="hide">
+            <DropdownMenuItem onClick={() => runAction(onAvailability)}>
+              <Clock className="size-4 text-muted-foreground" />
+              <span>{t("actions.availability")}</span>
+            </DropdownMenuItem>
+          </PermissionGuard>
+        )}
         {onAddNote && (
           <PermissionGuard
             permission={PERMISSIONS.MANAGE_STUDENT_NOTES}

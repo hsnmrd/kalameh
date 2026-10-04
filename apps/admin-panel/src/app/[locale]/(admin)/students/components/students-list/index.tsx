@@ -3,7 +3,14 @@
 import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
-import { Eye, Edit, KeyRound, GraduationCap, FileText } from "lucide-react"
+import {
+  Eye,
+  Edit,
+  KeyRound,
+  GraduationCap,
+  FileText,
+  Clock,
+} from "lucide-react"
 import {
   MobileList,
   MobileListItem,
@@ -29,6 +36,7 @@ import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { StudentStatusBadge } from "../student-status-badge"
+import { StudentScheduleStatusBadge } from "../student-schedule-status-badge"
 
 export interface StudentsListProps {
   students: StudentDto[] | undefined
@@ -37,6 +45,7 @@ export interface StudentsListProps {
   onAddNote: (student: StudentDto) => void
   onEdit: (student: StudentDto) => void
   onResetPassword: (student: StudentDto) => void
+  onAvailability?: (student: StudentDto) => void
 }
 
 export function StudentsList({
@@ -46,6 +55,7 @@ export function StudentsList({
   onAddNote,
   onEdit,
   onResetPassword,
+  onAvailability,
 }: StudentsListProps) {
   const t = useTranslations("students")
 
@@ -119,6 +129,9 @@ export function StudentsList({
                 />
 
                 <MobileListItemTrailing>
+                  <StudentScheduleStatusBadge
+                    scheduleStatus={student.studentProfile?.scheduleStatus}
+                  />
                   <StudentStatusBadge isActive={student.isActive} />
                 </MobileListItemTrailing>
               </MobileListItem>
@@ -144,6 +157,18 @@ export function StudentsList({
                   {t("actions.addNote")}
                 </ContextMenuItem>
               </PermissionGuard>
+
+              {onAvailability && (
+                <PermissionGuard
+                  permission={PERMISSIONS.MANAGE_STUDENTS}
+                  mode="hide"
+                >
+                  <ContextMenuItem onClick={() => onAvailability(student)}>
+                    <Clock className="me-2 size-4 text-muted-foreground" />
+                    {t("actions.availability")}
+                  </ContextMenuItem>
+                </PermissionGuard>
+              )}
 
               <PermissionGuard
                 permission={PERMISSIONS.MANAGE_STUDENTS}

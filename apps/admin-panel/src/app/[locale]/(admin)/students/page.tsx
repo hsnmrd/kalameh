@@ -29,6 +29,7 @@ import { StudentsList } from "./components/students-list"
 import { CreateStudentModal } from "./components/create-student-modal"
 import { EditStudentModal } from "./components/edit-student-modal"
 import { StudentProfileModal } from "./components/student-profile-modal"
+import { StudentAvailabilityModal } from "./components/student-availability-modal"
 import { ResetPasswordModal } from "./components/reset-password-modal"
 import { AddStudentNoteModal } from "./components/add-student-note-modal"
 
@@ -43,6 +44,8 @@ export default function StudentsPage() {
   const [profileStudent, setProfileStudent] = React.useState<StudentDto | null>(
     null
   )
+  const [availabilityStudent, setAvailabilityStudent] =
+    React.useState<StudentDto | null>(null)
   const [noteStudent, setNoteStudent] = React.useState<StudentDto | null>(null)
   const [resetPasswordStudent, setResetPasswordStudent] =
     React.useState<StudentDto | null>(null)
@@ -123,6 +126,10 @@ export default function StudentsPage() {
                   student={profileStudent}
                   open={Boolean(profileStudent)}
                   onClose={() => setProfileStudent(null)}
+                  onAvailability={(s) => {
+                    setProfileStudent(null)
+                    setAvailabilityStudent(s)
+                  }}
                   onEdit={(s) => {
                     setProfileStudent(null)
                     setEditStudent(s)
@@ -135,6 +142,14 @@ export default function StudentsPage() {
                     setProfileStudent(null)
                     setResetPasswordStudent(s)
                   }}
+                />
+
+                {/* Student Availability Modal */}
+                <StudentAvailabilityModal
+                  student={availabilityStudent}
+                  open={Boolean(availabilityStudent)}
+                  onClose={() => setAvailabilityStudent(null)}
+                  instituteId={activeInstituteId}
                 />
 
                 {/* Reset Password Modal */}
@@ -186,6 +201,7 @@ export default function StudentsPage() {
                   onResetPassword={(student) =>
                     setResetPasswordStudent(student)
                   }
+                  onAvailability={(student) => setAvailabilityStudent(student)}
                 />
               </div>
 
@@ -200,6 +216,7 @@ export default function StudentsPage() {
                   onResetPassword={(student) =>
                     setResetPasswordStudent(student)
                   }
+                  onAvailability={(student) => setAvailabilityStudent(student)}
                 />
               </div>
             </>

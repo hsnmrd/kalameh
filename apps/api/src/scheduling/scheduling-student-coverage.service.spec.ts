@@ -164,6 +164,57 @@ describe('MVP-019 SchedulingStudentCoverageService', () => {
     expect(result.candidates[0]?.coveragePercent).toBe(100);
   });
 
+  it('covers student whose explicit operating-phase availabilities include the candidate slot', () => {
+    const result = service.evaluate({
+      ...baseInput,
+      students: [
+        {
+          id: ids.studentOne,
+          currentAllowedCourseId: ids.course,
+          studentProfile: {
+            scheduleStatus: 'COMPLETE' as const,
+            availabilities: [
+              {
+                dayOfWeek: 'SUNDAY',
+                startTime: '09:00',
+                endTime: '10:30',
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(result.candidates[0]?.coveredStudentIds).toEqual([ids.studentOne]);
+    expect(result.candidates[0]?.coveragePercent).toBe(100);
+  });
+
+  it('marks student uncovered when candidate slot is outside their operating-phase availabilities', () => {
+    const result = service.evaluate({
+      ...baseInput,
+      students: [
+        {
+          id: ids.studentOne,
+          currentAllowedCourseId: ids.course,
+          studentProfile: {
+            scheduleStatus: 'COMPLETE' as const,
+            availabilities: [
+              {
+                dayOfWeek: 'MONDAY',
+                startTime: '09:00',
+                endTime: '10:30',
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(result.candidates[0]?.coveredStudentIds).toEqual([]);
+    expect(result.candidates[0]?.uncoveredStudentIds).toEqual([ids.studentOne]);
+    expect(result.candidates[0]?.coveragePercent).toBe(0);
+  });
+
   it('returns NOT_APPLICABLE instead of zero without known schedules', () => {
     const result = service.evaluate({
       ...baseInput,

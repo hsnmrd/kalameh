@@ -3,6 +3,8 @@ import type {
   CreateStudentInput,
   UpdateStudentInput,
   StudentLookupResponse,
+  StudentAvailabilityDto,
+  StudentAvailabilitySlotInput,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -48,4 +50,26 @@ export const studentsResource = api.resource("students", {
       body: ({ content }) => ({ content }),
     }
   ),
+  getAvailabilities: api.get<
+    StudentAvailabilityDto[],
+    { id: string; operatingPhaseId?: string }
+  >(({ id }) => `/students/${id}/availabilities`, {
+    query: (params) =>
+      params.operatingPhaseId
+        ? { operatingPhaseId: params.operatingPhaseId }
+        : {},
+  }),
+  updateAvailabilities: api.put<
+    StudentAvailabilityDto[],
+    {
+      id: string
+      operatingPhaseId: string
+      availabilities: StudentAvailabilitySlotInput[]
+    }
+  >(({ id }) => `/students/${id}/availabilities`, {
+    body: ({ operatingPhaseId, availabilities }) => ({
+      operatingPhaseId,
+      availabilities,
+    }),
+  }),
 })

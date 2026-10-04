@@ -270,6 +270,9 @@ export class StudentsService {
       include: {
         studentProfile: {
           include: {
+            availabilities: {
+              orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
+            },
             notes: {
               include: {
                 createdBy: {
