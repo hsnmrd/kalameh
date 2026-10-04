@@ -15,7 +15,7 @@ import {
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type { ExcelImportResult } from "@workspace/types"
-import { usersResource } from "@/lib/api"
+import { usersResource, API_BASE_URL } from "@/lib/api"
 import { UploadContent } from "./upload-content"
 
 export interface ImportUsersModalProps {
@@ -65,10 +65,10 @@ export function ImportUsersModal({
   const handleDownloadTemplate = async () => {
     try {
       setIsDownloadingTemplate(true)
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || ""}/users/excel-template`,
-        { headers: { "Accept-Language": locale }, credentials: "include" }
-      )
+      const response = await fetch(`${API_BASE_URL}/users/excel-template`, {
+        headers: { "Accept-Language": locale },
+        credentials: "include",
+      })
       if (!response.ok) throw new Error("Failed to download template")
       const url = window.URL.createObjectURL(await response.blob())
       const link = document.createElement("a")

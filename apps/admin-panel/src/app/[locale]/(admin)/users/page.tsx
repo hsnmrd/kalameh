@@ -7,7 +7,7 @@ import { toast } from "@workspace/ui/components/sonner"
 import { FABSingle } from "@workspace/ui/components/fab"
 import type { AuthUser } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
-import { usersResource } from "@/lib/api"
+import { usersResource, API_BASE_URL } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
@@ -66,7 +66,7 @@ export default function UsersPage() {
   const handleExport = async () => {
     try {
       setIsExporting(true)
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || ""
+      const baseUrl = API_BASE_URL
       const queryParams = new URLSearchParams()
       if (effectiveRoleFilter) queryParams.set("role", effectiveRoleFilter)
       if (searchValue.trim()) queryParams.set("search", searchValue.trim())

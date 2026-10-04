@@ -8,10 +8,12 @@ const intlMiddleware = createMiddleware(routing)
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Ignore static assets
+  // Ignore static assets and api proxy routes
   const isPublicStatic =
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/api-proxy") ||
     pathname.includes(".")
 
   if (isPublicStatic) {

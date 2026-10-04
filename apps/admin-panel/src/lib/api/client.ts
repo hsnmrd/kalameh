@@ -1,7 +1,11 @@
 import { createMicroApi, MicroApiError } from "micro-rq"
 import { toast } from "@workspace/ui/components/sonner"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api-proxy"
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL &&
+  process.env.NEXT_PUBLIC_API_URL.startsWith("/")
+    ? process.env.NEXT_PUBLIC_API_URL
+    : "/api-proxy"
 
 export const api = createMicroApi({
   name: "kalameh-admin",
