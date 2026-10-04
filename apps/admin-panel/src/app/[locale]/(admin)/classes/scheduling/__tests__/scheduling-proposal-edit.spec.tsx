@@ -14,7 +14,7 @@ import {
   teachersResource,
 } from "@/lib/api"
 import * as stores from "@/lib/stores"
-import SchedulingPlanDetailsPage from "../plans/[planId]/page"
+import { SchedulingProposalEditDialog } from "../components/scheduling-proposal-edit-dialog"
 
 const instituteId = "11111111-1111-4111-8111-111111111111"
 const planId = "22222222-2222-4222-8222-222222222222"
@@ -139,15 +139,13 @@ describe("MVP-039 scheduling proposal editing", () => {
       mutationFn: update,
     })
 
-    render(<SchedulingPlanDetailsPage />)
-
-    fireEvent.click(
-      (
-        await screen.findAllByRole("button", { name: "اقدامات کلاس پیشنهادی" })
-      )[0]!
-    )
-    fireEvent.click(
-      await screen.findByRole("menuitem", { name: "ویرایش کلاس پیشنهادی" })
+    const handleClose = vi.fn()
+    const { rerender } = render(
+      <SchedulingProposalEditDialog
+        open={true}
+        proposal={selectedPlan.proposals[0]!}
+        onClose={handleClose}
+      />
     )
 
     expect(
@@ -210,11 +208,16 @@ describe("MVP-039 scheduling proposal editing", () => {
       },
       expect.any(Object)
     )
-    await waitFor(() =>
-      expect(
-        screen.queryByRole("heading", { name: "ویرایش کلاس پیشنهادی" })
-      ).not.toBeInTheDocument()
+    await waitFor(() => expect(handleClose).toHaveBeenCalledTimes(1))
+    rerender(
+      <SchedulingProposalEditDialog
+        open={false}
+        proposal={selectedPlan.proposals[0]!}
+        onClose={handleClose}
+      />
     )
-    expect(planDetailQuery).toHaveBeenCalledTimes(2)
+    expect(
+      screen.queryByRole("heading", { name: "ویرایش کلاس پیشنهادی" })
+    ).not.toBeInTheDocument()
   })
 })

@@ -3086,6 +3086,22 @@ describe("SchedulingPlanCalendarView Component", () => {
       expect(
         screen.getByTestId("toggle-delivery-mode-btn-prop-1")
       ).toBeInTheDocument()
+      expect(screen.queryByText("ویرایش کلاس پیشنهادی")).not.toBeInTheDocument()
+    })
+
+    it("does not render edit option in actions popup on session cards", () => {
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      const trigger = screen.getByTestId("proposal-actions-trigger-prop-1")
+      fireEvent.click(trigger)
+
+      expect(screen.queryByText("ویرایش کلاس پیشنهادی")).not.toBeInTheDocument()
     })
 
     it("does not render swap button or actions popup when canEdit is false", () => {

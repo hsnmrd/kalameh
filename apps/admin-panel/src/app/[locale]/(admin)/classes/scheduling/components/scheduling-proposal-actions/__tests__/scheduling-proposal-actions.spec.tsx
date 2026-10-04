@@ -200,4 +200,17 @@ describe("SchedulingProposalActions", () => {
       screen.queryByTestId(`delete-teacher-btn-${proposalId}`)
     ).not.toBeInTheDocument()
   })
+
+  it("does not render edit item when onEdit is not provided", () => {
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    render(<SchedulingProposalActions proposal={baseProposal} />)
+
+    const trigger = screen.getByTestId(`proposal-actions-trigger-${proposalId}`)
+    fireEvent.click(trigger)
+
+    expect(screen.queryByText("ویرایش کلاس پیشنهادی")).not.toBeInTheDocument()
+  })
 })

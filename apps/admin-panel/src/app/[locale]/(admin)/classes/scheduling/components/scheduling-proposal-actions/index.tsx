@@ -27,7 +27,7 @@ type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
 export interface SchedulingProposalActionsProps {
   proposal: Proposal
-  onEdit: () => void
+  onEdit?: () => void
   onRemoveTeacher?: () => void
   onToggleDeliveryMode?: () => void
   isDeliveryModePending?: boolean
@@ -75,10 +75,12 @@ export function SchedulingProposalActions({
         className="min-w-52"
       >
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={onEdit} disabled={isPending}>
-            <Pencil aria-hidden />
-            <span>{t("actions.edit")}</span>
-          </DropdownMenuItem>
+          {onEdit && (
+            <DropdownMenuItem onClick={onEdit} disabled={isPending}>
+              <Pencil aria-hidden />
+              <span>{t("actions.edit")}</span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onClick={toggleLock} disabled={isPending}>
             {isLockPending ? (
               <Spinner aria-hidden />

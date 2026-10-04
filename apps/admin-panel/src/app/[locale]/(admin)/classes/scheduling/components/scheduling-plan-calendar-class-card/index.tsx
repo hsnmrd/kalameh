@@ -17,7 +17,6 @@ import { Button } from "@workspace/ui/components/button"
 import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
 import { SchedulingProposalActions } from "../scheduling-proposal-actions"
-import { SchedulingProposalEditDialog } from "../scheduling-proposal-edit-dialog"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
@@ -256,7 +255,6 @@ export function SchedulingPlanCalendarClassCard({
 }: SchedulingPlanCalendarClassCardProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
-  const [isEditOpen, setIsEditOpen] = React.useState(false)
 
   const themeIndex =
     colorIndex !== undefined
@@ -288,263 +286,247 @@ export function SchedulingPlanCalendarClassCard({
     : undefined
 
   return (
-    <>
-      <article
-        data-testid={`calendar-class-card-${proposal.id}`}
-        data-class-id={proposal.id}
-        data-color-index={themeIndex}
-        data-active={isActive ? "true" : undefined}
-        data-swappable={isSwappable ? "true" : undefined}
-        data-dimmed={isDimmed ? "true" : undefined}
-        data-grayscale={isGrayscale ? "true" : undefined}
-        data-collapsed={isCollapsed ? "true" : undefined}
-        data-same-teacher={hasSameTeacher ? "true" : undefined}
-        data-same-course={hasSameCourse ? "true" : undefined}
-        data-same-teacher-count={sameTeacherCount}
-        data-same-course-count={sameCourseCount}
-        data-has-warnings={hasWarnings ? "true" : undefined}
-        title={warningTitle}
-        onMouseEnter={() => onHover?.(proposal.id)}
-        onMouseLeave={() => onHover?.(null)}
-        onClick={(e) => {
-          e.stopPropagation()
+    <article
+      data-testid={`calendar-class-card-${proposal.id}`}
+      data-class-id={proposal.id}
+      data-color-index={themeIndex}
+      data-active={isActive ? "true" : undefined}
+      data-swappable={isSwappable ? "true" : undefined}
+      data-dimmed={isDimmed ? "true" : undefined}
+      data-grayscale={isGrayscale ? "true" : undefined}
+      data-collapsed={isCollapsed ? "true" : undefined}
+      data-same-teacher={hasSameTeacher ? "true" : undefined}
+      data-same-course={hasSameCourse ? "true" : undefined}
+      data-same-teacher-count={sameTeacherCount}
+      data-same-course-count={sameCourseCount}
+      data-has-warnings={hasWarnings ? "true" : undefined}
+      title={warningTitle}
+      onMouseEnter={() => onHover?.(proposal.id)}
+      onMouseLeave={() => onHover?.(null)}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick?.(proposal.id)
+      }}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
           onClick?.(proposal.id)
-        }}
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault()
-            onClick?.(proposal.id)
-          }
-        }}
-        className={cn(
-          "group relative flex min-h-[84px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl border border-s-4 p-3 shadow-2xs transition-[background-color,border-color,box-shadow,filter,transform] duration-200 ease-in-out select-none",
-          isActive
-            ? "border-primary"
-            : hasWarnings
-              ? "border-warning/80 hover:border-warning"
-              : theme.border,
-          theme.borderStart,
-          isActive ? "bg-primary/15 hover:bg-primary/20" : theme.bg,
-          isActive &&
-            "z-10 scale-[1.01] opacity-100 shadow-md ring-2 ring-primary",
-          isSwappable &&
-            "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
-          isDimmed && "opacity-25 hover:opacity-60",
-          isGrayscale && "grayscale hover:grayscale-0"
-        )}
-        aria-label={proposal.course.title}
-      >
-        {/* Row 1: Course Title & Level, Mode, Location, Status & Actions */}
-        <div className="flex min-w-0 items-center justify-between gap-2 pb-2.5">
-          {/* Start (Right in RTL): Dot, Course Title, Badges */}
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+        }
+      }}
+      className={cn(
+        "group relative flex min-h-[84px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl border border-s-4 p-3 shadow-2xs transition-[background-color,border-color,box-shadow,filter,transform] duration-200 ease-in-out select-none",
+        isActive
+          ? "border-primary"
+          : hasWarnings
+            ? "border-warning/80 hover:border-warning"
+            : theme.border,
+        theme.borderStart,
+        isActive ? "bg-primary/15 hover:bg-primary/20" : theme.bg,
+        isActive &&
+          "z-10 scale-[1.01] opacity-100 shadow-md ring-2 ring-primary",
+        isSwappable &&
+          "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
+        isDimmed && "opacity-25 hover:opacity-60",
+        isGrayscale && "grayscale hover:grayscale-0"
+      )}
+      aria-label={proposal.course.title}
+    >
+      {/* Row 1: Course Title & Level, Mode, Location, Status & Actions */}
+      <div className="flex min-w-0 items-center justify-between gap-2 pb-2.5">
+        {/* Start (Right in RTL): Dot, Course Title, Badges */}
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <span
+            className={cn("size-2.5 shrink-0 rounded-full", theme.dot)}
+            aria-hidden="true"
+          />
+          <h5
+            className="truncate text-sm font-bold text-foreground"
+            title={proposal.course.title}
+          >
+            {hasSameCourse ? (
+              <mark className="inline-block max-w-full truncate rounded-none bg-[#ffff00] px-0.5 text-black">
+                {proposal.course.title}
+              </mark>
+            ) : (
+              proposal.course.title
+            )}
+          </h5>
+          {proposal.title && proposal.title !== proposal.course.title && (
             <span
-              className={cn("size-2.5 shrink-0 rounded-full", theme.dot)}
-              aria-hidden="true"
-            />
-            <h5
-              className="truncate text-sm font-bold text-foreground"
-              title={proposal.course.title}
-            >
-              {hasSameCourse ? (
-                <mark className="inline-block max-w-full truncate rounded-none bg-[#ffff00] px-0.5 text-black">
-                  {proposal.course.title}
-                </mark>
-              ) : (
-                proposal.course.title
+              className={cn(
+                "hidden max-w-[140px] truncate rounded border px-1.5 py-0.5 text-[10px] font-semibold xl:inline-block",
+                theme.badge
               )}
-            </h5>
-            {proposal.title && proposal.title !== proposal.course.title && (
-              <span
-                className={cn(
-                  "hidden max-w-[140px] truncate rounded border px-1.5 py-0.5 text-[10px] font-semibold xl:inline-block",
-                  theme.badge
-                )}
-                title={proposal.title}
-              >
-                {proposal.title}
-              </span>
-            )}
-          </div>
-
-          {/* End (Left in RTL): Location, Status Icons & Actions */}
-          <div className="flex min-w-0 shrink items-center gap-1.5">
-            {/* Location (Classroom / Room) */}
-            <div
-              className="flex max-w-[110px] min-w-0 shrink items-center gap-1 rounded-md bg-muted/40 px-1.5 py-0.5 text-xs text-muted-foreground sm:max-w-[130px] md:max-w-[140px]"
-              title={locationName}
+              title={proposal.title}
             >
-              {isOnline ? (
-                <Globe
-                  aria-hidden
-                  className="size-3.5 shrink-0 text-muted-foreground"
-                />
-              ) : (
-                <DoorOpen
-                  aria-hidden
-                  className="size-3.5 shrink-0 text-muted-foreground"
-                />
-              )}
-              <span className="truncate font-medium text-foreground/90">
-                {locationName}
-              </span>
-            </div>
-
-            {proposal.isLocked && (
-              <span
-                title={t("states.locked")}
-                className="flex size-4 shrink-0 items-center justify-center text-muted-foreground"
-              >
-                <LockKeyhole aria-hidden className="size-3.5" />
-              </span>
-            )}
-            {proposal.isManuallyEdited && (
-              <span
-                title={t("states.edited")}
-                className="flex size-4 shrink-0 items-center justify-center text-warning"
-              >
-                <Pencil aria-hidden className="size-3.5" />
-              </span>
-            )}
-            {canEdit && !proposal.publishedClassId && (
-              <div
-                className="flex shrink-0 items-center gap-0.5"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <PermissionGuard
-                  permission={PERMISSIONS.MANAGE_CLASSES}
-                  mode="hide"
-                >
-                  {canSwap && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      data-testid={`swap-teacher-btn-${proposal.id}`}
-                      title={t("calendarView.swapTeacher")}
-                      aria-label={t("calendarView.swapTeacher")}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onSwapClick?.(proposal.id)
-                      }}
-                      className={cn(
-                        "size-6 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground",
-                        isSwapping &&
-                          "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary"
-                      )}
-                    >
-                      <ArrowLeftRight aria-hidden className="size-3.5" />
-                    </Button>
-                  )}
-                  <SchedulingProposalActions
-                    proposal={proposal}
-                    onEdit={() => setIsEditOpen(true)}
-                    onRemoveTeacher={
-                      onRemoveTeacher
-                        ? () => onRemoveTeacher(proposal)
-                        : undefined
-                    }
-                    onToggleDeliveryMode={
-                      onChangeDeliveryMode
-                        ? async () => {
-                            const handled = await onChangeDeliveryMode(proposal)
-                            if (handled === false) {
-                              setIsEditOpen(true)
-                            }
-                          }
-                        : undefined
-                    }
-                    isDeliveryModePending={isDeliveryModePending}
-                  />
-                </PermissionGuard>
-              </div>
-            )}
-          </div>
+              {proposal.title}
+            </span>
+          )}
         </div>
 
-        {/* Row 2: Teacher Focal Point, Branch, and Subtle Capacity Badge */}
-        <div
-          className={cn(
-            "flex items-center justify-between gap-3 border-t pt-2.5 text-xs",
-            theme.divider
-          )}
-        >
-          {/* Start (Right in RTL): Teacher Avatar & Name */}
-          <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            <div className="relative flex size-7.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted/80 ring-1 ring-border/80">
-              {proposal.teacher?.avatarUrl ? (
-                <Image
-                  src={getAssetUrl(proposal.teacher.avatarUrl)}
-                  alt={teacherName}
-                  width={30}
-                  height={30}
-                  unoptimized
-                  className="size-full object-cover"
-                />
-              ) : (
-                <User
-                  aria-hidden
-                  className={cn(
-                    "size-4 shrink-0",
-                    hasSameTeacher ? "text-primary" : "text-muted-foreground"
-                  )}
-                />
-              )}
-            </div>
-            <div className="flex min-w-0 items-center gap-2 truncate">
-              {hasSameTeacher ? (
-                <mark className="inline-block max-w-full truncate rounded-none bg-[#67e8f9] px-0.5 text-xs font-bold text-black">
-                  {teacherName}
-                </mark>
-              ) : (
-                <span className="truncate text-xs font-bold text-foreground">
-                  {teacherName}
-                </span>
-              )}
-              {hasSameTeacher && (
-                <span
-                  data-testid={`same-teacher-badge-${proposal.id}`}
-                  className="shrink-0 rounded border border-primary/40 bg-primary/15 px-1 py-0.5 text-[9px] font-bold text-primary"
-                >
-                  {t("calendarView.sameTeacherBadge")}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* End (Left in RTL): Minimal Clean Capacity Badge (No progress bars) */}
+        {/* End (Left in RTL): Location, Status Icons & Actions */}
+        <div className="flex min-w-0 shrink items-center gap-1.5">
+          {/* Location (Classroom / Room) */}
           <div
-            className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted/40 px-2 py-0.5 text-xs font-semibold text-foreground/90 tabular-nums"
-            title={t("calendarView.capacityLabel", {
-              current: formatNumber(proposal.capacity, locale),
-              max: formatNumber(maxCapacity, locale),
-            })}
+            className="flex max-w-[110px] min-w-0 shrink items-center gap-1 rounded-md bg-muted/40 px-1.5 py-0.5 text-xs text-muted-foreground sm:max-w-[130px] md:max-w-[140px]"
+            title={locationName}
           >
-            <Users
-              aria-hidden
-              className="size-3.5 shrink-0 text-muted-foreground"
-            />
-            <span>{formatNumber(proposal.capacity, locale)}</span>
-            {proposal.classroom?.capacity && (
-              <span className="text-[11px] font-normal text-muted-foreground">
-                /{formatNumber(maxCapacity, locale)}
-              </span>
+            {isOnline ? (
+              <Globe
+                aria-hidden
+                className="size-3.5 shrink-0 text-muted-foreground"
+              />
+            ) : (
+              <DoorOpen
+                aria-hidden
+                className="size-3.5 shrink-0 text-muted-foreground"
+              />
             )}
-            <span className="text-[10px] font-normal text-muted-foreground">
-              نفر
+            <span className="truncate font-medium text-foreground/90">
+              {locationName}
             </span>
           </div>
-        </div>
-      </article>
 
-      {isEditOpen && (
-        <SchedulingProposalEditDialog
-          open={isEditOpen}
-          proposal={proposal}
-          onClose={() => setIsEditOpen(false)}
-        />
-      )}
-    </>
+          {proposal.isLocked && (
+            <span
+              title={t("states.locked")}
+              className="flex size-4 shrink-0 items-center justify-center text-muted-foreground"
+            >
+              <LockKeyhole aria-hidden className="size-3.5" />
+            </span>
+          )}
+          {proposal.isManuallyEdited && (
+            <span
+              title={t("states.edited")}
+              className="flex size-4 shrink-0 items-center justify-center text-warning"
+            >
+              <Pencil aria-hidden className="size-3.5" />
+            </span>
+          )}
+          {canEdit && !proposal.publishedClassId && (
+            <div
+              className="flex shrink-0 items-center gap-0.5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_CLASSES}
+                mode="hide"
+              >
+                {canSwap && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    data-testid={`swap-teacher-btn-${proposal.id}`}
+                    title={t("calendarView.swapTeacher")}
+                    aria-label={t("calendarView.swapTeacher")}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onSwapClick?.(proposal.id)
+                    }}
+                    className={cn(
+                      "size-6 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground",
+                      isSwapping &&
+                        "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary"
+                    )}
+                  >
+                    <ArrowLeftRight aria-hidden className="size-3.5" />
+                  </Button>
+                )}
+                <SchedulingProposalActions
+                  proposal={proposal}
+                  onRemoveTeacher={
+                    onRemoveTeacher
+                      ? () => onRemoveTeacher(proposal)
+                      : undefined
+                  }
+                  onToggleDeliveryMode={
+                    onChangeDeliveryMode
+                      ? () => onChangeDeliveryMode(proposal)
+                      : undefined
+                  }
+                  isDeliveryModePending={isDeliveryModePending}
+                />
+              </PermissionGuard>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Row 2: Teacher Focal Point, Branch, and Subtle Capacity Badge */}
+      <div
+        className={cn(
+          "flex items-center justify-between gap-3 border-t pt-2.5 text-xs",
+          theme.divider
+        )}
+      >
+        {/* Start (Right in RTL): Teacher Avatar & Name */}
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          <div className="relative flex size-7.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted/80 ring-1 ring-border/80">
+            {proposal.teacher?.avatarUrl ? (
+              <Image
+                src={getAssetUrl(proposal.teacher.avatarUrl)}
+                alt={teacherName}
+                width={30}
+                height={30}
+                unoptimized
+                className="size-full object-cover"
+              />
+            ) : (
+              <User
+                aria-hidden
+                className={cn(
+                  "size-4 shrink-0",
+                  hasSameTeacher ? "text-primary" : "text-muted-foreground"
+                )}
+              />
+            )}
+          </div>
+          <div className="flex min-w-0 items-center gap-2 truncate">
+            {hasSameTeacher ? (
+              <mark className="inline-block max-w-full truncate rounded-none bg-[#67e8f9] px-0.5 text-xs font-bold text-black">
+                {teacherName}
+              </mark>
+            ) : (
+              <span className="truncate text-xs font-bold text-foreground">
+                {teacherName}
+              </span>
+            )}
+            {hasSameTeacher && (
+              <span
+                data-testid={`same-teacher-badge-${proposal.id}`}
+                className="shrink-0 rounded border border-primary/40 bg-primary/15 px-1 py-0.5 text-[9px] font-bold text-primary"
+              >
+                {t("calendarView.sameTeacherBadge")}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* End (Left in RTL): Minimal Clean Capacity Badge (No progress bars) */}
+        <div
+          className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted/40 px-2 py-0.5 text-xs font-semibold text-foreground/90 tabular-nums"
+          title={t("calendarView.capacityLabel", {
+            current: formatNumber(proposal.capacity, locale),
+            max: formatNumber(maxCapacity, locale),
+          })}
+        >
+          <Users
+            aria-hidden
+            className="size-3.5 shrink-0 text-muted-foreground"
+          />
+          <span>{formatNumber(proposal.capacity, locale)}</span>
+          {proposal.classroom?.capacity && (
+            <span className="text-[11px] font-normal text-muted-foreground">
+              /{formatNumber(maxCapacity, locale)}
+            </span>
+          )}
+          <span className="text-[10px] font-normal text-muted-foreground">
+            نفر
+          </span>
+        </div>
+      </div>
+    </article>
   )
 }
