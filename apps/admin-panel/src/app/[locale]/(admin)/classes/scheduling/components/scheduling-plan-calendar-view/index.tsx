@@ -146,7 +146,7 @@ export interface SchedulingPlanCalendarViewProps {
 export function SchedulingPlanCalendarView({
   proposals: incomingProposals,
   canEdit,
-  canSwap = true,
+  canSwap = canEdit,
   hiringPlan,
   missedClassesAssignments: incomingMissedClassesAssignments,
   onAssignMissedClass,
@@ -1699,6 +1699,7 @@ export function SchedulingPlanCalendarView({
                                               key={`${proposal.id}-${track}`}
                                               proposal={proposal}
                                               canEdit={canEdit}
+                                              canSwap={canSwap}
                                               colorIndex={proposalColorMap.get(
                                                 proposal.id
                                               )}

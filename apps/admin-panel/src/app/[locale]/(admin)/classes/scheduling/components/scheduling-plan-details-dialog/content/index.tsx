@@ -45,7 +45,7 @@ function buildDefaultAssignments(
 
 export function Content({
   plan,
-  isSelected,
+  isSelected: _isSelected,
   validationResult,
   stickyTop = "dialog",
   className,
@@ -247,7 +247,7 @@ export function Content({
       <section aria-label={t("proposalsTitle")}>
         <SchedulingPlanCalendarView
           proposals={plan.proposals}
-          canEdit={isSelected && plan.status === "SELECTED"}
+          canEdit={plan.status === "DRAFT" || plan.status === "SELECTED"}
           canSwap={plan.status === "DRAFT" || plan.status === "SELECTED"}
           hiringPlan={plan.newTeacherHiringPlan}
           missedClassesAssignments={assignmentsState}

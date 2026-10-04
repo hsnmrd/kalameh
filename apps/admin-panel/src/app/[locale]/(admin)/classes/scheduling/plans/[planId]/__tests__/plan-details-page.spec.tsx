@@ -485,4 +485,28 @@ describe("SchedulingPlanDetailsPage", () => {
       screen.getByRole("combobox", { name: "انتخاب استاد..." })
     ).toBeInTheDocument()
   })
+
+  it("renders swap and delete buttons for assigned teachers on draft plans", async () => {
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.planDetail, "toQuery").mockReturnValue({
+      queryKey: schedulingResource.planDetail.key({ planId, instituteId }),
+      queryFn: async () => createPlan(planId, 1, { status: "DRAFT" }),
+    } as never)
+
+    render(<SchedulingPlanDetailsPage />)
+
+    expect(await screen.findByText("جزئیات برنامه ۱")).toBeInTheDocument()
+
+    const swapButton = await screen.findByTestId(
+      "swap-teacher-btn-44444444-4444-4444-8444-444444444444"
+    )
+    const deleteButton = await screen.findByTestId(
+      "delete-teacher-btn-44444444-4444-4444-8444-444444444444"
+    )
+
+    expect(swapButton).toBeInTheDocument()
+    expect(deleteButton).toBeInTheDocument()
+  })
 })
