@@ -18,6 +18,7 @@
     }
   },
   "scripts": {
+    "postinstall": "prisma generate --schema ./schema.prisma",
     "build": "tsc",
     "db:generate": "dotenv -e ../../.env -e .env -c -- prisma generate --schema ./schema.prisma && tsc",
     "db:migrate:dev": "dotenv -e ../../.env -e .env -c -- prisma migrate dev --schema ./schema.prisma",
