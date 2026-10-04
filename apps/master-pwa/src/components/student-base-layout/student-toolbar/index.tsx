@@ -1,0 +1,81 @@
+"use client"
+
+import * as React from "react"
+import { useTranslations } from "next-intl"
+import { BookOpen, ArrowLeft, ArrowRight, LogOut } from "lucide-react"
+import { Link, useRouter, useIsRtl } from "@/i18n/routing"
+import { Button } from "@workspace/ui/components/button"
+
+export interface StudentToolbarProps {
+  isHomePage: boolean
+  locale?: string
+  onSwitchLanguage?: () => void
+  onLogout: () => void
+  isLogoutPending?: boolean
+}
+
+export function StudentToolbar({
+  isHomePage,
+  onLogout,
+  isLogoutPending,
+}: StudentToolbarProps) {
+  const t = useTranslations("common")
+  const router = useRouter()
+  const isRtl = useIsRtl()
+  const BackIcon = isRtl ? ArrowRight : ArrowLeft
+
+  return (
+    <header className="relative sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border/80 bg-card/95 px-4 backdrop-blur-md">
+      {/* Left Action (Back Button on Inner Pages) */}
+      <div className="z-10 flex min-w-11 items-center gap-1.5">
+        {!isHomePage ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xl"
+            onClick={() => router.back()}
+            className="cursor-pointer rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+            aria-label={t("back")}
+            title={t("back")}
+          >
+            <BackIcon className="size-5" />
+          </Button>
+        ) : (
+          <div className="size-11" />
+        )}
+      </div>
+
+      {/* Centered Logo */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <Link
+          href="/dashboard"
+          className="pointer-events-auto flex min-h-11 items-center gap-2 transition-opacity hover:opacity-80 active:scale-95"
+          aria-label={t("appName")}
+        >
+          <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
+            <BookOpen className="size-4" />
+          </div>
+          <span className="text-base font-bold tracking-tight text-foreground">
+            {t("appName")}
+          </span>
+        </Link>
+      </div>
+
+      {/* Right Action (Logout) */}
+      <div className="z-10 flex min-w-11 items-center justify-end gap-1.5">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xl"
+          onClick={onLogout}
+          disabled={isLogoutPending}
+          className="cursor-pointer rounded-xl text-muted-foreground hover:bg-muted hover:text-destructive active:scale-95"
+          aria-label={t("logout")}
+          title={t("logout")}
+        >
+          <LogOut className="size-4" />
+        </Button>
+      </div>
+    </header>
+  )
+}

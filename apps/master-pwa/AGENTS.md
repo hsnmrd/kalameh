@@ -1,0 +1,47 @@
+# Master PWA Rules (`apps/master-pwa`)
+
+- **Role:** Mobile-first Progressive Web Application (PWA) for teachers and instructors (اساتید).
+- **Multi-Language Architecture (`next-intl`):**
+  - Path-based localization (`/[locale]/...`) supporting **English (`/en/...`)** and **Persian (`/fa/...`)**.
+  - Localized direction & typography:
+    - English (`en`): `dir="ltr"`, Font: **Geist** (`--font-sans`), **Geist Mono** (`--font-mono`).
+    - Persian (`fa`): `dir="rtl"`, Font: **Yekan Bakh** (`--font-sans` and `--font-mono`). **NEVER use `fontMono` / `Geist Mono` in Persian (`fa`) mode.** Any code using `font-mono` must resolve to Yekan Bakh in RTL mode.
+  - Modular per-page message files in `messages/[locale]/` to optimize client bundle size.
+  - **Every layout that renders `<NextIntlClientProvider>` must include `common` messages** in its `messages` object alongside feature-specific message namespaces.
+- **Layout Architecture & Base Layout:**
+  - All master-pwa protected pages must use `MasterBaseLayout` (or `StudentBaseLayout` base shell in `components/`).
+  - The layout includes a sticky top Toolbar (Back button on inner pages, centered logo icon linking to `/dashboard`, language switcher, quick actions/logout) and a responsive Bottom Navigation.
+- **Directory-Based Components & Single Component Per File:**
+  - Every component must live in its own directory with an `index.tsx` entrypoint (e.g. `components/student-base-layout/index.tsx`, `components/providers/index.tsx`).
+  - **Never create multiple components in a single file.** Every sub-component must be stored in its own dedicated directory with an `index.tsx`.
+- **Layout Constraint (Critical):**
+  - On desktop viewports, lock layout to a maximum width of `480px` (`max-w-[480px] mx-auto min-h-screen`) and center it on screen with touch-optimized margins.
+- **Authentication & Route Guarding:**
+  - All pages require authentication with `Role.TEACHER`. Unauthenticated or non-teacher requests to protected routes are automatically redirected to `/login` via `proxy.ts`.
+- **Micro-RQ Architecture & Modular Structure:**
+  - Separate API concerns into dedicated files under `lib/api/`:
+    - `lib/api/token-provider.ts`: Token provider configuration.
+    - `lib/api/client.ts`: `createMicroApi` configured with `credentials: "include"` and `onError` toast handler.
+    - `lib/api/resources/*.resource.ts`: Dedicated resource definition files (e.g. `auth.resource.ts`).
+    - `lib/api/index.ts`: Unified barrel exports.
+- **Data Fetching Standard (Micro-RQ + React Query):**
+  - Always use `.toQuery()` and `.toMutation()` with `@tanstack/react-query` (`useQuery`, `useMutation`).
+  - **NEVER** use the `.fn()` option of micro-rq in components or event handlers.
+- **Error Handling & Feedback:**
+  - API errors are caught by `onError` in `client.ts` and shown via shadcn `toast.error` (which uses the Geist font).
+  - Do not render duplicate inline error alert banners inside forms.
+- **Loading UI Standard:**
+  - Use `<Spinner />` from `@workspace/ui/components/spinner` instead of raw `lucide-react` icons.
+- **Image Standard (Next.js Image Only):**
+  - **NEVER use raw `<img>` tags.** Always import and use Next.js `<Image />` from `next/image` (with `unoptimized` for uploaded/external assets wrapped in `getAssetUrl`).
+- **Single Card Anti-Pattern:**
+  - Do not wrap pages with a `<Card>` component if the page content is already rendered within a single container.
+- **UI Primitives:** Use `@workspace/ui` (shadcn/ui + Tailwind CSS) as the component source.
+- **No Vanilla JS Dialogs (`alert`, `prompt`):** NEVER use native browser `alert()` or `prompt()`. Use shadcn/Sonner `toast` for notifications and responsive modals/drawers for confirmations or user inputs.
+- **Validation:** Use `react-hook-form` and shared Zod schemas from `@workspace/types`.
+- **Core Teacher Flows (V1 Scope):**
+  - Set term availability (ثبت زمان‌های حضور برای فازهای فعال).
+  - Review and accept/reject scheduling proposals (تأیید برنامه کلاسی).
+  - In-classroom roll call / attendance tracking (حضور و غیاب دانش‌آموزان).
+  - Student grading and evaluation (ثبت نمرات).
+- **Mobile UX:** Ensure touch-friendly tap targets (minimum 56px per `@workspace/ui` button standard), smooth gesture feedback, and responsive bottom navigation.
