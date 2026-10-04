@@ -216,6 +216,7 @@ export interface SchedulingPlanCalendarClassCardProps {
   proposal: Proposal
   canEdit: boolean
   canSwap?: boolean
+  isSwapping?: boolean
   colorIndex?: number
   isActive?: boolean
   isSwappable?: boolean
@@ -235,6 +236,7 @@ export function SchedulingPlanCalendarClassCard({
   proposal,
   canEdit,
   canSwap = true,
+  isSwapping = false,
   colorIndex,
   isActive = false,
   isSwappable = false,
@@ -489,8 +491,8 @@ export function SchedulingPlanCalendarClassCard({
                       }}
                       className={cn(
                         "size-6 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground",
-                        isActive &&
-                          "bg-primary/20 text-primary hover:bg-primary/25 hover:text-primary"
+                        isSwapping &&
+                          "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary"
                       )}
                     >
                       <ArrowLeftRight aria-hidden className="size-3.5" />

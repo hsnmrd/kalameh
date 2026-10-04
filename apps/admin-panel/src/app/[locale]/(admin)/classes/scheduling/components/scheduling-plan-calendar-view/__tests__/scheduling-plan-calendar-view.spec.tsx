@@ -865,7 +865,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(content2).toHaveClass("opacity-100")
   })
 
-  it("automatically expands all time slots when a session card is clicked to enter swap mode", () => {
+  it("automatically expands all time slots when swap button is clicked to enter swap mode", () => {
     const { container } = render(
       <SchedulingPlanCalendarView
         proposals={mockProposals}
@@ -881,11 +881,11 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(content1).toHaveClass("grid-rows-[0fr]")
     expect(content2).toHaveClass("grid-rows-[0fr]")
 
-    // Click on a session card in the calendar
-    const prop1Card = container.querySelector('[data-class-id="prop-1"]')!
-    expect(prop1Card).toBeInTheDocument()
-    fireEvent.click(prop1Card)
+    // Click swap button on a session card in the calendar
+    const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+    fireEvent.click(swapBtn)
 
+    const prop1Card = container.querySelector('[data-class-id="prop-1"]')!
     // The session card becomes active with distinct background and border
     expect(prop1Card).toHaveAttribute("data-active", "true")
     expect(prop1Card).toHaveClass("bg-primary/15")
@@ -1183,7 +1183,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(carousel).toHaveTextContent("نیلوفر صادقی")
   })
 
-  it("shakes compatible class cards when a class card is clicked and opens the swap dialog on click", () => {
+  it("shakes compatible class cards when swap button is clicked and opens the swap dialog on click", () => {
     const swappableProposals: Proposal[] = [
       ...mockProposals, // prop-1 (unlocked, 09:00-10:30, A1, cr1 cap 15) & prop-2 (locked)
       {
@@ -1220,8 +1220,14 @@ describe("SchedulingPlanCalendarView Component", () => {
       "calendar-class-card-prop-swap-target"
     )[0]!
 
-    // Click prop-1 to enter swap mode
+    // Clicking prop-1 directly does NOT enter swap mode (no shaking cards)
     fireEvent.click(prop1Card)
+    expect(prop1Card).toHaveAttribute("data-active", "true")
+    expect(swapTargetCard).not.toHaveAttribute("data-swappable")
+
+    // Clicking swap button explicitly enters swap mode
+    const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+    fireEvent.click(swapBtn)
 
     // prop-1 is active
     expect(prop1Card).toHaveAttribute("data-active", "true")
@@ -1287,8 +1293,8 @@ describe("SchedulingPlanCalendarView Component", () => {
       />
     )
 
-    // 1. Select prop-1 and click prop-swap-target to open SwapClassDialog
-    fireEvent.click(screen.getAllByTestId("calendar-class-card-prop-1")[0]!)
+    // 1. Click swap button on prop-1 and click prop-swap-target to open SwapClassDialog
+    fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-1"))
     fireEvent.click(
       screen.getAllByTestId("calendar-class-card-prop-swap-target")[0]!
     )
@@ -1902,8 +1908,8 @@ describe("SchedulingPlanCalendarView Component", () => {
       "calendar-class-card-prop-p2-room102"
     )[0]!
 
-    // Select prop-p1-room101 (15:30-17:00 in Room 101)
-    fireEvent.click(p1Room101Card)
+    // Click swap button on prop-p1-room101 (15:30-17:00 in Room 101)
+    fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-p1-room101"))
 
     // However, prop-p2-room102 (17:00-18:30 in Room 102) IS swappable because swapping periods AND classrooms
     // puts prop-p1 into Room 102 at 17:00-18:30 and prop-p2 into Room 101 at 15:30-17:00 with zero room conflict!
@@ -2029,8 +2035,8 @@ describe("SchedulingPlanCalendarView Component", () => {
       "calendar-class-card-prop-ame-1-2"
     )[0]!
 
-    // 1. Click AME 1-3: AME 1-2 is swappable by swapping days & time slots
-    fireEvent.click(ame13Card)
+    // 1. Click swap button on AME 1-3: AME 1-2 is swappable by swapping days & time slots
+    fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-ame-1-3"))
     expect(ame12Card).toHaveAttribute("data-swappable", "true")
 
     // 2. Click AME 1-2 to open the swap modal
@@ -3115,7 +3121,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       ).not.toBeInTheDocument()
     })
 
-    it("clicking swap button initiates swap selection for that class", () => {
+    it("clicking card directly does not enter swap mode, only swap button enters swap mode", () => {
       render(
         <SchedulingPlanCalendarView
           proposals={mockProposals}
@@ -3124,11 +3130,22 @@ describe("SchedulingPlanCalendarView Component", () => {
         />
       )
 
-      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
-      fireEvent.click(swapBtn)
-
       const card = screen.getByTestId("calendar-class-card-prop-1")
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+
+      // 1. Click card directly: selects card but does NOT enter swap mode
+      fireEvent.click(card)
       expect(card).toHaveAttribute("data-active", "true")
+      expect(swapBtn).not.toHaveClass("ring-1")
+
+      // 2. Click swap button: enters swap mode for prop-1
+      fireEvent.click(swapBtn)
+      expect(card).toHaveAttribute("data-active", "true")
+      expect(swapBtn).toHaveClass("ring-1")
+
+      // 3. Click swap button again: toggles off swap mode and selection
+      fireEvent.click(swapBtn)
+      expect(card).not.toHaveAttribute("data-active")
     })
 
     it("clicking delete button opens confirmation dialog and confirms removing teacher from class", async () => {
