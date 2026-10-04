@@ -33,6 +33,7 @@
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
+    "express": "^5.0.0",
     "ioredis": "^5.4.2",
     "multer": "^2.2.0",
     "nestjs-zod": "^4.0.2",
