@@ -3260,5 +3260,230 @@ describe("SchedulingPlanCalendarView Component", () => {
 
       toMutationSpy.mockRestore()
     })
+
+    it("does not show dashed move card in the source period of the selected session", () => {
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+      fireEvent.click(swapBtn)
+
+      expect(
+        screen.queryByTestId("move-target-card-EVEN-09:00-10:30")
+      ).not.toBeInTheDocument()
+    })
+
+    it("shows dashed move card in a period with an available room of sufficient capacity and moves session with updated room", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "prop-1",
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "16:00",
+        endTime: "17:30",
+        classroomId: "cr2",
+        warnings: [],
+      } as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={true}
+          planId="plan-1"
+          defaultCollapsed={false}
+        />
+      )
+
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+      fireEvent.click(swapBtn)
+
+      const moveCard = screen.getByTestId("move-target-card-EVEN-16:00-17:30")
+      expect(moveCard).toBeInTheDocument()
+      expect(
+        within(moveCard).getByText("انتقال به این زمان")
+      ).toBeInTheDocument()
+
+      fireEvent.click(moveCard)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalled()
+      })
+
+      expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual(
+        expect.objectContaining({
+          planId: "plan-1",
+          proposalId: "prop-1",
+          body: expect.objectContaining({
+            startTime: "16:00",
+            endTime: "17:30",
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          }),
+        })
+      )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("does not show dashed move card when room capacity is less than proposal students count", () => {
+      const proposalsWithLargeClass: Proposal[] = [
+        {
+          ...mockProposals[0],
+          id: "prop-large",
+          capacity: 25,
+          classroom: { id: "cr-large", name: "سالن بزرگ", capacity: 25 },
+          classroomId: "cr-large",
+          startTime: "09:00",
+          endTime: "10:30",
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        },
+        {
+          ...mockProposals[1],
+          id: "prop-occupier",
+          classroom: { id: "cr-large", name: "سالن بزرگ", capacity: 25 },
+          classroomId: "cr-large",
+          startTime: "16:00",
+          endTime: "17:30",
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        },
+        {
+          id: "prop-small-room-holder",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "کلاس اتاق کوچک",
+          course: { id: "c3", title: "American English File 3" },
+          teacher: { id: "t3", firstName: "رضا", lastName: "کریمی" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-small", name: "کلاس کوچک", capacity: 10 },
+          capacity: 10,
+          daysOfWeek: ["SUNDAY"],
+          startTime: "16:00",
+          endTime: "17:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={proposalsWithLargeClass}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-large")
+      fireEvent.click(swapBtn)
+
+      expect(
+        screen.queryByTestId("move-target-card-EVEN-16:00-17:30")
+      ).not.toBeInTheDocument()
+    })
+
+    it("updates room to available Room B when Room A is occupied in target period", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "prop-a",
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "16:00",
+        endTime: "17:30",
+        classroomId: "room-b",
+        warnings: [],
+      } as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const testProposals: Proposal[] = [
+        {
+          ...mockProposals[0],
+          id: "prop-a",
+          capacity: 15,
+          classroom: { id: "room-a", name: "اتاق الف", capacity: 15 },
+          classroomId: "room-a",
+          startTime: "09:00",
+          endTime: "10:30",
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        },
+        {
+          ...mockProposals[1],
+          id: "prop-other",
+          capacity: 12,
+          classroom: { id: "room-a", name: "اتاق الف", capacity: 15 },
+          classroomId: "room-a",
+          startTime: "16:00",
+          endTime: "17:30",
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        },
+        {
+          id: "prop-b",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "کلاس سطح دیگر",
+          course: { id: "c3", title: "American English File 3" },
+          teacher: { id: "t3", firstName: "رضا", lastName: "کریمی" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "room-b", name: "اتاق ب", capacity: 18 },
+          capacity: 18,
+          daysOfWeek: ["SUNDAY"],
+          startTime: "16:00",
+          endTime: "17:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={testProposals}
+          canEdit={true}
+          planId="plan-1"
+          defaultCollapsed={false}
+        />
+      )
+
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-a")
+      fireEvent.click(swapBtn)
+
+      const moveCard = screen.getByTestId("move-target-card-EVEN-16:00-17:30")
+      expect(moveCard).toBeInTheDocument()
+      expect(within(moveCard).getByText("اتاق ب")).toBeInTheDocument()
+
+      fireEvent.click(moveCard)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalled()
+      })
+
+      expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual(
+        expect.objectContaining({
+          planId: "plan-1",
+          proposalId: "prop-a",
+          body: expect.objectContaining({
+            startTime: "16:00",
+            endTime: "17:30",
+            classroomId: "room-b",
+          }),
+        })
+      )
+
+      toMutationSpy.mockRestore()
+    })
   })
 })

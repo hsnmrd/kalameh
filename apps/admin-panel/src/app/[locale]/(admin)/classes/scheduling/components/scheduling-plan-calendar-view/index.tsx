@@ -22,6 +22,7 @@ import {
   type SchedulingPlanDetailsDto,
   type SchedulingStaffingFallback as StaffingFallbackDto,
   type SchedulingTeacherCalendar,
+  type UpdateSchedulingProposalInput,
   type WeekDay,
 } from "@workspace/types"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -54,6 +55,10 @@ import {
 } from "@workspace/ui/components/empty"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { SchedulingPlanCalendarClassCard } from "../scheduling-plan-calendar-class-card"
+import {
+  SchedulingPlanCalendarMoveTargetCard,
+  type TargetRoomInfo,
+} from "../scheduling-plan-calendar-move-target-card"
 import { SchedulingPlanCalendarMissedClassCard } from "../scheduling-plan-calendar-missed-class-card"
 import { StaffingFallbackDialog } from "./staffing-fallback-dialog"
 import {
@@ -225,6 +230,12 @@ export function SchedulingPlanCalendarView({
   const updateDeliveryModeMutation = useMutation({
     ...schedulingResource.updateProposal.toMutation(),
   })
+  const updateProposalMutation = useMutation({
+    ...schedulingResource.updateProposal.toMutation(),
+  })
+  const [movingProposalId, setMovingProposalId] = React.useState<string | null>(
+    null
+  )
   const { data: instituteClassrooms = [] } = useQuery({
     ...classroomsResource.list.toQuery({
       instituteId: activeInstituteId,
@@ -411,10 +422,9 @@ export function SchedulingPlanCalendarView({
   const swappingProposal = React.useMemo(
     () =>
       swappingProposalId
-        ? (allSwappableProposals.find((p) => p.id === swappingProposalId) ??
-          null)
+        ? (proposals.find((p) => p.id === swappingProposalId) ?? null)
         : null,
-    [swappingProposalId, allSwappableProposals]
+    [swappingProposalId, proposals]
   )
 
   const activeTeacherId = React.useMemo(() => {
@@ -966,6 +976,285 @@ export function SchedulingPlanCalendarView({
         a.endTime.localeCompare(b.endTime)
     )
   }, [proposals, hiringPlan, missedClassesAssignments])
+
+  const allCandidateRooms = React.useMemo(() => {
+    const roomsMap = new Map<
+      string,
+      { id: string; name: string; capacity: number; branchId?: string | null }
+    >()
+    for (const c of instituteClassrooms) {
+      roomsMap.set(c.id, {
+        id: c.id,
+        name: c.name,
+        capacity: c.capacity,
+        branchId: c.branchId ?? null,
+      })
+    }
+    for (const [id, c] of knownClassroomsById) {
+      if (!roomsMap.has(id)) {
+        roomsMap.set(id, {
+          id: c.id,
+          name: c.name,
+          capacity: c.capacity,
+          branchId: null,
+        })
+      }
+    }
+    return Array.from(roomsMap.values())
+  }, [instituteClassrooms, knownClassroomsById])
+
+  interface MoveTargetCellInfo {
+    targetDays: WeekDay[]
+    startTime: string
+    endTime: string
+    targetRoom: TargetRoomInfo | null
+  }
+
+  const moveTargetsByCellKey = React.useMemo(() => {
+    const map = new Map<string, MoveTargetCellInfo>()
+    if (
+      !canSwap ||
+      !swappingProposal ||
+      swappingProposal.isLocked ||
+      Boolean(swappingProposal.publishedClassId)
+    ) {
+      return map
+    }
+
+    const sourceTracks = getDaysOfWeekTracks(swappingProposal.daysOfWeek)
+    const propTeacherId =
+      swappingProposal.teacherId ?? swappingProposal.teacher?.id ?? null
+    const currentRoomId =
+      swappingProposal.classroomId ?? swappingProposal.classroom?.id ?? null
+
+    for (const slot of timeSlots) {
+      for (const track of DAY_TRACKS) {
+        const cellKey = `${track}-${slot.startTime}-${slot.endTime}`
+
+        // Exclusion rule: do not show dashed card in the period where the selected card currently is
+        const isSourcePeriod =
+          sourceTracks.includes(track) &&
+          slot.startTime === swappingProposal.startTime &&
+          slot.endTime === swappingProposal.endTime
+        if (isSourcePeriod) {
+          continue
+        }
+
+        const targetDays: WeekDay[] =
+          track === "EVEN" ? [...EVEN_DAYS] : [...ODD_DAYS]
+
+        // Check teacher conflict (if proposal has an assigned teacher)
+        if (propTeacherId) {
+          const hasTeacherProposalConflict = proposals.some(
+            (p) =>
+              p.id !== swappingProposal.id &&
+              (p.teacherId ?? p.teacher?.id) === propTeacherId &&
+              p.daysOfWeek.some((d) => targetDays.includes(d)) &&
+              p.startTime < slot.endTime &&
+              slot.startTime < p.endTime
+          )
+          if (hasTeacherProposalConflict) {
+            continue
+          }
+
+          if (teacherCalendars) {
+            const teacherCal = teacherCalendars.find(
+              (c) => c.teacher.id === propTeacherId
+            )
+            if (teacherCal) {
+              const hasBusySlot = teacherCal.slots.some(
+                (s) =>
+                  s.status === "BUSY" &&
+                  s.source === "EXISTING_CLASS" &&
+                  targetDays.includes(s.dayOfWeek) &&
+                  s.startTime < slot.endTime &&
+                  slot.startTime < s.endTime
+              )
+              if (hasBusySlot) {
+                continue
+              }
+            }
+          }
+        }
+
+        // Check room availability & capacity
+        if (swappingProposal.deliveryMode === "IN_PERSON") {
+          const eligibleRooms = allCandidateRooms.filter((room) => {
+            // Check branch match
+            if (
+              swappingProposal.branchId &&
+              room.branchId &&
+              room.branchId !== swappingProposal.branchId
+            ) {
+              return false
+            }
+
+            // Crucial condition: capacity check (room capacity must be at least proposal capacity)
+            if (room.capacity < swappingProposal.capacity) {
+              return false
+            }
+
+            // Check if room is occupied by another proposal
+            const isOccupiedByProposal = proposals.some(
+              (p) =>
+                p.id !== swappingProposal.id &&
+                p.deliveryMode === "IN_PERSON" &&
+                (p.classroomId === room.id || p.classroom?.id === room.id) &&
+                p.daysOfWeek.some((d) => targetDays.includes(d)) &&
+                p.startTime < slot.endTime &&
+                slot.startTime < p.endTime
+            )
+            if (isOccupiedByProposal) {
+              return false
+            }
+
+            // Check if room is occupied by missed class
+            const isOccupiedByMissed = occupiedClassroomSlots.some(
+              (s) =>
+                s.classroomId === room.id &&
+                s.daysOfWeek.some((d) => targetDays.includes(d)) &&
+                s.startTime < slot.endTime &&
+                slot.startTime < s.endTime
+            )
+            if (isOccupiedByMissed) {
+              return false
+            }
+
+            return true
+          })
+
+          if (eligibleRooms.length === 0) {
+            continue
+          }
+
+          // Prefer keeping current room if available and eligible; otherwise pick room with smallest sufficient capacity
+          const sameRoom = currentRoomId
+            ? eligibleRooms.find((r) => r.id === currentRoomId)
+            : null
+          const chosenRoom =
+            sameRoom ??
+            [...eligibleRooms].sort((a, b) => a.capacity - b.capacity)[0]!
+
+          map.set(cellKey, {
+            targetDays,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            targetRoom: chosenRoom,
+          })
+        } else {
+          // ONLINE delivery mode
+          map.set(cellKey, {
+            targetDays,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            targetRoom: null,
+          })
+        }
+      }
+    }
+
+    return map
+  }, [
+    canSwap,
+    swappingProposal,
+    timeSlots,
+    proposals,
+    teacherCalendars,
+    allCandidateRooms,
+    occupiedClassroomSlots,
+  ])
+
+  const handleMoveSession = React.useCallback(
+    async (target: MoveTargetCellInfo) => {
+      if (!swappingProposal) return
+      const targetInstituteId =
+        activeInstituteId || swappingProposal.instituteId
+      const targetPlanId = planId || swappingProposal.planId
+      if (!targetInstituteId || !targetPlanId) return
+
+      setMovingProposalId(swappingProposal.id)
+      try {
+        const body: UpdateSchedulingProposalInput = {
+          daysOfWeek: target.targetDays,
+          startTime: target.startTime,
+          endTime: target.endTime,
+        }
+        if (
+          swappingProposal.deliveryMode === "IN_PERSON" &&
+          target.targetRoom
+        ) {
+          body.classroomId = target.targetRoom.id
+          if (target.targetRoom.branchId) {
+            body.branchId = target.targetRoom.branchId
+          }
+        }
+
+        const updated = await updateProposalMutation.mutateAsync({
+          planId: targetPlanId,
+          proposalId: swappingProposal.id,
+          instituteId: targetInstituteId,
+          body,
+        })
+
+        setProposalOverrides((prev) => {
+          const nextById = { ...prev.byId }
+          nextById[swappingProposal.id] = {
+            ...swappingProposal,
+            daysOfWeek: target.targetDays,
+            startTime: target.startTime,
+            endTime: target.endTime,
+            classroomId: target.targetRoom
+              ? target.targetRoom.id
+              : swappingProposal.classroomId,
+            classroom: target.targetRoom
+              ? {
+                  id: target.targetRoom.id,
+                  name: target.targetRoom.name,
+                  capacity: target.targetRoom.capacity,
+                }
+              : swappingProposal.classroom,
+            branchId: target.targetRoom?.branchId ?? swappingProposal.branchId,
+            isManuallyEdited: true,
+            warnings: updated.warnings ?? swappingProposal.warnings,
+          }
+          return { byId: nextById }
+        })
+
+        setSwappingProposalId(null)
+        setSelectedClassId(null)
+
+        await queryClient.invalidateQueries({
+          queryKey: schedulingResource.planDetail.key({
+            planId: targetPlanId,
+            instituteId: targetInstituteId,
+          }),
+        })
+
+        if (target.targetRoom) {
+          toast.success(
+            t("calendarView.sessionMovedWithRoomSuccess", {
+              time: `${target.startTime} - ${target.endTime}`,
+              room: target.targetRoom.name,
+            })
+          )
+        } else {
+          toast.success(t("calendarView.sessionMovedSuccess"))
+        }
+      } catch {
+        // Global toast handles error
+      } finally {
+        setMovingProposalId(null)
+      }
+    },
+    [
+      swappingProposal,
+      activeInstituteId,
+      planId,
+      updateProposalMutation,
+      queryClient,
+      t,
+    ]
+  )
 
   const expandedSlots = React.useMemo(() => {
     if (userExpandedSlots !== null) return userExpandedSlots
@@ -1651,6 +1940,7 @@ export function SchedulingPlanCalendarView({
                             proposalsByTrackAndSlot.get(cellKey) ?? []
                           const cellMissed =
                             missedClassesByTrackAndSlot.get(cellKey) ?? []
+                          const moveTarget = moveTargetsByCellKey.get(cellKey)
                           const matchingOption =
                             slotOptionsByTrackAndSlot.get(cellKey)
                           const freeRooms = matchingOption
@@ -1968,6 +2258,23 @@ export function SchedulingPlanCalendarView({
                                               />
                                             )
                                           }
+                                        )}
+                                        {moveTarget && (
+                                          <SchedulingPlanCalendarMoveTargetCard
+                                            track={track}
+                                            slotKey={slot.key}
+                                            startTime={slot.startTime}
+                                            endTime={slot.endTime}
+                                            targetDays={moveTarget.targetDays}
+                                            targetRoom={moveTarget.targetRoom}
+                                            isPending={
+                                              movingProposalId ===
+                                              swappingProposal?.id
+                                            }
+                                            onClick={() =>
+                                              handleMoveSession(moveTarget)
+                                            }
+                                          />
                                         )}
                                       </div>
                                       {canAssignHere && matchingOption && (

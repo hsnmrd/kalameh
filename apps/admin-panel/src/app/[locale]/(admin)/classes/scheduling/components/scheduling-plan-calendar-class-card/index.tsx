@@ -416,28 +416,27 @@ export function SchedulingPlanCalendarClassCard({
                   permission={PERMISSIONS.MANAGE_CLASSES}
                   mode="hide"
                 >
-                  {canSwap &&
-                    Boolean(proposal.teacher || proposal.teacherId) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        data-testid={`swap-teacher-btn-${proposal.id}`}
-                        title={t("calendarView.swapTeacher")}
-                        aria-label={t("calendarView.swapTeacher")}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onSwapClick?.(proposal.id)
-                        }}
-                        className={cn(
-                          "size-6 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground",
-                          isSwapping &&
-                            "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary"
-                        )}
-                      >
-                        <ArrowLeftRight aria-hidden className="size-3.5" />
-                      </Button>
-                    )}
+                  {canSwap && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      data-testid={`swap-teacher-btn-${proposal.id}`}
+                      title={t("calendarView.swapTeacher")}
+                      aria-label={t("calendarView.swapTeacher")}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onSwapClick?.(proposal.id)
+                      }}
+                      className={cn(
+                        "size-6 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground",
+                        isSwapping &&
+                          "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary"
+                      )}
+                    >
+                      <ArrowLeftRight aria-hidden className="size-3.5" />
+                    </Button>
+                  )}
                   <SchedulingProposalActions
                     proposal={proposal}
                     onEdit={() => setIsEditOpen(true)}
