@@ -19,6 +19,7 @@ import { StudentAvailabilityService } from './student-availability.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { UpdateStudentAvailabilitiesDto } from './dto/update-student-availabilities.dto';
+import { SetAllStudentsAvailableDto } from './dto/set-all-students-available.dto';
 import { AddStudentNoteDto } from './dto/add-student-note.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -75,6 +76,20 @@ export class StudentsController {
     @Query('phone') phone?: string,
   ) {
     return this.studentsService.lookup(currentUser, nationalCode, phone);
+  }
+
+  @Post('bulk-availability')
+  @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
+  async setAllAvailable(
+    @CurrentUser() currentUser: JwtPayload,
+    @Body() dto: SetAllStudentsAvailableDto,
+    @CurrentLocale() locale?: SupportedLocale,
+  ) {
+    return this.studentAvailabilityService.setAllStudentsAvailable(
+      currentUser,
+      dto,
+      locale,
+    );
   }
 
   @Get(':id')

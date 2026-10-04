@@ -48,3 +48,22 @@ export const UpdateStudentAvailabilitiesSchema = z.object({
 export type UpdateStudentAvailabilitiesInput = z.infer<
   typeof UpdateStudentAvailabilitiesSchema
 >
+
+export const SetAllStudentsAvailableSchema = z.object({
+  operatingPhaseId: z.string().uuid(),
+  instituteId: z.string().uuid().optional(),
+})
+
+export type SetAllStudentsAvailableInput = z.infer<
+  typeof SetAllStudentsAvailableSchema
+>
+
+export const SetAllStudentsAvailableResponseSchema = z.object({
+  success: z.boolean(),
+  studentCount: z.number(),
+  slotsPerStudent: z.number(),
+})
+
+export type SetAllStudentsAvailableResponse = z.infer<
+  typeof SetAllStudentsAvailableResponseSchema
+>

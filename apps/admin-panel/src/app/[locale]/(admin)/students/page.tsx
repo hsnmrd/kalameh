@@ -10,7 +10,6 @@ import {
   ROLES,
   parseStatusFilter,
 } from "@workspace/types"
-import { FABSingle } from "@workspace/ui/components/fab"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   coursesResource,
@@ -32,6 +31,8 @@ import { StudentProfileModal } from "./components/student-profile-modal"
 import { StudentAvailabilityModal } from "./components/student-availability-modal"
 import { ResetPasswordModal } from "./components/reset-password-modal"
 import { AddStudentNoteModal } from "./components/add-student-note-modal"
+import { SetAllAvailableDialog } from "./components/set-all-available-dialog"
+import { StudentsFabDrawer } from "./components/students-fab-drawer"
 
 export default function StudentsPage() {
   const t = useTranslations("students")
@@ -40,6 +41,7 @@ export default function StudentsPage() {
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
 
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
+  const [setAllAvailableOpen, setSetAllAvailableOpen] = React.useState(false)
   const [editStudent, setEditStudent] = React.useState<StudentDto | null>(null)
   const [profileStudent, setProfileStudent] = React.useState<StudentDto | null>(
     null
@@ -101,6 +103,7 @@ export default function StudentsPage() {
               onStatusChange={setSelectedStatus}
               courses={courses}
               onAddClick={() => setCreateModalOpen(true)}
+              onSetAllAvailableClick={() => setSetAllAvailableOpen(true)}
               disabled={isLoadingPhases || hasNoPhases}
             />
           }
@@ -152,6 +155,14 @@ export default function StudentsPage() {
                   instituteId={activeInstituteId}
                 />
 
+                {/* Set All Available Alert Dialog */}
+                <SetAllAvailableDialog
+                  open={setAllAvailableOpen}
+                  onClose={() => setSetAllAvailableOpen(false)}
+                  operatingPhases={operatingPhases}
+                  instituteId={activeInstituteId}
+                />
+
                 {/* Reset Password Modal */}
                 <ResetPasswordModal
                   student={resetPasswordStudent}
@@ -170,15 +181,10 @@ export default function StudentsPage() {
           }
           fab={
             !hasNoPhases && !isLoadingPhases ? (
-              <PermissionGuard
-                permission={PERMISSIONS.MANAGE_STUDENTS}
-                mode="hide"
-              >
-                <FABSingle
-                  onClick={() => setCreateModalOpen(true)}
-                  aria-label={t("addStudent")}
-                />
-              </PermissionGuard>
+              <StudentsFabDrawer
+                onAddClick={() => setCreateModalOpen(true)}
+                onSetAllAvailableClick={() => setSetAllAvailableOpen(true)}
+              />
             ) : null
           }
         >

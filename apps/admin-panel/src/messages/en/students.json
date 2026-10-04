@@ -177,5 +177,19 @@
     "title": "No Operating Phase Defined",
     "description": "To manage students and configure their schedules, at least one active operating phase must first be created for the institute.",
     "action": "Define Operating Phase"
+  },
+  "setAllAvailable": "Set All Available (All Times)",
+  "setAllAvailableDescription": "Set all students as available for all time slots and days",
+  "manualAdd": "Add Student Manually",
+  "setAllAvailableDialog": {
+    "title": "Set All Students Available",
+    "description": "This action will mark all students in the institute as available for all time slots and days in the \"{phaseTitle}\" operating phase and update their schedule status to \"Schedule Set\".",
+    "selectPhaseLabel": "Operating Phase",
+    "warningNote": "This option is intended for operating phases where students have no school restrictions (such as summer or vacation periods).",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "applying": "Applying...",
+    "success": "Bulk availability successfully applied for {count} students.",
+    "error": "Failed to set bulk availability for students."
   }
 }

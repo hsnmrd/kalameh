@@ -5,6 +5,8 @@ import type {
   StudentLookupResponse,
   StudentAvailabilityDto,
   StudentAvailabilitySlotInput,
+  SetAllStudentsAvailableInput,
+  SetAllStudentsAvailableResponse,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -72,4 +74,8 @@ export const studentsResource = api.resource("students", {
       availabilities,
     }),
   }),
+  setAllAvailable: api.post<
+    SetAllStudentsAvailableResponse,
+    SetAllStudentsAvailableInput
+  >("/students/bulk-availability"),
 })
