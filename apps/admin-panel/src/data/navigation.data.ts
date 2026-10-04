@@ -13,7 +13,7 @@ import {
   UserCheck,
   CalendarClock,
   Clock,
-  CalendarOff,
+  CalendarDays,
 } from "lucide-react"
 import { PERMISSIONS, APP_MODULES } from "@workspace/types"
 import type { NavItem } from "@/components/admin-base-layout/nav-list"
@@ -88,7 +88,7 @@ export const ACADEMIC_NAV_ITEMS: NavItem[] = [
   {
     key: "offDays",
     href: "/off-days",
-    icon: CalendarOff,
+    icon: CalendarDays,
     permission: PERMISSIONS.MANAGE_INSTITUTE_SETTINGS,
   },
 ]

@@ -1,17 +1,15 @@
 "use client"
 
+import * as React from "react"
 import { useLocale } from "next-intl"
 import { cn } from "@workspace/ui/lib/utils"
-import type { InstituteCustomOffDay } from "@workspace/types"
-import { ObserveHolidaysStickyBar } from "../observe-holidays-sticky-bar"
+import type { InstituteCustomOffDay, TermDto, ClassDto } from "@workspace/types"
 import { CalendarHeader } from "./calendar-header"
 import { CalendarLegend } from "./calendar-legend"
-import { CalendarMobileActions } from "./calendar-mobile-actions"
-import { CalendarModals } from "./calendar-modals"
 import { CalendarToolbar } from "./calendar-toolbar"
 import { CalendarView } from "./calendar-view"
 import { useHolidaysCalendar } from "./hooks/use-holidays-calendar"
-import { PendingHolidayChanges } from "./pending-holiday-changes"
+import { DayDetailsModal } from "../../day-details-modal"
 
 export interface HolidaysCalendarProps {
   instituteId: string
@@ -26,14 +24,13 @@ export interface HolidaysCalendarProps {
   onYearChange?: (year: number) => void
   viewMode?: "year" | "month"
   onViewModeChange?: (mode: "year" | "month") => void
+  terms?: TermDto[]
+  classes?: ClassDto[]
 }
 
 export function HolidaysCalendar({
   instituteId,
   observeOfficialHolidays,
-  onToggleObserve,
-  isUpdatingSettings = false,
-  isLoadingInstitute = false,
   dismissedHolidays = [],
   customOffDays = [],
   customOffDaysList = [],
@@ -41,6 +38,8 @@ export function HolidaysCalendar({
   onYearChange,
   viewMode,
   onViewModeChange,
+  terms = [],
+  classes = [],
 }: HolidaysCalendarProps) {
   const locale = useLocale() as "fa" | "en"
   const calendar = useHolidaysCalendar({
@@ -59,19 +58,12 @@ export function HolidaysCalendar({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 rounded-xl border border-border/80 bg-background/60 p-4",
-        calendar.hasChanges && "pb-28 lg:pb-4"
+        "flex flex-col gap-4 rounded-xl border border-border/80 bg-background/60 p-4"
       )}
     >
       {!isControlled && (
         <>
-          <CalendarHeader
-            hasChanges={calendar.hasChanges}
-            pendingChangesCount={calendar.pendingChanges.length}
-            isSaving={calendar.isSaving}
-            onDiscard={calendar.discard}
-            onSave={calendar.save}
-          />
+          <CalendarHeader termsCount={terms.length} locale={locale} />
           <CalendarToolbar
             selectedYear={calendar.selectedYear}
             currentYear={calendar.currentYear}
@@ -82,13 +74,6 @@ export function HolidaysCalendar({
           />
         </>
       )}
-      {calendar.hasChanges && (
-        <PendingHolidayChanges
-          changes={calendar.pendingChanges}
-          locale={locale}
-          onUndo={calendar.undo}
-        />
-      )}
       <CalendarLegend />
       <CalendarView
         viewMode={calendar.viewMode}
@@ -97,41 +82,24 @@ export function HolidaysCalendar({
         currentMonth={calendar.currentMonth}
         observeOfficialHolidays={observeOfficialHolidays}
         customOffDays={customOffDays}
-        dismissedHolidays={calendar.stagedDismissed}
+        dismissedHolidays={dismissedHolidays}
         onMonthChange={calendar.setCurrentMonth}
         onDayClick={calendar.handleDayClick}
+        terms={terms}
+        classes={classes}
       />
-      {calendar.hasChanges && (
-        <CalendarMobileActions
-          isPending={calendar.isSaving}
-          onReset={calendar.discard}
-          onSave={calendar.save}
-        />
-      )}
-      <CalendarModals
-        instituteId={instituteId}
+
+      {/* View-Only Day Details Inspection Modal */}
+      <DayDetailsModal
+        open={calendar.detailsModalOpen}
+        onClose={calendar.closeDetailsModal}
+        date={calendar.selectedDateForDetails}
+        locale={locale}
         observeOfficialHolidays={observeOfficialHolidays}
-        existingOffDays={customOffDays}
-        addModalOpen={calendar.addModalOpen}
-        onAddModalClose={calendar.closeAddModal}
-        selectedDateForAdd={calendar.selectedDateForAdd}
-        deleteModalOpen={calendar.deleteModalOpen}
-        onDeleteModalClose={calendar.closeDeleteModal}
-        selectedOffDayForDelete={calendar.selectedOffDayForDelete}
+        customOffDaysList={customOffDaysList}
+        terms={terms}
+        classes={classes}
       />
-      {onToggleObserve && (
-        <ObserveHolidaysStickyBar
-          observeOfficialHolidays={observeOfficialHolidays}
-          onToggleObserve={onToggleObserve}
-          isUpdatingSettings={isUpdatingSettings}
-          isLoadingInstitute={isLoadingInstitute}
-          hasChanges={calendar.hasChanges}
-          pendingChangesCount={calendar.pendingChanges.length}
-          isSavingCalendar={calendar.isSaving}
-          onDiscardCalendar={calendar.discard}
-          onSaveCalendar={calendar.save}
-        />
-      )}
     </div>
   )
 }

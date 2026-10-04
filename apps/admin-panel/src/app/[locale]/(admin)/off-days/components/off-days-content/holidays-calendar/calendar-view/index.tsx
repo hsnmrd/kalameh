@@ -1,7 +1,10 @@
 "use client"
 
+import * as React from "react"
 import { Calendar } from "@workspace/ui/components/calendar"
+import type { TermDto, ClassDto } from "@workspace/types"
 import { AnnualCalendar } from "../annual-calendar"
+import { isDateInAnyTerm, isDateClassSession } from "../../../../helper"
 
 interface CalendarViewProps {
   viewMode: "year" | "month"
@@ -10,9 +13,11 @@ interface CalendarViewProps {
   currentMonth: Date
   observeOfficialHolidays: boolean
   customOffDays: string[]
-  dismissedHolidays: string[]
+  dismissedHolidays?: string[]
   onMonthChange: (month: Date) => void
   onDayClick: (date: Date) => void
+  terms?: TermDto[]
+  classes?: ClassDto[]
 }
 
 export function CalendarView({
@@ -22,10 +27,22 @@ export function CalendarView({
   currentMonth,
   observeOfficialHolidays,
   customOffDays,
-  dismissedHolidays,
+  dismissedHolidays = [],
   onMonthChange,
   onDayClick,
+  terms = [],
+  classes = [],
 }: CalendarViewProps) {
+  const isTermDate = React.useCallback(
+    (date: Date) => isDateInAnyTerm(date, terms),
+    [terms]
+  )
+
+  const isSessionDate = React.useCallback(
+    (date: Date) => isDateClassSession(date, classes),
+    [classes]
+  )
+
   const monthCalendar = (
     <Calendar
       locale={locale}
@@ -36,6 +53,15 @@ export function CalendarView({
       observeOfficialHolidays={observeOfficialHolidays}
       offDays={customOffDays}
       dismissedHolidays={dismissedHolidays}
+      modifiers={{
+        termRange: isTermDate,
+        sessionDay: isSessionDate,
+      }}
+      modifiersClassNames={{
+        termRange: "[&>button]:bg-primary/[0.06] [&>button]:font-medium",
+        sessionDay:
+          "[&>button]:ring-1 [&>button]:ring-primary/40 [&>button]:bg-primary/15 font-semibold",
+      }}
       className="mx-auto w-fit border border-border bg-card shadow-xs"
     />
   )
@@ -51,6 +77,8 @@ export function CalendarView({
             customOffDays={customOffDays}
             dismissedHolidays={dismissedHolidays}
             onDayClick={onDayClick}
+            terms={terms}
+            classes={classes}
           />
         ) : (
           <div className="flex w-full justify-center p-1">{monthCalendar}</div>

@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NextIntlClientProvider } from "next-intl"
 import settingMessagesFa from "../../../../../messages/fa/setting.json"
 import commonMessagesFa from "../../../../../messages/fa/common.json"
-import { institutesResource } from "@/lib/api"
+import { institutesResource, termsResource, classesResource } from "@/lib/api"
 import { OffDaysContent } from "../components/off-days-content"
 
 const mockInstituteId = "11111111-1111-1111-1111-111111111111"
@@ -35,9 +35,17 @@ describe("OffDaysContent", () => {
       institutesResource.customOffDays.toQuery(mockInstituteId).queryKey,
       []
     )
+    queryClient.setQueryData(
+      termsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      classesResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
   })
 
-  it("keeps the official calendar focused and links to custom off-days", () => {
+  it("renders the institute calendar in view-only mode without off-day setting buttons", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <NextIntlClientProvider
@@ -49,17 +57,19 @@ describe("OffDaysContent", () => {
       </QueryClientProvider>
     )
 
+    // Verify legend and view-only status
+    expect(screen.getByText("بازه ترم فعال")).toBeInTheDocument()
+    expect(screen.getByText("تعطیل رسمی")).toBeInTheDocument()
+    expect(screen.getByText("تعطیلی موسسه")).toBeInTheDocument()
+
+    // Mutation bar is completely removed
     expect(
-      screen.getByText("رعایت تعطیلات رسمی تقویم ایران")
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByText("تقویم کاری و وضعیت روزها")
+      screen.queryByText("رعایت تعطیلات رسمی تقویم ایران")
     ).not.toBeInTheDocument()
+
+    // Setting off-days button/FAB is completely removed from this page
     expect(
-      screen.getByRole("link", { name: "تعطیلات اختصاصی" })
-    ).toHaveAttribute("href", "/off-days/custom")
-    expect(
-      screen.queryByText("هیچ تعطیلی اختصاصی برای موسسه ثبت نشده است.")
+      screen.queryByRole("link", { name: "تعطیلات اختصاصی" })
     ).not.toBeInTheDocument()
   })
 })

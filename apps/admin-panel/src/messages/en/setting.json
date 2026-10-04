@@ -73,6 +73,25 @@
     "holidaysCount": "{count} holiday(s)",
     "currentMonth": "Current Month",
     "dismissedInInstitute": "Open in institute",
-    "customInstituteOffDay": "Institute Off-Day"
+    "customInstituteOffDay": "Institute Off-Day",
+    "viewOnlyBadge": "View-Only",
+    "viewOnlyNotice": "Holidays are locked in this calendar to protect the consistency of scheduled terms and class calculations.",
+    "legendTermRange": "Active Term Period",
+    "legendSessionDay": "Class Session",
+    "legendWeekend": "Weekend",
+    "dayDetailsTitle": "Date Details",
+    "activeTermsHeading": "Terms on this date",
+    "noTermsOnDay": "No terms running on this date.",
+    "classSessionsHeading": "Class Sessions",
+    "noClassesOnDay": "No class sessions scheduled for this date.",
+    "classesCount": "{count} classes",
+    "sessionsCount": "{count} sessions",
+    "regularWorkingDay": "Regular Working Day",
+    "fridayWeekend": "Weekend",
+    "close": "Close",
+    "startDate": "Start",
+    "endDate": "End",
+    "status": "Status",
+    "termsInMonth": "{count} terms"
   }
 }

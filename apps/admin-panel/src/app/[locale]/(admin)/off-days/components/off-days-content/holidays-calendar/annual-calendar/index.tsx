@@ -1,7 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { jalaliToGregorian, gregorianToJalali } from "@workspace/types"
+import {
+  jalaliToGregorian,
+  gregorianToJalali,
+  type TermDto,
+  type ClassDto,
+} from "@workspace/types"
 import { MonthCard } from "./month-card"
 
 export interface AnnualCalendarProps {
@@ -9,8 +14,10 @@ export interface AnnualCalendarProps {
   locale: "fa" | "en"
   observeOfficialHolidays: boolean
   customOffDays: string[]
-  dismissedHolidays: string[]
+  dismissedHolidays?: string[]
   onDayClick: (date: Date) => void
+  terms?: TermDto[]
+  classes?: ClassDto[]
 }
 
 export function AnnualCalendar({
@@ -18,8 +25,10 @@ export function AnnualCalendar({
   locale,
   observeOfficialHolidays,
   customOffDays,
-  dismissedHolidays,
+  dismissedHolidays = [],
   onDayClick,
+  terms = [],
+  classes = [],
 }: AnnualCalendarProps) {
   const months = React.useMemo(() => {
     const today = new Date()
@@ -67,6 +76,8 @@ export function AnnualCalendar({
           dismissedHolidays={dismissedHolidays}
           onDayClick={onDayClick}
           isCurrentMonth={month.isCurrent}
+          terms={terms}
+          classes={classes}
         />
       ))}
     </div>

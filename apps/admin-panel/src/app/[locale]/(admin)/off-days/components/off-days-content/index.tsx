@@ -1,24 +1,17 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations, useLocale } from "next-intl"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { CalendarOff } from "lucide-react"
-import { FABSingle } from "@workspace/ui/components/fab"
-import { toast } from "@workspace/ui/components/sonner"
+import { useLocale } from "next-intl"
+import { useQuery } from "@tanstack/react-query"
 import { gregorianToJalali } from "@workspace/types"
-import { useRouter } from "@/i18n/routing"
-import { institutesResource } from "@/lib/api"
+import { institutesResource, termsResource, classesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { OffDaysFilter } from "../off-days-filter"
 import { HolidaysCalendar } from "./holidays-calendar"
 
 export function OffDaysContent() {
-  const t = useTranslations("setting")
   const locale = useLocale() as "fa" | "en"
-  const router = useRouter()
-  const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
 
   const today = React.useMemo(() => new Date(), [])
@@ -41,30 +34,22 @@ export function OffDaysContent() {
     enabled: Boolean(activeInstituteId),
   })
 
+  const { data: terms = [] } = useQuery({
+    ...termsResource.list.toQuery({ instituteId: activeInstituteId! }),
+    enabled: Boolean(activeInstituteId),
+  })
+
+  const { data: classes = [] } = useQuery({
+    ...classesResource.list.toQuery({ instituteId: activeInstituteId! }),
+    enabled: Boolean(activeInstituteId),
+  })
+
   const customOffDaysDates = React.useMemo(
     () => customOffDays.map((offDay) => offDay.date),
     [customOffDays]
   )
 
-  const updateMutation = useMutation({
-    ...institutesResource.update.toMutation(),
-    onSuccess: () => {
-      toast.success(t("offDays.successUpdateSettings"))
-      queryClient.invalidateQueries({
-        queryKey: institutesResource.detail.baseKey(),
-      })
-    },
-  })
-
   const observeOfficialHolidays = institute?.observeOfficialHolidays ?? true
-
-  const handleToggleObserve = (checked: boolean) => {
-    if (!activeInstituteId) return
-    updateMutation.mutate({
-      id: activeInstituteId,
-      body: { observeOfficialHolidays: checked },
-    })
-  }
 
   if (!activeInstituteId) return null
 
@@ -80,21 +65,11 @@ export function OffDaysContent() {
           locale={locale}
         />
       }
-      fab={
-        <FABSingle
-          onClick={() => router.push("/off-days/custom")}
-          aria-label={t("offDays.manageCustomOffDays")}
-        >
-          <CalendarOff className="size-6" />
-        </FABSingle>
-      }
     >
       <div className="flex flex-col gap-6">
         <HolidaysCalendar
           instituteId={activeInstituteId}
           observeOfficialHolidays={observeOfficialHolidays}
-          onToggleObserve={handleToggleObserve}
-          isUpdatingSettings={updateMutation.isPending}
           isLoadingInstitute={isLoadingInstitute}
           dismissedHolidays={institute?.dismissedHolidays}
           customOffDays={customOffDaysDates}
@@ -103,6 +78,8 @@ export function OffDaysContent() {
           onYearChange={setSelectedYear}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          terms={terms}
+          classes={classes}
         />
       </div>
     </AdminPageShell>

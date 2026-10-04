@@ -73,6 +73,25 @@
     "holidaysCount": "{count} روز تعطیل",
     "currentMonth": "ماه جاری",
     "dismissedInInstitute": "دایر در موسسه",
-    "customInstituteOffDay": "تعطیلی اختصاصی موسسه"
+    "customInstituteOffDay": "تعطیلی اختصاصی موسسه",
+    "viewOnlyBadge": "حالت مشاهده",
+    "viewOnlyNotice": "جهت حفظ یکپارچگی برنامه‌های زمانی و محاسبات جلسات، تعطیلات در این تقویم قفل هستند.",
+    "legendTermRange": "بازه ترم فعال",
+    "legendSessionDay": "جلسه کلاس",
+    "legendWeekend": "جمعه / پایان هفته",
+    "dayDetailsTitle": "جزئیات تاریخ",
+    "activeTermsHeading": "ترم‌های این روز",
+    "noTermsOnDay": "هیچ ترم فعالی در این تاریخ تعریف نشده است.",
+    "classSessionsHeading": "کلاس‌های دارای جلسه",
+    "noClassesOnDay": "هیچ کلاسی در این روز جلسه ندارد.",
+    "classesCount": "{count} کلاس",
+    "sessionsCount": "{count} جلسه",
+    "regularWorkingDay": "روز کاری عادی",
+    "fridayWeekend": "جمعه",
+    "close": "بستن",
+    "startDate": "شروع",
+    "endDate": "پایان",
+    "status": "وضعیت",
+    "termsInMonth": "{count} ترم"
   }
 }

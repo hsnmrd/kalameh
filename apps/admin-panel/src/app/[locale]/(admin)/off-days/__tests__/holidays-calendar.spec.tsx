@@ -1,13 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import {
-  render,
-  screen,
-  fireEvent,
-  within,
-} from "../../../../../test/test-utils"
+import { render, screen, fireEvent } from "../../../../../test/test-utils"
 import { HolidaysCalendar } from "../components/off-days-content/holidays-calendar"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NextIntlClientProvider } from "next-intl"
+import type { TermDto, ClassDto } from "@workspace/types"
 import settingMessagesFa from "../../../../../messages/fa/setting.json"
 import commonMessagesFa from "../../../../../messages/fa/common.json"
 import * as React from "react"
@@ -29,6 +25,39 @@ const messages = {
 }
 
 const mockInstituteId = "11111111-1111-1111-1111-111111111111"
+
+const mockTerms: TermDto[] = [
+  {
+    id: "term-1",
+    instituteId: mockInstituteId,
+    title: "ترم پاییز ۱۴۰۵",
+    startDate: "2026-09-23T00:00:00.000Z",
+    endDate: "2026-12-21T00:00:00.000Z",
+    isActive: true,
+    lifecycleStatus: "ACTIVE",
+    classesCount: 4,
+    createdAt: "2026-09-01",
+    updatedAt: "2026-09-01",
+  },
+]
+
+const mockClasses: ClassDto[] = [
+  {
+    id: "class-1",
+    instituteId: mockInstituteId,
+    termId: "term-1",
+    courseId: "course-1",
+    title: "مکالمه فشرده سطح ۳",
+    capacity: 12,
+    fee: 1500000,
+    startTime: "16:00",
+    endTime: "18:00",
+    sessionDates: ["2026-10-05"],
+    daysOfWeek: ["MONDAY"],
+    createdAt: "2026-09-01",
+    updatedAt: "2026-09-01",
+  },
+]
 
 function renderWithClient(ui: React.ReactElement, queryClient: QueryClient) {
   return render(
@@ -54,32 +83,36 @@ describe("HolidaysCalendar Component", () => {
     })
   })
 
-  it("renders calendar title, description and legend items", () => {
+  it("renders calendar title, view-only badge and legend items", () => {
     renderWithClient(
       <HolidaysCalendar
         instituteId={mockInstituteId}
         observeOfficialHolidays={true}
         dismissedHolidays={[]}
         customOffDays={[]}
+        terms={mockTerms}
+        classes={mockClasses}
       />,
       queryClient
     )
 
     expect(screen.getByText("تقویم کاری و وضعیت روزها")).toBeInTheDocument()
+    expect(screen.getByText("حالت مشاهده")).toBeInTheDocument()
+    expect(screen.getByText("بازه ترم فعال")).toBeInTheDocument()
+    expect(screen.getByText("جلسه کلاس")).toBeInTheDocument()
     expect(screen.getByText("تعطیل رسمی")).toBeInTheDocument()
-    expect(screen.getByText("دایر در تعطیلی رسمی")).toBeInTheDocument()
     expect(screen.getByText("تعطیلی موسسه")).toBeInTheDocument()
-    // No unsaved changes initially
-    expect(screen.queryByText(/تغییر ذخیره‌نشده/)).not.toBeInTheDocument()
   })
 
-  it("shows the selected date and lets the user undo it", () => {
+  it("opens day details modal on day click instead of editing off-days", () => {
     renderWithClient(
       <HolidaysCalendar
         instituteId={mockInstituteId}
         observeOfficialHolidays={true}
         dismissedHolidays={[]}
         customOffDays={[]}
+        terms={mockTerms}
+        classes={mockClasses}
       />,
       queryClient
     )
@@ -88,49 +121,17 @@ describe("HolidaysCalendar Component", () => {
     expect(dayButtons.length).toBeGreaterThan(0)
     fireEvent.click(dayButtons[0]!)
 
-    expect(screen.getByText(/روز انتخاب‌شده/)).toBeInTheDocument()
-    expect(screen.getByText("دایر")).toBeInTheDocument()
+    // Day details dialog opens in view-only mode
+    expect(screen.getByText("ترم‌های این روز")).toBeInTheDocument()
+    expect(screen.getByText("کلاس‌های دارای جلسه")).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: /لغو تغییر/ })
+      screen.getByText(/تعطیلات در این تقویم قفل هستند/)
     ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "بستن" })).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole("button", { name: /لغو تغییر/ }))
-
-    expect(screen.queryByText(/روز انتخاب‌شده/)).not.toBeInTheDocument()
-  })
-
-  it("shows 56px save and reset actions above mobile navigation", () => {
-    renderWithClient(
-      <HolidaysCalendar
-        instituteId={mockInstituteId}
-        observeOfficialHolidays={true}
-        dismissedHolidays={[]}
-        customOffDays={[]}
-      />,
-      queryClient
-    )
-
-    const dayButtons = document.querySelectorAll("td button")
-    fireEvent.click(dayButtons[0]!)
-
-    const mobileActions = screen.getByRole("group", {
-      name: "عملیات تغییرات تقویم",
-    })
-    expect(mobileActions).toHaveClass("fixed", "lg:hidden")
-
-    const resetButton = within(mobileActions).getByRole("button", {
-      name: "بازنشانی",
-    })
-    const saveButton = within(mobileActions).getByRole("button", {
-      name: "ذخیره",
-    })
-    expect(resetButton).toHaveClass("h-14", "rounded-2xl", "text-base")
-    expect(saveButton).toHaveClass("h-14", "rounded-2xl", "text-base")
-
-    fireEvent.click(resetButton)
-    expect(
-      screen.queryByRole("group", { name: "عملیات تغییرات تقویم" })
-    ).not.toBeInTheDocument()
+    // Close the details modal
+    fireEvent.click(screen.getByRole("button", { name: "بستن" }))
+    expect(screen.queryByText("ترم‌های این روز")).not.toBeInTheDocument()
   })
 
   it("renders the year toolbar and allows year navigation and resetting", () => {
@@ -191,25 +192,5 @@ describe("HolidaysCalendar Component", () => {
     fireEvent.click(monthViewButton)
     // Switch back to annual view
     fireEvent.click(yearViewButton)
-  })
-
-  it("opens the create off-day modal when clicking a not-off day", () => {
-    mockIsJalaliHoliday.mockReturnValue({ isHoliday: false })
-
-    renderWithClient(
-      <HolidaysCalendar
-        instituteId={mockInstituteId}
-        observeOfficialHolidays={true}
-        dismissedHolidays={[]}
-        customOffDays={[]}
-      />,
-      queryClient
-    )
-
-    const dayButtons = document.querySelectorAll("td button")
-    expect(dayButtons.length).toBeGreaterThan(0)
-    fireEvent.click(dayButtons[0]!)
-
-    expect(screen.getByText("افزودن تعطیلی جدید")).toBeInTheDocument()
   })
 })

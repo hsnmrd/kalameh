@@ -2,10 +2,9 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { CalendarOff, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
+import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
-import { Link } from "@/i18n/routing"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 
 export interface OffDaysFilterProps {
@@ -49,20 +48,8 @@ export function OffDaysFilter({
 
   const displayYear = formatYear(selectedYear, locale)
 
-  const desktopActions = (
-    <Button
-      render={<Link href="/off-days/custom" />}
-      nativeButton={false}
-      className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
-    >
-      <CalendarOff className="size-5" />
-      <span>{t("manageCustomOffDays")}</span>
-    </Button>
-  )
-
   return (
     <AdminFilterBar
-      actions={desktopActions}
       search={
         <div className="flex h-14 w-full min-w-0 items-center justify-between gap-3 rounded-2xl border border-border/80 bg-background/60 px-3 sm:px-4">
           {/* Year Switcher without commas */}

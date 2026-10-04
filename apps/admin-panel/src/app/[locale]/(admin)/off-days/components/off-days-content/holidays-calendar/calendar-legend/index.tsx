@@ -9,16 +9,24 @@ export function CalendarLegend() {
   return (
     <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
       <div className="flex items-center gap-1.5">
+        <span className="size-2 rounded-full bg-primary" />
+        <span>{t("legendTermRange")}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="size-2 rounded-full bg-primary/20 ring-2 ring-primary/60" />
+        <span>{t("legendSessionDay")}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
         <span className="size-2 rounded-full bg-destructive" />
         <span>{t("legendOfficialHoliday")}</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="size-2 rounded-full bg-success" />
-        <span>{t("legendDismissedHoliday")}</span>
-      </div>
-      <div className="flex items-center gap-1.5">
         <span className="size-2 rounded-full bg-warning" />
         <span>{t("legendCustomOff")}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="size-2 rounded-full bg-muted-foreground/60" />
+        <span>{t("legendWeekend")}</span>
       </div>
     </div>
   )

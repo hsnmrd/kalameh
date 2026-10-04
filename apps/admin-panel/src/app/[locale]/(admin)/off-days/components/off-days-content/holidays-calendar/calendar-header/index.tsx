@@ -2,25 +2,18 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { CalendarDays, Check, RotateCcw } from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
+import { CalendarDays } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { formatNumber } from "@workspace/ui/lib/utils"
 
 export interface CalendarHeaderProps {
-  hasChanges: boolean
-  pendingChangesCount: number
-  isSaving: boolean
-  onDiscard: () => void
-  onSave: () => void
+  termsCount?: number
+  locale?: "fa" | "en"
 }
 
 export function CalendarHeader({
-  hasChanges,
-  pendingChangesCount,
-  isSaving,
-  onDiscard,
-  onSave,
+  termsCount = 0,
+  locale = "fa",
 }: CalendarHeaderProps) {
   const t = useTranslations("setting.offDays")
 
@@ -38,39 +31,24 @@ export function CalendarHeader({
         </p>
       </div>
 
-      {hasChanges && (
-        <div className="hidden items-center gap-2 lg:flex">
+      <div className="flex items-center gap-2">
+        {termsCount > 0 && (
           <Badge
             variant="outline"
-            className="h-7 border-warning/50 bg-warning/10 px-2.5 text-xs font-medium text-warning"
+            className="border-primary/40 bg-primary/10 text-xs font-medium text-primary"
           >
-            {t("unsavedChanges", { count: pendingChangesCount })}
+            {locale === "fa"
+              ? `${formatNumber(termsCount, "fa-IR")} ترم تعریف‌شده`
+              : t("termsInMonth", { count: termsCount })}
           </Badge>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onDiscard}
-            disabled={isSaving}
-            className="h-14 cursor-pointer rounded-2xl px-4 text-base text-muted-foreground hover:text-foreground"
-          >
-            <RotateCcw data-icon="inline-start" />
-            <span>{t("discardChanges")}</span>
-          </Button>
-          <Button
-            type="button"
-            onClick={onSave}
-            disabled={isSaving}
-            className="h-14 cursor-pointer rounded-2xl px-5 text-base font-medium shadow-xs"
-          >
-            {isSaving ? (
-              <Spinner data-icon="inline-start" />
-            ) : (
-              <Check data-icon="inline-start" />
-            )}
-            <span>{t("saveChanges")}</span>
-          </Button>
-        </div>
-      )}
+        )}
+        <Badge
+          variant="outline"
+          className="border-border bg-muted/30 text-xs font-medium text-muted-foreground"
+        >
+          {t("viewOnlyBadge")}
+        </Badge>
+      </div>
     </div>
   )
 }

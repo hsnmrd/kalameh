@@ -9,16 +9,25 @@ import {
   gregorianToJalali,
   jalaliToGregorian,
   isJalaliHoliday,
+  type TermDto,
+  type ClassDto,
 } from "@workspace/types"
+import {
+  getTermsRunningInMonth,
+  isDateInAnyTerm,
+  isDateClassSession,
+} from "../../../../../helper"
 
 export interface MonthCardProps {
   monthDate: Date
   locale: "fa" | "en"
   observeOfficialHolidays: boolean
   customOffDays: string[]
-  dismissedHolidays: string[]
+  dismissedHolidays?: string[]
   onDayClick: (date: Date) => void
   isCurrentMonth: boolean
+  terms?: TermDto[]
+  classes?: ClassDto[]
 }
 
 function toIsoDate(d: Date): string {
@@ -31,8 +40,6 @@ function toIsoDate(d: Date): string {
 function getDaysInJalaliMonth(year: number, month: number): number {
   if (month <= 6) return 31
   if (month <= 11) return 30
-  // Leap year calculation for Esfand:
-  // In 33-year cycle, leap years have remainder in [1, 5, 9, 13, 17, 22, 26, 30]
   const rem = year % 33
   const isLeap = [1, 5, 9, 13, 17, 22, 26, 30].includes(rem)
   return isLeap ? 30 : 29
@@ -43,9 +50,11 @@ export function MonthCard({
   locale,
   observeOfficialHolidays,
   customOffDays,
-  dismissedHolidays,
+  dismissedHolidays = [],
   onDayClick,
   isCurrentMonth,
+  terms = [],
+  classes = [],
 }: MonthCardProps) {
   const t = useTranslations("setting.offDays")
 
@@ -94,6 +103,22 @@ export function MonthCard({
     customOffDays,
   ])
 
+  // Count terms running in this month
+  const termsInMonth = React.useMemo(
+    () => getTermsRunningInMonth(monthDate, locale, terms),
+    [monthDate, locale, terms]
+  )
+
+  const isTermDate = React.useCallback(
+    (date: Date) => isDateInAnyTerm(date, terms),
+    [terms]
+  )
+
+  const isSessionDate = React.useCallback(
+    (date: Date) => isDateClassSession(date, classes),
+    [classes]
+  )
+
   const formatCaption = React.useCallback(
     (d: Date) => {
       return new Intl.DateTimeFormat(
@@ -114,16 +139,26 @@ export function MonthCard({
     >
       {/* Month Card Header Badges */}
       <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
-        {isCurrentMonth ? (
-          <Badge
-            variant="outline"
-            className="border-primary/40 bg-primary/10 px-1.5 py-0 text-[10px] font-medium text-primary"
-          >
-            {t("currentMonth")}
-          </Badge>
-        ) : (
-          <span />
-        )}
+        <div className="flex items-center gap-1.5">
+          {isCurrentMonth ? (
+            <Badge
+              variant="outline"
+              className="border-primary/40 bg-primary/10 px-1.5 py-0 text-[10px] font-medium text-primary"
+            >
+              {t("currentMonth")}
+            </Badge>
+          ) : null}
+          {termsInMonth.length > 0 && (
+            <Badge
+              variant="outline"
+              className="border-primary/30 bg-primary/[0.08] px-1.5 py-0 text-[10px] font-medium text-primary"
+            >
+              {locale === "fa"
+                ? `${formatNumber(termsInMonth.length, "fa-IR")} ترم`
+                : t("termsInMonth", { count: termsInMonth.length })}
+            </Badge>
+          )}
+        </div>
 
         {offDaysCount > 0 ? (
           <Badge
@@ -149,6 +184,15 @@ export function MonthCard({
         observeOfficialHolidays={observeOfficialHolidays}
         offDays={customOffDays}
         dismissedHolidays={dismissedHolidays}
+        modifiers={{
+          termRange: isTermDate,
+          sessionDay: isSessionDate,
+        }}
+        modifiersClassNames={{
+          termRange: "[&>button]:bg-primary/[0.06] [&>button]:font-medium",
+          sessionDay:
+            "[&>button]:ring-1 [&>button]:ring-primary/40 [&>button]:bg-primary/15 font-semibold",
+        }}
         formatters={{
           formatCaption,
         }}
