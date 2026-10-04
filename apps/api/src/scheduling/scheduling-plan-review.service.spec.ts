@@ -236,6 +236,42 @@ describe('MVP-030 SchedulingPlanReviewService', () => {
     );
   });
 
+  it('allows removing a teacher from a proposal by setting teacherId to null', async () => {
+    const unstaffedProposal = {
+      ...proposalResult,
+      teacherId: null,
+      teacherQualificationId: null,
+      qualificationCheckedAt: null,
+    };
+    transaction.schedulingProposal.findFirstOrThrow.mockResolvedValue(
+      unstaffedProposal,
+    );
+
+    const result = await service.updateProposal(
+      admin,
+      ids.plan,
+      ids.proposal,
+      {
+        teacherId: null,
+      },
+      undefined,
+      'fa',
+      now,
+    );
+
+    expect(result.teacherId).toBeNull();
+    expect(transaction.schedulingProposal.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          teacherId: null,
+          teacherQualificationId: null,
+          qualificationCheckedAt: null,
+          isManuallyEdited: true,
+        }),
+      }),
+    );
+  });
+
   it('requires super admins to select an institute', async () => {
     await expect(
       service.selectPlan(

@@ -24,8 +24,21 @@ import {
   type SchedulingTeacherCalendar,
   type WeekDay,
 } from "@workspace/types"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { toast } from "@workspace/ui/components/sonner"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Carousel,
   CarouselContent,
@@ -62,6 +75,8 @@ import {
 } from "./helper/swap-eligibility.helper"
 import { buildProposalColorMap } from "./helper/course-color-group.helper"
 import { SwapClassDialog } from "./swap-class-dialog"
+import { schedulingResource } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
@@ -196,6 +211,14 @@ export function SchedulingPlanCalendarView({
   const [selectedClassId, setSelectedClassId] = React.useState<string | null>(
     null
   )
+  const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
+  const [teacherToRemove, setTeacherToRemove] = React.useState<Proposal | null>(
+    null
+  )
+  const removeTeacherMutation = useMutation({
+    ...schedulingResource.updateProposal.toMutation(),
+  })
   const [swapDialogState, setSwapDialogState] = React.useState<{
     sourceProposal: Proposal
     target: SwapTarget
@@ -593,6 +616,90 @@ export function SchedulingPlanCalendarView({
       unresolvedRequirements,
     ]
   )
+
+  const handleSwapButtonClick = React.useCallback(
+    (id: string) => {
+      const targetProposal = proposals.find((p) => p.id === id)
+      if (!targetProposal) return
+
+      if (selectedClassId === id) {
+        setSelectedClassId(null)
+        return
+      }
+
+      if (activeProposal && id !== activeProposal.id) {
+        const swapEvaluation = swappableByProposalId.get(id)
+        const swappableTarget = allSwappableProposals.find((p) => p.id === id)
+        if (swapEvaluation && swappableTarget) {
+          setSwapDialogState({
+            sourceProposal: activeProposal,
+            target: { kind: "PROPOSAL", proposal: swappableTarget },
+            evaluation: swapEvaluation,
+          })
+          return
+        }
+      }
+
+      setSelectedClassId(id)
+    },
+    [
+      proposals,
+      selectedClassId,
+      activeProposal,
+      swappableByProposalId,
+      allSwappableProposals,
+    ]
+  )
+
+  const handleConfirmRemoveTeacher = React.useCallback(async () => {
+    if (!teacherToRemove) return
+    const targetInstituteId = activeInstituteId || teacherToRemove.instituteId
+    const targetPlanId = planId || teacherToRemove.planId
+    if (!targetInstituteId || !targetPlanId) return
+    try {
+      const updated = await removeTeacherMutation.mutateAsync({
+        planId: targetPlanId,
+        proposalId: teacherToRemove.id,
+        instituteId: targetInstituteId,
+        body: {
+          teacherId: null,
+        },
+      })
+      setProposalOverrides((prev) => {
+        const nextById = { ...prev.byId }
+        nextById[teacherToRemove.id] = {
+          ...teacherToRemove,
+          teacherId: null,
+          teacher: null,
+          teacherQualificationId: null,
+          isManuallyEdited: true,
+          warnings: updated.warnings ?? teacherToRemove.warnings,
+        }
+        return { byId: nextById }
+      })
+      if (selectedClassId === teacherToRemove.id) {
+        setSelectedClassId(null)
+      }
+      await queryClient.invalidateQueries({
+        queryKey: schedulingResource.planDetail.key({
+          planId: targetPlanId,
+          instituteId: targetInstituteId,
+        }),
+      })
+      toast.success(t("calendarView.teacherRemovedSuccess"))
+      setTeacherToRemove(null)
+    } catch {
+      // Global toast handles error
+    }
+  }, [
+    teacherToRemove,
+    activeInstituteId,
+    planId,
+    removeTeacherMutation,
+    selectedClassId,
+    queryClient,
+    t,
+  ])
 
   const handleSwapSuccess = React.useCallback(
     (updatedProposals: Proposal[]) => {
@@ -1373,7 +1480,7 @@ export function SchedulingPlanCalendarView({
                       }}
                       className="w-full"
                     >
-                      <CarouselContent className="-ms-2.5 md:-ms-0 md:grid md:grid-cols-2 md:items-start md:gap-3.5">
+                      <CarouselContent className="-ms-2.5 md:-ms-0 md:grid md:grid-cols-2 md:items-stretch md:gap-3.5">
                         {DAY_TRACKS.map((track) => {
                           const cellKey = `${track}-${slot.startTime}-${slot.endTime}`
                           const cellProposals =
@@ -1465,7 +1572,7 @@ export function SchedulingPlanCalendarView({
                             <CarouselItem
                               key={`${track}-${slot.key}`}
                               data-track-carousel-item="true"
-                              className="basis-[88%] ps-2.5 md:basis-full md:ps-0"
+                              className="h-full basis-[88%] ps-2.5 md:basis-full md:ps-0"
                             >
                               <div
                                 data-day={track}
@@ -1477,7 +1584,7 @@ export function SchedulingPlanCalendarView({
                                   isTeacherTeachingHere ? "true" : undefined
                                 }
                                 className={cn(
-                                  "flex flex-col gap-2.5 rounded-xl border p-2.5 transition-all duration-300 ease-in-out",
+                                  "flex h-full flex-col justify-between gap-2.5 rounded-xl border p-2.5 transition-all duration-300 ease-in-out",
                                   isTeacherAccessible
                                     ? "border-2 border-success bg-success/5 shadow-xs"
                                     : isTeacherTeachingHere
@@ -1485,270 +1592,285 @@ export function SchedulingPlanCalendarView({
                                       : "border-border/50 bg-background/50"
                                 )}
                               >
-                                {/* Header for this vertical view */}
-                                <div className="mb-1 flex items-center justify-between border-b border-border/40 pb-1.5 text-xs">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-bold text-foreground">
-                                      {track === "EVEN"
-                                        ? t("calendarView.evenDays")
-                                        : t("calendarView.oddDays")}
-                                    </span>
-                                    <span className="text-[10px] text-muted-foreground">
-                                      (
-                                      {track === "EVEN"
-                                        ? t("calendarView.evenDaysSubtitle")
-                                        : t("calendarView.oddDaysSubtitle")}
-                                      )
-                                    </span>
+                                <div className="flex flex-col gap-2.5">
+                                  {/* Header for this vertical view */}
+                                  <div className="mb-1 flex items-center justify-between border-b border-border/40 pb-1.5 text-xs">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-bold text-foreground">
+                                        {track === "EVEN"
+                                          ? t("calendarView.evenDays")
+                                          : t("calendarView.oddDays")}
+                                      </span>
+                                      <span className="text-[10px] text-muted-foreground">
+                                        (
+                                        {track === "EVEN"
+                                          ? t("calendarView.evenDaysSubtitle")
+                                          : t("calendarView.oddDaysSubtitle")}
+                                        )
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      {isTeacherAccessible && (
+                                        <Badge
+                                          variant="outline"
+                                          data-testid={`teacher-accessible-badge-${track}-${slot.key}`}
+                                          className="h-4 border-success/60 bg-success/15 px-1.5 py-0 text-[10px] font-medium text-success-foreground"
+                                        >
+                                          {t(
+                                            "calendarView.teacherAccessibleBadge"
+                                          )}
+                                        </Badge>
+                                      )}
+                                      {isTeacherTeachingHere && (
+                                        <Badge
+                                          variant="outline"
+                                          data-testid={`teacher-teaching-badge-${track}-${slot.key}`}
+                                          className="h-4 border-primary/60 bg-primary/15 px-1.5 py-0 text-[10px] font-medium text-primary"
+                                        >
+                                          {t(
+                                            "calendarView.teacherTeachingBadge"
+                                          )}
+                                        </Badge>
+                                      )}
+                                      {trackClassesCount > 0 && (
+                                        <Badge
+                                          variant="secondary"
+                                          className="h-4 px-1.5 py-0 text-[10px]"
+                                        >
+                                          {t("calendarView.classesCount", {
+                                            count: formatNumber(
+                                              trackClassesCount,
+                                              locale
+                                            ),
+                                          })}
+                                        </Badge>
+                                      )}
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-1.5">
-                                    {isTeacherAccessible && (
-                                      <Badge
-                                        variant="outline"
-                                        data-testid={`teacher-accessible-badge-${track}-${slot.key}`}
-                                        className="h-4 border-success/60 bg-success/15 px-1.5 py-0 text-[10px] font-medium text-success-foreground"
-                                      >
-                                        {t(
-                                          "calendarView.teacherAccessibleBadge"
-                                        )}
-                                      </Badge>
-                                    )}
-                                    {isTeacherTeachingHere && (
-                                      <Badge
-                                        variant="outline"
-                                        data-testid={`teacher-teaching-badge-${track}-${slot.key}`}
-                                        className="h-4 border-primary/60 bg-primary/15 px-1.5 py-0 text-[10px] font-medium text-primary"
-                                      >
-                                        {t("calendarView.teacherTeachingBadge")}
-                                      </Badge>
-                                    )}
-                                    {trackClassesCount > 0 && (
-                                      <Badge
-                                        variant="secondary"
-                                        className="h-4 px-1.5 py-0 text-[10px]"
-                                      >
-                                        {t("calendarView.classesCount", {
-                                          count: formatNumber(
-                                            trackClassesCount,
-                                            locale
-                                          ),
-                                        })}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                {hasClasses ? (
-                                  <>
-                                    <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
-                                      {cellProposals.map((proposal) => {
-                                        const isActive =
-                                          activeClassId === proposal.id
-                                        const isSwappable =
-                                          swappableByProposalId.has(proposal.id)
-                                        const propTeacherId =
-                                          proposal.teacherId ??
-                                          proposal.teacher?.id ??
-                                          null
-                                        const hasSameTeacher = Boolean(
-                                          (highlightRelated &&
-                                            activeTeacherId &&
-                                            !isActive &&
-                                            propTeacherId ===
-                                              activeTeacherId) ||
-                                          (activeTeacherFilterId &&
-                                            propTeacherId ===
-                                              activeTeacherFilterId)
-                                        )
-                                        const hasSameCourse = Boolean(
-                                          highlightRelated &&
-                                          (activeCourseId ||
-                                            activeCourseTitle) &&
-                                          !isActive &&
-                                          ((activeCourseId &&
-                                            proposal.course?.id ===
-                                              activeCourseId) ||
-                                            (activeCourseTitle &&
-                                              proposal.course?.title ===
-                                                activeCourseTitle))
-                                        )
-                                        const isDimmed =
-                                          isAnyClassActive &&
-                                          !isActive &&
-                                          !isSwappable
-                                        const hasTeacher = Boolean(
-                                          proposal.teacherId || proposal.teacher
-                                        )
-                                        const isProposalSwappable =
-                                          hasTeacher && isSwappable
-
-                                        return (
-                                          <SchedulingPlanCalendarClassCard
-                                            key={`${proposal.id}-${track}`}
-                                            proposal={proposal}
-                                            canEdit={canEdit}
-                                            colorIndex={proposalColorMap.get(
+                                  {hasClasses ? (
+                                    <div className="flex flex-col gap-2.5">
+                                      <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+                                        {cellProposals.map((proposal) => {
+                                          const isActive =
+                                            activeClassId === proposal.id
+                                          const isSwappable =
+                                            swappableByProposalId.has(
                                               proposal.id
-                                            )}
-                                            isActive={isActive}
-                                            isSwappable={isProposalSwappable}
-                                            isDimmed={isDimmed}
-                                            isCollapsed={isCollapsed}
-                                            hasSameTeacher={hasSameTeacher}
-                                            hasSameCourse={hasSameCourse}
-                                            sameTeacherCount={
-                                              isActive
-                                                ? sameTeacherTotalCount
-                                                : undefined
-                                            }
-                                            sameCourseCount={
-                                              isActive
-                                                ? sameCourseTotalCount
-                                                : undefined
-                                            }
-                                            onClick={handleCardClick}
-                                          />
-                                        )
-                                      })}
-                                      {cellMissed.map(
-                                        ({ assignment, state }) => {
+                                            )
+                                          const propTeacherId =
+                                            proposal.teacherId ??
+                                            proposal.teacher?.id ??
+                                            null
+                                          const hasSameTeacher = Boolean(
+                                            (highlightRelated &&
+                                              activeTeacherId &&
+                                              !isActive &&
+                                              propTeacherId ===
+                                                activeTeacherId) ||
+                                            (activeTeacherFilterId &&
+                                              propTeacherId ===
+                                                activeTeacherFilterId)
+                                          )
                                           const hasSameCourse = Boolean(
                                             highlightRelated &&
                                             (activeCourseId ||
                                               activeCourseTitle) &&
+                                            !isActive &&
                                             ((activeCourseId &&
-                                              assignment.course?.id ===
+                                              proposal.course?.id ===
                                                 activeCourseId) ||
                                               (activeCourseTitle &&
-                                                assignment.course?.title ===
+                                                proposal.course?.title ===
                                                   activeCourseTitle))
                                           )
-                                          const isDimmed = isAnyClassActive
-                                          const effectiveRoomId =
-                                            state.classroomId ??
-                                            assignment.classroom?.id ??
-                                            null
-                                          const roomCapacity = effectiveRoomId
-                                            ? (knownClassroomsById.get(
-                                                effectiveRoomId
-                                              )?.capacity ??
-                                              assignment.classroom?.capacity ??
-                                              null)
-                                            : (assignment.classroom?.capacity ??
-                                              null)
+                                          const isDimmed =
+                                            isAnyClassActive &&
+                                            !isActive &&
+                                            !isSwappable
+                                          const hasTeacher = Boolean(
+                                            proposal.teacherId ||
+                                            proposal.teacher
+                                          )
+                                          const isProposalSwappable =
+                                            hasTeacher && isSwappable
 
                                           return (
-                                            <SchedulingPlanCalendarMissedClassCard
-                                              key={`${assignment.key}-${track}`}
-                                              assignment={assignment}
-                                              assignedRoomName={
-                                                state.classroomName ??
-                                                (effectiveRoomId
-                                                  ? knownClassroomsById.get(
-                                                      effectiveRoomId
-                                                    )?.name
-                                                  : null) ??
-                                                assignment.classroom?.name ??
-                                                null
-                                              }
-                                              assignedRoomCapacity={
-                                                roomCapacity
-                                              }
+                                            <SchedulingPlanCalendarClassCard
+                                              key={`${proposal.id}-${track}`}
+                                              proposal={proposal}
                                               canEdit={canEdit}
-                                              isActive={false}
-                                              isSwappable={false}
+                                              colorIndex={proposalColorMap.get(
+                                                proposal.id
+                                              )}
+                                              isActive={isActive}
+                                              isSwappable={isProposalSwappable}
                                               isDimmed={isDimmed}
                                               isCollapsed={isCollapsed}
+                                              hasSameTeacher={hasSameTeacher}
                                               hasSameCourse={hasSameCourse}
-                                              sameCourseCount={undefined}
-                                              onClick={() =>
-                                                handleMissedCardClick(
-                                                  assignment
-                                                )
+                                              sameTeacherCount={
+                                                isActive
+                                                  ? sameTeacherTotalCount
+                                                  : undefined
                                               }
-                                              onUnassign={() =>
-                                                onUnassignMissedClass?.(
-                                                  assignment.key
-                                                )
+                                              sameCourseCount={
+                                                isActive
+                                                  ? sameCourseTotalCount
+                                                  : undefined
+                                              }
+                                              onClick={handleCardClick}
+                                              onSwapClick={
+                                                handleSwapButtonClick
+                                              }
+                                              onRemoveTeacher={
+                                                setTeacherToRemove
                                               }
                                             />
                                           )
-                                        }
+                                        })}
+                                        {cellMissed.map(
+                                          ({ assignment, state }) => {
+                                            const hasSameCourse = Boolean(
+                                              highlightRelated &&
+                                              (activeCourseId ||
+                                                activeCourseTitle) &&
+                                              ((activeCourseId &&
+                                                assignment.course?.id ===
+                                                  activeCourseId) ||
+                                                (activeCourseTitle &&
+                                                  assignment.course?.title ===
+                                                    activeCourseTitle))
+                                            )
+                                            const isDimmed = isAnyClassActive
+                                            const effectiveRoomId =
+                                              state.classroomId ??
+                                              assignment.classroom?.id ??
+                                              null
+                                            const roomCapacity = effectiveRoomId
+                                              ? (knownClassroomsById.get(
+                                                  effectiveRoomId
+                                                )?.capacity ??
+                                                assignment.classroom
+                                                  ?.capacity ??
+                                                null)
+                                              : (assignment.classroom
+                                                  ?.capacity ?? null)
+
+                                            return (
+                                              <SchedulingPlanCalendarMissedClassCard
+                                                key={`${assignment.key}-${track}`}
+                                                assignment={assignment}
+                                                assignedRoomName={
+                                                  state.classroomName ??
+                                                  (effectiveRoomId
+                                                    ? knownClassroomsById.get(
+                                                        effectiveRoomId
+                                                      )?.name
+                                                    : null) ??
+                                                  assignment.classroom?.name ??
+                                                  null
+                                                }
+                                                assignedRoomCapacity={
+                                                  roomCapacity
+                                                }
+                                                canEdit={canEdit}
+                                                isActive={false}
+                                                isSwappable={false}
+                                                isDimmed={isDimmed}
+                                                isCollapsed={isCollapsed}
+                                                hasSameCourse={hasSameCourse}
+                                                sameCourseCount={undefined}
+                                                onClick={() =>
+                                                  handleMissedCardClick(
+                                                    assignment
+                                                  )
+                                                }
+                                                onUnassign={() =>
+                                                  onUnassignMissedClass?.(
+                                                    assignment.key
+                                                  )
+                                                }
+                                              />
+                                            )
+                                          }
+                                        )}
+                                      </div>
+                                      {canAssignHere && matchingOption && (
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleOpenAssignDialog(
+                                              matchingOption,
+                                              freeRooms
+                                            )
+                                          }
+                                          className={cn(
+                                            "h-7 w-full gap-1 rounded-lg border border-dashed border-border/60 text-[11px] font-medium text-muted-foreground transition-all duration-300 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
+                                            isAnyClassActive && "opacity-20"
+                                          )}
+                                        >
+                                          <Plus className="size-3" />
+                                          <span>
+                                            {t("calendarView.assignClass")}
+                                          </span>
+                                        </Button>
                                       )}
                                     </div>
-                                    {canAssignHere && matchingOption && (
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                          handleOpenAssignDialog(
-                                            matchingOption,
-                                            freeRooms
-                                          )
-                                        }
-                                        className={cn(
-                                          "h-7 w-full gap-1 rounded-lg border border-dashed border-border/60 text-[11px] font-medium text-muted-foreground transition-all duration-300 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
-                                          isAnyClassActive && "opacity-20"
-                                        )}
-                                      >
-                                        <Plus className="size-3" />
-                                        <span>
+                                  ) : canAssignHere && matchingOption ? (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      onClick={() =>
+                                        handleOpenAssignDialog(
+                                          matchingOption,
+                                          freeRooms
+                                        )
+                                      }
+                                      className={cn(
+                                        "group flex min-h-[84px] w-full cursor-pointer flex-col items-center justify-center gap-1.5 overflow-hidden rounded-xl border-2 border-dashed border-primary/50 bg-primary/10 p-3 text-center transition-[background-color,border-color] duration-200 ease-in-out hover:border-primary hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                                        isAnyClassActive && "opacity-20"
+                                      )}
+                                    >
+                                      <div className="flex size-7 items-center justify-center rounded-full bg-primary/20 text-primary transition-transform duration-200 group-hover:scale-110">
+                                        <Plus className="size-4" />
+                                      </div>
+                                      <div className="flex flex-col items-center gap-0.5">
+                                        <span className="text-xs font-bold text-primary">
+                                          {t("calendarView.freeSlot")}
+                                        </span>
+                                        <span className="text-[10px] font-medium text-muted-foreground group-hover:text-primary">
                                           {t("calendarView.assignClass")}
                                         </span>
-                                      </Button>
-                                    )}
-                                  </>
-                                ) : canAssignHere && matchingOption ? (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() =>
-                                      handleOpenAssignDialog(
-                                        matchingOption,
-                                        freeRooms
-                                      )
-                                    }
-                                    className={cn(
-                                      "group flex min-h-[84px] w-full cursor-pointer flex-col items-center justify-center gap-1.5 overflow-hidden rounded-xl border-2 border-dashed border-primary/50 bg-primary/10 p-3 text-center transition-[background-color,border-color] duration-200 ease-in-out hover:border-primary hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                                      isAnyClassActive && "opacity-20"
-                                    )}
-                                  >
-                                    <div className="flex size-7 items-center justify-center rounded-full bg-primary/20 text-primary transition-transform duration-200 group-hover:scale-110">
-                                      <Plus className="size-4" />
-                                    </div>
-                                    <div className="flex flex-col items-center gap-0.5">
-                                      <span className="text-xs font-bold text-primary">
-                                        {t("calendarView.freeSlot")}
-                                      </span>
-                                      <span className="text-[10px] font-medium text-muted-foreground group-hover:text-primary">
-                                        {t("calendarView.assignClass")}
+                                      </div>
+                                    </Button>
+                                  ) : (
+                                    <div
+                                      data-testid={`empty-cell-${track}-${slot.key}`}
+                                      className={cn(
+                                        "flex min-h-[84px] w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed border-border/50 bg-muted/15 p-3 text-center transition-[opacity,background-color] duration-200 ease-in-out select-none hover:bg-muted/25",
+                                        isAnyClassActive
+                                          ? "opacity-20"
+                                          : "opacity-40"
+                                      )}
+                                      aria-label={t("calendarView.noClasses")}
+                                    >
+                                      <div className="flex size-7 items-center justify-center rounded-full bg-muted/30 text-muted-foreground/70">
+                                        <CalendarX2
+                                          aria-hidden
+                                          className="size-4 text-muted-foreground/70"
+                                        />
+                                      </div>
+                                      <span className="text-[11px] font-medium text-muted-foreground/80">
+                                        {t("calendarView.noClasses")}
                                       </span>
                                     </div>
-                                  </Button>
-                                ) : (
-                                  <div
-                                    data-testid={`empty-cell-${track}-${slot.key}`}
-                                    className={cn(
-                                      "flex min-h-[84px] w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed border-border/50 bg-muted/15 p-3 text-center transition-[opacity,background-color] duration-200 ease-in-out select-none hover:bg-muted/25",
-                                      isAnyClassActive
-                                        ? "opacity-20"
-                                        : "opacity-40"
-                                    )}
-                                    aria-label={t("calendarView.noClasses")}
-                                  >
-                                    <div className="flex size-7 items-center justify-center rounded-full bg-muted/30 text-muted-foreground/70">
-                                      <CalendarX2
-                                        aria-hidden
-                                        className="size-4 text-muted-foreground/70"
-                                      />
-                                    </div>
-                                    <span className="text-[11px] font-medium text-muted-foreground/80">
-                                      {t("calendarView.noClasses")}
-                                    </span>
-                                  </div>
-                                )}
+                                  )}
+                                </div>
 
                                 <SchedulingPlanCalendarGroupTeachersCarousel
+                                  className="mt-auto"
                                   track={track}
                                   slotKey={slot.key}
                                   teachers={
@@ -1830,6 +1952,48 @@ export function SchedulingPlanCalendarView({
         unresolvedRequirementId={staffingDialogSession?.unresolvedRequirementId}
         requirement={staffingDialogSession?.requirement}
       />
+
+      {/* Remove Teacher Confirmation Dialog */}
+      <AlertDialog
+        open={Boolean(teacherToRemove)}
+        onOpenChange={(open) => {
+          if (!open && !removeTeacherMutation.isPending) {
+            setTeacherToRemove(null)
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("calendarView.removeTeacherTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {teacherToRemove &&
+                t("calendarView.removeTeacherDescription", {
+                  teacher: teacherToRemove.teacher
+                    ? `${teacherToRemove.teacher.firstName} ${teacherToRemove.teacher.lastName}`.trim()
+                    : t("calendarView.newTeacherBadge"),
+                  course: teacherToRemove.course.title,
+                })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removeTeacherMutation.isPending}>
+              {t("calendarView.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={removeTeacherMutation.isPending}
+              onClick={handleConfirmRemoveTeacher}
+            >
+              {removeTeacherMutation.isPending && (
+                <Spinner data-icon="inline-start" className="size-4" />
+              )}
+              {t("calendarView.confirmRemoveTeacher")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

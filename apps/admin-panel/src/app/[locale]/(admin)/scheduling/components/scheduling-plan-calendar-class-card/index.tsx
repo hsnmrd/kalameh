@@ -3,8 +3,18 @@
 import * as React from "react"
 import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
-import { DoorOpen, Globe, LockKeyhole, Pencil, User, Users } from "lucide-react"
+import {
+  ArrowLeftRight,
+  DoorOpen,
+  Globe,
+  LockKeyhole,
+  Pencil,
+  Trash2,
+  User,
+  Users,
+} from "lucide-react"
 import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
+import { Button } from "@workspace/ui/components/button"
 import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
 import { SchedulingProposalActions } from "../scheduling-proposal-actions"
@@ -216,6 +226,8 @@ export interface SchedulingPlanCalendarClassCardProps {
   sameCourseCount?: number
   onHover?: (id: string | null) => void
   onClick?: (id: string) => void
+  onSwapClick?: (id: string) => void
+  onRemoveTeacher?: (proposal: Proposal) => void
 }
 
 export function SchedulingPlanCalendarClassCard({
@@ -232,6 +244,8 @@ export function SchedulingPlanCalendarClassCard({
   sameCourseCount,
   onHover,
   onClick,
+  onSwapClick,
+  onRemoveTeacher,
 }: SchedulingPlanCalendarClassCardProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -450,6 +464,51 @@ export function SchedulingPlanCalendarClassCard({
                 </span>
               )}
             </div>
+
+            {/* Master Action Buttons: Swap & Delete (when teacher is assigned) */}
+            {canEdit &&
+              !proposal.publishedClassId &&
+              Boolean(proposal.teacher || proposal.teacherId) && (
+                <div
+                  className="flex shrink-0 items-center gap-0.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    data-testid={`swap-teacher-btn-${proposal.id}`}
+                    title={t("calendarView.swapTeacher")}
+                    aria-label={t("calendarView.swapTeacher")}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onSwapClick?.(proposal.id)
+                    }}
+                    className={cn(
+                      "size-6 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground",
+                      isActive &&
+                        "bg-primary/20 text-primary hover:bg-primary/25 hover:text-primary"
+                    )}
+                  >
+                    <ArrowLeftRight aria-hidden className="size-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    data-testid={`delete-teacher-btn-${proposal.id}`}
+                    title={t("calendarView.removeTeacher")}
+                    aria-label={t("calendarView.removeTeacher")}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onRemoveTeacher?.(proposal)
+                    }}
+                    className="size-6 rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 aria-hidden className="size-3.5" />
+                  </Button>
+                </div>
+              )}
           </div>
 
           {/* End (Left in RTL): Minimal Clean Capacity Badge (No progress bars) */}

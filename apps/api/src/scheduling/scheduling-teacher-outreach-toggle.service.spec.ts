@@ -152,6 +152,7 @@ describe('SchedulingTeacherOutreachToggleService', () => {
     endTime: '15:30',
     availabilityChangeDays: ['SUNDAY', 'TUESDAY', 'THURSDAY'] as const,
     classroomId: ids.classroom,
+    action: 'ACCEPT' as const,
   };
 
   it('accepts teacher outreach: updates teacher availability, creates proposal, decrements missingClassCount, and re-queries plan', async () => {
