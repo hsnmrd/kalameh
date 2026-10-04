@@ -2,7 +2,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import dotenv from "dotenv"
 import { PrismaPg } from "@prisma/adapter-pg"
-import { PrismaClient } from "./generated/client/client.js"
+import { PrismaClient } from "@prisma/client"
 
 // Ensure environment variables from root .env are loaded
 if (!process.env.DATABASE_URL) {
@@ -40,4 +40,4 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma
 }
 
-export * from "./generated/client/client.js"
+export * from "@prisma/client"

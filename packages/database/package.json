@@ -18,9 +18,9 @@
     }
   },
   "scripts": {
-    "postinstall": "prisma generate --schema ./schema.prisma && node ./scripts/fix-prisma-enums.mjs",
+    "postinstall": "prisma generate --schema ./schema.prisma",
     "build": "tsc",
-    "db:generate": "dotenv -e ../../.env -e .env -c -- prisma generate --schema ./schema.prisma && node ./scripts/fix-prisma-enums.mjs && tsc",
+    "db:generate": "dotenv -e ../../.env -e .env -c -- prisma generate --schema ./schema.prisma && tsc",
     "db:migrate:dev": "dotenv -e ../../.env -e .env -c -- prisma migrate dev --schema ./schema.prisma",
     "db:migrate:deploy": "dotenv -e ../../.env -e .env -c -- prisma migrate deploy --schema ./schema.prisma",
     "db:migrate:status": "dotenv -e ../../.env -e .env -c -- prisma migrate status --schema ./schema.prisma",
