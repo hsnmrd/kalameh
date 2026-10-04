@@ -330,6 +330,9 @@
       "confirmRemoveTeacher": "Remove Teacher",
       "cancel": "Cancel",
       "teacherRemovedSuccess": "Teacher successfully removed from class",
+      "switchedToOnlineSuccess": "Class delivery mode changed to Remote / Online.",
+      "switchedToInPersonSuccess": "Class delivery mode changed to In-Person.",
+      "selectClassroomInEditHint": "No available classroom found. Please choose a classroom in the edit dialog.",
       "unassign": "Unassign from Calendar",
       "changeSlot": "Change Time",
       "availableRooms": "{count} room(s) available",
@@ -601,7 +604,13 @@
       "title": "Suggested class actions",
       "edit": "Edit suggested class",
       "lock": "Lock for regeneration",
-      "unlock": "Unlock"
+      "unlock": "Unlock",
+      "removeTeacher": "Remove teacher",
+      "changeToOnline": "Change to Remote / Online",
+      "changeToInPerson": "Change to In-Person / Hybrid",
+      "switchedToOnlineSuccess": "Delivery mode changed to Remote / Online.",
+      "switchedToInPersonSuccess": "Delivery mode changed to In-Person.",
+      "selectClassroomInEditHint": "No compatible classroom found. Please select a classroom in the edit dialog."
     },
     "validation": {
       "validate": "Validate plan",

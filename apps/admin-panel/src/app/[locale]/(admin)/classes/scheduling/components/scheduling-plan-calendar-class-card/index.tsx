@@ -9,7 +9,6 @@ import {
   Globe,
   LockKeyhole,
   Pencil,
-  Trash2,
   User,
   Users,
 } from "lucide-react"
@@ -230,6 +229,8 @@ export interface SchedulingPlanCalendarClassCardProps {
   onClick?: (id: string) => void
   onSwapClick?: (id: string) => void
   onRemoveTeacher?: (proposal: Proposal) => void
+  onChangeDeliveryMode?: (proposal: Proposal) => Promise<boolean | void> | void
+  isDeliveryModePending?: boolean
 }
 
 export function SchedulingPlanCalendarClassCard({
@@ -250,6 +251,8 @@ export function SchedulingPlanCalendarClassCard({
   onClick,
   onSwapClick,
   onRemoveTeacher,
+  onChangeDeliveryMode,
+  isDeliveryModePending = false,
 }: SchedulingPlanCalendarClassCardProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -405,14 +408,55 @@ export function SchedulingPlanCalendarClassCard({
               </span>
             )}
             {canEdit && !proposal.publishedClassId && (
-              <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="flex shrink-0 items-center gap-0.5"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <PermissionGuard
                   permission={PERMISSIONS.MANAGE_CLASSES}
                   mode="hide"
                 >
+                  {canSwap &&
+                    Boolean(proposal.teacher || proposal.teacherId) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        data-testid={`swap-teacher-btn-${proposal.id}`}
+                        title={t("calendarView.swapTeacher")}
+                        aria-label={t("calendarView.swapTeacher")}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onSwapClick?.(proposal.id)
+                        }}
+                        className={cn(
+                          "size-6 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground",
+                          isSwapping &&
+                            "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary"
+                        )}
+                      >
+                        <ArrowLeftRight aria-hidden className="size-3.5" />
+                      </Button>
+                    )}
                   <SchedulingProposalActions
                     proposal={proposal}
                     onEdit={() => setIsEditOpen(true)}
+                    onRemoveTeacher={
+                      onRemoveTeacher
+                        ? () => onRemoveTeacher(proposal)
+                        : undefined
+                    }
+                    onToggleDeliveryMode={
+                      onChangeDeliveryMode
+                        ? async () => {
+                            const handled = await onChangeDeliveryMode(proposal)
+                            if (handled === false) {
+                              setIsEditOpen(true)
+                            }
+                          }
+                        : undefined
+                    }
+                    isDeliveryModePending={isDeliveryModePending}
                   />
                 </PermissionGuard>
               </div>
@@ -468,55 +512,6 @@ export function SchedulingPlanCalendarClassCard({
                 </span>
               )}
             </div>
-
-            {/* Master Action Buttons: Swap & Delete (when teacher is assigned) */}
-            {!proposal.publishedClassId &&
-              Boolean(proposal.teacher || proposal.teacherId) &&
-              (canSwap || canEdit) && (
-                <div
-                  className="flex shrink-0 items-center gap-0.5"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {canSwap && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      data-testid={`swap-teacher-btn-${proposal.id}`}
-                      title={t("calendarView.swapTeacher")}
-                      aria-label={t("calendarView.swapTeacher")}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onSwapClick?.(proposal.id)
-                      }}
-                      className={cn(
-                        "size-6 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground",
-                        isSwapping &&
-                          "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary"
-                      )}
-                    >
-                      <ArrowLeftRight aria-hidden className="size-3.5" />
-                    </Button>
-                  )}
-                  {canEdit && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      data-testid={`delete-teacher-btn-${proposal.id}`}
-                      title={t("calendarView.removeTeacher")}
-                      aria-label={t("calendarView.removeTeacher")}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onRemoveTeacher?.(proposal)
-                      }}
-                      className="size-6 rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      <Trash2 aria-hidden className="size-3.5" />
-                    </Button>
-                  )}
-                </div>
-              )}
           </div>
 
           {/* End (Left in RTL): Minimal Clean Capacity Badge (No progress bars) */}

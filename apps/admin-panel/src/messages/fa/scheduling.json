@@ -330,6 +330,9 @@
       "confirmRemoveTeacher": "حذف استاد",
       "cancel": "انصراف",
       "teacherRemovedSuccess": "استاد با موفقیت از کلاس حذف شد",
+      "switchedToOnlineSuccess": "شیوه برگزاری کلاس به آنلاین (ریموت) تغییر یافت.",
+      "switchedToInPersonSuccess": "شیوه برگزاری کلاس به حضوری تغییر یافت.",
+      "selectClassroomInEditHint": "کلاس‌درس خالی مناسبی یافت نشد؛ لطفاً از طریق ویرایش کلاس، کلاس‌درس را تعیین کنید.",
       "unassign": "حذف از جدول",
       "changeSlot": "تغییر زمان",
       "availableRooms": "{count} اتاق خالی",
@@ -601,7 +604,13 @@
       "title": "اقدامات کلاس پیشنهادی",
       "edit": "ویرایش کلاس پیشنهادی",
       "lock": "قفل برای تولید مجدد",
-      "unlock": "بازکردن قفل"
+      "unlock": "بازکردن قفل",
+      "removeTeacher": "حذف استاد",
+      "changeToOnline": "تغییر به آنلاین (ریموت)",
+      "changeToInPerson": "تغییر به حضوری (هیبریدی)",
+      "switchedToOnlineSuccess": "شیوه برگزاری به آنلاین (ریموت) تغییر یافت.",
+      "switchedToInPersonSuccess": "شیوه برگزاری به حضوری تغییر یافت.",
+      "selectClassroomInEditHint": "کلاس‌درس مناسبی یافت نشد؛ لطفاً کلاس را از فرم ویرایش مشخص کنید."
     },
     "validation": {
       "validate": "اعتبارسنجی برنامه",

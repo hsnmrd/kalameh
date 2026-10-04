@@ -3066,7 +3066,7 @@ describe("SchedulingPlanCalendarView Component", () => {
   })
 
   describe("Master Swap and Delete Actions on Card", () => {
-    it("renders swap and delete buttons for master on card when teacher is assigned and canEdit is true", () => {
+    it("renders swap button on card and delete teacher in actions popup when teacher is assigned and canEdit is true", () => {
       render(
         <SchedulingPlanCalendarView
           proposals={mockProposals}
@@ -3076,12 +3076,19 @@ describe("SchedulingPlanCalendarView Component", () => {
       )
 
       expect(screen.getByTestId("swap-teacher-btn-prop-1")).toBeInTheDocument()
+
+      const trigger = screen.getByTestId("proposal-actions-trigger-prop-1")
+      fireEvent.click(trigger)
+
       expect(
         screen.getByTestId("delete-teacher-btn-prop-1")
       ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("toggle-delivery-mode-btn-prop-1")
+      ).toBeInTheDocument()
     })
 
-    it("does not render swap and delete buttons when canEdit is false", () => {
+    it("does not render swap button or actions popup when canEdit is false", () => {
       render(
         <SchedulingPlanCalendarView
           proposals={mockProposals}
@@ -3094,11 +3101,11 @@ describe("SchedulingPlanCalendarView Component", () => {
         screen.queryByTestId("swap-teacher-btn-prop-1")
       ).not.toBeInTheDocument()
       expect(
-        screen.queryByTestId("delete-teacher-btn-prop-1")
+        screen.queryByTestId("proposal-actions-trigger-prop-1")
       ).not.toBeInTheDocument()
     })
 
-    it("does not render delete button when card has no master assigned", () => {
+    it("does not render delete option in actions popup when card has no master assigned", () => {
       const proposalsWithoutTeacher: Proposal[] = [
         {
           ...mockProposals[0]!,
@@ -3116,9 +3123,17 @@ describe("SchedulingPlanCalendarView Component", () => {
         />
       )
 
+      const trigger = screen.getByTestId(
+        "proposal-actions-trigger-prop-no-teacher"
+      )
+      fireEvent.click(trigger)
+
       expect(
         screen.queryByTestId("delete-teacher-btn-prop-no-teacher")
       ).not.toBeInTheDocument()
+      expect(
+        screen.getByTestId("toggle-delivery-mode-btn-prop-no-teacher")
+      ).toBeInTheDocument()
     })
 
     it("clicking card directly does not enter swap mode, only swap button enters swap mode", () => {
@@ -3148,7 +3163,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       expect(card).not.toHaveAttribute("data-active")
     })
 
-    it("clicking delete button opens confirmation dialog and confirms removing teacher from class", async () => {
+    it("clicking delete button in actions popup opens confirmation dialog and confirms removing teacher from class", async () => {
       const updateProposalMutationFn = vi.fn().mockResolvedValue({
         id: "prop-1",
         teacherId: null,
@@ -3170,6 +3185,9 @@ describe("SchedulingPlanCalendarView Component", () => {
         />
       )
 
+      const trigger = screen.getByTestId("proposal-actions-trigger-prop-1")
+      fireEvent.click(trigger)
+
       const deleteBtn = screen.getByTestId("delete-teacher-btn-prop-1")
       fireEvent.click(deleteBtn)
 
@@ -3190,6 +3208,53 @@ describe("SchedulingPlanCalendarView Component", () => {
           planId: "plan-1",
           proposalId: "prop-1",
           body: { teacherId: null },
+        })
+      )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("toggles class delivery mode between in-person and online from actions popup", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "prop-1",
+        deliveryMode: "ONLINE",
+        classroomId: null,
+        warnings: [],
+      } as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={true}
+          planId="plan-1"
+          defaultCollapsed={false}
+        />
+      )
+
+      const trigger = screen.getByTestId("proposal-actions-trigger-prop-1")
+      fireEvent.click(trigger)
+
+      const toggleDeliveryBtn = screen.getByTestId(
+        "toggle-delivery-mode-btn-prop-1"
+      )
+      expect(toggleDeliveryBtn).toBeInTheDocument()
+      fireEvent.click(toggleDeliveryBtn)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalled()
+      })
+
+      expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual(
+        expect.objectContaining({
+          planId: "plan-1",
+          proposalId: "prop-1",
+          body: { deliveryMode: "ONLINE", classroomId: null },
         })
       )
 

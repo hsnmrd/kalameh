@@ -24,7 +24,7 @@ import {
   type SchedulingTeacherCalendar,
   type WeekDay,
 } from "@workspace/types"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,7 +75,7 @@ import {
 } from "./helper/swap-eligibility.helper"
 import { buildProposalColorMap } from "./helper/course-color-group.helper"
 import { SwapClassDialog } from "./swap-class-dialog"
-import { schedulingResource } from "@/lib/api"
+import { classroomsResource, schedulingResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
@@ -221,6 +221,16 @@ export function SchedulingPlanCalendarView({
   )
   const removeTeacherMutation = useMutation({
     ...schedulingResource.updateProposal.toMutation(),
+  })
+  const updateDeliveryModeMutation = useMutation({
+    ...schedulingResource.updateProposal.toMutation(),
+  })
+  const { data: instituteClassrooms = [] } = useQuery({
+    ...classroomsResource.list.toQuery({
+      instituteId: activeInstituteId,
+      isActive: true,
+    }),
+    enabled: Boolean(activeInstituteId),
   })
   const [swapDialogState, setSwapDialogState] = React.useState<{
     sourceProposal: Proposal
@@ -727,6 +737,124 @@ export function SchedulingPlanCalendarView({
     queryClient,
     t,
   ])
+
+  const handleDeliveryModeChange = React.useCallback(
+    async (proposal: Proposal): Promise<boolean> => {
+      const targetInstituteId = activeInstituteId || proposal.instituteId
+      const targetPlanId = planId || proposal.planId
+      if (!targetInstituteId || !targetPlanId) return true
+
+      if (proposal.deliveryMode === "IN_PERSON") {
+        try {
+          const updated = await updateDeliveryModeMutation.mutateAsync({
+            planId: targetPlanId,
+            proposalId: proposal.id,
+            instituteId: targetInstituteId,
+            body: {
+              deliveryMode: "ONLINE",
+              classroomId: null,
+            },
+          })
+          setProposalOverrides((prev) => {
+            const nextById = { ...prev.byId }
+            nextById[proposal.id] = {
+              ...proposal,
+              deliveryMode: "ONLINE",
+              classroomId: null,
+              classroom: null,
+              isManuallyEdited: true,
+              warnings: updated.warnings ?? proposal.warnings,
+            }
+            return { byId: nextById }
+          })
+          await queryClient.invalidateQueries({
+            queryKey: schedulingResource.planDetail.key({
+              planId: targetPlanId,
+              instituteId: targetInstituteId,
+            }),
+          })
+          toast.success(t("calendarView.switchedToOnlineSuccess"))
+          return true
+        } catch {
+          return true
+        }
+      } else {
+        const candidateRoom = instituteClassrooms.find((room) => {
+          const matchesBranch =
+            !proposal.branchId ||
+            !room.branchId ||
+            room.branchId === proposal.branchId
+          const hasCapacity = room.capacity >= proposal.capacity
+          if (!matchesBranch || !hasCapacity) return false
+
+          const hasConflict = proposals.some(
+            (p) =>
+              p.id !== proposal.id &&
+              p.deliveryMode === "IN_PERSON" &&
+              (p.classroomId === room.id || p.classroom?.id === room.id) &&
+              p.daysOfWeek.some((d) => proposal.daysOfWeek.includes(d)) &&
+              p.startTime < proposal.endTime &&
+              proposal.startTime < p.endTime
+          )
+          return !hasConflict
+        })
+
+        if (!candidateRoom) {
+          toast.info(t("calendarView.selectClassroomInEditHint"))
+          return false
+        }
+
+        try {
+          const updated = await updateDeliveryModeMutation.mutateAsync({
+            planId: targetPlanId,
+            proposalId: proposal.id,
+            instituteId: targetInstituteId,
+            body: {
+              deliveryMode: "IN_PERSON",
+              classroomId: candidateRoom.id,
+              branchId: candidateRoom.branchId ?? proposal.branchId ?? null,
+            },
+          })
+          setProposalOverrides((prev) => {
+            const nextById = { ...prev.byId }
+            nextById[proposal.id] = {
+              ...proposal,
+              deliveryMode: "IN_PERSON",
+              classroomId: candidateRoom.id,
+              classroom: {
+                id: candidateRoom.id,
+                name: candidateRoom.name,
+                capacity: candidateRoom.capacity,
+              },
+              branchId: candidateRoom.branchId ?? proposal.branchId ?? null,
+              isManuallyEdited: true,
+              warnings: updated.warnings ?? proposal.warnings,
+            }
+            return { byId: nextById }
+          })
+          await queryClient.invalidateQueries({
+            queryKey: schedulingResource.planDetail.key({
+              planId: targetPlanId,
+              instituteId: targetInstituteId,
+            }),
+          })
+          toast.success(t("calendarView.switchedToInPersonSuccess"))
+          return true
+        } catch {
+          return true
+        }
+      }
+    },
+    [
+      activeInstituteId,
+      planId,
+      updateDeliveryModeMutation,
+      instituteClassrooms,
+      proposals,
+      queryClient,
+      t,
+    ]
+  )
 
   const handleSwapSuccess = React.useCallback(
     (updatedProposals: Proposal[]) => {
@@ -1765,6 +1893,12 @@ export function SchedulingPlanCalendarView({
                                               }
                                               onRemoveTeacher={
                                                 setTeacherToRemove
+                                              }
+                                              onChangeDeliveryMode={
+                                                handleDeliveryModeChange
+                                              }
+                                              isDeliveryModePending={
+                                                updateDeliveryModeMutation.isPending
                                               }
                                             />
                                           )

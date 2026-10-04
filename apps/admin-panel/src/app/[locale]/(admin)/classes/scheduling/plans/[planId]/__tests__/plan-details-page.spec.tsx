@@ -502,11 +502,21 @@ describe("SchedulingPlanDetailsPage", () => {
     const swapButton = await screen.findByTestId(
       "swap-teacher-btn-44444444-4444-4444-8444-444444444444"
     )
+    expect(swapButton).toBeInTheDocument()
+
+    const actionsTrigger = await screen.findByTestId(
+      "proposal-actions-trigger-44444444-4444-4444-8444-444444444444"
+    )
+    fireEvent.click(actionsTrigger)
+
     const deleteButton = await screen.findByTestId(
       "delete-teacher-btn-44444444-4444-4444-8444-444444444444"
     )
+    const toggleDeliveryButton = await screen.findByTestId(
+      "toggle-delivery-mode-btn-44444444-4444-4444-8444-444444444444"
+    )
 
-    expect(swapButton).toBeInTheDocument()
     expect(deleteButton).toBeInTheDocument()
+    expect(toggleDeliveryButton).toBeInTheDocument()
   })
 })
