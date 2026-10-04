@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import { fireEvent, render, screen } from "../../../../../test/test-utils"
+import { fireEvent, render, screen } from "@/test/test-utils"
 import type { CourseDemandSummaryDto } from "@workspace/types"
 import { DemandBreakdownDrawer } from "../components/scheduling-demand-view/demand-breakdown-drawer"
 

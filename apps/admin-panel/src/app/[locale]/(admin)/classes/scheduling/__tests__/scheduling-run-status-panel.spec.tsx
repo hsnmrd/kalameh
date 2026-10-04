@@ -1,10 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
 import type { SchedulingRunDto, SchedulingRunStatusDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"

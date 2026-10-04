@@ -1,10 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
 import type {
   BranchWithStats,
   ClassroomDto,
@@ -27,7 +22,7 @@ const planId = "22222222-2222-4222-8222-222222222222"
 vi.mock("next/navigation", () => ({
   useParams: () => ({ planId }),
   useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => `/scheduling/plans/${planId}`,
+  usePathname: () => `/classes/scheduling/plans/${planId}`,
 }))
 const proposalId = "33333333-3333-4333-8333-333333333333"
 const teacherId = "44444444-4444-4444-8444-444444444444"

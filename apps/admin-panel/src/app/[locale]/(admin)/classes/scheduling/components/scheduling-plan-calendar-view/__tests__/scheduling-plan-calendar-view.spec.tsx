@@ -1,11 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "../../../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor, within } from "@/test/test-utils"
 import type {
   SchedulingPlanDetailsDto,
   SchedulingTeacherCalendar,

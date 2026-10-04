@@ -13,6 +13,9 @@ describe("admin navigation groups", () => {
         expect.objectContaining({ key: "offDays", href: "/off-days" }),
       ])
     )
+    expect(
+      ACADEMIC_NAV_ITEMS.find((item) => item.key === "scheduling")
+    ).toBeUndefined()
     expect(PEOPLE_NAV_ITEMS.map((item) => item.key)).toEqual([
       "teachers",
       "students",

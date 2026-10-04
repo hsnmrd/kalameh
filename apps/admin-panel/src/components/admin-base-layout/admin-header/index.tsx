@@ -35,6 +35,9 @@ function getPageTitle(pathname: string, t: (key: string) => string): string {
   if (pathname.includes("/grades")) {
     return t("modules.items.GRADES_ASSESSMENTS.name")
   }
+  if (pathname.includes("/scheduling")) {
+    return t("nav.scheduling")
+  }
   if (pathname.startsWith("/classes")) {
     return t("nav.classes")
   }
@@ -49,9 +52,6 @@ function getPageTitle(pathname: string, t: (key: string) => string): string {
   }
   if (pathname.includes("/requirements")) {
     return t("nav.classRequirements")
-  }
-  if (pathname.startsWith("/scheduling")) {
-    return t("nav.scheduling")
   }
   if (pathname.startsWith("/operating-phases")) {
     return t("nav.operatingPhases")

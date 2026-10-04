@@ -18,6 +18,7 @@ import { SchedulingGenerationForm } from "../components/scheduling-generation-fo
 
 export default function SchedulingGeneratePage() {
   const t = useTranslations("scheduling")
+  const tCommon = useTranslations("common")
   const router = useRouter()
   const searchParams = useSearchParams()
   const defaultTermId = searchParams.get("termId") ?? undefined
@@ -27,7 +28,7 @@ export default function SchedulingGeneratePage() {
   const handleCreated = React.useCallback(
     (run: SchedulingRunDto) => {
       setActiveRun(run)
-      router.push(`/scheduling/runs/${run.id}`)
+      router.push(`/classes/scheduling/runs/${run.id}`)
     },
     [setActiveRun, router]
   )
@@ -38,10 +39,11 @@ export default function SchedulingGeneratePage() {
         <AdminPageShell
           breadcrumb={
             <AdminBreadcrumb
-              backHref="/scheduling"
+              backHref="/classes/scheduling"
               backLabel={t("title")}
               items={[
-                { label: t("title"), href: "/scheduling" },
+                { label: tCommon("nav.classes"), href: "/classes" },
+                { label: t("title"), href: "/classes/scheduling" },
                 { label: t("generation.title") },
               ]}
             />
@@ -51,7 +53,7 @@ export default function SchedulingGeneratePage() {
             defaultTermId={defaultTermId}
             defaultBranchId={defaultBranchId}
             onCreated={handleCreated}
-            onNavigateToDemand={() => router.push("/scheduling")}
+            onNavigateToDemand={() => router.push("/classes/scheduling")}
           />
         </AdminPageShell>
       </PermissionGuard>

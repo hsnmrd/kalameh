@@ -23,6 +23,7 @@ import { SchedulingRunStatusPanel } from "../../components/scheduling-run-status
 
 export default function SchedulingRunResultPage() {
   const t = useTranslations("scheduling")
+  const tCommon = useTranslations("common")
   const router = useRouter()
   const params = useParams()
   const runId = (params.runId as string) || ""
@@ -32,7 +33,7 @@ export default function SchedulingRunResultPage() {
 
   const handleReset = React.useCallback(() => {
     clearActiveRun()
-    router.push("/scheduling")
+    router.push("/classes/scheduling")
   }, [clearActiveRun, router])
 
   const resolvedRun = React.useMemo(() => {
@@ -73,10 +74,11 @@ export default function SchedulingRunResultPage() {
         <AdminPageShell
           breadcrumb={
             <AdminBreadcrumb
-              backHref="/scheduling"
+              backHref="/classes/scheduling"
               backLabel={t("title")}
               items={[
-                { label: t("title"), href: "/scheduling" },
+                { label: tCommon("nav.classes"), href: "/classes" },
+                { label: t("title"), href: "/classes/scheduling" },
                 { label: t("runStatus.pageTitle") },
               ]}
             />
@@ -126,7 +128,7 @@ export default function SchedulingRunResultPage() {
                 <Button
                   type="button"
                   size="default"
-                  onClick={() => router.push("/scheduling")}
+                  onClick={() => router.push("/classes/scheduling")}
                 >
                   <ArrowRight data-icon="inline-start" className="size-4" />
                   {t("runStatus.notFound.back")}

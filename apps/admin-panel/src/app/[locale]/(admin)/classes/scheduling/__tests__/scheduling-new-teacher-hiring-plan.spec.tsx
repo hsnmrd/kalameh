@@ -1,10 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
 import type { SchedulingNewTeacherHiringPlan as HiringPlan } from "@workspace/types"
 import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
 import { SchedulingNewTeacherHiringPlan } from "../components/scheduling-new-teacher-hiring-plan"

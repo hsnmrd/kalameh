@@ -30,6 +30,7 @@ import {
 } from "@workspace/ui/components/empty"
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { useRouter } from "@/i18n/routing"
 import { classRequirementsResource, schedulingResource } from "@/lib/api"
@@ -47,6 +48,7 @@ import {
 
 export function SchedulingWorkspace() {
   const t = useTranslations("scheduling")
+  const tCommon = useTranslations("common")
   const router = useRouter()
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
@@ -262,7 +264,7 @@ export function SchedulingWorkspace() {
       })
       const params = new URLSearchParams({ termId: selectedTerm?.id ?? "" })
       if (branchId && branchId !== "all") params.set("branchId", branchId)
-      router.push(`/scheduling/generate?${params.toString()}`)
+      router.push(`/classes/scheduling/generate?${params.toString()}`)
     },
   })
 
@@ -301,6 +303,16 @@ export function SchedulingWorkspace() {
   return (
     <>
       <AdminPageShell
+        breadcrumb={
+          <AdminBreadcrumb
+            backHref="/classes"
+            backLabel={tCommon("nav.classes")}
+            items={[
+              { label: tCommon("nav.classes"), href: "/classes" },
+              { label: t("title") },
+            ]}
+          />
+        }
         filter={
           <SchedulingFilter
             term={selectedTerm}

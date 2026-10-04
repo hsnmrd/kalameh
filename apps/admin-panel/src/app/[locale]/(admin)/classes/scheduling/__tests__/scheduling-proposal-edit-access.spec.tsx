@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { render, screen } from "../../../../../test/test-utils"
+import { render, screen } from "@/test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import * as hooks from "@/lib/hooks"
 import { SchedulingProposalDetailsItem } from "../components/scheduling-proposal-details-item"

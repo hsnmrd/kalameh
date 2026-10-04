@@ -1,10 +1,5 @@
 import { describe, expect, it, vi, afterEach } from "vitest"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
 import type { ClassRequirementDto, StudentDto } from "@workspace/types"
 import { studentsResource } from "@/lib/api"
 import * as stores from "@/lib/stores"

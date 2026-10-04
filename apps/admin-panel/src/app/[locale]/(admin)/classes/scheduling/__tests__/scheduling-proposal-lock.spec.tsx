@@ -1,12 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { QueryClient } from "@tanstack/react-query"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"
 import { SchedulingProposalDetailsItem } from "../components/scheduling-proposal-details-item"

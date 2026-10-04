@@ -1,12 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { QueryClient } from "@tanstack/react-query"
 import type { AnchorHTMLAttributes, ReactNode } from "react"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
 import { INSTITUTE_NAV_ITEMS } from "@/data"
 import commonMessagesEn from "@/messages/en/common.json"
 import schedulingMessagesEn from "@/messages/en/scheduling.json"
@@ -28,13 +23,14 @@ const { mockPush, mockReplace } = vi.hoisted(() => ({
 vi.mock("next/navigation", () => ({
   useParams: () => ({}),
   useRouter: () => ({ push: mockPush, replace: mockReplace, back: vi.fn() }),
-  usePathname: () => "/scheduling",
+  usePathname: () => "/classes/scheduling",
   useSearchParams: () => new URLSearchParams(),
 }))
 
 vi.mock("@/i18n/routing", () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace, back: vi.fn() }),
-  usePathname: () => "/scheduling",
+  usePathname: () => "/classes/scheduling",
+  useIsRtl: () => true,
   Link: ({
     href,
     children,
@@ -52,15 +48,18 @@ vi.mock("@/i18n/routing", () => ({
 describe("Unified scheduling workspace", () => {
   afterEach(() => vi.restoreAllMocks())
 
-  it("exposes scheduling in institute navigation", () => {
+  it("does not expose scheduling as a standalone navbar item in institute navigation", () => {
     expect(INSTITUTE_NAV_ITEMS).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          key: "scheduling",
-          href: "/scheduling",
+          key: "classes",
+          href: "/classes",
         }),
       ])
     )
+    expect(
+      INSTITUTE_NAV_ITEMS.find((item) => item.key === "scheduling")
+    ).toBeUndefined()
   })
 
   it("renders empty state without search or tabs when no terms exist in Persian", () => {
@@ -148,7 +147,7 @@ describe("Unified scheduling workspace", () => {
     expect(generateButtons.length).toBeGreaterThanOrEqual(1)
   })
 
-  it("saves demand adjustments and navigates to /scheduling/generate on clicking apply button", async () => {
+  it("saves demand adjustments and navigates to /classes/scheduling/generate on clicking apply button", async () => {
     const invalidateQueriesSpy = vi.spyOn(
       QueryClient.prototype,
       "invalidateQueries"
@@ -267,7 +266,7 @@ describe("Unified scheduling workspace", () => {
         queryKey: classRequirementsResource.list.baseKey(),
       })
       expect(mockPush).toHaveBeenCalledWith(
-        "/scheduling/generate?termId=term-fall"
+        "/classes/scheduling/generate?termId=term-fall"
       )
     })
   })

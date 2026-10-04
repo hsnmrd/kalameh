@@ -1,10 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "../../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
 import * as hooks from "@/lib/hooks"
 import * as stores from "@/lib/stores"
 import {
@@ -24,13 +19,13 @@ const { mockPush, mockBack } = vi.hoisted(() => ({
 vi.mock("next/navigation", () => ({
   useParams: () => ({}),
   useRouter: () => ({ push: mockPush, replace: vi.fn(), back: mockBack }),
-  usePathname: () => "/scheduling/generate",
+  usePathname: () => "/classes/scheduling/generate",
   useSearchParams: () => new URLSearchParams("termId=term-fall"),
 }))
 
 vi.mock("@/i18n/routing", () => ({
   useRouter: () => ({ push: mockPush, replace: vi.fn(), back: mockBack }),
-  usePathname: () => "/scheduling/generate",
+  usePathname: () => "/classes/scheduling/generate",
   useIsRtl: () => true,
   Link: ({ href, children, ...props }: any) => (
     <a href={href} {...props}>
@@ -62,14 +57,14 @@ describe("SchedulingGeneratePage", () => {
 
     // Breadcrumb and page headers are present
     expect(
-      screen.getAllByText("زمان‌بندی هوشمند کلاس‌ها").length
+      screen.getAllByText("تقویم آموزشی هوشمند").length
     ).toBeGreaterThanOrEqual(1)
     expect(
       screen.getAllByText("ساخت پیشنهادهای زمان‌بندی").length
     ).toBeGreaterThanOrEqual(1)
   })
 
-  it("changes route to /scheduling and updates activeRun in store when generation succeeds", async () => {
+  it("changes route to /classes/scheduling/runs and updates activeRun in store when generation succeeds", async () => {
     const termId = "22222222-2222-4222-8222-222222222222"
     const instituteId = "11111111-1111-4111-8111-111111111111"
     const requirementId = "33333333-3333-4333-8333-333333333333"
@@ -170,7 +165,9 @@ describe("SchedulingGeneratePage", () => {
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith(`/scheduling/runs/${createdRun.id}`)
+      expect(mockPush).toHaveBeenCalledWith(
+        `/classes/scheduling/runs/${createdRun.id}`
+      )
     })
 
     expect(stores.useSchedulingRunStore.getState().activeRun).toEqual(

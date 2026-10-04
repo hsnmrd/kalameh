@@ -1,10 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
 import type { ClassRequirementDto, SchedulingRunDto } from "@workspace/types"
 import {
   branchesResource,

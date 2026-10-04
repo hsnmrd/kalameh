@@ -1,11 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import type { ClassDto } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
-import { FABSingle } from "@workspace/ui/components/fab"
 import { classesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions } from "@/lib/hooks"
@@ -19,9 +17,9 @@ import { CreateClassModal } from "./components/create-class-modal"
 import { EditClassModal } from "./components/edit-class-modal"
 import { ClassDetailsModal } from "./components/class-details-modal"
 import { DeleteClassModal } from "./components/delete-class-modal"
+import { ClassesFabDrawer } from "./components/classes-fab-drawer"
 
 export default function ClassesPage() {
-  const t = useTranslations("classes")
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
   const [editingClass, setEditingClass] = React.useState<ClassDto | null>(null)
   const [viewingClass, setViewingClass] = React.useState<ClassDto | null>(null)
@@ -100,17 +98,7 @@ export default function ClassesPage() {
               />
             </>
           }
-          fab={
-            <PermissionGuard
-              permission={PERMISSIONS.MANAGE_CLASSES}
-              mode="hide"
-            >
-              <FABSingle
-                onClick={() => setCreateModalOpen(true)}
-                aria-label={t("addClass")}
-              />
-            </PermissionGuard>
-          }
+          fab={<ClassesFabDrawer onAddClick={() => setCreateModalOpen(true)} />}
         >
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">

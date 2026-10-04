@@ -36,6 +36,7 @@ import { PlanDetailsHeader } from "./components/plan-details-header"
 
 export default function SchedulingPlanDetailsPage() {
   const t = useTranslations("scheduling")
+  const tCommon = useTranslations("common")
   const locale = useLocale()
   const router = useRouter()
   const params = useParams()
@@ -85,16 +86,19 @@ export default function SchedulingPlanDetailsPage() {
     () => (
       <AdminBreadcrumb
         backHref={
-          plan?.runId ? `/scheduling/runs/${plan.runId}` : "/scheduling"
+          plan?.runId
+            ? `/classes/scheduling/runs/${plan.runId}`
+            : "/classes/scheduling"
         }
         backLabel={plan?.run?.term?.title ?? t("title")}
         items={[
-          { label: t("title"), href: "/scheduling" },
+          { label: tCommon("nav.classes"), href: "/classes" },
+          { label: t("title"), href: "/classes/scheduling" },
           ...(plan?.runId
             ? [
                 {
                   label: plan.run?.term?.title ?? t("runStatus.pageTitle"),
-                  href: `/scheduling/runs/${plan.runId}`,
+                  href: `/classes/scheduling/runs/${plan.runId}`,
                 },
               ]
             : []),
@@ -108,7 +112,7 @@ export default function SchedulingPlanDetailsPage() {
         ]}
       />
     ),
-    [plan, locale, t]
+    [plan, locale, t, tCommon]
   )
 
   return (
@@ -178,7 +182,7 @@ export default function SchedulingPlanDetailsPage() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={() => router.push("/scheduling")}
+                    onClick={() => router.push("/classes/scheduling")}
                   >
                     <ArrowRight data-icon="inline-start" className="size-4" />
                     {t("planDetails.notFound.back")}

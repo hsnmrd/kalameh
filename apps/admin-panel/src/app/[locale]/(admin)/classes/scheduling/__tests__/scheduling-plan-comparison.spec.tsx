@@ -1,11 +1,6 @@
 import * as React from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"
@@ -17,7 +12,7 @@ const mockPush = vi.fn()
 
 vi.mock("@/i18n/routing", () => ({
   useRouter: () => ({ push: mockPush }),
-  usePathname: () => "/scheduling",
+  usePathname: () => "/classes/scheduling",
   useIsRtl: () => true,
   Link: ({
     href,
@@ -586,7 +581,9 @@ describe("MVP-036 scheduling plan comparison", () => {
     })
     fireEvent.click(detailsButtons[0]!)
 
-    expect(mockPush).toHaveBeenCalledWith(`/scheduling/plans/${firstPlanId}`)
+    expect(mockPush).toHaveBeenCalledWith(
+      `/classes/scheduling/plans/${firstPlanId}`
+    )
   })
 
   it("calls custom onViewDetails callback when provided", async () => {

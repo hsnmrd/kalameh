@@ -51,7 +51,7 @@ export function FailureDetails({ run, result }: FailureDetailsProps) {
           variant="destructive"
           size="sm"
           onClick={() =>
-            router.push(`/scheduling/generate?termId=${run.termId}`)
+            router.push(`/classes/scheduling/generate?termId=${run.termId}`)
           }
           className="shrink-0"
         >

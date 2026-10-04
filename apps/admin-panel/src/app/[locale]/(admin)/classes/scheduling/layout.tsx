@@ -9,15 +9,20 @@ export default async function SchedulingLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const [common, scheduling] = await Promise.all([
+  const [common, scheduling, classes] = await Promise.all([
     import(`@/messages/${locale}/common.json`),
     import(`@/messages/${locale}/scheduling.json`),
+    import(`@/messages/${locale}/classes.json`),
   ])
 
   return (
     <NextIntlClientProvider
       locale={locale}
-      messages={{ common: common.default, scheduling: scheduling.default }}
+      messages={{
+        common: common.default,
+        scheduling: scheduling.default,
+        classes: classes.default,
+      }}
     >
       {children}
     </NextIntlClientProvider>

@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   DoorOpen,
   UserCheck,
-  CalendarClock,
   Clock,
   CalendarDays,
 } from "lucide-react"
@@ -61,13 +60,6 @@ export const ACADEMIC_NAV_ITEMS: NavItem[] = [
     key: "classes",
     href: "/classes",
     icon: Layers,
-    permission: PERMISSIONS.VIEW_CLASSES,
-    module: APP_MODULES.CLASSES_COURSES,
-  },
-  {
-    key: "scheduling",
-    href: "/scheduling",
-    icon: CalendarClock,
     permission: PERMISSIONS.VIEW_CLASSES,
     module: APP_MODULES.CLASSES_COURSES,
   },

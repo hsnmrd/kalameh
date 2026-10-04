@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { render, screen } from "../../../../../../../test/test-utils"
+import { render, screen } from "@/test/test-utils"
 import { SchedulingRunProgress } from "../index"
 
 describe("SchedulingRunProgress Component", () => {

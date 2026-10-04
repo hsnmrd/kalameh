@@ -7,7 +7,7 @@ import {
 } from "../../header-actions-context"
 import { AdminHeader } from "../index"
 
-const mockPathname = vi.fn(() => "/scheduling/plans/plan-1")
+const mockPathname = vi.fn(() => "/classes/scheduling/plans/plan-1")
 
 vi.mock("@/i18n/routing", () => ({
   usePathname: () => mockPathname(),
@@ -54,7 +54,7 @@ describe("AdminHeader", () => {
       </HeaderActionsProvider>
     )
 
-    expect(screen.getByText("زمان‌بندی هوشمند")).toBeInTheDocument()
+    expect(screen.getByText("تقویم آموزشی هوشمند")).toBeInTheDocument()
     expect(
       screen.queryByTestId("admin-header-back-btn")
     ).not.toBeInTheDocument()
@@ -64,16 +64,19 @@ describe("AdminHeader", () => {
     render(
       <HeaderActionsProvider>
         <TestHeaderWithNavigation
-          backHref="/scheduling"
-          backLabel="بازگشت به زمان‌بندی"
+          backHref="/classes/scheduling"
+          backLabel="بازگشت به تقویم آموزشی هوشمند"
         />
       </HeaderActionsProvider>
     )
 
-    expect(screen.getByText("زمان‌بندی هوشمند")).toBeInTheDocument()
+    expect(screen.getByText("تقویم آموزشی هوشمند")).toBeInTheDocument()
     const backBtn = screen.getByTestId("admin-header-back-btn")
     expect(backBtn).toBeInTheDocument()
-    expect(backBtn).toHaveAttribute("href", "/scheduling")
-    expect(backBtn).toHaveAttribute("aria-label", "بازگشت به زمان‌بندی")
+    expect(backBtn).toHaveAttribute("href", "/classes/scheduling")
+    expect(backBtn).toHaveAttribute(
+      "aria-label",
+      "بازگشت به تقویم آموزشی هوشمند"
+    )
   })
 })

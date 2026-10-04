@@ -1,12 +1,6 @@
 import * as React from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "../../../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor, within } from "@/test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"
@@ -22,12 +16,12 @@ const mockPush = vi.fn()
 vi.mock("next/navigation", () => ({
   useParams: () => ({ planId }),
   useRouter: () => ({ push: mockPush }),
-  usePathname: () => `/scheduling/plans/${planId}`,
+  usePathname: () => `/classes/scheduling/plans/${planId}`,
 }))
 
 vi.mock("@/i18n/routing", () => ({
   useRouter: () => ({ push: mockPush }),
-  usePathname: () => `/scheduling/plans/${planId}`,
+  usePathname: () => `/classes/scheduling/plans/${planId}`,
   useIsRtl: () => true,
   Link: ({
     href,
@@ -265,7 +259,7 @@ describe("SchedulingPlanDetailsPage", () => {
       screen.getByRole("button", { name: "تلاش مجدد" })
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: "بازگشت به زمان‌بندی" })
+      screen.getByRole("button", { name: "بازگشت به تقویم آموزشی" })
     ).toBeInTheDocument()
   })
 

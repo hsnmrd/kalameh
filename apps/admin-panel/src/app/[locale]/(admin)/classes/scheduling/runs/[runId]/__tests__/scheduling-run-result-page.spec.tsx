@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { render, screen } from "../../../../../../../test/test-utils"
+import { render, screen } from "@/test/test-utils"
 import type { SchedulingRunStatusDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"
@@ -14,12 +14,12 @@ const mockPush = vi.fn()
 vi.mock("next/navigation", () => ({
   useParams: () => ({ runId }),
   useRouter: () => ({ push: mockPush }),
-  usePathname: () => `/scheduling/runs/${runId}`,
+  usePathname: () => `/classes/scheduling/runs/${runId}`,
 }))
 
 vi.mock("@/i18n/routing", () => ({
   useRouter: () => ({ push: mockPush }),
-  usePathname: () => `/scheduling/runs/${runId}`,
+  usePathname: () => `/classes/scheduling/runs/${runId}`,
   useIsRtl: () => true,
   Link: ({ href, children, ...props }: any) => (
     <a href={href} {...props}>
@@ -48,7 +48,7 @@ describe("SchedulingRunResultPage", () => {
     mockPush.mockReset()
   })
 
-  it("fetches run directly from API on page refresh and does NOT redirect to /scheduling", async () => {
+  it("fetches run directly from API on page refresh and does NOT redirect to /classes/scheduling", async () => {
     vi.spyOn(stores, "useSchedulingRunStore").mockReturnValue({
       activeRun: null, // Empty on page refresh!
       setActiveRun: vi.fn(),
@@ -71,8 +71,8 @@ describe("SchedulingRunResultPage", () => {
       })
     ).toBeInTheDocument()
 
-    // It should NEVER have redirected to /scheduling!
-    expect(mockPush).not.toHaveBeenCalledWith("/scheduling")
+    // It should NEVER have redirected to /classes/scheduling!
+    expect(mockPush).not.toHaveBeenCalledWith("/classes/scheduling")
   })
 
   it("shows not-found state with retry and back buttons when query fails", async () => {
@@ -98,7 +98,7 @@ describe("SchedulingRunResultPage", () => {
       screen.getByRole("button", { name: "تلاش مجدد" })
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: "بازگشت به زمان‌بندی" })
+      screen.getByRole("button", { name: "بازگشت به تقویم آموزشی" })
     ).toBeInTheDocument()
   })
 })

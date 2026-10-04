@@ -1,5 +1,5 @@
 {
-  "title": "Smart Class Scheduling",
+  "title": "Smart Academic Calendar",
   "subtitle": "Prepare inputs, review suggested plans, and publish the final schedule",
   "workflow": {
     "title": "Scheduling workflow",
@@ -139,7 +139,7 @@
     "notFound": {
       "title": "Scheduling Run Not Found",
       "description": "This run was not found or may belong to another institute.",
-      "back": "Back to Scheduling"
+      "back": "Back to Academic Calendar"
     },
     "progress": {
       "title": "Scheduling Generation Progress",
@@ -222,7 +222,7 @@
     "notFound": {
       "title": "Scheduling plan not found",
       "description": "The plan details could not be found or may belong to a different institute.",
-      "back": "Back to scheduling",
+      "back": "Back to Academic Calendar",
       "retry": "Try again"
     },
     "selection": {

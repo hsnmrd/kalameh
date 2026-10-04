@@ -6,12 +6,7 @@ import type {
   SchedulingPlanPublicationResult,
   SchedulingPlanValidation,
 } from "@workspace/types"
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "../../../../../test/test-utils"
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"
 import { SchedulingPlanDetailsDialog } from "../components/scheduling-plan-details-dialog"

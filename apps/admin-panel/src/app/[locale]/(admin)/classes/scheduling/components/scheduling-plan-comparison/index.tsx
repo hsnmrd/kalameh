@@ -48,7 +48,7 @@ export function SchedulingPlanComparison({
       if (onViewDetails) {
         onViewDetails(planId)
       } else {
-        router.push(`/scheduling/plans/${planId}`)
+        router.push(`/classes/scheduling/plans/${planId}`)
       }
     },
     [onViewDetails, router]
