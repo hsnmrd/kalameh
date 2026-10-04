@@ -87,6 +87,13 @@
     "instituteRequired": {
       "title": "Select an institute",
       "description": "Choose an institute from the header before starting a scheduling run."
+    },
+    "studentScheduleWarning": {
+      "title": "{count} students in these courses have unconfirmed schedules",
+      "subtitle": "Their availability is not yet confirmed (needs call); auto-scheduling will run without their constraints.",
+      "viewNames": "View names",
+      "hideNames": "Close",
+      "needsCall": "Needs Call"
     }
   },
   "runStatus": {

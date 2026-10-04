@@ -22,6 +22,7 @@ import { formatNumber } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
 import { useSchedulingGenerationForm } from "../../hooks/use-scheduling-generation-form"
 import { SchedulingRequirementPicker } from "../scheduling-requirement-picker"
+import { SchedulingStudentScheduleWarning } from "../scheduling-student-schedule-warning"
 
 const ALL_BRANCHES = "ALL_BRANCHES"
 
@@ -211,6 +212,11 @@ export function SchedulingGenerationForm({
                 })
               }
               onNavigateToDemand={onNavigateToDemand}
+            />
+
+            <SchedulingStudentScheduleWarning
+              requirements={requirements}
+              selectedRequirementIds={requirementIds}
             />
 
             <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
