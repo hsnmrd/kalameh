@@ -150,5 +150,10 @@
     "lastNameMin": "Last name must be at least 2 characters.",
     "phoneRegex": "Phone number must be an 11-digit Iranian mobile (e.g. 09121234567).",
     "passwordMin": "Password must be at least 6 characters."
+  },
+  "noOperatingPhase": {
+    "title": "No Operating Phase Defined",
+    "description": "To manage students and configure their schedules, at least one active operating phase must first be created for the institute.",
+    "action": "Define Operating Phase"
   }
 }

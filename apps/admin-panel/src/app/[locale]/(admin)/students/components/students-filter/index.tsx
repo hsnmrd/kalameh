@@ -23,6 +23,7 @@ export interface StudentsFilterProps {
   courses?: CourseDto[]
   onAddClick?: () => void
   actions?: React.ReactNode
+  disabled?: boolean
 }
 
 export function StudentsFilter({
@@ -35,6 +36,7 @@ export function StudentsFilter({
   courses = [],
   onAddClick,
   actions,
+  disabled = false,
 }: StudentsFilterProps) {
   const t = useTranslations("students")
 
@@ -70,6 +72,7 @@ export function StudentsFilter({
         <Button
           type="button"
           onClick={onAddClick}
+          disabled={disabled}
           className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
         >
           <Plus className="size-5" />
@@ -84,11 +87,13 @@ export function StudentsFilter({
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
       actions={desktopActions}
+      disabled={disabled}
       search={
         <AdminSearchInput
           value={searchValue}
           onChange={onSearchChange}
           placeholder={t("searchPlaceholder")}
+          disabled={disabled}
         />
       }
       filters={
@@ -103,6 +108,7 @@ export function StudentsFilter({
               placeholder={t("filter.allCourses")}
               drawerTitle={t("filter.course")}
               clearable={false}
+              disabled={disabled}
             />
           </Field>
 
@@ -116,6 +122,7 @@ export function StudentsFilter({
               placeholder={t("filter.allStatus")}
               drawerTitle={t("filter.status")}
               clearable={false}
+              disabled={disabled}
             />
           </Field>
         </>

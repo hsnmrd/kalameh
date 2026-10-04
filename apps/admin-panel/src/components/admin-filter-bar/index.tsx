@@ -37,6 +37,8 @@ export interface AdminFilterBarProps {
   autoHideOnMobile?: boolean
   /** Actions rendered next to filter button (e.g. Add Button on desktop) */
   actions?: React.ReactNode
+  /** Whether filter interactions are disabled */
+  disabled?: boolean
 }
 
 export function AdminFilterBar({
@@ -52,6 +54,7 @@ export function AdminFilterBar({
   isPinned = false,
   autoHideOnMobile = true,
   actions,
+  disabled = false,
 }: AdminFilterBarProps) {
   const t = useTranslations("common.filter")
   const [dialogOpen, setDialogOpen] = React.useState(false)
@@ -91,6 +94,7 @@ export function AdminFilterBar({
                 type="button"
                 variant="outline"
                 onClick={() => setDialogOpen(true)}
+                disabled={disabled}
                 aria-label={resolvedButtonAriaLabel}
                 className={cn(
                   "size-14 min-w-14 shrink-0 cursor-pointer gap-2 rounded-2xl border-border px-3.5 transition-all hover:bg-muted active:scale-95 sm:w-auto sm:px-4",

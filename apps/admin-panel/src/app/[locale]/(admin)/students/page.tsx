@@ -11,12 +11,18 @@ import {
   parseStatusFilter,
 } from "@workspace/types"
 import { FABSingle } from "@workspace/ui/components/fab"
-import { coursesResource, studentsResource } from "@/lib/api"
+import { Spinner } from "@workspace/ui/components/spinner"
+import {
+  coursesResource,
+  operatingPhasesResource,
+  studentsResource,
+} from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { NoOperatingPhaseAlert } from "./components/no-operating-phase-alert"
 import { StudentsFilter } from "./components/students-filter"
 import { StudentsTable } from "./components/students-table"
 import { StudentsList } from "./components/students-list"
@@ -49,12 +55,22 @@ export default function StudentsPage() {
     isSuperAdmin ||
     activeInstitute?.enabledModules?.includes(APP_MODULES.STUDENTS)
 
+  // Fetch operating phases to verify institute has at least one active phase
+  const { data: operatingPhases = [], isLoading: isLoadingPhases } = useQuery({
+    ...operatingPhasesResource.list.toQuery(
+      activeInstituteId ? { instituteId: activeInstituteId } : undefined
+    ),
+    enabled: Boolean(activeInstituteId && hasModule),
+  })
+
+  const hasNoPhases = !isLoadingPhases && operatingPhases.length === 0
+
   // Fetch list of courses for course filter & modal selection
   const { data: courses = [] } = useQuery({
     ...coursesResource.list.toQuery(
       activeInstituteId ? { instituteId: activeInstituteId } : undefined
     ),
-    enabled: Boolean(activeInstituteId && hasModule),
+    enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
   })
 
   // Query students
@@ -65,7 +81,7 @@ export default function StudentsPage() {
       isActive: parseStatusFilter(selectedStatus),
       instituteId: activeInstituteId,
     }),
-    enabled: Boolean(activeInstituteId && hasModule),
+    enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
   })
 
   return (
@@ -82,93 +98,112 @@ export default function StudentsPage() {
               onStatusChange={setSelectedStatus}
               courses={courses}
               onAddClick={() => setCreateModalOpen(true)}
+              disabled={isLoadingPhases || hasNoPhases}
             />
           }
           modals={
-            <>
-              {/* Create Student Modal */}
-              <CreateStudentModal
-                open={createModalOpen}
-                onClose={() => setCreateModalOpen(false)}
-                instituteId={activeInstituteId}
-              />
+            !hasNoPhases && !isLoadingPhases ? (
+              <>
+                {/* Create Student Modal */}
+                <CreateStudentModal
+                  open={createModalOpen}
+                  onClose={() => setCreateModalOpen(false)}
+                  instituteId={activeInstituteId}
+                />
 
-              {/* Edit Student Modal */}
-              <EditStudentModal
-                student={editStudent}
-                open={Boolean(editStudent)}
-                onClose={() => setEditStudent(null)}
-              />
+                {/* Edit Student Modal */}
+                <EditStudentModal
+                  student={editStudent}
+                  open={Boolean(editStudent)}
+                  onClose={() => setEditStudent(null)}
+                />
 
-              {/* View Student Dossier / Profile Modal */}
-              <StudentProfileModal
-                student={profileStudent}
-                open={Boolean(profileStudent)}
-                onClose={() => setProfileStudent(null)}
-                onEdit={(s) => {
-                  setProfileStudent(null)
-                  setEditStudent(s)
-                }}
-                onAddNote={(s) => {
-                  setProfileStudent(null)
-                  setNoteStudent(s)
-                }}
-                onResetPassword={(s) => {
-                  setProfileStudent(null)
-                  setResetPasswordStudent(s)
-                }}
-              />
+                {/* View Student Dossier / Profile Modal */}
+                <StudentProfileModal
+                  student={profileStudent}
+                  open={Boolean(profileStudent)}
+                  onClose={() => setProfileStudent(null)}
+                  onEdit={(s) => {
+                    setProfileStudent(null)
+                    setEditStudent(s)
+                  }}
+                  onAddNote={(s) => {
+                    setProfileStudent(null)
+                    setNoteStudent(s)
+                  }}
+                  onResetPassword={(s) => {
+                    setProfileStudent(null)
+                    setResetPasswordStudent(s)
+                  }}
+                />
 
-              {/* Reset Password Modal */}
-              <ResetPasswordModal
-                student={resetPasswordStudent}
-                open={Boolean(resetPasswordStudent)}
-                onClose={() => setResetPasswordStudent(null)}
-              />
+                {/* Reset Password Modal */}
+                <ResetPasswordModal
+                  student={resetPasswordStudent}
+                  open={Boolean(resetPasswordStudent)}
+                  onClose={() => setResetPasswordStudent(null)}
+                />
 
-              {/* Add Student Note Modal */}
-              <AddStudentNoteModal
-                student={noteStudent}
-                open={Boolean(noteStudent)}
-                onClose={() => setNoteStudent(null)}
-              />
-            </>
+                {/* Add Student Note Modal */}
+                <AddStudentNoteModal
+                  student={noteStudent}
+                  open={Boolean(noteStudent)}
+                  onClose={() => setNoteStudent(null)}
+                />
+              </>
+            ) : null
           }
           fab={
-            <PermissionGuard
-              permission={PERMISSIONS.MANAGE_STUDENTS}
-              mode="hide"
-            >
-              <FABSingle
-                onClick={() => setCreateModalOpen(true)}
-                aria-label={t("addStudent")}
-              />
-            </PermissionGuard>
+            !hasNoPhases && !isLoadingPhases ? (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_STUDENTS}
+                mode="hide"
+              >
+                <FABSingle
+                  onClick={() => setCreateModalOpen(true)}
+                  aria-label={t("addStudent")}
+                />
+              </PermissionGuard>
+            ) : null
           }
         >
-          {/* Desktop Table View */}
-          <div className="hidden lg:block">
-            <StudentsTable
-              students={students}
-              isLoading={isLoading}
-              onViewProfile={(student) => setProfileStudent(student)}
-              onAddNote={(student) => setNoteStudent(student)}
-              onEdit={(student) => setEditStudent(student)}
-              onResetPassword={(student) => setResetPasswordStudent(student)}
-            />
-          </div>
+          {isLoadingPhases ? (
+            <div className="flex min-h-64 items-center justify-center">
+              <Spinner className="size-8 text-foreground" />
+            </div>
+          ) : hasNoPhases ? (
+            <NoOperatingPhaseAlert />
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden lg:block">
+                <StudentsTable
+                  students={students}
+                  isLoading={isLoading}
+                  onViewProfile={(student) => setProfileStudent(student)}
+                  onAddNote={(student) => setNoteStudent(student)}
+                  onEdit={(student) => setEditStudent(student)}
+                  onResetPassword={(student) =>
+                    setResetPasswordStudent(student)
+                  }
+                />
+              </div>
 
-          {/* Mobile Flat List View */}
-          <div className="lg:hidden">
-            <StudentsList
-              students={students}
-              isLoading={isLoading}
-              onViewProfile={(student) => setProfileStudent(student)}
-              onAddNote={(student) => setNoteStudent(student)}
-              onEdit={(student) => setEditStudent(student)}
-              onResetPassword={(student) => setResetPasswordStudent(student)}
-            />
-          </div>
+              {/* Mobile Flat List View */}
+              <div className="lg:hidden">
+                <StudentsList
+                  students={students}
+                  isLoading={isLoading}
+                  onViewProfile={(student) => setProfileStudent(student)}
+                  onAddNote={(student) => setNoteStudent(student)}
+                  onEdit={(student) => setEditStudent(student)}
+                  onResetPassword={(student) =>
+                    setResetPasswordStudent(student)
+                  }
+                />
+              </div>
+            </>
+          )}
         </AdminPageShell>
       </PermissionGuard>
     </ModuleGuard>

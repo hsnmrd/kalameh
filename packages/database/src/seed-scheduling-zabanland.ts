@@ -136,6 +136,59 @@ async function main() {
         order: 0,
       },
     }))
+
+  const additionalSeasonalPhases = [
+    {
+      title: "زمستان",
+      months: [10, 11, 12],
+      startTime: "15:00",
+      endTime: "21:00",
+      order: 1,
+    },
+    {
+      title: "بهار",
+      months: [1, 2, 3],
+      startTime: "15:00",
+      endTime: "21:00",
+      order: 2,
+    },
+    {
+      title: "تابستان",
+      months: [4, 5, 6],
+      startTime: "09:00",
+      endTime: "21:00",
+      order: 3,
+    },
+  ]
+  for (const p of additionalSeasonalPhases) {
+    const existingPhase = await prisma.instituteOperatingPhase.findFirst({
+      where: { instituteId, title: p.title },
+    })
+    if (!existingPhase) {
+      await prisma.instituteOperatingPhase.create({
+        data: {
+          instituteId,
+          title: p.title,
+          months: p.months,
+          startTime: p.startTime,
+          endTime: p.endTime,
+          slotDurationMinutes: 90,
+          daysOfWeek: [
+            "SATURDAY",
+            "SUNDAY",
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+          ],
+          hasBreak: false,
+          isActive: true,
+          order: p.order,
+        },
+      })
+    }
+  }
+
   const activeTerm = existingTargetTerm
     ? await prisma.term.update({
         where: { id: existingTargetTerm.id },

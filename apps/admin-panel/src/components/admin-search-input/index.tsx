@@ -12,6 +12,7 @@ export interface AdminSearchInputProps {
   onChange: (value: string) => void
   placeholder?: string
   className?: string
+  disabled?: boolean
 }
 
 export function AdminSearchInput({
@@ -19,6 +20,7 @@ export function AdminSearchInput({
   onChange,
   placeholder,
   className,
+  disabled = false,
 }: AdminSearchInputProps) {
   const t = useTranslations("common")
   const effectivePlaceholder = placeholder ?? t("searchPlaceholder")
@@ -31,9 +33,10 @@ export function AdminSearchInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={effectivePlaceholder}
+        disabled={disabled}
         className="ps-11 pe-11"
       />
-      {value && (
+      {value && !disabled && (
         <Button
           type="button"
           variant="ghost"

@@ -193,6 +193,129 @@ async function main() {
     )
   }
 
+  // 4.1. Sample Operating Phases (Tehran)
+  const defaultDaysOfWeek = [
+    "SATURDAY",
+    "SUNDAY",
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+  ]
+
+  const fallPhase = await prisma.instituteOperatingPhase.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000020" },
+    update: {
+      title: "پاییز",
+      months: [7, 8, 9],
+      startTime: "15:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 0,
+    },
+    create: {
+      id: "00000000-0000-0000-0000-000000000020",
+      instituteId: institute.id,
+      title: "پاییز",
+      months: [7, 8, 9],
+      startTime: "15:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 0,
+    },
+  })
+
+  await prisma.instituteOperatingPhase.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000021" },
+    update: {
+      title: "زمستان",
+      months: [10, 11, 12],
+      startTime: "15:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 1,
+    },
+    create: {
+      id: "00000000-0000-0000-0000-000000000021",
+      instituteId: institute.id,
+      title: "زمستان",
+      months: [10, 11, 12],
+      startTime: "15:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 1,
+    },
+  })
+
+  await prisma.instituteOperatingPhase.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000022" },
+    update: {
+      title: "بهار",
+      months: [1, 2, 3],
+      startTime: "15:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 2,
+    },
+    create: {
+      id: "00000000-0000-0000-0000-000000000022",
+      instituteId: institute.id,
+      title: "بهار",
+      months: [1, 2, 3],
+      startTime: "15:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 2,
+    },
+  })
+
+  await prisma.instituteOperatingPhase.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000023" },
+    update: {
+      title: "تابستان",
+      months: [4, 5, 6],
+      startTime: "09:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 3,
+    },
+    create: {
+      id: "00000000-0000-0000-0000-000000000023",
+      instituteId: institute.id,
+      title: "تابستان",
+      months: [4, 5, 6],
+      startTime: "09:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 3,
+    },
+  })
+  console.log(`⏰ Operating Phases seeded for ${institute.name}`)
+
   // 5. Sample Term
   const now = new Date()
   const endDate = new Date()
@@ -204,6 +327,7 @@ async function main() {
       title: "پاییز ۱۴۰۳",
       startDate: now,
       endDate: endDate,
+      operatingPhaseId: fallPhase.id,
       isActive: true,
     },
     create: {
@@ -212,6 +336,7 @@ async function main() {
       title: "پاییز ۱۴۰۳",
       startDate: now,
       endDate: endDate,
+      operatingPhaseId: fallPhase.id,
       isActive: true,
     },
   })
