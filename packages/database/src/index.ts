@@ -1,5 +1,4 @@
 import path from "node:path"
-import { fileURLToPath } from "node:url"
 import dotenv from "dotenv"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "@prisma/client"
@@ -7,11 +6,12 @@ import { PrismaClient } from "@prisma/client"
 // Ensure environment variables from root .env are loaded
 if (!process.env.DATABASE_URL) {
   try {
-    const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    const currentDir =
+      typeof __dirname !== "undefined" ? __dirname : process.cwd()
     dotenv.config({ path: path.resolve(currentDir, "../../../.env") })
     dotenv.config({ path: path.resolve(currentDir, "../../.env") })
   } catch {
-    // fallback if import.meta.url is not available
+    // fallback if __dirname is not available
   }
   dotenv.config({ path: path.resolve(process.cwd(), "../../.env") })
   dotenv.config({ path: path.resolve(process.cwd(), "../.env") })
