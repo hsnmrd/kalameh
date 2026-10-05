@@ -67,19 +67,45 @@ export function useModal<TData = any>(
   const pathname = usePathname()
   const router = useRouter()
 
+  const rawModalParam = searchParams?.get(paramKey) ?? null
+  const storeActiveModals = useModalStore((state) => state.activeModals)
+  const setActiveModalsInStore = useModalStore((state) => state.setActiveModals)
+  const openModalInStore = useModalStore((state) => state.openModalInStore)
+  const closeModalInStore = useModalStore((state) => state.closeModalInStore)
   const modalDataMap = useModalStore((state) => state.modalData)
   const setStoreModalData = useModalStore((state) => state.setModalData)
   const clearStoreModalData = useModalStore((state) => state.clearModalData)
 
-  const rawModalParam = searchParams.get(paramKey)
+  const prevRawModalParamRef = React.useRef(rawModalParam)
 
-  const activeModals = React.useMemo<string[]>(() => {
+  const urlModals = React.useMemo<string[]>(() => {
     if (!rawModalParam) return []
     return rawModalParam
       .split(",")
       .map((k) => k.trim())
       .filter(Boolean)
   }, [rawModalParam])
+
+  // Sync from initial URL on mount if URL contains modals
+  React.useEffect(() => {
+    if (urlModals.length > 0 && storeActiveModals.length === 0) {
+      setActiveModalsInStore(urlModals)
+    }
+  }, [urlModals, storeActiveModals.length, setActiveModalsInStore])
+
+  // Sync from URL changes (such as Back / Forward navigation)
+  React.useEffect(() => {
+    if (prevRawModalParamRef.current !== rawModalParam) {
+      prevRawModalParamRef.current = rawModalParam
+      setActiveModalsInStore(urlModals)
+    }
+  }, [rawModalParam, urlModals, setActiveModalsInStore])
+
+  const activeModals = React.useMemo<string[]>(() => {
+    if (storeActiveModals.length > 0) return storeActiveModals
+    if (rawModalParam) return urlModals
+    return []
+  }, [storeActiveModals, rawModalParam, urlModals])
 
   const isModalOpen = React.useCallback(
     (modalKey: string) => activeModals.includes(modalKey),
@@ -94,6 +120,8 @@ export function useModal<TData = any>(
         setStoreModalData(modalKey, data)
       }
 
+      openModalInStore(modalKey)
+
       const currentKeys = rawModalParam
         ? rawModalParam
             .split(",")
@@ -105,8 +133,11 @@ export function useModal<TData = any>(
         currentKeys.push(modalKey)
       }
 
-      const nextParams = new URLSearchParams(searchParams.toString())
-      nextParams.set(paramKey, currentKeys.join(","))
+      const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
+      const nextParamValue = currentKeys.join(",")
+      nextParams.set(paramKey, nextParamValue)
+      prevRawModalParamRef.current = nextParamValue
+
       const url = `${pathname}?${nextParams.toString()}`
 
       if (opt?.replace) {
@@ -115,19 +146,27 @@ export function useModal<TData = any>(
         router.push(url, { scroll: false })
       }
     },
-    [pathname, router, searchParams, rawModalParam, paramKey, setStoreModalData]
+    [
+      pathname,
+      router,
+      searchParams,
+      rawModalParam,
+      paramKey,
+      setStoreModalData,
+      openModalInStore,
+    ]
   )
 
   const closeModal = React.useCallback(
     (modalKeys?: string | string[], opt?: { replace?: boolean }) => {
+      closeModalInStore(modalKeys)
+
       const currentKeys = rawModalParam
         ? rawModalParam
             .split(",")
             .map((k) => k.trim())
             .filter(Boolean)
         : []
-
-      if (currentKeys.length === 0) return
 
       let nextKeys: string[]
       if (!modalKeys) {
@@ -145,11 +184,14 @@ export function useModal<TData = any>(
         nextKeys = currentKeys.filter((k) => !toRemove.includes(k))
       }
 
-      const nextParams = new URLSearchParams(searchParams.toString())
+      const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
       if (nextKeys.length > 0) {
-        nextParams.set(paramKey, nextKeys.join(","))
+        const nextParamValue = nextKeys.join(",")
+        nextParams.set(paramKey, nextParamValue)
+        prevRawModalParamRef.current = nextParamValue
       } else {
         nextParams.delete(paramKey)
+        prevRawModalParamRef.current = null
       }
 
       const queryStr = nextParams.toString()
@@ -168,6 +210,7 @@ export function useModal<TData = any>(
       rawModalParam,
       paramKey,
       clearStoreModalData,
+      closeModalInStore,
     ]
   )
 
@@ -184,7 +227,7 @@ export function useModal<TData = any>(
         clearStoreModalData(key)
       })
 
-      const nextParams = new URLSearchParams(searchParams.toString())
+      const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
       nextParams.delete(paramKey)
       const queryStr = nextParams.toString()
       const url = queryStr ? `${pathname}?${queryStr}` : pathname

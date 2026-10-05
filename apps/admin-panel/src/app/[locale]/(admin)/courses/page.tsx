@@ -8,22 +8,20 @@ import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { FABSingle } from "@workspace/ui/components/fab"
 import { coursesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { CoursesTable } from "./components/courses-table"
 import { CoursesList } from "./components/courses-list"
 import { CoursesFilter } from "./components/courses-filter"
-import { CreateCourseModal } from "./components/create-course-modal"
-import { EditCourseModal } from "./components/edit-course-modal"
 
 export default function CoursesPage() {
   const t = useTranslations("courses")
-  const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [editingCourse, setEditingCourse] = React.useState<CourseDto | null>(
-    null
-  )
+  const { openModal } = useModal()
+
   const [search, setSearch] = React.useState("")
   const [selectedPrerequisiteId, setSelectedPrerequisiteId] =
     React.useState("ALL")
@@ -53,6 +51,9 @@ export default function CoursesPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const handleCreate = () => openModal("createCourse")
+  const handleEdit = (course: CourseDto) => openModal("editCourse", { course })
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_COURSES} mode="forbidden">
@@ -64,32 +65,16 @@ export default function CoursesPage() {
               selectedPrerequisiteId={selectedPrerequisiteId}
               onPrerequisiteChange={setSelectedPrerequisiteId}
               courses={allCourses}
-              onAddClick={() => setCreateModalOpen(true)}
+              onAddClick={handleCreate}
             />
           }
-          modals={
-            <>
-              <CreateCourseModal
-                open={createModalOpen}
-                onClose={() => setCreateModalOpen(false)}
-              />
-
-              <EditCourseModal
-                course={editingCourse}
-                open={Boolean(editingCourse)}
-                onClose={() => setEditingCourse(null)}
-              />
-            </>
-          }
+          modals={<ModalGateway registry={modalRegistry} />}
           fab={
             <PermissionGuard
               permission={PERMISSIONS.MANAGE_COURSES}
               mode="hide"
             >
-              <FABSingle
-                onClick={() => setCreateModalOpen(true)}
-                aria-label={t("addCourse")}
-              />
+              <FABSingle onClick={handleCreate} aria-label={t("addCourse")} />
             </PermissionGuard>
           }
         >
@@ -98,7 +83,7 @@ export default function CoursesPage() {
             <CoursesTable
               courses={courses}
               isLoading={isLoading}
-              onEdit={(course) => setEditingCourse(course)}
+              onEdit={handleEdit}
             />
           </div>
 
@@ -107,7 +92,7 @@ export default function CoursesPage() {
             <CoursesList
               courses={courses}
               isLoading={isLoading}
-              onEdit={(course) => setEditingCourse(course)}
+              onEdit={handleEdit}
             />
           </div>
         </AdminPageShell>

@@ -5,18 +5,24 @@ import { NextIntlClientProvider } from "next-intl"
 import settingMessagesFa from "@/messages/fa/setting.json"
 import commonMessagesFa from "@/messages/fa/common.json"
 import { institutesResource } from "@/lib/api"
+import { useModalStore } from "@/lib/stores"
 import { CustomOffDaysContent } from "../components/custom-off-days-content"
 
 const mockInstituteId = "11111111-1111-1111-1111-111111111111"
 
-vi.mock("@/lib/stores", () => ({
-  useActiveInstitute: () => ({ activeInstituteId: mockInstituteId }),
-}))
+vi.mock("@/lib/stores", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>()
+  return {
+    ...actual,
+    useActiveInstitute: () => ({ activeInstituteId: mockInstituteId }),
+  }
+})
 
 describe("CustomOffDaysContent", () => {
   let queryClient: QueryClient
 
   beforeEach(() => {
+    useModalStore.getState().clearAllModalData()
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },

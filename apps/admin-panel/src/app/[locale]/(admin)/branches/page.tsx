@@ -13,21 +13,20 @@ import {
 import { FABSingle } from "@workspace/ui/components/fab"
 import { branchesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { BranchesTable } from "./components/branches-table"
 import { BranchesList } from "./components/branches-list"
 import { BranchesFilter } from "./components/branches-filter"
-import { CreateBranchModal } from "./components/create-branch-modal"
-import { EditBranchModal } from "./components/edit-branch-modal"
 
 export default function BranchesPage() {
   const t = useTranslations("branches")
-  const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [editingBranch, setEditingBranch] =
-    React.useState<BranchWithStats | null>(null)
+  const { openModal } = useModal()
+
   const [search, setSearch] = React.useState("")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
 
@@ -48,6 +47,10 @@ export default function BranchesPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const handleCreate = () => openModal("createBranch")
+  const handleEdit = (branch: BranchWithStats) =>
+    openModal("editBranch", { branch })
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_BRANCHES} mode="forbidden">
@@ -58,32 +61,16 @@ export default function BranchesPage() {
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
-              onAddClick={() => setCreateModalOpen(true)}
+              onAddClick={handleCreate}
             />
           }
-          modals={
-            <>
-              <CreateBranchModal
-                open={createModalOpen}
-                onClose={() => setCreateModalOpen(false)}
-              />
-
-              <EditBranchModal
-                branch={editingBranch}
-                open={Boolean(editingBranch)}
-                onClose={() => setEditingBranch(null)}
-              />
-            </>
-          }
+          modals={<ModalGateway registry={modalRegistry} />}
           fab={
             <PermissionGuard
               permission={PERMISSIONS.MANAGE_BRANCHES}
               mode="hide"
             >
-              <FABSingle
-                onClick={() => setCreateModalOpen(true)}
-                aria-label={t("addBranch")}
-              />
+              <FABSingle onClick={handleCreate} aria-label={t("addBranch")} />
             </PermissionGuard>
           }
         >
@@ -92,7 +79,7 @@ export default function BranchesPage() {
             <BranchesTable
               branches={branches}
               isLoading={isLoading}
-              onEdit={(branch) => setEditingBranch(branch)}
+              onEdit={handleEdit}
             />
           </div>
 
@@ -101,7 +88,7 @@ export default function BranchesPage() {
             <BranchesList
               branches={branches}
               isLoading={isLoading}
-              onEdit={(branch) => setEditingBranch(branch)}
+              onEdit={handleEdit}
             />
           </div>
         </AdminPageShell>

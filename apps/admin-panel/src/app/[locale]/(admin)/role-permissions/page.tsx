@@ -6,21 +6,23 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { PERMISSIONS, ROLES, APP_MODULES, type Role } from "@workspace/types"
 import { rolePermissionsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useModal } from "@/lib/hooks"
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { RolePermissionsEditor } from "./components/role-permissions-editor"
 import { RolePermissionsStickyBar } from "./components/role-permissions-sticky-bar"
-import { ResetRoleModal } from "./components/reset-role-modal"
 
 export default function RolePermissionsPage() {
   const t = useTranslations("rolePermissions")
   const queryClient = useQueryClient()
   const { user } = usePermissions()
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
+  const { openModal, closeModal } = useModal()
 
   const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
   const hasModule =
@@ -28,7 +30,6 @@ export default function RolePermissionsPage() {
     activeInstitute?.enabledModules?.includes(APP_MODULES.USERS_STAFF)
 
   const [selectedRole, setSelectedRole] = React.useState<Role>(ROLES.CLERK)
-  const [resetModalOpen, setResetModalOpen] = React.useState(false)
   const [permissionDraft, setPermissionDraft] = React.useState<{
     sourceKey: string
     selected: Set<string>
@@ -166,7 +167,7 @@ export default function RolePermissionsPage() {
 
   const handleReset = () => {
     if (!activeInstituteId) return
-    setResetModalOpen(true)
+    openModal("resetRole")
   }
 
   const handleConfirmReset = () => {
@@ -177,7 +178,7 @@ export default function RolePermissionsPage() {
         instituteId: activeInstituteId,
       },
       {
-        onSettled: () => setResetModalOpen(false),
+        onSettled: () => closeModal("resetRole"),
       }
     )
   }
@@ -193,11 +194,12 @@ export default function RolePermissionsPage() {
       >
         <AdminPageShell
           modals={
-            <ResetRoleModal
-              open={resetModalOpen}
-              onClose={() => setResetModalOpen(false)}
-              onConfirm={handleConfirmReset}
-              isLoading={resetMutation.isPending}
+            <ModalGateway
+              registry={modalRegistry}
+              extraProps={{
+                onConfirm: handleConfirmReset,
+                isLoading: resetMutation.isPending,
+              }}
             />
           }
         >

@@ -13,24 +13,20 @@ import {
 import { FABSingle } from "@workspace/ui/components/fab"
 import { classroomsResource, branchesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { ClassroomsTable } from "./components/classrooms-table"
 import { ClassroomsList } from "./components/classrooms-list"
 import { ClassroomsFilter } from "./components/classrooms-filter"
-import { CreateClassroomModal } from "./components/create-classroom-modal"
-import { EditClassroomModal } from "./components/edit-classroom-modal"
-import { DeleteClassroomModal } from "./components/delete-classroom-modal"
 
 export default function ClassroomsPage() {
   const t = useTranslations("classrooms")
-  const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [editingClassroom, setEditingClassroom] =
-    React.useState<ClassroomDto | null>(null)
-  const [deletingClassroom, setDeletingClassroom] =
-    React.useState<ClassroomDto | null>(null)
+  const { openModal } = useModal()
+
   const [search, setSearch] = React.useState("")
   const [selectedBranchId, setSelectedBranchId] = React.useState("ALL")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
@@ -60,6 +56,12 @@ export default function ClassroomsPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const handleCreate = () => openModal("createClassroom")
+  const handleEdit = (classroom: ClassroomDto) =>
+    openModal("editClassroom", { classroom })
+  const handleDelete = (classroom: ClassroomDto) =>
+    openModal("deleteClassroom", { classroom })
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard
@@ -76,30 +78,16 @@ export default function ClassroomsPage() {
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
               branches={branches}
-              onAddClick={() => setCreateModalOpen(true)}
+              onAddClick={handleCreate}
             />
           }
           modals={
-            <>
-              <CreateClassroomModal
-                open={createModalOpen}
-                onClose={() => setCreateModalOpen(false)}
-                branches={branches}
-              />
-
-              <EditClassroomModal
-                classroom={editingClassroom}
-                open={Boolean(editingClassroom)}
-                onClose={() => setEditingClassroom(null)}
-                branches={branches}
-              />
-
-              <DeleteClassroomModal
-                classroom={deletingClassroom}
-                open={Boolean(deletingClassroom)}
-                onClose={() => setDeletingClassroom(null)}
-              />
-            </>
+            <ModalGateway
+              registry={modalRegistry}
+              extraProps={{
+                branches,
+              }}
+            />
           }
           fab={
             <PermissionGuard
@@ -107,7 +95,7 @@ export default function ClassroomsPage() {
               mode="hide"
             >
               <FABSingle
-                onClick={() => setCreateModalOpen(true)}
+                onClick={handleCreate}
                 aria-label={t("addClassroom")}
               />
             </PermissionGuard>
@@ -117,8 +105,8 @@ export default function ClassroomsPage() {
             <ClassroomsTable
               classrooms={classrooms}
               isLoading={isLoading}
-              onEdit={(classroom) => setEditingClassroom(classroom)}
-              onDelete={(classroom) => setDeletingClassroom(classroom)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           </div>
 
@@ -126,8 +114,8 @@ export default function ClassroomsPage() {
             <ClassroomsList
               classrooms={classrooms}
               isLoading={isLoading}
-              onEdit={(classroom) => setEditingClassroom(classroom)}
-              onDelete={(classroom) => setDeletingClassroom(classroom)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           </div>
         </AdminPageShell>

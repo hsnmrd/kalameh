@@ -9,36 +9,25 @@ import type { AuthUser } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { usersResource, API_BASE_URL } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { UsersHeaderActions } from "./components/users-header-actions"
 import { UsersFilter } from "./components/users-filter"
 import { UsersTable } from "./components/users-table"
 import { UsersList } from "./components/users-list"
-import { CreateUserModal } from "./components/create-user-modal"
-import { EditUserModal } from "./components/edit-user-modal"
-import { ResetPasswordModal } from "./components/reset-password-modal"
-import { ImportUsersModal } from "./components/import-users-modal"
-import { DeleteUserModal } from "./components/delete-user-modal"
-import { UserProfileModal } from "./components/user-profile-modal"
 
 export default function UsersPage() {
   const t = useTranslations("users")
   const locale = useLocale()
+  const { openModal } = useModal()
+
   const [searchValue, setSearchValue] = React.useState("")
   const [selectedRole, setSelectedRole] = React.useState("ALL")
-  const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [importModalOpen, setImportModalOpen] = React.useState(false)
   const [isExporting, setIsExporting] = React.useState(false)
-  const [viewProfileUser, setViewProfileUser] = React.useState<AuthUser | null>(
-    null
-  )
-  const [editUser, setEditUser] = React.useState<AuthUser | null>(null)
-  const [deleteUser, setDeleteUser] = React.useState<AuthUser | null>(null)
-  const [resetPasswordUser, setResetPasswordUser] =
-    React.useState<AuthUser | null>(null)
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -48,7 +37,6 @@ export default function UsersPage() {
     isSuperAdmin ||
     activeInstitute?.enabledModules?.includes(APP_MODULES.USERS_STAFF)
 
-  // Fetch users with filters (and scoped to active institute for Super Admin / Institute Admin)
   const effectiveRoleFilter =
     selectedRole && selectedRole !== "ALL" ? selectedRole : undefined
 
@@ -100,6 +88,17 @@ export default function UsersPage() {
     }
   }
 
+  const handleCreate = () => openModal("createUser")
+  const handleImport = () => openModal("importUsers")
+  const handleViewProfile = (authUser: AuthUser) =>
+    openModal("profileUser", { user: authUser })
+  const handleEdit = (authUser: AuthUser) =>
+    openModal("editUser", { user: authUser })
+  const handleResetPassword = (authUser: AuthUser) =>
+    openModal("resetPasswordUser", { user: authUser })
+  const handleDelete = (authUser: AuthUser) =>
+    openModal("deleteUser", { user: authUser })
+
   return (
     <ModuleGuard module={APP_MODULES.USERS_STAFF}>
       <PermissionGuard permission={PERMISSIONS.VIEW_USERS} mode="forbidden">
@@ -107,7 +106,7 @@ export default function UsersPage() {
           actions={
             <UsersHeaderActions
               totalCount={totalCount}
-              onImportClick={() => setImportModalOpen(true)}
+              onImportClick={handleImport}
               onExportClick={handleExport}
               isExporting={isExporting}
             />
@@ -118,72 +117,23 @@ export default function UsersPage() {
               onSearchChange={setSearchValue}
               selectedRole={selectedRole}
               onRoleChange={setSelectedRole}
-              onAddClick={() => setCreateModalOpen(true)}
+              onAddClick={handleCreate}
             />
           }
           modals={
-            <>
-              {/* Create User Modal */}
-              <CreateUserModal
-                open={createModalOpen}
-                onClose={() => setCreateModalOpen(false)}
-                instituteId={activeInstituteId}
-              />
-
-              {/* Import Users from Excel Modal */}
-              <ImportUsersModal
-                open={importModalOpen}
-                onClose={() => setImportModalOpen(false)}
-                instituteId={activeInstituteId}
-              />
-
-              {/* View User Profile Modal */}
-              <UserProfileModal
-                user={viewProfileUser}
-                open={Boolean(viewProfileUser)}
-                onClose={() => setViewProfileUser(null)}
-                onEdit={(u) => {
-                  setViewProfileUser(null)
-                  setEditUser(u)
-                }}
-                onResetPassword={(u) => {
-                  setViewProfileUser(null)
-                  setResetPasswordUser(u)
-                }}
-                onDelete={(u) => {
-                  setViewProfileUser(null)
-                  setDeleteUser(u)
-                }}
-              />
-
-              {/* Edit User Modal */}
-              <EditUserModal
-                user={editUser}
-                open={Boolean(editUser)}
-                onClose={() => setEditUser(null)}
-              />
-
-              {/* Reset Password Modal */}
-              <ResetPasswordModal
-                user={resetPasswordUser}
-                open={Boolean(resetPasswordUser)}
-                onClose={() => setResetPasswordUser(null)}
-              />
-
-              {/* Delete User Modal */}
-              <DeleteUserModal
-                user={deleteUser}
-                open={Boolean(deleteUser)}
-                onClose={() => setDeleteUser(null)}
-              />
-            </>
+            <ModalGateway
+              registry={modalRegistry}
+              extraProps={{
+                instituteId: activeInstituteId,
+                onEdit: handleEdit,
+                onResetPassword: handleResetPassword,
+                onDelete: handleDelete,
+              }}
+            />
           }
           fab={
             <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="hide">
-              <FABSingle
-                onClick={() => setCreateModalOpen(true)}
-                aria-label={t("addUser")}
-              />
+              <FABSingle onClick={handleCreate} aria-label={t("addUser")} />
             </PermissionGuard>
           }
         >
@@ -192,10 +142,10 @@ export default function UsersPage() {
             <UsersTable
               users={users}
               isLoading={isLoading}
-              onViewProfile={(user) => setViewProfileUser(user)}
-              onEdit={(user) => setEditUser(user)}
-              onResetPassword={(user) => setResetPasswordUser(user)}
-              onDelete={(user) => setDeleteUser(user)}
+              onViewProfile={handleViewProfile}
+              onEdit={handleEdit}
+              onResetPassword={handleResetPassword}
+              onDelete={handleDelete}
             />
           </div>
 
@@ -204,10 +154,10 @@ export default function UsersPage() {
             <UsersList
               users={users}
               isLoading={isLoading}
-              onViewProfile={(user) => setViewProfileUser(user)}
-              onEdit={(user) => setEditUser(user)}
-              onResetPassword={(user) => setResetPasswordUser(user)}
-              onDelete={(user) => setDeleteUser(user)}
+              onViewProfile={handleViewProfile}
+              onEdit={handleEdit}
+              onResetPassword={handleResetPassword}
+              onDelete={handleDelete}
             />
           </div>
         </AdminPageShell>

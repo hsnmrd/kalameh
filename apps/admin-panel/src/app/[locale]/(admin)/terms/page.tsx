@@ -11,26 +11,22 @@ import {
 } from "@workspace/types"
 import { termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { useRouter } from "@/i18n/routing"
 import { TermsTable } from "./components/terms-table"
 import { TermsList } from "./components/terms-list"
 import { TermsFilter } from "./components/terms-filter"
 import { TermsFabDrawer } from "./components/terms-fab-drawer"
-import { ViewTermModal } from "./components/view-term-modal"
-import { CreateTermModal } from "./components/create-term-modal"
-import { EditTermModal } from "./components/edit-term-modal"
-import { DeleteTermModal } from "./components/delete-term-modal"
 
 export default function TermsPage() {
   const router = useRouter()
-  const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [viewingTerm, setViewingTerm] = React.useState<TermDto | null>(null)
-  const [editingTerm, setEditingTerm] = React.useState<TermDto | null>(null)
-  const [deletingTerm, setDeletingTerm] = React.useState<TermDto | null>(null)
+  const { openModal } = useModal()
+
   const [search, setSearch] = React.useState("")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
 
@@ -52,6 +48,11 @@ export default function TermsPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const handleCreate = () => openModal("createTerm")
+  const handleView = (term: TermDto) => openModal("viewTerm", { term })
+  const handleEdit = (term: TermDto) => openModal("editTerm", { term })
+  const handleDelete = (term: TermDto) => openModal("deleteTerm", { term })
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_TERMS} mode="forbidden">
@@ -62,42 +63,21 @@ export default function TermsPage() {
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
-              onAddClick={() => setCreateModalOpen(true)}
+              onAddClick={handleCreate}
               onBatchClick={() => router.push("/terms/generate")}
             />
           }
           modals={
-            <>
-              <CreateTermModal
-                open={createModalOpen}
-                onClose={() => setCreateModalOpen(false)}
-                allTerms={terms}
-              />
-
-              <ViewTermModal
-                term={viewingTerm}
-                open={Boolean(viewingTerm)}
-                onClose={() => setViewingTerm(null)}
-                allTerms={terms}
-              />
-
-              <EditTermModal
-                term={editingTerm}
-                open={Boolean(editingTerm)}
-                onClose={() => setEditingTerm(null)}
-                allTerms={terms}
-              />
-
-              <DeleteTermModal
-                term={deletingTerm}
-                open={Boolean(deletingTerm)}
-                onClose={() => setDeletingTerm(null)}
-              />
-            </>
+            <ModalGateway
+              registry={modalRegistry}
+              extraProps={{
+                allTerms: terms,
+              }}
+            />
           }
           fab={
             <TermsFabDrawer
-              onAddClick={() => setCreateModalOpen(true)}
+              onAddClick={handleCreate}
               onBatchClick={() => router.push("/terms/generate")}
             />
           }
@@ -107,9 +87,9 @@ export default function TermsPage() {
             <TermsTable
               terms={terms}
               isLoading={isLoading}
-              onView={(term) => setViewingTerm(term)}
-              onEdit={(term) => setEditingTerm(term)}
-              onDelete={(term) => setDeletingTerm(term)}
+              onView={handleView}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           </div>
 
@@ -118,9 +98,9 @@ export default function TermsPage() {
             <TermsList
               terms={terms}
               isLoading={isLoading}
-              onView={(term) => setViewingTerm(term)}
-              onEdit={(term) => setEditingTerm(term)}
-              onDelete={(term) => setDeletingTerm(term)}
+              onView={handleView}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           </div>
         </AdminPageShell>

@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import type { StudentDto } from "@workspace/types"
 import {
@@ -17,40 +16,24 @@ import {
   studentsResource,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { NoOperatingPhaseAlert } from "./components/no-operating-phase-alert"
 import { StudentsFilter } from "./components/students-filter"
 import { StudentsTable } from "./components/students-table"
 import { StudentsList } from "./components/students-list"
-import { CreateStudentModal } from "./components/create-student-modal"
-import { EditStudentModal } from "./components/edit-student-modal"
-import { StudentProfileModal } from "./components/student-profile-modal"
-import { StudentAvailabilityModal } from "./components/student-availability-modal"
-import { ResetPasswordModal } from "./components/reset-password-modal"
-import { AddStudentNoteModal } from "./components/add-student-note-modal"
-import { SetAllAvailableDialog } from "./components/set-all-available-dialog"
 import { StudentsFabDrawer } from "./components/students-fab-drawer"
 
 export default function StudentsPage() {
-  const t = useTranslations("students")
+  const { openModal } = useModal()
+
   const [searchValue, setSearchValue] = React.useState("")
   const [selectedCourseId, setSelectedCourseId] = React.useState("ALL")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
-
-  const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [setAllAvailableOpen, setSetAllAvailableOpen] = React.useState(false)
-  const [editStudent, setEditStudent] = React.useState<StudentDto | null>(null)
-  const [profileStudent, setProfileStudent] = React.useState<StudentDto | null>(
-    null
-  )
-  const [availabilityStudent, setAvailabilityStudent] =
-    React.useState<StudentDto | null>(null)
-  const [noteStudent, setNoteStudent] = React.useState<StudentDto | null>(null)
-  const [resetPasswordStudent, setResetPasswordStudent] =
-    React.useState<StudentDto | null>(null)
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -89,6 +72,19 @@ export default function StudentsPage() {
     enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
   })
 
+  const handleCreate = () => openModal("createStudent")
+  const handleSetAllAvailable = () => openModal("setAllAvailable")
+  const handleEdit = (student: StudentDto) =>
+    openModal("editStudent", { student })
+  const handleViewProfile = (student: StudentDto) =>
+    openModal("profileStudent", { student })
+  const handleAvailability = (student: StudentDto) =>
+    openModal("availabilityStudent", { student })
+  const handleAddNote = (student: StudentDto) =>
+    openModal("addNote", { student })
+  const handleResetPassword = (student: StudentDto) =>
+    openModal("resetPassword", { student })
+
   return (
     <ModuleGuard module={APP_MODULES.STUDENTS}>
       <PermissionGuard permission={PERMISSIONS.VIEW_STUDENTS} mode="forbidden">
@@ -102,88 +98,31 @@ export default function StudentsPage() {
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
               courses={courses}
-              onAddClick={() => setCreateModalOpen(true)}
-              onSetAllAvailableClick={() => setSetAllAvailableOpen(true)}
+              onAddClick={handleCreate}
+              onSetAllAvailableClick={handleSetAllAvailable}
               disabled={isLoadingPhases || hasNoPhases}
             />
           }
           modals={
             !hasNoPhases && !isLoadingPhases ? (
-              <>
-                {/* Create Student Modal */}
-                <CreateStudentModal
-                  open={createModalOpen}
-                  onClose={() => setCreateModalOpen(false)}
-                  instituteId={activeInstituteId}
-                />
-
-                {/* Edit Student Modal */}
-                <EditStudentModal
-                  student={editStudent}
-                  open={Boolean(editStudent)}
-                  onClose={() => setEditStudent(null)}
-                />
-
-                {/* View Student Dossier / Profile Modal */}
-                <StudentProfileModal
-                  student={profileStudent}
-                  open={Boolean(profileStudent)}
-                  onClose={() => setProfileStudent(null)}
-                  onAvailability={(s) => {
-                    setProfileStudent(null)
-                    setAvailabilityStudent(s)
-                  }}
-                  onEdit={(s) => {
-                    setProfileStudent(null)
-                    setEditStudent(s)
-                  }}
-                  onAddNote={(s) => {
-                    setProfileStudent(null)
-                    setNoteStudent(s)
-                  }}
-                  onResetPassword={(s) => {
-                    setProfileStudent(null)
-                    setResetPasswordStudent(s)
-                  }}
-                />
-
-                {/* Student Availability Modal */}
-                <StudentAvailabilityModal
-                  student={availabilityStudent}
-                  open={Boolean(availabilityStudent)}
-                  onClose={() => setAvailabilityStudent(null)}
-                  instituteId={activeInstituteId}
-                />
-
-                {/* Set All Available Alert Dialog */}
-                <SetAllAvailableDialog
-                  open={setAllAvailableOpen}
-                  onClose={() => setSetAllAvailableOpen(false)}
-                  operatingPhases={operatingPhases}
-                  instituteId={activeInstituteId}
-                />
-
-                {/* Reset Password Modal */}
-                <ResetPasswordModal
-                  student={resetPasswordStudent}
-                  open={Boolean(resetPasswordStudent)}
-                  onClose={() => setResetPasswordStudent(null)}
-                />
-
-                {/* Add Student Note Modal */}
-                <AddStudentNoteModal
-                  student={noteStudent}
-                  open={Boolean(noteStudent)}
-                  onClose={() => setNoteStudent(null)}
-                />
-              </>
+              <ModalGateway
+                registry={modalRegistry}
+                extraProps={{
+                  instituteId: activeInstituteId,
+                  operatingPhases,
+                  onAvailability: handleAvailability,
+                  onEdit: handleEdit,
+                  onAddNote: handleAddNote,
+                  onResetPassword: handleResetPassword,
+                }}
+              />
             ) : null
           }
           fab={
             !hasNoPhases && !isLoadingPhases ? (
               <StudentsFabDrawer
-                onAddClick={() => setCreateModalOpen(true)}
-                onSetAllAvailableClick={() => setSetAllAvailableOpen(true)}
+                onAddClick={handleCreate}
+                onSetAllAvailableClick={handleSetAllAvailable}
               />
             ) : null
           }
@@ -201,13 +140,11 @@ export default function StudentsPage() {
                 <StudentsTable
                   students={students}
                   isLoading={isLoading}
-                  onViewProfile={(student) => setProfileStudent(student)}
-                  onAddNote={(student) => setNoteStudent(student)}
-                  onEdit={(student) => setEditStudent(student)}
-                  onResetPassword={(student) =>
-                    setResetPasswordStudent(student)
-                  }
-                  onAvailability={(student) => setAvailabilityStudent(student)}
+                  onViewProfile={handleViewProfile}
+                  onAddNote={handleAddNote}
+                  onEdit={handleEdit}
+                  onResetPassword={handleResetPassword}
+                  onAvailability={handleAvailability}
                 />
               </div>
 
@@ -216,13 +153,11 @@ export default function StudentsPage() {
                 <StudentsList
                   students={students}
                   isLoading={isLoading}
-                  onViewProfile={(student) => setProfileStudent(student)}
-                  onAddNote={(student) => setNoteStudent(student)}
-                  onEdit={(student) => setEditStudent(student)}
-                  onResetPassword={(student) =>
-                    setResetPasswordStudent(student)
-                  }
-                  onAvailability={(student) => setAvailabilityStudent(student)}
+                  onViewProfile={handleViewProfile}
+                  onAddNote={handleAddNote}
+                  onEdit={handleEdit}
+                  onResetPassword={handleResetPassword}
+                  onAvailability={handleAvailability}
                 />
               </div>
             </>

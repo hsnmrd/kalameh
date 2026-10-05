@@ -12,10 +12,11 @@ import {
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { ModuleGuard } from "@/components/module-guard"
 import { PermissionGuard } from "@/components/permission-guard"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useModal } from "@/lib/hooks"
 import { transactionsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { ReviewTransactionModal } from "./components/review-transaction-modal"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { TransactionsFilter } from "./components/transactions-filter"
 import { TransactionsList } from "./components/transactions-list"
 import { TransactionsTable } from "./components/transactions-table"
@@ -23,13 +24,15 @@ import { TransactionsTable } from "./components/transactions-table"
 export default function TransactionsPage() {
   const [search, setSearch] = React.useState("")
   const [status, setStatus] = React.useState<TransactionStatus | "ALL">("ALL")
-  const [reviewing, setReviewing] = React.useState<TransactionDto | null>(null)
+  const { openModal } = useModal()
+
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
   const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
   const hasModule =
     isSuperAdmin ||
     activeInstitute?.enabledModules?.includes(APP_MODULES.FINANCE)
+
   const { data: transactions, isLoading } = useQuery({
     ...transactionsResource.list.toQuery({
       instituteId: activeInstituteId,
@@ -38,6 +41,9 @@ export default function TransactionsPage() {
     }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
+
+  const handleReview = (transaction: TransactionDto) =>
+    openModal("reviewTransaction", { transaction })
 
   return (
     <ModuleGuard module={APP_MODULES.FINANCE}>
@@ -54,26 +60,20 @@ export default function TransactionsPage() {
               onStatusChange={setStatus}
             />
           }
-          modals={
-            <ReviewTransactionModal
-              key={reviewing?.id ?? "closed"}
-              transaction={reviewing}
-              onClose={() => setReviewing(null)}
-            />
-          }
+          modals={<ModalGateway registry={modalRegistry} />}
         >
           <div className="hidden lg:block">
             <TransactionsTable
               transactions={transactions}
               isLoading={isLoading}
-              onReview={setReviewing}
+              onReview={handleReview}
             />
           </div>
           <div className="lg:hidden">
             <TransactionsList
               transactions={transactions}
               isLoading={isLoading}
-              onReview={setReviewing}
+              onReview={handleReview}
             />
           </div>
         </AdminPageShell>

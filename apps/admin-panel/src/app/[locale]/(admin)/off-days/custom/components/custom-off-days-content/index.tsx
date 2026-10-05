@@ -4,27 +4,26 @@ import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
-import type { InstituteCustomOffDay } from "@workspace/types"
 import { FABSingle } from "@workspace/ui/components/fab"
 import { institutesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { useModal } from "@/lib/hooks"
+import { ModalGateway } from "@/components/modal-gateway"
 import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { formatDisplayDate } from "../../helper"
 import { CustomOffDaysFilter } from "../custom-off-days-filter"
 import { CustomOffDaysTable } from "../custom-off-days-table"
 import { CustomOffDaysList } from "../custom-off-days-list"
-import { AddOffDayModal } from "./add-off-day-modal"
-import { DeleteOffDayModal } from "./delete-off-day-modal"
+
+import { modalRegistry } from "../../modal"
 
 export function CustomOffDaysContent() {
   const t = useTranslations("setting.offDays")
   const locale = useLocale()
   const { activeInstituteId } = useActiveInstitute()
   const [search, setSearch] = React.useState("")
-  const [isAddOpen, setIsAddOpen] = React.useState(false)
-  const [deletingOffDay, setDeletingOffDay] =
-    React.useState<InstituteCustomOffDay | null>(null)
+  const { openModal, closeModal } = useModal()
 
   const { data: institute } = useQuery({
     ...institutesResource.detail.toQuery(activeInstituteId!),
@@ -67,29 +66,23 @@ export function CustomOffDaysContent() {
         <CustomOffDaysFilter
           search={search}
           onSearchChange={setSearch}
-          onAddClick={() => setIsAddOpen(true)}
+          onAddClick={() => openModal("addOffDay")}
         />
       }
       modals={
-        <>
-          <AddOffDayModal
-            open={isAddOpen}
-            onClose={() => setIsAddOpen(false)}
-            instituteId={activeInstituteId}
-            observeOfficialHolidays={institute?.observeOfficialHolidays ?? true}
-            existingOffDays={customOffDays.map((offDay) => offDay.date)}
-          />
-          <DeleteOffDayModal
-            open={Boolean(deletingOffDay)}
-            onClose={() => setDeletingOffDay(null)}
-            offDay={deletingOffDay}
-            instituteId={activeInstituteId}
-          />
-        </>
+        <ModalGateway
+          registry={modalRegistry}
+          extraProps={{
+            instituteId: activeInstituteId,
+            observeOfficialHolidays: institute?.observeOfficialHolidays ?? true,
+            existingOffDays: customOffDays.map((offDay) => offDay.date),
+          }}
+          onClose={closeModal}
+        />
       }
       fab={
         <FABSingle
-          onClick={() => setIsAddOpen(true)}
+          onClick={() => openModal("addOffDay")}
           aria-label={t("addOffDay")}
         >
           <Plus className="size-6" />
@@ -101,7 +94,7 @@ export function CustomOffDaysContent() {
         <CustomOffDaysTable
           customOffDays={filteredOffDays}
           isLoading={isLoading}
-          onDelete={(item) => setDeletingOffDay(item)}
+          onDelete={(item) => openModal("deleteOffDay", { offDay: item })}
         />
       </div>
 
@@ -110,7 +103,7 @@ export function CustomOffDaysContent() {
         <CustomOffDaysList
           customOffDays={filteredOffDays}
           isLoading={isLoading}
-          onDelete={(item) => setDeletingOffDay(item)}
+          onDelete={(item) => openModal("deleteOffDay", { offDay: item })}
         />
       </div>
     </AdminPageShell>

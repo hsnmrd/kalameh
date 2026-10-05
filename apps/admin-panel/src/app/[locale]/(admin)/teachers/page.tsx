@@ -8,36 +8,22 @@ import type { TeacherDto } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { teachersResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { TeachersFilter } from "./components/teachers-filter"
 import { TeachersTable } from "./components/teachers-table"
 import { TeachersList } from "./components/teachers-list"
-import { CreateTeacherModal } from "./components/create-teacher-modal"
-import { EditTeacherModal } from "./components/edit-teacher-modal"
-import { TeacherAvailabilityModal } from "./components/teacher-availability-modal"
-import { TeacherProfileModal } from "./components/teacher-profile-modal"
-import { ResetPasswordModal } from "./components/reset-password-modal"
-import { DeleteTeacherModal } from "./components/delete-teacher-modal"
 
 export default function TeachersPage() {
   const t = useTranslations("teachers")
+  const { openModal } = useModal()
+
   const [searchValue, setSearchValue] = React.useState("")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
-
-  const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [viewProfileTeacher, setViewProfileTeacher] =
-    React.useState<TeacherDto | null>(null)
-  const [availabilityTeacher, setAvailabilityTeacher] =
-    React.useState<TeacherDto | null>(null)
-  const [editTeacher, setEditTeacher] = React.useState<TeacherDto | null>(null)
-  const [deleteTeacher, setDeleteTeacher] = React.useState<TeacherDto | null>(
-    null
-  )
-  const [resetPasswordTeacher, setResetPasswordTeacher] =
-    React.useState<TeacherDto | null>(null)
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -63,6 +49,18 @@ export default function TeachersPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const handleCreate = () => openModal("createTeacher")
+  const handleViewProfile = (teacher: TeacherDto) =>
+    openModal("viewProfileTeacher", { teacher })
+  const handleManageAvailability = (teacher: TeacherDto) =>
+    openModal("availabilityTeacher", { teacher })
+  const handleEdit = (teacher: TeacherDto) =>
+    openModal("editTeacher", { teacher })
+  const handleResetPassword = (teacher: TeacherDto) =>
+    openModal("resetPasswordTeacher", { teacher })
+  const handleDelete = (teacher: TeacherDto) =>
+    openModal("deleteTeacher", { teacher })
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_TEACHERS} mode="forbidden">
@@ -73,76 +71,26 @@ export default function TeachersPage() {
               onSearchChange={setSearchValue}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
-              onAddClick={() => setCreateModalOpen(true)}
+              onAddClick={handleCreate}
             />
           }
           modals={
-            <>
-              {/* Create Teacher Modal */}
-              <CreateTeacherModal
-                open={createModalOpen}
-                onClose={() => setCreateModalOpen(false)}
-                instituteId={activeInstituteId}
-              />
-
-              {/* View Teacher Profile Modal */}
-              <TeacherProfileModal
-                teacher={viewProfileTeacher}
-                open={Boolean(viewProfileTeacher)}
-                onClose={() => setViewProfileTeacher(null)}
-                onEdit={(teacher) => {
-                  setViewProfileTeacher(null)
-                  setEditTeacher(teacher)
-                }}
-                onManageAvailability={(teacher) => {
-                  setViewProfileTeacher(null)
-                  setAvailabilityTeacher(teacher)
-                }}
-                onResetPassword={(teacher) => {
-                  setViewProfileTeacher(null)
-                  setResetPasswordTeacher(teacher)
-                }}
-              />
-
-              {/* Teacher Availability Modal */}
-              <TeacherAvailabilityModal
-                teacher={availabilityTeacher}
-                open={Boolean(availabilityTeacher)}
-                onClose={() => setAvailabilityTeacher(null)}
-                instituteId={activeInstituteId}
-              />
-
-              {/* Edit Teacher Modal */}
-              <EditTeacherModal
-                teacher={editTeacher}
-                open={Boolean(editTeacher)}
-                onClose={() => setEditTeacher(null)}
-              />
-
-              {/* Reset Password Modal */}
-              <ResetPasswordModal
-                teacher={resetPasswordTeacher}
-                open={Boolean(resetPasswordTeacher)}
-                onClose={() => setResetPasswordTeacher(null)}
-              />
-
-              {/* Delete Teacher Modal */}
-              <DeleteTeacherModal
-                teacher={deleteTeacher}
-                open={Boolean(deleteTeacher)}
-                onClose={() => setDeleteTeacher(null)}
-              />
-            </>
+            <ModalGateway
+              registry={modalRegistry}
+              extraProps={{
+                instituteId: activeInstituteId,
+                onEdit: handleEdit,
+                onManageAvailability: handleManageAvailability,
+                onResetPassword: handleResetPassword,
+              }}
+            />
           }
           fab={
             <PermissionGuard
               permission={PERMISSIONS.MANAGE_TEACHERS}
               mode="hide"
             >
-              <FABSingle
-                onClick={() => setCreateModalOpen(true)}
-                aria-label={t("addTeacher")}
-              />
+              <FABSingle onClick={handleCreate} aria-label={t("addTeacher")} />
             </PermissionGuard>
           }
         >
@@ -151,13 +99,11 @@ export default function TeachersPage() {
             <TeachersTable
               teachers={teachers}
               isLoading={isLoading}
-              onViewProfile={(teacher) => setViewProfileTeacher(teacher)}
-              onEdit={(teacher) => setEditTeacher(teacher)}
-              onManageAvailability={(teacher) =>
-                setAvailabilityTeacher(teacher)
-              }
-              onResetPassword={(teacher) => setResetPasswordTeacher(teacher)}
-              onDelete={(teacher) => setDeleteTeacher(teacher)}
+              onViewProfile={handleViewProfile}
+              onEdit={handleEdit}
+              onManageAvailability={handleManageAvailability}
+              onResetPassword={handleResetPassword}
+              onDelete={handleDelete}
             />
           </div>
 
@@ -166,13 +112,11 @@ export default function TeachersPage() {
             <TeachersList
               teachers={teachers}
               isLoading={isLoading}
-              onViewProfile={(teacher) => setViewProfileTeacher(teacher)}
-              onEdit={(teacher) => setEditTeacher(teacher)}
-              onManageAvailability={(teacher) =>
-                setAvailabilityTeacher(teacher)
-              }
-              onResetPassword={(teacher) => setResetPasswordTeacher(teacher)}
-              onDelete={(teacher) => setDeleteTeacher(teacher)}
+              onViewProfile={handleViewProfile}
+              onEdit={handleEdit}
+              onManageAvailability={handleManageAvailability}
+              onResetPassword={handleResetPassword}
+              onDelete={handleDelete}
             />
           </div>
         </AdminPageShell>

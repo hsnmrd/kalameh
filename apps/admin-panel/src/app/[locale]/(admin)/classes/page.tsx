@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import dynamic from "next/dynamic"
 import { useQuery } from "@tanstack/react-query"
 import type { ClassDto } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
@@ -11,35 +10,12 @@ import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
-import { ModalGateway, type ModalRegistry } from "@/components/modal-gateway"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { ClassesFilter } from "./components/classes-filter"
 import { ClassesTable } from "./components/classes-table"
 import { ClassesList } from "./components/classes-list"
 import { ClassesFabDrawer } from "./components/classes-fab-drawer"
-
-const modalRegistry: ModalRegistry = {
-  createClass: dynamic(
-    () =>
-      import("./components/create-class-modal").then((m) => m.CreateClassModal),
-    { ssr: false }
-  ),
-  editClass: dynamic(
-    () => import("./components/edit-class-modal").then((m) => m.EditClassModal),
-    { ssr: false }
-  ),
-  classDetails: dynamic(
-    () =>
-      import("./components/class-details-modal").then(
-        (m) => m.ClassDetailsModal
-      ),
-    { ssr: false }
-  ),
-  deleteClass: dynamic(
-    () =>
-      import("./components/delete-class-modal").then((m) => m.DeleteClassModal),
-    { ssr: false }
-  ),
-}
 
 export default function ClassesPage() {
   const { openModal } = useModal()

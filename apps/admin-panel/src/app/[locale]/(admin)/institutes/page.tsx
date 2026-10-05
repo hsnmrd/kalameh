@@ -18,21 +18,18 @@ import { FABSingle } from "@workspace/ui/components/fab"
 import type { InstituteWithStats } from "@workspace/types"
 import { parseStatusFilter } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
+import { useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "./modal"
 import { InstituteCard } from "./components/institute-card"
 import { InstitutesList } from "./components/institutes-list"
 import { InstitutesFilter } from "./components/institutes-filter"
-import { CreateInstituteModal } from "./components/create-institute-modal"
-import { EditInstituteModal } from "./components/edit-institute-modal"
-import { DeleteInstituteModal } from "./components/delete-institute-modal"
 
 export default function InstitutesPage() {
   const t = useTranslations("institutes")
-  const [isCreateOpen, setIsCreateOpen] = React.useState(false)
-  const [editingInstitute, setEditingInstitute] =
-    React.useState<InstituteWithStats | null>(null)
-  const [deletingInstitute, setDeletingInstitute] =
-    React.useState<InstituteWithStats | null>(null)
+  const { openModal } = useModal()
+
   const [search, setSearch] = React.useState("")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
 
@@ -43,6 +40,12 @@ export default function InstitutesPage() {
     })
   )
 
+  const handleCreate = () => openModal("createInstitute")
+  const handleEdit = (institute: InstituteWithStats) =>
+    openModal("editInstitute", { institute })
+  const handleDelete = (institute: InstituteWithStats) =>
+    openModal("deleteInstitute", { institute })
+
   return (
     <AdminPageShell
       filters={
@@ -51,15 +54,11 @@ export default function InstitutesPage() {
           onSearchChange={setSearch}
           selectedStatus={selectedStatus}
           onStatusChange={setSelectedStatus}
-          onAddClick={() => setIsCreateOpen(true)}
+          onAddClick={handleCreate}
         />
       }
-      fab={
-        <FABSingle
-          onClick={() => setIsCreateOpen(true)}
-          aria-label={t("addInstitute")}
-        />
-      }
+      modals={<ModalGateway registry={modalRegistry} />}
+      fab={<FABSingle onClick={handleCreate} aria-label={t("addInstitute")} />}
     >
       {isLoading ? (
         <div className="flex min-h-[300px] items-center justify-center">
@@ -76,7 +75,7 @@ export default function InstitutesPage() {
           </EmptyHeader>
           <EmptyContent>
             <Button
-              onClick={() => setIsCreateOpen(true)}
+              onClick={handleCreate}
               className="cursor-pointer rounded-xl"
             >
               <span>{t("addInstitute")}</span>
@@ -91,8 +90,8 @@ export default function InstitutesPage() {
               <InstituteCard
                 key={institute.id}
                 institute={institute}
-                onEdit={(inst) => setEditingInstitute(inst)}
-                onDelete={(inst) => setDeletingInstitute(inst)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
               />
             ))}
           </div>
@@ -102,29 +101,12 @@ export default function InstitutesPage() {
             <InstitutesList
               institutes={institutes}
               isLoading={isLoading}
-              onEdit={(inst) => setEditingInstitute(inst)}
-              onDelete={(inst) => setDeletingInstitute(inst)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           </div>
         </>
       )}
-
-      <CreateInstituteModal
-        open={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-      />
-
-      <EditInstituteModal
-        open={Boolean(editingInstitute)}
-        institute={editingInstitute}
-        onClose={() => setEditingInstitute(null)}
-      />
-
-      <DeleteInstituteModal
-        open={Boolean(deletingInstitute)}
-        institute={deletingInstitute}
-        onClose={() => setDeletingInstitute(null)}
-      />
     </AdminPageShell>
   )
 }

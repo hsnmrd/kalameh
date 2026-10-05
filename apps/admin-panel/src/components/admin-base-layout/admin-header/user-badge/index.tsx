@@ -7,11 +7,19 @@ import { ROLES, type Role, type AuthUser } from "@workspace/types"
 import { ResponsivePopover } from "@workspace/ui/components/popover"
 import { Button } from "@workspace/ui/components/button"
 import { useActiveInstitute } from "@/lib/stores"
+import dynamic from "next/dynamic"
 import { useRouter } from "@/i18n/routing"
-import { InstituteSwitcher } from "../../institute-switcher"
 import { UserBadgeTrigger } from "./user-badge-trigger"
 import { ActiveInstituteCard } from "./active-institute-card"
 import { UserProfileDetails } from "./user-profile-details"
+
+const InstituteSwitcher = dynamic(
+  () =>
+    import("../../institute-switcher").then((m) => ({
+      default: m.InstituteSwitcher,
+    })),
+  { ssr: false }
+)
 
 export interface UserBadgeProps {
   user?: Partial<AuthUser> & {
