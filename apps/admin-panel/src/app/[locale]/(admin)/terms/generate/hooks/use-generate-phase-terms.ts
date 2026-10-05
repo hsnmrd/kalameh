@@ -4,15 +4,9 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import type { ComboboxOption } from "@workspace/ui/components/combobox"
-import {
-  gregorianToJalali,
-  resolveClassPatterns,
-  type GeneratedTermProposal,
-  type WeekDay,
-  type CompensatorySession,
-} from "@workspace/types"
+import { resolveClassPatterns, type WeekDay } from "@workspace/types"
 import { operatingPhasesResource, institutesResource } from "@/lib/api"
-import { useActiveInstitute } from "@/lib/stores"
+import { useActiveInstitute, usePhaseTermsGenerateStore } from "@/lib/stores"
 import { usePhaseTermCompensatoryActions } from "./use-phase-term-compensatory-actions"
 import { usePhaseTermDateActions } from "./use-phase-term-date-actions"
 import { usePhaseTermPersistence } from "./use-phase-term-persistence"
@@ -21,22 +15,31 @@ export function useGeneratePhaseTerms() {
   const t = useTranslations("terms")
   const { activeInstituteId } = useActiveInstitute()
 
-  const currentJYear = React.useMemo(() => {
-    return gregorianToJalali(new Date()).year
-  }, [])
-
-  const [step, setStep] = React.useState<1 | 2>(1)
-  const [viewMode, setViewMode] = React.useState<"calendar" | "table">(
-    "calendar"
-  )
-  const [selectedPhaseId, setSelectedPhaseId] = React.useState<string>("")
-  const [jalaliYear, setJalaliYear] = React.useState<number>(currentJYear)
-  const [sessionsPerTerm, setSessionsPerTerm] = React.useState<number>(18)
-  const [gapDays, setGapDays] = React.useState<number>(2)
-  const [proposals, setProposals] = React.useState<GeneratedTermProposal[]>([])
-  const [customTitles, setCustomTitles] = React.useState<
-    Record<number, string>
-  >({})
+  const {
+    selectedPhaseId,
+    setSelectedPhaseId,
+    jalaliYear,
+    setJalaliYear,
+    sessionsPerTerm,
+    setSessionsPerTerm,
+    gapDays,
+    setGapDays,
+    proposals,
+    setProposals,
+    customTitles,
+    setCustomTitles,
+    pinnedStartDates,
+    setPinnedStartDates,
+    compensatorySessions,
+    setCompensatorySessions,
+    localCustomOffDays,
+    setLocalCustomOffDays,
+    dismissedHolidaysOverride,
+    setDismissedHolidaysOverride,
+    viewMode,
+    setViewMode,
+    reset,
+  } = usePhaseTermsGenerateStore()
 
   // Fetch institute operating phases
   const { data: phases = [] } = useQuery({
@@ -57,18 +60,6 @@ export function useGeneratePhaseTerms() {
     ...institutesResource.customOffDays.toQuery(activeInstituteId!),
     enabled: Boolean(activeInstituteId),
   })
-
-  const [dismissedHolidaysOverride, setDismissedHolidaysOverride] =
-    React.useState<string[] | null>(null)
-  const [localCustomOffDays, setLocalCustomOffDays] = React.useState<
-    string[] | null
-  >(null)
-  const [compensatorySessions, setCompensatorySessions] = React.useState<
-    Record<number, CompensatorySession[]>
-  >({})
-  const [pinnedStartDates, setPinnedStartDates] = React.useState<
-    Record<number, string>
-  >({})
 
   const customOffDays = React.useMemo(() => {
     if (localCustomOffDays !== null) return localCustomOffDays
@@ -95,7 +86,7 @@ export function useGeneratePhaseTerms() {
   }, [selectedPhase?.daysOfWeek])
 
   const handleTitleChange = (index: number, newTitle: string) => {
-    setCustomTitles((prev) => ({ ...prev, [index]: newTitle }))
+    setCustomTitles({ ...customTitles, [index]: newTitle })
     setProposals((prev) =>
       prev.map((item, idx) =>
         idx === index ? { ...item, title: newTitle } : item
@@ -162,7 +153,7 @@ export function useGeneratePhaseTerms() {
     proposals,
     setProposals,
     setCustomTitles,
-    setStep,
+    reset,
   })
 
   const hasAnySessionImbalance = React.useMemo(() => {
@@ -171,8 +162,6 @@ export function useGeneratePhaseTerms() {
 
   return {
     t,
-    step,
-    setStep,
     viewMode,
     setViewMode,
     selectedPhaseId,
@@ -208,5 +197,6 @@ export function useGeneratePhaseTerms() {
     handleRemoveCompensatorySession,
     handleSubmit,
     handleCancel,
+    reset,
   }
 }

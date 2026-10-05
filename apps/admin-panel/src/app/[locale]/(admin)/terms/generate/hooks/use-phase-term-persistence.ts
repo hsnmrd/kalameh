@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
@@ -15,9 +14,9 @@ interface PhaseTermPersistenceOptions {
   sessionsPerTerm: number
   gapDays: number
   proposals: GeneratedTermProposal[]
-  setProposals: React.Dispatch<React.SetStateAction<GeneratedTermProposal[]>>
-  setCustomTitles: React.Dispatch<React.SetStateAction<Record<number, string>>>
-  setStep: React.Dispatch<React.SetStateAction<1 | 2>>
+  setProposals: (proposals: GeneratedTermProposal[]) => void
+  setCustomTitles: (titles: Record<number, string>) => void
+  reset?: () => void
 }
 
 export function usePhaseTermPersistence({
@@ -29,7 +28,7 @@ export function usePhaseTermPersistence({
   proposals,
   setProposals,
   setCustomTitles,
-  setStep,
+  reset,
 }: PhaseTermPersistenceOptions) {
   const t = useTranslations("terms")
   const router = useRouter()
@@ -57,6 +56,7 @@ export function usePhaseTermPersistence({
   const batchCreateMutation = useMutation({
     ...termsResource.batchCreatePhase.toMutation(),
     onSuccess: () => {
+      reset?.()
       toast.success(t("batchModal.success"))
       queryClient.invalidateQueries({ queryKey: termsResource.list.baseKey() })
       router.push("/terms")
@@ -85,7 +85,7 @@ export function usePhaseTermPersistence({
       if (result.data?.length) {
         setProposals(result.data)
         setCustomTitles({})
-        setStep(2)
+        router.push("/terms/generate/preview")
       } else if (result.data) {
         toast.error(t("batchModal.noProposals"))
       }

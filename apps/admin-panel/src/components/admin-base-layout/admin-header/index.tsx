@@ -44,6 +44,9 @@ function getPageTitle(pathname: string, t: (key: string) => string): string {
   if (pathname.startsWith("/branches")) {
     return t("nav.branches")
   }
+  if (pathname.startsWith("/terms/generate/preview")) {
+    return t("nav.reviewPhaseTerms")
+  }
   if (pathname.startsWith("/terms/generate")) {
     return t("nav.generatePhaseTerms")
   }

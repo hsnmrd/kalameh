@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Sparkles, Wand2 } from "lucide-react"
+import { Wand2 } from "lucide-react"
 import { Counter } from "@workspace/ui/components/counter"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Button } from "@workspace/ui/components/button"
@@ -54,23 +54,8 @@ export function StepConfiguration({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Configuration Card */}
       <section className="overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-2xs sm:p-6">
-        <div className="flex items-start gap-3.5 border-b border-border/80 pb-5">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Sparkles className="size-5" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <h2 className="text-base font-bold text-foreground sm:text-lg">
-              {t("batchModal.title")}
-            </h2>
-            <p className="text-xs text-muted-foreground sm:text-sm">
-              {t("batchModal.description")}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 pt-6 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {/* Row 1: Phase and Academic Year */}
           <Field>
             <FieldLabel>{t("batchModal.phaseLabel")}</FieldLabel>
@@ -92,6 +77,7 @@ export function StepConfiguration({
               value={jalaliYear}
               onValueChange={(val) => onJalaliYearChange(val || jalaliYear)}
               aria-label={t("batchModal.jalaliYear")}
+              format={{ useGrouping: false }}
               className="w-full"
             />
           </Field>
