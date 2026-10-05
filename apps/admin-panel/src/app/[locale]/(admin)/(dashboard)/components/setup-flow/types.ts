@@ -17,5 +17,6 @@ export interface SetupStep {
   status: StepStatus
   primaryHref: string
   actionLabelKey: string
+  icon: React.ComponentType<{ className?: string }>
   substeps?: SetupSubstep[]
 }

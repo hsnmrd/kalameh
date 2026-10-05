@@ -40,7 +40,7 @@ describe("SetupFlow Component", () => {
     })
   })
 
-  it("renders Step 1 as current step when institute has no operating phases", () => {
+  it("renders Step 1 as prominent current step when institute has no operating phases", () => {
     queryClient.setQueryData(
       operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
         .queryKey,
@@ -74,8 +74,8 @@ describe("SetupFlow Component", () => {
       screen.getByText("مسیر راه‌اندازی و چرخه آموزشی آموزشگاه")
     ).toBeInTheDocument()
     expect(
-      screen.getAllByText("۱. فازهای تحصیلی و تقویم سالانه").length
-    ).toBeGreaterThan(0)
+      screen.getByText("۱. فازهای تحصیلی و تقویم سالانه")
+    ).toBeInTheDocument()
     expect(
       screen.getByText("۲. ساخت هوشمند ترم‌ها (صفحه ترم‌ها)")
     ).toBeInTheDocument()
@@ -90,9 +90,9 @@ describe("SetupFlow Component", () => {
     ).toBeInTheDocument()
 
     // Step 1 action button should point to /operating-phases
-    const step1Link = screen.getAllByRole("link", { name: /تنظیم فازها/i })
-    expect(step1Link.length).toBeGreaterThan(0)
-    expect(step1Link[0]).toHaveAttribute("href", "/operating-phases")
+    const step1Link = screen.getByRole("link", { name: /تنظیم فازها/i })
+    expect(step1Link).toHaveAttribute("href", "/operating-phases")
+    expect(screen.getByText("گام فعلی شما")).toBeInTheDocument()
   })
 
   it("shows Step 3 as current when phases and terms exist", () => {
@@ -126,14 +126,14 @@ describe("SetupFlow Component", () => {
     )
 
     expect(
-      screen.getAllByText(/تعیین سطح زبان‌آموزان/i).length
-    ).toBeGreaterThan(0)
+      screen.getByRole("link", { name: /تعیین سطح زبان‌آموزان/i })
+    ).toBeInTheDocument()
     expect(
       screen.getByText("پیشرفت کلی: ۴۰٪ (۲ از ۵ گام تکمیل شده)")
     ).toBeInTheDocument()
   })
 
-  it("renders smart scheduling 3 sub-phases in Step 4", () => {
+  it("reduces data and detail on completed tasks to prevent getting attention", () => {
     queryClient.setQueryData(
       operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
         .queryKey,
@@ -145,7 +145,7 @@ describe("SetupFlow Component", () => {
     )
     queryClient.setQueryData(
       studentsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
-      [{ id: "s-1" }]
+      []
     )
     queryClient.setQueryData(
       schedulingResource.terms.toQuery({ instituteId: mockInstituteId })
@@ -163,19 +163,19 @@ describe("SetupFlow Component", () => {
       </QueryClientProvider>
     )
 
-    expect(screen.getByText("مراحل تقویم آموزشی هوشمند")).toBeInTheDocument()
+    // Completed steps (Step 1 and 2) show simple "مشاهده" and "تکمیل شده"
+    const completedBadges = screen.getAllByText("تکمیل شده")
+    expect(completedBadges.length).toBe(2)
+
+    // The long description of completed step 1 should NOT be shown in the compact card
     expect(
-      screen.getByText("محاسبه خودکار تقاضا و نیازهای کلاسی")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText("تولید هوشمند پیشنهادهای زمان‌بندی")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText("بررسی، ویرایش و انتخاب برنامه بهینه")
-    ).toBeInTheDocument()
+      screen.queryByText(
+        "تعریف شیفت‌های آموزشی، زمان‌بندی روزانه و تعطیلات سالانه آموزشگاه"
+      )
+    ).not.toBeInTheDocument()
   })
 
-  it("indicates all steps completed when classes are published", () => {
+  it("indicates all steps completed with 100% progress when classes are published", () => {
     queryClient.setQueryData(
       operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
         .queryKey,
@@ -213,9 +213,9 @@ describe("SetupFlow Component", () => {
     )
 
     expect(
-      screen.getByText(
-        "همه مراحل با موفقیت تکمیل شده‌اند و آموزشگاه آماده فعالیت کامل است."
-      )
+      screen.getByText("پیشرفت کلی: ۱۰۰٪ (۵ از ۵ گام تکمیل شده)")
     ).toBeInTheDocument()
+    const allCompletedBadges = screen.getAllByText("تکمیل شده")
+    expect(allCompletedBadges.length).toBe(5)
   })
 })

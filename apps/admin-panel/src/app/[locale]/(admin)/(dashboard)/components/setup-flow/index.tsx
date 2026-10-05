@@ -3,6 +3,13 @@
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
+  CalendarDays,
+  CalendarPlus,
+  GraduationCap,
+  Cpu,
+  CheckCheck,
+} from "lucide-react"
+import {
   operatingPhasesResource,
   termsResource,
   studentsResource,
@@ -10,13 +17,17 @@ import {
   classesResource,
 } from "@/lib/api"
 import {
-  Collapsible,
-  CollapsibleContent,
-} from "@workspace/ui/components/collapsible"
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@workspace/ui/components/carousel"
+import { useIsRtl } from "@/i18n/routing"
+import { cn } from "@workspace/ui/lib/utils"
 import type { SetupStep, SetupSubstep } from "./types"
 import { SetupFlowHeader } from "./setup-flow-header"
-import { SetupCurrentActionBanner } from "./setup-current-action-banner"
-import { SetupStepItem } from "./setup-step-item"
+import { SetupCarouselCard } from "./setup-carousel-card"
 
 export interface SetupFlowProps {
   instituteId: string
@@ -24,6 +35,8 @@ export interface SetupFlowProps {
 }
 
 export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
+  const isRtl = useIsRtl()
+
   const { data: operatingPhases = [] } = useQuery({
     ...operatingPhasesResource.list.toQuery({ instituteId }),
     enabled: Boolean(instituteId),
@@ -129,6 +142,7 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         status: s1Status,
         primaryHref: "/operating-phases",
         actionLabelKey: "configurePhases",
+        icon: CalendarDays,
       },
       {
         id: "terms",
@@ -139,6 +153,7 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         status: s2Status,
         primaryHref: "/terms",
         actionLabelKey: "generateTerms",
+        icon: CalendarPlus,
       },
       {
         id: "students",
@@ -149,6 +164,7 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         status: s3Status,
         primaryHref: "/students",
         actionLabelKey: "manageStudents",
+        icon: GraduationCap,
       },
       {
         id: "scheduling",
@@ -159,6 +175,7 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         status: s4Status,
         primaryHref: "/classes/scheduling",
         actionLabelKey: "smartScheduling",
+        icon: Cpu,
         substeps: schedulingSubsteps,
       },
       {
@@ -170,6 +187,7 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         status: s5Status,
         primaryHref: "/classes",
         actionLabelKey: "manageClasses",
+        icon: CheckCheck,
       },
     ]
   }, [
@@ -182,38 +200,55 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
   ])
 
   const completedCount = steps.filter((s) => s.status === "completed").length
-  const isAllCompleted = completedCount === steps.length
-  const currentStep = steps.find((s) => s.status === "current")
-
-  const [isExpanded, setIsExpanded] = React.useState(!isAllCompleted)
+  const currentStepIndex = steps.findIndex((s) => s.status === "current")
+  const startIndex = currentStepIndex >= 0 ? currentStepIndex : 0
 
   return (
-    <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
-      <SetupFlowHeader
-        completedCount={completedCount}
-        totalSteps={steps.length}
-        isExpanded={isExpanded}
-        onToggleExpand={() => setIsExpanded((prev) => !prev)}
-      />
+    <div className="flex flex-col gap-3">
+      <Carousel
+        opts={{
+          direction: isRtl ? "rtl" : "ltr",
+          align: "start",
+          startIndex,
+        }}
+        className="w-full"
+      >
+        <SetupFlowHeader
+          completedCount={completedCount}
+          totalSteps={steps.length}
+          actions={
+            <div className="flex items-center gap-1">
+              <CarouselPrevious className="static size-8 translate-x-0 translate-y-0" />
+              <CarouselNext className="static size-8 translate-x-0 translate-y-0" />
+            </div>
+          }
+        />
 
-      <SetupCurrentActionBanner
-        currentStep={currentStep}
-        isAllCompleted={isAllCompleted}
-      />
+        <div className="mt-2">
+          <CarouselContent className="-ms-3 py-1">
+            {steps.map((step) => {
+              const isComp = step.status === "completed"
+              const isCurr = step.status === "current"
 
-      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-        <CollapsibleContent>
-          <div className="mt-4 flex flex-col pt-2">
-            {steps.map((step, index) => (
-              <SetupStepItem
-                key={step.id}
-                step={step}
-                isLast={index === steps.length - 1}
-              />
-            ))}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+              return (
+                <CarouselItem
+                  key={step.id}
+                  className={cn(
+                    "ps-3",
+                    isComp
+                      ? "basis-[75%] sm:basis-[42%] md:basis-[30%] lg:basis-[22%] xl:basis-[18%]"
+                      : isCurr
+                        ? "basis-full sm:basis-[70%] md:basis-[50%] lg:basis-[38%] xl:basis-[32%]"
+                        : "basis-[80%] sm:basis-[48%] md:basis-[34%] lg:basis-[26%] xl:basis-[22%]"
+                  )}
+                >
+                  <SetupCarouselCard step={step} />
+                </CarouselItem>
+              )
+            })}
+          </CarouselContent>
+        </div>
+      </Carousel>
     </div>
   )
 }

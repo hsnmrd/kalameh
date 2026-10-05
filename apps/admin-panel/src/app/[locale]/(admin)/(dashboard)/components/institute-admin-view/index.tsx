@@ -3,15 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import {
-  Layers,
-  Plus,
-  Users,
-  Calendar,
-  ArrowRight,
-  ArrowLeft,
-} from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
+import { Layers, Users, Calendar, ArrowRight, ArrowLeft } from "lucide-react"
 import { Link, useIsRtl } from "@/i18n/routing"
 import { useActiveInstitute } from "@/lib/stores"
 import { authResource, institutesResource } from "@/lib/api"
@@ -41,30 +33,6 @@ export function InstituteAdminView() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            {instituteName}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {currentInstitute
-              ? t("instituteSubtitle", { name: currentInstitute.name })
-              : t("subtitle")}
-          </p>
-        </div>
-
-        <Link href="/classes">
-          <Button
-            size="auth"
-            className="h-11 cursor-pointer gap-2 rounded-xl bg-primary px-5 text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus className="size-4" />
-            <span>{t("addClass")}</span>
-          </Button>
-        </Link>
-      </div>
-
       {/* Institute Setup & Academic Cycle Workflow */}
       {targetInstituteId && (
         <SetupFlow
