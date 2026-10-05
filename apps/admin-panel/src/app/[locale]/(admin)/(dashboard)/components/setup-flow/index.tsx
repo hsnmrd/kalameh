@@ -110,27 +110,26 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
   )
 
   const steps: SetupStep[] = React.useMemo(() => {
-    const s1Status = isStep1Done ? "completed" : "current"
-    const s2Status = isStep2Done
-      ? "completed"
-      : isStep1Done
-        ? "current"
-        : "pending"
-    const s3Status = isStep3Done
-      ? "completed"
-      : isStep2Done
-        ? "current"
-        : "pending"
-    const s4Status = isStep4Done
-      ? "completed"
-      : isStep3Done || isStep2Done
-        ? "current"
-        : "pending"
-    const s5Status = isStep5Done
-      ? "completed"
-      : isStep4Done
-        ? "current"
-        : "pending"
+    const stepDoneFlags = [
+      isStep1Done,
+      isStep2Done,
+      isStep3Done,
+      isStep4Done,
+      isStep5Done,
+    ]
+
+    // Strictly ONE current step: the first uncompleted step in sequence
+    const firstIncompleteIndex = stepDoneFlags.findIndex((done) => !done)
+
+    const getStatus = (index: number): "completed" | "current" | "pending" => {
+      if (stepDoneFlags[index]) {
+        return "completed"
+      }
+      if (index === firstIncompleteIndex) {
+        return "current"
+      }
+      return "pending"
+    }
 
     return [
       {
@@ -139,7 +138,7 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         titleKey: "phases",
         descKey: "phases",
         actionHintKey: "phases",
-        status: s1Status,
+        status: getStatus(0),
         primaryHref: "/operating-phases",
         actionLabelKey: "configurePhases",
         icon: CalendarDays,
@@ -150,7 +149,7 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         titleKey: "terms",
         descKey: "terms",
         actionHintKey: "terms",
-        status: s2Status,
+        status: getStatus(1),
         primaryHref: "/terms",
         actionLabelKey: "generateTerms",
         icon: CalendarPlus,
@@ -161,7 +160,7 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         titleKey: "students",
         descKey: "students",
         actionHintKey: "students",
-        status: s3Status,
+        status: getStatus(2),
         primaryHref: "/students",
         actionLabelKey: "manageStudents",
         icon: GraduationCap,
@@ -172,7 +171,7 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         titleKey: "scheduling",
         descKey: "scheduling",
         actionHintKey: "scheduling",
-        status: s4Status,
+        status: getStatus(3),
         primaryHref: "/classes/scheduling",
         actionLabelKey: "smartScheduling",
         icon: Cpu,
@@ -184,7 +183,7 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         titleKey: "classes",
         descKey: "classes",
         actionHintKey: "classes",
-        status: s5Status,
+        status: getStatus(4),
         primaryHref: "/classes",
         actionLabelKey: "manageClasses",
         icon: CheckCheck,
@@ -235,11 +234,11 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
                   key={step.id}
                   className={cn(
                     "ps-3",
-                    isComp
-                      ? "basis-[75%] sm:basis-[42%] md:basis-[30%] lg:basis-[22%] xl:basis-[18%]"
-                      : isCurr
-                        ? "basis-full sm:basis-[70%] md:basis-[50%] lg:basis-[38%] xl:basis-[32%]"
-                        : "basis-[80%] sm:basis-[48%] md:basis-[34%] lg:basis-[26%] xl:basis-[22%]"
+                    isCurr
+                      ? "basis-[85%] sm:basis-[56%] md:basis-[42%] lg:basis-[32%] xl:basis-[28%]"
+                      : isComp
+                        ? "basis-[68%] sm:basis-[38%] md:basis-[26%] lg:basis-[20%] xl:basis-[18%]"
+                        : "basis-[68%] sm:basis-[38%] md:basis-[26%] lg:basis-[20%] xl:basis-[18%]"
                   )}
                 >
                   <SetupCarouselCard step={step} />
