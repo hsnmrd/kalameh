@@ -206,6 +206,18 @@ export class TermsService {
       );
     }
 
+    // Verify operating phase exists for this institute
+    const phase = await this.prisma.instituteOperatingPhase.findFirst({
+      where: {
+        id: dto.operatingPhaseId,
+        instituteId,
+      },
+    });
+
+    if (!phase) {
+      throw new BadRequestException('فاز تحصیلی انتخاب‌شده نامعتبر است.');
+    }
+
     const created = await this.prisma.term.create({
       data: {
         instituteId,
@@ -213,7 +225,7 @@ export class TermsService {
         startDate: start,
         endDate: end,
         isActive: dto.isActive ?? true,
-        operatingPhaseId: dto.operatingPhaseId ?? null,
+        operatingPhaseId: dto.operatingPhaseId,
       },
       include: {
         _count: { select: { classes: true } },
@@ -279,6 +291,19 @@ export class TermsService {
         throw new ConflictException(
           this.i18n.t('terms.termAlreadyExists', locale),
         );
+      }
+    }
+
+    if (dto.operatingPhaseId) {
+      const phase = await this.prisma.instituteOperatingPhase.findFirst({
+        where: {
+          id: dto.operatingPhaseId,
+          instituteId: existing.instituteId,
+        },
+      });
+
+      if (!phase) {
+        throw new BadRequestException('فاز تحصیلی انتخاب‌شده نامعتبر است.');
       }
     }
 
@@ -464,7 +489,7 @@ export class TermsService {
         startDate: Date;
         endDate: Date;
         isActive: boolean;
-        operatingPhaseId: string | null;
+        operatingPhaseId: string;
         createdAt: Date;
         updatedAt: Date;
         _count: { classes: number };

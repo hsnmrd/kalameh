@@ -1,4 +1,9 @@
-import { Injectable, ConflictException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { CreateOperatingPhaseDto } from './dto/create-operating-phase.dto';
@@ -214,6 +219,16 @@ export class OperatingPhasesService {
     );
 
     const instituteId = existing.instituteId;
+
+    const termsCount = await this.prisma.term.count({
+      where: { operatingPhaseId: id },
+    });
+
+    if (termsCount > 0) {
+      throw new BadRequestException(
+        `امکان حذف این فاز زمانی وجود ندارد؛ ${termsCount} ترم به آن متصل است.`,
+      );
+    }
 
     await this.prisma.instituteOperatingPhase.delete({
       where: { id },

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { OperatingPhasesService } from './operating-phases.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
@@ -14,6 +14,9 @@ describe('OperatingPhasesService', () => {
       create: jest.Mock;
       update: jest.Mock;
       delete: jest.Mock;
+    };
+    term: {
+      count: jest.Mock;
     };
   };
   let auditLogsService: {
@@ -35,6 +38,9 @@ describe('OperatingPhasesService', () => {
         create: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
+      },
+      term: {
+        count: jest.fn(),
       },
     };
 
@@ -204,6 +210,48 @@ describe('OperatingPhasesService', () => {
       expect(preview.breakInfo?.hasBreak).toBe(true);
       expect(preview.shift1Slots).toHaveLength(3);
       expect(preview.shift2Slots).toHaveLength(4);
+    });
+  });
+
+  describe('remove', () => {
+    it('throws BadRequestException if operating phase has associated terms', async () => {
+      prisma.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-1',
+        title: 'فاز مدارس',
+        instituteId: 'inst-1',
+      });
+      prisma.term.count.mockResolvedValue(2);
+
+      await expect(service.remove('phase-1', mockUser)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(prisma.instituteOperatingPhase.delete).not.toHaveBeenCalled();
+    });
+
+    it('deletes operating phase and logs audit log when no terms exist', async () => {
+      prisma.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-1',
+        title: 'فاز مدارس',
+        instituteId: 'inst-1',
+      });
+      prisma.term.count.mockResolvedValue(0);
+      prisma.instituteOperatingPhase.delete.mockResolvedValue({
+        id: 'phase-1',
+      });
+
+      const result = await service.remove('phase-1', mockUser);
+
+      expect(result).toEqual({ success: true });
+      expect(prisma.instituteOperatingPhase.delete).toHaveBeenCalledWith({
+        where: { id: 'phase-1' },
+      });
+      expect(auditLogsService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'DELETE',
+          module: 'OPERATING_PHASES',
+          entityId: 'phase-1',
+        }),
+      );
     });
   });
 });

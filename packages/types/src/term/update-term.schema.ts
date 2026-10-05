@@ -10,7 +10,7 @@ export const createUpdateTermSchema = (msg?: { titleMin?: string }) =>
     startDate: z.string().optional(),
     endDate: z.string().optional(),
     isActive: z.boolean().optional(),
-    operatingPhaseId: z.string().uuid().optional().nullable(),
+    operatingPhaseId: z.string().uuid().optional(),
   })
 
 export const UpdateTermSchema = createUpdateTermSchema()

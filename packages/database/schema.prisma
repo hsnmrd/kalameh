@@ -215,10 +215,10 @@ model Term {
   startDate        DateTime
   endDate          DateTime
   isActive         Boolean  @default(true)
-  operatingPhaseId String?
+  operatingPhaseId String
 
-  institute         Institute                @relation(fields: [instituteId], references: [id])
-  operatingPhase    InstituteOperatingPhase? @relation(fields: [operatingPhaseId], references: [id], onDelete: SetNull)
+  institute         Institute               @relation(fields: [instituteId], references: [id])
+  operatingPhase    InstituteOperatingPhase @relation(fields: [operatingPhaseId], references: [id], onDelete: Restrict)
   classes           Class[]
   classRequirements ClassRequirement[]
   schedulingRuns    SchedulingRun[]

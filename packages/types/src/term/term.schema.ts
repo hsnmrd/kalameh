@@ -18,7 +18,7 @@ export const TermSchema = z.object({
   endDate: z.string().or(z.date()),
   isActive: z.boolean(),
   lifecycleStatus: TermLifecycleStatusSchema.optional(),
-  operatingPhaseId: z.string().uuid().nullable().optional(),
+  operatingPhaseId: z.string().uuid(),
   operatingPhase: z
     .object({
       id: z.string().uuid(),

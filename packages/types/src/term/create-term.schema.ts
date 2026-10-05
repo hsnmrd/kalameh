@@ -4,6 +4,7 @@ export const createCreateTermSchema = (msg?: {
   titleMin?: string
   startDateRequired?: string
   endDateRequired?: string
+  operatingPhaseRequired?: string
 }) =>
   z.object({
     title: z
@@ -23,7 +24,16 @@ export const createCreateTermSchema = (msg?: {
         msg?.endDateRequired ? { message: msg.endDateRequired } : undefined
       ),
     isActive: z.boolean().default(true),
-    operatingPhaseId: z.string().uuid().optional().nullable(),
+    operatingPhaseId: z
+      .string({
+        required_error: msg?.operatingPhaseRequired,
+        invalid_type_error: msg?.operatingPhaseRequired,
+      })
+      .uuid(
+        msg?.operatingPhaseRequired
+          ? { message: msg.operatingPhaseRequired }
+          : undefined
+      ),
     instituteId: z.string().uuid().optional(),
   })
 

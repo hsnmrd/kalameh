@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import { Field, FieldLabel } from "@workspace/ui/components/field"
+import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import {
   ResponsiveCombobox,
   type ComboboxOption,
@@ -15,9 +15,14 @@ import { useActiveInstitute } from "@/lib/stores"
 export interface PhaseSelectFieldProps {
   value?: string | null
   onChange: (phaseId: string | null, phase?: OperatingPhaseWithSlots) => void
+  error?: string
 }
 
-export function PhaseSelectField({ value, onChange }: PhaseSelectFieldProps) {
+export function PhaseSelectField({
+  value,
+  onChange,
+  error,
+}: PhaseSelectFieldProps) {
   const t = useTranslations("terms")
   const { activeInstituteId } = useActiveInstitute()
 
@@ -36,7 +41,7 @@ export function PhaseSelectField({ value, onChange }: PhaseSelectFieldProps) {
   }, [phases])
 
   return (
-    <Field>
+    <Field data-invalid={Boolean(error)}>
       <FieldLabel>{t("createModal.operatingPhase")}</FieldLabel>
       <ResponsiveCombobox
         items={options}
@@ -47,8 +52,9 @@ export function PhaseSelectField({ value, onChange }: PhaseSelectFieldProps) {
         }}
         placeholder={t("createModal.operatingPhasePlaceholder")}
         drawerTitle={t("createModal.operatingPhase")}
-        clearable
+        clearable={false}
       />
+      {error && <FieldError>{error}</FieldError>}
     </Field>
   )
 }

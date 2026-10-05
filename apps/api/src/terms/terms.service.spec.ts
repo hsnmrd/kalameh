@@ -34,6 +34,9 @@ describe('TermsService', () => {
         delete: jest.fn(),
       },
       instituteOperatingPhase: {
+        findFirst: jest
+          .fn()
+          .mockResolvedValue({ id: 'phase-1', instituteId: 'inst-1' }),
         findFirstOrThrow: jest.fn(),
       },
       institute: {
@@ -96,6 +99,7 @@ describe('TermsService', () => {
     it('should throw BadRequestException if startDate >= endDate', async () => {
       const dto = {
         title: 'ترم نامعتبر',
+        operatingPhaseId: 'phase-1',
         startDate: '2026-12-21',
         endDate: '2026-09-23',
         isActive: true,
@@ -109,6 +113,7 @@ describe('TermsService', () => {
     it('should throw ConflictException if term with same title exists in institute', async () => {
       const dto = {
         title: 'پاییز ۱۴۰۵',
+        operatingPhaseId: 'phase-1',
         startDate: '2026-09-23',
         endDate: '2026-12-21',
         isActive: true,
@@ -121,14 +126,35 @@ describe('TermsService', () => {
       );
     });
 
-    it('should create new term when valid', async () => {
+    it('should throw BadRequestException if operatingPhaseId is invalid for institute', async () => {
       const dto = {
         title: 'پاییز ۱۴۰۵',
+        operatingPhaseId: 'invalid-phase',
         startDate: '2026-09-23',
         endDate: '2026-12-21',
         isActive: true,
       };
 
+      prismaService.instituteOperatingPhase.findFirst.mockResolvedValue(null);
+
+      await expect(service.create(dto, mockAdmin)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should create new term when valid', async () => {
+      const dto = {
+        title: 'پاییز ۱۴۰۵',
+        operatingPhaseId: 'phase-1',
+        startDate: '2026-09-23',
+        endDate: '2026-12-21',
+        isActive: true,
+      };
+
+      prismaService.instituteOperatingPhase.findFirst.mockResolvedValue({
+        id: 'phase-1',
+        instituteId: 'inst-1',
+      });
       prismaService.term.findFirst.mockResolvedValue(null);
       prismaService.term.create.mockResolvedValue({
         id: 'new-term-id',
@@ -155,12 +181,17 @@ describe('TermsService', () => {
       };
       const dto = {
         title: 'زمستان ۱۴۰۵',
+        operatingPhaseId: 'phase-1',
         startDate: '2026-12-22',
         endDate: '2027-03-20',
         isActive: true,
         instituteId: 'target-inst-id',
       };
 
+      prismaService.instituteOperatingPhase.findFirst.mockResolvedValue({
+        id: 'phase-1',
+        instituteId: 'target-inst-id',
+      });
       prismaService.term.findFirst.mockResolvedValue(null);
       prismaService.term.create.mockResolvedValue({
         id: 'new-term-id-2',
@@ -178,6 +209,7 @@ describe('TermsService', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             instituteId: 'target-inst-id',
+            operatingPhaseId: 'phase-1',
           }),
         }),
       );

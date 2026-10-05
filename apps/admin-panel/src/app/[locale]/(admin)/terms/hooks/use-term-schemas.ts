@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import {
   createCreateTermSchema,
   createUpdateTermSchema,
@@ -11,9 +12,12 @@ import {
 export type { CreateTermInput, UpdateTermInput }
 
 export function useCreateTermSchema() {
+  const t = useTranslations("terms")
   return React.useMemo(() => {
-    return createCreateTermSchema()
-  }, [])
+    return createCreateTermSchema({
+      operatingPhaseRequired: t("createModal.operatingPhaseRequired"),
+    })
+  }, [t])
 }
 
 export function useUpdateTermSchema() {

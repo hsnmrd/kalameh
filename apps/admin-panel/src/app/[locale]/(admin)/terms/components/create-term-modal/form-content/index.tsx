@@ -90,7 +90,11 @@ export function FormContent({
             control={control}
             name="operatingPhaseId"
             render={({ field }) => (
-              <PhaseSelectField value={field.value} onChange={field.onChange} />
+              <PhaseSelectField
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.operatingPhaseId?.message}
+              />
             )}
           />
         </div>

@@ -33,7 +33,7 @@ const DEFAULT_VALUES: CreateTermInput = {
   startDate: "",
   endDate: "",
   isActive: true,
-  operatingPhaseId: undefined,
+  operatingPhaseId: "",
 }
 
 export function CreateTermModal({
