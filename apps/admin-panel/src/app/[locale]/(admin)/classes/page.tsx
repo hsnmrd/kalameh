@@ -1,32 +1,48 @@
 "use client"
 
 import * as React from "react"
+import dynamic from "next/dynamic"
 import { useQuery } from "@tanstack/react-query"
 import type { ClassDto } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { classesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { ModalGateway, type ModalRegistry } from "@/components/modal-gateway"
 import { ClassesFilter } from "./components/classes-filter"
 import { ClassesTable } from "./components/classes-table"
 import { ClassesList } from "./components/classes-list"
-import { CreateClassModal } from "./components/create-class-modal"
-import { EditClassModal } from "./components/edit-class-modal"
-import { ClassDetailsModal } from "./components/class-details-modal"
-import { DeleteClassModal } from "./components/delete-class-modal"
 import { ClassesFabDrawer } from "./components/classes-fab-drawer"
 
-export default function ClassesPage() {
-  const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [editingClass, setEditingClass] = React.useState<ClassDto | null>(null)
-  const [viewingClass, setViewingClass] = React.useState<ClassDto | null>(null)
-  const [deletingClass, setDeletingClass] = React.useState<ClassDto | null>(
-    null
-  )
+const modalRegistry: ModalRegistry = {
+  createClass: dynamic(
+    () =>
+      import("./components/create-class-modal").then((m) => m.CreateClassModal),
+    { ssr: false }
+  ),
+  editClass: dynamic(
+    () => import("./components/edit-class-modal").then((m) => m.EditClassModal),
+    { ssr: false }
+  ),
+  classDetails: dynamic(
+    () =>
+      import("./components/class-details-modal").then(
+        (m) => m.ClassDetailsModal
+      ),
+    { ssr: false }
+  ),
+  deleteClass: dynamic(
+    () =>
+      import("./components/delete-class-modal").then((m) => m.DeleteClassModal),
+    { ssr: false }
+  ),
+}
 
+export default function ClassesPage() {
+  const { openModal } = useModal()
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
 
@@ -49,6 +65,12 @@ export default function ClassesPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const handleCreate = () => openModal("createClass")
+  const handleEdit = (cls: ClassDto) => openModal("editClass", { cls })
+  const handleViewDetails = (cls: ClassDto) =>
+    openModal("classDetails", { cls })
+  const handleDelete = (cls: ClassDto) => openModal("deleteClass", { cls })
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_CLASSES} mode="forbidden">
@@ -61,53 +83,28 @@ export default function ClassesPage() {
               onCourseChange={setCourseId}
               search={search}
               onSearchChange={setSearch}
-              onAddClick={() => setCreateModalOpen(true)}
+              onAddClick={handleCreate}
             />
           }
           modals={
-            <>
-              <CreateClassModal
-                open={createModalOpen}
-                onClose={() => setCreateModalOpen(false)}
-              />
-
-              <EditClassModal
-                cls={editingClass}
-                open={Boolean(editingClass)}
-                onClose={() => setEditingClass(null)}
-              />
-
-              <ClassDetailsModal
-                cls={viewingClass}
-                open={Boolean(viewingClass)}
-                onClose={() => setViewingClass(null)}
-                onEdit={(cls) => {
-                  setViewingClass(null)
-                  setEditingClass(cls)
-                }}
-                onDelete={(cls) => {
-                  setViewingClass(null)
-                  setDeletingClass(cls)
-                }}
-              />
-
-              <DeleteClassModal
-                cls={deletingClass}
-                open={Boolean(deletingClass)}
-                onClose={() => setDeletingClass(null)}
-              />
-            </>
+            <ModalGateway
+              registry={modalRegistry}
+              extraProps={{
+                onEdit: handleEdit,
+                onDelete: handleDelete,
+              }}
+            />
           }
-          fab={<ClassesFabDrawer onAddClick={() => setCreateModalOpen(true)} />}
+          fab={<ClassesFabDrawer onAddClick={handleCreate} />}
         >
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
             <ClassesTable
               classes={classes}
               isLoading={isLoading}
-              onEdit={(cls) => setEditingClass(cls)}
-              onViewDetails={(cls) => setViewingClass(cls)}
-              onDelete={(cls) => setDeletingClass(cls)}
+              onEdit={handleEdit}
+              onViewDetails={handleViewDetails}
+              onDelete={handleDelete}
             />
           </div>
 
@@ -116,9 +113,9 @@ export default function ClassesPage() {
             <ClassesList
               classes={classes}
               isLoading={isLoading}
-              onEdit={(cls) => setEditingClass(cls)}
-              onViewDetails={(cls) => setViewingClass(cls)}
-              onDelete={(cls) => setDeletingClass(cls)}
+              onEdit={handleEdit}
+              onViewDetails={handleViewDetails}
+              onDelete={handleDelete}
             />
           </div>
         </AdminPageShell>
