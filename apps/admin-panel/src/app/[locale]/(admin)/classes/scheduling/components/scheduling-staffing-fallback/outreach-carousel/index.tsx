@@ -116,6 +116,7 @@ export function OutreachCarousel({
           {teacherGroups.map((group, index) => (
             <CarouselItem
               key={group.teacher.id}
+              data-testid="outreach-teacher-slide"
               className={cn("ps-3", hasMultiple ? "basis-[90%]" : "basis-full")}
             >
               <OutreachOptionItem

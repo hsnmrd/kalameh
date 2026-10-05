@@ -230,6 +230,7 @@ export interface SchedulingPlanCalendarClassCardProps {
   onRemoveTeacher?: (proposal: Proposal) => void
   onChangeDeliveryMode?: (proposal: Proposal) => Promise<boolean | void> | void
   isDeliveryModePending?: boolean
+  onRoomClick?: (proposal: Proposal) => void
 }
 
 export function SchedulingPlanCalendarClassCard({
@@ -252,6 +253,7 @@ export function SchedulingPlanCalendarClassCard({
   onRemoveTeacher,
   onChangeDeliveryMode,
   isDeliveryModePending = false,
+  onRoomClick,
 }: SchedulingPlanCalendarClassCardProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -341,15 +343,18 @@ export function SchedulingPlanCalendarClassCard({
             aria-hidden="true"
           />
           <h5
-            className="truncate text-sm font-bold text-foreground"
+            className="shrink-0 text-sm font-bold text-foreground"
             title={proposal.course.title}
           >
             {hasSameCourse ? (
-              <mark className="inline-block max-w-full truncate rounded-none bg-[#ffff00] px-0.5 text-black">
-                {proposal.course.title}
-              </mark>
+              <span
+                data-testid={`same-course-badge-${proposal.id}`}
+                className="inline-flex shrink-0 items-center rounded border border-warning/50 bg-[#fef08a] px-1.5 py-0.5 text-xs font-bold text-black"
+              >
+                {t("calendarView.sameCourseBadge")}
+              </span>
             ) : (
-              proposal.course.title
+              <span className="truncate">{proposal.course.title}</span>
             )}
           </h5>
           {proposal.title && proposal.title !== proposal.course.title && (
@@ -369,7 +374,23 @@ export function SchedulingPlanCalendarClassCard({
         <div className="flex min-w-0 shrink items-center gap-1.5">
           {/* Location (Classroom / Room) */}
           <div
-            className="flex max-w-[110px] min-w-0 shrink items-center gap-1 rounded-md bg-muted/40 px-1.5 py-0.5 text-xs text-muted-foreground sm:max-w-[130px] md:max-w-[140px]"
+            data-testid={`calendar-class-room-badge-${proposal.id}`}
+            onClick={
+              onRoomClick && !isOnline
+                ? (e) => {
+                    e.stopPropagation()
+                    onRoomClick(proposal)
+                  }
+                : undefined
+            }
+            role={onRoomClick && !isOnline ? "button" : undefined}
+            tabIndex={onRoomClick && !isOnline ? 0 : undefined}
+            className={cn(
+              "flex max-w-[85px] min-w-0 shrink items-center gap-1 rounded-md bg-muted/40 px-1.5 py-0.5 text-xs text-muted-foreground transition-colors sm:max-w-[105px]",
+              onRoomClick &&
+                !isOnline &&
+                "cursor-pointer hover:bg-muted hover:text-foreground active:scale-95"
+            )}
             title={locationName}
           >
             {isOnline ? (
@@ -491,14 +512,6 @@ export function SchedulingPlanCalendarClassCard({
             ) : (
               <span className="truncate text-xs font-bold text-foreground">
                 {teacherName}
-              </span>
-            )}
-            {hasSameTeacher && (
-              <span
-                data-testid={`same-teacher-badge-${proposal.id}`}
-                className="shrink-0 rounded border border-primary/40 bg-primary/15 px-1 py-0.5 text-[9px] font-bold text-primary"
-              >
-                {t("calendarView.sameTeacherBadge")}
               </span>
             )}
           </div>

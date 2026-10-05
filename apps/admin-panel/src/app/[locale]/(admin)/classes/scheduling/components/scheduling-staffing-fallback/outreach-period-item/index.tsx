@@ -1,14 +1,7 @@
 "use client"
 
 import { useLocale, useTranslations } from "next-intl"
-import {
-  CalendarClock,
-  Check,
-  CheckCircle2,
-  DoorOpen,
-  X,
-  XCircle,
-} from "lucide-react"
+import { CalendarClock, Check, CheckCircle2, X, XCircle } from "lucide-react"
 import type { SchedulingTeacherOutreachOption } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -125,83 +118,49 @@ export function OutreachPeriodItem({
         </div>
       )}
 
-      {/* Classroom Info & Action Buttons */}
-      <div className="flex flex-col gap-2.5 border-t border-border/40 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
-        <div
-          className={cn(
-            "flex flex-wrap items-center gap-1.5 text-xs",
-            needsRoom ? "text-warning" : "text-muted-foreground"
-          )}
-        >
-          <DoorOpen
-            aria-hidden
-            className={cn(
-              "size-3.5 shrink-0",
-              needsRoom ? "text-warning" : "text-muted-foreground"
+      {/* Action Buttons at Bottom of Card */}
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-border/40 pt-2.5">
+        {canClickReject && (
+          <Button
+            type="button"
+            variant={isRejected ? "destructive" : "outline"}
+            size="sm"
+            aria-pressed={isRejected}
+            disabled={isPending}
+            onClick={() => onToggle(option, "REJECT")}
+            className="h-8 flex-1 gap-1 rounded-lg px-2 text-xs font-medium"
+          >
+            <span>{t("staffingFallback.teacherRejectedButton")}</span>
+            {isPending && pendingAction === "REJECT" ? (
+              <Spinner className="size-3.5 shrink-0" />
+            ) : isRejected ? (
+              <XCircle aria-hidden className="size-3.5 shrink-0" />
+            ) : (
+              <X aria-hidden className="size-3.5 shrink-0" />
             )}
-          />
-          <span className="font-semibold text-foreground">
-            {option.deliveryMode === "ONLINE"
-              ? t("staffingFallback.online")
-              : needsRoom
-                ? t("staffingFallback.roomNeeded")
-                : t("staffingFallback.availableRoomsLabel")}
-          </span>
-          {option.deliveryMode === "IN_PERSON" &&
-            option.availableClassrooms.map((room) => (
-              <Badge
-                key={room.id}
-                variant="outline"
-                className="bg-background text-[11px] font-normal"
-              >
-                {room.name} ({formatNumber(room.capacity, locale)} نفر)
-              </Badge>
-            ))}
-        </div>
+          </Button>
+        )}
 
-        <div className="flex flex-wrap items-center gap-2">
-          {canClickReject && (
-            <Button
-              type="button"
-              variant={isRejected ? "destructive" : "outline"}
-              size="sm"
-              aria-pressed={isRejected}
-              disabled={isPending}
-              onClick={() => onToggle(option, "REJECT")}
-              className="h-8 gap-1.5 rounded-lg px-2.5 text-xs font-medium"
-            >
-              <span>{t("staffingFallback.teacherRejectedButton")}</span>
-              {isPending && pendingAction === "REJECT" ? (
-                <Spinner className="size-3.5 shrink-0" />
-              ) : isRejected ? (
-                <XCircle aria-hidden className="size-3.5 shrink-0" />
-              ) : (
-                <X aria-hidden className="size-3.5 shrink-0" />
-              )}
-            </Button>
-          )}
-
-          {canClickAccept && (
-            <Button
-              type="button"
-              variant={isAccepted ? "default" : "outline"}
-              size="sm"
-              aria-pressed={isAccepted}
-              disabled={isPending}
-              onClick={() => onToggle(option, "ACCEPT")}
-              className="h-8 gap-1.5 rounded-lg px-2.5 text-xs font-medium"
-            >
-              <span>{t("staffingFallback.teacherAcceptedButton")}</span>
-              {isPending && pendingAction === "ACCEPT" ? (
-                <Spinner className="size-3.5 shrink-0" />
-              ) : isAccepted ? (
-                <CheckCircle2 aria-hidden className="size-3.5 shrink-0" />
-              ) : (
-                <Check aria-hidden className="size-3.5 shrink-0" />
-              )}
-            </Button>
-          )}
-        </div>
+        {canClickAccept && (
+          <Button
+            type="button"
+            variant={isAccepted ? "default" : "outline"}
+            size="sm"
+            aria-pressed={isAccepted}
+            disabled={isPending}
+            onClick={() => onToggle(option, "ACCEPT")}
+            className="h-8 flex-1 gap-1 rounded-lg px-2 text-xs font-medium"
+          >
+            <span>{t("staffingFallback.teacherAcceptedButton")}</span>
+            {isPending && pendingAction === "ACCEPT" ? (
+              <Spinner className="size-3.5 shrink-0" />
+            ) : isAccepted ? (
+              <CheckCircle2 aria-hidden className="size-3.5 shrink-0" />
+            ) : (
+              <Check aria-hidden className="size-3.5 shrink-0" />
+            )}
+          </Button>
+        )}
       </div>
     </div>
   )

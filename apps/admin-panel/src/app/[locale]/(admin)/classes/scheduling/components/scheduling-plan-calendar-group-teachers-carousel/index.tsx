@@ -3,7 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
-import { UserCheck } from "lucide-react"
+import { ChevronDown, UserCheck } from "lucide-react"
 import type { SchedulingTeacherCalendar, WeekDay } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -38,6 +38,7 @@ export interface SchedulingPlanCalendarGroupTeachersCarouselProps {
   slotKey: string
   teachers: GroupTeacherAccessibilityItem[]
   isCollapsed?: boolean
+  defaultExpanded?: boolean
   onSelectTeacher?: (teacherId: string) => void
   onSwapWithTeacher?: (
     target: FreeTeacherSwapTarget,
@@ -51,12 +52,20 @@ export function SchedulingPlanCalendarGroupTeachersCarousel({
   slotKey,
   teachers,
   isCollapsed = false,
+  defaultExpanded = false,
   onSelectTeacher,
   onSwapWithTeacher,
   className,
 }: SchedulingPlanCalendarGroupTeachersCarouselProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
+  const [isExpanded, setIsExpanded] = React.useState(defaultExpanded)
+
+  const hasInteractiveTeacher = React.useMemo(() => {
+    return teachers.some((t) => Boolean(t.isSelected || t.isSwappable))
+  }, [teachers])
+
+  const shouldShowContent = isExpanded || hasInteractiveTeacher
 
   if (teachers.length === 0) return null
 
@@ -77,7 +86,19 @@ export function SchedulingPlanCalendarGroupTeachersCarousel({
         className="w-full"
       >
         <div className="mb-1.5 flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            aria-expanded={shouldShowContent}
+            className="h-auto gap-1.5 p-0 text-start font-normal hover:bg-transparent"
+            title={
+              shouldShowContent
+                ? t("calendarView.toggleMastersCollapse")
+                : t("calendarView.toggleMastersExpand")
+            }
+          >
             <UserCheck
               aria-hidden
               className="size-3.5 shrink-0 text-muted-foreground"
@@ -94,8 +115,15 @@ export function SchedulingPlanCalendarGroupTeachersCarousel({
                 count: formatNumber(teachers.length, locale),
               })}
             </Badge>
-          </div>
-          {teachers.length > 1 && (
+            <ChevronDown
+              aria-hidden
+              className={cn(
+                "size-3 text-muted-foreground transition-transform duration-200",
+                shouldShowContent && "rotate-180"
+              )}
+            />
+          </Button>
+          {shouldShowContent && teachers.length > 1 && (
             <div className="flex items-center gap-1">
               <CarouselPrevious
                 type="button"
@@ -109,122 +137,128 @@ export function SchedulingPlanCalendarGroupTeachersCarousel({
           )}
         </div>
 
-        <CarouselContent className="-ms-2">
-          {teachers.map((item) => {
-            const teacherName =
-              `${item.teacher.firstName} ${item.teacher.lastName}`.trim()
-            const subtitle =
-              item.status === "TEACHING"
-                ? (item.teachingClassTitle ?? t("calendarView.teacherTeaching"))
-                : (item.suggestedCourseTitle ??
-                  item.levelRange ??
-                  t("calendarView.teacherAccessible"))
+        {shouldShowContent && (
+          <CarouselContent className="-ms-2">
+            {teachers.map((item) => {
+              const teacherName =
+                `${item.teacher.firstName} ${item.teacher.lastName}`.trim()
+              const subtitle =
+                item.status === "TEACHING"
+                  ? (item.teachingClassTitle ??
+                    t("calendarView.teacherTeaching"))
+                  : (item.suggestedCourseTitle ??
+                    item.levelRange ??
+                    t("calendarView.teacherAccessible"))
 
-            return (
-              <CarouselItem
-                key={item.teacher.id}
-                className="basis-[165px] ps-2 sm:basis-[185px]"
-              >
-                <Button
-                  variant="ghost"
-                  data-testid={`group-teacher-card-${item.teacher.id}-${track}-${slotKey}`}
-                  data-selected={item.isSelected ? "true" : undefined}
-                  data-status={item.status}
-                  data-swappable={item.isSwappable ? "true" : undefined}
-                  onClick={() => {
-                    if (
-                      item.isSwappable &&
-                      item.swapEvaluation &&
-                      item.swapTarget
-                    ) {
-                      onSwapWithTeacher?.(item.swapTarget, item.swapEvaluation)
-                    } else if (onSelectTeacher) {
-                      onSelectTeacher(item.teacher.id)
-                    }
-                  }}
-                  className={cn(
-                    "group relative flex h-auto w-full flex-col items-stretch justify-between gap-1.5 overflow-hidden rounded-xl border p-2 text-start shadow-2xs transition-all duration-200 select-none",
-                    item.isSelected
-                      ? "border-primary bg-primary/10 ring-2 ring-primary/60"
-                      : item.status === "AVAILABLE"
-                        ? "border-success/40 bg-success/5 hover:border-success/70 hover:bg-success/10"
-                        : "border-border/60 bg-background/80 hover:border-border hover:bg-muted/40",
-                    item.isSwappable &&
-                      "animate-calendar-card-shake ring-2 ring-primary/60",
-                    item.isDimmed &&
-                      "opacity-30 grayscale hover:opacity-70 hover:grayscale-0",
-                    isCollapsed && "gap-1 p-1.5"
-                  )}
-                  aria-label={`${teacherName} - ${
-                    item.status === "AVAILABLE"
-                      ? t("calendarView.availableBadge")
-                      : item.status === "TEACHING"
-                        ? t("calendarView.teachingBadge")
-                        : t("calendarView.unavailableBadge")
-                  }`}
+              return (
+                <CarouselItem
+                  key={item.teacher.id}
+                  className="basis-[165px] ps-2 sm:basis-[185px]"
                 >
-                  {/* Top Row: Avatar & Name */}
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <div className="relative size-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
-                      {item.teacher.avatarUrl ? (
-                        <Image
-                          src={getAssetUrl(item.teacher.avatarUrl)}
-                          alt={teacherName}
-                          fill
-                          unoptimized
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="flex size-full items-center justify-center text-[10px] font-bold text-muted-foreground">
-                          {item.teacher.firstName[0]}
-                        </div>
-                      )}
-                    </div>
-                    <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground">
-                      {teacherName}
-                    </span>
-                  </div>
-
-                  {/* Bottom Row: Status Badge & Subtitle */}
-                  <div className="flex min-w-0 items-center justify-between gap-1 pt-0.5">
-                    {item.status === "AVAILABLE" ? (
-                      <Badge
-                        variant="outline"
-                        data-testid={`teacher-status-badge-${item.teacher.id}-${track}-${slotKey}`}
-                        className="h-4 shrink-0 border-success/60 bg-success/15 px-1.5 py-0 text-[9px] font-medium text-success-foreground"
-                      >
-                        {t("calendarView.availableBadge")}
-                      </Badge>
-                    ) : item.status === "TEACHING" ? (
-                      <Badge
-                        variant="outline"
-                        data-testid={`teacher-status-badge-${item.teacher.id}-${track}-${slotKey}`}
-                        className="h-4 shrink-0 border-primary/60 bg-primary/15 px-1.5 py-0 text-[9px] font-medium text-primary"
-                      >
-                        {t("calendarView.teachingBadge")}
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        data-testid={`teacher-status-badge-${item.teacher.id}-${track}-${slotKey}`}
-                        className="h-4 shrink-0 border-border/60 bg-muted/40 px-1.5 py-0 text-[9px] font-medium text-muted-foreground"
-                      >
-                        {t("calendarView.unavailableBadge")}
-                      </Badge>
+                  <Button
+                    variant="ghost"
+                    data-testid={`group-teacher-card-${item.teacher.id}-${track}-${slotKey}`}
+                    data-selected={item.isSelected ? "true" : undefined}
+                    data-status={item.status}
+                    data-swappable={item.isSwappable ? "true" : undefined}
+                    onClick={() => {
+                      if (
+                        item.isSwappable &&
+                        item.swapEvaluation &&
+                        item.swapTarget
+                      ) {
+                        onSwapWithTeacher?.(
+                          item.swapTarget,
+                          item.swapEvaluation
+                        )
+                      } else if (onSelectTeacher) {
+                        onSelectTeacher(item.teacher.id)
+                      }
+                    }}
+                    className={cn(
+                      "group relative flex h-auto w-full flex-col items-stretch justify-between gap-1.5 overflow-hidden rounded-xl border p-2 text-start shadow-2xs transition-all duration-200 select-none",
+                      item.isSelected
+                        ? "border-primary bg-primary/10 ring-2 ring-primary/60"
+                        : item.status === "AVAILABLE"
+                          ? "border-success/40 bg-success/5 hover:border-success/70 hover:bg-success/10"
+                          : "border-border/60 bg-background/80 hover:border-border hover:bg-muted/40",
+                      item.isSwappable &&
+                        "animate-calendar-card-shake ring-2 ring-primary/60",
+                      item.isDimmed &&
+                        "opacity-30 grayscale hover:opacity-70 hover:grayscale-0",
+                      isCollapsed && "gap-1 p-1.5"
                     )}
+                    aria-label={`${teacherName} - ${
+                      item.status === "AVAILABLE"
+                        ? t("calendarView.availableBadge")
+                        : item.status === "TEACHING"
+                          ? t("calendarView.teachingBadge")
+                          : t("calendarView.unavailableBadge")
+                    }`}
+                  >
+                    {/* Top Row: Avatar & Name */}
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <div className="relative size-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
+                        {item.teacher.avatarUrl ? (
+                          <Image
+                            src={getAssetUrl(item.teacher.avatarUrl)}
+                            alt={teacherName}
+                            fill
+                            unoptimized
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex size-full items-center justify-center text-[10px] font-bold text-muted-foreground">
+                            {item.teacher.firstName[0]}
+                          </div>
+                        )}
+                      </div>
+                      <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground">
+                        {teacherName}
+                      </span>
+                    </div>
 
-                    <span
-                      title={subtitle}
-                      className="min-w-0 flex-1 truncate text-end text-[10px] text-muted-foreground"
-                    >
-                      {subtitle}
-                    </span>
-                  </div>
-                </Button>
-              </CarouselItem>
-            )
-          })}
-        </CarouselContent>
+                    {/* Bottom Row: Status Badge & Subtitle */}
+                    <div className="flex min-w-0 items-center justify-between gap-1 pt-0.5">
+                      {item.status === "AVAILABLE" ? (
+                        <Badge
+                          variant="outline"
+                          data-testid={`teacher-status-badge-${item.teacher.id}-${track}-${slotKey}`}
+                          className="h-4 shrink-0 border-success/60 bg-success/15 px-1.5 py-0 text-[9px] font-medium text-success-foreground"
+                        >
+                          {t("calendarView.availableBadge")}
+                        </Badge>
+                      ) : item.status === "TEACHING" ? (
+                        <Badge
+                          variant="outline"
+                          data-testid={`teacher-status-badge-${item.teacher.id}-${track}-${slotKey}`}
+                          className="h-4 shrink-0 border-primary/60 bg-primary/15 px-1.5 py-0 text-[9px] font-medium text-primary"
+                        >
+                          {t("calendarView.teachingBadge")}
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          data-testid={`teacher-status-badge-${item.teacher.id}-${track}-${slotKey}`}
+                          className="h-4 shrink-0 border-border/60 bg-muted/40 px-1.5 py-0 text-[9px] font-medium text-muted-foreground"
+                        >
+                          {t("calendarView.unavailableBadge")}
+                        </Badge>
+                      )}
+
+                      <span
+                        title={subtitle}
+                        className="min-w-0 flex-1 truncate text-end text-[10px] text-muted-foreground"
+                      >
+                        {subtitle}
+                      </span>
+                    </div>
+                  </Button>
+                </CarouselItem>
+              )
+            })}
+          </CarouselContent>
+        )}
       </Carousel>
     </div>
   )

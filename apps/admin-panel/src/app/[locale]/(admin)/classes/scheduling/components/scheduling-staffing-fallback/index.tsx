@@ -1,22 +1,20 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { CalendarX2, UserPlus } from "lucide-react"
+import { CalendarX2, PhoneCall, UserPlus } from "lucide-react"
 import type {
   SchedulingStaffingFallback as StaffingFallbackDto,
   SchedulingTeacherOutreachOption,
 } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { toast } from "@workspace/ui/components/sonner"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
 import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
 import { useActiveInstitute } from "@/lib/stores"
-import {
-  SchedulingNewTeacherAssignmentList,
-  type NewTeacherAssignment,
-} from "../scheduling-new-teacher-assignment-list"
+import type { NewTeacherAssignment } from "../scheduling-new-teacher-assignment-list"
 import { OutreachCarousel } from "./outreach-carousel"
 
 interface SchedulingStaffingFallbackProps {
@@ -26,6 +24,12 @@ interface SchedulingStaffingFallbackProps {
   planId?: string
   planStatus?: string
   unresolvedRequirementId?: string
+  unavailableTeachers?: Array<{
+    id: string
+    firstName: string
+    lastName: string
+    avatarUrl?: string | null
+  }>
 }
 
 export function SchedulingStaffingFallback({
@@ -35,6 +39,7 @@ export function SchedulingStaffingFallback({
   planId,
   planStatus,
   unresolvedRequirementId,
+  unavailableTeachers,
 }: SchedulingStaffingFallbackProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -171,32 +176,88 @@ export function SchedulingStaffingFallback({
         </div>
       )}
 
-      <div className="mt-3 rounded-xl bg-muted/40 p-3.5">
-        <div className="flex items-start gap-2">
-          <UserPlus
+      <div className="mt-3 rounded-xl border border-border/60 bg-muted/20 p-3.5">
+        <div className="flex items-start gap-2.5">
+          <PhoneCall
             aria-hidden
             className="mt-0.5 size-4 shrink-0 text-foreground"
           />
-          <div className="min-w-0">
-            <Badge variant="outline">
-              {t("staffingFallback.addTeacherBadge")}
-            </Badge>
-            <p className="mt-2 text-xs font-semibold text-foreground">
-              {t("staffingFallback.addTeacherTitle", {
-                course: targetCourseTitle,
-              })}
-            </p>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary" className="text-xs">
+                {t("staffingFallback.teacherBankBadge")}
+              </Badge>
+              <p className="text-xs font-semibold text-foreground">
+                {t("staffingFallback.teacherBankTitle")}
+              </p>
+            </div>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              {t(
-                hiringAssignments.length > 0
-                  ? "staffingFallback.addTeacherDescriptionWithSchedule"
-                  : "staffingFallback.addTeacherDescription"
-              )}
+              {t("staffingFallback.teacherBankDescription")}
             </p>
+
+            {/* Unavailable Bank Teachers */}
+            {unavailableTeachers && unavailableTeachers.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {unavailableTeachers.map((teacher) => {
+                  const teacherName =
+                    `${teacher.firstName} ${teacher.lastName}`.trim()
+                  return (
+                    <div
+                      key={teacher.id}
+                      className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card px-2.5 py-1.5 shadow-2xs"
+                    >
+                      <div className="relative size-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
+                        {teacher.avatarUrl ? (
+                          <Image
+                            src={getAssetUrl(teacher.avatarUrl)}
+                            alt={teacherName}
+                            fill
+                            unoptimized
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex size-full items-center justify-center text-[10px] font-bold text-muted-foreground">
+                            {teacher.firstName[0]}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs font-semibold text-foreground">
+                        {teacherName}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] font-normal text-muted-foreground"
+                      >
+                        {t("staffingFallback.callTeacherBadge")}
+                      </Badge>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
 
-        <SchedulingNewTeacherAssignmentList assignments={hiringAssignments} />
+        {/* Needed time slot if available */}
+        {hiringAssignments.length > 0 && (
+          <div className="mt-3 border-t border-border/50 pt-2.5">
+            <span className="text-[11px] font-medium text-muted-foreground">
+              {t("staffingFallback.neededSlotNotice")}:
+            </span>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              {hiringAssignments.map((a) => {
+                const days = a.daysOfWeek
+                  .map((day) => t(`weekDays.${day}`))
+                  .join(t("daySeparator"))
+                return (
+                  <Badge key={a.key} variant="outline" className="text-xs">
+                    {days} · {a.startTime}–{a.endTime}
+                  </Badge>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   )

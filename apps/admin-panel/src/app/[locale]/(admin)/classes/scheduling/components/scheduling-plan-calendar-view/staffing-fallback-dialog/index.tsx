@@ -19,7 +19,6 @@ import { formatNumber } from "@workspace/ui/lib/utils"
 import type { NewTeacherAssignment } from "../../scheduling-new-teacher-assignment-list"
 import { SchedulingRecoveryOption } from "../../scheduling-recovery-option"
 import { SchedulingStaffingFallback } from "../../scheduling-staffing-fallback"
-import { SchedulingTeacherAvailabilityCalendar } from "../../scheduling-teacher-availability-calendar"
 import { SchedulingTeacherReassignmentAnalysis } from "../../scheduling-teacher-reassignment-analysis"
 
 type UnresolvedRequirement =
@@ -74,6 +73,35 @@ export function StaffingFallbackDialog({
     t("unknownCourse")
   const visibleOptions = recovery.options.slice(0, 3)
 
+  const outreachTeacherIds = React.useMemo(() => {
+    return new Set(
+      effectiveFallback?.availabilityOptions.map((opt) => opt.teacher.id) ?? []
+    )
+  }, [effectiveFallback])
+
+  const unavailableTeachers = React.useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        id: string
+        firstName: string
+        lastName: string
+        avatarUrl?: string | null
+      }
+    >()
+    for (const tc of recovery.teacherCalendars) {
+      if (!outreachTeacherIds.has(tc.teacher.id)) {
+        map.set(tc.teacher.id, tc.teacher)
+      }
+    }
+    for (const bt of recovery.busyTeachers) {
+      if (!outreachTeacherIds.has(bt.id)) {
+        map.set(bt.id, bt)
+      }
+    }
+    return Array.from(map.values())
+  }, [recovery.teacherCalendars, recovery.busyTeachers, outreachTeacherIds])
+
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent
@@ -82,43 +110,13 @@ export function StaffingFallbackDialog({
       >
         <ResponsiveDialogHeader className="flex flex-row items-center justify-between border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
           <ResponsiveDialogTitle className="text-base font-semibold">
-            {t("staffingFallback.title")}
+            {effectiveCourseTitle
+              ? `${t("staffingFallback.title")} · ${effectiveCourseTitle}`
+              : t("staffingFallback.title")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogCloseButton />
         </ResponsiveDialogHeader>
         <div className="max-h-[80vh] space-y-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-          {/* Header Card with Course Title, Unresolved Reason & Missing Count Badge */}
-          <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="font-semibold text-foreground">
-                  {effectiveCourseTitle}
-                </p>
-                {requirement?.reasonCode && (
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    {t(`unresolvedReasons.${requirement.reasonCode}`)}
-                  </p>
-                )}
-              </div>
-              {requirement ? (
-                requirement.missingClassCount > 0 ? (
-                  <Badge variant="warning" className="shrink-0 self-start">
-                    {t("missingCount", {
-                      count: formatNumber(
-                        requirement.missingClassCount,
-                        locale
-                      ),
-                    })}
-                  </Badge>
-                ) : (
-                  <Badge variant="success" className="shrink-0 self-start">
-                    {t("staffingFallback.resolvedBadge")}
-                  </Badge>
-                )
-              ) : null}
-            </div>
-          </div>
-
           {/* Recovery Options OR Busy Teachers / No Free Teacher Callout */}
           {visibleOptions.length > 0 ? (
             <div className="rounded-xl bg-muted/40 p-3.5">
@@ -152,45 +150,38 @@ export function StaffingFallbackDialog({
             </div>
           ) : (
             (recovery.busyTeachers.length > 0 || Boolean(requirement)) && (
-              <div className="rounded-xl border border-border/60 bg-muted/20 px-3.5 py-3">
-                <div className="flex items-start gap-2.5">
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-muted/20 px-3.5 py-2.5 text-xs">
+                <div className="flex items-center gap-1.5 font-semibold text-foreground">
                   <Lightbulb
                     aria-hidden
-                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                    className="size-3.5 shrink-0 text-muted-foreground"
                   />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-xs font-semibold text-foreground">
-                        {t(
-                          recovery.busyTeachers.length > 0
-                            ? "recovery.teacherConflictTitle"
-                            : "recovery.noOptionTitle"
-                        )}
-                      </p>
-                      {recovery.busyTeachers.length > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          ·{" "}
-                          {t(
-                            "recovery.teacherConflictDescriptionWithoutSuggestion"
-                          )}
-                        </span>
-                      )}
-                    </div>
-                    {recovery.busyTeachers.length > 0 && (
-                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                        {recovery.busyTeachers.map((teacher) => (
-                          <Badge
-                            key={teacher.id}
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {teacher.firstName} {teacher.lastName}
-                          </Badge>
-                        ))}
-                      </div>
+                  <span>
+                    {t(
+                      recovery.busyTeachers.length > 0
+                        ? "recovery.teacherConflictTitle"
+                        : "recovery.noOptionTitle"
                     )}
-                  </div>
+                  </span>
                 </div>
+                {recovery.busyTeachers.length > 0 && (
+                  <>
+                    <span className="text-muted-foreground">
+                      ({t("recovery.qualifiedTeachersConflictShort")}):
+                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {recovery.busyTeachers.map((teacher) => (
+                        <Badge
+                          key={teacher.id}
+                          variant="outline"
+                          className="text-xs font-normal"
+                        >
+                          {teacher.firstName} {teacher.lastName}
+                        </Badge>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             )
           )}
@@ -212,13 +203,7 @@ export function StaffingFallbackDialog({
               planId={planId}
               planStatus={planStatus}
               unresolvedRequirementId={effectiveUnresolvedRequirementId}
-            />
-          )}
-
-          {/* Teacher Availability Calendar */}
-          {recovery.teacherCalendars.length > 0 && (
-            <SchedulingTeacherAvailabilityCalendar
-              calendars={recovery.teacherCalendars}
+              unavailableTeachers={unavailableTeachers}
             />
           )}
         </div>

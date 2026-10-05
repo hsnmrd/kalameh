@@ -76,21 +76,17 @@ describe("OutreachCarousel Component", () => {
     )
 
     // Verify CarouselItem slides have basis-[90%] to give 10% peek affordance
-    const carouselItems = container.querySelectorAll(
-      '[data-slot="carousel-item"]'
-    )
-    expect(carouselItems.length).toBe(2)
-    expect(carouselItems[0]).toHaveClass("basis-[90%]")
-    expect(carouselItems[1]).toHaveClass("basis-[90%]")
+    const teacherSlides = screen.getAllByTestId("outreach-teacher-slide")
+    expect(teacherSlides.length).toBe(2)
+    expect(teacherSlides[0]).toHaveClass("basis-[90%]")
+    expect(teacherSlides[1]).toHaveClass("basis-[90%]")
 
     // Option 1 content
     expect(screen.getByText("کامران حسینی")).toBeInTheDocument()
-    expect(screen.getByText(/کلاس A/)).toBeInTheDocument()
     expect(screen.getAllByText(/17:00–18:30/).length).toBe(2)
 
     // Option 2 content
     expect(screen.getByText("فاطمه مرادنژاد")).toBeInTheDocument()
-    expect(screen.getByText(/کلاس B/)).toBeInTheDocument()
 
     // Toggle button on option 1
     const acceptButtons = screen.getAllByRole("button", {
@@ -137,12 +133,10 @@ describe("OutreachCarousel Component", () => {
       />
     )
 
-    const carouselItems = container.querySelectorAll(
-      '[data-slot="carousel-item"]'
-    )
-    expect(carouselItems.length).toBe(1)
-    expect(carouselItems[0]).toHaveClass("basis-full")
-    expect(carouselItems[0]).not.toHaveClass("basis-[90%]")
+    const teacherSlides = screen.getAllByTestId("outreach-teacher-slide")
+    expect(teacherSlides.length).toBe(1)
+    expect(teacherSlides[0]).toHaveClass("basis-full")
+    expect(teacherSlides[0]).not.toHaveClass("basis-[90%]")
   })
 
   it("groups multiple options for the same master into a single teacher card with all periods", () => {
@@ -208,11 +202,9 @@ describe("OutreachCarousel Component", () => {
     )
 
     // Should only have 1 carousel item (1 teacher card), not 3 duplicate cards
-    const carouselItems = container.querySelectorAll(
-      '[data-slot="carousel-item"]'
-    )
-    expect(carouselItems.length).toBe(1)
-    expect(carouselItems[0]).toHaveClass("basis-full")
+    const teacherSlides = screen.getAllByTestId("outreach-teacher-slide")
+    expect(teacherSlides.length).toBe(1)
+    expect(teacherSlides[0]).toHaveClass("basis-full")
 
     // Teacher name is shown once
     expect(screen.getByText("کامران حسینی")).toBeInTheDocument()
@@ -298,11 +290,9 @@ describe("OutreachCarousel Component", () => {
     )
 
     // 2 teacher groups in carousel
-    const carouselItems = container.querySelectorAll(
-      '[data-slot="carousel-item"]'
-    )
-    expect(carouselItems.length).toBe(2)
-    expect(carouselItems[0]).toHaveClass("basis-[90%]")
+    const teacherSlides = screen.getAllByTestId("outreach-teacher-slide")
+    expect(teacherSlides.length).toBe(2)
+    expect(teacherSlides[0]).toHaveClass("basis-[90%]")
 
     // Counter displays "استاد ۱ از ۲"
     expect(screen.getByText("استاد ۱ از ۲")).toBeInTheDocument()

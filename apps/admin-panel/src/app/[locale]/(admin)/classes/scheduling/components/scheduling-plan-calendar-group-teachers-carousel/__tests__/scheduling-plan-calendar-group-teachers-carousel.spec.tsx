@@ -60,7 +60,7 @@ describe("SchedulingPlanCalendarGroupTeachersCarousel", () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it("renders header, total count badge, and cards for both available and teaching teachers", () => {
+  it("renders header, total count badge, and starts collapsed by default, expanding when toggle button is clicked", () => {
     renderWithIntl(
       <SchedulingPlanCalendarGroupTeachersCarousel
         track="EVEN"
@@ -69,10 +69,23 @@ describe("SchedulingPlanCalendarGroupTeachersCarousel", () => {
       />
     )
 
-    expect(screen.getByText("دسترسی اساتید")).toBeInTheDocument()
+    const toggleBtn = screen.getByRole("button", {
+      name: /نمایش اساتید|دسترسی اساتید/,
+    })
+    expect(toggleBtn).toBeInTheDocument()
+    expect(toggleBtn).toHaveAttribute("aria-expanded", "false")
     expect(
       screen.getByTestId("group-teachers-count-badge-EVEN-09:00-10:30")
     ).toHaveTextContent("۲ استاد")
+
+    // Cards are hidden initially when collapsed
+    expect(
+      screen.queryByTestId("group-teacher-card-t1-EVEN-09:00-10:30")
+    ).not.toBeInTheDocument()
+
+    // Click to expand
+    fireEvent.click(toggleBtn)
+    expect(toggleBtn).toHaveAttribute("aria-expanded", "true")
 
     // Available teacher
     const t1Card = screen.getByTestId("group-teacher-card-t1-EVEN-09:00-10:30")
@@ -100,6 +113,7 @@ describe("SchedulingPlanCalendarGroupTeachersCarousel", () => {
         track="EVEN"
         slotKey="09:00-10:30"
         teachers={mockTeachers}
+        defaultExpanded={true}
         onSelectTeacher={onSelectTeacher}
       />
     )

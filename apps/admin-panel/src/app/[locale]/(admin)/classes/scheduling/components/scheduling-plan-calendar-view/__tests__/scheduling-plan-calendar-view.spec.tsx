@@ -1109,6 +1109,10 @@ describe("SchedulingPlanCalendarView Component", () => {
       "group-teachers-carousel-EVEN-09:00-10:30"
     )
     expect(evenGroupCarousel).toBeInTheDocument()
+    const toggleBtn = within(evenGroupCarousel).getByRole("button", {
+      name: /نمایش اساتید|دسترسی اساتید/,
+    })
+    fireEvent.click(toggleBtn)
     expect(evenGroupCarousel).toHaveTextContent("حسین مرادی")
     expect(evenGroupCarousel).toHaveTextContent("زهرا کریمی")
   })
@@ -1180,6 +1184,10 @@ describe("SchedulingPlanCalendarView Component", () => {
       "group-teachers-carousel-EVEN-09:00-10:30"
     )
     expect(carousel).toBeInTheDocument()
+    const toggleBtn = within(carousel).getByRole("button", {
+      name: /نمایش اساتید|دسترسی اساتید/,
+    })
+    fireEvent.click(toggleBtn)
     expect(carousel).toHaveTextContent("نیلوفر صادقی")
   })
 
@@ -1479,8 +1487,14 @@ describe("SchedulingPlanCalendarView Component", () => {
     const propACard = screen.getAllByTestId("calendar-class-card-prop-a")[0]!
     const propBCard = screen.getAllByTestId("calendar-class-card-prop-b")[0]!
 
+    // Clicking card directly (selection mode, not swapping mode) keeps same course undimmed (opacity 1)
     fireEvent.click(propACard)
-    // Non-swappable same-course class remains in the grid with dimming
+    expect(propBCard).toHaveAttribute("data-same-course", "true")
+    expect(propBCard).not.toHaveAttribute("data-dimmed")
+
+    // Clicking the swap button enters swap mode, where non-swappable same-course class is dimmed
+    const swapBtn = screen.getByTestId("swap-teacher-btn-prop-a")
+    fireEvent.click(swapBtn)
     expect(propBCard).toHaveAttribute("data-dimmed", "true")
     expect(propBCard).not.toHaveAttribute("data-swappable")
 
@@ -2674,37 +2688,29 @@ describe("SchedulingPlanCalendarView Component", () => {
     const teacherCountChip = screen.getByTestId("same-teacher-count-chip")
     expect(teacherCountChip).toHaveTextContent("۲")
 
-    // Card with same teacher (prop-same-teacher) is not swappable, so it has the same dimmed opacity as other non-shaking cards, but highlights content with mark tag and does NOT have grayscale
+    // Card with same teacher (prop-same-teacher): sessions with same master have opacity 1 (undimmed)
     const sameTeacherCard = screen.getAllByTestId(
       "calendar-class-card-prop-same-teacher"
     )[0]!
     expect(sameTeacherCard).toHaveAttribute("data-same-teacher", "true")
-    expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
-    expect(sameTeacherCard).toHaveClass("opacity-25")
+    expect(sameTeacherCard).not.toHaveAttribute("data-dimmed")
+    expect(sameTeacherCard).not.toHaveClass("opacity-25")
     expect(sameTeacherCard).not.toHaveClass("grayscale")
     expect(sameTeacherCard.querySelector("mark")).toHaveTextContent(
       "علیرضا شمس"
     )
-    expect(
-      within(sameTeacherCard).getByTestId(
-        "same-teacher-badge-prop-same-teacher"
-      )
-    ).toBeInTheDocument()
 
-    // Card with same course (prop-same-course) is not swappable, so it has the same dimmed opacity as other non-shaking cards, but highlights content with mark tag and does NOT have grayscale
+    // Card with same course (prop-same-course): sessions with same course have opacity 1 (undimmed) and display "همین سطح" badge
     const sameCourseCard = screen.getAllByTestId(
       "calendar-class-card-prop-same-course"
     )[0]!
     expect(sameCourseCard).toHaveAttribute("data-same-course", "true")
-    expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
-    expect(sameCourseCard).toHaveClass("opacity-25")
+    expect(sameCourseCard).not.toHaveAttribute("data-dimmed")
+    expect(sameCourseCard).not.toHaveClass("opacity-25")
     expect(sameCourseCard).not.toHaveClass("grayscale")
-    expect(sameCourseCard.querySelector("mark")).toHaveTextContent(
-      "American English File 2"
-    )
     expect(
-      within(sameCourseCard).queryByText("همین درس")
-    ).not.toBeInTheDocument()
+      within(sameCourseCard).getByTestId("same-course-badge-prop-same-course")
+    ).toHaveTextContent("همین سطح")
 
     // Missed class card with same course (missed-ame-2) is not swappable, so it has the same dimmed opacity, but highlights content with mark tag and does NOT have grayscale
     const missedSameCourseCard = screen.getAllByTestId(
@@ -2756,19 +2762,19 @@ describe("SchedulingPlanCalendarView Component", () => {
     // Toggle highlight back ON
     fireEvent.click(toggleBtn)
     expect(sameTeacherCard).toHaveAttribute("data-same-teacher", "true")
-    expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
-    expect(sameTeacherCard).toHaveClass("opacity-25")
+    expect(sameTeacherCard).not.toHaveAttribute("data-dimmed")
+    expect(sameTeacherCard).not.toHaveClass("opacity-25")
     expect(sameTeacherCard).not.toHaveClass("grayscale")
     expect(sameTeacherCard.querySelector("mark")).toHaveTextContent(
       "علیرضا شمس"
     )
     expect(sameCourseCard).toHaveAttribute("data-same-course", "true")
-    expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
-    expect(sameCourseCard).toHaveClass("opacity-25")
+    expect(sameCourseCard).not.toHaveAttribute("data-dimmed")
+    expect(sameCourseCard).not.toHaveClass("opacity-25")
     expect(sameCourseCard).not.toHaveClass("grayscale")
-    expect(sameCourseCard.querySelector("mark")).toHaveTextContent(
-      "American English File 2"
-    )
+    expect(
+      within(sameCourseCard).getByTestId("same-course-badge-prop-same-course")
+    ).toHaveTextContent("همین سطح")
     expect(missedSameCourseCard).toHaveAttribute("data-same-course", "true")
     expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
     expect(missedSameCourseCard).toHaveClass("opacity-25")
@@ -3020,6 +3026,12 @@ describe("SchedulingPlanCalendarView Component", () => {
         "group-teachers-count-badge-EVEN-09:00-10:30"
       )
       expect(countBadge).toHaveTextContent("۲ استاد")
+
+      // Expand collapsed carousel
+      const toggleBtn = within(carouselEven09).getByRole("button", {
+        name: /نمایش اساتید|دسترسی اساتید/,
+      })
+      fireEvent.click(toggleBtn)
 
       // Free / Available teacher: سارا حسینی
       const availableTeacherCard = screen.getByTestId(
