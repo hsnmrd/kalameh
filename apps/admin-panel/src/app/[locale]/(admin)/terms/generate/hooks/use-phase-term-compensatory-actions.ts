@@ -59,71 +59,55 @@ export function usePhaseTermCompensatoryActions({
     nextCompensatory: Record<number, CompensatorySession[]>
   ) => {
     setCompensatorySessions(nextCompensatory)
-    const proposal = proposals[termIndex]
-    if (!proposal) return false
-    setProposals(
-      recalculateProposals({
-        proposals,
-        changedIndex: termIndex,
-        newStartDate: proposal.startDate,
-        sessionsPerTerm,
-        daysOfWeek,
-        classPatterns,
-        gapDays,
-        customTitles,
-        observeOfficialHolidays,
-        customOffDays,
-        dismissedHolidays,
-        compensatorySessions: nextCompensatory,
-        pinnedStartDates,
-      })
-    )
-    return true
-  }
-
-  const reportError = (error: unknown) => {
-    toast.error(
-      error instanceof Error ? error.message : t("batchModal.recalculateError")
-    )
+    try {
+      setProposals(
+        recalculateProposals({
+          proposals,
+          changedIndex: termIndex,
+          newStartDate: proposals[termIndex]?.startDate || "",
+          sessionsPerTerm,
+          daysOfWeek,
+          classPatterns,
+          gapDays,
+          customTitles,
+          observeOfficialHolidays,
+          customOffDays,
+          dismissedHolidays,
+          compensatorySessions: nextCompensatory,
+          pinnedStartDates,
+        })
+      )
+    } catch {
+      toast.error(t("batchModal.recalculateError"))
+    }
   }
 
   const handleAddCompensatorySession = (
     termIndex: number,
     session: CompensatorySession
   ) => {
-    try {
-      const existing = compensatorySessions[termIndex] ?? []
-      if (
-        existing.some(
-          (item) =>
-            item.date === session.date &&
-            item.patternTrack === session.patternTrack
-        )
-      ) {
-        return
-      }
-      const changed = update(termIndex, {
-        ...compensatorySessions,
-        [termIndex]: [...existing, session],
-      })
-      if (changed) toast.success(t("batchModal.compensatorySessionAdded"))
-    } catch (error) {
-      reportError(error)
+    const existingForTerm = compensatorySessions[termIndex] ?? []
+    if (existingForTerm.some((s) => s.date === session.date)) return
+
+    const nextCompensatory = {
+      ...compensatorySessions,
+      [termIndex]: [...existingForTerm, session],
     }
+    update(termIndex, nextCompensatory)
+    toast.success(t("batchModal.compensatorySessionAdded"))
   }
 
-  const handleRemoveCompensatorySession = (termIndex: number, date: string) => {
-    try {
-      const changed = update(termIndex, {
-        ...compensatorySessions,
-        [termIndex]: (compensatorySessions[termIndex] ?? []).filter(
-          (session) => session.date !== date
-        ),
-      })
-      if (changed) toast.success(t("batchModal.compensatorySessionRemoved"))
-    } catch (error) {
-      reportError(error)
+  const handleRemoveCompensatorySession = (
+    termIndex: number,
+    dateYmd: string
+  ) => {
+    const existingForTerm = compensatorySessions[termIndex] ?? []
+    const nextCompensatory = {
+      ...compensatorySessions,
+      [termIndex]: existingForTerm.filter((s) => s.date !== dateYmd),
     }
+    update(termIndex, nextCompensatory)
+    toast.success(t("batchModal.compensatorySessionRemoved"))
   }
 
   return {

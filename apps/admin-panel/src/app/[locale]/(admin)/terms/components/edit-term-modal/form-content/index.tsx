@@ -19,7 +19,7 @@ import type {
   SupportedLocale,
 } from "@workspace/types"
 import type { UpdateTermInput } from "../../../hooks/use-term-schemas"
-import { ProposalsCalendar } from "../../generate-phase-terms-modal/proposals-calendar"
+import { ProposalsCalendar } from "../../proposals-calendar"
 
 interface EditTermFormContentProps {
   form: UseFormReturn<UpdateTermInput>

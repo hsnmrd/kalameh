@@ -105,38 +105,40 @@ export function usePhaseTermDateActions({
     ]
   )
 
-  const reportError = (error: unknown) => {
-    toast.error(
-      error instanceof Error ? error.message : t("batchModal.recalculateError")
-    )
-  }
-
-  const handleStartDateChange = (index: number, newStartDate: string) => {
+  const handleStartDateChange = (
+    changedIndex: number,
+    newStartDate: string
+  ) => {
     try {
-      setProposals(recalculate(index, newStartDate))
-      setPinnedStartDates((current) => ({
-        ...current,
-        [index]: newStartDate,
+      setPinnedStartDates((prev) => ({
+        ...prev,
+        [changedIndex]: newStartDate,
       }))
-    } catch (error) {
-      reportError(error)
+      setProposals(recalculate(changedIndex, newStartDate))
+    } catch {
+      toast.error(t("batchModal.recalculateError"))
     }
   }
 
-  const handleToggleHoliday = (date: string) => {
+  const handleToggleHoliday = (dateYmd: string) => {
+    const isCurrentlyDismissed = dismissedHolidays.includes(dateYmd)
+    const nextDismissed = isCurrentlyDismissed
+      ? dismissedHolidays.filter((d) => d !== dateYmd)
+      : [...dismissedHolidays, dateYmd]
+    setDismissedHolidays(nextDismissed)
+
     try {
-      const nextDismissed = dismissedHolidays.includes(date)
-        ? dismissedHolidays.filter((item) => item !== date)
-        : [...dismissedHolidays, date]
-      setDismissedHolidays(nextDismissed)
-      if (proposals[0]) {
-        setProposals(
-          recalculate(0, proposals[0].startDate, customOffDays, nextDismissed)
+      setProposals(
+        recalculate(
+          0,
+          proposals[0]?.startDate || "",
+          customOffDays,
+          nextDismissed
         )
-        toast.success(t("batchModal.holidayToggled"))
-      }
-    } catch (error) {
-      reportError(error)
+      )
+      toast.success(t("batchModal.holidayToggled"))
+    } catch {
+      toast.error(t("batchModal.recalculateError"))
     }
   }
 
@@ -149,6 +151,7 @@ export function usePhaseTermDateActions({
       setLocalCustomOffDays(null)
     },
   })
+
   const deleteCustomOffDayMutation = useMutation({
     ...institutesResource.deleteCustomOffDay.toMutation(),
     onSuccess: () => {
@@ -189,8 +192,8 @@ export function usePhaseTermDateActions({
         })
         toast.success(t("batchModal.customOffDayAdded"))
       }
-    } catch (error) {
-      reportError(error)
+    } catch {
+      toast.error(t("batchModal.recalculateError"))
     }
   }
 

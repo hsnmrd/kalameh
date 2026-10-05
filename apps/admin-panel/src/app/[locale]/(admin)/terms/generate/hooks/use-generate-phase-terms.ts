@@ -17,15 +17,7 @@ import { usePhaseTermCompensatoryActions } from "./use-phase-term-compensatory-a
 import { usePhaseTermDateActions } from "./use-phase-term-date-actions"
 import { usePhaseTermPersistence } from "./use-phase-term-persistence"
 
-export interface UseGeneratePhaseTermsOptions {
-  open: boolean
-  onClose: () => void
-}
-
-export function useGeneratePhaseTerms({
-  open,
-  onClose,
-}: UseGeneratePhaseTermsOptions) {
+export function useGeneratePhaseTerms() {
   const t = useTranslations("terms")
   const { activeInstituteId } = useActiveInstitute()
 
@@ -51,19 +43,19 @@ export function useGeneratePhaseTerms({
     ...operatingPhasesResource.list.toQuery({
       instituteId: activeInstituteId,
     }),
-    enabled: Boolean(activeInstituteId && open),
+    enabled: Boolean(activeInstituteId),
   })
 
   // Fetch institute details for holiday observance preference
   const { data: institute } = useQuery({
     ...institutesResource.detail.toQuery(activeInstituteId!),
-    enabled: Boolean(activeInstituteId && open),
+    enabled: Boolean(activeInstituteId),
   })
 
   // Fetch custom institute off-days
   const { data: rawCustomOffDays } = useQuery({
     ...institutesResource.customOffDays.toQuery(activeInstituteId!),
-    enabled: Boolean(activeInstituteId && open),
+    enabled: Boolean(activeInstituteId),
   })
 
   const [dismissedHolidaysOverride, setDismissedHolidaysOverride] =
@@ -156,15 +148,12 @@ export function useGeneratePhaseTerms({
 
   const {
     batchCreateMutation,
-    handleClose,
-    handleOpenChange,
+    handleCancel,
     handleProceedToPreview,
     handleSubmit,
     isLoadingExisting,
     previewQuery,
   } = usePhaseTermPersistence({
-    open,
-    onClose,
     activeInstituteId,
     activePhaseId,
     jalaliYear,
@@ -174,11 +163,6 @@ export function useGeneratePhaseTerms({
     setProposals,
     setCustomTitles,
     setStep,
-    setViewMode,
-    setCompensatorySessions,
-    setPinnedStartDates,
-    setDismissedHolidays: setDismissedHolidaysOverride,
-    setLocalCustomOffDays,
   })
 
   const hasAnySessionImbalance = React.useMemo(() => {
@@ -223,7 +207,6 @@ export function useGeneratePhaseTerms({
     handleAddCompensatorySession,
     handleRemoveCompensatorySession,
     handleSubmit,
-    handleClose,
-    handleOpenChange,
+    handleCancel,
   }
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "../../../../../test/test-utils"
 import type { GeneratedTermProposal } from "@workspace/types"
-import { ProposalsCalendar } from "../components/generate-phase-terms-modal/proposals-calendar"
+import { ProposalsCalendar } from "../components/proposals-calendar"
 
 vi.mock("@workspace/ui/components/sonner", () => ({
   toast: {
@@ -87,8 +87,6 @@ describe("ProposalsCalendar Component", () => {
 
     // Select second term: term 1 ends 2026-11-06 (1405/08/15), term 2 starts 2026-11-08 (1405/08/17)
     fireEvent.click(screen.getByText("آبان و آذر ۱۴۰۵"))
-
-    const dayButtons = screen.getAllByRole("button")
 
     // 1. Days before term 1 end (e.g. Day 1): click opens popover where "شروع ترم" is disabled
     const earlyDay = screen
@@ -331,7 +329,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("identifies off-days, official holidays, and even/odd sessions with override logic in buildTermCalendarModifiers", async () => {
     const { buildTermCalendarModifiers } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     const { modifiers, modifiersClassNames } =
       buildTermCalendarModifiers(mockProposals)
@@ -448,7 +446,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("applies correct RTL pill radii to start, end, and week boundaries without button-inverting classes", async () => {
     const { buildTermCalendarModifiers } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     const { modifiersClassNames } = buildTermCalendarModifiers(
       mockProposals,
@@ -505,7 +503,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("ensures end date on Saturday in RTL has rounded-tl-full/bl-full and flat right corners regardless of weekday", async () => {
     const { buildTermCalendarModifiers } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     // Term ending on Saturday (2026-10-24 is Saturday: getDay() === 6)
     const saturdayEndProposal: GeneratedTermProposal[] = [
@@ -562,7 +560,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("applies singleClass when proposal is only 1 day", async () => {
     const { buildTermCalendarModifiers } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     const singleDayProposal: GeneratedTermProposal[] = [
       {
@@ -592,7 +590,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("applies term_customOffDay modifier when customOffDays are passed", async () => {
     const { buildTermCalendarModifiers } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     const { modifiers, modifiersClassNames } = buildTermCalendarModifiers(
       mockProposals,
@@ -620,7 +618,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("omits term_officialHoliday modifier when observeOfficialHolidays is false", async () => {
     const { buildTermCalendarModifiers } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     const { modifiers } = buildTermCalendarModifiers(mockProposals, true, {
       observeOfficialHolidays: false,
@@ -677,7 +675,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("applies term_excessSession modifier on excess session dates", async () => {
     const { buildTermCalendarModifiers } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     const proposalsWithExcess: GeneratedTermProposal[] = [
       {
@@ -721,7 +719,7 @@ describe("ProposalsCalendar Component", () => {
   it("shows excess session badge and allows adding compensatory session for opposite track on excess day", async () => {
     const onOpenCompensatory = vi.fn()
     const { DayActionsPopover } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/calendar-grid/day-actions-popover")
+      await import("../components/proposals-calendar/calendar-grid/day-actions-popover")
 
     const excessProposal: GeneratedTermProposal = {
       title: "ترم دارای جلسه مازاد",
@@ -840,7 +838,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("applies vivid palette to selected term and dimmed grey styling to unselected terms", async () => {
     const { buildTermCalendarModifiers } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     // When term 0 is selected:
     const res0 = buildTermCalendarModifiers(mockProposals, true, {
@@ -952,7 +950,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("does not show compensatory or excess session borders for unselected terms (previous/next terms)", async () => {
     const { buildTermCalendarModifiers } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     const compensatorySessions = {
       0: [
@@ -984,7 +982,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("assigns matching border-radius modifiers to compensatory and excess sessions based on day position", async () => {
     const { buildTermCalendarModifiers } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     // 2026-10-02 is a Friday (getDay() === 5) -> in RTL, row end
     // 2026-10-03 is a Saturday (getDay() === 6) -> in RTL, row start
@@ -1159,7 +1157,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("identifies final exam sessions (one odd and one even) and applies term_0_exam_session modifier with star before element", async () => {
     const { buildTermCalendarModifiers, getTermExamDates } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     const termWithPatterns: GeneratedTermProposal = {
       title: "مهر ۱۴۰۵",
@@ -1321,7 +1319,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("renders term end badge and hides action buttons in DayActionsPopover when readOnly is true", async () => {
     const { DayActionsPopover } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/calendar-grid/day-actions-popover")
+      await import("../components/proposals-calendar/calendar-grid/day-actions-popover")
 
     const endDate = new Date("2026-11-06T12:00:00Z")
     render(
@@ -1363,7 +1361,7 @@ describe("ProposalsCalendar Component", () => {
 
   it("does not use red or rose palettes for terms to avoid collision with holidays and off-days", async () => {
     const { TERM_COLOR_PALETTES } =
-      await import("../components/generate-phase-terms-modal/proposals-calendar/helper/calendar-colors")
+      await import("../components/proposals-calendar/helper/calendar-colors")
 
     expect(TERM_COLOR_PALETTES.length).toBeGreaterThanOrEqual(6)
     for (const palette of TERM_COLOR_PALETTES) {

@@ -1,29 +1,21 @@
 "use client"
 
 import * as React from "react"
-import {
-  FormDialog,
-  FormDialogContent,
-  FormDialogHeader,
-  FormDialogTitle,
-  FormDialogCloseButton,
-} from "@workspace/ui/components/dialog"
-import { StepConfiguration } from "./step-configuration"
-import { StepPreview } from "./step-preview"
-import { ModalFooter } from "./modal-footer"
-import { useGeneratePhaseTerms } from "./hooks/use-generate-phase-terms"
+import { useTranslations } from "next-intl"
+import { APP_MODULES, PERMISSIONS } from "@workspace/types"
+import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
+import { AdminPageShell } from "@/components/admin-page-shell"
+import { ModuleGuard } from "@/components/module-guard"
+import { PermissionGuard } from "@/components/permission-guard"
+import { useGeneratePhaseTerms } from "../../hooks/use-generate-phase-terms"
+import { StepConfiguration } from "../step-configuration"
+import { StepPreview } from "../step-preview"
 
-export interface GeneratePhaseTermsModalProps {
-  open: boolean
-  onClose: () => void
-}
+export function GeneratePhaseTermsContent() {
+  const t = useTranslations("terms")
+  const tCommon = useTranslations("common")
 
-export function GeneratePhaseTermsModal({
-  open,
-  onClose,
-}: GeneratePhaseTermsModalProps) {
   const {
-    t,
     step,
     setStep,
     viewMode,
@@ -57,23 +49,33 @@ export function GeneratePhaseTermsModal({
     handleAddCompensatorySession,
     handleRemoveCompensatorySession,
     handleSubmit,
-    handleOpenChange,
-  } = useGeneratePhaseTerms({ open, onClose })
+    handleCancel,
+  } = useGeneratePhaseTerms()
 
   return (
-    <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="sm:max-w-4xl">
-        <FormDialogHeader>
-          <div className="flex items-center justify-between gap-3 pe-8">
-            <FormDialogTitle>
-              {step === 1 ? t("batchModal.title") : t("batchModal.step2Title")}
-            </FormDialogTitle>
-          </div>
-          <FormDialogCloseButton />
-        </FormDialogHeader>
-
-        <div className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden">
-          <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+    <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
+      <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="forbidden">
+        <AdminPageShell
+          breadcrumb={
+            <AdminBreadcrumb
+              backHref="/terms"
+              backLabel={tCommon("nav.terms")}
+              items={
+                step === 1
+                  ? [
+                      { label: tCommon("nav.terms"), href: "/terms" },
+                      { label: t("batchModal.title") },
+                    ]
+                  : [
+                      { label: tCommon("nav.terms"), href: "/terms" },
+                      { label: t("batchModal.title"), href: "/terms/generate" },
+                      { label: t("batchModal.step2Title") },
+                    ]
+              }
+            />
+          }
+        >
+          <div className="flex flex-col gap-6">
             {step === 1 && (
               <StepConfiguration
                 phaseOptions={phaseOptions}
@@ -90,6 +92,12 @@ export function GeneratePhaseTermsModal({
                 onDaysPerTermChange={setDaysPerTerm}
                 gapDays={gapDays}
                 onGapDaysChange={setGapDays}
+                onCancel={handleCancel}
+                onProceed={handleProceedToPreview}
+                isProceedDisabled={
+                  !activePhaseId || previewQuery.isFetching || isLoadingExisting
+                }
+                isProceedLoading={previewQuery.isFetching || isLoadingExisting}
               />
             )}
 
@@ -108,29 +116,19 @@ export function GeneratePhaseTermsModal({
                 customOffDays={customOffDays}
                 activeDismissedHolidays={activeDismissedHolidays}
                 compensatorySessions={compensatorySessions}
+                onBack={() => setStep(1)}
+                onSubmit={handleSubmit}
+                isSubmitDisabled={
+                  proposals.length === 0 ||
+                  batchCreateMutation.isPending ||
+                  hasAnySessionImbalance
+                }
+                isSubmitLoading={batchCreateMutation.isPending}
               />
             )}
           </div>
-
-          <ModalFooter
-            step={step}
-            onClose={onClose}
-            onBack={() => setStep(1)}
-            onProceed={handleProceedToPreview}
-            onSubmit={handleSubmit}
-            isProceedDisabled={
-              !activePhaseId || previewQuery.isFetching || isLoadingExisting
-            }
-            isProceedLoading={previewQuery.isFetching || isLoadingExisting}
-            isSubmitDisabled={
-              proposals.length === 0 ||
-              batchCreateMutation.isPending ||
-              hasAnySessionImbalance
-            }
-            isSubmitLoading={batchCreateMutation.isPending}
-          />
-        </div>
-      </FormDialogContent>
-    </FormDialog>
+        </AdminPageShell>
+      </PermissionGuard>
+    </ModuleGuard>
   )
 }

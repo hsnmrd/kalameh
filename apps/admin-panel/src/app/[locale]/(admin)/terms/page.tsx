@@ -15,6 +15,7 @@ import { usePermissions } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
+import { useRouter } from "@/i18n/routing"
 import { TermsTable } from "./components/terms-table"
 import { TermsList } from "./components/terms-list"
 import { TermsFilter } from "./components/terms-filter"
@@ -22,12 +23,11 @@ import { TermsFabDrawer } from "./components/terms-fab-drawer"
 import { ViewTermModal } from "./components/view-term-modal"
 import { CreateTermModal } from "./components/create-term-modal"
 import { EditTermModal } from "./components/edit-term-modal"
-import { GeneratePhaseTermsModal } from "./components/generate-phase-terms-modal"
 import { DeleteTermModal } from "./components/delete-term-modal"
 
 export default function TermsPage() {
+  const router = useRouter()
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [batchModalOpen, setBatchModalOpen] = React.useState(false)
   const [viewingTerm, setViewingTerm] = React.useState<TermDto | null>(null)
   const [editingTerm, setEditingTerm] = React.useState<TermDto | null>(null)
   const [deletingTerm, setDeletingTerm] = React.useState<TermDto | null>(null)
@@ -63,7 +63,7 @@ export default function TermsPage() {
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
               onAddClick={() => setCreateModalOpen(true)}
-              onBatchClick={() => setBatchModalOpen(true)}
+              onBatchClick={() => router.push("/terms/generate")}
             />
           }
           modals={
@@ -72,12 +72,6 @@ export default function TermsPage() {
                 open={createModalOpen}
                 onClose={() => setCreateModalOpen(false)}
                 allTerms={terms}
-              />
-
-              <GeneratePhaseTermsModal
-                key={String(batchModalOpen)}
-                open={batchModalOpen}
-                onClose={() => setBatchModalOpen(false)}
               />
 
               <ViewTermModal
@@ -104,7 +98,7 @@ export default function TermsPage() {
           fab={
             <TermsFabDrawer
               onAddClick={() => setCreateModalOpen(true)}
-              onBatchClick={() => setBatchModalOpen(true)}
+              onBatchClick={() => router.push("/terms/generate")}
             />
           }
         >

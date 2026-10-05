@@ -12,7 +12,7 @@ import {
   FormDialogTitle,
 } from "@workspace/ui/components/dialog"
 import type { SupportedLocale, TermDto } from "@workspace/types"
-import { ProposalsCalendar } from "../generate-phase-terms-modal/proposals-calendar"
+import { ProposalsCalendar } from "../proposals-calendar"
 import { useViewTermCalendar } from "./hooks/use-view-term-calendar"
 import { TermInfoCarousel } from "./term-info-carousel"
 

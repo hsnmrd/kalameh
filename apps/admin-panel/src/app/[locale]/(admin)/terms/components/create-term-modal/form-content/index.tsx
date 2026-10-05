@@ -16,7 +16,7 @@ import type {
 } from "@workspace/types"
 import type { CreateTermInput } from "../../../hooks/use-term-schemas"
 import { PhaseSelectField } from "../../phase-select-field"
-import { ProposalsCalendar } from "../../generate-phase-terms-modal/proposals-calendar"
+import { ProposalsCalendar } from "../../proposals-calendar"
 import { TermCalculatorSection } from "../term-calculator-section"
 
 interface FormContentProps {

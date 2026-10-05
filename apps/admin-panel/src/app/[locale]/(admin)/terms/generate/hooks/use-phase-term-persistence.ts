@@ -4,16 +4,11 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
-import {
-  gregorianToJalali,
-  type CompensatorySession,
-  type GeneratedTermProposal,
-} from "@workspace/types"
+import { gregorianToJalali, type GeneratedTermProposal } from "@workspace/types"
+import { useRouter } from "@/i18n/routing"
 import { termsResource } from "@/lib/api"
 
 interface PhaseTermPersistenceOptions {
-  open: boolean
-  onClose: () => void
   activeInstituteId?: string | null
   activePhaseId: string
   jalaliYear: number
@@ -23,20 +18,9 @@ interface PhaseTermPersistenceOptions {
   setProposals: React.Dispatch<React.SetStateAction<GeneratedTermProposal[]>>
   setCustomTitles: React.Dispatch<React.SetStateAction<Record<number, string>>>
   setStep: React.Dispatch<React.SetStateAction<1 | 2>>
-  setViewMode: React.Dispatch<React.SetStateAction<"calendar" | "table">>
-  setCompensatorySessions: React.Dispatch<
-    React.SetStateAction<Record<number, CompensatorySession[]>>
-  >
-  setPinnedStartDates: React.Dispatch<
-    React.SetStateAction<Record<number, string>>
-  >
-  setDismissedHolidays: React.Dispatch<React.SetStateAction<string[] | null>>
-  setLocalCustomOffDays: React.Dispatch<React.SetStateAction<string[] | null>>
 }
 
 export function usePhaseTermPersistence({
-  open,
-  onClose,
   activeInstituteId,
   activePhaseId,
   jalaliYear,
@@ -46,21 +30,19 @@ export function usePhaseTermPersistence({
   setProposals,
   setCustomTitles,
   setStep,
-  setViewMode,
-  setCompensatorySessions,
-  setPinnedStartDates,
-  setDismissedHolidays,
-  setLocalCustomOffDays,
 }: PhaseTermPersistenceOptions) {
   const t = useTranslations("terms")
+  const router = useRouter()
   const queryClient = useQueryClient()
+
   const { data: existingTerms = [], isLoading: isLoadingExisting } = useQuery({
     ...termsResource.list.toQuery({
       instituteId: activeInstituteId || undefined,
       operatingPhaseId: activePhaseId || undefined,
     }),
-    enabled: Boolean(activeInstituteId && activePhaseId && open),
+    enabled: Boolean(activeInstituteId && activePhaseId),
   })
+
   const previewQuery = useQuery({
     ...termsResource.previewPhase.toQuery({
       operatingPhaseId: activePhaseId,
@@ -72,24 +54,12 @@ export function usePhaseTermPersistence({
     enabled: false,
   })
 
-  const handleClose = () => {
-    setStep(1)
-    setViewMode("calendar")
-    setProposals([])
-    setCustomTitles({})
-    setCompensatorySessions({})
-    setPinnedStartDates({})
-    setDismissedHolidays(null)
-    setLocalCustomOffDays(null)
-    onClose()
-  }
-
   const batchCreateMutation = useMutation({
     ...termsResource.batchCreatePhase.toMutation(),
     onSuccess: () => {
       toast.success(t("batchModal.success"))
       queryClient.invalidateQueries({ queryKey: termsResource.list.baseKey() })
-      handleClose()
+      router.push("/terms")
     },
   })
 
@@ -142,12 +112,15 @@ export function usePhaseTermPersistence({
     })
   }
 
+  const handleCancel = () => {
+    router.push("/terms")
+  }
+
   return {
     batchCreateMutation,
-    handleClose,
-    handleOpenChange: (isOpen: boolean) => !isOpen && handleClose(),
     handleProceedToPreview,
     handleSubmit,
+    handleCancel,
     isLoadingExisting,
     previewQuery,
   }
