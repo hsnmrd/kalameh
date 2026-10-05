@@ -327,7 +327,53 @@ async function main() {
     console.warn("⚠️ Cleanup note:", err)
   }
 
-  // 6. Seed 8 Classrooms (Rooms)
+  // 6. Seed Courses (AME 1-1 to AME 5-5)
+  console.log("📚 Seeding Courses...")
+  const coursesToSeed: { id: string; title: string; baseFee: number }[] = []
+
+  for (let level = 1; level <= 5; level++) {
+    const partsCount = level === 5 ? 5 : 4
+    for (let part = 1; part <= partsCount; part++) {
+      const id = `00000000-0000-0000-0000-000000000${level}0${part}`
+      const title = `AME ${level}-${part}`
+      const baseFee = 1500000 + (level - 1) * 100000
+      coursesToSeed.push({ id, title, baseFee })
+    }
+  }
+
+  // Clean up any obsolete courses for this institute not in our list
+  await prisma.course.deleteMany({
+    where: {
+      instituteId: institute.id,
+      id: { notIn: coursesToSeed.map((c) => c.id) },
+    },
+  })
+
+  // Upsert courses and establish prerequisite chain
+  for (let idx = 0; idx < coursesToSeed.length; idx++) {
+    const c = coursesToSeed[idx]
+    const prerequisiteId = idx > 0 ? coursesToSeed[idx - 1].id : null
+
+    await prisma.course.upsert({
+      where: { id: c.id },
+      update: {
+        title: c.title,
+        baseFee: c.baseFee,
+        instituteId: institute.id,
+        prerequisiteId,
+      },
+      create: {
+        id: c.id,
+        title: c.title,
+        baseFee: c.baseFee,
+        instituteId: institute.id,
+        prerequisiteId,
+      },
+    })
+  }
+  console.log(`✅ ${coursesToSeed.length} Courses seeded (AME 1-1 to AME 5-5)`)
+
+  // 7. Seed 8 Classrooms (Rooms)
   console.log("🚪 Seeding 8 rooms (classrooms)...")
   const roomsData = [
     {
@@ -403,7 +449,7 @@ async function main() {
   }
   console.log(`✅ 8 Rooms seeded successfully`)
 
-  // 7. Seed 15 Teachers
+  // 8. Seed 15 Teachers
   console.log("👨‍🏫 Seeding 15 teachers...")
   const teacherSpecialtiesList = [
     ["IELTS", "Speaking", "Grammar"],
@@ -495,12 +541,37 @@ async function main() {
         endTime: "20:00",
       })),
     })
+
+    // Qualify teachers for courses
+    await prisma.teacherCourseQualification.deleteMany({
+      where: { teacherProfileId: teacherProfile.id },
+    })
+
+    const qualifiedCourses = coursesToSeed.filter((_, cIdx) => {
+      const start = (i - 1) % coursesToSeed.length
+      return (
+        (cIdx >= start && cIdx < start + 6) ||
+        (start + 6 > coursesToSeed.length &&
+          cIdx < (start + 6) % coursesToSeed.length)
+      )
+    })
+
+    if (qualifiedCourses.length > 0) {
+      await prisma.teacherCourseQualification.createMany({
+        data: qualifiedCourses.map((qc) => ({
+          instituteId: institute.id,
+          teacherProfileId: teacherProfile.id,
+          courseId: qc.id,
+        })),
+        skipDuplicates: true,
+      })
+    }
   }
   console.log(
     `✅ 15 Teachers seeded (Phones: 09122000001 - 09122000015, Password: ${defaultPassword})`
   )
 
-  // 8. Seed 100 Students
+  // 9. Seed 100 Students
   console.log("🎓 Seeding 100 students...")
   for (let i = 1; i <= 100; i++) {
     const isMale = i % 2 === 1
@@ -510,6 +581,7 @@ async function main() {
     const fatherName = maleFirstNames[(i * 3) % maleFirstNames.length]
     const phone = `0912100${String(i).padStart(4, "0")}`
     const nationalCode = `00${String(10000000 + i)}`
+    const assignedCourseId = coursesToSeed[(i - 1) % coursesToSeed.length].id
 
     const user = await prisma.user.upsert({
       where: {
@@ -526,6 +598,7 @@ async function main() {
         nationalCode,
         isActive: true,
         branchId: centralBranch.id,
+        currentAllowedCourseId: assignedCourseId,
       },
       create: {
         instituteId: institute.id,
@@ -537,6 +610,7 @@ async function main() {
         password: hashedPassword,
         nationalCode,
         isActive: true,
+        currentAllowedCourseId: assignedCourseId,
       },
     })
 
@@ -575,6 +649,7 @@ async function main() {
   console.log("✨ Seeding completed successfully!")
   console.log("📊 Summary:")
   console.log("  • Sample Institute: tehran")
+  console.log(`  • Courses: ${coursesToSeed.length} (AME 1-1 to AME 5-5)`)
   console.log("  • Rooms: 8")
   console.log("  • Teachers: 15 (Phones: 09122000001 to 09122000015)")
   console.log("  • Students: 100 (Phones: 09121000001 to 09121000100)")
