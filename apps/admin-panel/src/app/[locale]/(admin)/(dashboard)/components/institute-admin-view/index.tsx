@@ -16,6 +16,7 @@ import { Link, useIsRtl } from "@/i18n/routing"
 import { useActiveInstitute } from "@/lib/stores"
 import { authResource, institutesResource } from "@/lib/api"
 import { StatCard } from "../stat-card"
+import { SetupFlow } from "../setup-flow"
 
 export function InstituteAdminView() {
   const t = useTranslations("dashboard.instituteAdmin")
@@ -63,6 +64,14 @@ export function InstituteAdminView() {
           </Button>
         </Link>
       </div>
+
+      {/* Institute Setup & Academic Cycle Workflow */}
+      {targetInstituteId && (
+        <SetupFlow
+          instituteId={targetInstituteId}
+          classesCount={classesCount}
+        />
+      )}
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

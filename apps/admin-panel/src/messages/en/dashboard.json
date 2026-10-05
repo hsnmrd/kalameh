@@ -54,6 +54,70 @@
         "schedule": "Instructor Rezaei • Thu & Fri 09:00 - 12:00",
         "enrollment": "18 / 20 Enrolled"
       }
+    },
+    "setupFlow": {
+      "title": "Institute Setup & Operations Roadmap",
+      "subtitle": "Follow these steps in sequence to configure your institute and run academic terms. Your current position is highlighted below.",
+      "progressLabel": "Overall Setup: {percent}% ({completed} of {total} steps completed)",
+      "completedAll": "All setup steps are completed and your institute is fully operational.",
+      "currentStepPrefix": "Recommended Next Step:",
+      "showDetails": "View Full Roadmap",
+      "hideDetails": "Hide Roadmap",
+      "status": {
+        "completed": "Completed",
+        "current": "Current Step",
+        "pending": "Pending Prerequisites"
+      },
+      "actions": {
+        "configurePhases": "Configure Phases",
+        "generateTerms": "Generate Terms",
+        "manageStudents": "Student Placement",
+        "smartScheduling": "Smart Calendar",
+        "manageClasses": "Publish Classes",
+        "viewAndEdit": "View & Edit",
+        "view": "View",
+        "startStep": "Start this step"
+      },
+      "steps": {
+        "phases": {
+          "title": "1. Academic Phases & Yearly Calendar",
+          "description": "Configure academic shifts, daily time slots, and institute holidays",
+          "actionHint": "Start by setting up your shifts and time slot patterns."
+        },
+        "terms": {
+          "title": "2. Smart Term Generation (Terms Page)",
+          "description": "Automatically generate terms based on your operating phases and calendar",
+          "actionHint": "Generate and configure your yearly academic terms."
+        },
+        "students": {
+          "title": "3. Student Assessment & Placement",
+          "description": "Register students, record placement tests, and assess readiness",
+          "actionHint": "Enroll students and set their course level placements."
+        },
+        "scheduling": {
+          "title": "4. Smart Academic Scheduling (Classes Page)",
+          "description": "AI scheduling engine to optimize teacher, room, and section allocation",
+          "actionHint": "Compute class requirements and run smart scheduling.",
+          "substepsTitle": "Smart Scheduling Steps",
+          "substep1": {
+            "title": "Automatic Demand & Class Requirements",
+            "description": "Estimate required classes from enrolled students and student demand"
+          },
+          "substep2": {
+            "title": "Smart Scheduling Proposals Generation",
+            "description": "Run the AI engine to generate conflict-free schedule plans"
+          },
+          "substep3": {
+            "title": "Review, Edit & Select Optimal Plan",
+            "description": "Compare generated scenarios, resolve conflicts, and commit best plan"
+          }
+        },
+        "classes": {
+          "title": "5. Publish Classes & Student Enrollment",
+          "description": "Publish schedule to catalog and enroll students into confirmed classes",
+          "actionHint": "Finalize classes and start student enrollment."
+        }
+      }
     }
   }
 }
