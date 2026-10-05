@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Sparkles, Wand2 } from "lucide-react"
-import { Input } from "@workspace/ui/components/input"
+import { Counter } from "@workspace/ui/components/counter"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -86,63 +86,45 @@ export function StepConfiguration({
 
           <Field>
             <FieldLabel>{t("batchModal.jalaliYear")}</FieldLabel>
-            <div className="relative w-full">
-              <Input
-                type="number"
-                min={1400}
-                max={1500}
-                value={jalaliYear}
-                onChange={(e) => {
-                  onJalaliYearChange(Number(e.target.value) || jalaliYear)
-                }}
-                className="pe-16"
-              />
-              <span
-                className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 font-sans text-xs font-normal text-muted-foreground select-none sm:text-sm"
-                aria-hidden="true"
-              >
-                {t("batchModal.jalaliYearUnit")}
-              </span>
-            </div>
+            <Counter
+              min={1400}
+              max={1500}
+              value={jalaliYear}
+              onValueChange={(val) => onJalaliYearChange(val || jalaliYear)}
+              aria-label={t("batchModal.jalaliYear")}
+              className="w-full"
+            />
           </Field>
 
           {/* Row 2: Sessions Per Term and Gap Days */}
           <Field>
             <FieldLabel>{t("batchModal.sessionsPerTerm")}</FieldLabel>
-            <Input
-              type="number"
+            <Counter
               min={1}
               max={100}
               value={currentSessions}
-              onChange={(e) => {
-                const val = Number(e.target.value) || 18
-                onSessionsPerTermChange?.(val)
-                onDaysPerTermChange?.(val)
+              onValueChange={(val) => {
+                const nextVal = val || 18
+                onSessionsPerTermChange?.(nextVal)
+                onDaysPerTermChange?.(nextVal)
               }}
-              placeholder={t("batchModal.sessionsPlaceholder")}
+              aria-label={t("batchModal.sessionsPerTerm")}
+              className="w-full"
             />
           </Field>
 
           <Field>
             <FieldLabel>{t("batchModal.gapDays")}</FieldLabel>
-            <div className="relative w-full">
-              <Input
-                type="number"
-                min={0}
-                max={30}
-                value={gapDays}
-                onChange={(e) => {
-                  onGapDaysChange(Number(e.target.value) || 0)
-                }}
-                className="pe-14"
-              />
-              <span
-                className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 font-sans text-xs font-normal text-muted-foreground select-none sm:text-sm"
-                aria-hidden="true"
-              >
-                {t("batchModal.gapDaysUnit")}
-              </span>
-            </div>
+            <Counter
+              min={0}
+              max={30}
+              value={gapDays}
+              onValueChange={(val) => {
+                onGapDaysChange(val ?? 0)
+              }}
+              aria-label={t("batchModal.gapDays")}
+              className="w-full"
+            />
           </Field>
         </div>
 

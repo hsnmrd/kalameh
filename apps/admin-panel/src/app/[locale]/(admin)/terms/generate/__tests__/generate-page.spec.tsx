@@ -128,6 +128,31 @@ describe("GeneratePhaseTermsPage", () => {
     expect(screen.getByText("انصراف")).toBeInTheDocument()
   })
 
+  it("renders Counter controls for academic year, sessions per term, and gap days", () => {
+    render(<GeneratePhaseTermsPage />)
+
+    const jalaliYearInput = screen.getByRole("textbox", {
+      name: "سال تحصیلی",
+    })
+    const sessionsInput = screen.getByRole("textbox", {
+      name: "تعداد جلسات هر ترم",
+    })
+    const gapDaysInput = screen.getByRole("textbox", {
+      name: "فاصله بین ترم‌ها",
+    })
+
+    expect(jalaliYearInput).toBeInTheDocument()
+    expect(sessionsInput).toBeInTheDocument()
+    expect(gapDaysInput).toBeInTheDocument()
+
+    // Verify counter increment and decrement buttons are accessible
+    const incrementButtons = screen.getAllByRole("button", { name: "افزایش" })
+    const decrementButtons = screen.getAllByRole("button", { name: "کاهش" })
+
+    expect(incrementButtons.length).toBe(3)
+    expect(decrementButtons.length).toBe(3)
+  })
+
   it("navigates to /terms when clicking cancel button in Step 1", async () => {
     render(<GeneratePhaseTermsPage />)
 
