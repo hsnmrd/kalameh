@@ -12,7 +12,7 @@ describe("TermsActionButton Component", () => {
     )
 
     const batchButton = screen.getByRole("button", {
-      name: /ساخت هوشمند ترم|smart term creation/i,
+      name: /ساخت خودکار ترم‌ها|auto-generate terms/i,
     })
     expect(batchButton).toBeInTheDocument()
 

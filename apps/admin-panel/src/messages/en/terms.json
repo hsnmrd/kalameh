@@ -3,7 +3,7 @@
   "subtitle": "Define, schedule and manage active/archived academic terms of the institute",
   "addTerm": "Add New Term",
   "manualAdd": "Add Term Manually",
-  "generatePhaseTerms": "Smart Term Creation",
+  "generatePhaseTerms": "Auto-Generate Terms",
   "actions": "Term Actions",
   "cancel": "Cancel",
   "searchPlaceholder": "Search academic terms...",
@@ -106,7 +106,7 @@
     "deleteAction": "Delete Term"
   },
   "batchModal": {
-    "title": "Smart Phase Terms Generator",
+    "title": "Automatic Term Generation",
     "description": "Select an operating phase and academic year to automatically generate consecutive terms with proper month names and accurate holiday-adjusted dates.",
     "phaseLabel": "Phase",
     "phasePlaceholder": "Select phase...",

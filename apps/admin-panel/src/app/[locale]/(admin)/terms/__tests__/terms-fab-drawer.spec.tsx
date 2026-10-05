@@ -32,7 +32,7 @@ describe("TermsFabDrawer Component", () => {
 
     // Drawer should open and show the action options
     const smartButton = screen.getByRole("button", {
-      name: /ساخت هوشمند ترم|smart term creation/i,
+      name: /ساخت خودکار ترم‌ها|auto-generate terms/i,
     })
     expect(smartButton).toBeInTheDocument()
 

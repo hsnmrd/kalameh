@@ -126,9 +126,7 @@ describe("GeneratePhaseTermsPage", () => {
   it("renders Step 1 with header, breadcrumbs, and continue button", () => {
     render(<GeneratePhaseTermsPage />)
 
-    expect(
-      screen.getAllByText("ساخت هوشمند زنجیره ترم‌های فاز")[0]
-    ).toBeInTheDocument()
+    expect(screen.getAllByText("ساخت خودکار ترم‌ها")[0]).toBeInTheDocument()
     expect(screen.getByText("ترم‌ها و دوره‌ها")).toBeInTheDocument()
     expect(screen.getByText("ادامه")).toBeInTheDocument()
     expect(screen.getByText("انصراف")).toBeInTheDocument()
