@@ -75,7 +75,6 @@ export function GeneratePhaseTermsPreviewContent() {
             customOffDays={customOffDays}
             activeDismissedHolidays={activeDismissedHolidays}
             compensatorySessions={compensatorySessions}
-            onBack={() => router.push("/terms/generate")}
             onSubmit={handleSubmit}
             isSubmitDisabled={
               proposals.length === 0 ||

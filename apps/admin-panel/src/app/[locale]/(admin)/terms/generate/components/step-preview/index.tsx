@@ -6,6 +6,7 @@ import {
   Calendar as CalendarIcon,
   Table as TableIcon,
   AlertTriangle,
+  Check,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -35,7 +36,7 @@ export interface StepPreviewProps {
   customOffDays?: string[]
   activeDismissedHolidays?: string[]
   compensatorySessions?: Record<number, CompensatorySession[]>
-  onBack: () => void
+  onBack?: () => void
   onSubmit: () => void
   isSubmitDisabled: boolean
   isSubmitLoading: boolean
@@ -56,7 +57,6 @@ export function StepPreview({
   customOffDays,
   activeDismissedHolidays,
   compensatorySessions,
-  onBack,
   onSubmit,
   isSubmitDisabled,
   isSubmitLoading,
@@ -79,27 +79,44 @@ export function StepPreview({
             {t("batchModal.dateShiftHint")}
           </p>
 
-          {/* View Mode Toggle */}
-          <div className="flex items-center rounded-xl border border-border bg-muted/40 p-1">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* View Mode Toggle */}
+            <div className="flex items-center rounded-xl border border-border bg-muted/40 p-1">
+              <Button
+                type="button"
+                variant={viewMode === "calendar" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => onViewModeChange("calendar")}
+                className="h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold"
+              >
+                <CalendarIcon className="size-3.5" />
+                <span>{t("batchModal.calendarView")}</span>
+              </Button>
+              <Button
+                type="button"
+                variant={viewMode === "table" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => onViewModeChange("table")}
+                className="h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold"
+              >
+                <TableIcon className="size-3.5" />
+                <span>{t("batchModal.tableView")}</span>
+              </Button>
+            </div>
+
+            {/* Submit Action */}
             <Button
               type="button"
-              variant={viewMode === "calendar" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => onViewModeChange("calendar")}
-              className="h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold"
+              disabled={isSubmitDisabled}
+              onClick={onSubmit}
+              className="h-10 shrink-0 cursor-pointer gap-2 rounded-xl px-5 text-sm font-semibold shadow-xs"
             >
-              <CalendarIcon className="size-3.5" />
-              <span>{t("batchModal.calendarView")}</span>
-            </Button>
-            <Button
-              type="button"
-              variant={viewMode === "table" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => onViewModeChange("table")}
-              className="h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold"
-            >
-              <TableIcon className="size-3.5" />
-              <span>{t("batchModal.tableView")}</span>
+              {isSubmitLoading ? (
+                <Spinner className="size-4 text-primary-foreground" />
+              ) : (
+                <Check className="size-4 text-primary-foreground" />
+              )}
+              <span>{t("batchModal.submit")}</span>
             </Button>
           </div>
         </div>
@@ -166,30 +183,6 @@ export function StepPreview({
           {t("batchModal.noProposals")}
         </div>
       )}
-
-      {/* Bottom Actions Sticky / Card */}
-      <div className="mt-4 flex flex-col-reverse items-center justify-end gap-3 rounded-2xl border border-border bg-card p-4 shadow-2xs sm:flex-row sm:p-5">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={isSubmitLoading}
-          onClick={onBack}
-          className="w-full sm:w-auto"
-        >
-          {t("batchModal.backToSettings")}
-        </Button>
-        <Button
-          type="button"
-          disabled={isSubmitDisabled}
-          onClick={onSubmit}
-          className="w-full sm:w-auto"
-        >
-          {isSubmitLoading && (
-            <Spinner className="size-5 text-primary-foreground" />
-          )}
-          <span>{t("batchModal.submit")}</span>
-        </Button>
-      </div>
     </div>
   )
 }

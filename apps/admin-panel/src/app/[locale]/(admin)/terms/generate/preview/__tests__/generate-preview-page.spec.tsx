@@ -142,7 +142,7 @@ describe("GeneratePhaseTermsPreviewPage", () => {
     expect(screen.getByText("مهر و آبان ۱۴۰۳")).toBeInTheDocument()
     expect(screen.getByText("نمای تقویم")).toBeInTheDocument()
     expect(screen.getByText("نمای جدول")).toBeInTheDocument()
-    expect(screen.getByText("بازگشت")).toBeInTheDocument()
+    expect(screen.queryByText("بازگشت")).not.toBeInTheDocument()
     expect(screen.getByText("تأیید")).toBeInTheDocument()
 
     // Switch to table view
@@ -157,15 +157,12 @@ describe("GeneratePhaseTermsPreviewPage", () => {
     expect(screen.getAllByText("1403/08/15")[0]).toBeInTheDocument()
   })
 
-  it("navigates back to /terms/generate when clicking back button", async () => {
+  it("renders breadcrumb link to navigate back to /terms/generate without in-page back button", async () => {
     render(<GeneratePhaseTermsPreviewPage />)
 
-    const backBtn = await screen.findByText("بازگشت")
-    await act(async () => {
-      backBtn.click()
-    })
-
-    expect(mockPush).toHaveBeenCalledWith("/terms/generate")
+    expect(screen.queryByText("بازگشت")).not.toBeInTheDocument()
+    const parentLink = screen.getByRole("link", { name: "ساخت خودکار ترم‌ها" })
+    expect(parentLink).toHaveAttribute("href", "/terms/generate")
   })
 
   it("submits batch create when clicking confirm button and redirects to /terms", async () => {
