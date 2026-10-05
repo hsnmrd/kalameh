@@ -146,4 +146,43 @@ describe("NavList Component", () => {
     expect(lockIcon).toBeInTheDocument()
     expect(lockIcon).toHaveClass("text-primary")
   })
+
+  it("renders both platform dashboard and institute dashboard links when present", () => {
+    const dualDashboardSections: NavSection[] = [
+      {
+        id: "super-admin-platform",
+        title: "مدیریت کل سامانه",
+        items: [
+          { key: "platformDashboard", href: "/", icon: LayoutDashboard },
+          { key: "institutes", href: "/institutes", icon: ShieldAlert },
+        ],
+      },
+      {
+        id: "institute-overview",
+        contextTitle: "آموزشگاه کلمه تهران",
+        items: [
+          {
+            key: "instituteDashboard",
+            href: "/overview",
+            icon: LayoutDashboard,
+          },
+        ],
+      },
+    ]
+
+    render(<NavList sections={dualDashboardSections} pathname="/overview" />)
+
+    expect(screen.getByText("پیشخوان سامانه")).toBeInTheDocument()
+    expect(screen.getByText("پیشخوان آموزشگاه")).toBeInTheDocument()
+
+    const instituteLink = screen.getByRole("link", {
+      name: /پیشخوان آموزشگاه/i,
+    })
+    expect(instituteLink.className).toContain("bg-primary/10")
+
+    const platformLink = screen.getByRole("link", {
+      name: /پیشخوان سامانه/i,
+    })
+    expect(platformLink.className).not.toContain("bg-primary/10")
+  })
 })

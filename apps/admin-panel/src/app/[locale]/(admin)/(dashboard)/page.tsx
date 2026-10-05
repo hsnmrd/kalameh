@@ -5,13 +5,11 @@ import { useQuery } from "@tanstack/react-query"
 import { ROLES } from "@workspace/types"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { authResource } from "@/lib/api"
-import { useActiveInstitute } from "@/lib/stores"
 import { SuperAdminView } from "./components/super-admin-view"
 import { InstituteAdminView } from "./components/institute-admin-view"
 
 export default function AdminDashboardPage() {
   const { data: user, isLoading } = useQuery(authResource.me.toQuery())
-  const { activeInstitute } = useActiveInstitute()
 
   if (isLoading) {
     return (
@@ -21,7 +19,7 @@ export default function AdminDashboardPage() {
     )
   }
 
-  if (user?.role === ROLES.SUPER_ADMIN && !activeInstitute) {
+  if (user?.role === ROLES.SUPER_ADMIN) {
     return <SuperAdminView />
   }
 

@@ -13,6 +13,8 @@ import { useActiveInstitute } from "@/lib/stores"
 
 export type NavItemKey =
   | "dashboard"
+  | "platformDashboard"
+  | "instituteDashboard"
   | "institutes"
   | "classes"
   | "scheduling"

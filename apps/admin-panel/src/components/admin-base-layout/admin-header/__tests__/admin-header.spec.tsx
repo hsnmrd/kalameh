@@ -79,4 +79,26 @@ describe("AdminHeader", () => {
       "بازگشت به تقویم آموزشی هوشمند"
     )
   })
+
+  it("renders platform dashboard title for super admin on root path", () => {
+    mockPathname.mockReturnValueOnce("/")
+    render(
+      <HeaderActionsProvider>
+        <AdminHeader role="SUPER_ADMIN" />
+      </HeaderActionsProvider>
+    )
+
+    expect(screen.getByText("پیشخوان سامانه")).toBeInTheDocument()
+  })
+
+  it("renders institute dashboard title on /overview path", () => {
+    mockPathname.mockReturnValueOnce("/overview")
+    render(
+      <HeaderActionsProvider>
+        <AdminHeader role="SUPER_ADMIN" />
+      </HeaderActionsProvider>
+    )
+
+    expect(screen.getByText("پیشخوان آموزشگاه")).toBeInTheDocument()
+  })
 })

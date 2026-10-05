@@ -17,6 +17,7 @@ import { HeaderActionsProvider } from "./header-actions-context"
 import {
   SUPER_ADMIN_PLATFORM_NAV,
   DASHBOARD_NAV_ITEM,
+  INSTITUTE_DASHBOARD_NAV_ITEM,
   ACADEMIC_NAV_ITEMS,
   PEOPLE_NAV_ITEMS,
   FINANCE_NAV_ITEMS,
@@ -72,11 +73,15 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
             title: t("superAdminSection"),
             items: SUPER_ADMIN_PLATFORM_NAV,
           },
-          ...instituteSections.map((section, index) => ({
+          {
+            id: `institute-${activeInstitute.id}-overview`,
+            contextTitle: activeInstitute.name,
+            badge: activeInstitute.subdomain,
+            items: [INSTITUTE_DASHBOARD_NAV_ITEM],
+          },
+          ...instituteSections.map((section) => ({
             ...section,
             id: `institute-${activeInstitute.id}-${section.id}`,
-            contextTitle: index === 0 ? activeInstitute.name : undefined,
-            badge: index === 0 ? activeInstitute.subdomain : undefined,
           })),
         ]
       }

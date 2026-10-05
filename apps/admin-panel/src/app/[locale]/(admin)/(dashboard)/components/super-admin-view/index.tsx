@@ -13,13 +13,14 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { Link, useIsRtl } from "@/i18n/routing"
+import { Link, useIsRtl, useRouter } from "@/i18n/routing"
 import { useActiveInstitute } from "@/lib/stores"
 import { StatCard } from "../stat-card"
 
 export function SuperAdminView() {
   const t = useTranslations("dashboard.superAdmin")
   const isRtl = useIsRtl()
+  const router = useRouter()
   const ActionArrow = isRtl ? ArrowLeft : ArrowRight
   const { institutes, isLoadingInstitutes, selectInstitute } =
     useActiveInstitute()
@@ -128,7 +129,10 @@ export function SuperAdminView() {
                 key={inst.id}
                 type="button"
                 variant="ghost"
-                onClick={() => selectInstitute(inst)}
+                onClick={() => {
+                  selectInstitute(inst)
+                  router.push("/overview")
+                }}
                 className="h-auto w-full cursor-pointer items-center justify-between rounded-xl px-2 py-3.5 text-start font-normal text-foreground hover:bg-muted/50"
               >
                 <div className="flex items-center gap-3">

@@ -73,7 +73,7 @@ export function InstituteSwitcher({
   const handleSelect = (institute: (typeof institutes)[0]) => {
     selectInstitute(institute)
     setOpen(false)
-    router.push("/")
+    router.push("/overview")
   }
 
   const handleClear = () => {

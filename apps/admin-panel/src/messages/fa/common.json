@@ -6,6 +6,8 @@
   "superAdminMode": "مدیریت آموزشگاه (ادمین کل)",
   "nav": {
     "dashboard": "داشبورد",
+    "platformDashboard": "پیشخوان سامانه",
+    "instituteDashboard": "پیشخوان آموزشگاه",
     "institutes": "مدیریت آموزشگاه‌ها",
     "classes": "مدیریت کلاس‌ها",
     "scheduling": "تقویم آموزشی هوشمند",
@@ -40,6 +42,8 @@
   },
   "navShort": {
     "dashboard": "پیشخوان",
+    "platformDashboard": "سامانه",
+    "instituteDashboard": "آموزشگاه",
     "institutes": "آموزشگاه‌ها",
     "classes": "کلاس‌ها",
     "scheduling": "تقویم آموزشی",

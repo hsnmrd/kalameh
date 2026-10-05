@@ -56,7 +56,7 @@ export function InstituteCard({
 
   const handleManage = () => {
     selectInstitute(institute)
-    router.push("/")
+    router.push("/overview")
   }
 
   const toggleStatusMutation = useMutation({

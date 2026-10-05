@@ -96,7 +96,7 @@ export function InstitutesList({
 
   const handleSelect = (institute: InstituteWithStats) => {
     selectInstitute(institute)
-    router.push("/")
+    router.push("/overview")
   }
 
   const handleToggleBlock = (institute: InstituteWithStats) => {

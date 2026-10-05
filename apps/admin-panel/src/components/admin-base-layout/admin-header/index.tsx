@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { ArrowLeft, ArrowRight } from "lucide-react"
-import { type Role, type AuthUser } from "@workspace/types"
+import { ROLES, type Role, type AuthUser } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { Link, useIsRtl, usePathname } from "@/i18n/routing"
@@ -25,9 +25,18 @@ export interface AdminHeaderProps {
   locale?: string
 }
 
-function getPageTitle(pathname: string, t: (key: string) => string): string {
+function getPageTitle(
+  pathname: string,
+  t: (key: string) => string,
+  role?: Role
+): string {
+  if (pathname === "/overview") {
+    return t("nav.instituteDashboard")
+  }
   if (!pathname || pathname === "/" || pathname === "/dashboard") {
-    return t("nav.dashboard")
+    return role === ROLES.SUPER_ADMIN
+      ? t("nav.platformDashboard")
+      : t("nav.dashboard")
   }
   if (pathname.startsWith("/institutes")) {
     return t("nav.institutes")
@@ -98,7 +107,8 @@ function getPageTitle(pathname: string, t: (key: string) => string): string {
 export function AdminHeader({ role, user, onLogout }: AdminHeaderProps) {
   const t = useTranslations("common")
   const pathname = usePathname()
-  const pageTitle = getPageTitle(pathname, t)
+  const effectiveRole = role ?? user?.role
+  const pageTitle = getPageTitle(pathname, t, effectiveRole)
   const { headerActions, backNavigation } = useHeaderActions()
   const isRtl = useIsRtl()
   const BackIcon = isRtl ? ArrowRight : ArrowLeft

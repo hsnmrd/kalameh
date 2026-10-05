@@ -24,8 +24,22 @@ export const DASHBOARD_NAV_ITEM: NavItem = {
   permission: PERMISSIONS.VIEW_DASHBOARD,
 }
 
+export const PLATFORM_DASHBOARD_NAV_ITEM: NavItem = {
+  key: "platformDashboard",
+  href: "/",
+  icon: LayoutDashboard,
+  permission: PERMISSIONS.VIEW_DASHBOARD,
+}
+
+export const INSTITUTE_DASHBOARD_NAV_ITEM: NavItem = {
+  key: "instituteDashboard",
+  href: "/overview",
+  icon: LayoutDashboard,
+  permission: PERMISSIONS.VIEW_DASHBOARD,
+}
+
 export const SUPER_ADMIN_PLATFORM_NAV: NavItem[] = [
-  DASHBOARD_NAV_ITEM,
+  PLATFORM_DASHBOARD_NAV_ITEM,
   {
     key: "institutes",
     href: "/institutes",

@@ -6,6 +6,8 @@
   "superAdminMode": "Institute View (Super Admin)",
   "nav": {
     "dashboard": "Dashboard",
+    "platformDashboard": "Platform Dashboard",
+    "instituteDashboard": "Institute Dashboard",
     "institutes": "Institutes Management",
     "classes": "Classes Management",
     "scheduling": "Smart Academic Calendar",
@@ -40,6 +42,8 @@
   },
   "navShort": {
     "dashboard": "Dashboard",
+    "platformDashboard": "Platform",
+    "instituteDashboard": "Institute",
     "institutes": "Institutes",
     "classes": "Classes",
     "scheduling": "Academic Calendar",

@@ -1,6 +1,8 @@
 import type { NavItem, NavItemKey } from "../nav-list"
 
 export const DIRECT_ITEM_PRIORITY: NavItemKey[] = [
+  "platformDashboard",
+  "instituteDashboard",
   "dashboard",
   "institutes",
   "classes",

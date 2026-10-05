@@ -4,6 +4,9 @@ import {
   ADMINISTRATION_NAV_ITEMS,
   FINANCE_NAV_ITEMS,
   PEOPLE_NAV_ITEMS,
+  PLATFORM_DASHBOARD_NAV_ITEM,
+  INSTITUTE_DASHBOARD_NAV_ITEM,
+  SUPER_ADMIN_PLATFORM_NAV,
 } from "../navigation.data"
 
 describe("admin navigation groups", () => {
@@ -24,6 +27,25 @@ describe("admin navigation groups", () => {
     expect(ADMINISTRATION_NAV_ITEMS.map((item) => item.key)).toEqual([
       "staff",
       "rolePermissions",
+    ])
+  })
+
+  it("exposes distinct platform dashboard and institute dashboard items", () => {
+    expect(PLATFORM_DASHBOARD_NAV_ITEM).toEqual(
+      expect.objectContaining({
+        key: "platformDashboard",
+        href: "/",
+      })
+    )
+    expect(INSTITUTE_DASHBOARD_NAV_ITEM).toEqual(
+      expect.objectContaining({
+        key: "instituteDashboard",
+        href: "/overview",
+      })
+    )
+    expect(SUPER_ADMIN_PLATFORM_NAV.map((item) => item.key)).toEqual([
+      "platformDashboard",
+      "institutes",
     ])
   })
 })
