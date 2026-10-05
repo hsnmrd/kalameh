@@ -87,7 +87,7 @@ export class TermsController {
         // ignore invalid json
       }
     }
-    const sessionCount = Number(sessionsPerTerm) || Number(daysPerTerm) || 18;
+    const sessionCount = Number(sessionsPerTerm) || Number(daysPerTerm) || 15;
     return this.termsService.previewPhaseTerms(
       currentUser,
       operatingPhaseId,

@@ -510,7 +510,7 @@ export interface GeneratePhaseTermsInput {
     daysOfWeek?: WeekDay[]
   }
   jalaliYear: number // e.g. 1403
-  sessionsPerTerm?: number // e.g. 18 (number of sessions per term)
+  sessionsPerTerm?: number // e.g. 15 (number of sessions per term)
   daysPerTerm?: number // backward compatibility alias
   daysOfWeek?: WeekDay[] // e.g. ["SATURDAY", "MONDAY", "WEDNESDAY"]
   classPatterns?: WeekDay[][] // e.g. [["SATURDAY", "MONDAY", "WEDNESDAY"], ["SUNDAY", "TUESDAY"]]
@@ -650,7 +650,7 @@ export function generatePhaseTerms(
     dismissedHolidays = [],
   } = input
 
-  const targetSessionsCount = sessionsPerTerm ?? daysPerTerm ?? 18
+  const targetSessionsCount = sessionsPerTerm ?? daysPerTerm ?? 15
 
   if (!phase.months || phase.months.length === 0) {
     return []
@@ -812,7 +812,7 @@ export function recalculatePhaseTerms(
     sessionsPerTerm ??
     daysPerTerm ??
     proposals[changedIndex]?.sessionsCount ??
-    18
+    15
 
   if (!proposals || proposals.length === 0) {
     return []

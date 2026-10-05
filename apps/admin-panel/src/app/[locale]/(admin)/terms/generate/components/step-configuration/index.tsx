@@ -50,7 +50,7 @@ export function StepConfiguration({
   isProceedLoading,
 }: StepConfigurationProps) {
   const t = useTranslations("terms")
-  const currentSessions = sessionsPerTerm ?? daysPerTerm ?? 18
+  const currentSessions = sessionsPerTerm ?? daysPerTerm ?? 15
 
   return (
     <div className="flex flex-col gap-6">
@@ -90,7 +90,7 @@ export function StepConfiguration({
               max={100}
               value={currentSessions}
               onValueChange={(val) => {
-                const nextVal = val || 18
+                const nextVal = val || 15
                 onSessionsPerTermChange?.(nextVal)
                 onDaysPerTermChange?.(nextVal)
               }}

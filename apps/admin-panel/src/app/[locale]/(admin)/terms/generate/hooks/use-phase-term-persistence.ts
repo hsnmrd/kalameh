@@ -113,6 +113,7 @@ export function usePhaseTermPersistence({
   }
 
   const handleCancel = () => {
+    reset?.()
     router.push("/terms")
   }
 

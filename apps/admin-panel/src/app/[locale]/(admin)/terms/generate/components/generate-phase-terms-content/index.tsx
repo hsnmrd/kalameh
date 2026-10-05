@@ -33,6 +33,17 @@ export function GeneratePhaseTermsContent() {
     handleCancel,
   } = useGeneratePhaseTerms()
 
+  // Safety migration: if browser session was restored with legacy default of 18, normalize to 15 on mount
+  const hasMountedRef = React.useRef(false)
+  React.useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true
+      if (sessionsPerTerm === 18) {
+        setSessionsPerTerm(15)
+      }
+    }
+  }, [sessionsPerTerm, setSessionsPerTerm])
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="forbidden">

@@ -68,7 +68,7 @@ export const usePhaseTermsGenerateStore = create<PhaseTermsGenerateState>()(
     (set) => ({
       selectedPhaseId: "",
       jalaliYear: getDefaultJalaliYear(),
-      sessionsPerTerm: 18,
+      sessionsPerTerm: 15,
       gapDays: 2,
       proposals: [],
       customTitles: {},
@@ -129,7 +129,7 @@ export const usePhaseTermsGenerateStore = create<PhaseTermsGenerateState>()(
         set({
           selectedPhaseId: "",
           jalaliYear: getDefaultJalaliYear(),
-          sessionsPerTerm: 18,
+          sessionsPerTerm: 15,
           gapDays: 2,
           proposals: [],
           customTitles: {},
@@ -141,8 +141,25 @@ export const usePhaseTermsGenerateStore = create<PhaseTermsGenerateState>()(
         }),
     }),
     {
-      name: "kalameh_phase_terms_generate_state",
-      storage: createJSONStorage(() => sessionStorage),
+      name: "kalameh_phase_terms_generate_state_v1",
+      storage: createJSONStorage(() => {
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.removeItem("kalameh_phase_terms_generate_state")
+          } catch {
+            // ignore storage access errors
+          }
+        }
+        return sessionStorage
+      }),
+      version: 1,
+      migrate: (persistedState: unknown) => {
+        const state = (persistedState ?? {}) as Partial<PhaseTermsGenerateState>
+        if (state.sessionsPerTerm === 18 || !state.sessionsPerTerm) {
+          state.sessionsPerTerm = 15
+        }
+        return state
+      },
     }
   )
 )

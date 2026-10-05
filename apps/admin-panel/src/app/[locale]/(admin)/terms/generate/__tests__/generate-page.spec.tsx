@@ -149,6 +149,7 @@ describe("GeneratePhaseTermsPage", () => {
 
     expect(jalaliYearInput).toBeInTheDocument()
     expect(sessionsInput).toBeInTheDocument()
+    expect(sessionsInput).toHaveValue("15")
     expect(gapDaysInput).toBeInTheDocument()
 
     // Verify counter increment and decrement buttons are accessible
@@ -157,6 +158,16 @@ describe("GeneratePhaseTermsPage", () => {
 
     expect(incrementButtons.length).toBe(3)
     expect(decrementButtons.length).toBe(3)
+  })
+
+  it("normalizes legacy 18 sessionsPerTerm to default 15 on page load", () => {
+    usePhaseTermsGenerateStore.setState({ sessionsPerTerm: 18 })
+    render(<GeneratePhaseTermsPage />)
+
+    const sessionsInput = screen.getByRole("textbox", {
+      name: "تعداد جلسات هر ترم",
+    })
+    expect(sessionsInput).toHaveValue("15")
   })
 
   it("navigates to /terms when clicking cancel button in Step 1", async () => {

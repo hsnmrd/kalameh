@@ -24,7 +24,7 @@ export function TermCalculatorSection({
 }: TermCalculatorSectionProps) {
   const t = useTranslations("terms")
   const [isOpen, setIsOpen] = React.useState(false)
-  const [targetSessions, setTargetSessions] = React.useState(18)
+  const [targetSessions, setTargetSessions] = React.useState(15)
   const [skipHolidays, setSkipHolidays] = React.useState(true)
   const [result, setResult] = React.useState<CalculatedTermSchedule | null>(
     null
