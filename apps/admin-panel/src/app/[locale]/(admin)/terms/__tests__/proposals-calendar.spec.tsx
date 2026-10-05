@@ -836,6 +836,33 @@ describe("ProposalsCalendar Component", () => {
     }
   })
 
+  it("renders 3 months on screens wider than 1500px", () => {
+    const originalMatchMedia = window.matchMedia
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: query === "(min-width: 1500px)",
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }))
+
+    try {
+      render(
+        <ProposalsCalendar
+          proposals={mockProposals}
+          onStartDateChange={vi.fn()}
+        />
+      )
+      const grids = screen.getAllByRole("grid")
+      expect(grids).toHaveLength(3)
+    } finally {
+      window.matchMedia = originalMatchMedia
+    }
+  })
+
   it("applies vivid palette to selected term and dimmed grey styling to unselected terms", async () => {
     const { buildTermCalendarModifiers } =
       await import("../components/proposals-calendar/helper/calendar-colors")

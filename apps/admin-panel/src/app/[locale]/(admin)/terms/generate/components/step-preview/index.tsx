@@ -6,7 +6,6 @@ import {
   Calendar as CalendarIcon,
   Table as TableIcon,
   AlertTriangle,
-  Check,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -80,55 +79,27 @@ export function StepPreview({
             {t("batchModal.dateShiftHint")}
           </p>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* View Mode Toggle */}
-            <div className="flex items-center rounded-xl border border-border bg-muted/40 p-1">
-              <Button
-                type="button"
-                variant={viewMode === "calendar" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => onViewModeChange("calendar")}
-                className="h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold"
-              >
-                <CalendarIcon className="size-3.5" />
-                <span>{t("batchModal.calendarView")}</span>
-              </Button>
-              <Button
-                type="button"
-                variant={viewMode === "table" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => onViewModeChange("table")}
-                className="h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold"
-              >
-                <TableIcon className="size-3.5" />
-                <span>{t("batchModal.tableView")}</span>
-              </Button>
-            </div>
-
-            {/* Top Quick Actions */}
+          {/* View Mode Toggle */}
+          <div className="flex items-center rounded-xl border border-border bg-muted/40 p-1">
             <Button
               type="button"
-              variant="outline"
+              variant={viewMode === "calendar" ? "default" : "ghost"}
               size="sm"
-              disabled={isSubmitLoading}
-              onClick={onBack}
-              className="h-10 rounded-xl px-4 text-xs font-semibold"
+              onClick={() => onViewModeChange("calendar")}
+              className="h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold"
             >
-              <span>{t("batchModal.backToSettings")}</span>
+              <CalendarIcon className="size-3.5" />
+              <span>{t("batchModal.calendarView")}</span>
             </Button>
             <Button
               type="button"
+              variant={viewMode === "table" ? "default" : "ghost"}
               size="sm"
-              disabled={isSubmitDisabled}
-              onClick={onSubmit}
-              className="h-10 rounded-xl px-5 text-xs font-semibold"
+              onClick={() => onViewModeChange("table")}
+              className="h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold"
             >
-              {isSubmitLoading ? (
-                <Spinner className="size-4 text-primary-foreground" />
-              ) : (
-                <Check className="size-4 text-primary-foreground" />
-              )}
-              <span>{t("batchModal.submit")}</span>
+              <TableIcon className="size-3.5" />
+              <span>{t("batchModal.tableView")}</span>
             </Button>
           </div>
         </div>

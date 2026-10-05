@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
+import { useIsMobile, useMediaQuery } from "@workspace/ui/hooks/use-mobile"
 import {
   type GeneratedTermProposal,
   type CompensatorySession,
@@ -57,7 +57,9 @@ export function CalendarGrid({
   readOnly = false,
 }: CalendarGridProps) {
   const isMobile = useIsMobile()
-  const effectiveNumberOfMonths = numberOfMonths ?? (isMobile ? 1 : 2)
+  const isExtraWide = useMediaQuery("(min-width: 1500px)")
+  const effectiveNumberOfMonths =
+    numberOfMonths ?? (isMobile ? 1 : isExtraWide ? 3 : 2)
 
   const metadata = useCalendarGridMetadata(
     proposals,

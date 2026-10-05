@@ -142,8 +142,8 @@ describe("GeneratePhaseTermsPreviewPage", () => {
     expect(screen.getByText("مهر و آبان ۱۴۰۳")).toBeInTheDocument()
     expect(screen.getByText("نمای تقویم")).toBeInTheDocument()
     expect(screen.getByText("نمای جدول")).toBeInTheDocument()
-    expect(screen.getAllByText("بازگشت")[0]).toBeInTheDocument()
-    expect(screen.getAllByText("تأیید")[0]).toBeInTheDocument()
+    expect(screen.getByText("بازگشت")).toBeInTheDocument()
+    expect(screen.getByText("تأیید")).toBeInTheDocument()
 
     // Switch to table view
     const tableViewBtn = screen.getByText("نمای جدول")
@@ -160,7 +160,7 @@ describe("GeneratePhaseTermsPreviewPage", () => {
   it("navigates back to /terms/generate when clicking back button", async () => {
     render(<GeneratePhaseTermsPreviewPage />)
 
-    const backBtn = (await screen.findAllByText("بازگشت"))[0]!
+    const backBtn = await screen.findByText("بازگشت")
     await act(async () => {
       backBtn.click()
     })
@@ -172,7 +172,7 @@ describe("GeneratePhaseTermsPreviewPage", () => {
     mockBatchCreate.mockClear()
     render(<GeneratePhaseTermsPreviewPage />)
 
-    const submitBtn = (await screen.findAllByText("تأیید"))[0]!
+    const submitBtn = await screen.findByText("تأیید")
     await act(async () => {
       submitBtn.click()
     })
@@ -216,9 +216,7 @@ describe("GeneratePhaseTermsPreviewPage", () => {
       await screen.findByText(/هشدار ناهماهنگی جلسات/i)
     ).toBeInTheDocument()
 
-    const submitBtns = screen.getAllByText("تأیید")
-    submitBtns.forEach((btn) => {
-      expect(btn.closest("button")).toBeDisabled()
-    })
+    const submitBtn = screen.getByText("تأیید")
+    expect(submitBtn.closest("button")).toBeDisabled()
   })
 })
