@@ -2,7 +2,10 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
+import { Check } from "lucide-react"
 import { APP_MODULES, PERMISSIONS } from "@workspace/types"
+import { FABSingle } from "@workspace/ui/components/fab"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { ModuleGuard } from "@/components/module-guard"
@@ -10,6 +13,7 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { useRouter } from "@/i18n/routing"
 import { useGeneratePhaseTerms } from "../../../hooks/use-generate-phase-terms"
 import { StepPreview } from "../../../components/step-preview"
+import { PreviewFilter } from "../preview-filter"
 
 export function GeneratePhaseTermsPreviewContent() {
   const t = useTranslations("terms")
@@ -45,10 +49,17 @@ export function GeneratePhaseTermsPreviewContent() {
     return null
   }
 
+  const isSubmitDisabled =
+    proposals.length === 0 ||
+    batchCreateMutation.isPending ||
+    hasAnySessionImbalance
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="forbidden">
         <AdminPageShell
+          backHref="/terms/generate"
+          backLabel={t("batchModal.title")}
           breadcrumb={
             <AdminBreadcrumb
               backHref="/terms/generate"
@@ -60,11 +71,32 @@ export function GeneratePhaseTermsPreviewContent() {
               ]}
             />
           }
+          filter={
+            <PreviewFilter
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              onSubmit={handleSubmit}
+              isSubmitDisabled={isSubmitDisabled}
+              isSubmitLoading={batchCreateMutation.isPending}
+            />
+          }
+          fab={
+            <FABSingle
+              onClick={handleSubmit}
+              disabled={isSubmitDisabled}
+              aria-label={t("batchModal.submit")}
+            >
+              {batchCreateMutation.isPending ? (
+                <Spinner className="size-6 text-primary-foreground" />
+              ) : (
+                <Check className="size-6 text-primary-foreground" />
+              )}
+            </FABSingle>
+          }
         >
           <StepPreview
             proposals={proposals}
             viewMode={viewMode}
-            onViewModeChange={setViewMode}
             onTitleChange={handleTitleChange}
             onStartDateChange={handleStartDateChange}
             onToggleHoliday={handleToggleHoliday}
@@ -75,13 +107,6 @@ export function GeneratePhaseTermsPreviewContent() {
             customOffDays={customOffDays}
             activeDismissedHolidays={activeDismissedHolidays}
             compensatorySessions={compensatorySessions}
-            onSubmit={handleSubmit}
-            isSubmitDisabled={
-              proposals.length === 0 ||
-              batchCreateMutation.isPending ||
-              hasAnySessionImbalance
-            }
-            isSubmitLoading={batchCreateMutation.isPending}
           />
         </AdminPageShell>
       </PermissionGuard>

@@ -2,14 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import {
-  Calendar as CalendarIcon,
-  Table as TableIcon,
-  AlertTriangle,
-  Check,
-} from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { AlertTriangle } from "lucide-react"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import type {
   GeneratedTermProposal,
@@ -21,7 +14,6 @@ import { ProposalsTable } from "../proposals-table"
 export interface StepPreviewProps {
   proposals: GeneratedTermProposal[]
   viewMode: "calendar" | "table"
-  onViewModeChange: (mode: "calendar" | "table") => void
   onTitleChange: (index: number, newTitle: string) => void
   onStartDateChange: (index: number, newStartDate: string) => void
   onToggleHoliday?: (dateYmd: string) => void
@@ -36,16 +28,11 @@ export interface StepPreviewProps {
   customOffDays?: string[]
   activeDismissedHolidays?: string[]
   compensatorySessions?: Record<number, CompensatorySession[]>
-  onBack?: () => void
-  onSubmit: () => void
-  isSubmitDisabled: boolean
-  isSubmitLoading: boolean
 }
 
 export function StepPreview({
   proposals,
   viewMode,
-  onViewModeChange,
   onTitleChange,
   onStartDateChange,
   onToggleHoliday,
@@ -57,9 +44,6 @@ export function StepPreview({
   customOffDays,
   activeDismissedHolidays,
   compensatorySessions,
-  onSubmit,
-  isSubmitDisabled,
-  isSubmitLoading,
 }: StepPreviewProps) {
   const t = useTranslations("terms")
 
@@ -72,56 +56,6 @@ export function StepPreview({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Step Header & Controls Card */}
-      <section className="rounded-2xl border border-border bg-card p-4 shadow-2xs sm:p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground sm:text-sm">
-            {t("batchModal.dateShiftHint")}
-          </p>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* View Mode Toggle */}
-            <div className="flex items-center rounded-xl border border-border bg-muted/40 p-1">
-              <Button
-                type="button"
-                variant={viewMode === "calendar" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => onViewModeChange("calendar")}
-                className="h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold"
-              >
-                <CalendarIcon className="size-3.5" />
-                <span>{t("batchModal.calendarView")}</span>
-              </Button>
-              <Button
-                type="button"
-                variant={viewMode === "table" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => onViewModeChange("table")}
-                className="h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold"
-              >
-                <TableIcon className="size-3.5" />
-                <span>{t("batchModal.tableView")}</span>
-              </Button>
-            </div>
-
-            {/* Submit Action */}
-            <Button
-              type="button"
-              disabled={isSubmitDisabled}
-              onClick={onSubmit}
-              className="h-10 shrink-0 cursor-pointer gap-2 rounded-xl px-5 text-sm font-semibold shadow-xs"
-            >
-              {isSubmitLoading ? (
-                <Spinner className="size-4 text-primary-foreground" />
-              ) : (
-                <Check className="size-4 text-primary-foreground" />
-              )}
-              <span>{t("batchModal.submit")}</span>
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* Active Term Session Imbalance Warning Alert */}
       {activeTerm?.hasSessionImbalance && (
         <div className="flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
@@ -142,7 +76,7 @@ export function StepPreview({
                   even: formatNumber(even, locale || "fa"),
                   odd: formatNumber(odd, locale || "fa"),
                   target: formatNumber(
-                    activeTerm.sessionsCount ?? 18,
+                    activeTerm.sessionsCount ?? 15,
                     locale || "fa"
                   ),
                 })

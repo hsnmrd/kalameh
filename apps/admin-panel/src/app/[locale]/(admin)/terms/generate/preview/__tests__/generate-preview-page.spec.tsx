@@ -213,7 +213,10 @@ describe("GeneratePhaseTermsPreviewPage", () => {
       await screen.findByText(/هشدار ناهماهنگی جلسات/i)
     ).toBeInTheDocument()
 
-    const submitBtn = screen.getByText("تأیید")
-    expect(submitBtn.closest("button")).toBeDisabled()
+    const submitButtons = screen.getAllByRole("button", { name: "تأیید" })
+    expect(submitButtons.length).toBeGreaterThanOrEqual(1)
+    for (const btn of submitButtons) {
+      expect(btn).toBeDisabled()
+    }
   })
 })
