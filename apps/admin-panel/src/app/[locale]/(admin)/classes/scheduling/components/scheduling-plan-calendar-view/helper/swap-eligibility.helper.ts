@@ -508,7 +508,89 @@ function isProposalCombinationValid(
   return true
 }
 
-function isTeacherQualifiedForCourse(
+export interface TargetTeacherResolution {
+  targetTeacher: SchedulingTeacherCalendar["teacher"] | null
+  teacherStatus: "SAME_TEACHER" | "REASSIGNED_TEACHER" | "UNASSIGNED"
+}
+
+export function resolveTargetTeacherForSlot(
+  sourceProposal: Proposal,
+  targetDays: WeekDay[],
+  startTime: string,
+  endTime: string,
+  allProposals: Proposal[],
+  teacherCalendars?: SchedulingTeacherCalendar[]
+): TargetTeacherResolution {
+  const currentTeacherId = getProposalTeacherId(sourceProposal)
+  const currentTeacher = sourceProposal.teacher ?? null
+
+  // 1. If current teacher exists and is available in target slot, keep them
+  if (currentTeacherId) {
+    const isCurrentTeacherAvailable = isTeacherAvailableForSchedule(
+      currentTeacherId,
+      targetDays,
+      startTime,
+      endTime,
+      [sourceProposal.id],
+      allProposals,
+      teacherCalendars
+    )
+    if (isCurrentTeacherAvailable) {
+      return {
+        targetTeacher: currentTeacher,
+        teacherStatus: "SAME_TEACHER",
+      }
+    }
+  }
+
+  // 2. Current teacher is not available (or was null). Search for qualified free teachers in target period
+  if (teacherCalendars && teacherCalendars.length > 0) {
+    const allCourses = collectKnownCourses(allProposals, teacherCalendars)
+    const qualifiedFreeTeachers: SchedulingTeacherCalendar["teacher"][] = []
+
+    for (const calendar of teacherCalendars) {
+      if (currentTeacherId && calendar.teacher.id === currentTeacherId) {
+        continue
+      }
+      const isQualified = isTeacherQualifiedForCourse(
+        calendar.teacher.id,
+        sourceProposal.course,
+        allProposals,
+        teacherCalendars,
+        allCourses
+      )
+      if (!isQualified) continue
+
+      const isAvailable = isTeacherAvailableForSchedule(
+        calendar.teacher.id,
+        targetDays,
+        startTime,
+        endTime,
+        [sourceProposal.id],
+        allProposals,
+        teacherCalendars
+      )
+      if (isAvailable) {
+        qualifiedFreeTeachers.push(calendar.teacher)
+      }
+    }
+
+    if (qualifiedFreeTeachers.length > 0) {
+      return {
+        targetTeacher: qualifiedFreeTeachers[0]!,
+        teacherStatus: "REASSIGNED_TEACHER",
+      }
+    }
+  }
+
+  // 3. No qualified free teacher available. Keep teacher field empty.
+  return {
+    targetTeacher: null,
+    teacherStatus: "UNASSIGNED",
+  }
+}
+
+export function isTeacherQualifiedForCourse(
   teacherId: string,
   targetCourse: { id: string; title: string },
   allProposals: Proposal[],
@@ -535,7 +617,7 @@ function isTeacherQualifiedForCourse(
   )
 }
 
-function isTeacherAvailableForSchedule(
+export function isTeacherAvailableForSchedule(
   teacherId: string,
   daysOfWeek: WeekDay[],
   startTime: string,
@@ -585,7 +667,8 @@ function isTeacherAvailableForSchedule(
 
     return calendar.slots.some(
       (slot) =>
-        slot.status === "FREE" &&
+        (slot.status === "FREE" ||
+          (slot.status === "BUSY" && slot.source === "PLAN")) &&
         slot.dayOfWeek === day &&
         slot.startTime <= startTime &&
         slot.endTime >= endTime
@@ -629,7 +712,7 @@ function isClassroomAvailableForSchedule(
   return !hasOccupiedSlotConflict
 }
 
-function collectKnownCourses(
+export function collectKnownCourses(
   allProposals: Proposal[],
   teacherCalendars?: SchedulingTeacherCalendar[]
 ): Array<{ id: string; title: string }> {

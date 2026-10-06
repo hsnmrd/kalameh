@@ -336,6 +336,8 @@
       "moveSessionHere": "انتقال به این زمان",
       "sessionMovedSuccess": "کلاس با موفقیت به این زمان منتقل شد.",
       "sessionMovedWithRoomSuccess": "کلاس با موفقیت به زمان {time} و اتاق «{room}» منتقل شد.",
+      "sessionMovedWithTeacherChangeSuccess": "کلاس با موفقیت به زمان {time} منتقل شد و به استاد «{teacher}» انتساب یافت.",
+      "sessionMovedWithUnassignedTeacherSuccess": "کلاس با موفقیت به زمان {time} منتقل شد (بدون استاد).",
       "targetRoomCapacity": "ظرفیت اتاق: {capacity} نفر",
       "moveSessionAria": "انتقال کلاس به {days} ساعت {time} در اتاق {room}",
       "unassign": "حذف از جدول",

@@ -336,6 +336,8 @@
       "moveSessionHere": "Move here",
       "sessionMovedSuccess": "Class successfully moved to this time.",
       "sessionMovedWithRoomSuccess": "Class successfully moved to {time} (Room \"{room}\").",
+      "sessionMovedWithTeacherChangeSuccess": "Class successfully moved to {time} and assigned to teacher \"{teacher}\".",
+      "sessionMovedWithUnassignedTeacherSuccess": "Class successfully moved to {time} (unassigned teacher).",
       "targetRoomCapacity": "Room capacity: {capacity}",
       "moveSessionAria": "Move class to {days} at {time} in room {room}",
       "unassign": "Unassign from Calendar",

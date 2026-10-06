@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { ArrowLeftRight, DoorOpen } from "lucide-react"
+import { ArrowLeftRight, DoorOpen, User } from "lucide-react"
 import type { WeekDay } from "@workspace/types"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
@@ -14,6 +14,12 @@ export interface TargetRoomInfo {
   branchId?: string | null
 }
 
+export interface TargetTeacherInfo {
+  id: string
+  firstName: string
+  lastName: string
+}
+
 export interface SchedulingPlanCalendarMoveTargetCardProps {
   track: "EVEN" | "ODD"
   slotKey: string
@@ -21,6 +27,8 @@ export interface SchedulingPlanCalendarMoveTargetCardProps {
   endTime: string
   targetDays: WeekDay[]
   targetRoom: TargetRoomInfo | null
+  targetTeacher?: TargetTeacherInfo | null
+  teacherStatus?: "SAME_TEACHER" | "REASSIGNED_TEACHER" | "UNASSIGNED"
   isPending?: boolean
   onClick: () => void
   testId?: string
@@ -32,6 +40,8 @@ export function SchedulingPlanCalendarMoveTargetCard({
   startTime,
   endTime,
   targetRoom,
+  targetTeacher,
+  teacherStatus,
   isPending = false,
   onClick,
   testId,
@@ -104,20 +114,46 @@ export function SchedulingPlanCalendarMoveTargetCard({
         )}
       </div>
 
-      {/* Row 2: Capacity info & Pending spinner */}
-      <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground">
-        {targetRoom ? (
-          <span className="text-muted-foreground">
-            {t("calendarView.targetRoomCapacity", {
-              capacity: formatNumber(targetRoom.capacity, locale),
-            })}
-          </span>
-        ) : (
-          <span />
-        )}
+      {/* Row 2: Capacity & Teacher info & Pending spinner */}
+      <div className="flex items-center justify-between gap-1.5 pt-1 text-[11px] text-muted-foreground">
+        <div className="flex min-w-0 items-center gap-2">
+          {targetRoom && (
+            <span className="truncate text-muted-foreground">
+              {t("calendarView.targetRoomCapacity", {
+                capacity: formatNumber(targetRoom.capacity, locale),
+              })}
+            </span>
+          )}
+
+          {teacherStatus === "REASSIGNED_TEACHER" && targetTeacher ? (
+            <div
+              className="flex min-w-0 items-center gap-1 font-medium text-primary"
+              title={`${targetTeacher.firstName} ${targetTeacher.lastName}`}
+            >
+              <User
+                className="size-3 shrink-0 text-primary"
+                aria-hidden="true"
+              />
+              <span className="max-w-[90px] truncate sm:max-w-[120px]">
+                {targetTeacher.firstName} {targetTeacher.lastName}
+              </span>
+            </div>
+          ) : teacherStatus === "UNASSIGNED" ? (
+            <div
+              className="flex items-center gap-1 text-muted-foreground"
+              title={t("calendarView.newTeacherBadge")}
+            >
+              <User
+                className="size-3 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <span>{t("calendarView.newTeacherBadge")}</span>
+            </div>
+          ) : null}
+        </div>
 
         {isPending && (
-          <div className="flex items-center gap-1.5 text-xs text-primary">
+          <div className="flex shrink-0 items-center gap-1.5 text-xs text-primary">
             <Spinner className="size-3.5 text-primary" />
           </div>
         )}

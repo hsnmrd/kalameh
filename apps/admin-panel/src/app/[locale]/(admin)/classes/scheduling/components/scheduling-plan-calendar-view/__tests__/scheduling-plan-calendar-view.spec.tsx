@@ -3513,5 +3513,332 @@ describe("SchedulingPlanCalendarView Component", () => {
 
       toMutationSpy.mockRestore()
     })
+
+    it("reassigns to free qualified teacher when current teacher is unavailable in target slot", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "prop-1",
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "16:00",
+        endTime: "17:30",
+        teacherId: "t-free",
+        warnings: [],
+      } as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const testTeacherCalendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: {
+            id: "t1",
+            firstName: "علی",
+            lastName: "محمدی",
+            avatarUrl: null,
+          },
+          teachableCourses: [{ id: "c1", title: "American English File 1" }],
+          slots: [
+            // Busy on Sunday 16:00-17:30
+            {
+              dayOfWeek: "SUNDAY",
+              startTime: "16:00",
+              endTime: "17:30",
+              status: "BUSY",
+              source: "EXISTING_CLASS",
+              title: "کلاس دیگر",
+            },
+          ],
+        },
+        {
+          teacher: {
+            id: "t-free",
+            firstName: "نرگس",
+            lastName: "کریمی",
+            avatarUrl: null,
+          },
+          teachableCourses: [{ id: "c1", title: "American English File 1" }],
+          slots: [
+            {
+              dayOfWeek: "SUNDAY",
+              startTime: "16:00",
+              endTime: "17:30",
+              status: "FREE",
+              source: "AVAILABILITY",
+              title: null,
+            },
+            {
+              dayOfWeek: "TUESDAY",
+              startTime: "16:00",
+              endTime: "17:30",
+              status: "FREE",
+              source: "AVAILABILITY",
+              title: null,
+            },
+            {
+              dayOfWeek: "THURSDAY",
+              startTime: "16:00",
+              endTime: "17:30",
+              status: "FREE",
+              source: "AVAILABILITY",
+              title: null,
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={true}
+          planId="plan-1"
+          defaultCollapsed={false}
+          teacherCalendars={testTeacherCalendars}
+        />
+      )
+
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+      fireEvent.click(swapBtn)
+
+      const moveCard = screen.getByTestId("move-target-card-ODD-16:00-17:30")
+      expect(moveCard).toBeInTheDocument()
+      expect(within(moveCard).getByText("نرگس کریمی")).toBeInTheDocument()
+
+      fireEvent.click(moveCard)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalled()
+      })
+
+      expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual(
+        expect.objectContaining({
+          planId: "plan-1",
+          proposalId: "prop-1",
+          body: expect.objectContaining({
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "16:00",
+            endTime: "17:30",
+            teacherId: "t-free",
+          }),
+        })
+      )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("moves session with unassigned teacher (teacherId: null) when current teacher is unavailable and no qualified free teacher exists", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "prop-1",
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "16:00",
+        endTime: "17:30",
+        teacherId: null,
+        warnings: [],
+      } as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const testTeacherCalendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: {
+            id: "t1",
+            firstName: "علی",
+            lastName: "محمدی",
+            avatarUrl: null,
+          },
+          teachableCourses: [{ id: "c1", title: "American English File 1" }],
+          slots: [
+            // Busy on Sunday 16:00-17:30
+            {
+              dayOfWeek: "SUNDAY",
+              startTime: "16:00",
+              endTime: "17:30",
+              status: "BUSY",
+              source: "EXISTING_CLASS",
+              title: "کلاس دیگر",
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={true}
+          planId="plan-1"
+          defaultCollapsed={false}
+          teacherCalendars={testTeacherCalendars}
+        />
+      )
+
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+      fireEvent.click(swapBtn)
+
+      const moveCard = screen.getByTestId("move-target-card-ODD-16:00-17:30")
+      expect(moveCard).toBeInTheDocument()
+      expect(within(moveCard).getByText("استاد جدید")).toBeInTheDocument()
+
+      fireEvent.click(moveCard)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalled()
+      })
+
+      expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual(
+        expect.objectContaining({
+          planId: "plan-1",
+          proposalId: "prop-1",
+          body: expect.objectContaining({
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "16:00",
+            endTime: "17:30",
+            teacherId: null,
+          }),
+        })
+      )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("releases teacher as AVAILABLE in source slot after session is moved away", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "prop-1",
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "16:00",
+        endTime: "17:30",
+        warnings: [],
+      })
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const testTeacherCalendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: {
+            id: "t1",
+            firstName: "علی",
+            lastName: "محمدی",
+            avatarUrl: null,
+          },
+          teachableCourses: [{ id: "c1", title: "American English File 1" }],
+          slots: [
+            // Original plan slot in EVEN 09:00-10:30
+            {
+              dayOfWeek: "SATURDAY",
+              startTime: "09:00",
+              endTime: "10:30",
+              status: "BUSY",
+              source: "PLAN",
+              title: "کلاس صبح سطح A1",
+            },
+            {
+              dayOfWeek: "MONDAY",
+              startTime: "09:00",
+              endTime: "10:30",
+              status: "BUSY",
+              source: "PLAN",
+              title: "کلاس صبح سطح A1",
+            },
+            {
+              dayOfWeek: "WEDNESDAY",
+              startTime: "09:00",
+              endTime: "10:30",
+              status: "BUSY",
+              source: "PLAN",
+              title: "کلاس صبح سطح A1",
+            },
+            // Also available on Sunday/Tuesday/Thursday 16:00-17:30 so move target can resolve
+            {
+              dayOfWeek: "SUNDAY",
+              startTime: "16:00",
+              endTime: "17:30",
+              status: "FREE",
+              source: "AVAILABILITY",
+              title: null,
+            },
+            {
+              dayOfWeek: "TUESDAY",
+              startTime: "16:00",
+              endTime: "17:30",
+              status: "FREE",
+              source: "AVAILABILITY",
+              title: null,
+            },
+            {
+              dayOfWeek: "THURSDAY",
+              startTime: "16:00",
+              endTime: "17:30",
+              status: "FREE",
+              source: "AVAILABILITY",
+              title: null,
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={mockProposals}
+          canEdit={true}
+          planId="plan-1"
+          defaultCollapsed={false}
+          teacherCalendars={testTeacherCalendars}
+        />
+      )
+
+      // Expand carousel in source slot (EVEN 09:00-10:30)
+      const carouselEven09 = screen.getByTestId(
+        "group-teachers-carousel-EVEN-09:00-10:30"
+      )
+      const toggleBtn = within(carouselEven09).getByRole("button", {
+        name: /نمایش اساتید|دسترسی اساتید/,
+      })
+      fireEvent.click(toggleBtn)
+
+      // In source slot (EVEN 09:00-10:30), teacher t1 is initially TEACHING
+      const sourceTeacherCardBefore = screen.getByTestId(
+        "group-teacher-card-t1-EVEN-09:00-10:30"
+      )
+      expect(sourceTeacherCardBefore).toHaveAttribute("data-status", "TEACHING")
+      expect(
+        screen.getByTestId("teacher-status-badge-t1-EVEN-09:00-10:30")
+      ).toHaveTextContent("در حال تدریس")
+
+      // Click swap to start move mode
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+      fireEvent.click(swapBtn)
+
+      // Click target move card in ODD 16:00-17:30
+      const moveCard = screen.getByTestId("move-target-card-ODD-16:00-17:30")
+      fireEvent.click(moveCard)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalled()
+      })
+
+      // After move, in the vacated source slot (EVEN 09:00-10:30), teacher t1 must be released as AVAILABLE!
+      await waitFor(() => {
+        const sourceTeacherCardAfter = screen.getByTestId(
+          "group-teacher-card-t1-EVEN-09:00-10:30"
+        )
+        expect(sourceTeacherCardAfter).toHaveAttribute(
+          "data-status",
+          "AVAILABLE"
+        )
+        expect(
+          screen.getByTestId("teacher-status-badge-t1-EVEN-09:00-10:30")
+        ).toHaveTextContent("در دسترس")
+      })
+
+      toMutationSpy.mockRestore()
+    })
   })
 })

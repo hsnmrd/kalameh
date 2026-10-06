@@ -113,4 +113,43 @@ describe("SchedulingPlanCalendarMoveTargetCard Component", () => {
     fireEvent.keyDown(card, { key: "Enter" })
     expect(handleClick).not.toHaveBeenCalled()
   })
+
+  it("displays reassigned teacher name when teacherStatus is REASSIGNED_TEACHER", () => {
+    render(
+      <SchedulingPlanCalendarMoveTargetCard
+        track="EVEN"
+        slotKey="09:00-10:30"
+        startTime="09:00"
+        endTime="10:30"
+        targetDays={["SATURDAY", "MONDAY", "WEDNESDAY"]}
+        targetRoom={defaultRoom}
+        targetTeacher={{
+          id: "t-new",
+          firstName: "سارا",
+          lastName: "احمدی",
+        }}
+        teacherStatus="REASSIGNED_TEACHER"
+        onClick={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText("سارا احمدی")).toBeInTheDocument()
+  })
+
+  it("displays new teacher badge when teacherStatus is UNASSIGNED", () => {
+    render(
+      <SchedulingPlanCalendarMoveTargetCard
+        track="EVEN"
+        slotKey="09:00-10:30"
+        startTime="09:00"
+        endTime="10:30"
+        targetDays={["SATURDAY", "MONDAY", "WEDNESDAY"]}
+        targetRoom={defaultRoom}
+        teacherStatus="UNASSIGNED"
+        onClick={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText("استاد جدید")).toBeInTheDocument()
+  })
 })

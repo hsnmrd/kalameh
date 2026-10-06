@@ -74,6 +74,7 @@ import {
 import {
   evaluateFreeTeacherSwap,
   evaluateProposalSwap,
+  resolveTargetTeacherForSlot,
   type FreeTeacherSwapTarget,
   type OccupiedClassroomSlot,
   type SwapEvaluationResult,
@@ -937,6 +938,16 @@ export function SchedulingPlanCalendarView({
 
   const timeSlots = React.useMemo<TimeSlot[]>(() => {
     const slotsMap = new Map<string, TimeSlot>()
+    for (const proposal of incomingProposals) {
+      const key = `${proposal.startTime}-${proposal.endTime}`
+      if (!slotsMap.has(key)) {
+        slotsMap.set(key, {
+          startTime: proposal.startTime,
+          endTime: proposal.endTime,
+          key,
+        })
+      }
+    }
     for (const proposal of proposals) {
       const key = `${proposal.startTime}-${proposal.endTime}`
       if (!slotsMap.has(key)) {
@@ -1011,6 +1022,8 @@ export function SchedulingPlanCalendarView({
     startTime: string
     endTime: string
     targetRoom: TargetRoomInfo | null
+    targetTeacher: SchedulingTeacherCalendar["teacher"] | null
+    teacherStatus: "SAME_TEACHER" | "REASSIGNED_TEACHER" | "UNASSIGNED"
   }
 
   const moveTargetsByCellKey = React.useMemo(() => {
@@ -1025,8 +1038,6 @@ export function SchedulingPlanCalendarView({
     }
 
     const sourceTracks = getDaysOfWeekTracks(swappingProposal.daysOfWeek)
-    const propTeacherId =
-      swappingProposal.teacherId ?? swappingProposal.teacher?.id ?? null
     const currentRoomId =
       swappingProposal.classroomId ?? swappingProposal.classroom?.id ?? null
 
@@ -1046,39 +1057,15 @@ export function SchedulingPlanCalendarView({
         const targetDays: WeekDay[] =
           track === "EVEN" ? [...EVEN_DAYS] : [...ODD_DAYS]
 
-        // Check teacher conflict (if proposal has an assigned teacher)
-        if (propTeacherId) {
-          const hasTeacherProposalConflict = proposals.some(
-            (p) =>
-              p.id !== swappingProposal.id &&
-              (p.teacherId ?? p.teacher?.id) === propTeacherId &&
-              p.daysOfWeek.some((d) => targetDays.includes(d)) &&
-              p.startTime < slot.endTime &&
-              slot.startTime < p.endTime
-          )
-          if (hasTeacherProposalConflict) {
-            continue
-          }
-
-          if (teacherCalendars) {
-            const teacherCal = teacherCalendars.find(
-              (c) => c.teacher.id === propTeacherId
-            )
-            if (teacherCal) {
-              const hasBusySlot = teacherCal.slots.some(
-                (s) =>
-                  s.status === "BUSY" &&
-                  s.source === "EXISTING_CLASS" &&
-                  targetDays.includes(s.dayOfWeek) &&
-                  s.startTime < slot.endTime &&
-                  slot.startTime < s.endTime
-              )
-              if (hasBusySlot) {
-                continue
-              }
-            }
-          }
-        }
+        // Resolve teacher assignment for the target slot (keep current, reassign to free qualified master, or leave empty)
+        const { targetTeacher, teacherStatus } = resolveTargetTeacherForSlot(
+          swappingProposal,
+          targetDays,
+          slot.startTime,
+          slot.endTime,
+          proposals,
+          teacherCalendars
+        )
 
         // Check room availability & capacity
         if (swappingProposal.deliveryMode === "IN_PERSON") {
@@ -1143,6 +1130,8 @@ export function SchedulingPlanCalendarView({
             startTime: slot.startTime,
             endTime: slot.endTime,
             targetRoom: chosenRoom,
+            targetTeacher,
+            teacherStatus,
           })
         } else {
           // ONLINE delivery mode
@@ -1151,6 +1140,8 @@ export function SchedulingPlanCalendarView({
             startTime: slot.startTime,
             endTime: slot.endTime,
             targetRoom: null,
+            targetTeacher,
+            teacherStatus,
           })
         }
       }
@@ -1191,6 +1182,14 @@ export function SchedulingPlanCalendarView({
             body.branchId = target.targetRoom.branchId
           }
         }
+        if (
+          target.teacherStatus === "REASSIGNED_TEACHER" &&
+          target.targetTeacher
+        ) {
+          body.teacherId = target.targetTeacher.id
+        } else if (target.teacherStatus === "UNASSIGNED") {
+          body.teacherId = null
+        }
 
         const updated = await updateProposalMutation.mutateAsync({
           planId: targetPlanId,
@@ -1206,6 +1205,29 @@ export function SchedulingPlanCalendarView({
             daysOfWeek: target.targetDays,
             startTime: target.startTime,
             endTime: target.endTime,
+            teacherId:
+              target.teacherStatus === "REASSIGNED_TEACHER" &&
+              target.targetTeacher
+                ? target.targetTeacher.id
+                : target.teacherStatus === "UNASSIGNED"
+                  ? null
+                  : swappingProposal.teacherId,
+            teacher:
+              target.teacherStatus === "REASSIGNED_TEACHER" &&
+              target.targetTeacher
+                ? {
+                    id: target.targetTeacher.id,
+                    firstName: target.targetTeacher.firstName,
+                    lastName: target.targetTeacher.lastName,
+                    avatarUrl: target.targetTeacher.avatarUrl ?? null,
+                  }
+                : target.teacherStatus === "UNASSIGNED"
+                  ? null
+                  : swappingProposal.teacher,
+            teacherQualificationId:
+              target.teacherStatus === "UNASSIGNED"
+                ? null
+                : swappingProposal.teacherQualificationId,
             classroomId: target.targetRoom
               ? target.targetRoom.id
               : swappingProposal.classroomId,
@@ -1227,13 +1249,26 @@ export function SchedulingPlanCalendarView({
         setSelectedClassId(null)
 
         await queryClient.invalidateQueries({
-          queryKey: schedulingResource.planDetail.key({
-            planId: targetPlanId,
-            instituteId: targetInstituteId,
-          }),
+          queryKey: schedulingResource.planDetail.baseKey(),
         })
 
-        if (target.targetRoom) {
+        if (
+          target.teacherStatus === "REASSIGNED_TEACHER" &&
+          target.targetTeacher
+        ) {
+          toast.success(
+            t("calendarView.sessionMovedWithTeacherChangeSuccess", {
+              time: `${target.startTime} - ${target.endTime}`,
+              teacher: `${target.targetTeacher.firstName} ${target.targetTeacher.lastName}`,
+            })
+          )
+        } else if (target.teacherStatus === "UNASSIGNED") {
+          toast.success(
+            t("calendarView.sessionMovedWithUnassignedTeacherSuccess", {
+              time: `${target.startTime} - ${target.endTime}`,
+            })
+          )
+        } else if (target.targetRoom) {
           toast.success(
             t("calendarView.sessionMovedWithRoomSuccess", {
               time: `${target.startTime} - ${target.endTime}`,
@@ -1544,6 +1579,18 @@ export function SchedulingPlanCalendarView({
                 s.endTime >= slot.endTime
             )
 
+            const hasExistingClass = matchingSlots.some(
+              (s) => s.status === "BUSY" && s.source === "EXISTING_CLASS"
+            )
+
+            const isFreeSlot =
+              !hasExistingClass &&
+              matchingSlots.some(
+                (s) =>
+                  s.status === "FREE" ||
+                  (s.status === "BUSY" && s.source === "PLAN")
+              )
+
             if (teachingProposal) {
               const teachableCourses = calendar.teachableCourses ?? []
               const levelRange = summarizeCourseLevelRange(teachableCourses)
@@ -1563,7 +1610,7 @@ export function SchedulingPlanCalendarView({
                 isSwappable: false,
               })
               addedTeacherIds.add(calendar.teacher.id)
-            } else if (matchingSlots.some((s) => s.status === "FREE")) {
+            } else if (isFreeSlot) {
               const teachableCourses = calendar.teachableCourses ?? []
               const levelRange = summarizeCourseLevelRange(teachableCourses)
               const representativeDay: WeekDay =
@@ -1617,8 +1664,10 @@ export function SchedulingPlanCalendarView({
                 isSelected,
               })
               addedTeacherIds.add(calendar.teacher.id)
-            } else if (matchingSlots.some((s) => s.status === "BUSY")) {
-              const busySlot = matchingSlots.find((s) => s.status === "BUSY")
+            } else if (hasExistingClass) {
+              const busySlot = matchingSlots.find(
+                (s) => s.status === "BUSY" && s.source === "EXISTING_CLASS"
+              )
               const teachableCourses = calendar.teachableCourses ?? []
               const levelRange = summarizeCourseLevelRange(teachableCourses)
               const isSelected = activeTeacherFilterId === calendar.teacher.id
@@ -2134,9 +2183,19 @@ export function SchedulingPlanCalendarView({
                           const isTeacherAccessible = Boolean(
                             selectedTeacherCalendar &&
                             !isTeacherTeachingHere &&
+                            !selectedTeacherCalendar.slots.some(
+                              (s) =>
+                                s.status === "BUSY" &&
+                                s.source === "EXISTING_CLASS" &&
+                                trackDays.includes(s.dayOfWeek) &&
+                                s.startTime < slot.endTime &&
+                                slot.startTime < s.endTime
+                            ) &&
                             selectedTeacherCalendar.slots.some(
                               (s) =>
-                                s.status === "FREE" &&
+                                (s.status === "FREE" ||
+                                  (s.status === "BUSY" &&
+                                    s.source === "PLAN")) &&
                                 trackDays.includes(s.dayOfWeek) &&
                                 s.startTime <= slot.startTime &&
                                 s.endTime >= slot.endTime
@@ -2147,7 +2206,9 @@ export function SchedulingPlanCalendarView({
                             cellProposals.length + cellMissed.length
 
                           const hasClasses =
-                            cellProposals.length > 0 || cellMissed.length > 0
+                            cellProposals.length > 0 ||
+                            cellMissed.length > 0 ||
+                            Boolean(moveTarget)
 
                           return (
                             <CarouselItem
@@ -2405,6 +2466,12 @@ export function SchedulingPlanCalendarView({
                                             endTime={slot.endTime}
                                             targetDays={moveTarget.targetDays}
                                             targetRoom={moveTarget.targetRoom}
+                                            targetTeacher={
+                                              moveTarget.targetTeacher
+                                            }
+                                            teacherStatus={
+                                              moveTarget.teacherStatus
+                                            }
                                             isPending={
                                               movingProposalId ===
                                               swappingProposal?.id
