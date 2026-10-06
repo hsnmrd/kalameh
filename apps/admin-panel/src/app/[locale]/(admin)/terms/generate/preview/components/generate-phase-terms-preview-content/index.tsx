@@ -39,6 +39,7 @@ export function GeneratePhaseTermsPreviewContent() {
     handleAddCompensatorySession,
     handleRemoveCompensatorySession,
     handleSubmit,
+    existingTerms,
   } = useGeneratePhaseTerms()
 
   React.useEffect(() => {
@@ -111,6 +112,7 @@ export function GeneratePhaseTermsPreviewContent() {
             activeDismissedHolidays={activeDismissedHolidays}
             compensatorySessions={compensatorySessions}
             dateConflicts={dateConflicts}
+            existingTerms={existingTerms}
           />
         </AdminPageShell>
       </PermissionGuard>

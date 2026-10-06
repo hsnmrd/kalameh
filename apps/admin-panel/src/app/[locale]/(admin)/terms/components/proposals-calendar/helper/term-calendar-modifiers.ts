@@ -29,6 +29,12 @@ export interface BuildTermCalendarModifiersOptions {
   dismissedHolidays?: string[]
   compensatorySessions?: Record<number, CompensatorySession[]>
   selectedTermIndex?: number
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 export function buildTermCalendarModifiers(
@@ -146,6 +152,21 @@ export function buildTermCalendarModifiers(
 
     modifiersClassNames.term_customOffDay =
       "[&>button]:!text-warning [&>button]:!font-bold [&>button]:relative [&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-0.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-warning [&>button]:!bg-transparent hover:[&>button]:!bg-muted/20"
+  }
+
+  // 5. Days occupied by existing institute terms
+  if (options?.existingTerms && options.existingTerms.length > 0) {
+    modifiers.term_existing_occupied = (date: Date) => {
+      const ymd = normalizeDateToYmd(date)
+      return options.existingTerms!.some((term) => {
+        const start = normalizeDateToYmd(term.startDate)
+        const end = normalizeDateToYmd(term.endDate)
+        return ymd >= start && ymd <= end
+      })
+    }
+
+    modifiersClassNames.term_existing_occupied =
+      "[&>button]:!bg-muted/40 [&>button]:!text-muted-foreground/30 [&>button]:line-through [&>button]:!cursor-not-allowed hover:[&>button]:!bg-muted/40 pointer-events-none"
   }
 
   addSpecialSessionModifiers({

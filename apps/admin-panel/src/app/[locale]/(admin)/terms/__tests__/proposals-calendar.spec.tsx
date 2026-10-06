@@ -1400,4 +1400,79 @@ describe("ProposalsCalendar Component", () => {
       expect(palette.rangeClass).not.toMatch(/bg-(red|rose)/)
     }
   })
+
+  it("disables days occupied by existing terms in institute and applies term_existing_occupied modifier", async () => {
+    const { buildTermCalendarModifiers } =
+      await import("../components/proposals-calendar/helper/calendar-colors")
+
+    const existingTerms = [
+      {
+        id: "term-existing-1",
+        title: "اسفند و فروردین ۱۴۰۵",
+        startDate: "2027-02-20",
+        endDate: "2027-04-06", // 1406/01/17
+      },
+    ]
+
+    const { modifiers, modifiersClassNames } = buildTermCalendarModifiers(
+      mockProposals,
+      true,
+      { existingTerms }
+    )
+
+    expect(modifiers.term_existing_occupied).toBeDefined()
+    expect(modifiersClassNames.term_existing_occupied).toContain("line-through")
+    expect(modifiersClassNames.term_existing_occupied).toContain(
+      "!cursor-not-allowed"
+    )
+
+    // Farvardin 10, 1406 (2027-03-30) is occupied
+    expect(
+      modifiers.term_existing_occupied(new Date("2027-03-30T12:00:00"))
+    ).toBe(true)
+
+    // Farvardin 25, 1406 (2027-04-14) is NOT occupied
+    expect(
+      modifiers.term_existing_occupied(new Date("2027-04-14T12:00:00"))
+    ).toBe(false)
+  })
+
+  it("prevents clicking and day actions on days occupied by existing terms", () => {
+    const onStartDateChange = vi.fn()
+    const existingTerms = [
+      {
+        id: "term-existing-1",
+        title: "ترم گذشته",
+        startDate: "2026-09-22",
+        endDate: "2026-09-24", // 1405/07/01 to 1405/07/03
+      },
+    ]
+
+    render(
+      <ProposalsCalendar
+        proposals={mockProposals}
+        existingTerms={existingTerms}
+        onStartDateChange={onStartDateChange}
+      />
+    )
+
+    const dayButtons = screen.getAllByRole("button")
+    // Day 1 (1405/07/01) falls within existing terms
+    const occupiedDay = dayButtons.find(
+      (btn) =>
+        btn.getAttribute("aria-label")?.includes(" 1-ام") ||
+        btn.textContent?.trim() === "۱" ||
+        btn.textContent?.trim() === "1"
+    )
+
+    expect(occupiedDay).toBeDefined()
+    if (occupiedDay) {
+      fireEvent.click(occupiedDay)
+      // Popover should NOT open because day is disabled
+      expect(screen.queryByText(/عملیات روز/)).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole("button", { name: /شروع ترم/ })
+      ).not.toBeInTheDocument()
+    }
+  })
 })

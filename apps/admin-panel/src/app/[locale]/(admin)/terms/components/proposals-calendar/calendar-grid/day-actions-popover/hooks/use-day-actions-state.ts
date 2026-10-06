@@ -88,11 +88,18 @@ export function useDayActionsState(props: DayActionsPopoverProps) {
       (proposal) =>
         proposal.startDate && normalizeDateToYmd(proposal.startDate) === ymd
     )
+  const isOccupiedByExisting = (props.existingTerms ?? []).some((et) => {
+    const s = normalizeDateToYmd(et.startDate)
+    const e = normalizeDateToYmd(et.endDate)
+    return ymd >= s && ymd <= e
+  })
+
   let canSetStart =
     !((isOfficialHoliday && !isDismissed) || isCustomOff) &&
     !isFriday &&
     !isBelongingToOtherTerm &&
-    !isStartDate
+    !isStartDate &&
+    !isOccupiedByExisting
   const previous = props.proposals[activeTermIndex - 1]
   const next = props.proposals[activeTermIndex + 1]
   if (previous?.endDate && ymd <= normalizeDateToYmd(previous.endDate))
@@ -106,10 +113,11 @@ export function useDayActionsState(props: DayActionsPopoverProps) {
   const oppositeTrack: "ODD" | "EVEN" =
     excessPattern?.track === "EVEN" ? "ODD" : "EVEN"
   const isEligibleForCompensatory =
-    isFriday ||
-    (isOfficialHoliday && !isDismissed) ||
-    isCustomOff ||
-    isExcessSessionDay
+    !isOccupiedByExisting &&
+    (isFriday ||
+      (isOfficialHoliday && !isDismissed) ||
+      isCustomOff ||
+      isExcessSessionDay)
   const canShowCompensatory =
     !isBelongingToOtherTerm &&
     (Boolean(currentCompensatory) || isEligibleForCompensatory)

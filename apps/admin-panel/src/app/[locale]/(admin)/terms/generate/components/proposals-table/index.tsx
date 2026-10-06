@@ -28,6 +28,12 @@ export interface ProposalsTableProps {
     conflictingTitle: string
     termIndex: number
   }>
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 export function ProposalsTable({
@@ -36,13 +42,38 @@ export function ProposalsTable({
   onStartDateChange,
   locale,
   dateConflicts,
+  existingTerms,
 }: ProposalsTableProps) {
   const t = useTranslations("terms")
   const defaultLocale = useLocale() as "fa" | "en"
   const activeLocale = locale || defaultLocale
 
   const getMinDate = (index: number): Date | undefined => {
-    if (index === 0) return undefined
+    if (index === 0) {
+      if (!existingTerms || existingTerms.length === 0) return undefined
+      let latestEnd: Date | undefined
+      for (const et of existingTerms) {
+        const raw =
+          (typeof et.endDate === "string"
+            ? et.endDate
+            : et.endDate.toISOString()
+          ).split("T")[0] || ""
+        const parts = raw.split("-").map(Number)
+        const [y, m, d] = parts
+        if (y !== undefined && m !== undefined && d !== undefined) {
+          const endD = new Date(y, m - 1, d, 0, 0, 0)
+          if (!latestEnd || endD > latestEnd) {
+            latestEnd = endD
+          }
+        }
+      }
+      if (latestEnd) {
+        const min = new Date(latestEnd)
+        min.setDate(min.getDate() + 1)
+        return min
+      }
+      return undefined
+    }
     const prevEndIso = proposals[index - 1]?.endDate
     if (!prevEndIso) return undefined
     const raw = prevEndIso.split("T")[0] || ""
@@ -54,6 +85,30 @@ export function ProposalsTable({
     }
     return undefined
   }
+
+  const isDateOccupied = React.useCallback(
+    (date: Date): boolean => {
+      if (!existingTerms || existingTerms.length === 0) return false
+      const y = date.getFullYear()
+      const m = String(date.getMonth() + 1).padStart(2, "0")
+      const d = String(date.getDate()).padStart(2, "0")
+      const ymd = `${y}-${m}-${d}`
+      return existingTerms.some((term) => {
+        const s =
+          (typeof term.startDate === "string"
+            ? term.startDate
+            : term.startDate.toISOString()
+          ).split("T")[0] || ""
+        const e =
+          (typeof term.endDate === "string"
+            ? term.endDate
+            : term.endDate.toISOString()
+          ).split("T")[0] || ""
+        return ymd >= s && ymd <= e
+      })
+    },
+    [existingTerms]
+  )
 
   return (
     <>
@@ -73,6 +128,7 @@ export function ProposalsTable({
               proposal={item}
               index={index}
               minDate={getMinDate(index)}
+              disabledDates={isDateOccupied}
               onTitleChange={onTitleChange}
               onStartDateChange={onStartDateChange}
               locale={activeLocale}
@@ -160,6 +216,7 @@ export function ProposalsTable({
                       variant="inline"
                       value={item.startDate}
                       minDate={getMinDate(index)}
+                      disabledDates={isDateOccupied}
                       onChange={(val) => {
                         if (val) {
                           onStartDateChange(index, val)

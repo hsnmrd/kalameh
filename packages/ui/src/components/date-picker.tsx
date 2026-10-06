@@ -25,6 +25,7 @@ export interface DatePickerProps {
   "data-invalid"?: boolean
   minDate?: Date
   maxDate?: Date
+  disabledDates?: (date: Date) => boolean
   drawerTitle?: string
   showOffDays?: boolean
   observeOfficialHolidays?: boolean
@@ -46,6 +47,7 @@ export function DatePicker({
   "data-invalid": dataInvalid,
   minDate,
   maxDate,
+  disabledDates,
   drawerTitle,
   showOffDays = false,
   observeOfficialHolidays = true,
@@ -157,10 +159,11 @@ export function DatePicker({
           isOffDay={isOffDay}
           offDays={offDays}
           disabled={
-            minDate || maxDate
+            minDate || maxDate || disabledDates
               ? (date: Date) => {
                   if (minDate && date < minDate) return true
                   if (maxDate && date > maxDate) return true
+                  if (disabledDates && disabledDates(date)) return true
                   return false
                 }
               : undefined
@@ -236,10 +239,11 @@ export function DatePicker({
           isOffDay={isOffDay}
           offDays={offDays}
           disabled={
-            minDate || maxDate
+            minDate || maxDate || disabledDates
               ? (date: Date) => {
                   if (minDate && date < minDate) return true
                   if (maxDate && date > maxDate) return true
+                  if (disabledDates && disabledDates(date)) return true
                   return false
                 }
               : undefined

@@ -20,6 +20,12 @@ interface RecalculateProposalsOptions {
   dismissedHolidays: string[]
   compensatorySessions: Record<number, CompensatorySession[]>
   pinnedStartDates: Record<number, string>
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 export function recalculateProposals({
@@ -36,6 +42,7 @@ export function recalculateProposals({
   dismissedHolidays,
   compensatorySessions,
   pinnedStartDates,
+  existingTerms,
 }: RecalculateProposalsOptions) {
   return recalculatePhaseTerms({
     proposals,
@@ -52,5 +59,6 @@ export function recalculateProposals({
     dismissedHolidays,
     compensatorySessions,
     pinnedStartDates,
+    existingTerms,
   })
 }

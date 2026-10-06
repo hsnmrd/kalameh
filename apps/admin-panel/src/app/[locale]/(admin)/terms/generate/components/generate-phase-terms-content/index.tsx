@@ -79,7 +79,7 @@ export function GeneratePhaseTermsContent() {
             isProceedDisabled={
               !activePhaseId || previewQuery.isFetching || isLoadingExisting
             }
-            isProceedLoading={previewQuery.isFetching || isLoadingExisting}
+            isProceedLoading={previewQuery.isFetching}
           />
         </AdminPageShell>
       </PermissionGuard>

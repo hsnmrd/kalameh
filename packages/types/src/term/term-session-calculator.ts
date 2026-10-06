@@ -519,6 +519,12 @@ export interface GeneratePhaseTermsInput {
   customOffDays?: (string | { date: string; title?: string })[]
   dismissedHolidays?: string[]
   compensatorySessions?: Record<number, CompensatorySession[]>
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 export interface GeneratedTermProposal {
@@ -663,8 +669,47 @@ export function generatePhaseTerms(
   const firstMonth = orderedMonths[0] ?? 1
   const lastMonth = orderedMonths[orderedMonths.length - 1] ?? 12
 
+  const activePatterns = resolveClassPatterns(daysOfWeek, classPatterns)
+  const validDays =
+    activePatterns.length > 0
+      ? Array.from(new Set(activePatterns.flat()))
+      : daysOfWeek
+
+  // Helper to advance date if it falls within any existing term
+  const advancePastExistingTerms = (targetDate: Date): Date => {
+    if (!input.existingTerms || input.existingTerms.length === 0)
+      return targetDate
+    let current = new Date(targetDate)
+    let moved = true
+    while (moved) {
+      const curYmd = toIsoDate(current)
+      const overlapping = input.existingTerms.find((et) => {
+        const s = toIsoDate(parseInputDate(et.startDate))
+        const e = toIsoDate(parseInputDate(et.endDate))
+        return curYmd >= s && curYmd <= e
+      })
+      if (overlapping) {
+        const endD = new Date(
+          toIsoDate(parseInputDate(overlapping.endDate)) + "T12:00:00"
+        )
+        endD.setDate(endD.getDate() + gapDaysBetweenTerms + 1)
+        current = endD
+      } else {
+        moved = false
+      }
+    }
+    // Snap to next matching class day
+    if (validDays && validDays.length > 0) {
+      while (!validDays.includes(getWeekDay(current))) {
+        current.setDate(current.getDate() + 1)
+      }
+    }
+    return current
+  }
+
   // Starting Date for Term 1
   let termStartGDate = jalaliToGregorian(jalaliYear, firstMonth, 1)
+  termStartGDate = advancePastExistingTerms(termStartGDate)
 
   // End boundary for the entire phase
   // If lastMonth < firstMonth, it wraps into next year (e.g. 7..12 then 1..3)
@@ -741,19 +786,13 @@ export function generatePhaseTerms(
     nextStart.setDate(nextStart.getDate() + gapDaysBetweenTerms + 1)
 
     // Snap to next matching class day
-    const activePatterns = resolveClassPatterns(daysOfWeek, classPatterns)
-    const validDays =
-      activePatterns.length > 0
-        ? Array.from(new Set(activePatterns.flat()))
-        : daysOfWeek
-
     if (validDays && validDays.length > 0) {
       while (!validDays.includes(getWeekDay(nextStart))) {
         nextStart.setDate(nextStart.getDate() + 1)
       }
     }
 
-    termStartGDate = nextStart
+    termStartGDate = advancePastExistingTerms(nextStart)
     termIndex++
   }
 
@@ -783,6 +822,12 @@ export interface RecalculatePhaseTermsInput {
    * The backward-constraint guard is still enforced.
    */
   pinnedStartDates?: Record<number, string>
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 /**
@@ -834,6 +879,18 @@ export function recalculatePhaseTerms(
           `تاریخ شروع نمی‌تواند همزمان یا قبل از پایان ترم قبلی (${prevProposal.endDateJalali}) باشد.`
         )
       }
+    }
+  } else if (input.existingTerms && input.existingTerms.length > 0) {
+    const startYmd = toIsoDate(parsedStart)
+    const overlapping = input.existingTerms.find((et) => {
+      const s = toIsoDate(parseInputDate(et.startDate))
+      const e = toIsoDate(parseInputDate(et.endDate))
+      return startYmd >= s && startYmd <= e
+    })
+    if (overlapping) {
+      throw new Error(
+        `تاریخ شروع انتخابی با ترم «${overlapping.title || "موجود"}» تداخل دارد و غیرقابل استفاده است.`
+      )
     }
   }
 

@@ -16,6 +16,7 @@ import {
   calculateTermLifecycleStatus,
   isTermDeletable,
   generatePhaseTerms,
+  gregorianToJalali,
   hasTermDateConflict,
   checkTermsDateOverlap,
   type JwtPayload,
@@ -219,10 +220,9 @@ export class TermsService {
       throw new BadRequestException('فاز تحصیلی انتخاب‌شده نامعتبر است.');
     }
 
-    const existingPhaseTerms = await this.prisma.term.findMany({
+    const existingInstituteTerms = await this.prisma.term.findMany({
       where: {
         instituteId,
-        operatingPhaseId: dto.operatingPhaseId,
       },
       select: {
         id: true,
@@ -232,7 +232,7 @@ export class TermsService {
       },
     });
 
-    const conflictingExisting = existingPhaseTerms.find((term) =>
+    const conflictingExisting = existingInstituteTerms.find((term) =>
       hasTermDateConflict({ startDate: start, endDate: end }, term),
     );
 
@@ -335,11 +335,9 @@ export class TermsService {
     }
 
     if (dto.startDate || dto.endDate || dto.operatingPhaseId) {
-      const targetPhaseId = dto.operatingPhaseId ?? existing.operatingPhaseId;
-      const existingPhaseTerms = await this.prisma.term.findMany({
+      const existingInstituteTerms = await this.prisma.term.findMany({
         where: {
           instituteId: existing.instituteId,
-          operatingPhaseId: targetPhaseId,
           id: { not: id },
         },
         select: {
@@ -350,7 +348,7 @@ export class TermsService {
         },
       });
 
-      const conflictingExisting = existingPhaseTerms.find((term) =>
+      const conflictingExisting = existingInstituteTerms.find((term) =>
         hasTermDateConflict({ startDate: start, endDate: end }, term),
       );
 
@@ -430,19 +428,34 @@ export class TermsService {
       },
     });
 
-    // Check if terms already exist for this operating phase
-    const existingPhaseTerms = await this.prisma.term.findMany({
+    // Check if terms already exist in the institute
+    const existingTerms = await this.prisma.term.findMany({
       where: {
         instituteId,
-        operatingPhaseId,
       },
       select: {
         id: true,
         title: true,
         startDate: true,
         endDate: true,
+        operatingPhaseId: true,
       },
     });
+
+    // Check if terms already exist for this operating phase and academic year
+    const isDuplicate = existingTerms.some((t) => {
+      if (t.operatingPhaseId && t.operatingPhaseId !== operatingPhaseId) {
+        return false;
+      }
+      const startYear = gregorianToJalali(t.startDate).year;
+      return startYear === jalaliYear;
+    });
+
+    if (isDuplicate) {
+      throw new ConflictException(
+        this.i18n.t('terms.duplicatePhaseYear', locale),
+      );
+    }
 
     const institute = await this.prisma.institute.findFirstOrThrow({
       where: { id: phase.instituteId },
@@ -474,11 +487,12 @@ export class TermsService {
       observeOfficialHolidays: institute.observeOfficialHolidays,
       customOffDays: institute.customOffDays,
       dismissedHolidays: institute.dismissedHolidays,
+      existingTerms,
     });
 
     // Check that every generated term does not have conflict and same days with existing terms
     for (const proposal of proposals) {
-      const conflictingExisting = existingPhaseTerms.find((existing) =>
+      const conflictingExisting = existingTerms.find((existing) =>
         hasTermDateConflict(proposal, existing),
       );
       if (conflictingExisting) {
@@ -557,11 +571,10 @@ export class TermsService {
       );
     }
 
-    // Check date conflict with existing terms in this operating phase
-    const existingPhaseTerms = await this.prisma.term.findMany({
+    // Check date conflict with existing terms in this institute
+    const existingInstituteTerms = await this.prisma.term.findMany({
       where: {
         instituteId,
-        operatingPhaseId: dto.operatingPhaseId,
       },
       select: {
         id: true,
@@ -572,7 +585,7 @@ export class TermsService {
     });
 
     for (const t of dto.terms) {
-      const conflictingExisting = existingPhaseTerms.find((existing) =>
+      const conflictingExisting = existingInstituteTerms.find((existing) =>
         hasTermDateConflict(t, existing),
       );
       if (conflictingExisting) {

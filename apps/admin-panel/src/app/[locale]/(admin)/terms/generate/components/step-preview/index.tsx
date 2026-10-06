@@ -33,6 +33,12 @@ export interface StepPreviewProps {
     conflictingTitle: string
     termIndex: number
   }>
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 export function StepPreview({
@@ -50,6 +56,7 @@ export function StepPreview({
   activeDismissedHolidays,
   compensatorySessions,
   dateConflicts,
+  existingTerms,
 }: StepPreviewProps) {
   const t = useTranslations("terms")
 
@@ -139,6 +146,7 @@ export function StepPreview({
             activeDismissedHolidays={activeDismissedHolidays}
             compensatorySessions={compensatorySessions}
             dateConflicts={dateConflicts}
+            existingTerms={existingTerms}
           />
         ) : (
           <ProposalsTable
@@ -147,6 +155,7 @@ export function StepPreview({
             onStartDateChange={onStartDateChange}
             locale={locale}
             dateConflicts={dateConflicts}
+            existingTerms={existingTerms}
           />
         )
       ) : (

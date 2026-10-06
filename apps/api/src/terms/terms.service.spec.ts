@@ -170,6 +170,35 @@ describe('TermsService', () => {
       );
     });
 
+    it('should throw ConflictException if term dates overlap with existing term from another phase in institute', async () => {
+      const dto = {
+        title: 'ترم بهار',
+        operatingPhaseId: 'phase-2', // Spring phase
+        startDate: '2027-03-21',
+        endDate: '2027-05-15',
+        isActive: true,
+      };
+
+      prismaService.term.findFirst.mockResolvedValue(null);
+      prismaService.instituteOperatingPhase.findFirst.mockResolvedValue({
+        id: 'phase-2',
+        instituteId: 'inst-1',
+      });
+      prismaService.term.findMany.mockResolvedValue([
+        {
+          id: 'existing-term-diff-phase',
+          title: 'اسفند و فروردین ۱۴۰۵',
+          operatingPhaseId: 'phase-1', // Fall/Winter phase
+          startDate: new Date('2027-02-20'),
+          endDate: new Date('2027-04-06'), // Overlaps with 2027-03-21 to 2027-04-06!
+        },
+      ]);
+
+      await expect(service.create(dto, mockAdmin)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
     it('should create new term when valid', async () => {
       const dto = {
         title: 'پاییز ۱۴۰۵',

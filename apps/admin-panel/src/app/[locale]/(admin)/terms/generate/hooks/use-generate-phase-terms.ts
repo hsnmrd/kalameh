@@ -99,6 +99,26 @@ export function useGeneratePhaseTerms() {
   }
 
   const {
+    batchCreateMutation,
+    handleCancel,
+    handleProceedToPreview,
+    handleSubmit,
+    isLoadingExisting,
+    previewQuery,
+    existingTerms,
+  } = usePhaseTermPersistence({
+    activeInstituteId,
+    activePhaseId,
+    jalaliYear,
+    sessionsPerTerm,
+    gapDays,
+    proposals,
+    setProposals,
+    setCustomTitles,
+    reset,
+  })
+
+  const {
     handleStartDateChange,
     handleToggleHoliday,
     handleToggleCustomOffDay,
@@ -121,6 +141,7 @@ export function useGeneratePhaseTerms() {
     compensatorySessions,
     pinnedStartDates,
     setPinnedStartDates,
+    existingTerms,
   })
 
   const { handleAddCompensatorySession, handleRemoveCompensatorySession } =
@@ -140,26 +161,6 @@ export function useGeneratePhaseTerms() {
       setCompensatorySessions,
       pinnedStartDates,
     })
-
-  const {
-    batchCreateMutation,
-    handleCancel,
-    handleProceedToPreview,
-    handleSubmit,
-    isLoadingExisting,
-    previewQuery,
-    existingTerms,
-  } = usePhaseTermPersistence({
-    activeInstituteId,
-    activePhaseId,
-    jalaliYear,
-    sessionsPerTerm,
-    gapDays,
-    proposals,
-    setProposals,
-    setCustomTitles,
-    reset,
-  })
 
   const dateConflicts = React.useMemo(() => {
     const list: Array<{

@@ -36,6 +36,12 @@ interface PhaseTermDateActionsOptions {
   setPinnedStartDates: React.Dispatch<
     React.SetStateAction<Record<number, string>>
   >
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 export function usePhaseTermDateActions({
@@ -57,6 +63,7 @@ export function usePhaseTermDateActions({
   compensatorySessions,
   pinnedStartDates,
   setPinnedStartDates,
+  existingTerms,
 }: PhaseTermDateActionsOptions) {
   const t = useTranslations("terms")
   const queryClient = useQueryClient()
@@ -89,6 +96,7 @@ export function usePhaseTermDateActions({
         dismissedHolidays: nextDismissedHolidays,
         compensatorySessions,
         pinnedStartDates,
+        existingTerms,
       }),
     [
       proposals,
@@ -102,6 +110,7 @@ export function usePhaseTermDateActions({
       dismissedHolidays,
       compensatorySessions,
       pinnedStartDates,
+      existingTerms,
     ]
   )
 

@@ -27,4 +27,10 @@ export interface DayActionsPopoverProps {
   compensatorySessions?: Record<number, CompensatorySession[]>
   lockedTermIndex?: number
   readOnly?: boolean
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }

@@ -14,6 +14,7 @@ interface CalendarSurfaceProps {
   modifiers: Record<string, (date: Date) => boolean>
   modifiersClassNames: Record<string, string>
   numberOfMonths: number
+  disabled?: (date: Date) => boolean
 }
 
 export function CalendarSurface({
@@ -27,6 +28,7 @@ export function CalendarSurface({
   modifiers,
   modifiersClassNames,
   numberOfMonths,
+  disabled,
 }: CalendarSurfaceProps) {
   return (
     <div className="flex w-full justify-center overflow-x-auto p-1 sm:overflow-visible">
@@ -42,6 +44,7 @@ export function CalendarSurface({
         modifiersClassNames={modifiersClassNames}
         numberOfMonths={numberOfMonths}
         showOutsideDays={numberOfMonths === 1}
+        disabled={disabled}
         className="w-full border border-border bg-card shadow-xs"
         classNames={{
           months:
@@ -60,6 +63,8 @@ export function CalendarSurface({
           range_end: "!bg-transparent",
           range_middle: "!bg-transparent",
           today: "!border-none !rounded-none !shadow-none font-inherit",
+          disabled:
+            "!opacity-30 !cursor-not-allowed !pointer-events-none line-through bg-muted/40 text-muted-foreground",
         }}
       />
     </div>

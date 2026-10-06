@@ -17,6 +17,7 @@ export interface ProposalCardProps {
   onStartDateChange: (index: number, newStartDate: string) => void
   locale?: "fa" | "en"
   conflictingTitles?: string
+  disabledDates?: (date: Date) => boolean
 }
 
 export function ProposalCard({
@@ -27,6 +28,7 @@ export function ProposalCard({
   onStartDateChange,
   locale,
   conflictingTitles,
+  disabledDates,
 }: ProposalCardProps) {
   const t = useTranslations("terms")
   const defaultLocale = useLocale() as "fa" | "en"
@@ -117,6 +119,7 @@ export function ProposalCard({
           <DatePicker
             value={proposal.startDate}
             minDate={minDate}
+            disabledDates={disabledDates}
             onChange={(val) => {
               if (val) {
                 onStartDateChange(index, val)

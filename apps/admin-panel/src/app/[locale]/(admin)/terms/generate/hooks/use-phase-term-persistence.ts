@@ -41,9 +41,8 @@ export function usePhaseTermPersistence({
   const { data: existingTerms = [], isLoading: isLoadingExisting } = useQuery({
     ...termsResource.list.toQuery({
       instituteId: activeInstituteId || undefined,
-      operatingPhaseId: activePhaseId || undefined,
     }),
-    enabled: Boolean(activeInstituteId && activePhaseId),
+    enabled: Boolean(activeInstituteId),
   })
 
   const previewQuery = useQuery({

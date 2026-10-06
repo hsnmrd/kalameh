@@ -37,6 +37,12 @@ export interface CalendarGridProps {
   numberOfMonths?: number
   lockedTermIndex?: number
   readOnly?: boolean
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 export function CalendarGrid({
@@ -55,6 +61,7 @@ export function CalendarGrid({
   numberOfMonths,
   lockedTermIndex,
   readOnly = false,
+  existingTerms = [],
 }: CalendarGridProps) {
   const isMobile = useIsMobile()
   const isExtraWide = useMediaQuery("(min-width: 1500px)")
@@ -105,6 +112,19 @@ export function CalendarGrid({
 
   const isRtl = locale === "fa"
 
+  const isDateDisabled = React.useCallback(
+    (date: Date): boolean => {
+      if (!existingTerms || existingTerms.length === 0) return false
+      const ymd = normalizeDateToYmd(date)
+      return existingTerms.some((term) => {
+        const start = normalizeDateToYmd(term.startDate)
+        const end = normalizeDateToYmd(term.endDate)
+        return ymd >= start && ymd <= end
+      })
+    },
+    [existingTerms]
+  )
+
   const { modifiers, modifiersClassNames } = React.useMemo(() => {
     const base = buildTermCalendarModifiers(proposals, isRtl, {
       observeOfficialHolidays,
@@ -112,6 +132,7 @@ export function CalendarGrid({
       dismissedHolidays: activeDismissedHolidays,
       compensatorySessions,
       selectedTermIndex,
+      existingTerms,
     })
 
     if (popoverOpen && selectedDay) {
@@ -134,6 +155,7 @@ export function CalendarGrid({
     activeDismissedHolidays,
     compensatorySessions,
     selectedTermIndex,
+    existingTerms,
     popoverOpen,
     selectedDay,
   ])
@@ -143,6 +165,9 @@ export function CalendarGrid({
     _modifiers: unknown,
     e: React.MouseEvent
   ) => {
+    if (isDateDisabled(date)) {
+      return
+    }
     setSelectedDay(date)
     const targetEl =
       (e.currentTarget as HTMLElement) ||
@@ -182,6 +207,7 @@ export function CalendarGrid({
         modifiers={modifiers}
         modifiersClassNames={modifiersClassNames}
         numberOfMonths={effectiveNumberOfMonths}
+        disabled={isDateDisabled}
       />
 
       {/* Off-days & Session Legend */}
@@ -223,6 +249,7 @@ export function CalendarGrid({
         compensatorySessions={compensatorySessions}
         lockedTermIndex={lockedTermIndex}
         readOnly={readOnly}
+        existingTerms={existingTerms}
       />
 
       {/* Compensatory Session Creation Modal */}

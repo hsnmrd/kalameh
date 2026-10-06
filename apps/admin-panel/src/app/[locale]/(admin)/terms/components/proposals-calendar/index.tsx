@@ -35,6 +35,12 @@ export interface ProposalsCalendarProps {
     conflictingTitle: string
     termIndex: number
   }>
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 export function ProposalsCalendar({
@@ -56,6 +62,7 @@ export function ProposalsCalendar({
   readOnly = false,
   showLegend = true,
   dateConflicts,
+  existingTerms,
 }: ProposalsCalendarProps) {
   const defaultLocale = useLocale() as "fa" | "en"
   const activeLocale = locale || defaultLocale
@@ -116,6 +123,7 @@ export function ProposalsCalendar({
         numberOfMonths={numberOfMonths}
         lockedTermIndex={lockedTermIndex}
         readOnly={readOnly}
+        existingTerms={existingTerms}
       />
     </div>
   )
