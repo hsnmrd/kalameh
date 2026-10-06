@@ -248,6 +248,10 @@ describe('MVP-025 SchedulingPlanPersistenceService', () => {
         data: expect.objectContaining({ status: 'COMPLETED', completedAt }),
       }),
     );
+    expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+      maxWait: 10_000,
+      timeout: 60_000,
+    });
     expect(prisma.class).toBeUndefined();
     expect(prisma.teacherCourseQualification.findMany).toHaveBeenCalledWith(
       expect.objectContaining({

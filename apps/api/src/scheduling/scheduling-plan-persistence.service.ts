@@ -200,191 +200,212 @@ export class SchedulingPlanPersistenceService {
       );
     }
 
-    const result = await this.prisma.$transaction(async (transaction) => {
-      await transaction.schedulingPlan.deleteMany({
-        where: { runId: input.runId, instituteId: input.instituteId },
-      });
-      const planIds: string[] = [];
-      let proposalCount = 0;
-      let unresolvedRequirementCount = 0;
+    const sessionDatesCache = new Map<string, string[]>();
 
-      // Compute session dates once per (dayOfWeek, startTime, endTime) combination
-      // using the term date range so proposals have accurate session counts.
-      const termStartDate = run.term?.startDate ?? input.completedAt;
-      const termEndDate = run.term?.endDate ?? input.completedAt;
+    const result = await this.prisma.$transaction(
+      async (transaction) => {
+        await transaction.schedulingPlan.deleteMany({
+          where: { runId: input.runId, instituteId: input.instituteId },
+        });
+        const planIds: string[] = [];
+        let proposalCount = 0;
+        let unresolvedRequirementCount = 0;
 
-      for (const plan of generation.plans) {
-        const unresolved = unresolvedByPlanKey.get(plan.planKey)!;
-        const warnings = this.planWarnings(plan.composition.requirements);
-        const created = await transaction.schedulingPlan.create({
-          data: {
-            instituteId: input.instituteId,
-            runId: input.runId,
-            status: 'DRAFT',
-            rank: plan.rank,
-            isRecommended: plan.isRecommended,
-            earnedWeightedPoints: plan.composition.summary.earnedWeightedPoints,
-            applicableWeightedPoints:
-              plan.composition.summary.applicableWeightedPoints,
-            qualityIndex: plan.composition.summary.qualityIndex,
-            coveragePercent: plan.composition.summary.coveragePercent,
-            minimumCourseCoveragePercent:
-              plan.composition.summary.minimumCourseCoveragePercent,
-            scoreBreakdown: this.toJson(
-              this.planScoreBreakdown(plan.composition, weights),
-            ),
-            metricsSnapshot: this.toJson({
-              planKey: plan.planKey,
-              excludedAssignmentKeys: plan.excludedAssignmentKeys,
-              ...plan.composition.summary,
-            }),
-            weightsSnapshot: this.toJson(snapshotSource.weightsSnapshot),
-            timeGroupsSnapshot: this.toJson(snapshotSource.timeGroupsSnapshot),
-            dataCompletenessSnapshot: this.toJson(
-              snapshotSource.dataCompletenessSnapshot,
-            ),
-            warnings: this.toJson(warnings),
-            formulaVersion: snapshotSource.formulaVersion,
-            generatedAt: input.completedAt,
-            lastScoredAt: input.completedAt,
-            proposals: {
-              create: plan.composition.assignments.map((assignment) => {
-                const candidate = assignment.candidate;
-                const requirement = requirementById.get(
-                  candidate.requirementId,
-                )!;
-                const scoreBreakdown = this.proposalScoreBreakdown(
-                  assignment.projectedCoveragePercent,
-                  assignment.projectedTimeDiversityScore,
-                  assignment.projectedWeightedPoints,
-                  weights,
-                );
-                return {
-                  instituteId: input.instituteId,
-                  classRequirementId: requirement.id,
-                  courseId: requirement.courseId,
-                  branchId: requirement.branchId,
-                  teacherId: candidate.teacherId,
-                  classroomId: candidate.classroomId,
-                  teacherQualificationId: candidate.qualificationId,
-                  qualificationCheckedAt: input.completedAt,
-                  title: requirement.course.title,
-                  capacity: candidate.capacity,
-                  deliveryMode: candidate.deliveryMode,
-                  daysOfWeek: this.resolveProposalDaysOfWeek(
-                    candidate.dayOfWeek,
-                    candidate.timeGroup,
-                    requirement.sessionsPerWeek,
-                    snapshotSource.timeGroupsSnapshot,
-                  ),
-                  startTime: candidate.startTime,
-                  endTime: candidate.endTime,
-                  timeGroup: candidate.timeGroup,
-                  score: scoreBreakdown.qualityIndex,
-                  scoreBreakdown: this.toJson(scoreBreakdown),
-                  selectionReasons: this.toJson(assignment.selectionReasons),
-                  scoredAt: input.completedAt,
-                  warnings: this.toJson([]),
-                  isLocked: false,
-                  isManuallyEdited: false,
-                  editCount: 0,
-                };
+        // Compute session dates once per (dayOfWeek, startTime, endTime) combination
+        // using the term date range so proposals have accurate session counts.
+        const termStartDate = run.term?.startDate ?? input.completedAt;
+        const termEndDate = run.term?.endDate ?? input.completedAt;
+
+        for (const plan of generation.plans) {
+          const unresolved = unresolvedByPlanKey.get(plan.planKey)!;
+          const warnings = this.planWarnings(plan.composition.requirements);
+          const created = await transaction.schedulingPlan.create({
+            data: {
+              instituteId: input.instituteId,
+              runId: input.runId,
+              status: 'DRAFT',
+              rank: plan.rank,
+              isRecommended: plan.isRecommended,
+              earnedWeightedPoints:
+                plan.composition.summary.earnedWeightedPoints,
+              applicableWeightedPoints:
+                plan.composition.summary.applicableWeightedPoints,
+              qualityIndex: plan.composition.summary.qualityIndex,
+              coveragePercent: plan.composition.summary.coveragePercent,
+              minimumCourseCoveragePercent:
+                plan.composition.summary.minimumCourseCoveragePercent,
+              scoreBreakdown: this.toJson(
+                this.planScoreBreakdown(plan.composition, weights),
+              ),
+              metricsSnapshot: this.toJson({
+                planKey: plan.planKey,
+                excludedAssignmentKeys: plan.excludedAssignmentKeys,
+                ...plan.composition.summary,
               }),
-            },
-            unresolvedRequirements: {
-              create: unresolved.items.map((item) => ({
-                instituteId: input.instituteId,
-                classRequirementId: item.classRequirementId,
-                reasonCode: item.reasonCode,
-                missingClassCount: item.missingClassCount,
-                details: this.toJson(item.details),
-              })),
-            },
-          },
-          select: {
-            id: true,
-            proposals: {
-              select: {
-                id: true,
-                daysOfWeek: true,
-                startTime: true,
-                endTime: true,
+              weightsSnapshot: this.toJson(snapshotSource.weightsSnapshot),
+              timeGroupsSnapshot: this.toJson(
+                snapshotSource.timeGroupsSnapshot,
+              ),
+              dataCompletenessSnapshot: this.toJson(
+                snapshotSource.dataCompletenessSnapshot,
+              ),
+              warnings: this.toJson(warnings),
+              formulaVersion: snapshotSource.formulaVersion,
+              generatedAt: input.completedAt,
+              lastScoredAt: input.completedAt,
+              proposals: {
+                create: plan.composition.assignments.map((assignment) => {
+                  const candidate = assignment.candidate;
+                  const requirement = requirementById.get(
+                    candidate.requirementId,
+                  )!;
+                  const scoreBreakdown = this.proposalScoreBreakdown(
+                    assignment.projectedCoveragePercent,
+                    assignment.projectedTimeDiversityScore,
+                    assignment.projectedWeightedPoints,
+                    weights,
+                  );
+                  return {
+                    instituteId: input.instituteId,
+                    classRequirementId: requirement.id,
+                    courseId: requirement.courseId,
+                    branchId: requirement.branchId,
+                    teacherId: candidate.teacherId,
+                    classroomId: candidate.classroomId,
+                    teacherQualificationId: candidate.qualificationId,
+                    qualificationCheckedAt: input.completedAt,
+                    title: requirement.course.title,
+                    capacity: candidate.capacity,
+                    deliveryMode: candidate.deliveryMode,
+                    daysOfWeek: this.resolveProposalDaysOfWeek(
+                      candidate.dayOfWeek,
+                      candidate.timeGroup,
+                      requirement.sessionsPerWeek,
+                      snapshotSource.timeGroupsSnapshot,
+                    ),
+                    startTime: candidate.startTime,
+                    endTime: candidate.endTime,
+                    timeGroup: candidate.timeGroup,
+                    score: scoreBreakdown.qualityIndex,
+                    scoreBreakdown: this.toJson(scoreBreakdown),
+                    selectionReasons: this.toJson(assignment.selectionReasons),
+                    scoredAt: input.completedAt,
+                    warnings: this.toJson([]),
+                    isLocked: false,
+                    isManuallyEdited: false,
+                    editCount: 0,
+                  };
+                }),
+              },
+              unresolvedRequirements: {
+                create: unresolved.items.map((item) => ({
+                  instituteId: input.instituteId,
+                  classRequirementId: item.classRequirementId,
+                  reasonCode: item.reasonCode,
+                  missingClassCount: item.missingClassCount,
+                  details: this.toJson(item.details),
+                })),
               },
             },
-          },
-        });
-
-        // Generate and persist sessions for every proposal
-        const sessionRows: {
-          instituteId: string;
-          planId: string;
-          proposalId: string;
-          sessionDate: Date;
-          startTime: string;
-          endTime: string;
-        }[] = [];
-
-        for (const proposal of created.proposals ?? []) {
-          const schedule = calculateTermScheduleFromDateRange({
-            startDate: termStartDate,
-            endDate: termEndDate,
-            daysOfWeek: proposal.daysOfWeek as WeekDay[],
-            skipHolidays: true,
-            observeOfficialHolidays: true,
+            select: {
+              id: true,
+              proposals: {
+                select: {
+                  id: true,
+                  daysOfWeek: true,
+                  startTime: true,
+                  endTime: true,
+                },
+              },
+            },
           });
-          for (const dateStr of schedule.sessionDates) {
-            sessionRows.push({
-              instituteId: input.instituteId,
-              planId: created.id,
-              proposalId: proposal.id,
-              sessionDate: new Date(dateStr),
-              startTime: proposal.startTime,
-              endTime: proposal.endTime,
+
+          // Generate and persist sessions for every proposal
+          const sessionRows: {
+            instituteId: string;
+            planId: string;
+            proposalId: string;
+            sessionDate: Date;
+            startTime: string;
+            endTime: string;
+          }[] = [];
+
+          for (const proposal of created.proposals ?? []) {
+            const daysKey = (proposal.daysOfWeek as WeekDay[])
+              .slice()
+              .sort()
+              .join(',');
+            let sessionDates = sessionDatesCache.get(daysKey);
+            if (!sessionDates) {
+              const schedule = calculateTermScheduleFromDateRange({
+                startDate: termStartDate,
+                endDate: termEndDate,
+                daysOfWeek: proposal.daysOfWeek as WeekDay[],
+                skipHolidays: true,
+                observeOfficialHolidays: true,
+              });
+              sessionDates = schedule.sessionDates;
+              sessionDatesCache.set(daysKey, sessionDates);
+            }
+
+            for (const dateStr of sessionDates) {
+              sessionRows.push({
+                instituteId: input.instituteId,
+                planId: created.id,
+                proposalId: proposal.id,
+                sessionDate: new Date(dateStr),
+                startTime: proposal.startTime,
+                endTime: proposal.endTime,
+              });
+            }
+          }
+
+          if (sessionRows.length > 0) {
+            await transaction.schedulingProposalSession?.createMany?.({
+              data: sessionRows,
+              skipDuplicates: true,
             });
           }
+
+          planIds.push(created.id);
+          proposalCount += plan.composition.assignments.length;
+          unresolvedRequirementCount += unresolved.items.length;
         }
 
-        if (sessionRows.length > 0) {
-          await transaction.schedulingProposalSession?.createMany?.({
-            data: sessionRows,
-            skipDuplicates: true,
-          });
+        const updatedRun = await transaction.schedulingRun.updateMany({
+          where: {
+            id: input.runId,
+            instituteId: input.instituteId,
+            status: { in: ['QUEUED', 'GENERATING'] },
+          },
+          data: {
+            status: 'COMPLETED',
+            failureCode: null,
+            failureMessage: null,
+            startedAt: run.startedAt ?? input.completedAt,
+            completedAt: input.completedAt,
+          },
+        });
+        if (updatedRun.count !== 1) {
+          throw new ConflictException(
+            'scheduling run changed while results were being persisted',
+          );
         }
 
-        planIds.push(created.id);
-        proposalCount += plan.composition.assignments.length;
-        unresolvedRequirementCount += unresolved.items.length;
-      }
-
-      const updatedRun = await transaction.schedulingRun.updateMany({
-        where: {
-          id: input.runId,
-          instituteId: input.instituteId,
-          status: { in: ['QUEUED', 'GENERATING'] },
-        },
-        data: {
+        return SchedulingPersistenceResultSchema.parse({
+          runId: input.runId,
           status: 'COMPLETED',
-          failureCode: null,
-          failureMessage: null,
-          startedAt: run.startedAt ?? input.completedAt,
+          planIds,
+          proposalCount,
+          unresolvedRequirementCount,
           completedAt: input.completedAt,
-        },
-      });
-      if (updatedRun.count !== 1) {
-        throw new ConflictException(
-          'scheduling run changed while results were being persisted',
-        );
-      }
-
-      return SchedulingPersistenceResultSchema.parse({
-        runId: input.runId,
-        status: 'COMPLETED',
-        planIds,
-        proposalCount,
-        unresolvedRequirementCount,
-        completedAt: input.completedAt,
-      });
-    });
+        });
+      },
+      {
+        maxWait: 10_000,
+        timeout: 60_000,
+      },
+    );
 
     await this.auditLogsService.log({
       instituteId: input.instituteId,
