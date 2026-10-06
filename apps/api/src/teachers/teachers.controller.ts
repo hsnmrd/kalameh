@@ -127,6 +127,16 @@ export class TeachersController {
     );
   }
 
+  @Get(':id/availabilities')
+  @RequirePermissions(PERMISSIONS.VIEW_TEACHERS)
+  async getAvailabilities(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('id') id: string,
+    @Query('termId') termId?: string,
+  ) {
+    return this.teachersService.getAvailabilities(currentUser, id, termId);
+  }
+
   @Put(':id/availabilities')
   @RequirePermissions(PERMISSIONS.MANAGE_TEACHERS)
   async replaceAvailabilities(

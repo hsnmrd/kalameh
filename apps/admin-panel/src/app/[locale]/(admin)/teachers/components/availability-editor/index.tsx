@@ -6,22 +6,25 @@ import { useQuery } from "@tanstack/react-query"
 import {
   calculatePhaseSlots,
   EVEN_CLASS_DAYS,
-  isOperatingPhaseCurrent,
+  isAvailabilityCoveringSlot,
   ODD_CLASS_DAYS,
+  subtractSlotFromAvailability,
   WEEK_DAYS,
   type PhaseGeneratedSlot,
   type TeacherAvailabilityInput,
   type WeekDay,
 } from "@workspace/types"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { operatingPhasesResource } from "@/lib/api"
+import { termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { PhaseCarousel } from "./phase-carousel"
+import { TermCarousel } from "./term-carousel"
 import { TrackSlotRow } from "./track-slot-row"
 
 export interface AvailabilityEditorProps {
   value: TeacherAvailabilityInput[]
   onChange: (slots: TeacherAvailabilityInput[]) => void
+  selectedTermId?: string | null
+  onSelectTermId?: (termId: string) => void
   instituteId?: string
   disabled?: boolean
 }
@@ -36,6 +39,8 @@ interface DayTrack {
 export function AvailabilityEditor({
   value = [],
   onChange,
+  selectedTermId,
+  onSelectTermId,
   instituteId,
   disabled = false,
 }: AvailabilityEditorProps) {
@@ -43,33 +48,41 @@ export function AvailabilityEditor({
   const { activeInstituteId } = useActiveInstitute()
   const effectiveInstituteId = instituteId || activeInstituteId
 
-  const { data: phases = [], isLoading: isPhasesLoading } = useQuery({
-    ...operatingPhasesResource.list.toQuery(
+  const { data: terms = [], isLoading: isTermsLoading } = useQuery({
+    ...termsResource.list.toQuery(
       effectiveInstituteId ? { instituteId: effectiveInstituteId } : undefined
     ),
     enabled: Boolean(effectiveInstituteId),
   })
 
-  const activePhases = React.useMemo(
-    () => phases.filter((p) => p.isActive),
-    [phases]
-  )
+  const activeTerms = React.useMemo(() => {
+    const withPhase = terms.filter((term) => Boolean(term.operatingPhase))
+    const active = withPhase.filter((term) => term.isActive)
+    return active.length > 0 ? active : withPhase
+  }, [terms])
 
-  const defaultPhase = React.useMemo(() => {
-    return (
-      activePhases.find((p) => isOperatingPhaseCurrent(p)) ||
-      activePhases[0] ||
-      null
-    )
-  }, [activePhases])
-
-  const [selectedPhaseId, setSelectedPhaseId] = React.useState<string | null>(
+  const [internalTermId, setInternalTermId] = React.useState<string | null>(
     null
   )
-  const currentPhase = React.useMemo(() => {
-    const id = selectedPhaseId || defaultPhase?.id
-    return activePhases.find((p) => p.id === id) || null
-  }, [selectedPhaseId, defaultPhase, activePhases])
+  const currentTermId = selectedTermId ?? internalTermId
+
+  const currentTerm = React.useMemo(() => {
+    if (currentTermId) {
+      const found = activeTerms.find((t) => t.id === currentTermId)
+      if (found) return found
+    }
+    return activeTerms[0] ?? null
+  }, [activeTerms, currentTermId])
+
+  const handleSelectTerm = React.useCallback(
+    (termId: string) => {
+      setInternalTermId(termId)
+      onSelectTermId?.(termId)
+    },
+    [onSelectTermId]
+  )
+
+  const currentPhase = currentTerm?.operatingPhase
 
   const phaseCalculation = React.useMemo(() => {
     if (!currentPhase) return null
@@ -91,12 +104,11 @@ export function AvailabilityEditor({
 
   const activeDays = React.useMemo<WeekDay[]>(() => {
     if (currentPhase?.daysOfWeek && currentPhase.daysOfWeek.length > 0) {
-      return WEEK_DAYS.filter((d) => currentPhase.daysOfWeek.includes(d))
+      return WEEK_DAYS.filter((d) => currentPhase.daysOfWeek!.includes(d))
     }
     return WEEK_DAYS as unknown as WeekDay[]
   }, [currentPhase])
 
-  // Split active days into Even, Odd, and weekend tracks
   const tracks = React.useMemo<DayTrack[]>(() => {
     const list: DayTrack[] = []
 
@@ -134,41 +146,39 @@ export function AvailabilityEditor({
   const handleToggleSlot = (trackDays: WeekDay[], slot: PhaseGeneratedSlot) => {
     const isAllSelected = trackDays.every((day) =>
       value.some(
-        (s) =>
-          s.dayOfWeek === day &&
-          s.startTime === slot.startTime &&
-          s.endTime === slot.endTime
+        (s) => s.dayOfWeek === day && isAvailabilityCoveringSlot(s, slot)
       )
     )
 
     if (isAllSelected) {
-      // Remove this slot from all track days
-      onChange(
-        value.filter(
-          (s) =>
-            !(
-              trackDays.includes(s.dayOfWeek as WeekDay) &&
-              s.startTime === slot.startTime &&
-              s.endTime === slot.endTime
+      let updated = [...value]
+      for (const day of trackDays) {
+        const dayItems = updated.filter((item) => item.dayOfWeek === day)
+        const otherItems = updated.filter((item) => item.dayOfWeek !== day)
+        const newDayItems: TeacherAvailabilityInput[] = []
+        for (const item of dayItems) {
+          const subtracted = subtractSlotFromAvailability(item, slot)
+          newDayItems.push(...subtracted)
+        }
+        updated = [...otherItems, ...newDayItems]
+      }
+      onChange(updated)
+    } else {
+      const additions: TeacherAvailabilityInput[] = trackDays
+        .filter(
+          (day) =>
+            !value.some(
+              (item) =>
+                item.dayOfWeek === day && isAvailabilityCoveringSlot(item, slot)
             )
         )
-      )
-    } else {
-      // Add this slot to all track days that don't already have it
-      const filtered = value.filter(
-        (s) =>
-          !(
-            trackDays.includes(s.dayOfWeek as WeekDay) &&
-            s.startTime === slot.startTime &&
-            s.endTime === slot.endTime
-          )
-      )
-      const additions: TeacherAvailabilityInput[] = trackDays.map((day) => ({
-        dayOfWeek: day,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-      }))
-      onChange([...filtered, ...additions])
+        .map((day) => ({
+          ...(currentTerm?.id ? { termId: currentTerm.id } : {}),
+          dayOfWeek: day,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        }))
+      onChange([...value, ...additions])
     }
   }
 
@@ -183,6 +193,7 @@ export function AvailabilityEditor({
     for (const day of trackDays) {
       for (const slot of slots) {
         newTrackSlots.push({
+          ...(currentTerm?.id ? { termId: currentTerm.id } : {}),
           dayOfWeek: day,
           startTime: slot.startTime,
           endTime: slot.endTime,
@@ -198,22 +209,20 @@ export function AvailabilityEditor({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Operating Phases Carousel */}
-      {isPhasesLoading ? (
+      {isTermsLoading ? (
         <div className="flex items-center justify-center py-4">
           <Spinner className="size-5 text-muted-foreground" />
         </div>
-      ) : activePhases.length > 0 ? (
-        <PhaseCarousel
-          phases={activePhases}
-          selectedPhaseId={currentPhase?.id ?? ""}
-          onSelectPhase={(id) => setSelectedPhaseId(id)}
+      ) : activeTerms.length > 0 ? (
+        <TermCarousel
+          terms={activeTerms}
+          selectedTermId={currentTerm?.id ?? ""}
+          onSelectTerm={handleSelectTerm}
           value={value}
           disabled={disabled}
         />
       ) : null}
 
-      {/* Standard Operating Phase Slots in Even / Odd tracks */}
       {currentPhase && standardSlots.length > 0 ? (
         <div className="flex flex-col gap-4">
           {tracks.map((track) => (
@@ -232,7 +241,7 @@ export function AvailabilityEditor({
             />
           ))}
         </div>
-      ) : !isPhasesLoading ? (
+      ) : !isTermsLoading ? (
         <div className="rounded-2xl border border-dashed border-border/80 bg-background/50 p-6 text-center text-xs text-muted-foreground">
           {t("availabilities.noActivePhase")}
         </div>

@@ -1,64 +1,46 @@
 import { describe, expect, it, vi, beforeEach } from "vitest"
-import type {
-  OperatingPhaseWithSlots,
-  TeacherAvailabilityInput,
-} from "@workspace/types"
+import type { TeacherAvailabilityInput, TermDto } from "@workspace/types"
 import { fireEvent, render, screen } from "../../../../../test/test-utils"
-import { operatingPhasesResource } from "@/lib/api"
+import { termsResource } from "@/lib/api"
 import { AvailabilityEditor } from "../components/availability-editor"
 
 describe("AvailabilityEditor Component", () => {
-  const mockPhase: OperatingPhaseWithSlots = {
-    id: "phase-1",
+  const mockTerm: TermDto = {
+    id: "term-1",
     instituteId: "inst-1",
-    title: "فاز پاییز و زمستان",
-    months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-    startTime: "16:00",
-    endTime: "19:00",
-    slotDurationMinutes: 90,
-    daysOfWeek: [
-      "SATURDAY",
-      "SUNDAY",
-      "MONDAY",
-      "TUESDAY",
-      "WEDNESDAY",
-      "THURSDAY",
-    ],
-    hasBreak: false,
-    breakStartTime: null,
-    breakEndTime: null,
+    title: "ترم پاییز ۱۴۰۳",
+    startDate: new Date().toISOString(),
+    endDate: new Date().toISOString(),
     isActive: true,
-    order: 0,
+    operatingPhaseId: "phase-1",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    calculation: {
-      totalSpanMinutes: 180,
-      instructionalMinutes: 180,
-      fullSlotsCount: 2,
-      remainderMinutes: 0,
-      hasWarning: false,
-      slots: [
-        {
-          slotNumber: 1,
-          startTime: "16:00",
-          endTime: "17:30",
-          durationMinutes: 90,
-        },
-        {
-          slotNumber: 2,
-          startTime: "17:30",
-          endTime: "19:00",
-          durationMinutes: 90,
-        },
+    operatingPhase: {
+      id: "phase-1",
+      title: "فاز پاییز و زمستان",
+      months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      startTime: "16:00",
+      endTime: "19:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: [
+        "SATURDAY",
+        "SUNDAY",
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
       ],
+      hasBreak: false,
+      breakStartTime: null,
+      breakEndTime: null,
     },
   }
 
   beforeEach(() => {
     vi.restoreAllMocks()
-    vi.spyOn(operatingPhasesResource.list, "toQuery").mockReturnValue({
-      queryKey: ["operating-phases", "inst-1"],
-      queryFn: async () => [mockPhase],
+    vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["terms", "inst-1"],
+      queryFn: async () => [mockTerm],
     } as never)
   })
 
@@ -95,16 +77,19 @@ describe("AvailabilityEditor Component", () => {
 
     expect(onChange).toHaveBeenCalledWith([
       {
+        termId: "term-1",
         dayOfWeek: "SATURDAY",
         startTime: "16:00",
         endTime: "17:30",
       },
       {
+        termId: "term-1",
         dayOfWeek: "MONDAY",
         startTime: "16:00",
         endTime: "17:30",
       },
       {
+        termId: "term-1",
         dayOfWeek: "WEDNESDAY",
         startTime: "16:00",
         endTime: "17:30",
@@ -126,16 +111,19 @@ describe("AvailabilityEditor Component", () => {
 
     expect(onChange).toHaveBeenCalledWith([
       {
+        termId: "term-1",
         dayOfWeek: "SUNDAY",
         startTime: "16:00",
         endTime: "17:30",
       },
       {
+        termId: "term-1",
         dayOfWeek: "TUESDAY",
         startTime: "16:00",
         endTime: "17:30",
       },
       {
+        termId: "term-1",
         dayOfWeek: "THURSDAY",
         startTime: "16:00",
         endTime: "17:30",
@@ -147,16 +135,19 @@ describe("AvailabilityEditor Component", () => {
     const onChange = vi.fn()
     const initialValue: TeacherAvailabilityInput[] = [
       {
+        termId: "term-1",
         dayOfWeek: "SATURDAY",
         startTime: "16:00",
         endTime: "17:30",
       },
       {
+        termId: "term-1",
         dayOfWeek: "MONDAY",
         startTime: "16:00",
         endTime: "17:30",
       },
       {
+        termId: "term-1",
         dayOfWeek: "WEDNESDAY",
         startTime: "16:00",
         endTime: "17:30",
@@ -180,6 +171,79 @@ describe("AvailabilityEditor Component", () => {
     expect(onChange).toHaveBeenCalledWith([])
   })
 
+  it("recognizes range coverage (e.g. 15:00 - 20:00 covers 16:00 - 17:30 and 17:30 - 19:00)", async () => {
+    const onChange = vi.fn()
+    // Continuous range covering both slot 1 (16:00-17:30) and slot 2 (17:30-19:00)
+    const rangeValue: TeacherAvailabilityInput[] = [
+      {
+        dayOfWeek: "SATURDAY",
+        startTime: "15:00",
+        endTime: "20:00",
+      },
+      {
+        dayOfWeek: "MONDAY",
+        startTime: "15:00",
+        endTime: "20:00",
+      },
+      {
+        dayOfWeek: "WEDNESDAY",
+        startTime: "15:00",
+        endTime: "20:00",
+      },
+    ]
+
+    render(
+      <AvailabilityEditor
+        value={rangeValue}
+        onChange={onChange}
+        instituteId="inst-1"
+      />
+    )
+
+    await screen.findByText("روزهای زوج")
+
+    // The carousel card should display 2 classes covered for this term
+    expect(screen.getByText("2 کلاس آزاد")).toBeInTheDocument()
+
+    // Clicking slot 1 to toggle it off should subtract 16:00-17:30 from 15:00-20:00,
+    // leaving 15:00-16:00 and 17:30-20:00
+    const slot1Buttons = screen.getAllByText(/پارت (1|۱)/)
+    fireEvent.click(slot1Buttons[0]!)
+
+    expect(onChange).toHaveBeenCalledWith([
+      {
+        dayOfWeek: "SATURDAY",
+        startTime: "15:00",
+        endTime: "16:00",
+      },
+      {
+        dayOfWeek: "SATURDAY",
+        startTime: "17:30",
+        endTime: "20:00",
+      },
+      {
+        dayOfWeek: "MONDAY",
+        startTime: "15:00",
+        endTime: "16:00",
+      },
+      {
+        dayOfWeek: "MONDAY",
+        startTime: "17:30",
+        endTime: "20:00",
+      },
+      {
+        dayOfWeek: "WEDNESDAY",
+        startTime: "15:00",
+        endTime: "16:00",
+      },
+      {
+        dayOfWeek: "WEDNESDAY",
+        startTime: "17:30",
+        endTime: "20:00",
+      },
+    ])
+  })
+
   it("selects all slots for Even track when clicking select all", async () => {
     const onChange = vi.fn()
     render(
@@ -195,31 +259,37 @@ describe("AvailabilityEditor Component", () => {
 
     expect(onChange).toHaveBeenCalledWith([
       {
+        termId: "term-1",
         dayOfWeek: "SATURDAY",
         startTime: "16:00",
         endTime: "17:30",
       },
       {
+        termId: "term-1",
         dayOfWeek: "SATURDAY",
         startTime: "17:30",
         endTime: "19:00",
       },
       {
+        termId: "term-1",
         dayOfWeek: "MONDAY",
         startTime: "16:00",
         endTime: "17:30",
       },
       {
+        termId: "term-1",
         dayOfWeek: "MONDAY",
         startTime: "17:30",
         endTime: "19:00",
       },
       {
+        termId: "term-1",
         dayOfWeek: "WEDNESDAY",
         startTime: "16:00",
         endTime: "17:30",
       },
       {
+        termId: "term-1",
         dayOfWeek: "WEDNESDAY",
         startTime: "17:30",
         endTime: "19:00",
@@ -231,11 +301,13 @@ describe("AvailabilityEditor Component", () => {
     const onChange = vi.fn()
     const initialValue: TeacherAvailabilityInput[] = [
       {
+        termId: "term-1",
         dayOfWeek: "SATURDAY",
         startTime: "16:00",
         endTime: "17:30",
       },
       {
+        termId: "term-1",
         dayOfWeek: "SUNDAY",
         startTime: "16:00",
         endTime: "17:30",
@@ -258,6 +330,7 @@ describe("AvailabilityEditor Component", () => {
     // Saturday cleared, Sunday (odd) remains
     expect(onChange).toHaveBeenCalledWith([
       {
+        termId: "term-1",
         dayOfWeek: "SUNDAY",
         startTime: "16:00",
         endTime: "17:30",
@@ -266,20 +339,21 @@ describe("AvailabilityEditor Component", () => {
   })
 
   it("renders lunch/break section with break hours when phase has a break window", async () => {
-    const breakPhase: OperatingPhaseWithSlots = {
-      ...mockPhase,
-      id: "phase-break",
-      startTime: "10:00",
-      endTime: "16:00",
-      slotDurationMinutes: 90,
-      hasBreak: true,
-      breakStartTime: "13:00",
-      breakEndTime: "14:00",
+    const breakTerm: TermDto = {
+      ...mockTerm,
+      operatingPhase: {
+        ...mockTerm.operatingPhase!,
+        startTime: "10:00",
+        endTime: "16:00",
+        hasBreak: true,
+        breakStartTime: "13:00",
+        breakEndTime: "14:00",
+      },
     }
 
-    vi.spyOn(operatingPhasesResource.list, "toQuery").mockReturnValue({
-      queryKey: ["operating-phases", "inst-1"],
-      queryFn: async () => [breakPhase],
+    vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["terms", "inst-1"],
+      queryFn: async () => [breakTerm],
     } as never)
 
     render(
@@ -295,40 +369,40 @@ describe("AvailabilityEditor Component", () => {
     expect(breakBanners.length).toBe(2) // Even & Odd tracks
   })
 
-  it("renders operating phases in a carousel with availability counts and allows switching", async () => {
-    const phase2: OperatingPhaseWithSlots = {
-      ...mockPhase,
-      id: "phase-2",
-      title: "فاز بهار و تابستان",
-      months: [],
-      startTime: "08:00",
-      endTime: "11:00",
-      calculation: {
-        ...mockPhase.calculation,
-        slots: [
-          {
-            slotNumber: 1,
-            startTime: "08:00",
-            endTime: "09:30",
-            durationMinutes: 90,
-          },
-          {
-            slotNumber: 2,
-            startTime: "09:30",
-            endTime: "11:00",
-            durationMinutes: 90,
-          },
+  it("renders terms in a carousel with availability counts and allows switching", async () => {
+    const term2: TermDto = {
+      ...mockTerm,
+      id: "term-2",
+      title: "ترم بهار و تابستان",
+      operatingPhase: {
+        id: "phase-2",
+        title: "فاز بهار و تابستان",
+        months: [],
+        startTime: "08:00",
+        endTime: "11:00",
+        slotDurationMinutes: 90,
+        daysOfWeek: [
+          "SATURDAY",
+          "SUNDAY",
+          "MONDAY",
+          "TUESDAY",
+          "WEDNESDAY",
+          "THURSDAY",
         ],
+        hasBreak: false,
+        breakStartTime: null,
+        breakEndTime: null,
       },
     }
 
-    vi.spyOn(operatingPhasesResource.list, "toQuery").mockReturnValue({
-      queryKey: ["operating-phases", "inst-1"],
-      queryFn: async () => [mockPhase, phase2],
+    vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["terms", "inst-1"],
+      queryFn: async () => [mockTerm, term2],
     } as never)
 
     const value: TeacherAvailabilityInput[] = [
       {
+        termId: "term-1",
         dayOfWeek: "SATURDAY",
         startTime: "16:00",
         endTime: "17:30",
@@ -345,18 +419,18 @@ describe("AvailabilityEditor Component", () => {
 
     await screen.findByText("روزهای زوج")
 
-    // Both phase titles should be displayed in carousel cards
-    expect(screen.getByText("فاز پاییز و زمستان")).toBeInTheDocument()
-    expect(screen.getByText("فاز بهار و تابستان")).toBeInTheDocument()
+    // Both term titles should be displayed in carousel cards
+    expect(screen.getByText("ترم پاییز ۱۴۰۳")).toBeInTheDocument()
+    expect(screen.getByText("ترم بهار و تابستان")).toBeInTheDocument()
 
-    // Phase 1 has 1 matching slot, Phase 2 has 0
+    // Term 1 has 1 matching slot, Term 2 has 0
     expect(screen.getByText("1 کلاس آزاد")).toBeInTheDocument()
     expect(screen.getByText("بدون کلاس آزاد")).toBeInTheDocument()
 
-    // Clicking Phase 2 card switches the active phase
-    fireEvent.click(screen.getByText("فاز بهار و تابستان"))
+    // Clicking Term 2 card switches the active term
+    fireEvent.click(screen.getByText("ترم بهار و تابستان"))
 
-    // Under Phase 2, slot chips should now show Phase 2 hours (08:00 - 09:30)
+    // Under Term 2, slot chips should now show Term 2 hours (08:00 - 09:30)
     expect(screen.getAllByText(/08:00 - 09:30/).length).toBeGreaterThan(0)
   })
 
@@ -389,15 +463,15 @@ describe("AvailabilityEditor Component", () => {
 
     await screen.findByText("روزهای زوج")
 
-    // Find collapse buttons (ChevronUp)
+    // Find collapse buttons
     const collapseButtons = screen.getAllByRole("button", { name: "بستن بخش" })
     expect(collapseButtons.length).toBeGreaterThan(0)
 
     // Collapse the Even Days track
     fireEvent.click(collapseButtons[0]!)
 
-    // Now it should show the collapsed count badge for Even track
-    expect(screen.getByText("1 کلاس آزاد")).toBeInTheDocument()
+    // Now it should show the collapsed count badge for Even track (alongside TermCard)
+    expect(screen.getAllByText("1 کلاس آزاد").length).toBe(2)
 
     // And expand button should be visible (باز کردن بخش)
     const expandButton = screen.getByRole("button", { name: "باز کردن بخش" })
@@ -409,7 +483,7 @@ describe("AvailabilityEditor Component", () => {
 
     // Clicking anywhere on the header (e.g. track title) also collapses the track
     fireEvent.click(screen.getByText("روزهای زوج"))
-    expect(screen.getByText("1 کلاس آزاد")).toBeInTheDocument()
+    expect(screen.getAllByText("1 کلاس آزاد").length).toBe(2)
 
     // Clicking it again expands it back
     fireEvent.click(screen.getByText("روزهای زوج"))

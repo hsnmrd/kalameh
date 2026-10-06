@@ -15,7 +15,7 @@ import {
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import type { TeacherDto, TeacherAvailabilityInput } from "@workspace/types"
-import { teachersResource } from "@/lib/api"
+import { teachersResource, termsResource } from "@/lib/api"
 import { AvailabilityEditor } from "../availability-editor"
 
 export interface TeacherAvailabilityModalProps {
@@ -33,31 +33,90 @@ export function TeacherAvailabilityModal({
 }: TeacherAvailabilityModalProps) {
   const t = useTranslations("teachers")
   const queryClient = useQueryClient()
+  const resolvedInstituteId = teacher?.instituteId || instituteId
+
+  const { data: terms = [] } = useQuery({
+    ...termsResource.list.toQuery(
+      resolvedInstituteId ? { instituteId: resolvedInstituteId } : undefined
+    ),
+    enabled: open && Boolean(resolvedInstituteId),
+  })
+
+  const activeTerms = React.useMemo(() => {
+    const withPhase = terms.filter((term) => Boolean(term.operatingPhase))
+    const active = withPhase.filter((term) => term.isActive)
+    return active.length > 0 ? active : withPhase
+  }, [terms])
+
+  const [selectedTermId, setSelectedTermId] = React.useState<string | null>(
+    null
+  )
+  const currentTermId = selectedTermId || activeTerms[0]?.id || null
 
   const { data: detailedTeacher, isLoading: isLoadingTeacher } = useQuery({
     ...teachersResource.detail.toQuery(teacher?.id || ""),
     enabled: open && Boolean(teacher?.id),
   })
 
+  const { data: termAvailabilities, isLoading: isLoadingAvailabilities } =
+    useQuery({
+      ...teachersResource.getAvailabilities.toQuery({
+        id: teacher?.id || "",
+        termId: currentTermId || undefined,
+      }),
+      enabled: open && Boolean(teacher?.id),
+    })
+
   const currentTeacher = detailedTeacher || teacher
-  const [draftSlots, setDraftSlots] = React.useState<
-    TeacherAvailabilityInput[] | null
-  >(null)
+
+  const [draftSlotsByTerm, setDraftSlotsByTerm] = React.useState<
+    Record<string, TeacherAvailabilityInput[]>
+  >({})
 
   const serverSlots = React.useMemo<TeacherAvailabilityInput[]>(() => {
-    return (
-      currentTeacher?.teacherProfile?.availabilities?.map((slot) => ({
+    if (termAvailabilities) {
+      return termAvailabilities.map((slot) => ({
+        id: slot.id,
+        termId: slot.termId,
         dayOfWeek: slot.dayOfWeek,
         startTime: slot.startTime,
         endTime: slot.endTime,
-      })) || []
-    )
-  }, [currentTeacher])
+      }))
+    }
+    const all = currentTeacher?.teacherProfile?.availabilities || []
+    const forTerm = currentTermId
+      ? all.filter((s) => s.termId === currentTermId)
+      : []
+    const effective =
+      forTerm.length > 0 ? forTerm : all.filter((s) => !s.termId)
+    return effective.map((slot) => ({
+      id: slot.id,
+      termId: slot.termId,
+      dayOfWeek: slot.dayOfWeek,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+    }))
+  }, [termAvailabilities, currentTeacher, currentTermId])
 
-  const activeSlots = draftSlots ?? serverSlots
+  const activeSlots =
+    currentTermId && draftSlotsByTerm[currentTermId]
+      ? draftSlotsByTerm[currentTermId]!
+      : serverSlots
+
+  const handleSlotsChange = React.useCallback(
+    (slots: TeacherAvailabilityInput[]) => {
+      if (!currentTermId) return
+      setDraftSlotsByTerm((prev) => ({
+        ...prev,
+        [currentTermId]: slots,
+      }))
+    },
+    [currentTermId]
+  )
 
   const handleClose = React.useCallback(() => {
-    setDraftSlots(null)
+    setDraftSlotsByTerm({})
+    setSelectedTermId(null)
     onClose()
   }, [onClose])
 
@@ -72,6 +131,9 @@ export function TeacherAvailabilityModal({
         queryClient.invalidateQueries({
           queryKey: teachersResource.detail.key(teacher.id),
         })
+        queryClient.invalidateQueries({
+          queryKey: teachersResource.getAvailabilities.baseKey(),
+        })
       }
       handleClose()
     },
@@ -82,15 +144,18 @@ export function TeacherAvailabilityModal({
 
   if (!teacher) return null
 
-  const resolvedInstituteId = teacher.instituteId || instituteId
-
   const handleSave = () => {
     if (!teacher.id) return
     updateMutation.mutate({
       id: teacher.id,
+      termId: currentTermId || undefined,
       availabilities: activeSlots,
     })
   }
+
+  const isLoadingData =
+    (isLoadingTeacher && !detailedTeacher) ||
+    (isLoadingAvailabilities && !termAvailabilities)
 
   return (
     <FormDialog open={open} onOpenChange={(val) => !val && handleClose()}>
@@ -101,14 +166,16 @@ export function TeacherAvailabilityModal({
         </FormDialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-          {isLoadingTeacher && !detailedTeacher ? (
+          {isLoadingData ? (
             <div className="flex h-48 items-center justify-center">
               <Spinner className="size-8 text-foreground" />
             </div>
           ) : (
             <AvailabilityEditor
               value={activeSlots}
-              onChange={setDraftSlots}
+              onChange={handleSlotsChange}
+              selectedTermId={currentTermId}
+              onSelectTermId={setSelectedTermId}
               instituteId={resolvedInstituteId}
             />
           )}
@@ -126,9 +193,7 @@ export function TeacherAvailabilityModal({
           <Button
             type="button"
             onClick={handleSave}
-            disabled={
-              updateMutation.isPending || (isLoadingTeacher && !detailedTeacher)
-            }
+            disabled={updateMutation.isPending || isLoadingData}
           >
             {updateMutation.isPending && (
               <Spinner className="me-2 size-4 text-primary-foreground" />

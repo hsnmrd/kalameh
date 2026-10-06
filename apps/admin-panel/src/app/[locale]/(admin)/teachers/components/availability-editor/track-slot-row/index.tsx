@@ -1,11 +1,12 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { CalendarCheck, CalendarX, ChevronDown, Coffee } from "lucide-react"
-import type {
-  PhaseBreakInfo,
-  PhaseGeneratedSlot,
-  TeacherAvailabilityInput,
-  WeekDay,
+import {
+  isAvailabilityCoveringSlot,
+  type PhaseBreakInfo,
+  type PhaseGeneratedSlot,
+  type TeacherAvailabilityInput,
+  type WeekDay,
 } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -51,9 +52,7 @@ export function TrackSlotRow({
       days.every((day) =>
         value.some(
           (item) =>
-            item.dayOfWeek === day &&
-            item.startTime === slot.startTime &&
-            item.endTime === slot.endTime
+            item.dayOfWeek === day && isAvailabilityCoveringSlot(item, slot)
         )
       ),
     [days, value]
@@ -66,9 +65,7 @@ export function TrackSlotRow({
     days.some((day) =>
       value.some(
         (item) =>
-          item.dayOfWeek === day &&
-          item.startTime === slot.startTime &&
-          item.endTime === slot.endTime
+          item.dayOfWeek === day && isAvailabilityCoveringSlot(item, slot)
       )
     )
   )

@@ -37,11 +37,20 @@ export const teachersResource = api.resource("teachers", {
       bodyType: "form-data",
     }
   ),
+  getAvailabilities: api.get<
+    TeacherAvailability[],
+    { id: string; termId?: string }
+  >(({ id }) => `/teachers/${id}/availabilities`, {
+    query: (params) => (params.termId ? { termId: params.termId } : {}),
+  }),
   updateAvailabilities: api.put<
     TeacherAvailability[],
-    { id: string; availabilities: TeacherAvailabilityInput[] }
+    { id: string; termId?: string; availabilities: TeacherAvailabilityInput[] }
   >(({ id }) => `/teachers/${id}/availabilities`, {
-    body: ({ availabilities }) => ({ availabilities }),
+    body: ({ termId, availabilities }) => ({
+      ...(termId ? { termId } : {}),
+      availabilities,
+    }),
   }),
   delete: api.delete<
     { success: boolean; deactivated?: boolean; deleted?: boolean },

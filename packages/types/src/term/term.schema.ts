@@ -28,6 +28,9 @@ export const TermSchema = z.object({
       endTime: z.string(),
       slotDurationMinutes: z.number().int(),
       daysOfWeek: z.array(z.string()).optional(),
+      hasBreak: z.boolean().optional(),
+      breakStartTime: z.string().nullable().optional(),
+      breakEndTime: z.string().nullable().optional(),
     })
     .nullable()
     .optional(),

@@ -169,8 +169,12 @@ export class SchedulingService {
                   select: { branchId: true, isActive: true, role: true },
                 },
                 availabilities: {
+                  where: {
+                    OR: [{ termId: input.termId }, { termId: null }],
+                  },
                   select: {
                     id: true,
+                    termId: true,
                     dayOfWeek: true,
                     startTime: true,
                     endTime: true,
@@ -287,11 +291,29 @@ export class SchedulingService {
         : null,
     }));
 
+    const scopedTeachers = teachers.map((q) => {
+      const allAvailabilities = q.teacherProfile.availabilities;
+      const termAvailabilities = allAvailabilities.filter(
+        (a) => a.termId === input.termId,
+      );
+      const effectiveAvailabilities =
+        termAvailabilities.length > 0
+          ? termAvailabilities
+          : allAvailabilities.filter((a) => !a.termId);
+      return {
+        ...q,
+        teacherProfile: {
+          ...q.teacherProfile,
+          availabilities: effectiveAvailabilities,
+        },
+      };
+    });
+
     const capturedAt = new Date();
     const preflightReport = this.preflightService.evaluate({
       checkedAt: capturedAt,
       requirements,
-      teachers,
+      teachers: scopedTeachers,
       students,
       classrooms,
       activeTeachers,
@@ -311,7 +333,7 @@ export class SchedulingService {
       term,
       branch,
       requirements,
-      teachers,
+      teachers: scopedTeachers,
       activeTeachers,
       students,
       existingClasses,
@@ -333,11 +355,11 @@ export class SchedulingService {
       incompleteStudentScheduleCount:
         students.length - completeStudentSchedules,
       qualifiedTeacherCount: new Set(
-        teachers
+        scopedTeachers
           .filter((qualification) => qualification.teacherProfile.user.isActive)
           .map((qualification) => qualification.teacherProfile.userId),
       ).size,
-      qualificationCount: teachers.length,
+      qualificationCount: scopedTeachers.length,
       requirementCount: requirements.length,
     });
 

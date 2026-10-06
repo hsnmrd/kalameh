@@ -39,6 +39,10 @@ export class TermsService {
       startTime: true,
       endTime: true,
       slotDurationMinutes: true,
+      daysOfWeek: true,
+      hasBreak: true,
+      breakStartTime: true,
+      breakEndTime: true,
     },
   };
 

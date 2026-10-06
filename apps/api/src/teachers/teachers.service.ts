@@ -81,6 +81,13 @@ export class TeachersService {
       locale,
     );
   }
+  getAvailabilities(
+    currentUser: JwtPayload,
+    teacherId: string,
+    termId?: string,
+  ) {
+    return this.availability.getAvailabilities(currentUser, teacherId, termId);
+  }
   replaceAvailabilities(
     currentUser: JwtPayload,
     teacherId: string,

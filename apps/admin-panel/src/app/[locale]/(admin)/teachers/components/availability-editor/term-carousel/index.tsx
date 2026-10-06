@@ -4,8 +4,9 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import {
   calculatePhaseSlots,
+  isAvailabilityCoveringSlot,
   WEEK_DAYS,
-  type OperatingPhaseWithSlots,
+  type TermDto,
   type TeacherAvailabilityInput,
   type WeekDay,
 } from "@workspace/types"
@@ -16,60 +17,70 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@workspace/ui/components/carousel"
-import { PhaseCard } from "./phase-card"
+import { TermCard } from "./term-card"
 
-export interface PhaseCarouselProps {
-  phases: OperatingPhaseWithSlots[]
-  selectedPhaseId: string
-  onSelectPhase: (phaseId: string) => void
+export interface TermCarouselProps {
+  terms: TermDto[]
+  selectedTermId: string
+  onSelectTerm: (termId: string) => void
   value: TeacherAvailabilityInput[]
   disabled?: boolean
 }
 
-export function PhaseCarousel({
-  phases,
-  selectedPhaseId,
-  onSelectPhase,
+export function TermCarousel({
+  terms,
+  selectedTermId,
+  onSelectTerm,
   value,
   disabled = false,
-}: PhaseCarouselProps) {
+}: TermCarouselProps) {
   const t = useTranslations("teachers.availabilities")
 
-  const countsByPhase = React.useMemo(() => {
+  const countsByTerm = React.useMemo(() => {
     const result: Record<string, number> = {}
-    for (const phase of phases) {
-      if (!value || value.length === 0) {
-        result[phase.id] = 0
+    for (const term of terms) {
+      if (!term.operatingPhase || !value || value.length === 0) {
+        result[term.id] = 0
         continue
       }
       const pCalc = calculatePhaseSlots(
-        phase.startTime,
-        phase.endTime,
-        phase.slotDurationMinutes,
+        term.operatingPhase.startTime,
+        term.operatingPhase.endTime,
+        term.operatingPhase.slotDurationMinutes,
         {
-          hasBreak: phase.hasBreak,
-          breakStartTime: phase.breakStartTime,
-          breakEndTime: phase.breakEndTime,
+          hasBreak: term.operatingPhase.hasBreak,
+          breakStartTime: term.operatingPhase.breakStartTime,
+          breakEndTime: term.operatingPhase.breakEndTime,
         }
       )
       const pDays =
-        phase.daysOfWeek && phase.daysOfWeek.length > 0
-          ? phase.daysOfWeek
+        term.operatingPhase.daysOfWeek &&
+        term.operatingPhase.daysOfWeek.length > 0
+          ? (term.operatingPhase.daysOfWeek as WeekDay[])
           : (WEEK_DAYS as unknown as WeekDay[])
 
-      const count = value.filter((v) => {
-        if (!pDays.includes(v.dayOfWeek as WeekDay)) return false
-        return pCalc.slots.some(
-          (s) => s.startTime === v.startTime && s.endTime === v.endTime
-        )
-      }).length
+      const termValue = value.filter((v) => !v.termId || v.termId === term.id)
 
-      result[phase.id] = count
+      let count = 0
+      for (const slot of pCalc.slots) {
+        const isCoveredAcrossActiveDays =
+          pDays.length > 0 &&
+          pDays.some((day) =>
+            termValue.some(
+              (v) => v.dayOfWeek === day && isAvailabilityCoveringSlot(v, slot)
+            )
+          )
+        if (isCoveredAcrossActiveDays) {
+          count++
+        }
+      }
+
+      result[term.id] = count
     }
     return result
-  }, [phases, value])
+  }, [terms, value])
 
-  if (phases.length === 0) return null
+  if (terms.length === 0) return null
 
   return (
     <Carousel
@@ -82,9 +93,9 @@ export function PhaseCarousel({
     >
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-foreground">
-          {t("phaseCarouselTitle")}
+          {t("termCarouselTitle")}
         </span>
-        {phases.length > 2 && (
+        {terms.length > 2 && (
           <div className="flex items-center gap-1">
             <CarouselPrevious className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
             <CarouselNext className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
@@ -93,16 +104,16 @@ export function PhaseCarousel({
       </div>
 
       <CarouselContent className="-ms-2.5">
-        {phases.map((phase) => (
+        {terms.map((term) => (
           <CarouselItem
-            key={phase.id}
+            key={term.id}
             className="basis-[82%] ps-2.5 sm:basis-[48%] md:basis-[40%]"
           >
-            <PhaseCard
-              phase={phase}
-              isSelected={phase.id === selectedPhaseId}
-              availableClassesCount={countsByPhase[phase.id] ?? 0}
-              onSelect={onSelectPhase}
+            <TermCard
+              term={term}
+              isSelected={term.id === selectedTermId}
+              availableClassesCount={countsByTerm[term.id] ?? 0}
+              onSelect={onSelectTerm}
               disabled={disabled}
             />
           </CarouselItem>

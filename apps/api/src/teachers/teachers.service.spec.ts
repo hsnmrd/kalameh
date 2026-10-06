@@ -469,12 +469,14 @@ describe('TeachersService', () => {
         data: [
           {
             teacherProfileId: 'profile-1',
+            termId: null,
             dayOfWeek: 'SATURDAY',
             startTime: '08:00',
             endTime: '10:00',
           },
           {
             teacherProfileId: 'profile-1',
+            termId: null,
             dayOfWeek: 'MONDAY',
             startTime: '08:00',
             endTime: '10:00',
@@ -485,9 +487,117 @@ describe('TeachersService', () => {
       expect(auditLogsService.log).toHaveBeenCalledWith(
         expect.objectContaining({
           action: 'TEACHER_AVAILABILITY_UPDATED',
-          metadata: { count: 2 },
+          metadata: { count: 2, termId: null },
         }),
       );
+    });
+
+    it('should scope replace availability slots by termId when provided', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);
+      prisma.teacherAvailability.deleteMany.mockResolvedValue({ count: 1 });
+      prisma.teacherAvailability.createMany.mockResolvedValue({ count: 1 });
+      prisma.teacherAvailability.findMany.mockResolvedValue([
+        {
+          id: 'avail-1',
+          teacherProfileId: 'profile-1',
+          termId: 'term-1',
+          dayOfWeek: 'SATURDAY',
+          startTime: '08:00',
+          endTime: '10:00',
+        },
+      ]);
+
+      const result = await service.replaceAvailabilities(
+        mockAdmin,
+        'teacher-1',
+        {
+          termId: '11111111-1111-4111-8111-111111111111',
+          availabilities: [
+            { dayOfWeek: 'SATURDAY', startTime: '08:00', endTime: '10:00' },
+          ],
+        },
+      );
+
+      expect(prisma.teacherAvailability.deleteMany).toHaveBeenCalledWith({
+        where: {
+          teacherProfileId: 'profile-1',
+          termId: '11111111-1111-4111-8111-111111111111',
+        },
+      });
+      expect(prisma.teacherAvailability.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            teacherProfileId: 'profile-1',
+            termId: '11111111-1111-4111-8111-111111111111',
+            dayOfWeek: 'SATURDAY',
+            startTime: '08:00',
+            endTime: '10:00',
+          },
+        ],
+      });
+      expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('getAvailabilities', () => {
+    it('should return term-specific availabilities when found', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue({
+        id: 'teacher-1',
+        teacherProfile: { id: 'profile-1' },
+      });
+      prisma.teacherAvailability.findMany.mockResolvedValueOnce([
+        {
+          id: 'avail-term',
+          teacherProfileId: 'profile-1',
+          termId: 'term-1',
+          dayOfWeek: 'SATURDAY',
+          startTime: '08:00',
+          endTime: '10:00',
+        },
+      ]);
+
+      const result = await service.getAvailabilities(
+        mockAdmin,
+        'teacher-1',
+        'term-1',
+      );
+
+      expect(result).toHaveLength(1);
+      expect(prisma.teacherAvailability.findMany).toHaveBeenCalledWith({
+        where: { teacherProfileId: 'profile-1', termId: 'term-1' },
+        orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
+      });
+    });
+
+    it('should fallback to null termId availabilities when no term-specific availabilities exist', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue({
+        id: 'teacher-1',
+        teacherProfile: { id: 'profile-1' },
+      });
+      prisma.teacherAvailability.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            id: 'avail-default',
+            teacherProfileId: 'profile-1',
+            termId: null,
+            dayOfWeek: 'SATURDAY',
+            startTime: '08:00',
+            endTime: '10:00',
+          },
+        ]);
+
+      const result = await service.getAvailabilities(
+        mockAdmin,
+        'teacher-1',
+        'term-1',
+      );
+
+      expect(result).toHaveLength(1);
+      expect(prisma.teacherAvailability.findMany).toHaveBeenLastCalledWith({
+        where: { teacherProfileId: 'profile-1', termId: null },
+        orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
+      });
     });
   });
 
