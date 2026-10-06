@@ -12,7 +12,11 @@ import {
   FormDialogHeader,
   FormDialogTitle,
 } from "@workspace/ui/components/dialog"
-import { type TermDto, hasTermDateConflict } from "@workspace/types"
+import {
+  type TermDto,
+  hasTermDateConflict,
+  hasFutureDays,
+} from "@workspace/types"
 import { termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import {
@@ -77,6 +81,11 @@ export function CreateTermModal({
     },
   })
   const handleSubmit = (values: CreateTermInput) => {
+    if (!hasFutureDays(values)) {
+      toast.error(t("createModal.pastTermNotAllowed"))
+      return
+    }
+
     if (values.operatingPhaseId && allTerms && allTerms.length > 0) {
       const conflict = allTerms.find(
         (existing) =>

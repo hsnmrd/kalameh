@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Check } from "lucide-react"
-import { APP_MODULES, PERMISSIONS } from "@workspace/types"
+import { APP_MODULES, PERMISSIONS, hasFutureDays } from "@workspace/types"
 import { FABSingle } from "@workspace/ui/components/fab"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
@@ -71,11 +71,16 @@ export function GeneratePhaseTermsPreviewContent() {
     return null
   }
 
+  const hasPastTerms = React.useMemo(() => {
+    return proposals.some((p) => !hasFutureDays(p))
+  }, [proposals])
+
   const isSubmitDisabled =
     proposals.length === 0 ||
     batchCreateMutation.isPending ||
     hasAnySessionImbalance ||
-    hasAnyDateConflict
+    hasAnyDateConflict ||
+    hasPastTerms
 
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>

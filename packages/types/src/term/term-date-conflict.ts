@@ -1,4 +1,5 @@
 import { parseInputDate, toIsoDate } from "./term-session-calculator.js"
+import { jalaliToGregorian } from "../calendar/jalali-holidays.js"
 
 export interface TermDateEntity {
   id?: string
@@ -108,4 +109,41 @@ export function findTermDateConflicts<
     }
     return hasTermDateConflict(targetTerm, other)
   })
+}
+
+/**
+ * Checks whether a term has at least one calendar day in the present or future (now <= endDate).
+ * If all days/months of the term are in the past (endDate < now), returns false.
+ */
+export function hasFutureDays(
+  term: { endDate?: string | Date | null },
+  now: Date = new Date()
+): boolean {
+  if (!term.endDate) return false
+  const endIso = normalizeCalendarDate(term.endDate)
+  const todayIso = toIsoDate(now)
+  return endIso >= todayIso
+}
+
+/**
+ * Checks whether all months of an operating phase for a given Jalali year are in the past.
+ * Returns true if every day of every month in the phase is strictly in the past (before today).
+ * If even a single day of the phase is today or in the future, returns false.
+ */
+export function isPhaseInPast(
+  months: number[],
+  jalaliYear: number,
+  now: Date = new Date()
+): boolean {
+  if (!months || months.length === 0) return true
+  const orderedMonths = [...months]
+  const firstMonth = orderedMonths[0] ?? 1
+  const lastMonth = orderedMonths[orderedMonths.length - 1] ?? 12
+  const endYear = lastMonth < firstMonth ? jalaliYear + 1 : jalaliYear
+  const nextMonth = lastMonth === 12 ? 1 : lastMonth + 1
+  const nextYear = lastMonth === 12 ? endYear + 1 : endYear
+  const firstDayAfterPhase = jalaliToGregorian(nextYear, nextMonth, 1)
+  const firstDayAfterPhaseIso = toIsoDate(firstDayAfterPhase)
+  const todayIso = toIsoDate(now)
+  return firstDayAfterPhaseIso <= todayIso
 }

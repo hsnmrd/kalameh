@@ -91,6 +91,10 @@ export const en: TranslationDictionary = {
       'Terms for this phase have already been created for the selected academic year',
     termDateConflict:
       'Term "{term}" has date conflict and overlapping days with term "{conflictingTerm}"',
+    cannotCreatePastTerm:
+      'Cannot create terms for past months. At least one day of the term must be in the future',
+    pastMonthsNotAllowed:
+      'Cannot generate terms for past months. All months of this phase are in the past',
   },
   courses: {
     courseNotFound: 'Requested course was not found',

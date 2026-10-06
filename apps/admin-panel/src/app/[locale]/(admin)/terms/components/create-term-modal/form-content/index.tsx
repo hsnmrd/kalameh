@@ -2,17 +2,18 @@
 
 import { useLocale, useTranslations } from "next-intl"
 import { Controller, type UseFormReturn } from "react-hook-form"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, AlertTriangle } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { FormDialogFooter } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
-import type {
-  CompensatorySession,
-  GeneratedTermProposal,
-  SupportedLocale,
+import {
+  type CompensatorySession,
+  type GeneratedTermProposal,
+  type SupportedLocale,
+  hasFutureDays,
 } from "@workspace/types"
 import type { CreateTermInput } from "../../../hooks/use-term-schemas"
 import { PhaseSelectField } from "../../phase-select-field"
@@ -68,8 +69,12 @@ export function FormContent({
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = form
+
+  const endDate = watch("endDate")
+  const isPastTerm = Boolean(endDate && !hasFutureDays({ endDate }))
 
   return (
     <form
@@ -120,6 +125,14 @@ export function FormContent({
             </Field>
           ))}
         </div>
+        {isPastTerm && (
+          <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+            <span className="leading-relaxed font-medium">
+              {t("createModal.pastTermNotAllowed")}
+            </span>
+          </div>
+        )}
         <TermCalculatorSection
           startDate={startDate || ""}
           onApplyDate={(date) => setValue("endDate", date)}
@@ -162,7 +175,7 @@ export function FormContent({
         </Button>
         <Button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || isPastTerm}
           className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
         >
           {isPending && (

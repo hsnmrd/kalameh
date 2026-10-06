@@ -19,6 +19,8 @@ import {
   gregorianToJalali,
   hasTermDateConflict,
   checkTermsDateOverlap,
+  hasFutureDays,
+  isPhaseInPast,
   type JwtPayload,
   type SupportedLocale,
   type TermDto,
@@ -191,6 +193,12 @@ export class TermsService {
     if (start >= end) {
       throw new BadRequestException(
         this.i18n.t('terms.invalidDateRange', locale),
+      );
+    }
+
+    if (!hasFutureDays(dto)) {
+      throw new BadRequestException(
+        this.i18n.t('terms.cannotCreatePastTerm', locale),
       );
     }
 
@@ -459,6 +467,12 @@ export class TermsService {
       );
     }
 
+    if (isPhaseInPast(phase.months, jalaliYear)) {
+      throw new BadRequestException(
+        this.i18n.t('terms.pastMonthsNotAllowed', locale),
+      );
+    }
+
     const institute = await this.prisma.institute.findFirstOrThrow({
       where: { id: phase.instituteId },
       select: {
@@ -490,6 +504,7 @@ export class TermsService {
       customOffDays: institute.customOffDays,
       dismissedHolidays: institute.dismissedHolidays,
       existingTerms,
+      filterPastTerms: true,
     });
 
     return proposals;
@@ -524,6 +539,11 @@ export class TermsService {
       if (s >= e) {
         throw new BadRequestException(
           this.i18n.t('terms.invalidDateRange', locale),
+        );
+      }
+      if (!hasFutureDays(t)) {
+        throw new BadRequestException(
+          this.i18n.t('terms.cannotCreatePastTerm', locale),
         );
       }
     }

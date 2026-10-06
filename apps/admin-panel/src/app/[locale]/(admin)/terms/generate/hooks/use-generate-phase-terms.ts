@@ -7,6 +7,7 @@ import type { ComboboxOption } from "@workspace/ui/components/combobox"
 import {
   resolveClassPatterns,
   hasTermDateConflict,
+  isPhaseInPast,
   type WeekDay,
 } from "@workspace/types"
 import { operatingPhasesResource, institutesResource } from "@/lib/api"
@@ -89,6 +90,11 @@ export function useGeneratePhaseTerms() {
     )
   }, [selectedPhase?.daysOfWeek])
 
+  const isPhasePast = React.useMemo(() => {
+    if (!selectedPhase?.months?.length) return false
+    return isPhaseInPast(selectedPhase.months, jalaliYear)
+  }, [selectedPhase?.months, jalaliYear])
+
   const handleTitleChange = (index: number, newTitle: string) => {
     setCustomTitles({ ...customTitles, [index]: newTitle })
     setProposals((prev) =>
@@ -109,6 +115,7 @@ export function useGeneratePhaseTerms() {
   } = usePhaseTermPersistence({
     activeInstituteId,
     activePhaseId,
+    selectedPhaseMonths: selectedPhase?.months,
     jalaliYear,
     sessionsPerTerm,
     gapDays,
@@ -209,6 +216,8 @@ export function useGeneratePhaseTerms() {
     selectedPhaseId,
     setSelectedPhaseId,
     activePhaseId,
+    selectedPhase,
+    isPhasePast,
     jalaliYear,
     setJalaliYear,
     sessionsPerTerm,

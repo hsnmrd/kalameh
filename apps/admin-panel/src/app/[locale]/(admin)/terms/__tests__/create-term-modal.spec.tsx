@@ -133,4 +133,29 @@ describe("CreateTermModal Component", () => {
     // Calendar preview should now be rendered
     expect(screen.getByText("پیش‌نمایش تقویم جلسات ترم")).toBeInTheDocument()
   })
+
+  it("shows past term warning and disables submit button when endDate is in the past", async () => {
+    render(<CreateTermModal open={true} onClose={vi.fn()} />)
+
+    const startDateInput = screen.getByTestId("تاریخ شروع")
+    const endDateInput = screen.getByTestId("تاریخ پایان")
+
+    await act(async () => {
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value"
+      )?.set
+      nativeSetter?.call(startDateInput, "2024-09-23")
+      startDateInput.dispatchEvent(new Event("change", { bubbles: true }))
+      nativeSetter?.call(endDateInput, "2024-12-21")
+      endDateInput.dispatchEvent(new Event("change", { bubbles: true }))
+    })
+
+    expect(
+      screen.getByText(
+        "امکان تعریف ترم برای ماه‌های گذشته وجود ندارد. حداقل یک روز از ترم باید در آینده باشد."
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "ذخیره" })).toBeDisabled()
+  })
 })

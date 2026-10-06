@@ -525,6 +525,8 @@ export interface GeneratePhaseTermsInput {
     startDate: string | Date
     endDate: string | Date
   }>
+  filterPastTerms?: boolean
+  now?: Date
 }
 
 export interface GeneratedTermProposal {
@@ -654,6 +656,8 @@ export function generatePhaseTerms(
     observeOfficialHolidays = true,
     customOffDays = [],
     dismissedHolidays = [],
+    filterPastTerms = false,
+    now = new Date(),
   } = input
 
   const targetSessionsCount = sessionsPerTerm ?? daysPerTerm ?? 15
@@ -794,6 +798,14 @@ export function generatePhaseTerms(
 
     termStartGDate = advancePastExistingTerms(nextStart)
     termIndex++
+  }
+
+  if (filterPastTerms) {
+    const todayIso = toIsoDate(now)
+    return proposals.filter((p) => {
+      const endIso = toIsoDate(parseInputDate(p.endDate))
+      return endIso >= todayIso
+    })
   }
 
   return proposals

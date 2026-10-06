@@ -6,6 +6,8 @@ import { toast } from "@workspace/ui/components/sonner"
 import {
   hasTermDateConflict,
   checkTermsDateOverlap,
+  hasFutureDays,
+  isPhaseInPast,
   type GeneratedTermProposal,
 } from "@workspace/types"
 import { useRouter } from "@/i18n/routing"
@@ -14,6 +16,7 @@ import { termsResource } from "@/lib/api"
 interface PhaseTermPersistenceOptions {
   activeInstituteId?: string | null
   activePhaseId: string
+  selectedPhaseMonths?: number[]
   jalaliYear: number
   sessionsPerTerm: number
   gapDays: number
@@ -26,6 +29,7 @@ interface PhaseTermPersistenceOptions {
 export function usePhaseTermPersistence({
   activeInstituteId,
   activePhaseId,
+  selectedPhaseMonths,
   jalaliYear,
   sessionsPerTerm,
   gapDays,
@@ -71,6 +75,16 @@ export function usePhaseTermPersistence({
       if (!activePhaseId) toast.error(t("batchModal.phasePlaceholder"))
       return
     }
+
+    if (
+      selectedPhaseMonths &&
+      selectedPhaseMonths.length > 0 &&
+      isPhaseInPast(selectedPhaseMonths, jalaliYear)
+    ) {
+      toast.error(t("batchModal.pastMonthsNotAllowed"))
+      return
+    }
+
     try {
       const result = await previewQuery.refetch()
       if (result.isError) return
@@ -88,6 +102,14 @@ export function usePhaseTermPersistence({
 
   const handleSubmit = () => {
     if (!activePhaseId || proposals.length === 0) return
+
+    // Check that every proposal has at least one day in the future
+    for (const proposal of proposals) {
+      if (!hasFutureDays(proposal)) {
+        toast.error(t("createModal.pastTermNotAllowed"))
+        return
+      }
+    }
 
     // Check conflicts with existing terms
     for (const proposal of proposals) {

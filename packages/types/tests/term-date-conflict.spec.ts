@@ -5,6 +5,8 @@ import {
   checkTermsDateOverlap,
   findTermDateConflicts,
   normalizeCalendarDate,
+  hasFutureDays,
+  isPhaseInPast,
 } from "../src/term/term-date-conflict"
 
 describe("term-date-conflict", () => {
@@ -182,6 +184,68 @@ describe("term-date-conflict", () => {
       const conflicts = findTermDateConflicts(target, existing)
       expect(conflicts).toHaveLength(2)
       expect(conflicts.map((c) => c.id)).toEqual(["1", "2"])
+    })
+  })
+
+  describe("hasFutureDays", () => {
+    // Reference date: 1405/07/14 (2026-10-06)
+    const baseNow = new Date("2026-10-06T12:00:00")
+
+    it("returns false when term end date was yesterday or earlier (all days in past)", () => {
+      expect(hasFutureDays({ endDate: "2026-10-05" }, baseNow)).toBe(false)
+      expect(hasFutureDays({ endDate: "2026-09-20" }, baseNow)).toBe(false)
+      expect(hasFutureDays({ endDate: "1405/06/31" }, baseNow)).toBe(false)
+    })
+
+    it("returns true when term end date is today (includes present day)", () => {
+      expect(hasFutureDays({ endDate: "2026-10-06" }, baseNow)).toBe(true)
+      expect(hasFutureDays({ endDate: "1405/07/14" }, baseNow)).toBe(true)
+    })
+
+    it("returns true when term end date is in future even if start date is in past", () => {
+      // Started 2 weeks ago, ends next week: has future days
+      expect(hasFutureDays({ endDate: "2026-10-20" }, baseNow)).toBe(true)
+      expect(hasFutureDays({ endDate: "1405/08/15" }, baseNow)).toBe(true)
+    })
+
+    it("returns false when endDate is missing", () => {
+      expect(hasFutureDays({ endDate: null }, baseNow)).toBe(false)
+    })
+  })
+
+  describe("isPhaseInPast", () => {
+    // Reference date: 1405/07/14 (2026-10-06) — Mehr 14, 1405
+    const baseNow = new Date("2026-10-06T12:00:00")
+
+    it("returns true when operating phase academic year is fully in the past", () => {
+      // 1404 Autumn: months 7, 8, 9 of 1404 ended in Azar 1404 (Dec 2025)
+      expect(isPhaseInPast([7, 8, 9], 1404, baseNow)).toBe(true)
+    })
+
+    it("returns true when operating phase in current year has all months before current month", () => {
+      // Spring 1405: months 1, 2, 3 of 1405 ended on 31 Khordad 1405
+      expect(isPhaseInPast([1, 2, 3], 1405, baseNow)).toBe(true)
+      // Summer 1405: months 4, 5, 6 of 1405 ended on 31 Shahrivar 1405
+      expect(isPhaseInPast([4, 5, 6], 1405, baseNow)).toBe(true)
+    })
+
+    it("returns false when operating phase in current year contains current month (even 1 day in future)", () => {
+      // Current month is 7 (Mehr 1405). Days 14 to 30 of Mehr are today/future.
+      expect(isPhaseInPast([7], 1405, baseNow)).toBe(false)
+      expect(isPhaseInPast([7, 8, 9], 1405, baseNow)).toBe(false)
+      expect(isPhaseInPast([6, 7], 1405, baseNow)).toBe(false)
+    })
+
+    it("returns false for future academic years", () => {
+      expect(isPhaseInPast([1, 2, 3], 1406, baseNow)).toBe(false)
+      expect(isPhaseInPast([7, 8, 9], 1406, baseNow)).toBe(false)
+    })
+
+    it("handles winter-to-spring wrap phases correctly", () => {
+      // Year 1404: months [10, 11, 12, 1, 2] ends in Ordibehesht 1405 (May 2026), which is past
+      expect(isPhaseInPast([10, 11, 12, 1, 2], 1404, baseNow)).toBe(true)
+      // Year 1405: months [10, 11, 12, 1, 2] ends in Ordibehesht 1406 (May 2027), which is future
+      expect(isPhaseInPast([10, 11, 12, 1, 2], 1405, baseNow)).toBe(false)
     })
   })
 })

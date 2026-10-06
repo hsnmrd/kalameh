@@ -53,11 +53,11 @@ vi.mock("@/lib/stores", async (importOriginal) => {
 const mockBatchCreate = vi.fn().mockResolvedValue({})
 const defaultMockProposals = [
   {
-    title: "مهر و آبان ۱۴۰۳",
-    startDate: "2024-09-22",
-    startDateJalali: "1403/07/01",
-    endDate: "2024-11-05",
-    endDateJalali: "1403/08/15",
+    title: "مهر و آبان ۱۴۰۶",
+    startDate: "2027-09-23",
+    startDateJalali: "1406/07/01",
+    endDate: "2027-11-06",
+    endDateJalali: "1406/08/15",
     daysCount: 45,
     sessionsCount: 18,
     holidaysCount: 2,
@@ -139,7 +139,7 @@ describe("GeneratePhaseTermsPreviewPage", () => {
     expect(
       (await screen.findAllByText("بررسی و تنظیم تاریخ ترم‌ها"))[0]
     ).toBeInTheDocument()
-    expect(screen.getByText("مهر و آبان ۱۴۰۳")).toBeInTheDocument()
+    expect(screen.getByText("مهر و آبان ۱۴۰۶")).toBeInTheDocument()
     expect(screen.getByText("نمای تقویم")).toBeInTheDocument()
     expect(screen.getByText("نمای جدول")).toBeInTheDocument()
     expect(screen.queryByText("بازگشت")).not.toBeInTheDocument()
@@ -152,9 +152,9 @@ describe("GeneratePhaseTermsPreviewPage", () => {
     })
 
     expect(
-      screen.getAllByDisplayValue("مهر و آبان ۱۴۰۳")[0]
+      screen.getAllByDisplayValue("مهر و آبان ۱۴۰۶")[0]
     ).toBeInTheDocument()
-    expect(screen.getAllByText("1403/08/15")[0]).toBeInTheDocument()
+    expect(screen.getAllByText("1406/08/15")[0]).toBeInTheDocument()
   })
 
   it("renders breadcrumb link to navigate back to /terms/generate without in-page back button", async () => {
@@ -179,9 +179,9 @@ describe("GeneratePhaseTermsPreviewPage", () => {
         operatingPhaseId: "phase-1",
         terms: expect.arrayContaining([
           expect.objectContaining({
-            title: "مهر و آبان ۱۴۰۳",
-            startDate: "2024-09-22",
-            endDate: "2024-11-05",
+            title: "مهر و آبان ۱۴۰۶",
+            startDate: "2027-09-23",
+            endDate: "2027-11-06",
             isActive: true,
           }),
         ]),
@@ -216,6 +216,37 @@ describe("GeneratePhaseTermsPreviewPage", () => {
 
     const submitButtons = screen.getAllByRole("button", { name: "تأیید" })
     expect(submitButtons.length).toBeGreaterThanOrEqual(1)
+    for (const btn of submitButtons) {
+      expect(btn).toBeDisabled()
+    }
+  })
+
+  it("disables submit button and shows warning alert when proposals are in the past", async () => {
+    usePhaseTermsGenerateStore.setState({
+      proposals: [
+        {
+          title: "ترم گذشته",
+          startDate: "2024-09-22",
+          startDateJalali: "1403/07/01",
+          endDate: "2024-11-05",
+          endDateJalali: "1403/08/15",
+          daysCount: 45,
+          sessionsCount: 18,
+          holidaysCount: 2,
+          monthNamesFa: "مهر، آبان",
+        },
+      ],
+    })
+
+    render(<GeneratePhaseTermsPreviewPage />)
+
+    expect(
+      screen.getByText(
+        "امکان تعریف ترم برای ماه‌های گذشته وجود ندارد. حداقل یک روز از ترم باید در آینده باشد."
+      )
+    ).toBeInTheDocument()
+
+    const submitButtons = screen.getAllByRole("button", { name: "تأیید" })
     for (const btn of submitButtons) {
       expect(btn).toBeDisabled()
     }

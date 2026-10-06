@@ -57,6 +57,7 @@
     "operatingPhaseRequired": "انتخاب فاز تحصیلی الزامی است",
     "startDate": "تاریخ شروع",
     "endDate": "تاریخ پایان",
+    "pastTermNotAllowed": "امکان تعریف ترم برای ماه‌های گذشته وجود ندارد. حداقل یک روز از ترم باید در آینده باشد.",
     "isActive": "ترم فعال برای ثبت‌نام است",
     "smartCalcToggle": "محاسبه هوشمند پایان ترم بر اساس تعداد جلسات",
     "targetDays": "طول دوره (روز)",
@@ -223,7 +224,8 @@
     "conflictWarning": "هشدار تداخل تاریخ",
     "conflictWarningDesc": "تاریخ ترم «{term}» با ترم «{conflictingTerm}» تداخل دارد و روزهای مشترک دارند.",
     "cardConflictNotice": "تداخل تاریخی با «{title}»",
-    "termDateConflict": "تاریخ ترم «{term}» با ترم «{conflictingTerm}» تداخل و روزهای یکسان دارد."
+    "termDateConflict": "تاریخ ترم «{term}» با ترم «{conflictingTerm}» تداخل و روزهای یکسان دارد.",
+    "pastMonthsNotAllowed": "امکان ساخت ترم برای ماه‌های گذشته وجود ندارد. تمام ماه‌های این فاز در سال تحصیلی انتخابی در گذشته قرار دارند."
   },
   "viewModal": {
     "title": "مشاهده اطلاعات ترم",

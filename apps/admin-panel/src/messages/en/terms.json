@@ -57,6 +57,7 @@
     "operatingPhaseRequired": "Operating phase is required",
     "startDate": "Start Date",
     "endDate": "End Date",
+    "pastTermNotAllowed": "Cannot create terms for past months. At least one day of the term must be in the future.",
     "isActive": "Term is active for enrollment",
     "smartCalcToggle": "Smart end date calculation based on session count",
     "targetDays": "Term Duration (Days)",
@@ -223,7 +224,8 @@
     "conflictWarning": "Date Conflict Warning",
     "conflictWarningDesc": "Term \"{term}\" has a date conflict and shares overlapping days with term \"{conflictingTerm}\".",
     "cardConflictNotice": "Conflict with \"{title}\"",
-    "termDateConflict": "Term \"{term}\" has date conflict and overlapping days with term \"{conflictingTerm}\"."
+    "termDateConflict": "Term \"{term}\" has date conflict and overlapping days with term \"{conflictingTerm}\".",
+    "pastMonthsNotAllowed": "Cannot generate terms for past months. All months of this phase in the selected academic year are in the past."
   },
   "viewModal": {
     "title": "View Term Details",

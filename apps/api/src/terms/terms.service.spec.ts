@@ -110,6 +110,20 @@ describe('TermsService', () => {
       );
     });
 
+    it('should throw BadRequestException if term has no future days (all days in past)', async () => {
+      const dto = {
+        title: 'ترم گذشته',
+        operatingPhaseId: 'phase-1',
+        startDate: '2024-09-23',
+        endDate: '2024-11-15',
+        isActive: true,
+      };
+
+      await expect(service.create(dto, mockAdmin)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
     it('should throw ConflictException if term with same title exists in institute', async () => {
       const dto = {
         title: 'پاییز ۱۴۰۵',
@@ -312,12 +326,25 @@ describe('TermsService', () => {
       const proposals = await service.previewPhaseTerms(
         mockAdmin,
         'phase-1',
-        1403,
+        1406,
         18,
       );
 
       expect(proposals.length).toBeGreaterThan(0);
       expect(proposals[0].title).toBeDefined();
+    });
+
+    it('should throw BadRequestException when operating phase is in the past', async () => {
+      prismaService.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-1',
+        title: 'نیمسال اول',
+        months: [7, 8, 9, 10],
+        daysOfWeek: ['SATURDAY', 'MONDAY', 'WEDNESDAY'],
+      });
+
+      await expect(
+        service.previewPhaseTerms(mockAdmin, 'phase-1', 1403, 18),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw ConflictException when terms already exist for this operating phase and academic year', async () => {
@@ -413,6 +440,34 @@ describe('TermsService', () => {
 
       expect(result).toHaveLength(2);
       expect(prismaService.$transaction).toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if any term in batch has no future days', async () => {
+      prismaService.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-1',
+        title: 'نیمسال اول',
+        instituteId: 'inst-1',
+      });
+
+      await expect(
+        service.batchCreatePhaseTerms(
+          {
+            operatingPhaseId: 'phase-1',
+            jalaliYear: 1403,
+            sessionsPerTerm: 18,
+            gapDaysBetweenTerms: 2,
+            terms: [
+              {
+                title: 'ترم گذشته',
+                startDate: '2024-09-23',
+                endDate: '2024-11-10',
+                isActive: true,
+              },
+            ],
+          },
+          mockAdmin,
+        ),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw ConflictException if any term in batch overlaps with existing term in operating phase', async () => {

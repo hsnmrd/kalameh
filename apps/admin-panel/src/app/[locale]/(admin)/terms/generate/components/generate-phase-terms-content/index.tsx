@@ -17,6 +17,7 @@ export function GeneratePhaseTermsContent() {
   const {
     setSelectedPhaseId,
     activePhaseId,
+    isPhasePast,
     jalaliYear,
     setJalaliYear,
     sessionsPerTerm,
@@ -77,9 +78,13 @@ export function GeneratePhaseTermsContent() {
             onCancel={handleCancel}
             onProceed={handleProceedToPreview}
             isProceedDisabled={
-              !activePhaseId || previewQuery.isFetching || isLoadingExisting
+              !activePhaseId ||
+              previewQuery.isFetching ||
+              isLoadingExisting ||
+              isPhasePast
             }
             isProceedLoading={previewQuery.isFetching}
+            isPhasePast={isPhasePast}
           />
         </AdminPageShell>
       </PermissionGuard>

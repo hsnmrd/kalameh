@@ -66,6 +66,8 @@ export interface TranslationDictionary {
     cannotDeleteWithClasses: string;
     duplicatePhaseYear: string;
     termDateConflict: string;
+    cannotCreatePastTerm: string;
+    pastMonthsNotAllowed: string;
   };
   courses: {
     courseNotFound: string;

@@ -225,4 +225,20 @@ describe("GeneratePhaseTermsPage", () => {
       expect(mockPush).toHaveBeenCalledWith("/terms/generate/preview")
     })
   })
+
+  it("disables continue button and displays warning alert when selected phase is in the past", async () => {
+    usePhaseTermsGenerateStore.setState({ jalaliYear: 1402 })
+
+    render(<GeneratePhaseTermsPage />)
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "امکان ساخت ترم برای ماه‌های گذشته وجود ندارد. تمام ماه‌های این فاز در سال تحصیلی انتخابی در گذشته قرار دارند."
+        )
+      ).toBeInTheDocument()
+      const continueBtn = screen.getByText("ادامه")
+      expect(continueBtn.closest("button")).toBeDisabled()
+    })
+  })
 })

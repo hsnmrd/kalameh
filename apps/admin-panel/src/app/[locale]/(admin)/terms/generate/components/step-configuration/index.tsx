@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Wand2 } from "lucide-react"
+import { Wand2, AlertTriangle } from "lucide-react"
 import { Counter } from "@workspace/ui/components/counter"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Button } from "@workspace/ui/components/button"
@@ -30,6 +30,7 @@ export interface StepConfigurationProps {
   onProceed: () => void
   isProceedDisabled: boolean
   isProceedLoading: boolean
+  isPhasePast?: boolean
 }
 
 export function StepConfiguration({
@@ -48,6 +49,7 @@ export function StepConfiguration({
   onProceed,
   isProceedDisabled,
   isProceedLoading,
+  isPhasePast,
 }: StepConfigurationProps) {
   const t = useTranslations("terms")
   const currentSessions = sessionsPerTerm ?? daysPerTerm ?? 15
@@ -113,6 +115,15 @@ export function StepConfiguration({
             />
           </Field>
         </div>
+
+        {isPhasePast && (
+          <div className="mt-5 flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+            <span className="leading-relaxed font-medium">
+              {t("batchModal.pastMonthsNotAllowed")}
+            </span>
+          </div>
+        )}
 
         {/* Footer Actions */}
         <div className="mt-8 flex flex-col-reverse items-center justify-end gap-3 border-t border-border/80 pt-5 sm:flex-row">
