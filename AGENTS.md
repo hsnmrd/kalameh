@@ -105,6 +105,15 @@
   - Buttons, submit actions, step transitions, and dialog triggers must **ALWAYS** use concise, succinct action titles (e.g. `ادامه` / `Continue`, `تأیید` / `Confirm`, `ذخیره` / `Save`, `انصراف` / `Cancel`, `بازگشت` / `Back`).
   - **NEVER** use long, descriptive, or verbose phrases in button titles (e.g. avoid `ادامه و مشاهده پیش‌نمایش`, `ذخیره تغییرات و بازگشت به صفحه قبل`, `تأیید اطلاعات و رفتن به مرحله بعد`).
   - Place descriptive context, explanations, or guidance in headers, descriptions, callouts, or form helper text — never inside the button text.
+- **Term Activation Window & Critical Lifecycle Anchor Dates (7 Days Before / 7 Days After Start Date):**
+  - **Term Activation Concept:** A term activates exactly **7 days before its `startDate`** (`startDate - 7 days`).
+  - **Module Creation & Readiness:** When a term activates (7 days before start date), dependent modules (such as classes, course scheduling, teacher assignments, student registrations) become creatable and manageable for that term.
+  - **Critical Activation Period:** Spans from **7 days before `startDate`** (`startDate - 7 days`) to **7 days after `startDate`** (`startDate + 7 days`).
+  - **Global Condition Standard:** Most domain conditions across modules (such as class creation eligibility, final scheduling, registration gates/add-drop, teacher availability locking, student level adjustments, attendance activations, and notifications) must anchor strictly around these two boundary dates.
+  - **Single Source of Truth:** NEVER write manual or hardcoded date arithmetic for these thresholds. Always import and use the centralized constants and helpers from `@workspace/types`:
+    - Constants: `TERM_PRE_ACTIVATION_DAYS = 7`, `TERM_POST_ACTIVATION_DAYS = 7` (aliases: `TERM_ACTIVATION_DAYS_BEFORE`, `TERM_ACTIVATION_DAYS_AFTER`).
+    - Helpers: `getTermActivationDate(startDate)`, `getTermPostActivationDate(startDate)`, `getTermActivationWindow(startDate)`, `isTermActivated(startDate, now)`, `isTermInActivationWindow(startDate, now)`, `isTermPostActivationPassed(startDate, now)`.
+    - Opening aliases (for compatibility): `getTermOpeningDate`, `getTermPostOpeningDate`, `getTermOpeningWindow`, `isTermOpened`, `isTermInOpeningWindow`.
 
 ## Context Routing
 

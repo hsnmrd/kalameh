@@ -1,3 +1,5 @@
+import { getTermActivationDate } from "./term-activation-window.js"
+
 export type TermLifecycleStatus =
   "ACTIVE" | "REGISTERING" | "UPCOMING" | "COMPLETED" | "INACTIVE"
 
@@ -22,14 +24,12 @@ function toEndOfDayMs(date: Date | string): number {
   return d.getTime()
 }
 
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
-
 /**
  * Calculates the dynamic lifecycle status of a term:
  * - INACTIVE: Term is disabled (isActive === false)
  * - COMPLETED: Term end date has passed (now > endDate)
  * - ACTIVE: Currently ongoing (startDate <= now <= endDate)
- * - REGISTERING: Upcoming immediate next term in gap between terms or within 1 week before start
+ * - REGISTERING: Upcoming immediate next term in gap between terms or within 1 week before start (activation date)
  * - UPCOMING: Future term whose registration has not yet opened
  */
 export function calculateTermLifecycleStatus(
@@ -44,6 +44,7 @@ export function calculateTermLifecycleStatus(
   const nowMs = toStartOfDayMs(now)
   const startMs = toStartOfDayMs(term.startDate)
   const endMs = toEndOfDayMs(term.endDate)
+  const activationMs = getTermActivationDate(term.startDate).getTime()
 
   if (nowMs > endMs) {
     return "COMPLETED"
@@ -97,31 +98,31 @@ export function calculateTermLifecycleStatus(
       const isNormalGap = gapMs > 0 && gapMs <= 30 * 24 * 60 * 60 * 1000
 
       // If there is a normal inter-term gap (up to 30 days):
-      // When now is in the gap after previous term ended OR within 7 days before start: REGISTERING
+      // When now is in the gap after previous term ended OR within 7 days before start (activation date): REGISTERING
       if (isNormalGap) {
-        if (nowMs > prevEndMs || nowMs >= startMs - SEVEN_DAYS_MS) {
+        if (nowMs > prevEndMs || nowMs >= activationMs) {
           return "REGISTERING"
         }
         return "UPCOMING"
       }
 
       // If gap is longer than 30 days or non-existent:
-      // When within 1 week (7 days) before start: REGISTERING
-      if (nowMs >= startMs - SEVEN_DAYS_MS) {
+      // When within 7 days before start (activation date): REGISTERING
+      if (nowMs >= activationMs) {
         return "REGISTERING"
       }
       return "UPCOMING"
     }
 
-    // If no previous term exists, apply the 1-week rule
-    if (nowMs >= startMs - SEVEN_DAYS_MS) {
+    // If no previous term exists, apply the 7-day pre-start rule (activation date)
+    if (nowMs >= activationMs) {
       return "REGISTERING"
     }
     return "UPCOMING"
   }
 
   // Fallback when no sibling terms are provided
-  if (nowMs >= startMs - SEVEN_DAYS_MS) {
+  if (nowMs >= activationMs) {
     return "REGISTERING"
   }
   return "UPCOMING"

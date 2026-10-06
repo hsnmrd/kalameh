@@ -207,6 +207,12 @@ All admin-panel list pages and overlays must follow these mobile-specific rules 
 - The filter drawer title can be customized via `filterDrawerTitle` prop.
 - Always pass `filterButtonAriaLabel` translated with `useTranslations`.
 
+### 7. Term Activation Window Standard (7 Days Before / 7 Days After Start Date)
+
+- A term activates exactly 7 days before its `startDate` (`startDate - 7 days`), at which point dependent modules (classes, course scheduling, teacher assignments, student registrations) become creatable.
+- The critical activation phase covers `[startDate - 7 days, startDate + 7 days]`.
+- Frontend badges, countdowns, warnings, action locks, class creation guards, and scheduling interfaces must import and use `@workspace/types` term activation window helpers (`getTermActivationDate`, `getTermPostActivationDate`, `getTermActivationWindow`, `isTermActivated`, `isTermInActivationWindow`, `isTermPostActivationPassed`).
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

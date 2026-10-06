@@ -9,3 +9,4 @@
   - The root `src/index.ts` re-exports all domain barrels alongside `zod`.
   - Schemas must remain pure and unopinionated without hardcoded localized default strings.
 - **Zero Framework Coupling:** Do not import NestJS or Next.js code here; keep this package pure TypeScript + Zod.
+- **Term Activation Window Standard:** Maintain `TERM_PRE_ACTIVATION_DAYS = 7` and `TERM_POST_ACTIVATION_DAYS = 7` alongside `getTermActivationDate`, `getTermPostActivationDate`, `getTermActivationWindow`, `isTermActivated`, `isTermInActivationWindow`, and `isTermPostActivationPassed` (with opening aliases) in `src/term/term-activation-window.ts` as the single source of truth for term activation and commencement anchor dates.
