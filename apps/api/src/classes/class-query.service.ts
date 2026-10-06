@@ -47,6 +47,8 @@ export class ClassQueryService {
             id: true,
             title: true,
             isActive: true,
+            startDate: true,
+            endDate: true,
           },
         },
         course: {
@@ -137,6 +139,8 @@ export class ClassQueryService {
             id: true,
             title: true,
             isActive: true,
+            startDate: true,
+            endDate: true,
           },
         },
         course: {
@@ -201,6 +205,8 @@ export class ClassQueryService {
             id: true,
             title: true,
             isActive: true,
+            startDate: true,
+            endDate: true,
           },
         },
         course: {

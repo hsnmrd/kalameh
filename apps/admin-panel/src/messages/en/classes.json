@@ -26,6 +26,7 @@
     "actions": "Actions",
     "viewDetails": "View Details",
     "delete": "Delete Class",
+    "editDisabledOutsideActivation": "Editing is only permitted during the term activation window (7 days before to 7 days after the start date).",
     "empty": "No classes found with matching filters."
   },
   "createModal": {
@@ -53,6 +54,10 @@
     "termDatesLabel": "Term duration:",
     "toDateSeparator": "to",
     "activeTermBadge": "Active Term",
+    "activationWindowWarning": "Class creation is only permitted during the term activation window (7 days before to 7 days after the start date).",
+    "termNotActivated": "This term is not yet activated (more than 7 days before start date).",
+    "termActivationPassed": "The activation window for this term has ended (more than 7 days after start date).",
+    "inActivationWindow": "Within Term Activation Window",
     "submit": "Create Class",
     "cancel": "Cancel",
     "success": "Class created successfully."
@@ -63,6 +68,8 @@
     "classTitle": "Class Title",
     "titlePlaceholder": "Class Title",
     "term": "Term",
+    "activationWindowWarning": "Class editing is only permitted during the term activation window (7 days before to 7 days after the start date).",
+    "outsideActivationWindow": "This class cannot be edited because its term is outside the activation window.",
     "course": "Course Level",
     "branch": "Branch",
     "noBranch": "Online / No Branch",

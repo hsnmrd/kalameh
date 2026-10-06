@@ -101,6 +101,8 @@ export const fa: TranslationDictionary = {
     classAlreadyExists: 'کلاسی با این مشخصات قبلاً در این ترم ثبت شده است',
     classFull: 'ظرفیت این کلاس تکمیل شده است',
     invalidTermOrCourse: 'ترم یا سطح آموزشی انتخابی نامعتبر است',
+    termOutsideActivationWindow:
+      'ایجاد و ویرایش کلاس‌ها تنها در بازه فعال‌سازی ترم (از ۷ روز قبل تا ۷ روز بعد از تاریخ شروع ترم) امکان‌پذیر است',
     classroomConflict:
       'کلاس درس/اتاق انتخابی در این روزها و ساعات با کلاس "{conflictingClass}" تداخل دارد',
     teacherConflict:
@@ -122,6 +124,8 @@ export const fa: TranslationDictionary = {
       'برای شروع زمان‌بندی، ترم فعال انتخاب‌شده باید فاز عملیاتی معتبر داشته باشد',
     invalidRequirements:
       'نیازهای کلاسی باید فعال و متعلق به ترم، شعبه و آموزشگاه انتخاب‌شده باشند',
+    termNotInActivationWindow:
+      'تولید زمان‌بندی خودکار ترم تنها در بازه فعال‌سازی ترم (از ۷ روز قبل تا ۷ روز بعد از شروع) امکان‌پذیر است',
     sourceRunRequiredForLocks:
       'برای حفظ پیشنهادهای قفل‌شده باید اجرای مبدا مشخص شود',
     invalidSourceRun:

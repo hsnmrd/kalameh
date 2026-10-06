@@ -32,18 +32,18 @@ describe("selectDefaultSchedulingTerm", () => {
     expect(selectDefaultSchedulingTerm(undefined)).toBeNull()
   })
 
-  it("selects upcoming term starting within 10 days", () => {
+  it("selects upcoming term within activation window (starts in 4 days <= 7 days)", () => {
     const now = new Date("2026-09-24T12:00:00Z")
     const term1 = makeTerm(
       "term-1",
       "Summer 2026",
-      "2026-06-01T00:00:00Z",
-      "2026-09-20T23:59:59Z"
+      "2026-06-01T00:00:00Z", // ended, outside window
+      "2026-09-10T23:59:59Z"
     )
     const term2 = makeTerm(
       "term-2",
       "Fall 2026",
-      "2026-09-28T00:00:00Z", // starts in 4 days (<= 10 days)
+      "2026-09-28T00:00:00Z", // starts in 4 days (<= 7 days, within activation window)
       "2026-12-20T23:59:59Z"
     )
 
@@ -51,48 +51,29 @@ describe("selectDefaultSchedulingTerm", () => {
     expect(selected?.id).toBe("term-2")
   })
 
-  it("selects running term when next term is more than 10 days away (gap scenario)", () => {
+  it("selects active term within 7 days after start", () => {
     const now = new Date("2026-09-24T12:00:00Z")
-    const termRunning = makeTerm(
-      "term-running",
+    const termRunningInWindow = makeTerm(
+      "term-active-in-window",
       "Fall 2026",
-      "2026-09-01T00:00:00Z",
+      "2026-09-20T00:00:00Z", // started 4 days ago (<= 7 days)
       "2026-12-01T23:59:59Z"
     )
     const termNext = makeTerm(
       "term-next",
       "Winter 2026",
-      "2026-12-15T00:00:00Z", // starts in 82 days (> 10 days)
+      "2026-12-15T00:00:00Z", // starts in 82 days (> 7 days)
       "2026-03-20T23:59:59Z"
     )
 
-    const selected = selectDefaultSchedulingTerm([termRunning, termNext], now)
-    expect(selected?.id).toBe("term-running")
-  })
-
-  it("switches to upcoming term 10 days before it starts even if previous term is still running", () => {
-    const now = new Date("2026-09-24T12:00:00Z")
-    const termEndingSoon = makeTerm(
-      "term-ending",
-      "Summer 2026",
-      "2026-06-01T00:00:00Z",
-      "2026-09-26T23:59:59Z" // still running for 2 days
-    )
-    const termStartingSoon = makeTerm(
-      "term-starting",
-      "Fall 2026",
-      "2026-10-01T00:00:00Z", // starts in 7 days (<= 10 days)
-      "2026-12-25T23:59:59Z"
-    )
-
     const selected = selectDefaultSchedulingTerm(
-      [termEndingSoon, termStartingSoon],
+      [termRunningInWindow, termNext],
       now
     )
-    expect(selected?.id).toBe("term-starting")
+    expect(selected?.id).toBe("term-active-in-window")
   })
 
-  it("returns null when no term is running and next term starts in more than 10 days", () => {
+  it("returns null when no term is in activation window (past or distant future)", () => {
     const now = new Date("2026-09-24T12:00:00Z")
     const termEnded = makeTerm(
       "term-ended",
@@ -103,24 +84,15 @@ describe("selectDefaultSchedulingTerm", () => {
     const termFuture1 = makeTerm(
       "term-future-1",
       "Winter 2026",
-      "2026-11-01T00:00:00Z", // starts in 38 days (> 10 days)
+      "2026-11-01T00:00:00Z", // starts in 38 days (> 7 days)
       "2027-01-30T23:59:59Z"
     )
-    const termFuture2 = makeTerm(
-      "term-future-2",
-      "Spring 2027",
-      "2027-03-01T00:00:00Z",
-      "2027-06-01T23:59:59Z"
-    )
 
-    const selected = selectDefaultSchedulingTerm(
-      [termEnded, termFuture2, termFuture1],
-      now
-    )
+    const selected = selectDefaultSchedulingTerm([termEnded, termFuture1], now)
     expect(selected).toBeNull()
   })
 
-  it("returns null when all terms are in the past", () => {
+  it("returns null when all terms are outside activation window", () => {
     const now = new Date("2026-09-24T12:00:00Z")
     const termOld = makeTerm(
       "term-old",
@@ -128,14 +100,14 @@ describe("selectDefaultSchedulingTerm", () => {
       "2025-01-01T00:00:00Z",
       "2025-03-20T23:59:59Z"
     )
-    const termRecent = makeTerm(
-      "term-recent",
+    const termPastWindow = makeTerm(
+      "term-past-window",
       "Summer 2026",
-      "2026-06-01T00:00:00Z",
-      "2026-08-31T23:59:59Z"
+      "2026-09-01T00:00:00Z", // started 23 days ago (> 7 days post-start)
+      "2026-11-30T23:59:59Z"
     )
 
-    const selected = selectDefaultSchedulingTerm([termOld, termRecent], now)
+    const selected = selectDefaultSchedulingTerm([termOld, termPastWindow], now)
     expect(selected).toBeNull()
   })
 })
@@ -143,7 +115,7 @@ describe("selectDefaultSchedulingTerm", () => {
 describe("isTermEligibleForScheduling", () => {
   const now = new Date("2026-09-24T12:00:00Z")
 
-  it("returns true for a term starting within 10 days", () => {
+  it("returns true for a term starting within 7 days (e.g. 4 days away)", () => {
     const term = makeTerm(
       "term-soon",
       "Fall 2026",
@@ -153,37 +125,47 @@ describe("isTermEligibleForScheduling", () => {
     expect(isTermEligibleForScheduling(term, now)).toBe(true)
   })
 
-  it("returns true for a currently running term", () => {
+  it("returns true on exact 7 days before start", () => {
     const term = makeTerm(
-      "term-running",
-      "Summer 2026",
-      "2026-09-01T00:00:00Z",
-      "2026-10-15T23:59:59Z"
+      "term-boundary",
+      "Fall 2026",
+      "2026-10-01T12:00:00Z", // starts in 7 days
+      "2026-12-20T23:59:59Z"
     )
     expect(isTermEligibleForScheduling(term, now)).toBe(true)
   })
 
-  it("returns false for a term starting in more than 10 days", () => {
+  it("returns true within 7 days after start date", () => {
+    const term = makeTerm(
+      "term-post-start-in-window",
+      "Fall 2026",
+      "2026-09-20T00:00:00Z", // started 4 days ago
+      "2026-12-20T23:59:59Z"
+    )
+    expect(isTermEligibleForScheduling(term, now)).toBe(true)
+  })
+
+  it("returns false for a term starting in more than 7 days (e.g. 10 days away)", () => {
     const term = makeTerm(
       "term-distant",
       "Winter 2026",
-      "2026-10-10T00:00:00Z", // starts in 16 days
+      "2026-10-05T00:00:00Z", // starts in 11 days
       "2027-01-15T23:59:59Z"
     )
     expect(isTermEligibleForScheduling(term, now)).toBe(false)
   })
 
-  it("returns false for a term that has already ended", () => {
+  it("returns false for a term whose activation window has passed (> 7 days after start)", () => {
     const term = makeTerm(
-      "term-past",
+      "term-activation-passed",
       "Summer 2026",
-      "2026-06-01T00:00:00Z",
-      "2026-09-20T23:59:59Z" // ended 4 days ago
+      "2026-09-10T00:00:00Z", // started 14 days ago (> 7 days)
+      "2026-11-20T23:59:59Z"
     )
     expect(isTermEligibleForScheduling(term, now)).toBe(false)
   })
 
-  it("returns false for an inactive term even if dates match", () => {
+  it("returns false for an inactive term even if dates are inside activation window", () => {
     const term = makeTerm(
       "term-inactive",
       "Fall 2026",

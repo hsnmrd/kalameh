@@ -7,6 +7,7 @@ import { Prisma } from '@workspace/database';
 import {
   ROLES,
   SchedulingPlanPublicationResultSchema,
+  isTermInActivationWindow,
   type JwtPayload,
   type SchedulingPlanPublicationResult,
   type SupportedLocale,
@@ -70,7 +71,12 @@ export class SchedulingPlanPublicationService {
             select: {
               id: true,
               runId: true,
-              run: { select: { termId: true } },
+              run: {
+                select: {
+                  termId: true,
+                  term: { select: { startDate: true } },
+                },
+              },
               proposals: {
                 where: { instituteId },
                 select: {
@@ -96,6 +102,16 @@ export class SchedulingPlanPublicationService {
               },
             },
           });
+
+          if (!isTermInActivationWindow(plan.run.term.startDate, publishedAt)) {
+            throw new ConflictException({
+              code: 'HARD_CONSTRAINT_PUBLISH_BLOCKED',
+              message: this.i18n.t(
+                'scheduling.termNotInActivationWindow',
+                locale,
+              ),
+            });
+          }
           if (
             plan.proposals.length === 0 ||
             plan.proposals.some(

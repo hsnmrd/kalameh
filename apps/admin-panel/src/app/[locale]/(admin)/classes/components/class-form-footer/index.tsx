@@ -8,12 +8,14 @@ import { Spinner } from "@workspace/ui/components/spinner"
 interface ClassFormFooterProps {
   mode: "create" | "edit"
   isPending: boolean
+  disabled?: boolean
   onClose: () => void
 }
 
 export function ClassFormFooter({
   mode,
   isPending,
+  disabled = false,
   onClose,
 }: ClassFormFooterProps) {
   const t = useTranslations("classes")
@@ -31,7 +33,7 @@ export function ClassFormFooter({
       </Button>
       <Button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || disabled}
         className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
       >
         {isPending && (

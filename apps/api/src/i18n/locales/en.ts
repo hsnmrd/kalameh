@@ -110,6 +110,8 @@ export const en: TranslationDictionary = {
       'A class with these specifications already exists in this term',
     classFull: 'This class has reached its maximum capacity',
     invalidTermOrCourse: 'Selected term or course is invalid',
+    termOutsideActivationWindow:
+      'Creating and editing classes is only available during the term activation window (7 days before to 7 days after the term start date)',
     classroomConflict:
       'Selected classroom conflicts with class "{conflictingClass}" on the chosen days and time',
     teacherConflict:
@@ -131,6 +133,8 @@ export const en: TranslationDictionary = {
       'The selected active term must have a valid operating phase before scheduling can begin',
     invalidRequirements:
       'Class requirements must be active and belong to the selected term, branch, and institute',
+    termNotInActivationWindow:
+      'Automatic scheduling is only available during the term activation window (7 days before to 7 days after the term start date)',
     sourceRunRequiredForLocks:
       'A source run is required when preserving locked proposals',
     invalidSourceRun:

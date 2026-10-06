@@ -80,6 +80,7 @@ export interface TranslationDictionary {
     classAlreadyExists: string;
     classFull: string;
     invalidTermOrCourse: string;
+    termOutsideActivationWindow: string;
     classroomConflict: string;
     teacherConflict: string;
     teacherFreeTimeConflict: string;
@@ -94,6 +95,7 @@ export interface TranslationDictionary {
     invalidScope: string;
     invalidOperatingPhase: string;
     invalidRequirements: string;
+    termNotInActivationWindow: string;
     sourceRunRequiredForLocks: string;
     invalidSourceRun: string;
     invalidLockedProposals: string;

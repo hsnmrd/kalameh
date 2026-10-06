@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
   ROLES,
+  isTermInActivationWindow,
   type ClassDto,
   type JwtPayload,
   type SupportedLocale,
@@ -50,6 +51,12 @@ export class ClassCreateService {
     if (!term) {
       throw new BadRequestException(
         this.i18n.t('classes.invalidTermOrCourse', locale),
+      );
+    }
+
+    if (!isTermInActivationWindow(term.startDate)) {
+      throw new BadRequestException(
+        this.i18n.t('classes.termOutsideActivationWindow', locale),
       );
     }
 
@@ -159,6 +166,8 @@ export class ClassCreateService {
             id: true,
             title: true,
             isActive: true,
+            startDate: true,
+            endDate: true,
           },
         },
         course: {

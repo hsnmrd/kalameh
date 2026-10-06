@@ -27,7 +27,11 @@ import {
   EmptyDescription,
 } from "@workspace/ui/components/empty"
 import { formatNumber } from "@workspace/ui/lib/utils"
-import { PERMISSIONS, type ClassDto } from "@workspace/types"
+import {
+  PERMISSIONS,
+  isTermInActivationWindow,
+  type ClassDto,
+} from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 
 export interface ClassesListProps {
@@ -77,14 +81,21 @@ export function ClassesList({
         const enrolled = cls.enrolledCount ?? 0
         const cap = cls.capacity
         const isFull = enrolled >= cap
+        const isEditDisabled = Boolean(
+          cls.term?.startDate && !isTermInActivationWindow(cls.term.startDate)
+        )
 
         return (
           <ContextMenu key={cls.id}>
             <ContextMenuTrigger>
               <MobileListItem
-                onClick={() =>
-                  onViewDetails ? onViewDetails(cls) : onEdit(cls)
-                }
+                onClick={() => {
+                  if (onViewDetails) {
+                    onViewDetails(cls)
+                  } else if (!isEditDisabled) {
+                    onEdit(cls)
+                  }
+                }}
                 isLast={index === classes.length - 1}
               >
                 <MobileListItemIcon>
@@ -152,7 +163,15 @@ export function ClassesList({
                 permission={PERMISSIONS.MANAGE_CLASSES}
                 mode="hide"
               >
-                <ContextMenuItem onClick={() => onEdit(cls)}>
+                <ContextMenuItem
+                  disabled={isEditDisabled}
+                  onClick={() => !isEditDisabled && onEdit(cls)}
+                  title={
+                    isEditDisabled
+                      ? t("table.editDisabledOutsideActivation")
+                      : undefined
+                  }
+                >
                   <Edit2 className="me-2 size-4 text-muted-foreground" />
                   {t("table.actions")}
                 </ContextMenuItem>

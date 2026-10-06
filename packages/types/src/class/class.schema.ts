@@ -49,6 +49,8 @@ export const ClassSchema = z.object({
       id: z.string().uuid(),
       title: z.string(),
       isActive: z.boolean(),
+      startDate: z.string().or(z.date()).optional(),
+      endDate: z.string().or(z.date()).optional(),
     })
     .optional(),
   course: z

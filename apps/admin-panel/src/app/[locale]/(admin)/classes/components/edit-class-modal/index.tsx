@@ -15,7 +15,7 @@ import { Input } from "@workspace/ui/components/input"
 import { PriceInput } from "@workspace/ui/components/price-input"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
-import type { ClassDto } from "@workspace/types"
+import { isTermInActivationWindow, type ClassDto } from "@workspace/types"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { useEditClassForm } from "../../hooks/use-edit-class-form"
@@ -236,6 +236,9 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
           <ClassFormFooter
             mode="edit"
             isPending={updateMutation.isPending}
+            disabled={Boolean(
+              selectedTerm && !isTermInActivationWindow(selectedTerm.startDate)
+            )}
             onClose={onClose}
           />
         </form>

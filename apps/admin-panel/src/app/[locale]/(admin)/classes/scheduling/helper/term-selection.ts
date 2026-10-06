@@ -1,6 +1,7 @@
-import type { SchedulingTermSummaryDto } from "@workspace/types"
-
-export const TEN_DAYS_MS = 10 * 24 * 60 * 60 * 1000
+import {
+  isTermInActivationWindow,
+  type SchedulingTermSummaryDto,
+} from "@workspace/types"
 
 export function toStartOfDayMs(date: Date | string): number {
   const d = new Date(date)
@@ -17,9 +18,8 @@ export function toEndOfDayMs(date: Date | string): number {
 /**
  * Determines whether a term is eligible for scheduling:
  * 1. Must be active (term.isActive !== false).
- * 2. Either starts within 10 days in the future (0 <= startDate - now <= 10 days) and has not ended,
- *    OR is currently running (startDate <= now <= endDate).
- * Terms starting > 10 days in the future or terms that have ended are NOT eligible.
+ * 2. Must be within the term activation window ([startDate - 7 days, startDate + 7 days]).
+ * Terms starting > 7 days in the future or terms whose activation window has passed (> startDate + 7 days) are NOT eligible.
  */
 export function isTermEligibleForScheduling(
   term: Pick<SchedulingTermSummaryDto, "startDate" | "endDate" | "isActive">,
@@ -29,29 +29,13 @@ export function isTermEligibleForScheduling(
     return false
   }
 
-  const nowStartMs = toStartOfDayMs(now)
-  const nowEndMs = toEndOfDayMs(now)
-  const startMs = toStartOfDayMs(term.startDate)
-  const endMs = toEndOfDayMs(term.endDate)
-
-  // 1. Starts within 10 days (0 <= startDate - now <= 10 days) and hasn't ended
-  const diffMs = startMs - nowStartMs
-  if (diffMs >= 0 && diffMs <= TEN_DAYS_MS && nowStartMs <= endMs) {
-    return true
-  }
-
-  // 2. Currently running (has already started and not ended)
-  if (startMs <= nowEndMs && nowStartMs <= endMs) {
-    return true
-  }
-
-  return false
+  return isTermInActivationWindow(term.startDate, now)
 }
 
 /**
  * Selects the default scheduling term based on:
- * 1. Upcoming term starting within 10 days (0 <= startDate - now <= 10 days).
- * 2. Currently active/running term (startDate <= now <= endDate).
+ * Terms within their activation window ([startDate - 7 days, startDate + 7 days]).
+ * If multiple eligible terms exist, returns the earliest starting eligible term.
  * If no eligible term exists, returns null.
  */
 export function selectDefaultSchedulingTerm(
@@ -62,9 +46,7 @@ export function selectDefaultSchedulingTerm(
     return null
   }
 
-  const nowMs = toStartOfDayMs(now)
-
-  // Only consider eligible terms (starts within 10 days or currently running)
+  // Only consider eligible terms (within activation window)
   const eligibleTerms = terms.filter((term) =>
     isTermEligibleForScheduling(term, now)
   )
@@ -78,26 +60,5 @@ export function selectDefaultSchedulingTerm(
     (a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate)
   )
 
-  // 1. Check for upcoming terms starting within 10 days
-  const startingWithin10Days = sorted.find((term) => {
-    const diffMs = toStartOfDayMs(term.startDate) - nowMs
-    return diffMs >= 0 && diffMs <= TEN_DAYS_MS
-  })
-
-  if (startingWithin10Days) {
-    return startingWithin10Days
-  }
-
-  // 2. Check for currently running term
-  const runningTerm = sorted.find((term) => {
-    const startMs = toStartOfDayMs(term.startDate)
-    const endMs = toEndOfDayMs(term.endDate)
-    return startMs <= nowMs && nowMs <= endMs
-  })
-
-  if (runningTerm) {
-    return runningTerm
-  }
-
-  return null
+  return sorted[0] ?? null
 }

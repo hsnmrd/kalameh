@@ -52,7 +52,10 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
         findFirstOrThrow: jest.fn().mockResolvedValue({
           id: ids.plan,
           runId: ids.run,
-          run: { termId: ids.term },
+          run: {
+            termId: ids.term,
+            term: { startDate: new Date('2026-09-10T00:00:00.000Z') },
+          },
           proposals: [
             {
               id: ids.proposal,
@@ -170,6 +173,41 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
     );
   });
 
+  it('blocks publication when term is outside activation window', async () => {
+    transaction.schedulingPlan.findFirstOrThrow.mockResolvedValueOnce({
+      id: ids.plan,
+      runId: ids.run,
+      run: {
+        termId: ids.term,
+        // 30 days away from `now`
+        term: { startDate: new Date('2026-10-15T00:00:00Z') },
+      },
+      proposals: [
+        {
+          id: ids.proposal,
+          publishedClassId: null,
+          title: 'A2',
+          courseId: ids.course,
+          branchId: null,
+          classroomId: null,
+          teacherId: ids.teacher,
+          capacity: 12,
+          daysOfWeek: ['SUNDAY'],
+          startTime: '09:00',
+          endTime: '10:30',
+          course: { baseFee: 1_500_000 },
+          teacher: { firstName: 'Sara', lastName: 'Ahmadi' },
+          sessions: [{ sessionDate: new Date('2026-10-18T00:00:00Z') }],
+        },
+      ],
+    });
+
+    await expect(
+      service.publish(admin, ids.plan, undefined, 'fa', now),
+    ).rejects.toThrow(ConflictException);
+    expect(transaction.class.create).not.toHaveBeenCalled();
+  });
+
   it('does not emit a success audit when class creation fails', async () => {
     transaction.class.create.mockRejectedValue(new Error('insert failed'));
 
@@ -185,7 +223,10 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
     transaction.schedulingPlan.findFirstOrThrow.mockResolvedValue({
       id: ids.plan,
       runId: ids.run,
-      run: { termId: ids.term },
+      run: {
+        termId: ids.term,
+        term: { startDate: new Date('2026-09-10T00:00:00Z') },
+      },
       proposals: [
         {
           id: ids.proposal,

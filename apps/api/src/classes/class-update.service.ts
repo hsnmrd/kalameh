@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
   ROLES,
+  isTermInActivationWindow,
   type ClassDto,
   type JwtPayload,
   type SupportedLocale,
@@ -26,13 +27,28 @@ export class ClassUpdateService {
     existing: ClassDto,
     locale: SupportedLocale = 'fa',
   ): Promise<ClassDto> {
-    if (dto.termId) {
-      const term = await this.prisma.term.findFirst({
-        where: { id: dto.termId, instituteId: existing.instituteId },
+    const targetTermId = dto.termId || existing.termId;
+    const targetTerm = await this.prisma.term.findFirst({
+      where: { id: targetTermId, instituteId: existing.instituteId },
+    });
+    if (!targetTerm) {
+      throw new BadRequestException(
+        this.i18n.t('classes.invalidTermOrCourse', locale),
+      );
+    }
+    if (!isTermInActivationWindow(targetTerm.startDate)) {
+      throw new BadRequestException(
+        this.i18n.t('classes.termOutsideActivationWindow', locale),
+      );
+    }
+
+    if (dto.termId && existing.termId && dto.termId !== existing.termId) {
+      const existingTerm = await this.prisma.term.findFirst({
+        where: { id: existing.termId, instituteId: existing.instituteId },
       });
-      if (!term) {
+      if (existingTerm && !isTermInActivationWindow(existingTerm.startDate)) {
         throw new BadRequestException(
-          this.i18n.t('classes.invalidTermOrCourse', locale),
+          this.i18n.t('classes.termOutsideActivationWindow', locale),
         );
       }
     }
@@ -70,7 +86,6 @@ export class ClassUpdateService {
       }
     }
 
-    const targetTermId = dto.termId || existing.termId;
     const targetClassroomId =
       dto.classroomId !== undefined ? dto.classroomId : existing.classroomId;
     const targetStartTime =
@@ -166,6 +181,8 @@ export class ClassUpdateService {
             id: true,
             title: true,
             isActive: true,
+            startDate: true,
+            endDate: true,
           },
         },
         course: {

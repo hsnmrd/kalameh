@@ -49,7 +49,14 @@ describe('ClassesService', () => {
         findFirst: jest.fn(),
       },
       term: {
-        findFirst: jest.fn(),
+        findFirst: jest.fn().mockImplementation((args: any) =>
+          Promise.resolve({
+            id: args?.where?.id || 'term-1',
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+            isActive: true,
+          }),
+        ),
       },
       course: {
         findFirst: jest.fn(),
@@ -110,8 +117,58 @@ describe('ClassesService', () => {
         fee: 1500000,
       };
 
-      prismaService.term.findFirst.mockResolvedValue({ id: dto.termId });
+      prismaService.term.findFirst.mockResolvedValue({
+        id: dto.termId,
+        startDate: new Date(),
+        isActive: true,
+      });
       prismaService.course.findFirst.mockResolvedValue(null);
+
+      await expect(service.create(dto, mockAdmin)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException if Term is outside activation window (> 7 days before start)', async () => {
+      const dto = {
+        title: 'Class 101',
+        termId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a01',
+        courseId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02',
+        capacity: 15,
+        fee: 1500000,
+      };
+
+      // 20 days in future
+      const distantFutureStart = new Date(
+        Date.now() + 20 * 24 * 60 * 60 * 1000,
+      );
+      prismaService.term.findFirst.mockResolvedValue({
+        id: dto.termId,
+        startDate: distantFutureStart,
+        isActive: true,
+      });
+
+      await expect(service.create(dto, mockAdmin)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException if Term activation window has passed (> 7 days after start)', async () => {
+      const dto = {
+        title: 'Class 101',
+        termId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a01',
+        courseId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02',
+        capacity: 15,
+        fee: 1500000,
+      };
+
+      // 20 days in past
+      const pastStart = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
+      prismaService.term.findFirst.mockResolvedValue({
+        id: dto.termId,
+        startDate: pastStart,
+        isActive: true,
+      });
 
       await expect(service.create(dto, mockAdmin)).rejects.toThrow(
         BadRequestException,
@@ -129,7 +186,11 @@ describe('ClassesService', () => {
         schedule: 'Mon, Wed 17:00-18:30',
       };
 
-      prismaService.term.findFirst.mockResolvedValue({ id: dto.termId });
+      prismaService.term.findFirst.mockResolvedValue({
+        id: dto.termId,
+        startDate: new Date(),
+        isActive: true,
+      });
       prismaService.course.findFirst.mockResolvedValue({ id: dto.courseId });
       prismaService.class.create.mockResolvedValue({
         id: 'new-class-id',
@@ -155,7 +216,11 @@ describe('ClassesService', () => {
         fee: 1500000,
       };
 
-      prismaService.term.findFirst.mockResolvedValue({ id: dto.termId });
+      prismaService.term.findFirst.mockResolvedValue({
+        id: dto.termId,
+        startDate: new Date(),
+        isActive: true,
+      });
       prismaService.course.findFirst.mockResolvedValue({ id: dto.courseId });
       prismaService.branch.findFirst.mockResolvedValue(null);
 
@@ -177,7 +242,11 @@ describe('ClassesService', () => {
         endTime: '19:50',
       };
 
-      prismaService.term.findFirst.mockResolvedValue({ id: dto.termId });
+      prismaService.term.findFirst.mockResolvedValue({
+        id: dto.termId,
+        startDate: new Date(),
+        isActive: true,
+      });
       prismaService.course.findFirst.mockResolvedValue({ id: dto.courseId });
       prismaService.classroom.findFirst.mockResolvedValue({
         id: dto.classroomId,
@@ -216,7 +285,11 @@ describe('ClassesService', () => {
         endTime: '18:30',
       };
 
-      prismaService.term.findFirst.mockResolvedValue({ id: dto.termId });
+      prismaService.term.findFirst.mockResolvedValue({
+        id: dto.termId,
+        startDate: new Date(),
+        isActive: true,
+      });
       prismaService.course.findFirst.mockResolvedValue({ id: dto.courseId });
       prismaService.classroom.findFirst.mockResolvedValue({
         id: dto.classroomId,
@@ -255,7 +328,11 @@ describe('ClassesService', () => {
         endTime: '18:30',
       };
 
-      prismaService.term.findFirst.mockResolvedValue({ id: dto.termId });
+      prismaService.term.findFirst.mockResolvedValue({
+        id: dto.termId,
+        startDate: new Date(),
+        isActive: true,
+      });
       prismaService.course.findFirst.mockResolvedValue({ id: dto.courseId });
       prismaService.classroom.findFirst.mockResolvedValue({
         id: dto.classroomId,
@@ -301,7 +378,11 @@ describe('ClassesService', () => {
         endTime: '20:00',
       };
 
-      prismaService.term.findFirst.mockResolvedValue({ id: dto.termId });
+      prismaService.term.findFirst.mockResolvedValue({
+        id: dto.termId,
+        startDate: new Date(),
+        isActive: true,
+      });
       prismaService.course.findFirst.mockResolvedValue({ id: dto.courseId });
       prismaService.classroom.findFirst.mockResolvedValue({
         id: dto.classroomId,
@@ -376,6 +457,34 @@ describe('ClassesService', () => {
       await expect(
         service.update('class-to-update', updateDto, mockAdmin),
       ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw BadRequestException if target term is outside activation window', async () => {
+      const existingClass = {
+        id: 'class-to-update',
+        instituteId: 'inst-1',
+        termId: 'term-1',
+        courseId: 'course-1',
+        classroomId: 'room-1',
+        teacherName: 'Teacher A',
+        startTime: '10:00',
+        endTime: '11:30',
+        daysOfWeek: ['SUNDAY'],
+        sessionDates: [],
+        _count: { enrollments: 0 },
+      };
+
+      jest.spyOn(service, 'findOne').mockResolvedValue(existingClass as any);
+      // Mock term starting in 30 days
+      prismaService.term.findFirst.mockResolvedValue({
+        id: 'term-1',
+        startDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        isActive: true,
+      });
+
+      await expect(
+        service.update('class-to-update', { title: 'New Title' }, mockAdmin),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should successfully update when there are no conflicts', async () => {

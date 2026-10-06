@@ -17,6 +17,7 @@ import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
+import { isTermInActivationWindow } from "@workspace/types"
 import { useCreateClassForm } from "../../hooks/use-create-class-form"
 import { TermDetailsPreview } from "../term-details-preview"
 import { ClassScheduleWizard } from "../class-schedule-wizard"
@@ -233,6 +234,9 @@ export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
           <ClassFormFooter
             mode="create"
             isPending={createMutation.isPending}
+            disabled={Boolean(
+              selectedTerm && !isTermInActivationWindow(selectedTerm.startDate)
+            )}
             onClose={onClose}
           />
         </form>

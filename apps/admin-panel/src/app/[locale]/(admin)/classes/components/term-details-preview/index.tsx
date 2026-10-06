@@ -2,10 +2,14 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Calendar } from "lucide-react"
+import { Calendar, AlertCircle } from "lucide-react"
 import { cn, formatDate } from "@workspace/ui/lib/utils"
 import { Badge } from "@workspace/ui/components/badge"
-import type { TermDto } from "@workspace/types"
+import {
+  isTermInActivationWindow,
+  getTermActivationDate,
+  type TermDto,
+} from "@workspace/types"
 
 export interface TermDetailsPreviewProps {
   term?: TermDto | null
@@ -21,6 +25,40 @@ export function TermDetailsPreview({
 
   if (!term) {
     return null
+  }
+
+  const inActivationWindow = isTermInActivationWindow(term.startDate)
+  const isBeforeActivation =
+    new Date().getTime() < getTermActivationDate(term.startDate).getTime()
+
+  if (!inActivationWindow) {
+    return (
+      <div
+        className={cn(
+          "flex animate-in flex-col gap-1.5 rounded-xl border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-xs text-destructive transition-all fade-in-50",
+          className
+        )}
+      >
+        <div className="flex items-center gap-1.5 font-semibold text-destructive">
+          <AlertCircle className="size-4 shrink-0 text-destructive" />
+          <span>
+            {t(
+              isBeforeActivation ? "termNotActivated" : "termActivationPassed"
+            )}
+          </span>
+        </div>
+        <p className="text-[11px] text-destructive/90">
+          {t("activationWindowWarning")}
+        </p>
+        <div className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-foreground">
+          <Calendar className="size-3.5 shrink-0 text-muted-foreground" />
+          <span className="text-muted-foreground">{t("termDatesLabel")}</span>
+          <span>{formatDate(term.startDate, locale)}</span>
+          <span className="text-muted-foreground">{t("toDateSeparator")}</span>
+          <span>{formatDate(term.endDate, locale)}</span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -42,14 +80,22 @@ export function TermDetailsPreview({
         </div>
       </div>
 
-      {term.isActive && (
+      <div className="flex items-center gap-1.5">
         <Badge
           variant="outline"
           className="h-5 border-success/30 bg-success/15 px-2 text-[10px] font-medium text-success"
         >
-          {t("activeTermBadge")}
+          {t("inActivationWindow")}
         </Badge>
-      )}
+        {term.isActive && (
+          <Badge
+            variant="outline"
+            className="h-5 border-success/30 bg-success/15 px-2 text-[10px] font-medium text-success"
+          >
+            {t("activeTermBadge")}
+          </Badge>
+        )}
+      </div>
     </div>
   )
 }

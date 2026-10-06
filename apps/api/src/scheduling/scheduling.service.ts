@@ -5,6 +5,7 @@ import {
   DEFAULT_SCHEDULING_SETTINGS,
   ROLES,
   SchedulingRunSchema,
+  isTermInActivationWindow,
   type GenerateSchedulingPlanInput,
   type JwtPayload,
   type SchedulingRunDto,
@@ -100,6 +101,12 @@ export class SchedulingService {
     ) {
       throw new BadRequestException(
         this.i18n.t('scheduling.invalidScope', locale),
+      );
+    }
+
+    if (!isTermInActivationWindow(term.startDate)) {
+      throw new BadRequestException(
+        this.i18n.t('scheduling.termNotInActivationWindow', locale),
       );
     }
 

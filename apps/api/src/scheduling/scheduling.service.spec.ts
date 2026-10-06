@@ -71,8 +71,8 @@ describe('MVP-015 SchedulingService', () => {
     prisma.term.findFirst.mockResolvedValue({
       id: ids.term,
       title: 'Fall',
-      startDate: generatedAt,
-      endDate: new Date('2026-12-31T00:00:00.000Z'),
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       isActive: true,
       operatingPhase: {
         id: '00000000-0000-4000-8000-000000000009',
@@ -275,6 +275,38 @@ describe('MVP-015 SchedulingService', () => {
       endDate: new Date('2026-12-31T00:00:00.000Z'),
       isActive: true,
       operatingPhase: null,
+    });
+
+    await expect(
+      service.generate(admin, {
+        termId: ids.term,
+        branchId: ids.branch,
+        requirementIds: [ids.requirement],
+        alternativePlanCount: 1,
+        lockedProposalIds: [],
+      }),
+    ).rejects.toThrow(BadRequestException);
+    expect(prisma.schedulingRun.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects plan generation if term is outside activation window', async () => {
+    prisma.term.findFirst.mockResolvedValueOnce({
+      id: ids.term,
+      title: 'Fall',
+      startDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days away
+      endDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000),
+      isActive: true,
+      operatingPhase: {
+        id: '00000000-0000-4000-8000-000000000009',
+        title: 'Fall',
+        startTime: '15:00',
+        endTime: '21:00',
+        slotDurationMinutes: 90,
+        daysOfWeek: ['SATURDAY'],
+        hasBreak: false,
+        breakStartTime: null,
+        breakEndTime: null,
+      },
     });
 
     await expect(
