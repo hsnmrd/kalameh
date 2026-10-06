@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   DoorOpen,
   Globe,
+  GraduationCap,
   LockKeyhole,
   Pencil,
   User,
@@ -264,6 +265,7 @@ export function SchedulingPlanCalendarClassCard({
       : getProposalColorIndex(proposal.id, CLASS_CARD_THEMES.length)
   const theme = CLASS_CARD_THEMES[themeIndex]!
 
+  const hasNoTeacher = !(proposal.teacherId ?? proposal.teacher?.id)
   const teacherName = proposal.teacher
     ? `${proposal.teacher.firstName} ${proposal.teacher.lastName}`
     : t("calendarView.newTeacherBadge")
@@ -292,6 +294,7 @@ export function SchedulingPlanCalendarClassCard({
       data-testid={`calendar-class-card-${proposal.id}`}
       data-class-id={proposal.id}
       data-color-index={themeIndex}
+      data-has-no-teacher={hasNoTeacher ? "true" : undefined}
       data-active={isActive ? "true" : undefined}
       data-swappable={isSwappable ? "true" : undefined}
       data-dimmed={isDimmed ? "true" : undefined}
@@ -317,16 +320,26 @@ export function SchedulingPlanCalendarClassCard({
         }
       }}
       className={cn(
-        "group relative flex min-h-[84px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl border border-s-4 p-3 shadow-2xs transition-[background-color,border-color,box-shadow,filter,transform] duration-200 ease-in-out select-none",
-        isActive
-          ? "border-primary"
-          : hasWarnings
-            ? "border-warning/80 hover:border-warning"
-            : theme.border,
-        theme.borderStart,
-        isActive ? "bg-primary/15 hover:bg-primary/20" : theme.bg,
-        isActive &&
-          "z-10 scale-[1.01] opacity-100 shadow-md ring-2 ring-primary",
+        "group relative flex min-h-[84px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl p-3 shadow-2xs transition-[background-color,border-color,box-shadow,filter,transform] duration-200 ease-in-out select-none",
+        hasNoTeacher
+          ? cn(
+              "border-2 border-dashed",
+              isActive
+                ? "z-10 scale-[1.01] border-warning bg-warning/25 opacity-100 shadow-md ring-2 ring-warning"
+                : "border-warning/70 bg-warning/10 hover:border-warning hover:bg-warning/15"
+            )
+          : cn(
+              "border border-s-4",
+              isActive
+                ? "border-primary"
+                : hasWarnings
+                  ? "border-warning/80 hover:border-warning"
+                  : theme.border,
+              theme.borderStart,
+              isActive ? "bg-primary/15 hover:bg-primary/20" : theme.bg,
+              isActive &&
+                "z-10 scale-[1.01] opacity-100 shadow-md ring-2 ring-primary"
+            ),
         isSwappable &&
           "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
         isDimmed && "opacity-25 hover:opacity-60",
@@ -339,7 +352,10 @@ export function SchedulingPlanCalendarClassCard({
         {/* Start (Right in RTL): Dot, Course Title, Badges */}
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <span
-            className={cn("size-2.5 shrink-0 rounded-full", theme.dot)}
+            className={cn(
+              "size-2.5 shrink-0 rounded-full",
+              hasNoTeacher ? "bg-warning" : theme.dot
+            )}
             aria-hidden="true"
           />
           <h5
@@ -386,25 +402,41 @@ export function SchedulingPlanCalendarClassCard({
             role={onRoomClick && !isOnline ? "button" : undefined}
             tabIndex={onRoomClick && !isOnline ? 0 : undefined}
             className={cn(
-              "flex max-w-[85px] min-w-0 shrink items-center gap-1 rounded-md bg-muted/40 px-1.5 py-0.5 text-xs text-muted-foreground transition-colors sm:max-w-[105px]",
+              "flex max-w-[85px] min-w-0 shrink items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition-colors sm:max-w-[105px]",
+              hasNoTeacher
+                ? "bg-warning/20 text-warning-foreground"
+                : "bg-muted/40 text-muted-foreground",
               onRoomClick &&
                 !isOnline &&
-                "cursor-pointer hover:bg-muted hover:text-foreground active:scale-95"
+                (hasNoTeacher
+                  ? "cursor-pointer hover:bg-warning/30 hover:text-warning-foreground active:scale-95"
+                  : "cursor-pointer hover:bg-muted hover:text-foreground active:scale-95")
             )}
             title={locationName}
           >
             {isOnline ? (
               <Globe
                 aria-hidden
-                className="size-3.5 shrink-0 text-muted-foreground"
+                className={cn(
+                  "size-3.5 shrink-0",
+                  hasNoTeacher ? "text-inherit" : "text-muted-foreground"
+                )}
               />
             ) : (
               <DoorOpen
                 aria-hidden
-                className="size-3.5 shrink-0 text-muted-foreground"
+                className={cn(
+                  "size-3.5 shrink-0",
+                  hasNoTeacher ? "text-inherit" : "text-muted-foreground"
+                )}
               />
             )}
-            <span className="truncate font-medium text-foreground/90">
+            <span
+              className={cn(
+                "truncate font-medium",
+                hasNoTeacher ? "text-inherit" : "text-foreground/90"
+              )}
+            >
               {locationName}
             </span>
           </div>
@@ -447,7 +479,10 @@ export function SchedulingPlanCalendarClassCard({
                       onSwapClick?.(proposal.id)
                     }}
                     className={cn(
-                      "size-6 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground",
+                      "size-6 rounded-md",
+                      hasNoTeacher
+                        ? "text-muted-foreground hover:bg-warning/20 hover:text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       isSwapping &&
                         "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary"
                     )}
@@ -479,12 +514,19 @@ export function SchedulingPlanCalendarClassCard({
       <div
         className={cn(
           "flex items-center justify-between gap-3 border-t pt-2.5 text-xs",
-          theme.divider
+          hasNoTeacher ? "border-warning/20" : theme.divider
         )}
       >
         {/* Start (Right in RTL): Teacher Avatar & Name */}
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
-          <div className="relative flex size-7.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted/80 ring-1 ring-border/80">
+          <div
+            className={cn(
+              "relative flex size-7.5 shrink-0 items-center justify-center overflow-hidden rounded-full ring-1",
+              hasNoTeacher
+                ? "bg-warning/20 text-warning-foreground ring-warning/30"
+                : "bg-muted/80 ring-border/80"
+            )}
+          >
             {proposal.teacher?.avatarUrl ? (
               <Image
                 src={getAssetUrl(proposal.teacher.avatarUrl)}
@@ -493,6 +535,11 @@ export function SchedulingPlanCalendarClassCard({
                 height={30}
                 unoptimized
                 className="size-full object-cover"
+              />
+            ) : hasNoTeacher ? (
+              <GraduationCap
+                aria-hidden
+                className="size-4 shrink-0 text-inherit"
               />
             ) : (
               <User
@@ -519,7 +566,12 @@ export function SchedulingPlanCalendarClassCard({
 
         {/* End (Left in RTL): Minimal Clean Capacity Badge (No progress bars) */}
         <div
-          className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted/40 px-2 py-0.5 text-xs font-semibold text-foreground/90 tabular-nums"
+          className={cn(
+            "flex shrink-0 items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums",
+            hasNoTeacher
+              ? "bg-warning/20 text-warning-foreground"
+              : "bg-muted/40 text-foreground/90"
+          )}
           title={t("calendarView.capacityLabel", {
             current: formatNumber(proposal.capacity, locale),
             max: formatNumber(maxCapacity, locale),
@@ -527,15 +579,32 @@ export function SchedulingPlanCalendarClassCard({
         >
           <Users
             aria-hidden
-            className="size-3.5 shrink-0 text-muted-foreground"
+            className={cn(
+              "size-3.5 shrink-0",
+              hasNoTeacher ? "text-inherit" : "text-muted-foreground"
+            )}
           />
           <span>{formatNumber(proposal.capacity, locale)}</span>
           {proposal.classroom?.capacity && (
-            <span className="text-[11px] font-normal text-muted-foreground">
+            <span
+              className={cn(
+                "text-[11px] font-normal",
+                hasNoTeacher
+                  ? "text-warning-foreground/80"
+                  : "text-muted-foreground"
+              )}
+            >
               /{formatNumber(maxCapacity, locale)}
             </span>
           )}
-          <span className="text-[10px] font-normal text-muted-foreground">
+          <span
+            className={cn(
+              "text-[10px] font-normal",
+              hasNoTeacher
+                ? "text-warning-foreground/80"
+                : "text-muted-foreground"
+            )}
+          >
             نفر
           </span>
         </div>

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { ArrowLeftRight, DoorOpen, User } from "lucide-react"
+import { ArrowLeftRight, DoorOpen, GraduationCap, User } from "lucide-react"
 import type { WeekDay } from "@workspace/types"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
@@ -143,8 +143,8 @@ export function SchedulingPlanCalendarMoveTargetCard({
               className="flex items-center gap-1 text-muted-foreground"
               title={t("calendarView.newTeacherBadge")}
             >
-              <User
-                className="size-3 shrink-0 text-muted-foreground"
+              <GraduationCap
+                className="size-3 shrink-0 text-inherit"
                 aria-hidden="true"
               />
               <span>{t("calendarView.newTeacherBadge")}</span>

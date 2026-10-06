@@ -3702,6 +3702,16 @@ describe("SchedulingPlanCalendarView Component", () => {
         })
       )
 
+      // The moved session card has no master, so it must render with the orange dashed theme!
+      await waitFor(() => {
+        const movedCard = screen.getByTestId("calendar-class-card-prop-1")
+        expect(movedCard).toHaveAttribute("data-has-no-teacher", "true")
+        expect(movedCard).toHaveClass("border-dashed")
+        expect(movedCard).toHaveClass("border-warning/70")
+        expect(movedCard).toHaveClass("bg-warning/10")
+        expect(movedCard).toHaveTextContent("استاد جدید")
+      })
+
       toMutationSpy.mockRestore()
     })
 
