@@ -82,6 +82,8 @@ export const fa: TranslationDictionary = {
       'این ترم دارای کلاس‌های وابسته است و نمی‌تواند حذف شود',
     duplicatePhaseYear:
       'ترم‌های این فاز برای سال تحصیلی انتخاب‌شده قبلاً ایجاد شده‌اند',
+    termDateConflict:
+      'تاریخ ترم «{term}» با ترم «{conflictingTerm}» تداخل و روزهای یکسان دارد',
   },
   courses: {
     courseNotFound: 'سطح/دوره آموزشی مورد نظر یافت نشد',

@@ -12,7 +12,7 @@ import {
   FormDialogHeader,
   FormDialogTitle,
 } from "@workspace/ui/components/dialog"
-import type { TermDto } from "@workspace/types"
+import { type TermDto, hasTermDateConflict } from "@workspace/types"
 import { termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import {
@@ -76,11 +76,29 @@ export function CreateTermModal({
       handleClose()
     },
   })
-  const handleSubmit = (values: CreateTermInput) =>
+  const handleSubmit = (values: CreateTermInput) => {
+    if (values.operatingPhaseId && allTerms && allTerms.length > 0) {
+      const conflict = allTerms.find(
+        (existing) =>
+          existing.operatingPhaseId === values.operatingPhaseId &&
+          hasTermDateConflict(values, existing)
+      )
+      if (conflict) {
+        toast.error(
+          t("batchModal.termDateConflict", {
+            term: values.title || t("createModal.title"),
+            conflictingTerm: conflict.title,
+          })
+        )
+        return
+      }
+    }
+
     createMutation.mutate({
       ...values,
       instituteId: activeInstituteId || undefined,
     })
+  }
 
   return (
     <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>

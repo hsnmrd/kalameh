@@ -179,13 +179,13 @@ describe("GeneratePhaseTermsPage", () => {
     expect(mockPush).toHaveBeenCalledWith("/terms")
   })
 
-  it("displays toast error and prevents advancing to Step 2 when terms already exist for selected phase and year", async () => {
+  it("displays toast error and prevents advancing to Step 2 when terms have date conflict with existing terms", async () => {
     mockExistingTerms = [
       {
         id: "term-1",
         title: "ترم موجود",
-        startDate: new Date().toISOString(),
-        endDate: new Date().toISOString(),
+        startDate: "2024-10-01",
+        endDate: "2024-10-15",
         operatingPhaseId: "phase-1",
       },
     ]
@@ -202,7 +202,7 @@ describe("GeneratePhaseTermsPage", () => {
     })
 
     expect(toast.error).toHaveBeenCalledWith(
-      "ترم‌های این فاز برای سال تحصیلی انتخاب‌شده قبلاً ایجاد شده‌اند."
+      "تاریخ ترم «مهر و آبان ۱۴۰۳» با ترم «ترم موجود» تداخل و روزهای یکسان دارد."
     )
     expect(mockPush).not.toHaveBeenCalledWith("/terms/generate/preview")
   })

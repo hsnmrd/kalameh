@@ -2,9 +2,11 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
+import { AlertTriangle } from "lucide-react"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
 import { DatePicker } from "@workspace/ui/components/date-picker"
+import { cn } from "@workspace/ui/lib/utils"
 import {
   Table,
   TableHeader,
@@ -21,6 +23,11 @@ export interface ProposalsTableProps {
   onTitleChange: (index: number, newTitle: string) => void
   onStartDateChange: (index: number, newStartDate: string) => void
   locale?: "fa" | "en"
+  dateConflicts?: Array<{
+    termTitle: string
+    conflictingTitle: string
+    termIndex: number
+  }>
 }
 
 export function ProposalsTable({
@@ -28,6 +35,7 @@ export function ProposalsTable({
   onTitleChange,
   onStartDateChange,
   locale,
+  dateConflicts,
 }: ProposalsTableProps) {
   const t = useTranslations("terms")
   const defaultLocale = useLocale() as "fa" | "en"
@@ -51,17 +59,27 @@ export function ProposalsTable({
     <>
       {/* Responsive Cards View (< md) */}
       <div className="flex flex-col gap-3 md:hidden">
-        {proposals.map((item, index) => (
-          <ProposalCard
-            key={index}
-            proposal={item}
-            index={index}
-            minDate={getMinDate(index)}
-            onTitleChange={onTitleChange}
-            onStartDateChange={onStartDateChange}
-            locale={activeLocale}
-          />
-        ))}
+        {proposals.map((item, index) => {
+          const conflictsForTerm = dateConflicts?.filter(
+            (c) => c.termIndex === index || c.termTitle === item.title
+          )
+          const conflictingTitles = Array.from(
+            new Set(conflictsForTerm?.map((c) => c.conflictingTitle) ?? [])
+          ).join("، ")
+
+          return (
+            <ProposalCard
+              key={index}
+              proposal={item}
+              index={index}
+              minDate={getMinDate(index)}
+              onTitleChange={onTitleChange}
+              onStartDateChange={onStartDateChange}
+              locale={activeLocale}
+              conflictingTitles={conflictingTitles || undefined}
+            />
+          )
+        })}
       </div>
 
       {/* Desktop Table View (>= md) */}
@@ -88,57 +106,95 @@ export function ProposalsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {proposals.map((item, index) => (
-              <TableRow key={index}>
-                <TableCell className="text-center font-medium text-muted-foreground">
-                  {index + 1}
-                </TableCell>
-                <TableCell className="min-w-[160px]">
-                  <Input
-                    value={item.title}
-                    onChange={(e) => onTitleChange(index, e.target.value)}
-                    className="h-9 text-xs font-semibold"
-                  />
-                </TableCell>
-                <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
-                  {item.monthNamesFa}
-                </TableCell>
-                <TableCell className="min-w-[130px]">
-                  <DatePicker
-                    variant="inline"
-                    value={item.startDate}
-                    minDate={getMinDate(index)}
-                    onChange={(val) => {
-                      if (val) {
-                        onStartDateChange(index, val)
+            {proposals.map((item, index) => {
+              const conflictsForTerm = dateConflicts?.filter(
+                (c) => c.termIndex === index || c.termTitle === item.title
+              )
+              const hasConflict = Boolean(
+                conflictsForTerm && conflictsForTerm.length > 0
+              )
+              const conflictingTitles = Array.from(
+                new Set(conflictsForTerm?.map((c) => c.conflictingTitle) ?? [])
+              ).join("، ")
+
+              return (
+                <TableRow
+                  key={index}
+                  className={
+                    hasConflict
+                      ? "bg-destructive/5 hover:bg-destructive/10"
+                      : undefined
+                  }
+                >
+                  <TableCell className="text-center font-medium text-muted-foreground">
+                    {index + 1}
+                  </TableCell>
+                  <TableCell className="min-w-[160px]">
+                    <div className="flex flex-col gap-1">
+                      <Input
+                        value={item.title}
+                        onChange={(e) => onTitleChange(index, e.target.value)}
+                        className={cn(
+                          "h-9 text-xs font-semibold",
+                          hasConflict &&
+                            "border-destructive/60 focus-visible:ring-destructive/30"
+                        )}
+                      />
+                      {hasConflict && conflictingTitles && (
+                        <span className="flex items-center gap-1 text-[11px] font-medium text-destructive">
+                          <AlertTriangle className="size-3 shrink-0" />
+                          <span className="truncate">
+                            {t("batchModal.cardConflictNotice", {
+                              title: conflictingTitles,
+                            })}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                    {item.monthNamesFa}
+                  </TableCell>
+                  <TableCell className="min-w-[130px]">
+                    <DatePicker
+                      variant="inline"
+                      value={item.startDate}
+                      minDate={getMinDate(index)}
+                      onChange={(val) => {
+                        if (val) {
+                          onStartDateChange(index, val)
+                        }
+                      }}
+                      locale={activeLocale}
+                      clearable={false}
+                      showOffDays
+                      className={
+                        hasConflict ? "border-destructive/60" : undefined
                       }
-                    }}
-                    locale={activeLocale}
-                    clearable={false}
-                    showOffDays
-                  />
-                </TableCell>
-                <TableCell className="text-xs font-medium whitespace-nowrap">
-                  <span className="inline-flex h-8 items-center px-2 text-xs font-medium text-foreground">
-                    {item.endDateJalali}
-                  </span>
-                </TableCell>
-                <TableCell className="text-center text-xs font-semibold">
-                  {item.sessionsCount ?? 18}
-                </TableCell>
-                <TableCell className="text-center text-xs text-muted-foreground">
-                  {item.daysCount}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge
-                    variant={item.holidaysCount > 0 ? "secondary" : "outline"}
-                    className="px-2 py-0.5 text-xs"
-                  >
-                    {item.holidaysCount}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
+                    />
+                  </TableCell>
+                  <TableCell className="text-xs font-medium whitespace-nowrap">
+                    <span className="inline-flex h-8 items-center px-2 text-xs font-medium text-foreground">
+                      {item.endDateJalali}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-center text-xs font-semibold">
+                    {item.sessionsCount ?? 18}
+                  </TableCell>
+                  <TableCell className="text-center text-xs text-muted-foreground">
+                    {item.daysCount}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge
+                      variant={item.holidaysCount > 0 ? "secondary" : "outline"}
+                      className="px-2 py-0.5 text-xs"
+                    >
+                      {item.holidaysCount}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </div>

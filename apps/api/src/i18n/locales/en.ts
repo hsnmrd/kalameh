@@ -89,6 +89,8 @@ export const en: TranslationDictionary = {
       'This term has associated classes and cannot be deleted',
     duplicatePhaseYear:
       'Terms for this phase have already been created for the selected academic year',
+    termDateConflict:
+      'Term "{term}" has date conflict and overlapping days with term "{conflictingTerm}"',
   },
   courses: {
     courseNotFound: 'Requested course was not found',

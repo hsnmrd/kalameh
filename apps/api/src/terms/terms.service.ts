@@ -16,7 +16,8 @@ import {
   calculateTermLifecycleStatus,
   isTermDeletable,
   generatePhaseTerms,
-  gregorianToJalali,
+  hasTermDateConflict,
+  checkTermsDateOverlap,
   type JwtPayload,
   type SupportedLocale,
   type TermDto,
@@ -218,6 +219,32 @@ export class TermsService {
       throw new BadRequestException('فاز تحصیلی انتخاب‌شده نامعتبر است.');
     }
 
+    const existingPhaseTerms = await this.prisma.term.findMany({
+      where: {
+        instituteId,
+        operatingPhaseId: dto.operatingPhaseId,
+      },
+      select: {
+        id: true,
+        title: true,
+        startDate: true,
+        endDate: true,
+      },
+    });
+
+    const conflictingExisting = existingPhaseTerms.find((term) =>
+      hasTermDateConflict({ startDate: start, endDate: end }, term),
+    );
+
+    if (conflictingExisting) {
+      throw new ConflictException(
+        this.i18n.t('terms.termDateConflict', locale, {
+          term: dto.title,
+          conflictingTerm: conflictingExisting.title,
+        }),
+      );
+    }
+
     const created = await this.prisma.term.create({
       data: {
         instituteId,
@@ -307,6 +334,36 @@ export class TermsService {
       }
     }
 
+    if (dto.startDate || dto.endDate || dto.operatingPhaseId) {
+      const targetPhaseId = dto.operatingPhaseId ?? existing.operatingPhaseId;
+      const existingPhaseTerms = await this.prisma.term.findMany({
+        where: {
+          instituteId: existing.instituteId,
+          operatingPhaseId: targetPhaseId,
+          id: { not: id },
+        },
+        select: {
+          id: true,
+          title: true,
+          startDate: true,
+          endDate: true,
+        },
+      });
+
+      const conflictingExisting = existingPhaseTerms.find((term) =>
+        hasTermDateConflict({ startDate: start, endDate: end }, term),
+      );
+
+      if (conflictingExisting) {
+        throw new ConflictException(
+          this.i18n.t('terms.termDateConflict', locale, {
+            term: dto.title ?? existing.title,
+            conflictingTerm: conflictingExisting.title,
+          }),
+        );
+      }
+    }
+
     const updated = await this.prisma.term.update({
       where: {
         id,
@@ -373,7 +430,7 @@ export class TermsService {
       },
     });
 
-    // Check if terms already exist for this operating phase and academic year
+    // Check if terms already exist for this operating phase
     const existingPhaseTerms = await this.prisma.term.findMany({
       where: {
         instituteId,
@@ -383,19 +440,9 @@ export class TermsService {
         id: true,
         title: true,
         startDate: true,
+        endDate: true,
       },
     });
-
-    const isDuplicate = existingPhaseTerms.some((t) => {
-      const startYear = gregorianToJalali(t.startDate).year;
-      return startYear === jalaliYear;
-    });
-
-    if (isDuplicate) {
-      throw new ConflictException(
-        this.i18n.t('terms.duplicatePhaseYear', locale),
-      );
-    }
 
     const institute = await this.prisma.institute.findFirstOrThrow({
       where: { id: phase.instituteId },
@@ -408,7 +455,7 @@ export class TermsService {
       },
     });
 
-    return generatePhaseTerms({
+    const proposals = generatePhaseTerms({
       phase: {
         id: phase.id,
         title: phase.title,
@@ -428,6 +475,35 @@ export class TermsService {
       customOffDays: institute.customOffDays,
       dismissedHolidays: institute.dismissedHolidays,
     });
+
+    // Check that every generated term does not have conflict and same days with existing terms
+    for (const proposal of proposals) {
+      const conflictingExisting = existingPhaseTerms.find((existing) =>
+        hasTermDateConflict(proposal, existing),
+      );
+      if (conflictingExisting) {
+        throw new ConflictException(
+          this.i18n.t('terms.termDateConflict', locale, {
+            term: proposal.title,
+            conflictingTerm: conflictingExisting.title,
+          }),
+        );
+      }
+    }
+
+    // Check that generated terms do not have date conflicts among themselves
+    const internalConflict = checkTermsDateOverlap(proposals);
+    if (internalConflict.hasConflict && internalConflict.conflictingPair) {
+      const [termA, termB] = internalConflict.conflictingPair;
+      throw new ConflictException(
+        this.i18n.t('terms.termDateConflict', locale, {
+          term: termA.title,
+          conflictingTerm: termB.title,
+        }),
+      );
+    }
+
+    return proposals;
   }
 
   async batchCreatePhaseTerms(
@@ -478,6 +554,49 @@ export class TermsService {
         `${this.i18n.t('terms.termAlreadyExists', locale)}: ${existingTitles
           .map((t) => t.title)
           .join(', ')}`,
+      );
+    }
+
+    // Check date conflict with existing terms in this operating phase
+    const existingPhaseTerms = await this.prisma.term.findMany({
+      where: {
+        instituteId,
+        operatingPhaseId: dto.operatingPhaseId,
+      },
+      select: {
+        id: true,
+        title: true,
+        startDate: true,
+        endDate: true,
+      },
+    });
+
+    for (const t of dto.terms) {
+      const conflictingExisting = existingPhaseTerms.find((existing) =>
+        hasTermDateConflict(t, existing),
+      );
+      if (conflictingExisting) {
+        throw new ConflictException(
+          this.i18n.t('terms.termDateConflict', locale, {
+            term: t.title,
+            conflictingTerm: conflictingExisting.title,
+          }),
+        );
+      }
+    }
+
+    // Check date conflicts within the batch
+    const batchInternalConflict = checkTermsDateOverlap(dto.terms);
+    if (
+      batchInternalConflict.hasConflict &&
+      batchInternalConflict.conflictingPair
+    ) {
+      const [termA, termB] = batchInternalConflict.conflictingPair;
+      throw new ConflictException(
+        this.i18n.t('terms.termDateConflict', locale, {
+          term: termA.title,
+          conflictingTerm: termB.title,
+        }),
       );
     }
 

@@ -142,6 +142,34 @@ describe('TermsService', () => {
       );
     });
 
+    it('should throw ConflictException if term dates overlap with existing term in operating phase', async () => {
+      const dto = {
+        title: 'ترم تداخلی',
+        operatingPhaseId: 'phase-1',
+        startDate: '2026-10-01',
+        endDate: '2026-11-15',
+        isActive: true,
+      };
+
+      prismaService.term.findFirst.mockResolvedValue(null);
+      prismaService.instituteOperatingPhase.findFirst.mockResolvedValue({
+        id: 'phase-1',
+        instituteId: 'inst-1',
+      });
+      prismaService.term.findMany.mockResolvedValue([
+        {
+          id: 'existing-term',
+          title: 'پاییز ۱۴۰۵',
+          startDate: new Date('2026-09-23'),
+          endDate: new Date('2026-10-15'),
+        },
+      ]);
+
+      await expect(service.create(dto, mockAdmin)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
     it('should create new term when valid', async () => {
       const dto = {
         title: 'پاییز ۱۴۰۵',
@@ -275,6 +303,7 @@ describe('TermsService', () => {
           id: 'term-existing',
           title: 'مهر ۱۴۰۵',
           startDate: new Date('2026-09-23'), // Jalali year 1405
+          endDate: new Date('2026-11-10'),
         },
       ]);
 
@@ -326,6 +355,81 @@ describe('TermsService', () => {
 
       expect(result).toHaveLength(2);
       expect(prismaService.$transaction).toHaveBeenCalled();
+    });
+
+    it('should throw ConflictException if any term in batch overlaps with existing term in operating phase', async () => {
+      prismaService.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-1',
+        title: 'نیمسال اول',
+        instituteId: 'inst-1',
+      });
+      prismaService.term.findMany.mockImplementation((args: any) => {
+        // First call is titles check, second is date conflict check
+        if (args.where?.title?.in) return Promise.resolve([]);
+        return Promise.resolve([
+          {
+            id: 'existing-1',
+            title: 'ترم تابستان',
+            startDate: new Date('2026-06-21'),
+            endDate: new Date('2026-09-25'),
+          },
+        ]);
+      });
+
+      await expect(
+        service.batchCreatePhaseTerms(
+          {
+            operatingPhaseId: 'phase-1',
+            jalaliYear: 1405,
+            sessionsPerTerm: 18,
+            gapDaysBetweenTerms: 2,
+            terms: [
+              {
+                title: 'ترم پاییز ۱',
+                startDate: '2026-09-23', // Overlaps with 2026-09-25!
+                endDate: '2026-11-10',
+                isActive: true,
+              },
+            ],
+          },
+          mockAdmin,
+        ),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw ConflictException if terms within batch overlap with each other', async () => {
+      prismaService.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-1',
+        title: 'نیمسال اول',
+        instituteId: 'inst-1',
+      });
+      prismaService.term.findMany.mockResolvedValue([]);
+
+      await expect(
+        service.batchCreatePhaseTerms(
+          {
+            operatingPhaseId: 'phase-1',
+            jalaliYear: 1405,
+            sessionsPerTerm: 18,
+            gapDaysBetweenTerms: 2,
+            terms: [
+              {
+                title: 'ترم ۱',
+                startDate: '2026-09-23',
+                endDate: '2026-11-10', // Ends on 11-10
+                isActive: true,
+              },
+              {
+                title: 'ترم ۲',
+                startDate: '2026-11-10', // Starts on same day 11-10!
+                endDate: '2027-01-15',
+                isActive: true,
+              },
+            ],
+          },
+          mockAdmin,
+        ),
+      ).rejects.toThrow(ConflictException);
     });
   });
 

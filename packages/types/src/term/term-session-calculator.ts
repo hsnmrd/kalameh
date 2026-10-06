@@ -71,14 +71,14 @@ export interface CalculatedTermSchedule {
   examDates?: string[]
 }
 
-function toIsoDate(d: Date): string {
+export function toIsoDate(d: Date): string {
   const y = d.getFullYear()
   const m = (d.getMonth() + 1).toString().padStart(2, "0")
   const day = d.getDate().toString().padStart(2, "0")
   return `${y}-${m}-${day}`
 }
 
-function parseInputDate(input: string | Date): Date {
+export function parseInputDate(input: string | Date): Date {
   if (input instanceof Date) return input
   const jParsed = parseJalaliString(input)
   if (jParsed && jParsed.year >= 1300 && jParsed.year <= 1500) {

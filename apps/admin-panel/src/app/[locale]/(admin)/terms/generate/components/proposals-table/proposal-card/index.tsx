@@ -2,10 +2,11 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
+import { AlertTriangle } from "lucide-react"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
 import { DatePicker } from "@workspace/ui/components/date-picker"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import type { GeneratedTermProposal } from "@workspace/types"
 
 export interface ProposalCardProps {
@@ -15,6 +16,7 @@ export interface ProposalCardProps {
   onTitleChange: (index: number, newTitle: string) => void
   onStartDateChange: (index: number, newStartDate: string) => void
   locale?: "fa" | "en"
+  conflictingTitles?: string
 }
 
 export function ProposalCard({
@@ -24,18 +26,28 @@ export function ProposalCard({
   onTitleChange,
   onStartDateChange,
   locale,
+  conflictingTitles,
 }: ProposalCardProps) {
   const t = useTranslations("terms")
   const defaultLocale = useLocale() as "fa" | "en"
   const activeLocale = locale || defaultLocale
+  const hasConflict = Boolean(conflictingTitles)
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3.5 text-card-foreground shadow-2xs">
+    <div
+      className={cn(
+        "flex flex-col gap-2.5 rounded-2xl border bg-card p-3.5 text-card-foreground shadow-2xs",
+        hasConflict ? "border-destructive/60 bg-destructive/5" : "border-border"
+      )}
+    >
       {/* Row 1: Number Badge & Editable Title */}
       <div className="flex items-center gap-2">
         <Badge
           variant="outline"
-          className="flex size-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold"
+          className={cn(
+            "flex size-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold",
+            hasConflict && "border-destructive/60 text-destructive"
+          )}
         >
           {index + 1}
         </Badge>
@@ -43,9 +55,22 @@ export function ProposalCard({
           value={proposal.title}
           onChange={(e) => onTitleChange(index, e.target.value)}
           placeholder={t("batchModal.colTitle")}
-          className="h-9 min-w-0 flex-1 rounded-xl px-3 text-sm font-semibold"
+          className={cn(
+            "h-9 min-w-0 flex-1 rounded-xl px-3 text-sm font-semibold",
+            hasConflict &&
+              "border-destructive/60 focus-visible:ring-destructive/30"
+          )}
         />
       </div>
+
+      {hasConflict && conflictingTitles && (
+        <div className="flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
+          <AlertTriangle className="size-3.5 shrink-0 text-destructive" />
+          <span className="truncate">
+            {t("batchModal.cardConflictNotice", { title: conflictingTitles })}
+          </span>
+        </div>
+      )}
 
       {/* Row 2: Meta info strip (Covered Months & Badges) */}
       <div className="flex items-center justify-between gap-2 px-0.5">

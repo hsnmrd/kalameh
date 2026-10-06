@@ -21,6 +21,11 @@ export interface TermRangesLegendProps {
   selectedIndex: number
   onSelectIndex: (index: number) => void
   lockedTermIndex?: number
+  dateConflicts?: Array<{
+    termTitle: string
+    conflictingTitle: string
+    termIndex: number
+  }>
 }
 
 export function TermRangesLegend({
@@ -28,6 +33,7 @@ export function TermRangesLegend({
   selectedIndex,
   onSelectIndex,
   lockedTermIndex,
+  dateConflicts,
 }: TermRangesLegendProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
@@ -72,7 +78,17 @@ export function TermRangesLegend({
             const isSelected = idx === selectedIndex
             const isLockedOut =
               lockedTermIndex !== undefined && idx !== lockedTermIndex
+            const conflictsForTerm = dateConflicts?.filter(
+              (c) => c.termIndex === idx || c.termTitle === term.title
+            )
+            const hasConflict = Boolean(
+              conflictsForTerm && conflictsForTerm.length > 0
+            )
+            const conflictingTitles = Array.from(
+              new Set(conflictsForTerm?.map((c) => c.conflictingTitle) ?? [])
+            ).join("، ")
             const hasImbalance = Boolean(term.hasSessionImbalance)
+            const isDestructive = hasImbalance || hasConflict
             const evenDetail = term.patternDetails?.find(
               (p) => p.track === "EVEN"
             )
@@ -97,7 +113,7 @@ export function TermRangesLegend({
                     "group relative flex h-full w-full flex-col items-start justify-between gap-2 rounded-xl border-2 p-2.5 text-start font-normal whitespace-normal shadow-none transition-all select-none sm:rounded-2xl sm:p-3",
                     isLockedOut
                       ? "cursor-default border-dashed border-border/60 bg-muted/20 opacity-60 hover:border-border/60 hover:bg-muted/20"
-                      : hasImbalance
+                      : isDestructive
                         ? isSelected
                           ? "cursor-pointer border-destructive bg-destructive/10 shadow-xs ring-1 ring-destructive/40 hover:bg-destructive/15"
                           : "cursor-pointer border-destructive/60 bg-destructive/5 hover:border-destructive hover:bg-destructive/10"
@@ -111,13 +127,13 @@ export function TermRangesLegend({
                       <span
                         className={cn(
                           "size-2 shrink-0 rounded-full sm:size-2.5",
-                          hasImbalance ? "bg-destructive" : theme.dotColor
+                          isDestructive ? "bg-destructive" : theme.dotColor
                         )}
                       />
                       <span
                         className={cn(
                           "truncate text-[11px] font-bold sm:text-xs",
-                          hasImbalance
+                          isDestructive
                             ? "font-extrabold text-destructive"
                             : isSelected
                               ? "font-extrabold text-primary"
@@ -131,7 +147,7 @@ export function TermRangesLegend({
                     <span
                       className={cn(
                         "shrink-0 text-[10px] font-semibold transition-colors sm:text-xs",
-                        hasImbalance
+                        isDestructive
                           ? "font-bold text-destructive"
                           : isSelected
                             ? "font-bold text-primary"
@@ -179,6 +195,17 @@ export function TermRangesLegend({
                         </span>
                       )}
                     </div>
+
+                    {hasConflict && conflictingTitles && (
+                      <div className="mt-1 flex w-full items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-2 py-1 text-[10px] font-semibold text-destructive sm:text-[11px]">
+                        <AlertTriangle className="size-3 shrink-0 text-destructive" />
+                        <span className="truncate">
+                          {t("batchModal.cardConflictNotice", {
+                            title: conflictingTitles,
+                          })}
+                        </span>
+                      </div>
+                    )}
 
                     {hasImbalance && (
                       <div className="mt-1 flex w-full items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-2 py-1 text-[10px] font-semibold text-destructive sm:text-[11px]">

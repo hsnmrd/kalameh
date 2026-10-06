@@ -3,7 +3,11 @@
 import { useTranslations } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
-import { gregorianToJalali, type GeneratedTermProposal } from "@workspace/types"
+import {
+  hasTermDateConflict,
+  checkTermsDateOverlap,
+  type GeneratedTermProposal,
+} from "@workspace/types"
 import { useRouter } from "@/i18n/routing"
 import { termsResource } from "@/lib/api"
 
@@ -68,21 +72,39 @@ export function usePhaseTermPersistence({
       if (!activePhaseId) toast.error(t("batchModal.phasePlaceholder"))
       return
     }
-    const isDuplicate = existingTerms.some((term) => {
-      try {
-        return gregorianToJalali(new Date(term.startDate)).year === jalaliYear
-      } catch {
-        return false
-      }
-    })
-    if (isDuplicate) {
-      toast.error(t("batchModal.duplicatePhaseYear"))
-      return
-    }
     try {
       const result = await previewQuery.refetch()
       if (result.isError) return
       if (result.data?.length) {
+        // Check if any proposed term has date conflict with existing terms
+        for (const proposal of result.data) {
+          const conflicting = existingTerms.find((existing) =>
+            hasTermDateConflict(proposal, existing)
+          )
+          if (conflicting) {
+            toast.error(
+              t("batchModal.termDateConflict", {
+                term: proposal.title,
+                conflictingTerm: conflicting.title,
+              })
+            )
+            return
+          }
+        }
+
+        // Check internal conflicts among proposals
+        const internalConflict = checkTermsDateOverlap(result.data)
+        if (internalConflict.hasConflict && internalConflict.conflictingPair) {
+          const [termA, termB] = internalConflict.conflictingPair
+          toast.error(
+            t("batchModal.termDateConflict", {
+              term: termA.title,
+              conflictingTerm: termB.title,
+            })
+          )
+          return
+        }
+
         setProposals(result.data)
         setCustomTitles({})
         router.push("/terms/generate/preview")
@@ -96,6 +118,36 @@ export function usePhaseTermPersistence({
 
   const handleSubmit = () => {
     if (!activePhaseId || proposals.length === 0) return
+
+    // Check conflicts with existing terms
+    for (const proposal of proposals) {
+      const conflicting = existingTerms.find((existing) =>
+        hasTermDateConflict(proposal, existing)
+      )
+      if (conflicting) {
+        toast.error(
+          t("batchModal.termDateConflict", {
+            term: proposal.title,
+            conflictingTerm: conflicting.title,
+          })
+        )
+        return
+      }
+    }
+
+    // Check internal conflicts among proposals
+    const internalConflict = checkTermsDateOverlap(proposals)
+    if (internalConflict.hasConflict && internalConflict.conflictingPair) {
+      const [termA, termB] = internalConflict.conflictingPair
+      toast.error(
+        t("batchModal.termDateConflict", {
+          term: termA.title,
+          conflictingTerm: termB.title,
+        })
+      )
+      return
+    }
+
     batchCreateMutation.mutate({
       instituteId: activeInstituteId || undefined,
       operatingPhaseId: activePhaseId,
@@ -124,5 +176,6 @@ export function usePhaseTermPersistence({
     handleCancel,
     isLoadingExisting,
     previewQuery,
+    existingTerms,
   }
 }

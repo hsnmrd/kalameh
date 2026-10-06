@@ -28,6 +28,11 @@ export interface StepPreviewProps {
   customOffDays?: string[]
   activeDismissedHolidays?: string[]
   compensatorySessions?: Record<number, CompensatorySession[]>
+  dateConflicts?: Array<{
+    termTitle: string
+    conflictingTitle: string
+    termIndex: number
+  }>
 }
 
 export function StepPreview({
@@ -44,6 +49,7 @@ export function StepPreview({
   customOffDays,
   activeDismissedHolidays,
   compensatorySessions,
+  dateConflicts,
 }: StepPreviewProps) {
   const t = useTranslations("terms")
 
@@ -56,6 +62,35 @@ export function StepPreview({
 
   return (
     <div className="flex flex-col gap-5">
+      {/* Date Conflict Warning Alert */}
+      {dateConflicts && dateConflicts.length > 0 && (
+        <div className="flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+          <div className="flex flex-col gap-1">
+            <span className="font-bold text-destructive">
+              {t("batchModal.conflictWarning")}
+            </span>
+            <div className="flex flex-col gap-1 text-muted-foreground">
+              {Array.from(
+                new Map(
+                  dateConflicts.map((c) => [
+                    [c.termTitle, c.conflictingTitle].sort().join(":::"),
+                    c,
+                  ])
+                ).values()
+              ).map((c, i) => (
+                <span key={i} className="leading-relaxed text-destructive/90">
+                  {t("batchModal.conflictWarningDesc", {
+                    term: c.termTitle,
+                    conflictingTerm: c.conflictingTitle,
+                  })}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Active Term Session Imbalance Warning Alert */}
       {activeTerm?.hasSessionImbalance && (
         <div className="flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
@@ -103,6 +138,7 @@ export function StepPreview({
             customOffDays={customOffDays}
             activeDismissedHolidays={activeDismissedHolidays}
             compensatorySessions={compensatorySessions}
+            dateConflicts={dateConflicts}
           />
         ) : (
           <ProposalsTable
@@ -110,6 +146,7 @@ export function StepPreview({
             onTitleChange={onTitleChange}
             onStartDateChange={onStartDateChange}
             locale={locale}
+            dateConflicts={dateConflicts}
           />
         )
       ) : (

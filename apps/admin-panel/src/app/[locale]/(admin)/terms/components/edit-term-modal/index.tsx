@@ -14,7 +14,7 @@ import {
   FormDialogCloseButton,
 } from "@workspace/ui/components/dialog"
 import type { ComboboxOption } from "@workspace/ui/components/combobox"
-import type { TermDto } from "@workspace/types"
+import { type TermDto, hasTermDateConflict } from "@workspace/types"
 import { termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import {
@@ -192,6 +192,29 @@ export function EditTermModal({
 
   const onSubmit = (values: UpdateTermInput) => {
     if (!term) return
+    const targetPhaseId = values.operatingPhaseId ?? term.operatingPhaseId
+    if (targetPhaseId && allTerms && allTerms.length > 0) {
+      const candidateDates = {
+        startDate: values.startDate ?? term.startDate,
+        endDate: values.endDate ?? term.endDate,
+      }
+      const conflict = allTerms.find(
+        (existing) =>
+          existing.id !== term.id &&
+          existing.operatingPhaseId === targetPhaseId &&
+          hasTermDateConflict(candidateDates, existing)
+      )
+      if (conflict) {
+        toast.error(
+          t("batchModal.termDateConflict", {
+            term: values.title ?? term.title,
+            conflictingTerm: conflict.title,
+          })
+        )
+        return
+      }
+    }
+
     updateMutation.mutate({
       id: term.id,
       body: values,

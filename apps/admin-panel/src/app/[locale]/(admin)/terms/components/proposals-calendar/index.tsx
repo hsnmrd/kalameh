@@ -30,6 +30,11 @@ export interface ProposalsCalendarProps {
   lockedTermIndex?: number
   readOnly?: boolean
   showLegend?: boolean
+  dateConflicts?: Array<{
+    termTitle: string
+    conflictingTitle: string
+    termIndex: number
+  }>
 }
 
 export function ProposalsCalendar({
@@ -50,6 +55,7 @@ export function ProposalsCalendar({
   lockedTermIndex,
   readOnly = false,
   showLegend = true,
+  dateConflicts,
 }: ProposalsCalendarProps) {
   const defaultLocale = useLocale() as "fa" | "en"
   const activeLocale = locale || defaultLocale
@@ -89,6 +95,7 @@ export function ProposalsCalendar({
           selectedIndex={selectedTermIndex}
           onSelectIndex={handleSelectIndex}
           lockedTermIndex={lockedTermIndex}
+          dateConflicts={dateConflicts}
         />
       )}
 

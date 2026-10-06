@@ -25,6 +25,8 @@ export function GeneratePhaseTermsPreviewContent() {
     setViewMode,
     proposals,
     hasAnySessionImbalance,
+    dateConflicts,
+    hasAnyDateConflict,
     batchCreateMutation,
     observeOfficialHolidays,
     customOffDays,
@@ -52,7 +54,8 @@ export function GeneratePhaseTermsPreviewContent() {
   const isSubmitDisabled =
     proposals.length === 0 ||
     batchCreateMutation.isPending ||
-    hasAnySessionImbalance
+    hasAnySessionImbalance ||
+    hasAnyDateConflict
 
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
@@ -107,6 +110,7 @@ export function GeneratePhaseTermsPreviewContent() {
             customOffDays={customOffDays}
             activeDismissedHolidays={activeDismissedHolidays}
             compensatorySessions={compensatorySessions}
+            dateConflicts={dateConflicts}
           />
         </AdminPageShell>
       </PermissionGuard>

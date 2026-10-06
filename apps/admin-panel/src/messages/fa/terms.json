@@ -219,7 +219,11 @@
     "referenceTermBadge": "فقط خواندنی",
     "referenceTermNotice": "این تاریخ متعلق به «{title}» است. در این بخش فقط ترم فعال قابل ویرایش است.",
     "calendarPhaseTitle": "تقویم و زنجیره ترم‌های فاز",
-    "calendarSingleTitle": "پیش‌نمایش تقویم جلسات ترم"
+    "calendarSingleTitle": "پیش‌نمایش تقویم جلسات ترم",
+    "conflictWarning": "هشدار تداخل تاریخ",
+    "conflictWarningDesc": "تاریخ ترم «{term}» با ترم «{conflictingTerm}» تداخل دارد و روزهای مشترک دارند.",
+    "cardConflictNotice": "تداخل تاریخی با «{title}»",
+    "termDateConflict": "تاریخ ترم «{term}» با ترم «{conflictingTerm}» تداخل و روزهای یکسان دارد."
   },
   "viewModal": {
     "title": "مشاهده اطلاعات ترم",

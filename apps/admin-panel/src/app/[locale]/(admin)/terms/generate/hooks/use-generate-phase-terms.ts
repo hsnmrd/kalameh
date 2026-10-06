@@ -4,7 +4,11 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import type { ComboboxOption } from "@workspace/ui/components/combobox"
-import { resolveClassPatterns, type WeekDay } from "@workspace/types"
+import {
+  resolveClassPatterns,
+  hasTermDateConflict,
+  type WeekDay,
+} from "@workspace/types"
 import { operatingPhasesResource, institutesResource } from "@/lib/api"
 import { useActiveInstitute, usePhaseTermsGenerateStore } from "@/lib/stores"
 import { usePhaseTermCompensatoryActions } from "./use-phase-term-compensatory-actions"
@@ -144,6 +148,7 @@ export function useGeneratePhaseTerms() {
     handleSubmit,
     isLoadingExisting,
     previewQuery,
+    existingTerms,
   } = usePhaseTermPersistence({
     activeInstituteId,
     activePhaseId,
@@ -155,6 +160,42 @@ export function useGeneratePhaseTerms() {
     setCustomTitles,
     reset,
   })
+
+  const dateConflicts = React.useMemo(() => {
+    const list: Array<{
+      termTitle: string
+      conflictingTitle: string
+      termIndex: number
+    }> = []
+
+    proposals.forEach((proposal, index) => {
+      // Check against existing terms in operating phase
+      existingTerms.forEach((existing) => {
+        if (hasTermDateConflict(proposal, existing)) {
+          list.push({
+            termTitle: proposal.title,
+            conflictingTitle: existing.title,
+            termIndex: index,
+          })
+        }
+      })
+
+      // Check against other proposals
+      proposals.forEach((other, otherIndex) => {
+        if (index !== otherIndex && hasTermDateConflict(proposal, other)) {
+          list.push({
+            termTitle: proposal.title,
+            conflictingTitle: other.title,
+            termIndex: index,
+          })
+        }
+      })
+    })
+
+    return list
+  }, [proposals, existingTerms])
+
+  const hasAnyDateConflict = dateConflicts.length > 0
 
   const hasAnySessionImbalance = React.useMemo(() => {
     return proposals.some((p) => p.hasSessionImbalance)
@@ -179,6 +220,9 @@ export function useGeneratePhaseTerms() {
     proposals,
     setProposals,
     hasAnySessionImbalance,
+    dateConflicts,
+    hasAnyDateConflict,
+    existingTerms,
     phaseOptions,
     previewQuery,
     batchCreateMutation,

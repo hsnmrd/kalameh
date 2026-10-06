@@ -219,7 +219,11 @@
     "referenceTermBadge": "Read-only",
     "referenceTermNotice": "This date belongs to \"{title}\". Only the active term can be edited here.",
     "calendarPhaseTitle": "Phase Terms & Calendar",
-    "calendarSingleTitle": "Term Sessions Calendar Preview"
+    "calendarSingleTitle": "Term Sessions Calendar Preview",
+    "conflictWarning": "Date Conflict Warning",
+    "conflictWarningDesc": "Term \"{term}\" has a date conflict and shares overlapping days with term \"{conflictingTerm}\".",
+    "cardConflictNotice": "Conflict with \"{title}\"",
+    "termDateConflict": "Term \"{term}\" has date conflict and overlapping days with term \"{conflictingTerm}\"."
   },
   "viewModal": {
     "title": "View Term Details",
