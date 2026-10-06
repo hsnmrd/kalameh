@@ -23,6 +23,7 @@ export interface AdminHeaderProps {
   onSwitchLanguage?: () => void
   onLogout?: () => void
   locale?: string
+  className?: string
 }
 
 function getPageTitle(
@@ -104,7 +105,12 @@ function getPageTitle(
   return t("nav.dashboard")
 }
 
-export function AdminHeader({ role, user, onLogout }: AdminHeaderProps) {
+export function AdminHeader({
+  role,
+  user,
+  onLogout,
+  className,
+}: AdminHeaderProps) {
   const t = useTranslations("common")
   const pathname = usePathname()
   const effectiveRole = role ?? user?.role
@@ -128,37 +134,40 @@ export function AdminHeader({ role, user, onLogout }: AdminHeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex h-16 items-center justify-between px-4 transition-all duration-200 sm:px-6 lg:px-8",
+        "sticky top-0 z-30 w-full transition-all duration-200",
         isScrolled
           ? "border-b border-border bg-card/10 backdrop-blur-md"
-          : "border-b border-transparent bg-transparent"
+          : "border-b border-transparent bg-transparent",
+        className
       )}
     >
-      <div className="flex items-center gap-2 sm:gap-2.5">
-        {backNavigation && (
-          <Button
-            render={<Link href={backNavigation.backHref} />}
-            nativeButton={false}
-            variant="ghost"
-            size="icon"
-            data-testid="admin-header-back-btn"
-            className="size-8 cursor-pointer rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label={backNavigation.backLabel ?? t("back")}
-            title={backNavigation.backLabel ?? t("back")}
-          >
-            <BackIcon className="size-4" />
-          </Button>
-        )}
-        {headerActions}
-        <h1 className="text-lg font-bold tracking-tight text-foreground sm:text-xl lg:text-2xl">
-          {pageTitle}
-        </h1>
-      </div>
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {backNavigation && (
+            <Button
+              render={<Link href={backNavigation.backHref} />}
+              nativeButton={false}
+              variant="ghost"
+              size="icon"
+              data-testid="admin-header-back-btn"
+              className="size-8 cursor-pointer rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label={backNavigation.backLabel ?? t("back")}
+              title={backNavigation.backLabel ?? t("back")}
+            >
+              <BackIcon className="size-4" />
+            </Button>
+          )}
+          {headerActions}
+          <h1 className="text-lg font-bold tracking-tight text-foreground sm:text-xl lg:text-2xl">
+            {pageTitle}
+          </h1>
+        </div>
 
-      {/* Right / End Section */}
-      <div className="flex items-center gap-2.5">
-        {/* User Card Info with Avatar Trigger & Popup */}
-        <UserBadge user={user} role={role} onLogout={onLogout} />
+        {/* Right / End Section */}
+        <div className="flex items-center gap-2.5">
+          {/* User Card Info with Avatar Trigger & Popup */}
+          <UserBadge user={user} role={role} onLogout={onLogout} />
+        </div>
       </div>
     </header>
   )

@@ -101,4 +101,16 @@ describe("AdminHeader", () => {
 
     expect(screen.getByText("پیشخوان آموزشگاه")).toBeInTheDocument()
   })
+
+  it("renders inner container with max-w-7xl and mx-auto matching page container", () => {
+    const { container } = render(
+      <HeaderActionsProvider>
+        <AdminHeader />
+      </HeaderActionsProvider>
+    )
+
+    const innerContainer = container.querySelector(".max-w-7xl")
+    expect(innerContainer).toBeInTheDocument()
+    expect(innerContainer).toHaveClass("mx-auto", "w-full", "max-w-7xl")
+  })
 })
