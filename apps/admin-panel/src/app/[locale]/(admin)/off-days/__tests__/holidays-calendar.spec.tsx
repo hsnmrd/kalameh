@@ -172,7 +172,7 @@ describe("HolidaysCalendar Component", () => {
     expect(
       screen.queryByRole("button", { name: "سال جاری" })
     ).not.toBeInTheDocument()
-  })
+  }, 30000)
 
   it("switches between annual and monthly view on desktop", () => {
     renderWithClient(

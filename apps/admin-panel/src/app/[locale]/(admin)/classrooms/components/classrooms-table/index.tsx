@@ -137,31 +137,25 @@ export function ClassroomsTable({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-8 text-primary" />
+      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
+        <Spinner className="size-8 text-foreground" />
       </div>
     )
   }
 
   if (!classrooms || classrooms.length === 0) {
     return (
-      <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-border bg-card p-8">
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <DoorOpen className="size-8 text-muted-foreground" />
-            </EmptyMedia>
-            <EmptyTitle>{t("table.empty")}</EmptyTitle>
-            <EmptyDescription>{t("subtitle")}</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="default">
+            <DoorOpen className="size-6" />
+          </EmptyMedia>
+          <EmptyTitle>{t("title")}</EmptyTitle>
+          <EmptyDescription>{t("table.empty")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     )
   }
 
-  return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card">
-      <DataTable columns={columns} data={classrooms} />
-    </div>
-  )
+  return <DataTable columns={columns} data={classrooms} />
 }

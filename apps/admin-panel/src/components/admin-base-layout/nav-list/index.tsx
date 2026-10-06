@@ -6,9 +6,10 @@ import { Lock } from "lucide-react"
 import type { Permission, AppModule } from "@workspace/types"
 import { ROLES } from "@workspace/types"
 import { Separator } from "@workspace/ui/components/separator"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { Link } from "@/i18n/routing"
 import { cn } from "@workspace/ui/lib/utils"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useNavTransition } from "@/lib/hooks"
 import { useActiveInstitute } from "@/lib/stores"
 
 export type NavItemKey =
@@ -62,6 +63,7 @@ export function NavList({
   const t = useTranslations("common.nav")
   const { hasPermission, user } = usePermissions()
   const { activeInstitute } = useActiveInstitute()
+  const { navigate, isHrefPending } = useNavTransition(pathname)
 
   const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
   const enabledModules = React.useMemo(
@@ -138,25 +140,32 @@ export function NavList({
                 const Icon = item.icon
                 const isLocked = !hasModuleAccess(item.module)
                 const isActive = isItemActive(item)
+                const isPending = isHrefPending(item.href)
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={onItemClick}
+                    onClick={(e) => navigate(e, item.href, onItemClick)}
                     aria-current={isActive ? "page" : undefined}
+                    aria-busy={isPending ? "true" : undefined}
                     className={cn(
                       "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors",
                       isActive
                         ? "bg-primary/10 font-semibold text-primary"
                         : isLocked
                           ? "text-muted-foreground/80 hover:bg-muted hover:text-foreground"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      isPending && "opacity-80"
                     )}
                   >
-                    <Icon className="size-4 shrink-0" />
+                    {isPending ? (
+                      <Spinner className="size-4 shrink-0 text-current" />
+                    ) : (
+                      <Icon className="size-4 shrink-0" />
+                    )}
                     <span className="truncate">{t(item.key)}</span>
-                    {isLocked && (
+                    {isLocked && !isPending && (
                       <Lock
                         aria-label={t("locked")}
                         className={cn(

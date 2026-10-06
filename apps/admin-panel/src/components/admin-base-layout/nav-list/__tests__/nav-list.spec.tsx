@@ -27,6 +27,11 @@ vi.mock("@/i18n/routing", () => ({
       {children}
     </a>
   ),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
 }))
 
 describe("NavList Component", () => {

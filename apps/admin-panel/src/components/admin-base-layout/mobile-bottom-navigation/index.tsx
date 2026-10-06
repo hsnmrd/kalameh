@@ -13,9 +13,10 @@ import {
   DrawerTitle,
 } from "@workspace/ui/components/drawer"
 import { Separator } from "@workspace/ui/components/separator"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 import { Link } from "@/i18n/routing"
-import { usePermissions } from "@/lib/hooks"
+import { usePermissions, useNavTransition } from "@/lib/hooks"
 import { useActiveInstitute } from "@/lib/stores"
 import type { MobileBottomNavigationProps } from "./types"
 import { DIRECT_ITEM_PRIORITY, MAX_DIRECT_ITEMS, isItemActive } from "./utils"
@@ -31,6 +32,7 @@ export function MobileBottomNavigation({
   const t = useTranslations("common")
   const { hasPermission, user } = usePermissions()
   const { activeInstitute } = useActiveInstitute()
+  const { navigate, isHrefPending } = useNavTransition(pathname)
 
   const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
   const enabledModules = React.useMemo(
@@ -97,22 +99,30 @@ export function MobileBottomNavigation({
             const Icon = item.icon
             const isActive = isItemActive(item, pathname)
             const isLocked = !hasModuleAccess(item.module)
+            const isPending = isHrefPending(item.href)
 
             return (
               <Link
                 key={item.key}
                 href={item.href}
+                onClick={(e) => navigate(e, item.href)}
                 aria-current={isActive ? "page" : undefined}
+                aria-busy={isPending ? "true" : undefined}
                 className={cn(
                   "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] leading-3 font-medium transition-colors",
                   isActive
                     ? "text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  isPending && "opacity-80"
                 )}
               >
                 <span className="relative">
-                  <Icon className="size-5" aria-hidden />
-                  {isLocked && (
+                  {isPending ? (
+                    <Spinner className="size-5 text-current" />
+                  ) : (
+                    <Icon className="size-5" aria-hidden />
+                  )}
+                  {isLocked && !isPending && (
                     <Lock
                       className="absolute -end-2 -top-1 size-3 rounded-full bg-card text-current"
                       aria-label={t("nav.locked")}
@@ -188,25 +198,34 @@ export function MobileBottomNavigation({
                         const Icon = item.icon
                         const isActive = isItemActive(item, pathname)
                         const isLocked = !hasModuleAccess(item.module)
+                        const isPending = isHrefPending(item.href)
 
                         return (
                           <Link
                             key={item.key}
                             href={item.href}
-                            onClick={() => setOpen(false)}
+                            onClick={(e) =>
+                              navigate(e, item.href, () => setOpen(false))
+                            }
                             aria-current={isActive ? "page" : undefined}
+                            aria-busy={isPending ? "true" : undefined}
                             className={cn(
                               "flex min-h-12 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors",
                               isActive
                                 ? "bg-primary/10 font-semibold text-primary"
-                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                              isPending && "opacity-80"
                             )}
                           >
-                            <Icon className="size-4 shrink-0" aria-hidden />
+                            {isPending ? (
+                              <Spinner className="size-4 shrink-0 text-current" />
+                            ) : (
+                              <Icon className="size-4 shrink-0" aria-hidden />
+                            )}
                             <span className="truncate">
                               {t(`nav.${item.key}`)}
                             </span>
-                            {isLocked && (
+                            {isLocked && !isPending && (
                               <Lock
                                 className="ms-auto size-3.5 shrink-0 text-current opacity-70"
                                 aria-label={t("nav.locked")}
