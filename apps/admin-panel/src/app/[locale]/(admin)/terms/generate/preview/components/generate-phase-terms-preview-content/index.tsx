@@ -42,13 +42,32 @@ export function GeneratePhaseTermsPreviewContent() {
     existingTerms,
   } = useGeneratePhaseTerms()
 
+  const isSubmittingRef = React.useRef(false)
+  if (batchCreateMutation.isPending || batchCreateMutation.isSuccess) {
+    isSubmittingRef.current = true
+  }
+
   React.useEffect(() => {
-    if (proposals.length === 0) {
+    if (
+      proposals.length === 0 &&
+      !isSubmittingRef.current &&
+      !batchCreateMutation.isPending &&
+      !batchCreateMutation.isSuccess
+    ) {
       router.replace("/terms/generate")
     }
-  }, [proposals.length, router])
+  }, [
+    proposals.length,
+    batchCreateMutation.isPending,
+    batchCreateMutation.isSuccess,
+    router,
+  ])
 
-  if (proposals.length === 0) {
+  if (
+    proposals.length === 0 &&
+    !isSubmittingRef.current &&
+    !batchCreateMutation.isSuccess
+  ) {
     return null
   }
 

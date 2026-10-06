@@ -191,6 +191,7 @@ describe("GeneratePhaseTermsPreviewPage", () => {
       "تمام ترم‌های فاز با موفقیت ایجاد شدند."
     )
     expect(mockPush).toHaveBeenCalledWith("/terms")
+    expect(mockReplace).not.toHaveBeenCalledWith("/terms/generate")
   })
 
   it("disables submit button when terms have session imbalance", async () => {

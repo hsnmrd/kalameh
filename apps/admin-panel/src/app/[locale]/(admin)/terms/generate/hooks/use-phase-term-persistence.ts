@@ -59,10 +59,10 @@ export function usePhaseTermPersistence({
   const batchCreateMutation = useMutation({
     ...termsResource.batchCreatePhase.toMutation(),
     onSuccess: () => {
-      reset?.()
       toast.success(t("batchModal.success"))
       queryClient.invalidateQueries({ queryKey: termsResource.list.baseKey() })
       router.push("/terms")
+      reset?.()
     },
   })
 
