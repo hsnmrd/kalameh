@@ -111,9 +111,14 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     arg:
       | ((tx: Prisma.TransactionClient) => Promise<T>)
       | Prisma.PrismaPromise<any>[],
+    options?: {
+      maxWait?: number;
+      timeout?: number;
+      isolationLevel?: Prisma.TransactionIsolationLevel;
+    },
   ): Promise<T> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-    return (prisma.$transaction as any)(arg);
+    return (prisma.$transaction as any)(arg, options);
   }
 
   async onModuleInit() {
