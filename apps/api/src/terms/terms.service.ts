@@ -428,10 +428,12 @@ export class TermsService {
       },
     });
 
+    const targetInstituteId = phase.instituteId;
+
     // Check if terms already exist in the institute
     const existingTerms = await this.prisma.term.findMany({
       where: {
-        instituteId,
+        instituteId: targetInstituteId,
       },
       select: {
         id: true,
@@ -489,33 +491,6 @@ export class TermsService {
       dismissedHolidays: institute.dismissedHolidays,
       existingTerms,
     });
-
-    // Check that every generated term does not have conflict and same days with existing terms
-    for (const proposal of proposals) {
-      const conflictingExisting = existingTerms.find((existing) =>
-        hasTermDateConflict(proposal, existing),
-      );
-      if (conflictingExisting) {
-        throw new ConflictException(
-          this.i18n.t('terms.termDateConflict', locale, {
-            term: proposal.title,
-            conflictingTerm: conflictingExisting.title,
-          }),
-        );
-      }
-    }
-
-    // Check that generated terms do not have date conflicts among themselves
-    const internalConflict = checkTermsDateOverlap(proposals);
-    if (internalConflict.hasConflict && internalConflict.conflictingPair) {
-      const [termA, termB] = internalConflict.conflictingPair;
-      throw new ConflictException(
-        this.i18n.t('terms.termDateConflict', locale, {
-          term: termA.title,
-          conflictingTerm: termB.title,
-        }),
-      );
-    }
 
     return proposals;
   }

@@ -179,7 +179,7 @@ describe("GeneratePhaseTermsPage", () => {
     expect(mockPush).toHaveBeenCalledWith("/terms")
   })
 
-  it("displays toast error and prevents advancing to Step 2 when terms have date conflict with existing terms", async () => {
+  it("allows advancing to Step 2 without displaying conflict toast error when existing terms exist", async () => {
     mockExistingTerms = [
       {
         id: "term-1",
@@ -201,10 +201,12 @@ describe("GeneratePhaseTermsPage", () => {
       continueBtn.click()
     })
 
-    expect(toast.error).toHaveBeenCalledWith(
-      "تاریخ ترم «مهر و آبان ۱۴۰۳» با ترم «ترم موجود» تداخل و روزهای یکسان دارد."
+    expect(toast.error).not.toHaveBeenCalledWith(
+      expect.stringContaining("تداخل")
     )
-    expect(mockPush).not.toHaveBeenCalledWith("/terms/generate/preview")
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/terms/generate/preview")
+    })
   })
 
   it("fetches proposals and navigates to /terms/generate/preview after clicking continue", async () => {

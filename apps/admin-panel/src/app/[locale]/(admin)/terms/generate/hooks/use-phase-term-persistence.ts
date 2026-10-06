@@ -75,35 +75,6 @@ export function usePhaseTermPersistence({
       const result = await previewQuery.refetch()
       if (result.isError) return
       if (result.data?.length) {
-        // Check if any proposed term has date conflict with existing terms
-        for (const proposal of result.data) {
-          const conflicting = existingTerms.find((existing) =>
-            hasTermDateConflict(proposal, existing)
-          )
-          if (conflicting) {
-            toast.error(
-              t("batchModal.termDateConflict", {
-                term: proposal.title,
-                conflictingTerm: conflicting.title,
-              })
-            )
-            return
-          }
-        }
-
-        // Check internal conflicts among proposals
-        const internalConflict = checkTermsDateOverlap(result.data)
-        if (internalConflict.hasConflict && internalConflict.conflictingPair) {
-          const [termA, termB] = internalConflict.conflictingPair
-          toast.error(
-            t("batchModal.termDateConflict", {
-              term: termA.title,
-              conflictingTerm: termB.title,
-            })
-          )
-          return
-        }
-
         setProposals(result.data)
         setCustomTitles({})
         router.push("/terms/generate/preview")

@@ -340,6 +340,35 @@ describe('TermsService', () => {
         service.previewPhaseTerms(mockAdmin, 'phase-1', 1405, 18),
       ).rejects.toThrow(ConflictException);
     });
+
+    it('generates proposals without throwing conflict when terms from another phase exist in the institute', async () => {
+      prismaService.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-2',
+        instituteId: 'inst-1',
+        title: 'فاز بهار',
+        months: [1, 2, 3],
+        daysOfWeek: ['SATURDAY', 'MONDAY', 'WEDNESDAY'],
+      });
+      prismaService.term.findMany.mockResolvedValue([
+        {
+          id: 'term-other-phase',
+          title: 'اسفند و فروردین ۱۴۰۵',
+          operatingPhaseId: 'phase-1',
+          startDate: new Date('2027-02-20'),
+          endDate: new Date('2027-04-06'),
+        },
+      ]);
+
+      const proposals = await service.previewPhaseTerms(
+        mockAdmin,
+        'phase-2',
+        1406,
+        15,
+      );
+
+      expect(proposals.length).toBeGreaterThan(0);
+      expect(proposals[0].title).toBeDefined();
+    });
   });
 
   describe('batchCreatePhaseTerms', () => {
