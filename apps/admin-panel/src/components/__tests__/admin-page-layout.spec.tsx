@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "../../test/test-utils"
 import { HeaderActionsProvider } from "../admin-base-layout/header-actions-context"
 import { AdminPageHeader } from "../admin-page-header"
 import { AdminPageShell } from "../admin-page-shell"
+import { FABSingle } from "@workspace/ui/components/fab"
 
 describe("AdminPageHeader & AdminPageShell Components", () => {
   describe("AdminPageHeader", () => {
@@ -54,6 +55,47 @@ describe("AdminPageHeader & AdminPageShell Components", () => {
       expect(screen.getByTestId("page-filter")).toBeInTheDocument()
       expect(screen.getByTestId("page-table")).toBeInTheDocument()
       expect(screen.getByTestId("page-modal")).toBeInTheDocument()
+    })
+
+    it("renders FAB at 5.5rem from bottom on main pages", () => {
+      render(
+        <HeaderActionsProvider>
+          <AdminPageShell
+            fab={<FABSingle onClick={vi.fn()} aria-label="Add item" />}
+          >
+            <div>Content</div>
+          </AdminPageShell>
+        </HeaderActionsProvider>
+      )
+
+      const fabButton = screen.getByRole("button", { name: "Add item" })
+      expect(fabButton).toHaveClass(
+        "bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))]"
+      )
+      expect(fabButton).not.toHaveClass(
+        "bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))]"
+      )
+    })
+
+    it("renders FAB closer to bottom (1.5rem) on inner pages with backHref", () => {
+      render(
+        <HeaderActionsProvider>
+          <AdminPageShell
+            backHref="/calendar"
+            fab={<FABSingle onClick={vi.fn()} aria-label="Add item" />}
+          >
+            <div>Content</div>
+          </AdminPageShell>
+        </HeaderActionsProvider>
+      )
+
+      const fabButton = screen.getByRole("button", { name: "Add item" })
+      expect(fabButton).toHaveClass(
+        "bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))]"
+      )
+      expect(fabButton).not.toHaveClass(
+        "bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))]"
+      )
     })
   })
 })

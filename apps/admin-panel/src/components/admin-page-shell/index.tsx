@@ -1,8 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { FABProvider } from "@workspace/ui/components/fab"
 import { cn } from "@workspace/ui/lib/utils"
+import { usePathname } from "@/i18n/routing"
 import { useHeaderActions } from "../admin-base-layout/header-actions-context"
+import { isInnerPage } from "../admin-base-layout/mobile-bottom-navigation"
 
 export interface AdminPageShellProps {
   /** Optional breadcrumb navigation displayed on top of the filter section (standard for inner/sub-pages) */
@@ -34,6 +37,7 @@ export function AdminPageShell({
   fab,
   className,
 }: AdminPageShellProps) {
+  const pathname = usePathname()
   const { setHeaderActions, setBackNavigation } = useHeaderActions()
 
   React.useEffect(() => {
@@ -49,14 +53,17 @@ export function AdminPageShell({
   }, [backHref, backLabel, setBackNavigation])
 
   const resolvedFilter = filter ?? filters
+  const isInner = isInnerPage(pathname) || Boolean(backHref)
 
   return (
-    <div className={cn("w-full", className)}>
-      {breadcrumb && <div className="mb-4">{breadcrumb}</div>}
-      {resolvedFilter}
-      {children}
-      {modals}
-      {fab}
-    </div>
+    <FABProvider hasBottomNav={!isInner}>
+      <div className={cn("w-full", className)}>
+        {breadcrumb && <div className="mb-4">{breadcrumb}</div>}
+        {resolvedFilter}
+        {children}
+        {modals}
+        {fab}
+      </div>
+    </FABProvider>
   )
 }
