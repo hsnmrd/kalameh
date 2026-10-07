@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { AlertTriangle } from "lucide-react"
+import { Trash2 } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
   AlertDialog,
@@ -58,27 +58,27 @@ export function DeleteOffDayModal({
   return (
     <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <AlertDialogContent className="p-6 sm:max-w-md">
-        <AlertDialogHeader className="flex flex-col items-center gap-4 text-center sm:items-start sm:text-start">
-          <AlertDialogMedia className="bg-destructive/10 text-destructive">
-            <AlertTriangle className="size-6" />
+        <AlertDialogHeader className="items-center text-center sm:items-center sm:text-center">
+          <AlertDialogMedia className="mb-3 bg-destructive/10 text-destructive">
+            <Trash2 className="size-6" />
           </AlertDialogMedia>
-          <div className="flex flex-col gap-1">
-            <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {offDay?.title
-                ? t("deleteOffDayLabel", { title: offDay.title })
-                : t("deleteDescription")}
-            </AlertDialogDescription>
-          </div>
+          <AlertDialogTitle className="text-center text-lg font-bold sm:text-xl">
+            {t("deleteTitle")}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-center text-sm leading-relaxed text-muted-foreground">
+            {offDay?.title
+              ? t("deleteOffDayLabel", { title: offDay.title })
+              : t("deleteDescription")}
+          </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <AlertDialogFooter className="mt-4 flex flex-row items-center justify-end gap-2">
+        <AlertDialogFooter className="mt-6 grid grid-cols-2 gap-3 sm:grid sm:grid-cols-2 [&>*]:w-full">
           <AlertDialogCancel
             type="button"
             variant="outline"
             onClick={onClose}
             disabled={deleteMutation.isPending}
-            className="cursor-pointer"
+            className="w-full"
           >
             {t("cancel")}
           </AlertDialogCancel>
@@ -87,7 +87,7 @@ export function DeleteOffDayModal({
             variant="destructive"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="cursor-pointer"
+            className="w-full"
           >
             {deleteMutation.isPending ? (
               <Spinner className="size-4" />

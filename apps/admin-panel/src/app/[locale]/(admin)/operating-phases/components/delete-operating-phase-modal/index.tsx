@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { AlertTriangle } from "lucide-react"
+import { Trash2 } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
   AlertDialog,
@@ -53,27 +53,30 @@ export function DeleteOperatingPhaseModal({
   return (
     <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <AlertDialogContent className="p-6 sm:max-w-md">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("deletePhase")}</AlertDialogTitle>
-        </AlertDialogHeader>
-
-        <div className="mt-4 flex items-start gap-4">
-          <AlertDialogMedia className="mb-0 bg-destructive/10 text-destructive">
-            <AlertTriangle className="size-5" />
+        <AlertDialogHeader className="items-center text-center sm:items-center sm:text-center">
+          <AlertDialogMedia className="mb-3 bg-destructive/10 text-destructive">
+            <Trash2 className="size-6" />
           </AlertDialogMedia>
-          <AlertDialogDescription className="text-xs leading-relaxed text-muted-foreground">
+          <AlertDialogTitle className="text-center text-lg font-bold sm:text-xl">
+            {t("deletePhase")}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-center text-sm leading-relaxed text-muted-foreground">
             {t("deleteDescription", { title: phase?.title || "" })}
           </AlertDialogDescription>
-        </div>
+        </AlertDialogHeader>
 
-        <AlertDialogFooter className="mt-6">
-          <AlertDialogCancel disabled={deleteMutation.isPending}>
+        <AlertDialogFooter className="mt-6 grid grid-cols-2 gap-3 sm:grid sm:grid-cols-2 [&>*]:w-full">
+          <AlertDialogCancel
+            disabled={deleteMutation.isPending}
+            className="w-full"
+          >
             {t("form.cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
+            variant="destructive"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="w-full"
           >
             {deleteMutation.isPending ? (
               <Spinner className="size-4" />

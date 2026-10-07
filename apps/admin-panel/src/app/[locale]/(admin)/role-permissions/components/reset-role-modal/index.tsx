@@ -34,22 +34,21 @@ export function ResetRoleModal({
   return (
     <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <AlertDialogContent className="p-6 sm:max-w-md">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("resetModal.title")}</AlertDialogTitle>
-        </AlertDialogHeader>
-
-        <div className="mt-4 flex items-start gap-4">
-          <AlertDialogMedia className="mb-0 bg-destructive/10 text-destructive">
-            <AlertTriangle />
+        <AlertDialogHeader className="items-center text-center sm:items-center sm:text-center">
+          <AlertDialogMedia className="mb-3 bg-destructive/10 text-destructive">
+            <AlertTriangle className="size-6" />
           </AlertDialogMedia>
-          <AlertDialogDescription className="text-xs leading-relaxed text-muted-foreground">
+          <AlertDialogTitle className="text-center text-lg font-bold sm:text-xl">
+            {t("resetModal.title")}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-center text-sm leading-relaxed text-muted-foreground">
             {t("resetModal.description")}
           </AlertDialogDescription>
-        </div>
+        </AlertDialogHeader>
 
-        <AlertDialogFooter className="mt-6 flex-row items-center gap-3 sm:justify-end sm:border-t sm:border-border/60 sm:pt-4">
+        <AlertDialogFooter className="mt-6 grid grid-cols-2 gap-3 sm:grid sm:grid-cols-2 [&>*]:w-full">
           <AlertDialogCancel
-            className="flex-1 sm:w-auto sm:flex-initial"
+            className="w-full"
             onClick={onClose}
             disabled={isLoading}
           >
@@ -58,7 +57,7 @@ export function ResetRoleModal({
 
           <AlertDialogAction
             variant="destructive"
-            className="flex-1 sm:w-auto sm:flex-initial"
+            className="w-full"
             onClick={onConfirm}
             disabled={isLoading}
           >

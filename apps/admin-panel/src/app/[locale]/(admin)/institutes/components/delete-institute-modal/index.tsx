@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { AlertTriangle } from "lucide-react"
+import { Trash2 } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import {
   AlertDialog,
@@ -58,18 +58,17 @@ export function DeleteInstituteModal({
   return (
     <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <AlertDialogContent className="p-6 sm:max-w-md">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("deleteModal.title")}</AlertDialogTitle>
-        </AlertDialogHeader>
-
-        <div className="mt-4 flex items-start gap-4">
-          <AlertDialogMedia className="mb-0 bg-destructive/10 text-destructive">
-            <AlertTriangle />
+        <AlertDialogHeader className="items-center text-center sm:items-center sm:text-center">
+          <AlertDialogMedia className="mb-3 bg-destructive/10 text-destructive">
+            <Trash2 className="size-6" />
           </AlertDialogMedia>
-          <AlertDialogDescription className="text-xs leading-relaxed text-muted-foreground">
+          <AlertDialogTitle className="text-center text-lg font-bold sm:text-xl">
+            {t("deleteModal.title")}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-center text-sm leading-relaxed text-muted-foreground">
             {t("deleteModal.description")}
           </AlertDialogDescription>
-        </div>
+        </AlertDialogHeader>
 
         {institute && (
           <div className="mt-5 rounded-xl border border-border/80 bg-muted/40 p-3.5 text-xs">
@@ -90,11 +89,11 @@ export function DeleteInstituteModal({
           </div>
         )}
 
-        <AlertDialogFooter className="mt-6 flex-row items-center gap-3 sm:justify-end sm:border-t sm:border-border/60 sm:pt-4">
+        <AlertDialogFooter className="mt-6 grid grid-cols-2 gap-3 sm:grid sm:grid-cols-2 [&>*]:w-full">
           <AlertDialogCancel
             onClick={onClose}
             disabled={deleteMutation.isPending}
-            className="flex-1 sm:w-auto sm:flex-initial"
+            className="w-full"
           >
             {t("deleteModal.cancel")}
           </AlertDialogCancel>
@@ -103,7 +102,7 @@ export function DeleteInstituteModal({
             variant="destructive"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="flex-1 sm:w-auto sm:flex-initial"
+            className="w-full"
           >
             {deleteMutation.isPending ? (
               <>

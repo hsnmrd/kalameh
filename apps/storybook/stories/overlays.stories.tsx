@@ -22,6 +22,7 @@ import {
   PopoverPopup,
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
+import { Trash2 } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogMedia,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 
@@ -114,16 +116,21 @@ export const AlertDialogExample: Story = {
   render: () => (
     <AlertDialog defaultOpen>
       <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
+        <AlertDialogHeader className="items-center text-center sm:items-center sm:text-center">
+          <AlertDialogMedia className="mb-3 bg-destructive/10 text-destructive">
+            <Trash2 className="size-6" />
+          </AlertDialogMedia>
+          <AlertDialogTitle className="text-center text-lg font-bold sm:text-xl">
+            Are you absolutely sure?
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-center text-sm leading-relaxed text-muted-foreground">
             This action cannot be undone. This will permanently delete your
             account and remove your data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction variant="destructive">
+        <AlertDialogFooter className="mt-6 grid grid-cols-2 gap-3 sm:grid sm:grid-cols-2 [&>*]:w-full">
+          <AlertDialogCancel className="w-full">Cancel</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" className="w-full">
             Yes, delete account
           </AlertDialogAction>
         </AlertDialogFooter>
