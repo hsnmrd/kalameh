@@ -5,7 +5,7 @@ import { NextIntlClientProvider } from "next-intl"
 import settingMessagesFa from "../../../../../messages/fa/setting.json"
 import commonMessagesFa from "../../../../../messages/fa/common.json"
 import { institutesResource, termsResource, classesResource } from "@/lib/api"
-import { OffDaysContent } from "../components/off-days-content"
+import { CalendarContent } from "../components/calendar-content"
 
 const mockInstituteId = "11111111-1111-1111-1111-111111111111"
 
@@ -13,7 +13,7 @@ vi.mock("@/lib/stores", () => ({
   useActiveInstitute: () => ({ activeInstituteId: mockInstituteId }),
 }))
 
-describe("OffDaysContent", () => {
+describe("CalendarContent", () => {
   let queryClient: QueryClient
 
   beforeEach(() => {
@@ -52,7 +52,7 @@ describe("OffDaysContent", () => {
           locale="fa"
           messages={{ setting: settingMessagesFa, common: commonMessagesFa }}
         >
-          <OffDaysContent />
+          <CalendarContent />
         </NextIntlClientProvider>
       </QueryClientProvider>
     )

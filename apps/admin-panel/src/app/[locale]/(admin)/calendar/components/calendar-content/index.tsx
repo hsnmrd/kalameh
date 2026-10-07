@@ -7,10 +7,10 @@ import { gregorianToJalali } from "@workspace/types"
 import { institutesResource, termsResource, classesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { AdminPageShell } from "@/components/admin-page-shell"
-import { OffDaysFilter } from "../off-days-filter"
+import { CalendarFilter } from "../calendar-filter"
 import { HolidaysCalendar } from "./holidays-calendar"
 
-export function OffDaysContent() {
+export function CalendarContent() {
   const locale = useLocale() as "fa" | "en"
   const { activeInstituteId } = useActiveInstitute()
 
@@ -56,7 +56,7 @@ export function OffDaysContent() {
   return (
     <AdminPageShell
       filter={
-        <OffDaysFilter
+        <CalendarFilter
           selectedYear={selectedYear}
           currentYear={currentYear}
           onYearChange={setSelectedYear}
@@ -85,3 +85,5 @@ export function OffDaysContent() {
     </AdminPageShell>
   )
 }
+
+export const OffDaysContent = CalendarContent

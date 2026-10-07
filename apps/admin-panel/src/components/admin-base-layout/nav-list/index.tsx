@@ -30,6 +30,7 @@ export type NavItemKey =
   | "finance"
   | "operatingPhases"
   | "offDays"
+  | "calendar"
 
 export interface NavItem {
   key: NavItemKey

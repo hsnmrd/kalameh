@@ -20,7 +20,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { formatNumber, cn } from "@workspace/ui/lib/utils"
 import {
   isJalaliHoliday,
   type InstituteCustomOffDay,
@@ -33,6 +33,7 @@ import {
   getActiveTermsForDate,
   getClassesForDate,
   normalizeIsoDate,
+  getTermTheme,
 } from "../../helper/calendar-schedule.helper"
 
 export interface DayDetailsModalProps {
@@ -135,45 +136,71 @@ export function DayDetailsModal({
             </span>
             {activeTerms.length > 0 ? (
               <div className="flex flex-col gap-2">
-                {activeTerms.map((term) => (
-                  <div
-                    key={term.id}
-                    className="flex flex-col gap-1.5 rounded-xl border border-primary/30 bg-primary/[0.03] p-3"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold text-foreground">
-                        {term.title}
-                      </span>
-                      {term.lifecycleStatus && (
-                        <Badge
-                          variant="outline"
-                          className="border-primary/40 bg-primary/10 text-[10px] font-medium text-primary"
-                        >
-                          {term.lifecycleStatus}
-                        </Badge>
+                {activeTerms.map((term) => {
+                  const theme = getTermTheme(term.id, terms)
+                  return (
+                    <div
+                      key={term.id}
+                      className={cn(
+                        "flex flex-col gap-1.5 rounded-xl border p-3",
+                        theme.badgeBorder,
+                        theme.badgeBg
                       )}
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>
-                        {t("startDate")}: {normalizeIsoDate(term.startDate)}
-                      </span>
-                      <span>•</span>
-                      <span>
-                        {t("endDate")}: {normalizeIsoDate(term.endDate)}
-                      </span>
-                      {typeof term.classesCount === "number" && (
-                        <>
-                          <span>•</span>
-                          <span>
-                            {locale === "fa"
-                              ? `${formatNumber(term.classesCount, "fa-IR")} کلاس`
-                              : t("classesCount", { count: term.classesCount })}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <span
+                            className={cn(
+                              "size-2 shrink-0 rounded-full shadow-2xs",
+                              theme.dotColor
+                            )}
+                          />
+                          <span
+                            className={cn(
+                              "truncate text-sm font-semibold",
+                              theme.badgeText
+                            )}
+                          >
+                            {term.title}
                           </span>
-                        </>
-                      )}
+                        </div>
+                        {term.lifecycleStatus && (
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-[10px] font-medium",
+                              theme.badgeBorder,
+                              theme.badgeText
+                            )}
+                          >
+                            {term.lifecycleStatus}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>
+                          {t("startDate")}: {normalizeIsoDate(term.startDate)}
+                        </span>
+                        <span>•</span>
+                        <span>
+                          {t("endDate")}: {normalizeIsoDate(term.endDate)}
+                        </span>
+                        {typeof term.classesCount === "number" && (
+                          <>
+                            <span>•</span>
+                            <span>
+                              {locale === "fa"
+                                ? `${formatNumber(term.classesCount, "fa-IR")} کلاس`
+                                : t("classesCount", {
+                                    count: term.classesCount,
+                                  })}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <p className="rounded-xl border border-dashed border-border/70 p-3 text-xs text-muted-foreground">

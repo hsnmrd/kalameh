@@ -1,5 +1,5 @@
-import { OffDaysContent } from "./components/off-days-content"
+import { CalendarContent } from "./components/calendar-content"
 
-export default function OffDaysPage() {
-  return <OffDaysContent />
+export default function CalendarPage() {
+  return <CalendarContent />
 }

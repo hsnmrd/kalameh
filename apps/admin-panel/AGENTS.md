@@ -140,7 +140,7 @@ All entity management and list pages (e.g. `courses/`, `classes/`, `terms/`, `br
 
 ## Admin Inner Page Standard (Breadcrumb & Sub-Page Navigation)
 
-All inner pages, sub-pages, or nested resource views (e.g. `/off-days/custom`, `/classes/[id]/grades`, `/teachers/[id]/classes`) must follow this unified sub-page standard:
+All inner pages, sub-pages, or nested resource views (e.g. `/calendar/custom`, `/classes/[id]/grades`, `/teachers/[id]/classes`) must follow this unified sub-page standard:
 
 ### 1. Breadcrumb Position (On Top of Filter Section)
 

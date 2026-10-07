@@ -88,4 +88,71 @@ describe("calendar-schedule.helper", () => {
     const enFormatted = formatDisplayDate(d, "en")
     expect(enFormatted).toBeTruthy()
   })
+
+  it("assigns distinct, deterministic visual themes to terms", async () => {
+    const { getTermTheme, CALENDAR_TERM_THEMES } =
+      await import("../calendar-schedule.helper")
+    const term2: TermDto = { ...mockTerm, id: "term-2", title: "ترم زمستان" }
+    const theme1 = getTermTheme("term-1", [mockTerm, term2])
+    const theme2 = getTermTheme("term-2", [mockTerm, term2])
+
+    expect(theme1.id).toBe(CALENDAR_TERM_THEMES[0]!.id)
+    expect(theme2.id).toBe(CALENDAR_TERM_THEMES[1]!.id)
+    expect(theme1.id).not.toBe(theme2.id)
+  })
+
+  it("filters terms running in a specific year", async () => {
+    const { getTermsRunningInYear } =
+      await import("../calendar-schedule.helper")
+    // 2026 matches mockTerm (Sept 2026 - Dec 2026)
+    const terms2026 = getTermsRunningInYear(2026, "en", [mockTerm])
+    expect(terms2026).toHaveLength(1)
+
+    // 2024 should not match
+    const terms2024 = getTermsRunningInYear(2024, "en", [mockTerm])
+    expect(terms2024).toHaveLength(0)
+  })
+
+  it("builds separate calendar modifiers for each term", async () => {
+    const { buildCalendarTermModifiers } =
+      await import("../calendar-schedule.helper")
+    const term2: TermDto = {
+      ...mockTerm,
+      id: "term-2",
+      title: "ترم زمستان",
+      startDate: "2027-01-05T00:00:00.000Z",
+      endDate: "2027-03-20T00:00:00.000Z",
+    }
+
+    const { modifiers, modifiersClassNames } = buildCalendarTermModifiers(
+      [mockTerm, term2],
+      [mockTerm, term2]
+    )
+
+    // Check term-1 start, end, range
+    expect(modifiers["term_term-1_start"]).toBeDefined()
+    expect(modifiers["term_term-1_end"]).toBeDefined()
+    expect(modifiers["term_term-1_range"]).toBeDefined()
+    expect(modifiersClassNames["term_term-1_start"]).toContain("bg-sky-600")
+
+    // Check term-2 start, end, range
+    expect(modifiers["term_term-2_start"]).toBeDefined()
+    expect(modifiers["term_term-2_end"]).toBeDefined()
+    expect(modifiers["term_term-2_range"]).toBeDefined()
+    expect(modifiersClassNames["term_term-2_start"]).toContain("bg-emerald-600")
+
+    // Test modifier date evaluation
+    const startDate = new Date(2026, 8, 23) // 2026-09-23
+    const rangeDate = new Date(2026, 9, 15) // 2026-10-15
+    const endDate = new Date(2026, 11, 21) // 2026-12-21
+    const outsideDate = new Date(2026, 5, 1) // 2026-06-01
+
+    expect(modifiers["term_term-1_start"]!(startDate)).toBe(true)
+    expect(modifiers["term_term-1_range"]!(rangeDate)).toBe(true)
+    expect(modifiers["term_term-1_end"]!(endDate)).toBe(true)
+
+    expect(modifiers["term_term-1_start"]!(outsideDate)).toBe(false)
+    expect(modifiers["term_term-1_range"]!(outsideDate)).toBe(false)
+    expect(modifiers["term_term-1_end"]!(outsideDate)).toBe(false)
+  })
 })

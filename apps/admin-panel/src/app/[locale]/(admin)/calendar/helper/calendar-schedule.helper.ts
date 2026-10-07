@@ -110,3 +110,189 @@ export function formatDisplayDate(date: Date, locale: "fa" | "en"): string {
     return toIsoDate(date)
   }
 }
+
+export interface TermVisualTheme {
+  id: string
+  badgeBg: string
+  badgeText: string
+  badgeBorder: string
+  dotColor: string
+  rangeClass: string
+  startClass: string
+  endClass: string
+}
+
+export const CALENDAR_TERM_THEMES: TermVisualTheme[] = [
+  {
+    id: "sky",
+    badgeBg: "bg-sky-500/15",
+    badgeText: "text-sky-700",
+    badgeBorder: "border-sky-500/30",
+    dotColor: "bg-sky-500",
+    rangeClass: "[&>button]:!bg-sky-500/15 font-medium",
+    startClass:
+      "[&>button]:!bg-sky-600 [&>button]:!text-white font-bold [&>button]:rounded-md shadow-xs",
+    endClass:
+      "[&>button]:!ring-2 [&>button]:!ring-sky-500/80 [&>button]:!font-bold [&>button]:rounded-md",
+  },
+  {
+    id: "emerald",
+    badgeBg: "bg-emerald-500/15",
+    badgeText: "text-emerald-700",
+    badgeBorder: "border-emerald-500/30",
+    dotColor: "bg-emerald-500",
+    rangeClass: "[&>button]:!bg-emerald-500/15 font-medium",
+    startClass:
+      "[&>button]:!bg-emerald-600 [&>button]:!text-white font-bold [&>button]:rounded-md shadow-xs",
+    endClass:
+      "[&>button]:!ring-2 [&>button]:!ring-emerald-500/80 [&>button]:!font-bold [&>button]:rounded-md",
+  },
+  {
+    id: "violet",
+    badgeBg: "bg-violet-500/15",
+    badgeText: "text-violet-700",
+    badgeBorder: "border-violet-500/30",
+    dotColor: "bg-violet-500",
+    rangeClass: "[&>button]:!bg-violet-500/15 font-medium",
+    startClass:
+      "[&>button]:!bg-violet-600 [&>button]:!text-white font-bold [&>button]:rounded-md shadow-xs",
+    endClass:
+      "[&>button]:!ring-2 [&>button]:!ring-violet-500/80 [&>button]:!font-bold [&>button]:rounded-md",
+  },
+  {
+    id: "amber",
+    badgeBg: "bg-amber-500/15",
+    badgeText: "text-amber-800",
+    badgeBorder: "border-amber-500/30",
+    dotColor: "bg-amber-500",
+    rangeClass: "[&>button]:!bg-amber-500/15 font-medium",
+    startClass:
+      "[&>button]:!bg-amber-600 [&>button]:!text-white font-bold [&>button]:rounded-md shadow-xs",
+    endClass:
+      "[&>button]:!ring-2 [&>button]:!ring-amber-500/80 [&>button]:!font-bold [&>button]:rounded-md",
+  },
+  {
+    id: "indigo",
+    badgeBg: "bg-indigo-500/15",
+    badgeText: "text-indigo-700",
+    badgeBorder: "border-indigo-500/30",
+    dotColor: "bg-indigo-500",
+    rangeClass: "[&>button]:!bg-indigo-500/15 font-medium",
+    startClass:
+      "[&>button]:!bg-indigo-600 [&>button]:!text-white font-bold [&>button]:rounded-md shadow-xs",
+    endClass:
+      "[&>button]:!ring-2 [&>button]:!ring-indigo-500/80 [&>button]:!font-bold [&>button]:rounded-md",
+  },
+  {
+    id: "teal",
+    badgeBg: "bg-teal-500/15",
+    badgeText: "text-teal-700",
+    badgeBorder: "border-teal-500/30",
+    dotColor: "bg-teal-500",
+    rangeClass: "[&>button]:!bg-teal-500/15 font-medium",
+    startClass:
+      "[&>button]:!bg-teal-600 [&>button]:!text-white font-bold [&>button]:rounded-md shadow-xs",
+    endClass:
+      "[&>button]:!ring-2 [&>button]:!ring-teal-500/80 [&>button]:!font-bold [&>button]:rounded-md",
+  },
+  {
+    id: "cyan",
+    badgeBg: "bg-cyan-500/15",
+    badgeText: "text-cyan-700",
+    badgeBorder: "border-cyan-500/30",
+    dotColor: "bg-cyan-500",
+    rangeClass: "[&>button]:!bg-cyan-500/15 font-medium",
+    startClass:
+      "[&>button]:!bg-cyan-600 [&>button]:!text-white font-bold [&>button]:rounded-md shadow-xs",
+    endClass:
+      "[&>button]:!ring-2 [&>button]:!ring-cyan-500/80 [&>button]:!font-bold [&>button]:rounded-md",
+  },
+  {
+    id: "fuchsia",
+    badgeBg: "bg-fuchsia-500/15",
+    badgeText: "text-fuchsia-700",
+    badgeBorder: "border-fuchsia-500/30",
+    dotColor: "bg-fuchsia-500",
+    rangeClass: "[&>button]:!bg-fuchsia-500/15 font-medium",
+    startClass:
+      "[&>button]:!bg-fuchsia-600 [&>button]:!text-white font-bold [&>button]:rounded-md shadow-xs",
+    endClass:
+      "[&>button]:!ring-2 [&>button]:!ring-fuchsia-500/80 [&>button]:!font-bold [&>button]:rounded-md",
+  },
+]
+
+export function getTermTheme(
+  termId: string,
+  allTerms: TermDto[]
+): TermVisualTheme {
+  const index = allTerms.findIndex((t) => t.id === termId)
+  const safeIndex = index >= 0 ? index : 0
+  return CALENDAR_TERM_THEMES[safeIndex % CALENDAR_TERM_THEMES.length]!
+}
+
+export function getTermsRunningInYear(
+  selectedYear: number,
+  locale: "fa" | "en",
+  terms: TermDto[]
+): TermDto[] {
+  let yearStartIso = ""
+  let yearEndIso = ""
+
+  if (locale === "fa") {
+    const start = jalaliToGregorian(selectedYear, 1, 1)
+    const endDays = getDaysInJalaliMonth(selectedYear, 12)
+    const end = jalaliToGregorian(selectedYear, 12, endDays)
+    yearStartIso = toIsoDate(start)
+    yearEndIso = toIsoDate(end)
+  } else {
+    yearStartIso = `${selectedYear}-01-01`
+    yearEndIso = `${selectedYear}-12-31`
+  }
+
+  return terms.filter((term) => {
+    const startIso = normalizeIsoDate(term.startDate)
+    const endIso = normalizeIsoDate(term.endDate)
+    if (!startIso || !endIso) return false
+    return startIso <= yearEndIso && endIso >= yearStartIso
+  })
+}
+
+export function buildCalendarTermModifiers(
+  termsToDisplay: TermDto[],
+  allTerms: TermDto[]
+): {
+  modifiers: Record<string, (date: Date) => boolean>
+  modifiersClassNames: Record<string, string>
+} {
+  const modifiers: Record<string, (date: Date) => boolean> = {}
+  const modifiersClassNames: Record<string, string> = {}
+
+  termsToDisplay.forEach((term) => {
+    const startIso = normalizeIsoDate(term.startDate)
+    const endIso = normalizeIsoDate(term.endDate)
+    if (!startIso || !endIso) return
+
+    const theme = getTermTheme(term.id, allTerms)
+    const startKey = `term_${term.id}_start`
+    const endKey = `term_${term.id}_end`
+    const rangeKey = `term_${term.id}_range`
+
+    const isSingleDay = startIso === endIso
+
+    modifiers[startKey] = (date: Date) => toIsoDate(date) === startIso
+    modifiersClassNames[startKey] = theme.startClass
+
+    if (!isSingleDay) {
+      modifiers[endKey] = (date: Date) => toIsoDate(date) === endIso
+      modifiersClassNames[endKey] = theme.endClass
+
+      modifiers[rangeKey] = (date: Date) => {
+        const d = toIsoDate(date)
+        return d > startIso && d < endIso
+      }
+      modifiersClassNames[rangeKey] = theme.rangeClass
+    }
+  })
+
+  return { modifiers, modifiersClassNames }
+}

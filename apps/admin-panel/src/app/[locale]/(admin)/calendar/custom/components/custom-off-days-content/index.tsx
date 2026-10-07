@@ -54,10 +54,10 @@ export function CustomOffDaysContent() {
     <AdminPageShell
       breadcrumb={
         <AdminBreadcrumb
-          backHref="/off-days"
+          backHref="/calendar"
           backLabel={t("backToCalendar")}
           items={[
-            { label: t("backToCalendar"), href: "/off-days" },
+            { label: t("backToCalendar"), href: "/calendar" },
             { label: t("customOffDaysTitle") },
           ]}
         />

@@ -10,6 +10,7 @@ import { CalendarToolbar } from "./calendar-toolbar"
 import { CalendarView } from "./calendar-view"
 import { useHolidaysCalendar } from "./hooks/use-holidays-calendar"
 import { DayDetailsModal } from "../../day-details-modal"
+import { getTermsRunningInYear } from "../../../helper"
 
 export interface HolidaysCalendarProps {
   instituteId: string
@@ -55,6 +56,11 @@ export function HolidaysCalendar({
   })
   const isControlled = selectedYear !== undefined
 
+  const termsInSelectedYear = React.useMemo(
+    () => getTermsRunningInYear(calendar.selectedYear, locale, terms),
+    [calendar.selectedYear, locale, terms]
+  )
+
   return (
     <div
       className={cn(
@@ -74,7 +80,7 @@ export function HolidaysCalendar({
           />
         </>
       )}
-      <CalendarLegend />
+      <CalendarLegend terms={termsInSelectedYear} allTerms={terms} />
       <CalendarView
         viewMode={calendar.viewMode}
         selectedYear={calendar.selectedYear}

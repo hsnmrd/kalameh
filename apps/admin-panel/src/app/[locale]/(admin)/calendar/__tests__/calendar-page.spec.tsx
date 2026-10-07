@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from "vitest"
 import { render, screen } from "../../../../../test/test-utils"
-import OffDaysPage from "../page"
+import CalendarPage from "../page"
 
-vi.mock("../components/off-days-content", () => ({
-  OffDaysContent: () => <div data-testid="off-days-content" />,
+vi.mock("../components/calendar-content", () => ({
+  CalendarContent: () => <div data-testid="calendar-content" />,
 }))
 
-describe("OffDaysPage", () => {
-  it("renders the institute off-days configuration", () => {
-    render(<OffDaysPage />)
+describe("CalendarPage", () => {
+  it("renders the institute calendar page", () => {
+    render(<CalendarPage />)
 
-    expect(screen.getByTestId("off-days-content")).toBeInTheDocument()
+    expect(screen.getByTestId("calendar-content")).toBeInTheDocument()
   })
 })

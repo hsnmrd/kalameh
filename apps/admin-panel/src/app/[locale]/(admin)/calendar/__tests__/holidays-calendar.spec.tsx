@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "../../../../../test/test-utils"
-import { HolidaysCalendar } from "../components/off-days-content/holidays-calendar"
+import { HolidaysCalendar } from "../components/calendar-content/holidays-calendar"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NextIntlClientProvider } from "next-intl"
 import type { TermDto, ClassDto } from "@workspace/types"
@@ -98,7 +98,7 @@ describe("HolidaysCalendar Component", () => {
 
     expect(screen.getByText("تقویم کاری و وضعیت روزها")).toBeInTheDocument()
     expect(screen.getByText("حالت مشاهده")).toBeInTheDocument()
-    expect(screen.getByText("بازه ترم فعال")).toBeInTheDocument()
+    expect(screen.getAllByText("ترم پاییز ۱۴۰۵").length).toBeGreaterThan(0)
     expect(screen.getByText("جلسه کلاس")).toBeInTheDocument()
     expect(screen.getByText("تعطیل رسمی")).toBeInTheDocument()
     expect(screen.getByText("تعطیلی موسسه")).toBeInTheDocument()

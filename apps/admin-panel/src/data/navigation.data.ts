@@ -64,8 +64,8 @@ export const ACADEMIC_CYCLE_NAV_ITEMS: NavItem[] = [
     module: APP_MODULES.CLASSES_COURSES,
   },
   {
-    key: "offDays",
-    href: "/off-days",
+    key: "calendar",
+    href: "/calendar",
     icon: CalendarDays,
     permission: PERMISSIONS.MANAGE_INSTITUTE_SETTINGS,
   },

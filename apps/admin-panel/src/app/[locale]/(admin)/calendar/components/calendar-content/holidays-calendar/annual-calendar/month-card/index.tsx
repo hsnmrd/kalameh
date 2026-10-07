@@ -14,8 +14,10 @@ import {
 } from "@workspace/types"
 import {
   getTermsRunningInMonth,
-  isDateInAnyTerm,
   isDateClassSession,
+  getTermTheme,
+  buildCalendarTermModifiers,
+  normalizeIsoDate,
 } from "../../../../../helper"
 
 export interface MonthCardProps {
@@ -109,9 +111,9 @@ export function MonthCard({
     [monthDate, locale, terms]
   )
 
-  const isTermDate = React.useCallback(
-    (date: Date) => isDateInAnyTerm(date, terms),
-    [terms]
+  const termModifiers = React.useMemo(
+    () => buildCalendarTermModifiers(termsInMonth, terms),
+    [termsInMonth, terms]
   )
 
   const isSessionDate = React.useCallback(
@@ -138,8 +140,8 @@ export function MonthCard({
       )}
     >
       {/* Month Card Header Badges */}
-      <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
-        <div className="flex items-center gap-1.5">
+      <div className="flex items-center justify-between gap-1 px-2 pt-1 pb-0.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-1">
           {isCurrentMonth ? (
             <Badge
               variant="outline"
@@ -148,22 +150,36 @@ export function MonthCard({
               {t("currentMonth")}
             </Badge>
           ) : null}
-          {termsInMonth.length > 0 && (
-            <Badge
-              variant="outline"
-              className="border-primary/30 bg-primary/[0.08] px-1.5 py-0 text-[10px] font-medium text-primary"
-            >
-              {locale === "fa"
-                ? `${formatNumber(termsInMonth.length, "fa-IR")} ترم`
-                : t("termsInMonth", { count: termsInMonth.length })}
-            </Badge>
-          )}
+          {termsInMonth.map((term) => {
+            const theme = getTermTheme(term.id, terms)
+            return (
+              <Badge
+                key={term.id}
+                variant="outline"
+                title={`${term.title} (${normalizeIsoDate(term.startDate)} - ${normalizeIsoDate(term.endDate)})`}
+                className={cn(
+                  "max-w-[96px] gap-1 truncate px-1.5 py-0 text-[10px] font-medium",
+                  theme.badgeBg,
+                  theme.badgeText,
+                  theme.badgeBorder
+                )}
+              >
+                <span
+                  className={cn(
+                    "size-1.5 shrink-0 rounded-full shadow-2xs",
+                    theme.dotColor
+                  )}
+                />
+                <span className="truncate">{term.title}</span>
+              </Badge>
+            )
+          })}
         </div>
 
         {offDaysCount > 0 ? (
           <Badge
             variant="outline"
-            className="border-warning/40 bg-warning/10 px-1.5 py-0 text-[10px] font-medium text-warning"
+            className="shrink-0 border-warning/40 bg-warning/10 px-1.5 py-0 text-[10px] font-medium text-warning"
           >
             {locale === "fa"
               ? `${formatNumber(offDaysCount, "fa-IR")} روز تعطیل`
@@ -185,13 +201,13 @@ export function MonthCard({
         offDays={customOffDays}
         dismissedHolidays={dismissedHolidays}
         modifiers={{
-          termRange: isTermDate,
           sessionDay: isSessionDate,
+          ...termModifiers.modifiers,
         }}
         modifiersClassNames={{
-          termRange: "[&>button]:bg-primary/[0.06] [&>button]:font-medium",
           sessionDay:
-            "[&>button]:ring-1 [&>button]:ring-primary/40 [&>button]:bg-primary/15 font-semibold",
+            "[&>button]:ring-1.5 [&>button]:ring-foreground/50 font-semibold",
+          ...termModifiers.modifiersClassNames,
         }}
         formatters={{
           formatCaption,

@@ -62,7 +62,7 @@ describe("CustomOffDaysContent", () => {
     ).toHaveLength(2)
     expect(screen.getByRole("link", { name: "تقویم تعطیلات" })).toHaveAttribute(
       "href",
-      "/off-days"
+      "/calendar"
     )
   })
 

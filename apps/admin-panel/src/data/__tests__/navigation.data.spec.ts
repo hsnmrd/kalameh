@@ -16,7 +16,7 @@ describe("admin navigation groups", () => {
   it("structures academic lifecycle according to system onboarding needs", () => {
     expect(ACADEMIC_CYCLE_NAV_ITEMS.map((item) => item.key)).toEqual([
       "operatingPhases",
-      "offDays",
+      "calendar",
       "terms",
       "classes",
     ])

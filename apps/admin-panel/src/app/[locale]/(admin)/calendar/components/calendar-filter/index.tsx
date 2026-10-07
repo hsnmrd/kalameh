@@ -7,7 +7,7 @@ import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 
-export interface OffDaysFilterProps {
+export interface CalendarFilterProps {
   selectedYear: number
   currentYear: number
   onYearChange: (year: number) => void
@@ -16,6 +16,8 @@ export interface OffDaysFilterProps {
   locale: "fa" | "en"
 }
 
+export type OffDaysFilterProps = CalendarFilterProps
+
 function formatYear(year: number, locale: "fa" | "en"): string {
   if (locale === "fa") {
     return String(year).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)] ?? d)
@@ -23,14 +25,14 @@ function formatYear(year: number, locale: "fa" | "en"): string {
   return String(year)
 }
 
-export function OffDaysFilter({
+export function CalendarFilter({
   selectedYear,
   currentYear,
   onYearChange,
   viewMode,
   onViewModeChange,
   locale,
-}: OffDaysFilterProps) {
+}: CalendarFilterProps) {
   const t = useTranslations("setting.offDays")
   const isRtl = locale === "fa"
 
@@ -137,3 +139,5 @@ export function OffDaysFilter({
     />
   )
 }
+
+export const OffDaysFilter = CalendarFilter

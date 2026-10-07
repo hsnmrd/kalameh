@@ -93,11 +93,14 @@ function getPageTitle(
   if (pathname.startsWith("/transactions")) {
     return t("nav.finance")
   }
-  if (pathname.startsWith("/off-days/custom")) {
+  if (
+    pathname.startsWith("/calendar/custom") ||
+    pathname.startsWith("/off-days/custom")
+  ) {
     return t("nav.customOffDays")
   }
-  if (pathname.startsWith("/off-days")) {
-    return t("nav.offDays")
+  if (pathname.startsWith("/calendar") || pathname.startsWith("/off-days")) {
+    return t("nav.calendar")
   }
   if (pathname.startsWith("/setting")) {
     return t("settings")
