@@ -8,6 +8,7 @@ import { authResource } from "@/lib/api"
 import { usePathname, useRouter, useIsRtl } from "@/i18n/routing"
 import { cn } from "@workspace/ui/lib/utils"
 import { useActiveInstitute } from "@/lib/stores"
+import { useSetupFlowStatus } from "@/lib/hooks"
 import { SidebarBrand } from "./sidebar-brand"
 import { NavList, type NavSection } from "./nav-list"
 import { SidebarFooter } from "./sidebar-footer"
@@ -18,8 +19,9 @@ import {
   SUPER_ADMIN_PLATFORM_NAV,
   DASHBOARD_NAV_ITEM,
   INSTITUTE_DASHBOARD_NAV_ITEM,
-  ACADEMIC_NAV_ITEMS,
+  ACADEMIC_CYCLE_NAV_ITEMS,
   PEOPLE_NAV_ITEMS,
+  FACILITIES_NAV_ITEMS,
   FINANCE_NAV_ITEMS,
   ADMINISTRATION_NAV_ITEMS,
 } from "@/data"
@@ -41,17 +43,25 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
   const { data: user } = useQuery(authResource.me.toQuery())
   const effectiveRole = role ?? user?.role ?? ROLES.ADMIN
 
+  const targetInstituteId = activeInstitute?.id || user?.instituteId
+  const { focusedKey } = useSetupFlowStatus({ instituteId: targetInstituteId })
+
   const navSections = React.useMemo<NavSection[]>(() => {
     const instituteSections: NavSection[] = [
       {
-        id: "academic",
-        title: t("academicSection"),
-        items: ACADEMIC_NAV_ITEMS,
+        id: "academic-cycle",
+        title: t("academicCycleSection"),
+        items: ACADEMIC_CYCLE_NAV_ITEMS,
       },
       {
         id: "people",
         title: t("peopleSection"),
         items: PEOPLE_NAV_ITEMS,
+      },
+      {
+        id: "facilities",
+        title: t("facilitiesSection"),
+        items: FACILITIES_NAV_ITEMS,
       },
       {
         id: "finance",
@@ -144,7 +154,11 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
               <SidebarBrand role={effectiveRole} />
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-6">
-              <NavList sections={navSections} pathname={pathname} />
+              <NavList
+                sections={navSections}
+                pathname={pathname}
+                focusedKey={focusedKey}
+              />
             </div>
           </div>
           <div className="shrink-0">
@@ -156,6 +170,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
           sections={navSections}
           pathname={pathname}
           onLogout={handleLogout}
+          focusedKey={focusedKey}
         />
 
         {/* Main Content Container */}

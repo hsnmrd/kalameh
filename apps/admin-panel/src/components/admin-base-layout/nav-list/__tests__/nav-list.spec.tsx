@@ -190,4 +190,25 @@ describe("NavList Component", () => {
     })
     expect(platformLink.className).not.toContain("bg-primary/10")
   })
+
+  it("renders a single pulsing focus badge next to the focused item and not on others", () => {
+    render(
+      <NavList sections={mockSections} pathname="/" focusedKey="branches" />
+    )
+
+    const badges = screen.getAllByTestId("nav-focus-badge")
+    expect(badges).toHaveLength(1)
+
+    const branchLink = screen.getByRole("link", { name: /شعب/i })
+    expect(branchLink).toContainElement(badges[0])
+
+    const dashLink = screen.getByRole("link", { name: /داشبورد/i })
+    expect(dashLink).not.toContainElement(badges[0])
+  })
+
+  it("renders no focus badge when focusedKey is null or undefined", () => {
+    render(<NavList sections={mockSections} pathname="/" focusedKey={null} />)
+
+    expect(screen.queryByTestId("nav-focus-badge")).not.toBeInTheDocument()
+  })
 })

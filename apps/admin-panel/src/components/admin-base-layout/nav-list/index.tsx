@@ -52,6 +52,7 @@ export interface NavListProps {
   items?: NavItem[]
   pathname: string
   onItemClick?: () => void
+  focusedKey?: NavItemKey | null
 }
 
 export function NavList({
@@ -59,6 +60,7 @@ export function NavList({
   items,
   pathname,
   onItemClick,
+  focusedKey,
 }: NavListProps) {
   const t = useTranslations("common.nav")
   const { hasPermission, user } = usePermissions()
@@ -141,6 +143,7 @@ export function NavList({
                 const isLocked = !hasModuleAccess(item.module)
                 const isActive = isItemActive(item)
                 const isPending = isHrefPending(item.href)
+                const isFocused = Boolean(focusedKey && item.key === focusedKey)
 
                 return (
                   <Link
@@ -165,6 +168,17 @@ export function NavList({
                       <Icon className="size-4 shrink-0" />
                     )}
                     <span className="truncate">{t(item.key)}</span>
+                    {isFocused && (
+                      <span
+                        data-testid="nav-focus-badge"
+                        aria-label={t("focusHint")}
+                        title={t("focusHint")}
+                        className="relative flex size-2 shrink-0 items-center justify-center"
+                      >
+                        <span className="absolute size-2.5 animate-ping rounded-full bg-primary opacity-75" />
+                        <span className="relative size-1.5 rounded-full bg-primary" />
+                      </span>
+                    )}
                     {isLocked && !isPending && (
                       <Lock
                         aria-label={t("locked")}

@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useQuery } from "@tanstack/react-query"
 import {
   CalendarDays,
   CalendarPlus,
@@ -9,13 +8,7 @@ import {
   Cpu,
   CheckCheck,
 } from "lucide-react"
-import {
-  operatingPhasesResource,
-  termsResource,
-  studentsResource,
-  schedulingResource,
-  classesResource,
-} from "@/lib/api"
+import { useSetupFlowStatus } from "@/lib/hooks"
 import {
   Carousel,
   CarouselContent,
@@ -37,50 +30,17 @@ export interface SetupFlowProps {
 export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
   const isRtl = useIsRtl()
 
-  const { data: operatingPhases = [] } = useQuery({
-    ...operatingPhasesResource.list.toQuery({ instituteId }),
-    enabled: Boolean(instituteId),
-  })
-
-  const { data: terms = [] } = useQuery({
-    ...termsResource.list.toQuery({ instituteId }),
-    enabled: Boolean(instituteId),
-  })
-
-  const { data: students = [] } = useQuery({
-    ...studentsResource.list.toQuery({ instituteId }),
-    enabled: Boolean(instituteId),
-  })
-
-  const { data: schedulingTerms = [] } = useQuery({
-    ...schedulingResource.terms.toQuery({ instituteId }),
-    enabled: Boolean(instituteId),
-  })
-
-  const { data: classes = [] } = useQuery({
-    ...classesResource.list.toQuery({ instituteId }),
-    enabled: Boolean(instituteId),
-  })
-
-  // Evaluate step completion
-  const isStep1Done = operatingPhases.length > 0
-  const isStep2Done = terms.length > 0
-  const isStep3Done = students.length > 0
-
-  const isSubstep1Done = schedulingTerms.some(
-    (t) => t.requirementsCount > 0 || t.schedulingStatus !== "NO_REQUIREMENTS"
-  )
-  const isSubstep2Done = schedulingTerms.some(
-    (t) =>
-      t.latestRun !== null ||
-      ["GENERATING", "SCHEDULED", "PUBLISHED"].includes(t.schedulingStatus)
-  )
-  const isSubstep3Done = schedulingTerms.some((t) =>
-    ["SCHEDULED", "PUBLISHED"].includes(t.schedulingStatus)
-  )
-
-  const isStep4Done = isSubstep3Done
-  const isStep5Done = classes.length > 0 || classesCount > 0
+  const {
+    isStep1Done,
+    isStep2Done,
+    isStep3Done,
+    isStep4Done,
+    isStep5Done,
+    isSubstep1Done,
+    isSubstep2Done,
+    isSubstep3Done,
+    firstIncompleteIndex,
+  } = useSetupFlowStatus({ instituteId, classesCount })
 
   const schedulingSubsteps: SetupSubstep[] = React.useMemo(
     () => [

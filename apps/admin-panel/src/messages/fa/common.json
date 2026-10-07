@@ -30,6 +30,8 @@
     "superAdminSection": "مدیریت کل سامانه",
     "instituteSection": "مدیریت آموزشگاه",
     "academicSection": "امور آموزشی",
+    "academicCycleSection": "چرخه آموزشی",
+    "facilitiesSection": "تعاریف پایه و امکانات",
     "peopleSection": "افراد",
     "financeSection": "امور مالی",
     "administrationSection": "مدیریت و دسترسی",
@@ -37,7 +39,8 @@
     "moreTitle": "سایر بخش‌ها",
     "mobileNavigation": "ناوبری موبایل",
     "noMoreLinks": "همه بخش‌های در دسترس در نوار پایین قرار دارند.",
-    "locked": "ماژول غیرفعال"
+    "locked": "ماژول غیرفعال",
+    "focusHint": "اقدام بعدی راه‌اندازی آموزشگاه"
   },
   "navShort": {
     "dashboard": "پیشخوان",

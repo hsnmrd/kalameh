@@ -27,6 +27,7 @@ export function MobileBottomNavigation({
   sections,
   pathname,
   onLogout,
+  focusedKey,
 }: MobileBottomNavigationProps) {
   const [open, setOpen] = React.useState(false)
   const t = useTranslations("common")
@@ -100,6 +101,7 @@ export function MobileBottomNavigation({
             const isActive = isItemActive(item, pathname)
             const isLocked = !hasModuleAccess(item.module)
             const isPending = isHrefPending(item.href)
+            const isFocused = Boolean(focusedKey && item.key === focusedKey)
 
             return (
               <Link
@@ -122,6 +124,16 @@ export function MobileBottomNavigation({
                   ) : (
                     <Icon className="size-5" aria-hidden />
                   )}
+                  {isFocused && (
+                    <span
+                      data-testid="mobile-focus-badge"
+                      aria-label={t("nav.focusHint")}
+                      className="absolute -end-1 -top-1 flex size-2 items-center justify-center"
+                    >
+                      <span className="absolute size-2.5 animate-ping rounded-full bg-primary opacity-75" />
+                      <span className="relative size-1.5 rounded-full bg-primary" />
+                    </span>
+                  )}
                   {isLocked && !isPending && (
                     <Lock
                       className="absolute -end-2 -top-1 size-3 rounded-full bg-card text-current"
@@ -139,25 +151,45 @@ export function MobileBottomNavigation({
             )
           })}
 
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setOpen(true)}
-            aria-expanded={open}
-            aria-haspopup="dialog"
-            className={cn(
-              "relative h-auto min-w-0 flex-col gap-1 rounded-xl px-1 py-1.5 text-[10px] leading-3 font-medium",
-              isMenuActive
-                ? "text-primary hover:text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Menu className="size-5" aria-hidden />
-            <span className="max-w-full truncate">{t("nav.menu")}</span>
-            {isMenuActive && (
-              <span className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-primary" />
-            )}
-          </Button>
+          {(() => {
+            const isMenuFocused = Boolean(
+              focusedKey && !directItemKeys.has(focusedKey)
+            )
+
+            return (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(true)}
+                aria-expanded={open}
+                aria-haspopup="dialog"
+                className={cn(
+                  "relative h-auto min-w-0 flex-col gap-1 rounded-xl px-1 py-1.5 text-[10px] leading-3 font-medium",
+                  isMenuActive
+                    ? "text-primary hover:text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span className="relative">
+                  <Menu className="size-5" aria-hidden />
+                  {isMenuFocused && (
+                    <span
+                      data-testid="mobile-menu-focus-badge"
+                      aria-label={t("nav.focusHint")}
+                      className="absolute -end-1 -top-1 flex size-2 items-center justify-center"
+                    >
+                      <span className="absolute size-2.5 animate-ping rounded-full bg-primary opacity-75" />
+                      <span className="relative size-1.5 rounded-full bg-primary" />
+                    </span>
+                  )}
+                </span>
+                <span className="max-w-full truncate">{t("nav.menu")}</span>
+                {isMenuActive && (
+                  <span className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-primary" />
+                )}
+              </Button>
+            )
+          })()}
         </div>
       </nav>
 
@@ -200,6 +232,10 @@ export function MobileBottomNavigation({
                         const isLocked = !hasModuleAccess(item.module)
                         const isPending = isHrefPending(item.href)
 
+                        const isFocused = Boolean(
+                          focusedKey && item.key === focusedKey
+                        )
+
                         return (
                           <Link
                             key={item.key}
@@ -225,6 +261,17 @@ export function MobileBottomNavigation({
                             <span className="truncate">
                               {t(`nav.${item.key}`)}
                             </span>
+                            {isFocused && (
+                              <span
+                                data-testid="mobile-drawer-focus-badge"
+                                aria-label={t("nav.focusHint")}
+                                title={t("nav.focusHint")}
+                                className="relative flex size-2 shrink-0 items-center justify-center"
+                              >
+                                <span className="absolute size-2.5 animate-ping rounded-full bg-primary opacity-75" />
+                                <span className="relative size-1.5 rounded-full bg-primary" />
+                              </span>
+                            )}
                             {isLocked && !isPending && (
                               <Lock
                                 className="ms-auto size-3.5 shrink-0 text-current opacity-70"

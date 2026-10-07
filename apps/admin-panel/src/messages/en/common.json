@@ -30,6 +30,8 @@
     "superAdminSection": "Platform Management",
     "instituteSection": "Institute Management",
     "academicSection": "Academic Operations",
+    "academicCycleSection": "Academic Lifecycle",
+    "facilitiesSection": "Base Catalog & Facilities",
     "peopleSection": "People",
     "financeSection": "Finance",
     "administrationSection": "Administration",
@@ -37,7 +39,8 @@
     "moreTitle": "More sections",
     "mobileNavigation": "Mobile navigation",
     "noMoreLinks": "All available sections are already in the navigation bar.",
-    "locked": "Locked module"
+    "locked": "Locked module",
+    "focusHint": "Next institute setup step"
   },
   "navShort": {
     "dashboard": "Dashboard",

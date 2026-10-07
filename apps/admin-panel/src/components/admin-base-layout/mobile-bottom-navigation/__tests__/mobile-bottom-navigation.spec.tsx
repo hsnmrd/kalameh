@@ -93,4 +93,31 @@ describe("MobileBottomNavigation", () => {
       expect(screen.queryByText("سایر بخش‌ها")).not.toBeInTheDocument()
     })
   })
+
+  it("renders focus badge on a direct bottom bar item when it is focused", () => {
+    render(<MobileBottomNavigation {...defaultProps} focusedKey="classes" />)
+
+    const badge = screen.getByTestId("mobile-focus-badge")
+    expect(badge).toBeInTheDocument()
+
+    const classesLink = screen.getByRole("link", { name: /کلاس‌ها/i })
+    expect(classesLink).toContainElement(badge)
+  })
+
+  it("renders focus badge on Menu button when an overflow item is focused", async () => {
+    render(<MobileBottomNavigation {...defaultProps} focusedKey="branches" />)
+
+    const menuBadge = screen.getByTestId("mobile-menu-focus-badge")
+    expect(menuBadge).toBeInTheDocument()
+
+    const menuButton = screen.getByRole("button", { name: /منو/i })
+    expect(menuButton).toContainElement(menuBadge)
+
+    // Open menu drawer and verify focus badge is on the overflow link
+    fireEvent.click(menuButton)
+    const drawerBadge = await screen.findByTestId("mobile-drawer-focus-badge")
+    expect(drawerBadge).toBeInTheDocument()
+    const branchLink = screen.getByRole("link", { name: /مدیریت شعب/i })
+    expect(branchLink).toContainElement(drawerBadge)
+  })
 })
