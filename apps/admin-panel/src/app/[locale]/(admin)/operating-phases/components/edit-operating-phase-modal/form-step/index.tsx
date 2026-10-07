@@ -1,10 +1,11 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import type { UseFormReturn } from "react-hook-form"
+import { Controller, type UseFormReturn } from "react-hook-form"
 import { RotateCcw } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { TimePicker } from "@workspace/ui/components/time-picker"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { FormDialogFooter } from "@workspace/ui/components/dialog"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -111,16 +112,22 @@ export function FormStep({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {(["startTime", "endTime"] as const).map((name) => (
-            <Field key={name}>
+            <Field key={name} data-invalid={Boolean(errors[name])}>
               <FieldLabel htmlFor={`edit-phase-${name}`}>
                 {t(`form.${name}Label`)}
               </FieldLabel>
-              <Input
-                id={`edit-phase-${name}`}
-                type="time"
-                {...register(name)}
-                disabled={isPending}
-                className="text-center"
+              <Controller
+                control={form.control}
+                name={name}
+                render={({ field }) => (
+                  <TimePicker
+                    id={`edit-phase-${name}`}
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isPending}
+                    data-invalid={Boolean(errors[name])}
+                  />
+                )}
               />
               {errors[name] && <FieldError>{errors[name]?.message}</FieldError>}
             </Field>

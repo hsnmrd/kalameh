@@ -16,7 +16,7 @@ import {
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
+import { TimePicker } from "@workspace/ui/components/time-picker"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { WEEK_DAYS, type ClassConflictResult } from "@workspace/types"
 import { useClassScheduleState } from "../../hooks/use-class-schedule-state"
@@ -172,26 +172,22 @@ export function ClassScheduleWizard({
             <div className="grid grid-cols-2 gap-3">
               <Field>
                 <FieldLabel className="text-xs">{t("startTime")}</FieldLabel>
-                <Input
-                  type="time"
+                <TimePicker
                   value={startTime}
-                  onChange={(e) => {
-                    setStartTime(e.target.value)
+                  onChange={(val) => {
+                    setStartTime(val ?? "")
                     clearConflictState()
                   }}
-                  className="text-center"
                 />
               </Field>
               <Field>
                 <FieldLabel className="text-xs">{t("endTime")}</FieldLabel>
-                <Input
-                  type="time"
+                <TimePicker
                   value={endTime}
-                  onChange={(e) => {
-                    setEndTime(e.target.value)
+                  onChange={(val) => {
+                    setEndTime(val ?? "")
                     clearConflictState()
                   }}
-                  className="text-center"
                 />
               </Field>
             </div>

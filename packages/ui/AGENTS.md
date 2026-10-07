@@ -17,8 +17,12 @@
   - **Always separate the input value with commas `","` 3 by 3 from the right** for optimal user readability.
   - **Always place the currency unit (`تومان` / `Toman`) inside the input at the end of the input.**
   - **NEVER put the currency unit in the label of the input** (e.g. use "شهریه کلاس" instead of "شهریه کلاس (تومان)").
+- **Time Picker Standard (Wheel Picker & Unified 56px / h-14):**
+  - Export and maintain `<TimePicker />` and `<TimeWheelPicker />` (`src/components/time-picker.tsx`) across all monorepo apps.
+  - Implement an iOS-style drum roll wheel picker with a center highlight pill (`rounded-xl bg-primary/10`), distance-based opacity/scaling, and top/bottom gradient mask.
+  - Follow the unified form control height of **`h-14` (56px)**, **`rounded-2xl`**, and **`text-base`** typography.
 - **Form Input & Button Height Standard (Unified 56px / h-14 & rounded-2xl):**
-  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`), password inputs (`PasswordInput`), price inputs (`PriceInput`), and primary/action buttons (`<Button />`) must strictly default to **`h-14` (56px)** height, **`rounded-2xl`**, and **`text-base`** typography.
+  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), time pickers (`TimePicker`), selects (`Select`), comboboxes (`Combobox`), password inputs (`PasswordInput`), price inputs (`PriceInput`), and primary/action buttons (`<Button />`) must strictly default to **`h-14` (56px)** height, **`rounded-2xl`**, and **`text-base`** typography.
   - `<Button />` defaults directly to **`h-14` / `rounded-2xl` (`size: "default"`)**.
   - Smaller sizes (`size="sm"` / `h-8`, `size="icon"`, `size="icon-sm"`, `size="icon-xs"`) are strictly reserved for inline table cell actions, internal input adornments, date picker calendar days, and compact header/toolbar icons.
   - Do not hardcode smaller heights (such as `h-10`) into base UI form primitives or standard dialog actions.

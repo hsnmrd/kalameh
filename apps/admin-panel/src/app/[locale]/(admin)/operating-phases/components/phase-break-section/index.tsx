@@ -7,7 +7,7 @@ import type { SuggestedPhaseBreakWindow } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
-import { Input } from "@workspace/ui/components/input"
+import { TimePicker } from "@workspace/ui/components/time-picker"
 
 export interface PhaseBreakSectionProps {
   idPrefix: string
@@ -91,34 +91,32 @@ export function PhaseBreakSection({
       {hasBreak && (
         <div className="flex flex-col gap-3 pt-1">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field>
+            <Field data-invalid={Boolean(errors?.breakStartTime)}>
               <FieldLabel htmlFor={`${idPrefix}-break-start`}>
                 {t("form.breakStartTimeLabel")}
               </FieldLabel>
-              <Input
+              <TimePicker
                 id={`${idPrefix}-break-start`}
-                type="time"
-                value={breakStartTime || ""}
-                onChange={(e) => onBreakStartTimeChange(e.target.value)}
+                value={breakStartTime}
+                onChange={(val) => onBreakStartTimeChange(val ?? "")}
                 disabled={disabled}
-                className="text-center"
+                data-invalid={Boolean(errors?.breakStartTime)}
               />
               {errors?.breakStartTime && (
                 <FieldError>{errors.breakStartTime.message}</FieldError>
               )}
             </Field>
 
-            <Field>
+            <Field data-invalid={Boolean(errors?.breakEndTime)}>
               <FieldLabel htmlFor={`${idPrefix}-break-end`}>
                 {t("form.breakEndTimeLabel")}
               </FieldLabel>
-              <Input
+              <TimePicker
                 id={`${idPrefix}-break-end`}
-                type="time"
-                value={breakEndTime || ""}
-                onChange={(e) => onBreakEndTimeChange(e.target.value)}
+                value={breakEndTime}
+                onChange={(val) => onBreakEndTimeChange(val ?? "")}
                 disabled={disabled}
-                className="text-center"
+                data-invalid={Boolean(errors?.breakEndTime)}
               />
               {errors?.breakEndTime && (
                 <FieldError>{errors.breakEndTime.message}</FieldError>

@@ -10,6 +10,7 @@ import type { ComboboxOption } from "@workspace/ui/components/combobox"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
+import { TimePicker } from "@workspace/ui/components/time-picker"
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -196,21 +197,33 @@ export function SchedulingProposalEditFields({
           <FieldLabel htmlFor="proposal-start-time">
             {t("startTime")}
           </FieldLabel>
-          <Input
-            id="proposal-start-time"
-            type="time"
-            {...register("startTime")}
-            aria-invalid={Boolean(errors.startTime)}
+          <Controller
+            control={control}
+            name="startTime"
+            render={({ field }) => (
+              <TimePicker
+                id="proposal-start-time"
+                value={field.value}
+                onChange={field.onChange}
+                data-invalid={Boolean(errors.startTime)}
+              />
+            )}
           />
           <FieldError>{errors.startTime && t("validation.time")}</FieldError>
         </Field>
         <Field data-invalid={Boolean(errors.endTime)}>
           <FieldLabel htmlFor="proposal-end-time">{t("endTime")}</FieldLabel>
-          <Input
-            id="proposal-end-time"
-            type="time"
-            {...register("endTime")}
-            aria-invalid={Boolean(errors.endTime)}
+          <Controller
+            control={control}
+            name="endTime"
+            render={({ field }) => (
+              <TimePicker
+                id="proposal-end-time"
+                value={field.value}
+                onChange={field.onChange}
+                data-invalid={Boolean(errors.endTime)}
+              />
+            )}
           />
           <FieldError>
             {errors.endTime &&
