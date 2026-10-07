@@ -2,18 +2,31 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
+import { CalendarOff } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { cn } from "@workspace/ui/lib/utils"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
+import {
+  ResponsiveCombobox,
+  type ComboboxOption,
+} from "@workspace/ui/components/combobox"
+import type { TermDto } from "@workspace/types"
+import { Link } from "@/i18n/routing"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
+import { AdminSearchInput } from "@/components/admin-search-input"
 
 export interface CalendarFilterProps {
+  search: string
+  onSearchChange: (search: string) => void
   selectedYear: number
   currentYear: number
   onYearChange: (year: number) => void
   viewMode: "year" | "month"
   onViewModeChange: (mode: "year" | "month") => void
+  selectedTermId?: string
+  onTermChange?: (termId: string) => void
+  terms?: TermDto[]
   locale: "fa" | "en"
+  actions?: React.ReactNode
 }
 
 export type OffDaysFilterProps = CalendarFilterProps
@@ -26,114 +39,150 @@ function formatYear(year: number, locale: "fa" | "en"): string {
 }
 
 export function CalendarFilter({
+  search,
+  onSearchChange,
   selectedYear,
   currentYear,
   onYearChange,
   viewMode,
   onViewModeChange,
+  selectedTermId = "ALL",
+  onTermChange,
+  terms = [],
   locale,
+  actions,
 }: CalendarFilterProps) {
   const t = useTranslations("setting.offDays")
-  const isRtl = locale === "fa"
 
-  const handlePrevYear = () => {
-    onYearChange(selectedYear - 1)
-  }
+  const yearOptions: ComboboxOption[] = React.useMemo(() => {
+    const yearSet = new Set([
+      currentYear - 2,
+      currentYear - 1,
+      currentYear,
+      currentYear + 1,
+      currentYear + 2,
+      selectedYear,
+    ])
+    return Array.from(yearSet)
+      .sort((a, b) => a - b)
+      .map((year) => ({
+        value: String(year),
+        label: formatYear(year, locale),
+      }))
+  }, [currentYear, selectedYear, locale])
 
-  const handleNextYear = () => {
-    onYearChange(selectedYear + 1)
-  }
+  const viewModeOptions: ComboboxOption[] = React.useMemo(() => {
+    return [
+      { value: "year", label: t("yearView") },
+      { value: "month", label: t("monthView") },
+    ]
+  }, [t])
 
-  const handleResetToCurrentYear = () => {
+  const termOptions: ComboboxOption[] = React.useMemo(() => {
+    return [
+      { value: "ALL", label: t("allTerms") },
+      ...terms.map((term) => ({
+        value: term.id,
+        label: term.title,
+      })),
+    ]
+  }, [terms, t])
+
+  const isYearFiltered = selectedYear !== currentYear
+  const isViewModeFiltered = viewMode !== "year"
+  const isTermFiltered = selectedTermId !== "ALL"
+
+  const activeFiltersCount =
+    (isYearFiltered ? 1 : 0) +
+    (isViewModeFiltered ? 1 : 0) +
+    (isTermFiltered ? 1 : 0)
+
+  const hasActiveFilter = Boolean(search.trim() || activeFiltersCount > 0)
+
+  const handleClearFilters = React.useCallback(() => {
+    onSearchChange("")
     onYearChange(currentYear)
-  }
+    onViewModeChange("year")
+    onTermChange?.("ALL")
+  }, [
+    currentYear,
+    onSearchChange,
+    onYearChange,
+    onViewModeChange,
+    onTermChange,
+  ])
 
-  const displayYear = formatYear(selectedYear, locale)
+  const desktopActions = actions ?? (
+    <Link href="/calendar/custom">
+      <Button
+        type="button"
+        className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
+      >
+        <CalendarOff className="size-5" />
+        <span>{t("manageCustomOffDays")}</span>
+      </Button>
+    </Link>
+  )
 
   return (
     <AdminFilterBar
+      isPinned={hasActiveFilter}
+      activeFiltersCount={activeFiltersCount}
+      onClearFilters={handleClearFilters}
+      filterDialogTitle={t("calendarFilterTitle")}
+      actions={desktopActions}
       search={
-        <div className="flex h-14 w-full min-w-0 items-center justify-between gap-3 rounded-2xl border border-border/80 bg-background/60 px-3 sm:px-4">
-          {/* Year Switcher without commas */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 rounded-xl border border-border/70 bg-card/70 p-0.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={handlePrevYear}
-                aria-label={t("previousYear")}
-                className="size-7 cursor-pointer rounded-lg text-muted-foreground hover:text-foreground"
-              >
-                {isRtl ? (
-                  <ChevronRight className="size-4" />
-                ) : (
-                  <ChevronLeft className="size-4" />
-                )}
-              </Button>
+        <AdminSearchInput
+          value={search}
+          onChange={onSearchChange}
+          placeholder={t("searchCalendarPlaceholder")}
+        />
+      }
+      filters={
+        <div className="flex flex-col gap-4">
+          <Field>
+            <FieldLabel>{t("yearFilterLabel")}</FieldLabel>
+            <ResponsiveCombobox
+              items={yearOptions}
+              value={String(selectedYear)}
+              onValueChange={(val) => {
+                if (val) onYearChange(Number(val))
+              }}
+              placeholder={t("yearFilterLabel")}
+              drawerTitle={t("yearFilterLabel")}
+              clearable={false}
+            />
+          </Field>
 
-              <span className="min-w-12 px-1 text-center text-xs font-bold text-foreground sm:text-sm">
-                {displayYear}
-              </span>
+          <Field>
+            <FieldLabel>{t("viewModeLabel")}</FieldLabel>
+            <ResponsiveCombobox
+              items={viewModeOptions}
+              value={viewMode}
+              onValueChange={(val) => {
+                if (val === "year" || val === "month") {
+                  onViewModeChange(val)
+                }
+              }}
+              placeholder={t("viewModeLabel")}
+              drawerTitle={t("viewModeLabel")}
+              clearable={false}
+            />
+          </Field>
 
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={handleNextYear}
-                aria-label={t("nextYear")}
-                className="size-7 cursor-pointer rounded-lg text-muted-foreground hover:text-foreground"
-              >
-                {isRtl ? (
-                  <ChevronLeft className="size-4" />
-                ) : (
-                  <ChevronRight className="size-4" />
-                )}
-              </Button>
-            </div>
-
-            {selectedYear !== currentYear && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleResetToCurrentYear}
-                className="hidden h-7 cursor-pointer gap-1 rounded-lg px-2 text-xs text-muted-foreground hover:text-foreground sm:inline-flex"
-              >
-                <RotateCcw className="size-3" />
-                <span>{t("currentYear")}</span>
-              </Button>
-            )}
-          </div>
-
-          {/* View Mode Tabs (Desktop) */}
-          <div className="hidden items-center rounded-xl border border-border/80 bg-muted/40 p-1 lg:flex">
-            <Button
-              type="button"
-              variant={viewMode === "year" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => onViewModeChange("year")}
-              className={cn(
-                "h-7 cursor-pointer rounded-lg px-3 text-xs font-medium transition-colors",
-                viewMode === "year" && "bg-background text-foreground shadow-xs"
-              )}
-            >
-              {t("yearView")}
-            </Button>
-            <Button
-              type="button"
-              variant={viewMode === "month" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => onViewModeChange("month")}
-              className={cn(
-                "h-7 cursor-pointer rounded-lg px-3 text-xs font-medium transition-colors",
-                viewMode === "month" &&
-                  "bg-background text-foreground shadow-xs"
-              )}
-            >
-              {t("monthView")}
-            </Button>
-          </div>
+          {terms.length > 0 && (
+            <Field>
+              <FieldLabel>{t("termFilterLabel")}</FieldLabel>
+              <ResponsiveCombobox
+                items={termOptions}
+                value={selectedTermId}
+                onValueChange={(val) => onTermChange?.(val || "ALL")}
+                placeholder={t("allTerms")}
+                drawerTitle={t("termFilterLabel")}
+                clearable={false}
+              />
+            </Field>
+          )}
         </div>
       }
     />

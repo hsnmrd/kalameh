@@ -92,6 +92,12 @@
     "startDate": "شروع",
     "endDate": "پایان",
     "status": "وضعیت",
-    "termsInMonth": "{count} ترم"
+    "termsInMonth": "{count} ترم",
+    "searchCalendarPlaceholder": "جستجو بر اساس عنوان ترم، کلاس یا رویداد...",
+    "yearFilterLabel": "سال تقویم",
+    "viewModeLabel": "حالت نمایش",
+    "termFilterLabel": "ترم تحصیلی",
+    "allTerms": "همه ترم‌ها",
+    "calendarFilterTitle": "فیلترهای تقویم کاری"
   }
 }

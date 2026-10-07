@@ -92,6 +92,12 @@
     "startDate": "Start",
     "endDate": "End",
     "status": "Status",
-    "termsInMonth": "{count} terms"
+    "termsInMonth": "{count} terms",
+    "searchCalendarPlaceholder": "Search terms, classes, or events...",
+    "yearFilterLabel": "Calendar Year",
+    "viewModeLabel": "View Mode",
+    "termFilterLabel": "Academic Term",
+    "allTerms": "All Terms",
+    "calendarFilterTitle": "Work Calendar Filters"
   }
 }

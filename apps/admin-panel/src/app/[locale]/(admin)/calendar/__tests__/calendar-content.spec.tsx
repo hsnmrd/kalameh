@@ -67,9 +67,13 @@ describe("CalendarContent", () => {
       screen.queryByText("رعایت تعطیلات رسمی تقویم ایران")
     ).not.toBeInTheDocument()
 
-    // Setting off-days button/FAB is completely removed from this page
+    // Filter bar with search, filter button, and custom off-days action link
     expect(
-      screen.queryByRole("link", { name: "تعطیلات اختصاصی" })
-    ).not.toBeInTheDocument()
+      screen.getByPlaceholderText("جستجو بر اساس عنوان ترم، کلاس یا رویداد...")
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "فیلتر" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("link", { name: "تعطیلات اختصاصی" })
+    ).toBeInTheDocument()
   })
 })
