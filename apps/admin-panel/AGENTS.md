@@ -162,6 +162,10 @@ All inner pages, sub-pages, or nested resource views (e.g. `/calendar/custom`, `
 - Inner pages follow the list layout standard: render `<AdminFilterBar>` with at least `<AdminSearchInput>` in the `filter` prop of `<AdminPageShell>`.
 - Primary desktop action button sits in `<AdminFilterBar actions={...}>`, and mobile action uses `<FABSingle>` passed to `AdminPageShell` `fab` prop.
 
+### 5. Mobile Bottom Navigation Bar (Hidden on Inner Pages)
+
+- On mobile view (< `lg`), `<MobileBottomNavigation />` is automatically hidden on all inner pages (routes with 2+ path segments such as `/calendar/custom`, `/classes/scheduling`, `/teachers/calendar`, or whenever `backNavigation` is configured). Top-level main sections (`/calendar`, `/classes`, `/terms`, etc.) retain the bottom navigation bar.
+
 ## Mobile UX Standard
 
 All admin-panel list pages and overlays must follow these mobile-specific rules for screens **< `lg` (1024px)**:

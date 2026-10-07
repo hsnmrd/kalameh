@@ -18,10 +18,17 @@ import { cn } from "@workspace/ui/lib/utils"
 import { Link } from "@/i18n/routing"
 import { usePermissions, useNavTransition } from "@/lib/hooks"
 import { useActiveInstitute } from "@/lib/stores"
+import { useHeaderActions } from "../header-actions-context"
 import type { MobileBottomNavigationProps } from "./types"
-import { DIRECT_ITEM_PRIORITY, MAX_DIRECT_ITEMS, isItemActive } from "./utils"
+import {
+  DIRECT_ITEM_PRIORITY,
+  MAX_DIRECT_ITEMS,
+  isItemActive,
+  isInnerPage,
+} from "./utils"
 
 export type { MobileBottomNavigationProps } from "./types"
+export { isInnerPage } from "./utils"
 
 export function MobileBottomNavigation({
   sections,
@@ -34,6 +41,7 @@ export function MobileBottomNavigation({
   const { hasPermission, user } = usePermissions()
   const { activeInstitute } = useActiveInstitute()
   const { navigate, isHrefPending } = useNavTransition(pathname)
+  const { backNavigation } = useHeaderActions()
 
   const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
   const enabledModules = React.useMemo(
@@ -88,6 +96,12 @@ export function MobileBottomNavigation({
   const isMenuActive = overflowSections.some((section) =>
     section.items.some((item) => isItemActive(item, pathname))
   )
+
+  const isInner = isInnerPage(pathname) || Boolean(backNavigation)
+
+  if (isInner) {
+    return null
+  }
 
   return (
     <>
