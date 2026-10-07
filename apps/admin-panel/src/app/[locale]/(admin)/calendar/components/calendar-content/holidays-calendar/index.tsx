@@ -27,6 +27,7 @@ export interface HolidaysCalendarProps {
   onViewModeChange?: (mode: "year" | "month") => void
   terms?: TermDto[]
   classes?: ClassDto[]
+  className?: string
 }
 
 export function HolidaysCalendar({
@@ -41,6 +42,7 @@ export function HolidaysCalendar({
   onViewModeChange,
   terms = [],
   classes = [],
+  className,
 }: HolidaysCalendarProps) {
   const locale = useLocale() as "fa" | "en"
   const calendar = useHolidaysCalendar({
@@ -62,11 +64,7 @@ export function HolidaysCalendar({
   )
 
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-4 rounded-xl border border-border/80 bg-background/60 p-4"
-      )}
-    >
+    <div className={cn("flex flex-col gap-4", className)}>
       {!isControlled && (
         <>
           <CalendarHeader termsCount={terms.length} locale={locale} />
@@ -80,7 +78,6 @@ export function HolidaysCalendar({
           />
         </>
       )}
-      <CalendarLegend terms={termsInSelectedYear} allTerms={terms} />
       <CalendarView
         viewMode={calendar.viewMode}
         selectedYear={calendar.selectedYear}
@@ -94,6 +91,7 @@ export function HolidaysCalendar({
         terms={terms}
         classes={classes}
       />
+      <CalendarLegend terms={termsInSelectedYear} allTerms={terms} />
 
       {/* View-Only Day Details Inspection Modal */}
       <DayDetailsModal
