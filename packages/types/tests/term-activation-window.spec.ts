@@ -13,6 +13,8 @@ import {
   getTermOpeningWindow,
   isTermOpened,
   isTermInOpeningWindow,
+  isTermEligibleForClassCreation,
+  isTermEligibleForClassOpening,
 } from "../src/term/term-activation-window.js"
 
 describe("Term Activation Window & Anchor Dates", () => {
@@ -173,6 +175,90 @@ describe("Term Activation Window & Anchor Dates", () => {
       expect(
         isTermInOpeningWindow(startDateStr, new Date("2026-10-10T00:00:00"))
       ).toBe(true)
+      expect(isTermEligibleForClassOpening).toBe(isTermEligibleForClassCreation)
+    })
+  })
+
+  describe("isTermEligibleForClassCreation (mid-term empty term exception)", () => {
+    const term = {
+      startDate: "2026-10-15T00:00:00.000Z",
+      endDate: "2026-12-15T00:00:00.000Z",
+    }
+
+    it("returns true during standard activation window regardless of classesCount", () => {
+      // 3 days before startDate
+      const beforeStart = new Date("2026-10-12T10:00:00")
+      expect(
+        isTermEligibleForClassCreation(
+          { ...term, classesCount: 0 },
+          beforeStart
+        )
+      ).toBe(true)
+      expect(
+        isTermEligibleForClassCreation(
+          { ...term, classesCount: 5 },
+          beforeStart
+        )
+      ).toBe(true)
+      expect(isTermEligibleForClassCreation(term, beforeStart)).toBe(true)
+
+      // 4 days after startDate
+      const afterStartInWindow = new Date("2026-10-19T10:00:00")
+      expect(
+        isTermEligibleForClassCreation(
+          { ...term, classesCount: 3 },
+          afterStartInWindow
+        )
+      ).toBe(true)
+    })
+
+    it("returns false before activation date (now < startDate - 7d) even if classesCount is 0", () => {
+      const tooEarly = new Date("2026-10-05T00:00:00") // 10 days before start
+      expect(
+        isTermEligibleForClassCreation({ ...term, classesCount: 0 }, tooEarly)
+      ).toBe(false)
+    })
+
+    it("returns true when activation window has passed if term has 0 classes and now <= endDate", () => {
+      // 20 days after start (activation window ended at day 7, term ends in December)
+      const midTerm = new Date("2026-11-05T12:00:00")
+      expect(
+        isTermEligibleForClassCreation({ ...term, classesCount: 0 }, midTerm)
+      ).toBe(true)
+
+      // Exactly on the last moment of endDate
+      const onEndOfDay = new Date("2026-12-15T23:59:59")
+      expect(
+        isTermEligibleForClassCreation({ ...term, classesCount: 0 }, onEndOfDay)
+      ).toBe(true)
+    })
+
+    it("returns false when activation window has passed if term already has classes (> 0)", () => {
+      const midTerm = new Date("2026-11-05T12:00:00")
+      expect(
+        isTermEligibleForClassCreation({ ...term, classesCount: 1 }, midTerm)
+      ).toBe(false)
+      expect(
+        isTermEligibleForClassCreation({ ...term, classesCount: 8 }, midTerm)
+      ).toBe(false)
+    })
+
+    it("treats omitted or null classesCount as 0 classes (allowed before endDate)", () => {
+      const midTerm = new Date("2026-11-05T12:00:00")
+      expect(isTermEligibleForClassCreation(term, midTerm)).toBe(true)
+      expect(
+        isTermEligibleForClassCreation({ ...term, classesCount: null }, midTerm)
+      ).toBe(true)
+    })
+
+    it("returns false when current date is after term endDate even if classesCount is 0", () => {
+      const afterTermEnded = new Date("2026-12-16T00:00:01")
+      expect(
+        isTermEligibleForClassCreation(
+          { ...term, classesCount: 0 },
+          afterTermEnded
+        )
+      ).toBe(false)
     })
   })
 })

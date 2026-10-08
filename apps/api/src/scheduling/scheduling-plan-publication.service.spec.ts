@@ -210,6 +210,44 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
     expect(transaction.class.createMany).not.toHaveBeenCalled();
   });
 
+  it('allows publication when term activation window has passed but term has 0 classes and publishedAt <= endDate', async () => {
+    transaction.schedulingPlan.findFirstOrThrow.mockResolvedValueOnce({
+      id: ids.plan,
+      runId: ids.run,
+      run: {
+        termId: ids.term,
+        // 20 days in past, but term has 0 classes and ends in October
+        term: {
+          startDate: new Date('2026-08-25T00:00:00Z'),
+          endDate: new Date('2026-10-30T00:00:00Z'),
+          _count: { classes: 0 },
+        },
+      },
+      proposals: [
+        {
+          id: ids.proposal,
+          publishedClassId: null,
+          title: 'A2',
+          courseId: ids.course,
+          branchId: null,
+          classroomId: null,
+          teacherId: ids.teacher,
+          capacity: 12,
+          daysOfWeek: ['SUNDAY'],
+          startTime: '09:00',
+          endTime: '10:30',
+          course: { baseFee: 1_500_000 },
+          teacher: { firstName: 'Sara', lastName: 'Ahmadi' },
+          sessions: [{ sessionDate: new Date('2026-09-18T00:00:00Z') }],
+        },
+      ],
+    });
+
+    const result = await service.publish(admin, ids.plan, undefined, 'fa', now);
+    expect(result.status).toBe('PUBLISHED');
+    expect(transaction.class.createMany).toHaveBeenCalled();
+  });
+
   it('does not emit a success audit when class creation fails', async () => {
     transaction.class.createMany.mockRejectedValue(new Error('insert failed'));
 

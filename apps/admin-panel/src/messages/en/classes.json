@@ -54,10 +54,12 @@
     "termDatesLabel": "Term duration:",
     "toDateSeparator": "to",
     "activeTermBadge": "Active Term",
-    "activationWindowWarning": "Class creation is only permitted during the term activation window (7 days before to 7 days after the start date).",
+    "activationWindowWarning": "Class creation is permitted during the term activation window (7 days before to 7 days after the start date) or until the end of the term if the term has no classes.",
     "termNotActivated": "This term is not yet activated (more than 7 days before start date).",
     "termActivationPassed": "The activation window for this term has ended (more than 7 days after start date).",
+    "termEnded": "This term has already ended.",
     "inActivationWindow": "Within Term Activation Window",
+    "initialClassCreationWindow": "Term Without Classes (Available until end of term)",
     "submit": "Create Class",
     "cancel": "Cancel",
     "success": "Class created successfully."

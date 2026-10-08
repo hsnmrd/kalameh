@@ -8,7 +8,7 @@ import { Prisma } from '@workspace/database';
 import {
   ROLES,
   SchedulingPlanPublicationResultSchema,
-  isTermInActivationWindow,
+  isTermEligibleForClassCreation,
   type JwtPayload,
   type SchedulingPlanPublicationResult,
   type SupportedLocale,
@@ -75,7 +75,15 @@ export class SchedulingPlanPublicationService {
               run: {
                 select: {
                   termId: true,
-                  term: { select: { startDate: true } },
+                  term: {
+                    select: {
+                      startDate: true,
+                      endDate: true,
+                      _count: {
+                        select: { classes: true },
+                      },
+                    },
+                  },
                 },
               },
               proposals: {
@@ -104,7 +112,16 @@ export class SchedulingPlanPublicationService {
             },
           });
 
-          if (!isTermInActivationWindow(plan.run.term.startDate, publishedAt)) {
+          if (
+            !isTermEligibleForClassCreation(
+              {
+                startDate: plan.run.term.startDate,
+                endDate: plan.run.term.endDate,
+                classesCount: plan.run.term._count?.classes,
+              },
+              publishedAt,
+            )
+          ) {
             throw new ConflictException({
               code: 'HARD_CONSTRAINT_PUBLISH_BLOCKED',
               message: this.i18n.t(

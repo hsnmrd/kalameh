@@ -5,7 +5,7 @@ import {
   DEFAULT_SCHEDULING_SETTINGS,
   ROLES,
   SchedulingRunSchema,
-  isTermInActivationWindow,
+  isTermEligibleForClassCreation,
   type GenerateSchedulingPlanInput,
   type JwtPayload,
   type SchedulingRunDto,
@@ -48,6 +48,9 @@ export class SchedulingService {
           startDate: true,
           endDate: true,
           isActive: true,
+          _count: {
+            select: { classes: true },
+          },
           operatingPhase: {
             select: {
               id: true,
@@ -104,7 +107,13 @@ export class SchedulingService {
       );
     }
 
-    if (!isTermInActivationWindow(term.startDate)) {
+    if (
+      !isTermEligibleForClassCreation({
+        startDate: term.startDate,
+        endDate: term.endDate,
+        classesCount: term._count?.classes,
+      })
+    ) {
       throw new BadRequestException(
         this.i18n.t('scheduling.termNotInActivationWindow', locale),
       );

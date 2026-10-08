@@ -153,7 +153,7 @@ describe('ClassesService', () => {
       );
     });
 
-    it('should throw BadRequestException if Term activation window has passed (> 7 days after start)', async () => {
+    it('should throw BadRequestException if Term activation window has passed (> 7 days after start) and term already has classes', async () => {
       const dto = {
         title: 'Class 101',
         termId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a01',
@@ -164,15 +164,51 @@ describe('ClassesService', () => {
 
       // 20 days in past
       const pastStart = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
+      const futureEnd = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
       prismaService.term.findFirst.mockResolvedValue({
         id: dto.termId,
         startDate: pastStart,
+        endDate: futureEnd,
         isActive: true,
+        _count: { classes: 2 },
       });
 
       await expect(service.create(dto, mockAdmin)).rejects.toThrow(
         BadRequestException,
       );
+    });
+
+    it('should allow creating class if Term activation window has passed but term has 0 classes and now <= endDate', async () => {
+      const dto = {
+        title: 'Class 101',
+        termId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a01',
+        courseId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02',
+        capacity: 15,
+        fee: 1500000,
+      };
+
+      // 20 days in past
+      const pastStart = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
+      const futureEnd = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
+      prismaService.term.findFirst.mockResolvedValue({
+        id: dto.termId,
+        startDate: pastStart,
+        endDate: futureEnd,
+        isActive: true,
+        _count: { classes: 0 },
+      });
+      prismaService.course.findFirst.mockResolvedValue({ id: dto.courseId });
+      prismaService.class.create.mockResolvedValue({
+        id: 'mid-term-class-id',
+        instituteId: 'inst-1',
+        ...dto,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        _count: { enrollments: 0 },
+      });
+
+      const result = await service.create(dto, mockAdmin);
+      expect(result.id).toBe('mid-term-class-id');
     });
 
     it('should create class successfully', async () => {

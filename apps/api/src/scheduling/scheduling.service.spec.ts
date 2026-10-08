@@ -289,13 +289,14 @@ describe('MVP-015 SchedulingService', () => {
     expect(prisma.schedulingRun.create).not.toHaveBeenCalled();
   });
 
-  it('rejects plan generation if term is outside activation window', async () => {
+  it('rejects plan generation if term is outside activation window and already has classes', async () => {
     prisma.term.findFirst.mockResolvedValueOnce({
       id: ids.term,
       title: 'Fall',
-      startDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days away
-      endDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000),
+      startDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // 20 days ago
+      endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
       isActive: true,
+      _count: { classes: 3 },
       operatingPhase: {
         id: '00000000-0000-4000-8000-000000000009',
         title: 'Fall',
@@ -319,6 +320,37 @@ describe('MVP-015 SchedulingService', () => {
       }),
     ).rejects.toThrow(BadRequestException);
     expect(prisma.schedulingRun.create).not.toHaveBeenCalled();
+  });
+
+  it('allows plan generation if term activation window has passed but term has 0 classes and now <= endDate', async () => {
+    prisma.term.findFirst.mockResolvedValueOnce({
+      id: ids.term,
+      title: 'Fall',
+      startDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // 20 days ago
+      endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+      isActive: true,
+      _count: { classes: 0 },
+      operatingPhase: {
+        id: '00000000-0000-4000-8000-000000000009',
+        title: 'Fall',
+        startTime: '15:00',
+        endTime: '21:00',
+        slotDurationMinutes: 90,
+        daysOfWeek: ['SATURDAY'],
+        hasBreak: false,
+        breakStartTime: null,
+        breakEndTime: null,
+      },
+    });
+
+    const result = await service.generate(admin, {
+      termId: ids.term,
+      branchId: ids.branch,
+      requirementIds: [ids.requirement],
+      alternativePlanCount: 1,
+      lockedProposalIds: [],
+    });
+    expect(result.status).toBe('QUEUED');
   });
 
   it('requires a source run when locked proposals are requested', async () => {

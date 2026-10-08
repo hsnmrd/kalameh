@@ -8,9 +8,10 @@ describe("TermDetailsPreview Component", () => {
     id: "term-1",
     instituteId: "inst-1",
     title: "تابستان ۱۴۰۵",
-    startDate: new Date("2026-06-21T00:00:00.000Z").toISOString(),
-    endDate: new Date("2026-09-21T00:00:00.000Z").toISOString(),
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
     isActive: true,
+    classesCount: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }
@@ -32,5 +33,36 @@ describe("TermDetailsPreview Component", () => {
 
     expect(screen.getByText(/بازه زمانی ترم:/i)).toBeInTheDocument()
     expect(screen.queryByText(/ترم فعال/i)).not.toBeInTheDocument()
+  })
+
+  it("should render special badge when activation window passed but term has 0 classes and is before endDate", () => {
+    const midTermWithNoClasses: TermDto = {
+      ...mockTerm,
+      // 20 days ago start, 60 days in future end
+      startDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+      classesCount: 0,
+    }
+
+    render(<TermDetailsPreview term={midTermWithNoClasses} />)
+
+    expect(screen.getByText(/ترم فاقد کلاس/i)).toBeInTheDocument()
+    expect(screen.getByText(/بازه زمانی ترم:/i)).toBeInTheDocument()
+  })
+
+  it("should render destructive warning when activation window passed and term has classes", () => {
+    const midTermWithClasses: TermDto = {
+      ...mockTerm,
+      // 20 days ago start, 60 days in future end
+      startDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+      classesCount: 2,
+    }
+
+    render(<TermDetailsPreview term={midTermWithClasses} />)
+
+    expect(
+      screen.getByText(/بازه فعال‌سازی این ترم به پایان رسیده است/i)
+    ).toBeInTheDocument()
   })
 })
