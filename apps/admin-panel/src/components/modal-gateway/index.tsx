@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useModal, DEFAULT_MODAL_PARAM_KEY } from "@/lib/hooks/use-modal"
+import { ModalSuspenseFallback } from "./modal-suspense-fallback"
 
 export type ModalComponentProps<TData = any> = {
   open: boolean
@@ -48,7 +49,7 @@ export interface ModalGatewayProps {
 export function ModalGateway({
   registry,
   paramKey = DEFAULT_MODAL_PARAM_KEY,
-  fallback = null,
+  fallback,
   extraProps,
   onClose,
 }: ModalGatewayProps) {
@@ -65,6 +66,8 @@ export function ModalGateway({
   if (activeKeys.length === 0) {
     return <></>
   }
+
+  const resolvedFallback = fallback ?? <ModalSuspenseFallback />
 
   return (
     <>
@@ -84,7 +87,7 @@ export function ModalGateway({
         const spreadProps = isObjectPayload ? data : {}
 
         return (
-          <React.Suspense key={modalKey} fallback={fallback}>
+          <React.Suspense key={modalKey} fallback={resolvedFallback}>
             <ModalComponent
               open={true}
               onClose={handleClose}

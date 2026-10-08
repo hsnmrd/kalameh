@@ -4,6 +4,7 @@ import * as React from "react"
 import { useSearchParams } from "next/navigation"
 import { usePathname, useRouter } from "@/i18n/routing"
 import { useModalStore } from "@/lib/stores/modal"
+import { useModalTransition } from "@/components/modal-provider"
 
 export const DEFAULT_MODAL_PARAM_KEY = "modal"
 
@@ -18,7 +19,7 @@ export interface UseModalOptions {
 }
 
 export interface UseModalReturn<TData = any> {
-  /** List of currently open modal keys in order */
+  /** List of currently open modal keys in order (derived 100% from query params) */
   activeModals: string[]
   /** Checks if a specific modal key is open */
   isModalOpen: (modalKey: string) => boolean
@@ -47,16 +48,24 @@ export interface UseModalReturn<TData = any> {
   data?: TData
   open: (data?: TData, options?: OpenModalOptions) => void
   close: (options?: { replace?: boolean }) => void
+
+  // Centralized transition loading state:
+  isPending: boolean
+  pendingModal: string | null
+  isModalPending: (modalKey?: string) => boolean
 }
 
 /**
  * Hook for managing URL-driven modals and their associated state.
  *
+ * Query parameters are the SINGLE SOURCE OF TRUTH for modal visibility.
+ * Modal transitions use React useTransition so URL and UI remain perfectly synchronized.
+ *
  * Can be used globally:
- * const { openModal, closeModal, isModalOpen } = useModal()
+ * const { openModal, closeModal, isModalOpen, isPending } = useModal()
  *
  * Or scoped to a specific modal:
- * const { isOpen, data, open, close } = useModal<MyData>("editUser")
+ * const { isOpen, data, open, close, isPending } = useModal<MyData>("editUser")
  */
 export function useModal<TData = any>(
   scopedKey?: string,
@@ -67,45 +76,20 @@ export function useModal<TData = any>(
   const pathname = usePathname()
   const router = useRouter()
 
+  const { isPending, pendingModal, startModalTransition } = useModalTransition()
+
   const rawModalParam = searchParams?.get(paramKey) ?? null
-  const storeActiveModals = useModalStore((state) => state.activeModals)
-  const setActiveModalsInStore = useModalStore((state) => state.setActiveModals)
-  const openModalInStore = useModalStore((state) => state.openModalInStore)
-  const closeModalInStore = useModalStore((state) => state.closeModalInStore)
   const modalDataMap = useModalStore((state) => state.modalData)
   const setStoreModalData = useModalStore((state) => state.setModalData)
   const clearStoreModalData = useModalStore((state) => state.clearModalData)
 
-  const prevRawModalParamRef = React.useRef(rawModalParam)
-
-  const urlModals = React.useMemo<string[]>(() => {
+  const activeModals = React.useMemo<string[]>(() => {
     if (!rawModalParam) return []
     return rawModalParam
       .split(",")
       .map((k) => k.trim())
       .filter(Boolean)
   }, [rawModalParam])
-
-  // Sync from initial URL on mount if URL contains modals
-  React.useEffect(() => {
-    if (urlModals.length > 0 && storeActiveModals.length === 0) {
-      setActiveModalsInStore(urlModals)
-    }
-  }, [urlModals, storeActiveModals.length, setActiveModalsInStore])
-
-  // Sync from URL changes (such as Back / Forward navigation)
-  React.useEffect(() => {
-    if (prevRawModalParamRef.current !== rawModalParam) {
-      prevRawModalParamRef.current = rawModalParam
-      setActiveModalsInStore(urlModals)
-    }
-  }, [rawModalParam, urlModals, setActiveModalsInStore])
-
-  const activeModals = React.useMemo<string[]>(() => {
-    if (storeActiveModals.length > 0) return storeActiveModals
-    if (rawModalParam) return urlModals
-    return []
-  }, [storeActiveModals, rawModalParam, urlModals])
 
   const isModalOpen = React.useCallback(
     (modalKey: string) => activeModals.includes(modalKey),
@@ -119,8 +103,6 @@ export function useModal<TData = any>(
       if (data !== undefined) {
         setStoreModalData(modalKey, data)
       }
-
-      openModalInStore(modalKey)
 
       const currentKeys = rawModalParam
         ? rawModalParam
@@ -136,15 +118,16 @@ export function useModal<TData = any>(
       const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
       const nextParamValue = currentKeys.join(",")
       nextParams.set(paramKey, nextParamValue)
-      prevRawModalParamRef.current = nextParamValue
 
       const url = `${pathname}?${nextParams.toString()}`
 
-      if (opt?.replace) {
-        router.replace(url, { scroll: false })
-      } else {
-        router.push(url, { scroll: false })
-      }
+      startModalTransition(modalKey, () => {
+        if (opt?.replace) {
+          router.replace(url, { scroll: false })
+        } else {
+          router.push(url, { scroll: false })
+        }
+      })
     },
     [
       pathname,
@@ -153,14 +136,12 @@ export function useModal<TData = any>(
       rawModalParam,
       paramKey,
       setStoreModalData,
-      openModalInStore,
+      startModalTransition,
     ]
   )
 
   const closeModal = React.useCallback(
     (modalKeys?: string | string[], opt?: { replace?: boolean }) => {
-      closeModalInStore(modalKeys)
-
       const currentKeys = rawModalParam
         ? rawModalParam
             .split(",")
@@ -188,20 +169,20 @@ export function useModal<TData = any>(
       if (nextKeys.length > 0) {
         const nextParamValue = nextKeys.join(",")
         nextParams.set(paramKey, nextParamValue)
-        prevRawModalParamRef.current = nextParamValue
       } else {
         nextParams.delete(paramKey)
-        prevRawModalParamRef.current = null
       }
 
       const queryStr = nextParams.toString()
       const url = queryStr ? `${pathname}?${queryStr}` : pathname
 
-      if (opt?.replace) {
-        router.replace(url, { scroll: false })
-      } else {
-        router.push(url, { scroll: false })
-      }
+      startModalTransition(null, () => {
+        if (opt?.replace) {
+          router.replace(url, { scroll: false })
+        } else {
+          router.push(url, { scroll: false })
+        }
+      })
     },
     [
       pathname,
@@ -210,7 +191,7 @@ export function useModal<TData = any>(
       rawModalParam,
       paramKey,
       clearStoreModalData,
-      closeModalInStore,
+      startModalTransition,
     ]
   )
 
@@ -232,11 +213,13 @@ export function useModal<TData = any>(
       const queryStr = nextParams.toString()
       const url = queryStr ? `${pathname}?${queryStr}` : pathname
 
-      if (opt?.replace) {
-        router.replace(url, { scroll: false })
-      } else {
-        router.push(url, { scroll: false })
-      }
+      startModalTransition(null, () => {
+        if (opt?.replace) {
+          router.replace(url, { scroll: false })
+        } else {
+          router.push(url, { scroll: false })
+        }
+      })
     },
     [
       pathname,
@@ -245,6 +228,7 @@ export function useModal<TData = any>(
       rawModalParam,
       paramKey,
       clearStoreModalData,
+      startModalTransition,
     ]
   )
 
@@ -277,6 +261,16 @@ export function useModal<TData = any>(
     [scopedKey, closeModal]
   )
 
+  const isModalPending = React.useCallback(
+    (targetKey?: string) => {
+      if (targetKey) {
+        return Boolean(isPending && pendingModal === targetKey)
+      }
+      return isPending
+    },
+    [isPending, pendingModal]
+  )
+
   return {
     activeModals,
     isModalOpen,
@@ -290,5 +284,8 @@ export function useModal<TData = any>(
     data: scopedData,
     open: scopedOpen,
     close: scopedClose,
+    isPending,
+    pendingModal,
+    isModalPending,
   }
 }

@@ -127,4 +127,13 @@ describe("useModal hook", () => {
 
     expect(mockPush).toHaveBeenCalledWith("/fa/classes", { scroll: false })
   })
+
+  it("exposes transition pending state and helpers", () => {
+    const { result } = renderHook(() => useModal())
+
+    expect(result.current.isPending).toBe(false)
+    expect(result.current.pendingModal).toBeNull()
+    expect(result.current.isModalPending()).toBe(false)
+    expect(result.current.isModalPending("createInstitute")).toBe(false)
+  })
 })

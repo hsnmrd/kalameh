@@ -50,6 +50,39 @@ Object.defineProperty(global, "ResizeObserver", {
   value: MockResizeObserver,
 })
 
+let currentTestUrl = new URL("http://localhost/")
+const routerListeners = new Set<() => void>()
+
+function updateTestUrl(url: string) {
+  currentTestUrl = new URL(url, "http://localhost")
+  routerListeners.forEach((listener) => listener())
+}
+
+beforeEach(() => {
+  currentTestUrl = new URL("http://localhost/")
+})
+
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => {
+    const [, forceUpdate] = React.useReducer((x) => x + 1, 0)
+    React.useEffect(() => {
+      routerListeners.add(forceUpdate)
+      return () => {
+        routerListeners.delete(forceUpdate)
+      }
+    }, [])
+    return currentTestUrl.searchParams
+  },
+  usePathname: () => currentTestUrl.pathname,
+  useRouter: () => ({
+    push: vi.fn((url: string) => updateTestUrl(url)),
+    replace: vi.fn((url: string) => updateTestUrl(url)),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+  }),
+}))
+
 vi.mock("@/i18n/routing", () => ({
   Link: ({
     children,
@@ -63,13 +96,13 @@ vi.mock("@/i18n/routing", () => ({
     onClick?: () => void
   }) => React.createElement("a", { href, className, onClick }, children),
   useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
+    push: vi.fn((url: string) => updateTestUrl(url)),
+    replace: vi.fn((url: string) => updateTestUrl(url)),
     prefetch: vi.fn(),
     back: vi.fn(),
     forward: vi.fn(),
   }),
-  usePathname: () => "/",
+  usePathname: () => currentTestUrl.pathname,
   useIsRtl: () => false,
   routing: {
     locales: ["fa", "en"],
