@@ -88,7 +88,7 @@ export class SchedulingPreflightService {
       if (qualifiedTeachers.length === 0) {
         issues.push({
           code: 'COURSE_WITHOUT_QUALIFIED_TEACHER',
-          severity: 'BLOCKING',
+          severity: 'WARNING',
           scope: 'COURSE',
           entityId: courseId,
           context: {},

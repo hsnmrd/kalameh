@@ -76,14 +76,14 @@ describe('MVP-016 SchedulingPreflightService', () => {
     });
   });
 
-  it('blocks a course without a qualified teacher', () => {
+  it('reports a course without a qualified teacher as a warning', () => {
     const report = service.evaluate({ ...baseInput, teachers: [] });
 
-    expect(report.passed).toBe(false);
+    expect(report.passed).toBe(true);
     expect(report.issues).toContainEqual(
       expect.objectContaining({
         code: 'COURSE_WITHOUT_QUALIFIED_TEACHER',
-        severity: 'BLOCKING',
+        severity: 'WARNING',
         entityId: courseId,
       }),
     );
