@@ -296,33 +296,16 @@ async function main() {
   })
   console.log(`👤 Staff users seeded: 09120000002 (ADMIN), 09120000003 (CLERK)`)
 
-  // 5. Clean up any existing classes, terms, and operating phases for this sample institute
-  // Rule: NO operating phase, NO terms, NO class
+  // 5. Clean up previous sample summer classes and enrollments
+  const sampleSummerTermId = "00000000-0000-0000-0000-000000000005"
   try {
     await prisma.enrollment.deleteMany({
-      where: { class: { instituteId: institute.id } },
-    })
-    await prisma.classRequirement.deleteMany({
-      where: { instituteId: institute.id },
-    })
-    await prisma.schedulingProposal.deleteMany({
-      where: { instituteId: institute.id },
-    })
-    await prisma.schedulingRun.deleteMany({
-      where: { instituteId: institute.id },
+      where: { class: { termId: sampleSummerTermId } },
     })
     await prisma.class.deleteMany({
-      where: { instituteId: institute.id },
+      where: { termId: sampleSummerTermId },
     })
-    await prisma.term.deleteMany({
-      where: { instituteId: institute.id },
-    })
-    await prisma.instituteOperatingPhase.deleteMany({
-      where: { instituteId: institute.id },
-    })
-    console.log(
-      `🧹 Verified clean state: 0 classes, 0 terms, 0 operating phases`
-    )
+    console.log(`🧹 Cleaned previous sample summer classes and enrollments`)
   } catch (err) {
     console.warn("⚠️ Cleanup note:", err)
   }
@@ -451,6 +434,8 @@ async function main() {
 
   // 8. Seed 15 Teachers
   console.log("👨‍🏫 Seeding 15 teachers...")
+  const seededTeachers: { id: string; firstName: string; lastName: string }[] =
+    []
   const teacherSpecialtiesList = [
     ["IELTS", "Speaking", "Grammar"],
     ["TOEFL", "Academic Writing"],
@@ -494,6 +479,11 @@ async function main() {
         nationalCode,
         isActive: true,
       },
+    })
+    seededTeachers.push({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
     })
 
     const teacherProfile = await prisma.teacherProfile.upsert({
@@ -571,9 +561,180 @@ async function main() {
     `✅ 15 Teachers seeded (Phones: 09122000001 - 09122000015, Password: ${defaultPassword})`
   )
 
-  // 9. Seed 100 Students
-  console.log("🎓 Seeding 100 students...")
-  for (let i = 1; i <= 100; i++) {
+  // 9. Seed Operating Phases and Preceding Term (Summer 1405)
+  console.log("⏰ Seeding Operating Phases and Preceding Term (Summer 1405)...")
+  const defaultDaysOfWeek = [
+    "SATURDAY",
+    "SUNDAY",
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+  ]
+
+  const summerPhase = await prisma.instituteOperatingPhase.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000023" },
+    update: {
+      title: "فاز تابستان",
+      months: [4, 5, 6],
+      startTime: "09:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 3,
+    },
+    create: {
+      id: "00000000-0000-0000-0000-000000000023",
+      instituteId: institute.id,
+      title: "فاز تابستان",
+      months: [4, 5, 6],
+      startTime: "09:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 3,
+    },
+  })
+
+  await prisma.instituteOperatingPhase.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000020" },
+    update: {
+      title: "فاز پاییز",
+      months: [7, 8, 9],
+      startTime: "15:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 0,
+    },
+    create: {
+      id: "00000000-0000-0000-0000-000000000020",
+      instituteId: institute.id,
+      title: "فاز پاییز",
+      months: [7, 8, 9],
+      startTime: "15:00",
+      endTime: "21:00",
+      slotDurationMinutes: 90,
+      daysOfWeek: defaultDaysOfWeek,
+      hasBreak: false,
+      isActive: true,
+      order: 0,
+    },
+  })
+
+  // Upsert preceding term (تابستان ۱۴۰۵)
+  const summerTerm = await prisma.term.upsert({
+    where: { id: sampleSummerTermId },
+    update: {
+      title: "تابستان ۱۴۰۵",
+      startDate: new Date("2026-06-22T00:00:00.000Z"),
+      endDate: new Date("2026-09-15T00:00:00.000Z"),
+      operatingPhaseId: summerPhase.id,
+      isActive: false,
+    },
+    create: {
+      id: sampleSummerTermId,
+      instituteId: institute.id,
+      title: "تابستان ۱۴۰۵",
+      startDate: new Date("2026-06-22T00:00:00.000Z"),
+      endDate: new Date("2026-09-15T00:00:00.000Z"),
+      operatingPhaseId: summerPhase.id,
+      isActive: false,
+    },
+  })
+  console.log(`📅 Preceding Term seeded: ${summerTerm.title}`)
+
+  // Seed Summer classes for courses AME 1-1 to AME 5-4 (first 20 courses)
+  const summerClasses: { courseId: string; classId: string }[] = []
+  for (let cIdx = 0; cIdx < coursesToSeed.length - 1; cIdx++) {
+    const course = coursesToSeed[cIdx]
+    const classId = `00000000-0000-0000-0000-00000001${String(cIdx + 1).padStart(4, "0")}`
+    const teacher = seededTeachers[cIdx % seededTeachers.length]
+    const room = roomsData[cIdx % roomsData.length]
+    const isEven = cIdx % 2 === 0
+    const daysOfWeek = isEven
+      ? ["SATURDAY", "MONDAY", "WEDNESDAY"]
+      : ["SUNDAY", "TUESDAY", "THURSDAY"]
+
+    const cls = await prisma.class.upsert({
+      where: { id: classId },
+      update: {
+        title: `کلاس ${course.title} - تابستان ۱۴۰۵`,
+        instituteId: institute.id,
+        branchId: centralBranch.id,
+        termId: summerTerm.id,
+        courseId: course.id,
+        classroomId: room.id,
+        teacherId: teacher.id,
+        teacherName: `${teacher.firstName} ${teacher.lastName}`,
+        capacity: 15,
+        fee: course.baseFee,
+        daysOfWeek,
+        startTime: "16:00",
+        endTime: "17:30",
+      },
+      create: {
+        id: classId,
+        title: `کلاس ${course.title} - تابستان ۱۴۰۵`,
+        instituteId: institute.id,
+        branchId: centralBranch.id,
+        termId: summerTerm.id,
+        courseId: course.id,
+        classroomId: room.id,
+        teacherId: teacher.id,
+        teacherName: `${teacher.firstName} ${teacher.lastName}`,
+        capacity: 15,
+        fee: course.baseFee,
+        daysOfWeek,
+        startTime: "16:00",
+        endTime: "17:30",
+      },
+    })
+    summerClasses.push({ courseId: course.id, classId: cls.id })
+  }
+  console.log(`🏫 20 Summer classes seeded for preceding term`)
+
+  // 10. Seed 420 Students (200 continuing from Summer + 220 newly placed)
+  console.log("🎓 Seeding 420 students...")
+
+  const newPlacementCounts = [
+    24, // AME 1-1
+    12, // AME 1-2
+    12, // AME 1-3
+    12, // AME 1-4
+    19, // AME 2-1
+    11, // AME 2-2
+    11, // AME 2-3
+    11, // AME 2-4
+    15, // AME 3-1
+    10, // AME 3-2
+    10, // AME 3-3
+    10, // AME 3-4
+    10, // AME 4-1
+    8, // AME 4-2
+    8, // AME 4-3
+    8, // AME 4-4
+    8, // AME 5-1
+    6, // AME 5-2
+    5, // AME 5-3
+    5, // AME 5-4
+    5, // AME 5-5
+  ]
+
+  const newPlacementCourseAssignments: string[] = []
+  for (let cIdx = 0; cIdx < newPlacementCounts.length; cIdx++) {
+    for (let k = 0; k < newPlacementCounts[cIdx]; k++) {
+      newPlacementCourseAssignments.push(coursesToSeed[cIdx].id)
+    }
+  }
+
+  for (let i = 1; i <= 420; i++) {
     const isMale = i % 2 === 1
     const firstList = isMale ? maleFirstNames : femaleFirstNames
     const firstName = firstList[(i - 1) % firstList.length]
@@ -581,7 +742,20 @@ async function main() {
     const fatherName = maleFirstNames[(i * 3) % maleFirstNames.length]
     const phone = `0912100${String(i).padStart(4, "0")}`
     const nationalCode = `00${String(10000000 + i)}`
-    const assignedCourseId = coursesToSeed[(i - 1) % coursesToSeed.length].id
+
+    let assignedCourseId: string
+    let enrolledClassId: string | null = null
+
+    if (i <= 200) {
+      // Continuing students: enrolled in Summer class, then eligible for next course in Fall
+      const classIndex = Math.floor((i - 1) / 10) // 0 to 19
+      const summerClass = summerClasses[classIndex]
+      enrolledClassId = summerClass.classId
+      assignedCourseId = coursesToSeed[classIndex + 1].id
+    } else {
+      // Newly placed students (201 to 420):
+      assignedCourseId = newPlacementCourseAssignments[i - 201]
+    }
 
     const user = await prisma.user.upsert({
       where: {
@@ -640,9 +814,32 @@ async function main() {
         scheduleStatus: "COMPLETE",
       },
     })
+
+    if (enrolledClassId) {
+      await prisma.enrollment.upsert({
+        where: {
+          studentId_classId: {
+            studentId: user.id,
+            classId: enrolledClassId,
+          },
+        },
+        update: {
+          status: "ENROLLED",
+          isPassed: true,
+          finalScore: 85 + (i % 15),
+        },
+        create: {
+          studentId: user.id,
+          classId: enrolledClassId,
+          status: "ENROLLED",
+          isPassed: true,
+          finalScore: 85 + (i % 15),
+        },
+      })
+    }
   }
   console.log(
-    `✅ 100 Students seeded (Phones: 09121000001 - 09121000100, Password: ${defaultPassword})`
+    `✅ 420 Students seeded (Phones: 09121000001 - 09121000420, Password: ${defaultPassword})`
   )
 
   console.log("\n=========================================")
@@ -652,10 +849,12 @@ async function main() {
   console.log(`  • Courses: ${coursesToSeed.length} (AME 1-1 to AME 5-5)`)
   console.log("  • Rooms: 8")
   console.log("  • Teachers: 15 (Phones: 09122000001 to 09122000015)")
-  console.log("  • Students: 100 (Phones: 09121000001 to 09121000100)")
-  console.log("  • Operating Phases: 0")
-  console.log("  • Terms: 0")
-  console.log("  • Classes: 0")
+  console.log(
+    "  • Students: 420 (200 continuing from Summer + 220 newly placed)"
+  )
+  console.log(
+    "  • Preceding Term: تابستان ۱۴۰۵ (20 classes with 200 enrolled students)"
+  )
   console.log("  • Password for all accounts: Password123!")
   console.log("=========================================\n")
 }
