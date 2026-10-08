@@ -118,12 +118,35 @@ describe("CreateInstituteModal Component", () => {
     ).toBeInTheDocument()
   })
 
-  it("should call onClose when cancel button is clicked", () => {
-    const handleClose = vi.fn()
-    render(<CreateInstituteModal open={true} onClose={handleClose} />)
+  it("should not render reject/cancel button in create institute modal", () => {
+    render(<CreateInstituteModal open={true} onClose={vi.fn()} />)
 
-    const cancelBtn = screen.getByRole("button", { name: /انصراف/i })
-    fireEvent.click(cancelBtn)
-    expect(handleClose).toHaveBeenCalled()
+    expect(
+      screen.queryByRole("button", { name: /انصراف/i })
+    ).not.toBeInTheDocument()
+  })
+
+  it("should render horizontal stepper navigation with all 4 steps", () => {
+    render(<CreateInstituteModal open={true} onClose={vi.fn()} />)
+
+    const stepper = screen.getByRole("navigation", {
+      name: /Institute Setup Steps/i,
+    })
+    expect(stepper).toBeInTheDocument()
+
+    const stepButtons = stepper.querySelectorAll("button")
+    expect(stepButtons.length).toBe(4)
+  })
+
+  it("should place color picker inside a card and render subdomain suffix with text-base", () => {
+    render(<CreateInstituteModal open={true} onClose={vi.fn()} />)
+
+    const card = document.querySelector('[data-slot="card"]')
+    expect(card).toBeInTheDocument()
+    expect(card).toHaveTextContent(/رنگ سازمانی/i)
+
+    const suffix = screen.getByText(".kalameh.ir")
+    expect(suffix).toBeInTheDocument()
+    expect(suffix.className).toContain("text-base")
   })
 })

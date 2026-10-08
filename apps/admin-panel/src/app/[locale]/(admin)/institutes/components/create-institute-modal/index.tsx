@@ -149,7 +149,6 @@ export function CreateInstituteModal({
             activeTab={activeTab}
             isPending={mutation.isPending}
             onBack={handleBack}
-            onClose={handleClose}
             onNext={() => void handleNextStep()}
           />
         </form>

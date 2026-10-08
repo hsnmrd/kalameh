@@ -63,4 +63,26 @@ describe("ModulesSelector Component", () => {
       ])
     )
   })
+
+  it("should render 3 standard sized suggest buttons and carousel with equal item widths", () => {
+    render(<ModulesSelector value={[]} onChange={vi.fn()} />)
+
+    const starterBtn = screen.getByRole("button", { name: "پایه" })
+    const proBtn = screen.getByRole("button", { name: "پیشرفته" })
+    const enterpriseBtn = screen.getByRole("button", { name: "سازمانی (کامل)" })
+
+    expect(starterBtn.className).toContain("h-14")
+    expect(proBtn.className).toContain("h-14")
+    expect(enterpriseBtn.className).toContain("h-14")
+
+    const carousel = document.querySelector('[data-slot="carousel"]')
+    expect(carousel).toBeInTheDocument()
+    expect(carousel?.className).toContain("w-full")
+
+    const items = document.querySelectorAll('[data-slot="carousel-item"]')
+    expect(items.length).toBe(8)
+    items.forEach((item) => {
+      expect(item.className).toContain("basis-[260px]")
+    })
+  })
 })

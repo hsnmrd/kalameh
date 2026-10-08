@@ -13,9 +13,19 @@ import {
   Video,
   Check,
   Package,
+  Sparkles,
+  Building2,
+  Crown,
 } from "lucide-react"
 import { APP_MODULES, ALL_APP_MODULES, type AppModule } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@workspace/ui/components/carousel"
 import { cn } from "@workspace/ui/lib/utils"
 
 export interface ModulesSelectorProps {
@@ -25,7 +35,10 @@ export interface ModulesSelectorProps {
 
 const MODULE_ICONS: Record<
   AppModule,
-  React.ComponentType<{ className?: string }>
+  React.ComponentType<{
+    className?: string
+    "aria-hidden"?: boolean | "true" | "false"
+  }>
 > = {
   [APP_MODULES.USERS_STAFF]: Users,
   [APP_MODULES.STUDENTS]: GraduationCap,
@@ -56,7 +69,7 @@ export function ModulesSelector({
   value = [],
   onChange,
 }: ModulesSelectorProps) {
-  const t = useTranslations("common.modules")
+  const t = useTranslations("institutes.modules")
 
   const handleToggle = (module: AppModule) => {
     if (value.includes(module)) {
@@ -70,97 +83,171 @@ export function ModulesSelector({
     onChange([...preset])
   }
 
+  const isStarterActive =
+    value.length === PRESET_STARTER.length &&
+    PRESET_STARTER.every((m) => value.includes(m))
+
+  const isProActive =
+    value.length === PRESET_PRO.length &&
+    PRESET_PRO.every((m) => value.includes(m))
+
+  const isEnterpriseActive =
+    value.length === ALL_APP_MODULES.length &&
+    ALL_APP_MODULES.every((m) => value.includes(m))
+
   return (
-    <div className="flex flex-col gap-4">
-      {/* Presets Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-muted/40 p-3">
-        <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-          <Package className="size-4 text-muted-foreground" />
+    <div className="flex w-full flex-col gap-5">
+      {/* 3 Suggest/Preset Buttons in Horizontal Order */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+          <Package
+            className="size-4 text-muted-foreground"
+            aria-hidden="true"
+          />
           <span>{t("presetsTitle")}</span>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="grid w-full grid-cols-3 gap-2.5 sm:gap-3">
           <Button
             type="button"
             variant="outline"
-            size="sm"
             onClick={() => applyPreset(PRESET_STARTER)}
-            className="h-7.5 cursor-pointer rounded-lg px-2.5 text-xs font-medium"
+            className={cn(
+              "h-14 cursor-pointer rounded-2xl px-2 font-medium transition-all sm:px-4",
+              isStarterActive
+                ? "border-primary bg-primary/10 font-semibold text-primary ring-1 ring-primary/30"
+                : "border-border/80 bg-card text-foreground hover:bg-muted/40"
+            )}
           >
-            {t("presetStarter")}
+            <Sparkles
+              className="size-4 shrink-0 text-inherit sm:size-4.5"
+              aria-hidden="true"
+            />
+            <span className="truncate text-xs sm:text-sm">
+              {t("presetStarter")}
+            </span>
           </Button>
 
           <Button
             type="button"
             variant="outline"
-            size="sm"
             onClick={() => applyPreset(PRESET_PRO)}
-            className="h-7.5 cursor-pointer rounded-lg px-2.5 text-xs font-medium"
+            className={cn(
+              "h-14 cursor-pointer rounded-2xl px-2 font-medium transition-all sm:px-4",
+              isProActive
+                ? "border-primary bg-primary/10 font-semibold text-primary ring-1 ring-primary/30"
+                : "border-border/80 bg-card text-foreground hover:bg-muted/40"
+            )}
           >
-            {t("presetPro")}
+            <Crown
+              className="size-4 shrink-0 text-inherit sm:size-4.5"
+              aria-hidden="true"
+            />
+            <span className="truncate text-xs sm:text-sm">
+              {t("presetPro")}
+            </span>
           </Button>
 
           <Button
             type="button"
             variant="outline"
-            size="sm"
             onClick={() => applyPreset(ALL_APP_MODULES)}
-            className="h-7.5 cursor-pointer rounded-lg px-2.5 text-xs font-medium"
+            className={cn(
+              "h-14 cursor-pointer rounded-2xl px-2 font-medium transition-all sm:px-4",
+              isEnterpriseActive
+                ? "border-primary bg-primary/10 font-semibold text-primary ring-1 ring-primary/30"
+                : "border-border/80 bg-card text-foreground hover:bg-muted/40"
+            )}
           >
-            {t("presetEnterprise")}
+            <Building2
+              className="size-4 shrink-0 text-inherit sm:size-4.5"
+              aria-hidden="true"
+            />
+            <span className="truncate text-xs sm:text-sm">
+              {t("presetEnterprise")}
+            </span>
           </Button>
         </div>
       </div>
 
-      {/* Modules Grid */}
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-        {ALL_APP_MODULES.map((moduleKey) => {
-          const isSelected = value.includes(moduleKey)
-          const Icon = MODULE_ICONS[moduleKey] || Package
+      {/* Modules Carousel (Same Width as the 3 Buttons) */}
+      <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
+        <div className="mb-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-foreground">
+              {t("title")}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <CarouselPrevious
+              className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-xl border-border/80 bg-muted/40 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
+              aria-label="Previous modules"
+            />
+            <CarouselNext
+              className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-xl border-border/80 bg-muted/40 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
+              aria-label="Next modules"
+            />
+          </div>
+        </div>
 
-          return (
-            <Button
-              key={moduleKey}
-              type="button"
-              variant="ghost"
-              onClick={() => handleToggle(moduleKey)}
-              className={cn(
-                "group relative flex h-auto cursor-pointer items-start gap-3 rounded-xl border p-3 text-start font-normal transition-all",
-                isSelected
-                  ? "border-success/60 bg-success/5 shadow-2xs hover:bg-success/10"
-                  : "border-border/80 bg-card hover:border-border hover:bg-muted/30"
-              )}
-            >
-              <div
-                className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-lg border transition-colors",
-                  isSelected
-                    ? "border-success/30 bg-success/10 text-success"
-                    : "border-border/60 bg-muted/60 text-muted-foreground group-hover:text-foreground"
-                )}
+        <CarouselContent className="items-stretch">
+          {ALL_APP_MODULES.map((moduleKey) => {
+            const isSelected = value.includes(moduleKey)
+            const Icon = MODULE_ICONS[moduleKey] || Package
+
+            return (
+              <CarouselItem
+                key={moduleKey}
+                className="flex shrink-0 basis-[260px] sm:basis-[280px]"
               >
-                <Icon className="size-4.5" />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-1.5">
-                  <p className="text-xs font-semibold text-foreground">
-                    {t(`items.${moduleKey}.name`)}
-                  </p>
-                  {isSelected && (
-                    <div className="flex size-4 items-center justify-center rounded-full bg-success text-success-foreground">
-                      <Check className="size-3" />
-                    </div>
+                <Button
+                  key={moduleKey}
+                  type="button"
+                  variant="ghost"
+                  onClick={() => handleToggle(moduleKey)}
+                  className={cn(
+                    "group relative flex h-full min-h-[140px] w-full cursor-pointer flex-col items-start justify-between rounded-2xl border p-4 text-start font-normal transition-all",
+                    isSelected
+                      ? "border-success/60 bg-success/5 shadow-2xs hover:bg-success/10"
+                      : "border-border/80 bg-card hover:border-border hover:bg-muted/30"
                   )}
-                </div>
-                <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
-                  {t(`items.${moduleKey}.description`)}
-                </p>
-              </div>
-            </Button>
-          )
-        })}
-      </div>
+                >
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <div
+                      className={cn(
+                        "flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors",
+                        isSelected
+                          ? "border-success/30 bg-success/10 text-success"
+                          : "border-border/60 bg-muted/60 text-muted-foreground group-hover:text-foreground"
+                      )}
+                    >
+                      <Icon className="size-5" aria-hidden="true" />
+                    </div>
+
+                    {isSelected && (
+                      <div className="flex size-5 items-center justify-center rounded-full bg-success text-success-foreground shadow-2xs">
+                        <Check
+                          className="size-3.5 stroke-[2.5]"
+                          aria-hidden="true"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex w-full flex-col gap-1">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {t(`items.${moduleKey}.name`)}
+                    </p>
+                    <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                      {t(`items.${moduleKey}.description`)}
+                    </p>
+                  </div>
+                </Button>
+              </CarouselItem>
+            )
+          })}
+        </CarouselContent>
+      </Carousel>
     </div>
   )
 }
