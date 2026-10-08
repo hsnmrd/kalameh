@@ -10,6 +10,7 @@ import {
   classesResource,
 } from "@/lib/api"
 import type { NavItemKey } from "@/components/admin-base-layout/nav-list"
+import { areActiveTermsHavingClasses } from "./utils"
 
 export interface UseSetupFlowStatusOptions {
   instituteId?: string | null
@@ -83,7 +84,11 @@ export function useSetupFlowStatus({
   )
 
   const isStep4Done = isSubstep3Done
-  const isStep5Done = classes.length > 0 || classesCount > 0
+  const isStep5Done = areActiveTermsHavingClasses({
+    terms,
+    classes,
+    fallbackClassesCount: classesCount,
+  })
 
   const stepDoneFlags = React.useMemo(
     () => [isStep1Done, isStep2Done, isStep3Done, isStep4Done, isStep5Done],
