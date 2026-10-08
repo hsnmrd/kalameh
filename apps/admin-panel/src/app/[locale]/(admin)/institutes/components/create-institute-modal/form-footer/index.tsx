@@ -47,14 +47,19 @@ export function FormFooter({
         </Button>
         {activeTab !== "banking" ? (
           <Button
+            key="next-step-button"
             type="button"
-            onClick={onNext}
+            onClick={(e) => {
+              e.preventDefault()
+              onNext()
+            }}
             className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
           >
             {t("createModal.next")}
           </Button>
         ) : (
           <Button
+            key="submit-step-button"
             type="submit"
             disabled={isPending}
             className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"

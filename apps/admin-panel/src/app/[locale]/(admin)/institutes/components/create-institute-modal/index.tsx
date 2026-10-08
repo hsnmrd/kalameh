@@ -76,10 +76,16 @@ export function CreateInstituteModal({
   })
   const handleNextStep = async () => {
     if (activeTab === "general") {
-      if (await trigger(["name", "subdomain", "primaryColor"]))
+      if (await trigger(["name", "subdomain", "primaryColor"])) {
         setActiveTab("modules")
-    } else if (activeTab === "modules") setActiveTab("contact")
-    else if (activeTab === "contact") setActiveTab("banking")
+      }
+    } else if (activeTab === "modules") {
+      setActiveTab("contact")
+    } else if (activeTab === "contact") {
+      if (await trigger(["address", "phones"])) {
+        setActiveTab("banking")
+      }
+    }
   }
   const handleBack = () =>
     setActiveTab(
