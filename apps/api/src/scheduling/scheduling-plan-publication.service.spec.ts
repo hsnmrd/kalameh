@@ -79,6 +79,7 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
       },
       class: {
         create: jest.fn().mockResolvedValue({ id: ids.createdClass }),
+        createMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
       schedulingProposal: {
         updateMany: jest.fn().mockResolvedValue({ count: 1 }),
@@ -106,7 +107,7 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
       planId: ids.plan,
       runId: ids.run,
       status: 'PUBLISHED',
-      classIds: [ids.createdClass],
+      classIds: [expect.any(String)],
       proposalCount: 1,
       publishedAt: now,
     });
@@ -123,20 +124,21 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
       transaction,
       false,
     );
-    expect(transaction.class.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        instituteId: ids.institute,
-        termId: ids.term,
-        courseId: ids.course,
-        fee: 1_500_000,
-        teacherName: 'Sara Ahmadi',
-        sessionDates: ['2026-09-13'],
-      }),
-      select: { id: true },
+    expect(transaction.class.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          instituteId: ids.institute,
+          termId: ids.term,
+          courseId: ids.course,
+          fee: 1_500_000,
+          teacherName: 'Sara Ahmadi',
+          sessionDates: ['2026-09-13'],
+        }),
+      ],
     });
     expect(transaction.schedulingProposal.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { publishedClassId: ids.createdClass },
+        data: { publishedClassId: expect.any(String) },
       }),
     );
     expect(auditLogs.log).toHaveBeenCalledWith(
@@ -167,7 +169,7 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
     await expect(
       service.publish(admin, ids.plan, undefined, 'fa', now),
     ).rejects.toThrow(ConflictException);
-    expect(transaction.class.create).not.toHaveBeenCalled();
+    expect(transaction.class.createMany).not.toHaveBeenCalled();
     expect(auditLogs.log).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'PLAN_PUBLICATION_BLOCKED' }),
     );
@@ -205,11 +207,11 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
     await expect(
       service.publish(admin, ids.plan, undefined, 'fa', now),
     ).rejects.toThrow(ConflictException);
-    expect(transaction.class.create).not.toHaveBeenCalled();
+    expect(transaction.class.createMany).not.toHaveBeenCalled();
   });
 
   it('does not emit a success audit when class creation fails', async () => {
-    transaction.class.create.mockRejectedValue(new Error('insert failed'));
+    transaction.class.createMany.mockRejectedValue(new Error('insert failed'));
 
     await expect(
       service.publish(admin, ids.plan, undefined, 'fa', now),
@@ -238,7 +240,7 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
     await expect(
       service.publish(admin, ids.plan, undefined, 'fa', now),
     ).rejects.toThrow(ConflictException);
-    expect(transaction.class.create).not.toHaveBeenCalled();
+    expect(transaction.class.createMany).not.toHaveBeenCalled();
     expect(auditLogs.log).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'PLAN_PUBLICATION_BLOCKED' }),
     );
