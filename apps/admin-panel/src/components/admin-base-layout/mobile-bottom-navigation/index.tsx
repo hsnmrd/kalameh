@@ -105,9 +105,10 @@ export function MobileBottomNavigation({
 
   return (
     <>
+      <span className="fixed inset-x-0 bottom-0 h-[50px] bg-gradient-to-t from-background" />
       <nav
         aria-label={t("nav.mobileNavigation")}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom,0px)] shadow-lg backdrop-blur-md lg:hidden"
+        className="fixed inset-x-4 bottom-3 z-40 rounded-[50px] border border-border bg-card/30 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md lg:hidden"
       >
         <div className="grid h-16 auto-cols-fr grid-flow-col items-stretch px-1">
           {directItems.map((item) => {
@@ -159,7 +160,7 @@ export function MobileBottomNavigation({
                   {t(`navShort.${item.key}`)}
                 </span>
                 {isActive && (
-                  <span className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-primary" />
+                  <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-primary" />
                 )}
               </Link>
             )
