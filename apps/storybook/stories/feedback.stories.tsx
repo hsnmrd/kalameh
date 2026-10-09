@@ -86,3 +86,62 @@ export const ToastInteraction: Story = {
     )
   },
 }
+
+export const ToastStatuses: Story = {
+  render: () => (
+    <div className="flex flex-wrap gap-2.5">
+      <Button
+        variant="outline"
+        onClick={() =>
+          toast.success("Changes saved", {
+            description: "Your term modifications were saved successfully.",
+          })
+        }
+      >
+        Success toast
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() =>
+          toast.error("Failed to delete", {
+            description: "Cannot delete an active term with enrolled students.",
+          })
+        }
+      >
+        Error toast
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() =>
+          toast.warning("Pending sync", {
+            description: "Some compensatory sessions have not synced yet.",
+          })
+        }
+      >
+        Warning toast
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() =>
+          toast.info("Update available", {
+            description: "A new version of Kalameh is ready to install.",
+          })
+        }
+      >
+        Info toast
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() => toast.loading("Processing transaction...")}
+      >
+        Loading toast
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() => toast("Simple minimal notification")}
+      >
+        Default toast
+      </Button>
+    </div>
+  ),
+}
