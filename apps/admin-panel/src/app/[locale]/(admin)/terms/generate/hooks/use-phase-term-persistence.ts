@@ -87,16 +87,20 @@ export function usePhaseTermPersistence({
 
     try {
       const result = await previewQuery.refetch()
-      if (result.isError) return
+      if (result.isError) return false
       if (result.data?.length) {
         setProposals(result.data)
         setCustomTitles({})
-        router.push("/terms/generate/preview")
+        router.push("/terms/generate")
+        return true
       } else if (result.data) {
         toast.error(t("batchModal.noProposals"))
+        return false
       }
+      return false
     } catch {
       // Global API error handling owns the notification.
+      return false
     }
   }
 

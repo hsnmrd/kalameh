@@ -20,4 +20,11 @@ export const modalRegistry: ModalRegistry = {
       import("./components/delete-term-modal").then((m) => m.DeleteTermModal),
     { ssr: false }
   ),
+  generatePhaseTerms: dynamic(
+    () =>
+      import("./components/generate-phase-terms-modal").then(
+        (m) => m.GeneratePhaseTermsModal
+      ),
+    { ssr: false }
+  ),
 }

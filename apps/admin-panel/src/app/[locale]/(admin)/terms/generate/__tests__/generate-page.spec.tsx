@@ -1,23 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, act, waitFor } from "@/test/test-utils"
-import { toast } from "@workspace/ui/components/sonner"
+import { render, screen, act } from "@/test/test-utils"
 import { usePhaseTermsGenerateStore } from "@/lib/stores"
 import GeneratePhaseTermsPage from "../page"
 
-const { mockPush, mockBack } = vi.hoisted(() => ({
+const { mockPush, mockReplace } = vi.hoisted(() => ({
   mockPush: vi.fn(),
-  mockBack: vi.fn(),
+  mockReplace: vi.fn(),
 }))
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({}),
-  useRouter: () => ({ push: mockPush, replace: vi.fn(), back: mockBack }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace, back: vi.fn() }),
   usePathname: () => "/terms/generate",
   useSearchParams: () => new URLSearchParams(),
 }))
 
 vi.mock("@/i18n/routing", () => ({
-  useRouter: () => ({ push: mockPush, replace: vi.fn(), back: mockBack }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace, back: vi.fn() }),
   usePathname: () => "/terms/generate",
   useIsRtl: () => true,
   Link: ({
@@ -51,21 +50,19 @@ vi.mock("@/lib/stores", async (importOriginal) => {
 })
 
 const mockBatchCreate = vi.fn().mockResolvedValue({})
-let mockExistingTerms: unknown[] = []
 const defaultMockProposals = [
   {
-    title: "مهر و آبان ۱۴۰۳",
-    startDate: "2024-09-22",
-    startDateJalali: "1403/07/01",
-    endDate: "2024-11-05",
-    endDateJalali: "1403/08/15",
+    title: "مهر و آبان ۱۴۰۶",
+    startDate: "2027-09-23",
+    startDateJalali: "1406/07/01",
+    endDate: "2027-11-06",
+    endDateJalali: "1406/08/15",
     daysCount: 45,
     sessionsCount: 18,
     holidaysCount: 2,
     monthNamesFa: "مهر، آبان",
   },
 ]
-let mockPreviewProposals: unknown[] = defaultMockProposals
 
 vi.mock("@/lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/api")>()
@@ -96,7 +93,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
       previewPhase: {
         toQuery: () => ({
           queryKey: ["terms", "preview-phase"],
-          queryFn: () => Promise.resolve(mockPreviewProposals),
+          queryFn: () => Promise.resolve(defaultMockProposals),
         }),
       },
       batchCreatePhase: {
@@ -108,137 +105,119 @@ vi.mock("@/lib/api", async (importOriginal) => {
         baseKey: () => ["terms"],
         toQuery: () => ({
           queryKey: ["terms", "list"],
-          queryFn: () => Promise.resolve(mockExistingTerms),
+          queryFn: () => Promise.resolve([]),
         }),
       },
     },
   }
 })
 
-describe("GeneratePhaseTermsPage", () => {
+describe("GeneratePhaseTermsPage (/terms/generate)", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     usePhaseTermsGenerateStore.getState().reset()
-    mockExistingTerms = []
-    mockPreviewProposals = defaultMockProposals
+    usePhaseTermsGenerateStore.setState({
+      selectedPhaseId: "phase-1",
+      jalaliYear: 1403,
+      sessionsPerTerm: 18,
+      gapDays: 2,
+      proposals: defaultMockProposals,
+    })
   })
 
-  it("renders Step 1 with header, breadcrumbs, and continue button", () => {
+  it("renders preview content at /terms/generate with breadcrumb, calendar view, and edit config button without table view", () => {
     render(<GeneratePhaseTermsPage />)
 
-    expect(screen.getAllByText("ساخت خودکار ترم‌ها")[0]).toBeInTheDocument()
-    expect(screen.getByText("ترم‌ها و دوره‌ها")).toBeInTheDocument()
-    expect(screen.getByText("ادامه")).toBeInTheDocument()
-    expect(screen.getByText("انصراف")).toBeInTheDocument()
+    expect(screen.getByText("مهر و آبان ۱۴۰۶")).toBeInTheDocument()
+    expect(screen.getByText("ویرایش تنظیمات")).toBeInTheDocument()
+    expect(screen.getByText("تأیید")).toBeInTheDocument()
+    expect(screen.queryByText("نمای جدول")).not.toBeInTheDocument()
+    expect(screen.queryByText("نمای تقویم")).not.toBeInTheDocument()
+    expect(screen.queryByText("بازگشت")).not.toBeInTheDocument()
   })
 
-  it("renders Counter controls for academic year, sessions per term, and gap days", () => {
+  it("redirects to /terms?modal=generatePhaseTerms if accessed without proposals", () => {
+    usePhaseTermsGenerateStore.setState({ proposals: [] })
     render(<GeneratePhaseTermsPage />)
 
-    const jalaliYearInput = screen.getByRole("textbox", {
-      name: "سال تحصیلی",
-    })
-    const sessionsInput = screen.getByRole("textbox", {
-      name: "تعداد جلسات هر ترم",
-    })
-    const gapDaysInput = screen.getByRole("textbox", {
-      name: "فاصله بین ترم‌ها",
-    })
-
-    expect(jalaliYearInput).toBeInTheDocument()
-    expect(sessionsInput).toBeInTheDocument()
-    expect(sessionsInput).toHaveValue("15")
-    expect(gapDaysInput).toBeInTheDocument()
-
-    // Verify counter increment and decrement buttons are accessible
-    const incrementButtons = screen.getAllByRole("button", { name: "افزایش" })
-    const decrementButtons = screen.getAllByRole("button", { name: "کاهش" })
-
-    expect(incrementButtons.length).toBe(3)
-    expect(decrementButtons.length).toBe(3)
+    expect(mockReplace).toHaveBeenCalledWith("/terms?modal=generatePhaseTerms")
   })
 
-  it("normalizes legacy 18 sessionsPerTerm to default 15 on page load", () => {
-    usePhaseTermsGenerateStore.setState({ sessionsPerTerm: 18 })
+  it("renders breadcrumb link to navigate back to /terms without in-page back button", () => {
     render(<GeneratePhaseTermsPage />)
 
-    const sessionsInput = screen.getByRole("textbox", {
-      name: "تعداد جلسات هر ترم",
+    expect(screen.queryByText("بازگشت")).not.toBeInTheDocument()
+    const parentLinks = screen.getAllByRole("link", {
+      name: "ترم‌ها و دوره‌ها",
     })
-    expect(sessionsInput).toHaveValue("15")
+    expect(parentLinks.length).toBeGreaterThan(0)
+    expect(parentLinks[0]).toHaveAttribute("href", "/terms")
   })
 
-  it("navigates to /terms when clicking cancel button in Step 1", async () => {
+  it("submits batch create when clicking confirm button and redirects to /terms", async () => {
+    mockBatchCreate.mockClear()
     render(<GeneratePhaseTermsPage />)
 
-    const cancelBtn = screen.getByText("انصراف")
+    const submitBtn = await screen.findByText("تأیید")
     await act(async () => {
-      cancelBtn.click()
+      submitBtn.click()
     })
 
+    expect(mockBatchCreate.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        operatingPhaseId: "phase-1",
+        terms: expect.arrayContaining([
+          expect.objectContaining({
+            title: "مهر و آبان ۱۴۰۶",
+            startDate: "2027-09-23",
+            endDate: "2027-11-06",
+            isActive: true,
+          }),
+        ]),
+      })
+    )
     expect(mockPush).toHaveBeenCalledWith("/terms")
   })
 
-  it("allows advancing to Step 2 without displaying conflict toast error when existing terms exist", async () => {
-    mockExistingTerms = [
-      {
-        id: "term-1",
-        title: "ترم موجود",
-        startDate: "2024-10-01",
-        endDate: "2024-10-15",
-        operatingPhaseId: "phase-1",
-      },
-    ]
+  it("disables submit button when terms have session imbalance", () => {
+    usePhaseTermsGenerateStore.setState({
+      proposals: [
+        {
+          ...defaultMockProposals[0]!,
+          hasSessionImbalance: true,
+          patternDetails: [
+            { track: "EVEN", completedSessions: 8, targetSessions: 9 },
+            { track: "ODD", completedSessions: 9, targetSessions: 9 },
+          ],
+        },
+      ],
+    })
 
     render(<GeneratePhaseTermsPage />)
 
-    const continueBtn = screen.getByText("ادامه")
-    await waitFor(() => {
-      expect(continueBtn.closest("button")).not.toBeDisabled()
-    })
-
-    await act(async () => {
-      continueBtn.click()
-    })
-
-    expect(toast.error).not.toHaveBeenCalledWith(
-      expect.stringContaining("تداخل")
-    )
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/terms/generate/preview")
-    })
+    const submitBtn = screen.getByText("تأیید")
+    expect(submitBtn.closest("button")).toBeDisabled()
   })
 
-  it("fetches proposals and navigates to /terms/generate/preview after clicking continue", async () => {
-    render(<GeneratePhaseTermsPage />)
-
-    const continueBtn = screen.getByText("ادامه")
-    await waitFor(() => {
-      expect(continueBtn.closest("button")).not.toBeDisabled()
+  it("disables submit button and shows warning alert when proposals are in the past", () => {
+    usePhaseTermsGenerateStore.setState({
+      proposals: [
+        {
+          ...defaultMockProposals[0]!,
+          startDate: "2020-01-01",
+          endDate: "2020-02-01",
+        },
+      ],
     })
-
-    await act(async () => {
-      continueBtn.click()
-    })
-
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/terms/generate/preview")
-    })
-  })
-
-  it("disables continue button and displays warning alert when selected phase is in the past", async () => {
-    usePhaseTermsGenerateStore.setState({ jalaliYear: 1402 })
 
     render(<GeneratePhaseTermsPage />)
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          "امکان ساخت ترم برای ماه‌های گذشته وجود ندارد. تمام ماه‌های این فاز در سال تحصیلی انتخابی در گذشته قرار دارند."
-        )
-      ).toBeInTheDocument()
-      const continueBtn = screen.getByText("ادامه")
-      expect(continueBtn.closest("button")).toBeDisabled()
-    })
+    expect(
+      screen.getByText(
+        "امکان تعریف ترم برای ماه‌های گذشته وجود ندارد. حداقل یک روز از ترم باید در آینده باشد."
+      )
+    ).toBeInTheDocument()
+    const submitBtn = screen.getByText("تأیید")
+    expect(submitBtn.closest("button")).toBeDisabled()
   })
 })

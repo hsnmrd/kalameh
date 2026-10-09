@@ -51,7 +51,7 @@ export default function TermsPage() {
   const isListEmpty = !isLoading && terms.length === 0
 
   const handleCreate = () => openModal("createTerm")
-  const handleBatch = () => router.push("/terms/generate")
+  const handleBatch = () => openModal("generatePhaseTerms")
   const handleView = (term: TermDto) => openModal("viewTerm", { term })
   const handleEdit = (term: TermDto) => openModal("editTerm", { term })
   const handleDelete = (term: TermDto) => openModal("deleteTerm", { term })

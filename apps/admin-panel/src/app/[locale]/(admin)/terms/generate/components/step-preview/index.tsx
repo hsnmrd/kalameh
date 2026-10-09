@@ -10,12 +10,11 @@ import {
   hasFutureDays,
 } from "@workspace/types"
 import { ProposalsCalendar } from "../../../components/proposals-calendar"
-import { ProposalsTable } from "../proposals-table"
 
 export interface StepPreviewProps {
   proposals: GeneratedTermProposal[]
-  viewMode: "calendar" | "table"
-  onTitleChange: (index: number, newTitle: string) => void
+  viewMode?: "calendar" | "table"
+  onTitleChange?: (index: number, newTitle: string) => void
   onStartDateChange: (index: number, newStartDate: string) => void
   onToggleHoliday?: (dateYmd: string) => void
   onToggleCustomOffDay?: (dateYmd: string) => void
@@ -44,8 +43,6 @@ export interface StepPreviewProps {
 
 export function StepPreview({
   proposals,
-  viewMode,
-  onTitleChange,
   onStartDateChange,
   onToggleHoliday,
   onToggleCustomOffDay,
@@ -145,36 +142,25 @@ export function StepPreview({
         </div>
       )}
 
-      {/* Proposals View: Calendar or Table */}
+      {/* Proposals View: Calendar Only */}
       {proposals.length > 0 ? (
-        viewMode === "calendar" ? (
-          <ProposalsCalendar
-            proposals={proposals}
-            selectedTermIndex={safeSelectedTermIndex}
-            onSelectTermIndex={setSelectedTermIndex}
-            onStartDateChange={onStartDateChange}
-            onToggleHoliday={onToggleHoliday}
-            onToggleCustomOffDay={onToggleCustomOffDay}
-            onAddCompensatorySession={onAddCompensatorySession}
-            onRemoveCompensatorySession={onRemoveCompensatorySession}
-            locale={locale}
-            observeOfficialHolidays={observeOfficialHolidays}
-            customOffDays={customOffDays}
-            activeDismissedHolidays={activeDismissedHolidays}
-            compensatorySessions={compensatorySessions}
-            dateConflicts={dateConflicts}
-            existingTerms={existingTerms}
-          />
-        ) : (
-          <ProposalsTable
-            proposals={proposals}
-            onTitleChange={onTitleChange}
-            onStartDateChange={onStartDateChange}
-            locale={locale}
-            dateConflicts={dateConflicts}
-            existingTerms={existingTerms}
-          />
-        )
+        <ProposalsCalendar
+          proposals={proposals}
+          selectedTermIndex={safeSelectedTermIndex}
+          onSelectTermIndex={setSelectedTermIndex}
+          onStartDateChange={onStartDateChange}
+          onToggleHoliday={onToggleHoliday}
+          onToggleCustomOffDay={onToggleCustomOffDay}
+          onAddCompensatorySession={onAddCompensatorySession}
+          onRemoveCompensatorySession={onRemoveCompensatorySession}
+          locale={locale}
+          observeOfficialHolidays={observeOfficialHolidays}
+          customOffDays={customOffDays}
+          activeDismissedHolidays={activeDismissedHolidays}
+          compensatorySessions={compensatorySessions}
+          dateConflicts={dateConflicts}
+          existingTerms={existingTerms}
+        />
       ) : (
         <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
           {t("batchModal.noProposals")}

@@ -10,19 +10,21 @@ import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { ModuleGuard } from "@/components/module-guard"
 import { PermissionGuard } from "@/components/permission-guard"
+import { ModalGateway } from "@/components/modal-gateway"
+import { modalRegistry } from "../../../modal"
 import { useRouter } from "@/i18n/routing"
-import { useGeneratePhaseTerms } from "../../../hooks/use-generate-phase-terms"
-import { StepPreview } from "../../../components/step-preview"
+import { useModal } from "@/lib/hooks"
+import { useGeneratePhaseTerms } from "../../hooks/use-generate-phase-terms"
+import { StepPreview } from "../step-preview"
 import { PreviewFilter } from "../preview-filter"
 
 export function GeneratePhaseTermsPreviewContent() {
   const t = useTranslations("terms")
   const tCommon = useTranslations("common")
   const router = useRouter()
+  const { openModal } = useModal()
 
   const {
-    viewMode,
-    setViewMode,
     proposals,
     hasAnySessionImbalance,
     dateConflicts,
@@ -32,7 +34,6 @@ export function GeneratePhaseTermsPreviewContent() {
     customOffDays,
     activeDismissedHolidays,
     compensatorySessions,
-    handleTitleChange,
     handleStartDateChange,
     handleToggleHoliday,
     handleToggleCustomOffDay,
@@ -54,7 +55,7 @@ export function GeneratePhaseTermsPreviewContent() {
       !batchCreateMutation.isPending &&
       !batchCreateMutation.isSuccess
     ) {
-      router.replace("/terms/generate")
+      router.replace("/terms?modal=generatePhaseTerms")
     }
   }, [
     proposals.length,
@@ -86,28 +87,27 @@ export function GeneratePhaseTermsPreviewContent() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="forbidden">
         <AdminPageShell
-          backHref="/terms/generate"
-          backLabel={t("batchModal.title")}
+          backHref="/terms"
+          backLabel={tCommon("nav.terms")}
           breadcrumb={
             <AdminBreadcrumb
-              backHref="/terms/generate"
-              backLabel={t("batchModal.title")}
+              backHref="/terms"
+              backLabel={tCommon("nav.terms")}
               items={[
                 { label: tCommon("nav.terms"), href: "/terms" },
-                { label: t("batchModal.title"), href: "/terms/generate" },
-                { label: t("batchModal.step2Title") },
+                { label: tCommon("nav.reviewPhaseTerms") },
               ]}
             />
           }
           filter={
             <PreviewFilter
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
+              onEditConfig={() => openModal("generatePhaseTerms")}
               onSubmit={handleSubmit}
               isSubmitDisabled={isSubmitDisabled}
               isSubmitLoading={batchCreateMutation.isPending}
             />
           }
+          modals={<ModalGateway registry={modalRegistry} />}
           fab={
             <FABSingle
               onClick={handleSubmit}
@@ -124,8 +124,6 @@ export function GeneratePhaseTermsPreviewContent() {
         >
           <StepPreview
             proposals={proposals}
-            viewMode={viewMode}
-            onTitleChange={handleTitleChange}
             onStartDateChange={handleStartDateChange}
             onToggleHoliday={handleToggleHoliday}
             onToggleCustomOffDay={handleToggleCustomOffDay}

@@ -208,7 +208,6 @@ describe("isInnerPage", () => {
     expect(isInnerPage("/classes/class-123/grades")).toBe(true)
     expect(isInnerPage("/teachers/calendar")).toBe(true)
     expect(isInnerPage("/terms/generate")).toBe(true)
-    expect(isInnerPage("/terms/generate/preview")).toBe(true)
   })
 
   it("handles trailing slashes, query parameters, and hashes correctly", () => {

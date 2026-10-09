@@ -8,6 +8,8 @@ import {
   resolveClassPatterns,
   hasTermDateConflict,
   isPhaseInPast,
+  getCurrentJalaliMonth,
+  isOperatingPhaseCurrent,
   type WeekDay,
 } from "@workspace/types"
 import { operatingPhasesResource, institutesResource } from "@/lib/api"
@@ -47,7 +49,7 @@ export function useGeneratePhaseTerms() {
   } = usePhaseTermsGenerateStore()
 
   // Fetch institute operating phases
-  const { data: phases = [] } = useQuery({
+  const { data: phases = [], isLoading: isLoadingPhases } = useQuery({
     ...operatingPhasesResource.list.toQuery({
       instituteId: activeInstituteId,
     }),
@@ -74,12 +76,18 @@ export function useGeneratePhaseTerms() {
     dismissedHolidaysOverride ?? institute?.dismissedHolidays ?? []
   const observeOfficialHolidays = institute?.observeOfficialHolidays ?? true
 
+  const currentJalaliMonth = React.useMemo(() => getCurrentJalaliMonth(), [])
+
   const phaseOptions: ComboboxOption[] = React.useMemo(() => {
-    return phases.map((phase) => ({
-      value: phase.id,
-      label: phase.title,
-    }))
-  }, [phases])
+    return phases.map((phase) => {
+      const isCurrent = isOperatingPhaseCurrent(phase, currentJalaliMonth)
+      return {
+        value: phase.id,
+        label: phase.title,
+        badge: isCurrent ? t("batchModal.runningNow") : undefined,
+      }
+    })
+  }, [phases, currentJalaliMonth, t])
 
   const activePhaseId = selectedPhaseId || phases[0]?.id || ""
   const selectedPhase = phases.find((p) => p.id === activePhaseId)
@@ -233,6 +241,8 @@ export function useGeneratePhaseTerms() {
     dateConflicts,
     hasAnyDateConflict,
     existingTerms,
+    phases,
+    isLoadingPhases,
     phaseOptions,
     previewQuery,
     batchCreateMutation,
