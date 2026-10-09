@@ -48,6 +48,8 @@ export function CustomOffDaysContent() {
     })
   }, [customOffDays, search, locale])
 
+  const isListEmpty = !isLoading && filteredOffDays.length === 0
+
   if (!activeInstituteId) return null
 
   return (
@@ -66,7 +68,7 @@ export function CustomOffDaysContent() {
         <CustomOffDaysFilter
           search={search}
           onSearchChange={setSearch}
-          onAddClick={() => openModal("addOffDay")}
+          onAddClick={isListEmpty ? undefined : () => openModal("addOffDay")}
         />
       }
       modals={
@@ -81,12 +83,14 @@ export function CustomOffDaysContent() {
         />
       }
       fab={
-        <FABSingle
-          onClick={() => openModal("addOffDay")}
-          aria-label={t("addOffDay")}
-        >
-          <Plus className="size-6" />
-        </FABSingle>
+        isListEmpty ? null : (
+          <FABSingle
+            onClick={() => openModal("addOffDay")}
+            aria-label={t("addOffDay")}
+          >
+            <Plus className="size-6" />
+          </FABSingle>
+        )
       }
     >
       {/* Desktop: DataTable */}

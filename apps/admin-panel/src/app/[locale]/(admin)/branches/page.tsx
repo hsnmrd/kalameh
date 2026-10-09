@@ -68,12 +68,14 @@ export default function BranchesPage() {
           }
           modals={<ModalGateway registry={modalRegistry} />}
           fab={
-            <PermissionGuard
-              permission={PERMISSIONS.MANAGE_BRANCHES}
-              mode="hide"
-            >
-              <FABSingle onClick={handleCreate} aria-label={t("addBranch")} />
-            </PermissionGuard>
+            isListEmpty ? null : (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_BRANCHES}
+                mode="hide"
+              >
+                <FABSingle onClick={handleCreate} aria-label={t("addBranch")} />
+              </PermissionGuard>
+            )
           }
         >
           {/* Desktop: DataTable */}

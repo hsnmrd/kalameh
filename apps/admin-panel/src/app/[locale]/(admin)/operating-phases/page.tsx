@@ -92,12 +92,14 @@ export default function OperatingPhasesPage() {
           }
           modals={<ModalGateway registry={modalRegistry} />}
           fab={
-            <PermissionGuard
-              permission={PERMISSIONS.MANAGE_OPERATING_PHASES}
-              mode="hide"
-            >
-              <FABSingle onClick={handleCreate} aria-label={t("addPhase")} />
-            </PermissionGuard>
+            isListEmpty ? null : (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_OPERATING_PHASES}
+                mode="hide"
+              >
+                <FABSingle onClick={handleCreate} aria-label={t("addPhase")} />
+              </PermissionGuard>
+            )
           }
         >
           {/* Desktop: DataTable */}

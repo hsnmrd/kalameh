@@ -73,7 +73,9 @@ export default function ClassesPage() {
               }}
             />
           }
-          fab={<ClassesFabDrawer onAddClick={handleCreate} />}
+          fab={
+            isListEmpty ? null : <ClassesFabDrawer onAddClick={handleCreate} />
+          }
         >
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">

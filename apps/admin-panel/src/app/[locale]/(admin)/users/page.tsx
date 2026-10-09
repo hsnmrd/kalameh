@@ -133,9 +133,14 @@ export default function UsersPage() {
             />
           }
           fab={
-            <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="hide">
-              <FABSingle onClick={handleCreate} aria-label={t("addUser")} />
-            </PermissionGuard>
+            isListEmpty ? null : (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_USERS}
+                mode="hide"
+              >
+                <FABSingle onClick={handleCreate} aria-label={t("addUser")} />
+              </PermissionGuard>
+            )
           }
         >
           {/* Desktop Table View */}

@@ -88,12 +88,17 @@ export default function TeachersPage() {
             />
           }
           fab={
-            <PermissionGuard
-              permission={PERMISSIONS.MANAGE_TEACHERS}
-              mode="hide"
-            >
-              <FABSingle onClick={handleCreate} aria-label={t("addTeacher")} />
-            </PermissionGuard>
+            isListEmpty ? null : (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_TEACHERS}
+                mode="hide"
+              >
+                <FABSingle
+                  onClick={handleCreate}
+                  aria-label={t("addTeacher")}
+                />
+              </PermissionGuard>
+            )
           }
         >
           {/* Desktop Table View */}

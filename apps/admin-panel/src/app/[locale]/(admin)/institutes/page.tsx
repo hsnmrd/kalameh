@@ -60,7 +60,11 @@ export default function InstitutesPage() {
         />
       }
       modals={<ModalGateway registry={modalRegistry} />}
-      fab={<FABSingle onClick={handleCreate} aria-label={t("addInstitute")} />}
+      fab={
+        isListEmpty ? null : (
+          <FABSingle onClick={handleCreate} aria-label={t("addInstitute")} />
+        )
+      }
     >
       {isLoading ? (
         <div className="flex min-h-[300px] items-center justify-center">

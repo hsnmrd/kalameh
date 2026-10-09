@@ -72,12 +72,14 @@ export default function CoursesPage() {
           }
           modals={<ModalGateway registry={modalRegistry} />}
           fab={
-            <PermissionGuard
-              permission={PERMISSIONS.MANAGE_COURSES}
-              mode="hide"
-            >
-              <FABSingle onClick={handleCreate} aria-label={t("addCourse")} />
-            </PermissionGuard>
+            isListEmpty ? null : (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_COURSES}
+                mode="hide"
+              >
+                <FABSingle onClick={handleCreate} aria-label={t("addCourse")} />
+              </PermissionGuard>
+            )
           }
         >
           {/* Desktop: DataTable */}

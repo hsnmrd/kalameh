@@ -92,15 +92,17 @@ export default function ClassroomsPage() {
             />
           }
           fab={
-            <PermissionGuard
-              permission={PERMISSIONS.MANAGE_CLASSROOMS}
-              mode="hide"
-            >
-              <FABSingle
-                onClick={handleCreate}
-                aria-label={t("addClassroom")}
-              />
-            </PermissionGuard>
+            isListEmpty ? null : (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_CLASSROOMS}
+                mode="hide"
+              >
+                <FABSingle
+                  onClick={handleCreate}
+                  aria-label={t("addClassroom")}
+                />
+              </PermissionGuard>
+            )
           }
         >
           <div className="hidden lg:block">

@@ -110,7 +110,7 @@ export function FormStep({
           />
         </Field>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {(["startTime", "endTime"] as const).map((name) => (
             <Field key={name} data-invalid={Boolean(errors[name])}>
               <FieldLabel htmlFor={`edit-phase-${name}`}>
@@ -132,24 +132,25 @@ export function FormStep({
               {errors[name] && <FieldError>{errors[name]?.message}</FieldError>}
             </Field>
           ))}
-          <Field>
-            <FieldLabel htmlFor="edit-phase-duration">
-              {t("form.durationLabel")}
-            </FieldLabel>
-            <Input
-              id="edit-phase-duration"
-              type="number"
-              min={15}
-              max={240}
-              {...register("slotDurationMinutes", { valueAsNumber: true })}
-              disabled={isPending}
-              className="text-center"
-            />
-            {errors.slotDurationMinutes && (
-              <FieldError>{errors.slotDurationMinutes.message}</FieldError>
-            )}
-          </Field>
         </div>
+
+        <Field>
+          <FieldLabel htmlFor="edit-phase-duration">
+            {t("form.durationLabel")}
+          </FieldLabel>
+          <Input
+            id="edit-phase-duration"
+            type="number"
+            min={15}
+            max={240}
+            {...register("slotDurationMinutes", { valueAsNumber: true })}
+            disabled={isPending}
+            className="text-center"
+          />
+          {errors.slotDurationMinutes && (
+            <FieldError>{errors.slotDurationMinutes.message}</FieldError>
+          )}
+        </Field>
 
         <PhaseBreakSection
           idPrefix="edit-phase"

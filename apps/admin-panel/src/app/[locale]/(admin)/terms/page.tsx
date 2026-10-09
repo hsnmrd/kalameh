@@ -78,10 +78,12 @@ export default function TermsPage() {
             />
           }
           fab={
-            <TermsFabDrawer
-              onAddClick={handleCreate}
-              onBatchClick={() => router.push("/terms/generate")}
-            />
+            isListEmpty ? null : (
+              <TermsFabDrawer
+                onAddClick={handleCreate}
+                onBatchClick={() => router.push("/terms/generate")}
+              />
+            )
           }
         >
           {/* Desktop: DataTable */}

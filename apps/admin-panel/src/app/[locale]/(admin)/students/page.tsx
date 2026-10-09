@@ -122,7 +122,7 @@ export default function StudentsPage() {
             ) : null
           }
           fab={
-            !hasNoPhases && !isLoadingPhases ? (
+            !hasNoPhases && !isLoadingPhases && !isListEmpty ? (
               <StudentsFabDrawer
                 onAddClick={handleCreate}
                 onSetAllAvailableClick={handleSetAllAvailable}
