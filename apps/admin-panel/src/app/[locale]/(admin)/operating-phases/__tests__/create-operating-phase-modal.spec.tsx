@@ -33,11 +33,11 @@ describe("CreateOperatingPhaseModal Component", () => {
     // Now in review step
     await waitFor(() => {
       expect(
-        screen.getByText(/پیش‌نمایش و تایید زنگ‌های آموزشی/i)
+        screen.getByRole("heading", { name: "پیش‌نمایش زنگ‌ها" })
       ).toBeInTheDocument()
       expect(screen.getByText(/۴ زنگ کامل|4 زنگ کامل/i)).toBeInTheDocument()
-      expect(screen.getByText(/ویرایش مجدد/i)).toBeInTheDocument()
-      expect(screen.getByText(/تایید و ثبت نهایی/i)).toBeInTheDocument()
+      expect(screen.getByText(/بازگشت/i)).toBeInTheDocument()
+      expect(screen.getByText(/تأیید/i)).toBeInTheDocument()
     })
   })
 
@@ -69,7 +69,7 @@ describe("CreateOperatingPhaseModal Component", () => {
     // Warning is ALSO present in the review modal
     await waitFor(() => {
       expect(
-        screen.getByText(/پیش‌نمایش و تایید زنگ‌های آموزشی/i)
+        screen.getByRole("heading", { name: "پیش‌نمایش زنگ‌ها" })
       ).toBeInTheDocument()
       expect(screen.getByText(/15 دقیقه زمان مازاد/i)).toBeInTheDocument()
     })
@@ -161,11 +161,11 @@ describe("CreateOperatingPhaseModal Component", () => {
 
     // In review step
     await waitFor(() => {
-      expect(screen.getByText(/ویرایش مجدد/i)).toBeInTheDocument()
+      expect(screen.getByText(/بازگشت/i)).toBeInTheDocument()
     })
 
-    // Click 'ویرایش مجدد'
-    const editAgainBtn = screen.getByText(/ویرایش مجدد/i)
+    // Click 'بازگشت'
+    const editAgainBtn = screen.getByText(/بازگشت/i)
     fireEvent.click(editAgainBtn)
 
     // Back in form step with value intact

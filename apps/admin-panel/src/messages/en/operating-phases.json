@@ -42,16 +42,16 @@
     "cancel": "Cancel"
   },
   "review": {
-    "title": "Review & Confirm Educational Bell Slots",
+    "title": "Preview Bell Slots",
     "subtitle": "Final review of calculated session slots before saving the operating phase",
     "phaseInfo": "Phase Details",
     "duration": "{minutes} mins per slot",
     "totalSlots": "{count} full slots",
     "shiftHours": "{start} to {end}",
     "breakHours": "Break: {start} to {end}",
-    "editAgain": "Edit Again",
-    "confirmAndCreate": "Confirm & Save",
-    "confirmAndUpdate": "Confirm & Save Changes"
+    "editAgain": "Back",
+    "confirmAndCreate": "Confirm",
+    "confirmAndUpdate": "Save"
   },
   "slotsPreview": {
     "title": "Calculated Bell Slots Preview",
@@ -59,6 +59,9 @@
     "totalSpan": "Total shift duration: {span} mins ({hours} hrs)",
     "fullSlotsCount": "{count} full slots",
     "slotItem": "Slot {number}: {start} to {end}",
+    "slotLabel": "Slot {number}",
+    "rangeSeparator": "to",
+    "slotDuration": "{duration} mins",
     "shift1Title": "Shift 1 / Pre-break ({count} slots)",
     "shift2Title": "Shift 2 / Post-break ({count} slots)",
     "breakBanner": "Lunch & Break Interval: {start} to {end} ({duration} mins)",

@@ -42,23 +42,26 @@
     "cancel": "انصراف"
   },
   "review": {
-    "title": "پیش‌نمایش و تایید زنگ‌های آموزشی",
+    "title": "پیش‌نمایش زنگ‌ها",
     "subtitle": "بررسی نهایی زنگ‌های محاسبه‌شده پیش از ذخیره فاز زمانی",
     "phaseInfo": "مشخصات فاز",
     "duration": "{minutes} دقیقه هر زنگ",
     "totalSlots": "{count} زنگ آموزشی",
     "shiftHours": "{start} تا {end}",
     "breakHours": "استراحت: {start} تا {end}",
-    "editAgain": "ویرایش مجدد",
-    "confirmAndCreate": "تایید و ثبت نهایی",
-    "confirmAndUpdate": "تایید و ذخیره تغییرات"
+    "editAgain": "بازگشت",
+    "confirmAndCreate": "تأیید",
+    "confirmAndUpdate": "ذخیره"
   },
   "slotsPreview": {
     "title": "پیش‌نمایش زنگ‌های آموزشی",
     "empty": "با وارد کردن ساعت شروع و پایان، زنگ‌های آموزشی محاسبه می‌شوند.",
     "totalSpan": "مجموع زمان شیفت: {span} دقیقه ({hours} ساعت)",
     "fullSlotsCount": "{count} زنگ کامل",
-    "slotItem": "تایم {number}: {start} الی {end}",
+    "slotItem": "زمان {number}: {start} الی {end}",
+    "slotLabel": "زمان {number}",
+    "rangeSeparator": "الی",
+    "slotDuration": "{duration} دقیقه",
     "shift1Title": "شیفت اول / قبل از استراحت ({count} زنگ)",
     "shift2Title": "شیفت دوم / بعد از استراحت ({count} زنگ)",
     "breakBanner": "بازه استراحت و ناهار: {start} الی {end} ({duration} دقیقه)",

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Clock, Coffee, Sparkles } from "lucide-react"
+import { Clock, Coffee } from "lucide-react"
 import type { PhaseSlotsCalculationResult } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
@@ -48,12 +48,7 @@ export function PhaseSlotsPreview({
     >
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-foreground">
-          <Sparkles className="size-4 text-foreground" />
-          <h5 className="text-sm font-semibold text-foreground">
-            {t("title")}
-          </h5>
-        </div>
+        <h5 className="text-sm font-semibold text-foreground">{t("title")}</h5>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-xs font-normal">
             {t("fullSlotsCount", { count: calculation.fullSlotsCount })}
@@ -79,10 +74,10 @@ export function PhaseSlotsPreview({
           {/* Shift 1 */}
           {calculation.shift1Slots && calculation.shift1Slots.length > 0 && (
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold text-foreground/80">
+              <span className="text-xs font-semibold text-foreground/80 sm:text-sm">
                 {t("shift1Title", { count: calculation.shift1Slots.length })}
               </span>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {calculation.shift1Slots.map((slot) => (
                   <SlotCard key={slot.slotNumber} slot={slot} />
                 ))}
@@ -91,7 +86,7 @@ export function PhaseSlotsPreview({
           )}
 
           {/* Break Banner */}
-          <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-primary/30 bg-primary/5 px-3 py-2.5 text-xs font-medium text-foreground">
+          <div className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-xs font-medium text-foreground sm:text-sm">
             <Coffee className="size-4 shrink-0 text-foreground" />
             <span>
               {t("breakBanner", {
@@ -105,10 +100,10 @@ export function PhaseSlotsPreview({
           {/* Shift 2 */}
           {calculation.shift2Slots && calculation.shift2Slots.length > 0 && (
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold text-foreground/80">
+              <span className="text-xs font-semibold text-foreground/80 sm:text-sm">
                 {t("shift2Title", { count: calculation.shift2Slots.length })}
               </span>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {calculation.shift2Slots.map((slot) => (
                   <SlotCard key={slot.slotNumber} slot={slot} />
                 ))}
@@ -117,7 +112,7 @@ export function PhaseSlotsPreview({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           {calculation.slots.map((slot) => (
             <SlotCard key={slot.slotNumber} slot={slot} />
           ))}

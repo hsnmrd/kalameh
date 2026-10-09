@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Coffee, Sparkles } from "lucide-react"
+import { Coffee } from "lucide-react"
 import type { SuggestedPhaseBreakWindow } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -146,16 +146,13 @@ export function PhaseBreakSection({
 
           {/* Smart Suggestion Bar */}
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-background/60 p-2.5 text-xs">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Sparkles className="size-3.5 text-muted-foreground" />
-              <span>
-                {t("form.suggestedBreakHint", {
-                  start: suggestedBreak.breakStartTime,
-                  end: suggestedBreak.breakEndTime,
-                  duration: suggestedBreak.breakDurationMinutes,
-                })}
-              </span>
-            </div>
+            <span className="text-muted-foreground">
+              {t("form.suggestedBreakHint", {
+                start: suggestedBreak.breakStartTime,
+                end: suggestedBreak.breakEndTime,
+                duration: suggestedBreak.breakDurationMinutes,
+              })}
+            </span>
             {(breakStartTime !== suggestedBreak.breakStartTime ||
               breakEndTime !== suggestedBreak.breakEndTime) && (
               <Button
