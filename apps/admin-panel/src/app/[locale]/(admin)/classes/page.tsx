@@ -12,12 +12,14 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
+import { useRouter } from "@/i18n/routing"
 import { ClassesFilter } from "./components/classes-filter"
 import { ClassesTable } from "./components/classes-table"
 import { ClassesList } from "./components/classes-list"
 import { ClassesFabDrawer } from "./components/classes-fab-drawer"
 
 export default function ClassesPage() {
+  const router = useRouter()
   const { openModal } = useModal()
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -44,6 +46,7 @@ export default function ClassesPage() {
   const isListEmpty = !isLoading && (!classes || classes.length === 0)
 
   const handleCreate = () => openModal("createClass")
+  const handleScheduling = () => router.push("/classes/scheduling")
   const handleEdit = (cls: ClassDto) => openModal("editClass", { cls })
   const handleViewDetails = (cls: ClassDto) =>
     openModal("classDetails", { cls })
@@ -86,6 +89,7 @@ export default function ClassesPage() {
               onViewDetails={handleViewDetails}
               onDelete={handleDelete}
               onAdd={handleCreate}
+              onScheduling={handleScheduling}
             />
           </div>
 
@@ -98,6 +102,7 @@ export default function ClassesPage() {
               onViewDetails={handleViewDetails}
               onDelete={handleDelete}
               onAdd={handleCreate}
+              onScheduling={handleScheduling}
             />
           </div>
         </AdminPageShell>

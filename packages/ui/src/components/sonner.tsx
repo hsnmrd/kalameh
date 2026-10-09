@@ -221,12 +221,12 @@ export const toast: typeof sonnerToast = new Proxy(sonnerToast, {
         prop === "message" ||
         prop === "custom"
       ) {
-        return (message: any, options?: ExternalToast) => {
+        return (message: React.ReactNode, options?: ExternalToast) => {
           return orig.call(target, message, attachDurationStyle(options))
         }
       }
       if (prop === "loading") {
-        return (message: any, options?: ExternalToast) => {
+        return (message: React.ReactNode, options?: ExternalToast) => {
           return orig.call(target, message, {
             ...options,
             style: {
@@ -237,7 +237,13 @@ export const toast: typeof sonnerToast = new Proxy(sonnerToast, {
         }
       }
       if (prop === "promise") {
-        return (promise: any, data?: any) => {
+        return (
+          promise: unknown,
+          data?: Record<string, unknown> & {
+            duration?: number
+            style?: React.CSSProperties
+          }
+        ) => {
           if (data && typeof data === "object" && data.duration !== undefined) {
             return orig.call(target, promise, {
               ...data,

@@ -77,4 +77,35 @@ describe("ClassesTable Component", () => {
     fireEvent.click(deleteBtn)
     expect(handleDelete).toHaveBeenCalledWith(mockClasses[0])
   })
+
+  it("should render both primary smart scheduling and outline addClass buttons in empty state", () => {
+    const handleAdd = vi.fn()
+    const handleScheduling = vi.fn()
+
+    render(
+      <ClassesTable
+        classes={[]}
+        isLoading={false}
+        onEdit={vi.fn()}
+        onAdd={handleAdd}
+        onScheduling={handleScheduling}
+      />
+    )
+
+    const schedulingBtn = screen.getByRole("button", {
+      name: /تقویم آموزشی هوشمند|smart academic calendar|زمان‌بندی هوشمند|scheduling/i,
+    })
+    const addBtn = screen.getByRole("button", {
+      name: /تعریف کلاس جدید|افزودن کلاس|addClass/i,
+    })
+
+    expect(schedulingBtn).toBeInTheDocument()
+    expect(addBtn).toBeInTheDocument()
+
+    fireEvent.click(schedulingBtn)
+    expect(handleScheduling).toHaveBeenCalledTimes(1)
+
+    fireEvent.click(addBtn)
+    expect(handleAdd).toHaveBeenCalledTimes(1)
+  })
 })

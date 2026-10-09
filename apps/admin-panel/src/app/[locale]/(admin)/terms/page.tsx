@@ -51,6 +51,7 @@ export default function TermsPage() {
   const isListEmpty = !isLoading && terms.length === 0
 
   const handleCreate = () => openModal("createTerm")
+  const handleBatch = () => router.push("/terms/generate")
   const handleView = (term: TermDto) => openModal("viewTerm", { term })
   const handleEdit = (term: TermDto) => openModal("editTerm", { term })
   const handleDelete = (term: TermDto) => openModal("deleteTerm", { term })
@@ -66,7 +67,7 @@ export default function TermsPage() {
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
               onAddClick={isListEmpty ? undefined : handleCreate}
-              onBatchClick={() => router.push("/terms/generate")}
+              onBatchClick={isListEmpty ? undefined : handleBatch}
             />
           }
           modals={
@@ -81,7 +82,7 @@ export default function TermsPage() {
             isListEmpty ? null : (
               <TermsFabDrawer
                 onAddClick={handleCreate}
-                onBatchClick={() => router.push("/terms/generate")}
+                onBatchClick={handleBatch}
               />
             )
           }
@@ -95,6 +96,7 @@ export default function TermsPage() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onAdd={handleCreate}
+              onBatch={handleBatch}
             />
           </div>
 
@@ -107,6 +109,7 @@ export default function TermsPage() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onAdd={handleCreate}
+              onBatch={handleBatch}
             />
           </div>
         </AdminPageShell>

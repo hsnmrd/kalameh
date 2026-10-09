@@ -102,7 +102,9 @@ export default function StudentsPage() {
               onStatusChange={setSelectedStatus}
               courses={courses}
               onAddClick={isListEmpty ? undefined : handleCreate}
-              onSetAllAvailableClick={handleSetAllAvailable}
+              onSetAllAvailableClick={
+                isListEmpty ? undefined : handleSetAllAvailable
+              }
               disabled={isLoadingPhases || hasNoPhases}
             />
           }

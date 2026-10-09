@@ -3,7 +3,15 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Layers, Edit2, GraduationCap, Eye, Trash2, Plus } from "lucide-react"
+import {
+  Layers,
+  Edit2,
+  GraduationCap,
+  Eye,
+  Trash2,
+  Plus,
+  CalendarClock,
+} from "lucide-react"
 import { Link } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -33,6 +41,7 @@ export interface ClassesTableProps {
   onViewDetails?: (cls: ClassDto) => void
   onDelete?: (cls: ClassDto) => void
   onAdd?: () => void
+  onScheduling?: () => void
 }
 
 export function ClassesTable({
@@ -42,6 +51,7 @@ export function ClassesTable({
   onViewDetails,
   onDelete,
   onAdd,
+  onScheduling,
 }: ClassesTableProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -253,20 +263,43 @@ export function ClassesTable({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
-        {onAdd && (
+        {(onScheduling || onAdd) && (
           <EmptyContent>
             <PermissionGuard
               permission={PERMISSIONS.MANAGE_CLASSES}
               mode="hide"
             >
-              <Button
-                type="button"
-                onClick={onAdd}
-                className="cursor-pointer gap-2"
-              >
-                <Plus className="size-5" />
-                <span>{t("addClass")}</span>
-              </Button>
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+                {onScheduling && (
+                  <Button
+                    type="button"
+                    onClick={onScheduling}
+                    className="cursor-pointer gap-2"
+                  >
+                    <CalendarClock className="size-5" />
+                    <span>{t("scheduling")}</span>
+                  </Button>
+                )}
+                {onAdd && (
+                  <Button
+                    type="button"
+                    variant={onScheduling ? "outline" : "default"}
+                    onClick={onAdd}
+                    className={`cursor-pointer gap-2 ${
+                      onScheduling
+                        ? "size-14 shrink-0 p-0 sm:w-auto sm:px-6"
+                        : ""
+                    }`}
+                    aria-label={t("addClass")}
+                    title={t("addClass")}
+                  >
+                    <Plus className="size-5" />
+                    <span className={onScheduling ? "hidden sm:inline" : ""}>
+                      {t("addClass")}
+                    </span>
+                  </Button>
+                )}
+              </div>
             </PermissionGuard>
           </EmptyContent>
         )}

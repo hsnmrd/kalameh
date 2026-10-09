@@ -81,7 +81,7 @@ export function ClassesFilter({
         <CalendarDays className="size-5" />
         <span>{t("teachersCalendar")}</span>
       </Button>
-      <ClassesActionButton onAddClick={onAddClick} />
+      {onAddClick && <ClassesActionButton onAddClick={onAddClick} />}
     </div>
   )
 

@@ -35,6 +35,8 @@
   - Always export and use the shadcn `<Spinner />` component (`src/components/spinner.tsx`) for all loading states across the monorepo instead of `lucide-react` icons (e.g. `Loader2`).
 - **Toast Notifications Standard:**
   - Provide `<Toaster />` and `toast` via `src/components/sonner.tsx` configured to inherit the application's font typography (`var(--font-sans)`).
+  - **Status Separation & Minimal Design:** Differentiate statuses (`success`, `error`, `warning`, `info`, `loading`, `default`) with minimal semantic icons, subtle status border accents, and a clean `rounded-2xl bg-card/95 backdrop-blur-md` frame.
+  - **Linear Progress Countdown:** Render a tiny 2px linear progress bar at the bottom edge of auto-closing toasts that smoothly indicates remaining time before close (`toast-progress` keyframes over `--toast-duration`, RTL/LTR origin aware, synchronized pause on hover, and hidden for loading or infinite duration toasts).
 - **Purely Presentational:** Keep UI components stateless or internally controlled; do NOT import business logic or app-specific state here.
 - **Design Tokens:** All colors, radius, shadows, and fonts are defined as CSS variables in `src/styles/globals.css`.
 - **Export Discipline:** Expose components through the `package.json` `exports` map (`./components/*`, `./lib/*`, `./hooks/*`, `./globals.css`).
