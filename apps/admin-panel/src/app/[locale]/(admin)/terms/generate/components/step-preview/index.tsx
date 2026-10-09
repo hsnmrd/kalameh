@@ -63,7 +63,6 @@ export function StepPreview({
     selectedTermIndex >= proposals.length && proposals.length > 0
       ? 0
       : selectedTermIndex
-  const activeTerm = proposals[safeSelectedTermIndex]
 
   const hasPastTerms = React.useMemo(() => {
     return proposals.some((p) => !hasFutureDays(p))
@@ -78,65 +77,6 @@ export function StepPreview({
           <div className="flex flex-col gap-1">
             <span className="font-bold text-destructive">
               {t("createModal.pastTermNotAllowed")}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Date Conflict Warning Alert */}
-      {dateConflicts && dateConflicts.length > 0 && (
-        <div className="flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
-          <div className="flex flex-col gap-1">
-            <span className="font-bold text-destructive">
-              {t("batchModal.conflictWarning")}
-            </span>
-            <div className="flex flex-col gap-1 text-muted-foreground">
-              {Array.from(
-                new Map(
-                  dateConflicts.map((c) => [
-                    [c.termTitle, c.conflictingTitle].sort().join(":::"),
-                    c,
-                  ])
-                ).values()
-              ).map((c, i) => (
-                <span key={i} className="leading-relaxed text-destructive/90">
-                  {t("batchModal.conflictWarningDesc", {
-                    term: c.termTitle,
-                    conflictingTerm: c.conflictingTitle,
-                  })}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Active Term Session Imbalance Warning Alert */}
-      {activeTerm?.hasSessionImbalance && (
-        <div className="flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
-          <div className="flex flex-col gap-1">
-            <span className="font-bold text-destructive">
-              {t("batchModal.sessionImbalanceWarning")}: {activeTerm.title}
-            </span>
-            <span className="leading-relaxed text-muted-foreground">
-              {(() => {
-                const even =
-                  activeTerm.patternDetails?.find((d) => d.track === "EVEN")
-                    ?.completedSessions ?? 0
-                const odd =
-                  activeTerm.patternDetails?.find((d) => d.track === "ODD")
-                    ?.completedSessions ?? 0
-                return t("batchModal.sessionImbalanceDesc", {
-                  even: formatNumber(even, locale || "fa"),
-                  odd: formatNumber(odd, locale || "fa"),
-                  target: formatNumber(
-                    activeTerm.sessionsCount ?? 15,
-                    locale || "fa"
-                  ),
-                })
-              })()}
             </span>
           </div>
         </div>

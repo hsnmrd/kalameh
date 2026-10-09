@@ -1475,4 +1475,58 @@ describe("ProposalsCalendar Component", () => {
       ).not.toBeInTheDocument()
     }
   })
+
+  it("renders active term error notice and off days in status bar between cards and calendar, not inside cards", () => {
+    const proposalsWithError: GeneratedTermProposal[] = [
+      {
+        ...mockProposals[0]!,
+        title: "مهر و آبان ۱۴۰۵",
+        holidaysCount: 2,
+        hasSessionImbalance: true,
+        patternDetails: [
+          { track: "EVEN", completedSessions: 15, targetSessions: 18 },
+          { track: "ODD", completedSessions: 17, targetSessions: 18 },
+        ],
+      },
+      {
+        ...mockProposals[1]!,
+        title: "آبان و آذر ۱۴۰۵",
+        holidaysCount: 0,
+        hasSessionImbalance: false,
+      },
+    ]
+
+    render(
+      <ProposalsCalendar
+        proposals={proposalsWithError}
+        onStartDateChange={vi.fn()}
+      />
+    )
+
+    // The status bar between cards and calendar displays the error notice and off days
+    expect(screen.getByText(/ناهمخوانی جلسات/)).toBeInTheDocument()
+    expect(screen.getByText("۲ روز تعطیل")).toBeInTheDocument()
+
+    // The card button itself for the active term should NOT contain the error notice text or holidays badge
+    const cardButtons = screen.getAllByRole("button")
+    const activeCard = cardButtons.find((btn) =>
+      btn.textContent?.includes("مهر و آبان ۱۴۰۵")
+    )
+    expect(activeCard).toBeDefined()
+    // It should have the red border / destructive styling
+    expect(activeCard?.className).toContain("border-destructive")
+    // But it should NOT contain the error notice text
+    expect(activeCard?.textContent).not.toContain("ناهمخوانی جلسات")
+    expect(activeCard?.textContent).not.toContain("روز تعطیل")
+
+    // Switching to second term (no errors, 0 holidays)
+    const secondCard = cardButtons.find((btn) =>
+      btn.textContent?.includes("آبان و آذر ۱۴۰۵")
+    )
+    if (secondCard) {
+      fireEvent.click(secondCard)
+      expect(screen.queryByText(/ناهمخوانی جلسات/)).not.toBeInTheDocument()
+      expect(screen.queryByText("۲ روز تعطیل")).not.toBeInTheDocument()
+    }
+  })
 })

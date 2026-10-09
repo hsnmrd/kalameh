@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Calendar as CalendarIcon, AlertTriangle } from "lucide-react"
+import { Calendar as CalendarIcon } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   Carousel,
@@ -84,17 +84,8 @@ export function TermRangesLegend({
             const hasConflict = Boolean(
               conflictsForTerm && conflictsForTerm.length > 0
             )
-            const conflictingTitles = Array.from(
-              new Set(conflictsForTerm?.map((c) => c.conflictingTitle) ?? [])
-            ).join("، ")
             const hasImbalance = Boolean(term.hasSessionImbalance)
             const isDestructive = hasImbalance || hasConflict
-            const evenDetail = term.patternDetails?.find(
-              (p) => p.track === "EVEN"
-            )
-            const oddDetail = term.patternDetails?.find(
-              (p) => p.track === "ODD"
-            )
 
             return (
               <CarouselItem
@@ -177,52 +168,10 @@ export function TermRangesLegend({
                       </span>
                     </div>
 
-                    <div className="flex min-h-[16px] items-center justify-between gap-1.5 sm:min-h-[18px]">
-                      {term.holidaysCount > 0 ? (
-                        <span className="text-[10px] font-medium text-destructive sm:text-[11px]">
-                          {t("batchModal.holidaysCountBadge", {
-                            count: formatNumber(term.holidaysCount, locale),
-                          })}
-                        </span>
-                      ) : (
-                        <span className="pointer-events-none invisible text-[10px] select-none sm:text-[11px]">
-                          &nbsp;
-                        </span>
-                      )}
-                      {isLockedOut && (
+                    {isLockedOut && (
+                      <div className="mt-1 flex items-center">
                         <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground sm:text-[10px]">
                           {t("batchModal.referenceTermBadge")}
-                        </span>
-                      )}
-                    </div>
-
-                    {hasConflict && conflictingTitles && (
-                      <div className="mt-1 flex w-full items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-2 py-1 text-[10px] font-semibold text-destructive sm:text-[11px]">
-                        <AlertTriangle className="size-3 shrink-0 text-destructive" />
-                        <span className="truncate">
-                          {t("batchModal.cardConflictNotice", {
-                            title: conflictingTitles,
-                          })}
-                        </span>
-                      </div>
-                    )}
-
-                    {hasImbalance && (
-                      <div className="mt-1 flex w-full items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-2 py-1 text-[10px] font-semibold text-destructive sm:text-[11px]">
-                        <AlertTriangle className="size-3 shrink-0 text-destructive" />
-                        <span className="truncate">
-                          {evenDetail && oddDetail
-                            ? t("batchModal.cardImbalanceNotice", {
-                                even: formatNumber(
-                                  evenDetail.completedSessions,
-                                  locale
-                                ),
-                                odd: formatNumber(
-                                  oddDetail.completedSessions,
-                                  locale
-                                ),
-                              })
-                            : t("batchModal.sessionImbalanceWarning")}
                         </span>
                       </div>
                     )}

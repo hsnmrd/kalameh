@@ -130,7 +130,7 @@ describe("GeneratePhaseTermsPage (/terms/generate)", () => {
 
     expect(screen.getByText("مهر و آبان ۱۴۰۶")).toBeInTheDocument()
     expect(screen.getByText("ویرایش تنظیمات")).toBeInTheDocument()
-    expect(screen.getByText("تأیید")).toBeInTheDocument()
+    expect(screen.getAllByText("تأیید").length).toBeGreaterThan(0)
     expect(screen.queryByText("نمای جدول")).not.toBeInTheDocument()
     expect(screen.queryByText("نمای تقویم")).not.toBeInTheDocument()
     expect(screen.queryByText("بازگشت")).not.toBeInTheDocument()
@@ -174,9 +174,9 @@ describe("GeneratePhaseTermsPage (/terms/generate)", () => {
     mockBatchCreate.mockClear()
     render(<GeneratePhaseTermsPage />)
 
-    const submitBtn = await screen.findByText("تأیید")
+    const submitBtns = await screen.findAllByText("تأیید")
     await act(async () => {
-      submitBtn.click()
+      submitBtns[0]?.click()
     })
 
     expect(mockBatchCreate.mock.calls[0]?.[0]).toEqual(
@@ -211,8 +211,9 @@ describe("GeneratePhaseTermsPage (/terms/generate)", () => {
 
     render(<GeneratePhaseTermsPage />)
 
-    const submitBtn = screen.getByText("تأیید")
-    expect(submitBtn.closest("button")).toBeDisabled()
+    const submitBtns = screen.getAllByText("تأیید")
+    expect(submitBtns[0]?.closest("button")).toBeDisabled()
+    expect(submitBtns[1]?.closest("button")).toBeDisabled()
   })
 
   it("disables submit button and shows warning alert when proposals are in the past", () => {
@@ -233,7 +234,8 @@ describe("GeneratePhaseTermsPage (/terms/generate)", () => {
         "امکان تعریف ترم برای ماه‌های گذشته وجود ندارد. حداقل یک روز از ترم باید در آینده باشد."
       )
     ).toBeInTheDocument()
-    const submitBtn = screen.getByText("تأیید")
-    expect(submitBtn.closest("button")).toBeDisabled()
+    const submitBtns = screen.getAllByText("تأیید")
+    expect(submitBtns[0]?.closest("button")).toBeDisabled()
+    expect(submitBtns[1]?.closest("button")).toBeDisabled()
   })
 })

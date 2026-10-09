@@ -2,10 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Check } from "lucide-react"
 import { APP_MODULES, PERMISSIONS, hasFutureDays } from "@workspace/types"
-import { FABSingle } from "@workspace/ui/components/fab"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { ModuleGuard } from "@/components/module-guard"
@@ -128,19 +125,6 @@ export function GeneratePhaseTermsPreviewContent() {
             />
           }
           modals={<ModalGateway registry={modalRegistry} />}
-          fab={
-            <FABSingle
-              onClick={handleSubmit}
-              disabled={isSubmitDisabled}
-              aria-label={t("batchModal.submit")}
-            >
-              {batchCreateMutation.isPending ? (
-                <Spinner className="size-6 text-primary-foreground" />
-              ) : (
-                <Check className="size-6 text-primary-foreground" />
-              )}
-            </FABSingle>
-          }
         >
           <StepPreview
             proposals={proposals}
