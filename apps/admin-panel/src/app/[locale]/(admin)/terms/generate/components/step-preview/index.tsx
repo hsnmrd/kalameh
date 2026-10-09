@@ -3,7 +3,6 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { AlertTriangle } from "lucide-react"
-import { formatNumber } from "@workspace/ui/lib/utils"
 import {
   type GeneratedTermProposal,
   type CompensatorySession,

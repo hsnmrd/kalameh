@@ -17,14 +17,12 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
-import { useRouter } from "@/i18n/routing"
 import { TermsTable } from "./components/terms-table"
 import { TermsList } from "./components/terms-list"
 import { TermsFilter } from "./components/terms-filter"
 import { TermsFabDrawer } from "./components/terms-fab-drawer"
 
 export default function TermsPage() {
-  const router = useRouter()
   const { openModal } = useModal()
 
   const [search, setSearch] = React.useState("")

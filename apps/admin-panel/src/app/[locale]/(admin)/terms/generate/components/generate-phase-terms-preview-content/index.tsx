@@ -58,40 +58,22 @@ export function GeneratePhaseTermsPreviewContent() {
     return unsub
   }, [])
 
-  const isSubmittingRef = React.useRef(false)
-  if (batchCreateMutation.isPending || batchCreateMutation.isSuccess) {
-    isSubmittingRef.current = true
-  }
+  const isSubmittingOrSuccess =
+    batchCreateMutation.isPending || batchCreateMutation.isSuccess
 
   React.useEffect(() => {
-    if (
-      hasHydrated &&
-      proposals.length === 0 &&
-      !isSubmittingRef.current &&
-      !batchCreateMutation.isPending &&
-      !batchCreateMutation.isSuccess
-    ) {
+    if (hasHydrated && proposals.length === 0 && !isSubmittingOrSuccess) {
       router.replace("/terms?modal=generatePhaseTerms")
     }
-  }, [
-    hasHydrated,
-    proposals.length,
-    batchCreateMutation.isPending,
-    batchCreateMutation.isSuccess,
-    router,
-  ])
-
-  if (
-    (!hasHydrated || proposals.length === 0) &&
-    !isSubmittingRef.current &&
-    !batchCreateMutation.isSuccess
-  ) {
-    return null
-  }
+  }, [hasHydrated, proposals.length, isSubmittingOrSuccess, router])
 
   const hasPastTerms = React.useMemo(() => {
     return proposals.some((p) => !hasFutureDays(p))
   }, [proposals])
+
+  if ((!hasHydrated || proposals.length === 0) && !isSubmittingOrSuccess) {
+    return null
+  }
 
   const isSubmitDisabled =
     proposals.length === 0 ||
