@@ -95,4 +95,14 @@ describe("MonthsSelector Component", () => {
 
     expect(handleChange).toHaveBeenCalledWith([7, 8])
   })
+
+  it("renders check icon for selected month items and not for unselected items", () => {
+    render(<MonthsSelector value={[7]} onChange={vi.fn()} />)
+
+    const mehrBtn = screen.getByRole("button", { name: /مهر/i })
+    const abanBtn = screen.getByRole("button", { name: /آبان/i })
+
+    expect(mehrBtn.querySelector("svg")).toBeInTheDocument()
+    expect(abanBtn.querySelector("svg")).not.toBeInTheDocument()
+  })
 })

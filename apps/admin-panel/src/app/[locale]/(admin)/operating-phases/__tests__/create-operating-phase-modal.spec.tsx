@@ -22,6 +22,10 @@ describe("CreateOperatingPhaseModal Component", () => {
     const titleInput = screen.getByLabelText(/عنوان فاز/i)
     fireEvent.change(titleInput, { target: { value: "سال تحصیلی" } })
 
+    // Select a month since none are selected by default
+    const mehrBtn = screen.getByRole("button", { name: /مهر/i })
+    fireEvent.click(mehrBtn)
+
     // Click submit to transition to review
     const submitBtn = screen.getByText(/ثبت فاز زمانی/i)
     fireEvent.click(submitBtn)
@@ -45,6 +49,10 @@ describe("CreateOperatingPhaseModal Component", () => {
 
     const titleInput = screen.getByLabelText(/عنوان فاز/i)
     fireEvent.change(titleInput, { target: { value: "فاز آزمایشی" } })
+
+    // Select a month
+    const mehrBtn = screen.getByRole("button", { name: /مهر/i })
+    fireEvent.click(mehrBtn)
 
     const endTimeInput = screen.getByLabelText(/ساعت پایان شیفت/i)
     fireEvent.change(endTimeInput, { target: { value: "21:15" } })
@@ -72,6 +80,10 @@ describe("CreateOperatingPhaseModal Component", () => {
 
     const titleInput = screen.getByLabelText(/عنوان فاز/i)
     fireEvent.change(titleInput, { target: { value: "فاز دو شیفت" } })
+
+    // Select a month
+    const mehrBtn = screen.getByRole("button", { name: /مهر/i })
+    fireEvent.click(mehrBtn)
 
     const breakCheckbox = screen.getByRole("checkbox", {
       name: /تعریف بازه استراحت و ناهار/i,
@@ -140,6 +152,10 @@ describe("CreateOperatingPhaseModal Component", () => {
     const titleInput = screen.getByLabelText(/عنوان فاز/i)
     fireEvent.change(titleInput, { target: { value: "فاز پاییز" } })
 
+    // Select a month
+    const mehrBtn = screen.getByRole("button", { name: /مهر/i })
+    fireEvent.click(mehrBtn)
+
     const submitBtn = screen.getByText(/ثبت فاز زمانی/i)
     fireEvent.click(submitBtn)
 
@@ -198,6 +214,12 @@ describe("CreateOperatingPhaseModal Component", () => {
 
     const clearBtn = screen.getByRole("button", { name: /پاک کردن همه/i })
     expect(clearBtn).toBeInTheDocument()
+    // Disabled initially because months array is empty by default
+    expect(clearBtn).toBeDisabled()
+
+    // Select a month (e.g. مهر)
+    const mehrMonthBtn = screen.getByRole("button", { name: /مهر/i })
+    fireEvent.click(mehrMonthBtn)
     expect(clearBtn).not.toBeDisabled()
 
     // Click clear button
@@ -207,13 +229,11 @@ describe("CreateOperatingPhaseModal Component", () => {
       // The button should now be disabled because months array is empty
       expect(clearBtn).toBeDisabled()
       // Month buttons show error state immediately upon clearing
-      const mehrBtn = screen.getByRole("button", { name: /مهر/i })
-      expect(mehrBtn).toHaveAttribute("aria-invalid", "true")
-      expect(mehrBtn.className).toContain("text-destructive")
+      expect(mehrMonthBtn).toHaveAttribute("aria-invalid", "true")
+      expect(mehrMonthBtn.className).toContain("text-destructive")
     })
 
     // Click on a month (e.g. مهر) to select it again
-    const mehrMonthBtn = screen.getByRole("button", { name: /مهر/i })
     fireEvent.click(mehrMonthBtn)
 
     await waitFor(() => {
@@ -228,11 +248,7 @@ describe("CreateOperatingPhaseModal Component", () => {
   it("highlights month buttons with error styling and prevents showing error text when months are empty on submit", async () => {
     render(<CreateOperatingPhaseModal open={true} onClose={vi.fn()} />)
 
-    // Clear all months
-    const clearBtn = screen.getByRole("button", { name: /پاک کردن همه/i })
-    fireEvent.click(clearBtn)
-
-    // Enter title so only months are missing
+    // Enter title with months empty by default
     const titleInput = screen.getByLabelText(/عنوان فاز/i)
     fireEvent.change(titleInput, { target: { value: "فاز بدون ماه" } })
 

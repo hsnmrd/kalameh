@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Check } from "lucide-react"
 import { JALALI_MONTHS } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -157,7 +158,7 @@ export function MonthsSelector({
                     </div>
 
                     {selectedInSeasonCount > 0 && (
-                      <span className="font-mono text-[11px] font-semibold text-muted-foreground">
+                      <span className="text-[11px] font-semibold text-muted-foreground">
                         {selectedInSeasonCount}/۳
                       </span>
                     )}
@@ -175,7 +176,7 @@ export function MonthsSelector({
                           aria-invalid={isInvalid ? "true" : undefined}
                           onClick={() => toggleMonth(m.id)}
                           className={cn(
-                            "h-12 w-full cursor-pointer flex-col justify-center rounded-xl px-1 text-center text-xs font-bold shadow-2xs transition-all sm:text-sm",
+                            "h-12 w-full cursor-pointer items-center justify-center gap-1 rounded-xl px-1.5 text-center text-xs font-bold shadow-2xs transition-all sm:gap-1.5 sm:px-2 sm:text-sm",
                             isSelected
                               ? "bg-primary font-bold text-primary-foreground shadow-xs hover:bg-primary/90"
                               : isInvalid
@@ -183,6 +184,9 @@ export function MonthsSelector({
                                 : "border-border/60 bg-background/90 text-foreground hover:border-foreground/30 hover:bg-background"
                           )}
                         >
+                          {isSelected && (
+                            <Check className="size-3.5 shrink-0" />
+                          )}
                           <span className="truncate">{m.nameFa}</span>
                         </Button>
                       )
