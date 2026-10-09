@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { RotateCcw } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { Counter } from "@workspace/ui/components/counter"
 import { Input } from "@workspace/ui/components/input"
 import { TimePicker } from "@workspace/ui/components/time-picker"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
@@ -134,18 +135,26 @@ export function FormStep({
           ))}
         </div>
 
-        <Field>
+        <Field data-invalid={Boolean(errors.slotDurationMinutes)}>
           <FieldLabel htmlFor="edit-phase-duration">
             {t("form.durationLabel")}
           </FieldLabel>
-          <Input
-            id="edit-phase-duration"
-            type="number"
-            min={15}
-            max={240}
-            {...register("slotDurationMinutes", { valueAsNumber: true })}
-            disabled={isPending}
-            className="text-center"
+          <Controller
+            control={form.control}
+            name="slotDurationMinutes"
+            render={({ field }) => (
+              <Counter
+                id="edit-phase-duration"
+                min={15}
+                max={240}
+                step={5}
+                value={field.value}
+                onValueChange={(val) => field.onChange(val ?? 90)}
+                aria-label={t("form.durationLabel")}
+                disabled={isPending}
+                className="w-full"
+              />
+            )}
           />
           {errors.slotDurationMinutes && (
             <FieldError>{errors.slotDurationMinutes.message}</FieldError>
