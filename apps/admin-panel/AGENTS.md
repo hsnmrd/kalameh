@@ -138,6 +138,14 @@ All entity management and list pages (e.g. `courses/`, `classes/`, `terms/`, `br
   ```
 - **NEVER** omit horizontal padding (`px-4 sm:px-6`) or let input controls touch the modal borders.
 
+### 6. Empty Component Standard (No Create in Filter, No Card Wrapper, Mobile Vertical Centering)
+
+When a list page or data grid has no data and displays the empty component (`<Empty />`):
+
+1. **Delete Create Button from Filter Section:** Suppress the create/add button in `<AdminFilterBar>` (`onAddClick={isListEmpty ? undefined : handleCreate}`). Place the primary creation button directly inside the empty state via `<EmptyContent>` with a standard `<Button onClick={onAdd} className="cursor-pointer gap-2"><Plus className="size-4" /><span>{t("add...")}</span></Button>`, wrapped in `<PermissionGuard mode="hide">`.
+2. **Never Use a Card Wrapper Around Empty Component:** Do NOT wrap `<Empty />` inside a `<Card>`, card border, or `bg-card` wrapper. Return `<Empty />` directly when the collection is empty.
+3. **Mobile Vertical Centering:** In mobile view (< `lg`), the empty component must be centered vertically in the viewport. Ensure the mobile list container uses `<div className="flex flex-1 flex-col lg:hidden">` and `<AdminPageShell>` / `<main>` flexes (`flex flex-1 flex-col`), allowing `<Empty variant="default">`'s `min-h-[calc(100dvh-16rem)]` to position the empty content at the exact vertical center of the screen.
+
 ## Admin Inner Page Standard (Breadcrumb & Sub-Page Navigation)
 
 All inner pages, sub-pages, or nested resource views (e.g. `/calendar/custom`, `/classes/[id]/grades`, `/teachers/[id]/classes`) must follow this unified sub-page standard:

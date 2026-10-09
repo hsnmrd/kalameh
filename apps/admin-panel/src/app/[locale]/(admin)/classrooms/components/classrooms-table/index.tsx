@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { DoorOpen, Edit2, Trash2, Building2, Users } from "lucide-react"
+import { DoorOpen, Edit2, Trash2, Building2, Users, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
@@ -13,6 +13,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type ClassroomDto } from "@workspace/types"
@@ -24,6 +25,7 @@ export interface ClassroomsTableProps {
   isLoading: boolean
   onEdit: (classroom: ClassroomDto) => void
   onDelete: (classroom: ClassroomDto) => void
+  onAdd?: () => void
 }
 
 export function ClassroomsTable({
@@ -31,6 +33,7 @@ export function ClassroomsTable({
   isLoading,
   onEdit,
   onDelete,
+  onAdd,
 }: ClassroomsTableProps) {
   const t = useTranslations("classrooms")
   const locale = useLocale()
@@ -153,6 +156,23 @@ export function ClassroomsTable({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSROOMS}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addClassroom")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

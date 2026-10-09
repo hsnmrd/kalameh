@@ -181,7 +181,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
             onLogout={handleLogout}
           />
 
-          <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-6 lg:p-8">
+          <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-6 lg:p-8">
             {children}
           </main>
         </div>

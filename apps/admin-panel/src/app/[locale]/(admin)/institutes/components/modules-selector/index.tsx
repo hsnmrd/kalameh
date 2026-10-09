@@ -19,13 +19,6 @@ import {
 } from "lucide-react"
 import { APP_MODULES, ALL_APP_MODULES, type AppModule } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@workspace/ui/components/carousel"
 import { cn } from "@workspace/ui/lib/utils"
 
 export interface ModulesSelectorProps {
@@ -170,71 +163,43 @@ export function ModulesSelector({
         </div>
       </div>
 
-      {/* Modules Carousel (Same Width as the 3 Buttons) */}
-      <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
-        <div className="mb-2.5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-foreground">
-              {t("title")}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <CarouselPrevious
-              className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-xl border-border/80 bg-muted/40 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-              aria-label="Previous modules"
-            />
-            <CarouselNext
-              className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-xl border-border/80 bg-muted/40 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-              aria-label="Next modules"
-            />
-          </div>
-        </div>
+      {/* Vertical Modules List */}
+      <div className="flex flex-col gap-2.5">
+        <span className="text-xs font-semibold text-foreground">
+          {t("title")}
+        </span>
 
-        <CarouselContent className="items-stretch">
+        <div className="flex flex-col gap-2.5">
           {ALL_APP_MODULES.map((moduleKey) => {
             const isSelected = value.includes(moduleKey)
             const Icon = MODULE_ICONS[moduleKey] || Package
 
             return (
-              <CarouselItem
+              <Button
                 key={moduleKey}
-                className="flex shrink-0 basis-[260px] sm:basis-[280px]"
+                type="button"
+                variant="ghost"
+                onClick={() => handleToggle(moduleKey)}
+                className={cn(
+                  "group relative flex h-auto w-full cursor-pointer items-center justify-between gap-3.5 rounded-2xl border p-3.5 text-start font-normal transition-all sm:p-4",
+                  isSelected
+                    ? "border-success/60 bg-success/5 shadow-2xs hover:bg-success/10"
+                    : "border-border/80 bg-card hover:border-border hover:bg-muted/30"
+                )}
               >
-                <Button
-                  key={moduleKey}
-                  type="button"
-                  variant="ghost"
-                  onClick={() => handleToggle(moduleKey)}
-                  className={cn(
-                    "group relative flex h-full min-h-[140px] w-full cursor-pointer flex-col items-start justify-between rounded-2xl border p-4 text-start font-normal transition-all",
-                    isSelected
-                      ? "border-success/60 bg-success/5 shadow-2xs hover:bg-success/10"
-                      : "border-border/80 bg-card hover:border-border hover:bg-muted/30"
-                  )}
-                >
-                  <div className="flex w-full items-center justify-between gap-2">
-                    <div
-                      className={cn(
-                        "flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors",
-                        isSelected
-                          ? "border-success/30 bg-success/10 text-success"
-                          : "border-border/60 bg-muted/60 text-muted-foreground group-hover:text-foreground"
-                      )}
-                    >
-                      <Icon className="size-5" aria-hidden="true" />
-                    </div>
-
-                    {isSelected && (
-                      <div className="flex size-5 items-center justify-center rounded-full bg-success text-success-foreground shadow-2xs">
-                        <Check
-                          className="size-3.5 stroke-[2.5]"
-                          aria-hidden="true"
-                        />
-                      </div>
+                <div className="flex min-w-0 flex-1 items-center gap-3.5">
+                  <div
+                    className={cn(
+                      "flex size-11 shrink-0 items-center justify-center rounded-xl border transition-colors",
+                      isSelected
+                        ? "border-success/30 bg-success/10 text-success"
+                        : "border-border/60 bg-muted/60 text-muted-foreground group-hover:text-foreground"
                     )}
+                  >
+                    <Icon className="size-5" aria-hidden="true" />
                   </div>
 
-                  <div className="mt-3 flex w-full flex-col gap-1">
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <p className="truncate text-sm font-semibold text-foreground">
                       {t(`items.${moduleKey}.name`)}
                     </p>
@@ -242,12 +207,18 @@ export function ModulesSelector({
                       {t(`items.${moduleKey}.description`)}
                     </p>
                   </div>
-                </Button>
-              </CarouselItem>
+                </div>
+
+                {isSelected && (
+                  <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground shadow-2xs">
+                    <Check className="size-4 stroke-[2.5]" aria-hidden="true" />
+                  </div>
+                )}
+              </Button>
             )
           })}
-        </CarouselContent>
-      </Carousel>
+        </div>
+      </div>
     </div>
   )
 }

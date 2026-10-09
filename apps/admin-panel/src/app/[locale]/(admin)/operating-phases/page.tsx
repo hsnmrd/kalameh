@@ -66,6 +66,8 @@ export default function OperatingPhasesPage() {
     })
   }, [phases, search, selectedStatus, currentJalaliMonth])
 
+  const isListEmpty = !isLoading && filteredPhases.length === 0
+
   const handleCreate = () => openModal("createPhase")
   const handleEdit = (phase: OperatingPhaseWithSlots) =>
     openModal("editPhase", { phase })
@@ -85,7 +87,7 @@ export default function OperatingPhasesPage() {
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
           modals={<ModalGateway registry={modalRegistry} />}
@@ -105,16 +107,18 @@ export default function OperatingPhasesPage() {
               isLoading={isLoading}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
 
           {/* Mobile: Flat Divider List */}
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <OperatingPhasesList
               phases={filteredPhases}
               isLoading={isLoading}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
         </AdminPageShell>

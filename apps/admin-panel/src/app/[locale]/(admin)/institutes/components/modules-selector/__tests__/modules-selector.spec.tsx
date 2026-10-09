@@ -64,7 +64,7 @@ describe("ModulesSelector Component", () => {
     )
   })
 
-  it("should render 3 standard sized suggest buttons and carousel with equal item widths", () => {
+  it("should render 3 standard sized suggest buttons and modules vertically without carousel", () => {
     render(<ModulesSelector value={[]} onChange={vi.fn()} />)
 
     const starterBtn = screen.getByRole("button", { name: "پایه" })
@@ -75,14 +75,15 @@ describe("ModulesSelector Component", () => {
     expect(proBtn.className).toContain("h-14")
     expect(enterpriseBtn.className).toContain("h-14")
 
-    const carousel = document.querySelector('[data-slot="carousel"]')
-    expect(carousel).toBeInTheDocument()
-    expect(carousel?.className).toContain("w-full")
+    expect(
+      document.querySelector('[data-slot="carousel"]')
+    ).not.toBeInTheDocument()
 
-    const items = document.querySelectorAll('[data-slot="carousel-item"]')
-    expect(items.length).toBe(8)
-    items.forEach((item) => {
-      expect(item.className).toContain("basis-[260px]")
-    })
+    const moduleButtons = screen
+      .getAllByRole("button")
+      .filter(
+        (btn) => btn !== starterBtn && btn !== proBtn && btn !== enterpriseBtn
+      )
+    expect(moduleButtons.length).toBe(8)
   })
 })

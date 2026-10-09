@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Clock, Edit2, Trash2 } from "lucide-react"
+import { Clock, Edit2, Trash2, Plus } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import {
   MobileList,
   MobileListItem,
@@ -24,6 +25,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import {
   PERMISSIONS,
@@ -38,6 +40,7 @@ export interface OperatingPhasesListProps {
   isLoading: boolean
   onEdit: (phase: OperatingPhaseWithSlots) => void
   onDelete: (phase: OperatingPhaseWithSlots) => void
+  onAdd?: () => void
 }
 
 export function OperatingPhasesList({
@@ -45,6 +48,7 @@ export function OperatingPhasesList({
   isLoading,
   onEdit,
   onDelete,
+  onAdd,
 }: OperatingPhasesListProps) {
   const t = useTranslations("operating-phases")
   const currentJalaliMonth = React.useMemo(() => getCurrentJalaliMonth(), [])
@@ -67,6 +71,23 @@ export function OperatingPhasesList({
           <EmptyTitle>{t("noPhases")}</EmptyTitle>
           <EmptyDescription>{t("noPhasesDescription")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_OPERATING_PHASES}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addPhase")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

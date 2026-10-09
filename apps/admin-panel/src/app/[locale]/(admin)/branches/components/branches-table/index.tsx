@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Building2, Edit2, MapPin, Phone } from "lucide-react"
+import { Building2, Edit2, MapPin, Phone, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
@@ -13,6 +13,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type BranchWithStats } from "@workspace/types"
@@ -23,12 +24,14 @@ export interface BranchesTableProps {
   branches: BranchWithStats[] | undefined
   isLoading: boolean
   onEdit: (branch: BranchWithStats) => void
+  onAdd?: () => void
 }
 
 export function BranchesTable({
   branches,
   isLoading,
   onEdit,
+  onAdd,
 }: BranchesTableProps) {
   const t = useTranslations("branches")
   const locale = useLocale()
@@ -155,6 +158,23 @@ export function BranchesTable({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_BRANCHES}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addBranch")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

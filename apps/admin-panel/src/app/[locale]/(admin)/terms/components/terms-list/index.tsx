@@ -1,6 +1,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Calendar, Edit2, Trash2, Eye } from "lucide-react"
+import { Calendar, Edit2, Trash2, Eye, Plus } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import {
   MobileList,
   MobileListItem,
@@ -21,6 +22,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { PERMISSIONS, isTermDeletable, type TermDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -32,6 +34,7 @@ export interface TermsListProps {
   onView: (term: TermDto) => void
   onEdit: (term: TermDto) => void
   onDelete?: (term: TermDto) => void
+  onAdd?: () => void
 }
 
 export function TermsList({
@@ -40,6 +43,7 @@ export function TermsList({
   onView,
   onEdit,
   onDelete,
+  onAdd,
 }: TermsListProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
@@ -78,6 +82,20 @@ export function TermsList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addTerm")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

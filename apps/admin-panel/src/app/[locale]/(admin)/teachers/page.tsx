@@ -49,6 +49,8 @@ export default function TeachersPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const isListEmpty = !isLoading && (!teachers || teachers.length === 0)
+
   const handleCreate = () => openModal("createTeacher")
   const handleViewProfile = (teacher: TeacherDto) =>
     openModal("viewProfileTeacher", { teacher })
@@ -71,7 +73,7 @@ export default function TeachersPage() {
               onSearchChange={setSearchValue}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
           modals={
@@ -104,11 +106,12 @@ export default function TeachersPage() {
               onManageAvailability={handleManageAvailability}
               onResetPassword={handleResetPassword}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
 
           {/* Mobile Flat List View */}
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <TeachersList
               teachers={teachers}
               isLoading={isLoading}
@@ -117,6 +120,7 @@ export default function TeachersPage() {
               onManageAvailability={handleManageAvailability}
               onResetPassword={handleResetPassword}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
         </AdminPageShell>

@@ -69,7 +69,7 @@ export default function TransactionsPage() {
               onReview={handleReview}
             />
           </div>
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <TransactionsList
               transactions={transactions}
               isLoading={isLoading}

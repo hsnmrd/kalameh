@@ -8,4 +8,5 @@ export interface StudentsTableProps {
   onEdit: (student: StudentDto) => void
   onResetPassword: (student: StudentDto) => void
   onAvailability?: (student: StudentDto) => void
+  onAdd?: () => void
 }

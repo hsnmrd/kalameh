@@ -126,13 +126,24 @@ describe("CreateInstituteModal Component", () => {
     ).not.toBeInTheDocument()
   })
 
-  it("should render horizontal stepper navigation with all 4 steps", () => {
+  it("should render horizontal stepper navigation with all 4 steps in a carousel", () => {
     render(<CreateInstituteModal open={true} onClose={vi.fn()} />)
 
     const stepper = screen.getByRole("navigation", {
       name: /Institute Setup Steps/i,
     })
     expect(stepper).toBeInTheDocument()
+
+    const carousel = stepper.querySelector('[data-slot="carousel"]')
+    expect(carousel).toBeInTheDocument()
+
+    const carouselItems = stepper.querySelectorAll(
+      '[data-slot="carousel-item"]'
+    )
+    expect(carouselItems.length).toBe(4)
+    carouselItems.forEach((item) => {
+      expect(item.className).toContain("basis-[60%]")
+    })
 
     const stepButtons = stepper.querySelectorAll("button")
     expect(stepButtons.length).toBe(4)

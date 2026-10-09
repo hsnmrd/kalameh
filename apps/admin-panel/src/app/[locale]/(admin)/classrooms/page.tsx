@@ -56,6 +56,8 @@ export default function ClassroomsPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const isListEmpty = !isLoading && classrooms.length === 0
+
   const handleCreate = () => openModal("createClassroom")
   const handleEdit = (classroom: ClassroomDto) =>
     openModal("editClassroom", { classroom })
@@ -78,7 +80,7 @@ export default function ClassroomsPage() {
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
               branches={branches}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
           modals={
@@ -107,15 +109,17 @@ export default function ClassroomsPage() {
               isLoading={isLoading}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
 
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <ClassroomsList
               classrooms={classrooms}
               isLoading={isLoading}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
         </AdminPageShell>

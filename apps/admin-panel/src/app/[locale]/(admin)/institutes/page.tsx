@@ -40,6 +40,8 @@ export default function InstitutesPage() {
     })
   )
 
+  const isListEmpty = !isLoading && institutes.length === 0
+
   const handleCreate = () => openModal("createInstitute")
   const handleEdit = (institute: InstituteWithStats) =>
     openModal("editInstitute", { institute })
@@ -54,7 +56,7 @@ export default function InstitutesPage() {
           onSearchChange={setSearch}
           selectedStatus={selectedStatus}
           onStatusChange={setSelectedStatus}
-          onAddClick={handleCreate}
+          onAddClick={isListEmpty ? undefined : handleCreate}
         />
       }
       modals={<ModalGateway registry={modalRegistry} />}
@@ -75,8 +77,9 @@ export default function InstitutesPage() {
           </EmptyHeader>
           <EmptyContent>
             <Button
+              type="button"
               onClick={handleCreate}
-              className="cursor-pointer rounded-xl"
+              className="cursor-pointer gap-2"
             >
               <span>{t("addInstitute")}</span>
             </Button>

@@ -102,20 +102,13 @@ export function GeneralFields({ form, visible }: GeneralFieldsProps) {
       <Field data-invalid={Boolean(errors.primaryColor)}>
         <Card className="rounded-2xl border border-border/80 bg-card shadow-2xs">
           <CardHeader className="p-4 pb-3 sm:p-5 sm:pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Palette
-                  className="size-4.5 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <span>{t("createModal.primaryColor")}</span>
-              </CardTitle>
-              <div
-                className="size-6 rounded-full border border-border/80 shadow-2xs ring-2 ring-background transition-colors"
-                style={{ backgroundColor: selectedColor }}
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Palette
+                className="size-4.5 text-muted-foreground"
                 aria-hidden="true"
               />
-            </div>
+              <span>{t("createModal.primaryColor")}</span>
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3.5 p-4 pt-0 sm:p-5 sm:pt-0">
             <div className="flex flex-wrap items-center gap-2.5">

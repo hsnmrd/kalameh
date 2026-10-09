@@ -51,6 +51,8 @@ export default function CoursesPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const isListEmpty = !isLoading && courses.length === 0
+
   const handleCreate = () => openModal("createCourse")
   const handleEdit = (course: CourseDto) => openModal("editCourse", { course })
 
@@ -65,7 +67,7 @@ export default function CoursesPage() {
               selectedPrerequisiteId={selectedPrerequisiteId}
               onPrerequisiteChange={setSelectedPrerequisiteId}
               courses={allCourses}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
           modals={<ModalGateway registry={modalRegistry} />}
@@ -84,15 +86,17 @@ export default function CoursesPage() {
               courses={courses}
               isLoading={isLoading}
               onEdit={handleEdit}
+              onAdd={handleCreate}
             />
           </div>
 
           {/* Mobile: flat divider list */}
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <CoursesList
               courses={courses}
               isLoading={isLoading}
               onEdit={handleEdit}
+              onAdd={handleCreate}
             />
           </div>
         </AdminPageShell>

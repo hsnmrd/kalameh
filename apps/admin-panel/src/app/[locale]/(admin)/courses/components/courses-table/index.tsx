@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { BookOpen, Edit2 } from "lucide-react"
+import { BookOpen, Edit2, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
@@ -13,6 +13,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { Price } from "@workspace/ui/components/price"
 import { formatNumber } from "@workspace/ui/lib/utils"
@@ -24,12 +25,14 @@ export interface CoursesTableProps {
   courses: CourseDto[] | undefined
   isLoading: boolean
   onEdit: (course: CourseDto) => void
+  onAdd?: () => void
 }
 
 export function CoursesTable({
   courses,
   isLoading,
   onEdit,
+  onAdd,
 }: CoursesTableProps) {
   const t = useTranslations("courses")
   const locale = useLocale()
@@ -121,6 +124,23 @@ export function CoursesTable({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_COURSES}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addCourse")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

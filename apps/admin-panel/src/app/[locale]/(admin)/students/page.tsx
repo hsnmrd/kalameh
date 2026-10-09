@@ -85,6 +85,9 @@ export default function StudentsPage() {
   const handleResetPassword = (student: StudentDto) =>
     openModal("resetPassword", { student })
 
+  const isListEmpty =
+    !isLoading && !hasNoPhases && (!students || students.length === 0)
+
   return (
     <ModuleGuard module={APP_MODULES.STUDENTS}>
       <PermissionGuard permission={PERMISSIONS.VIEW_STUDENTS} mode="forbidden">
@@ -98,7 +101,7 @@ export default function StudentsPage() {
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
               courses={courses}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
               onSetAllAvailableClick={handleSetAllAvailable}
               disabled={isLoadingPhases || hasNoPhases}
             />
@@ -145,11 +148,12 @@ export default function StudentsPage() {
                   onEdit={handleEdit}
                   onResetPassword={handleResetPassword}
                   onAvailability={handleAvailability}
+                  onAdd={handleCreate}
                 />
               </div>
 
               {/* Mobile Flat List View */}
-              <div className="lg:hidden">
+              <div className="flex flex-1 flex-col lg:hidden">
                 <StudentsList
                   students={students}
                   isLoading={isLoading}
@@ -158,6 +162,7 @@ export default function StudentsPage() {
                   onEdit={handleEdit}
                   onResetPassword={handleResetPassword}
                   onAvailability={handleAvailability}
+                  onAdd={handleCreate}
                 />
               </div>
             </>

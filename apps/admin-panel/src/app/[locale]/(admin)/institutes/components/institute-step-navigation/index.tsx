@@ -3,6 +3,12 @@
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import { Building2, Check, CreditCard, Package, Phone } from "lucide-react"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@workspace/ui/components/carousel"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import type { SupportedLocale } from "@workspace/types"
 import type { InstituteFormTab } from "../institute-form-types"
@@ -32,102 +38,103 @@ export function InstituteStepNavigation({
 }: InstituteStepNavigationProps) {
   const t = useTranslations("institutes")
   const locale = useLocale() as SupportedLocale
+  const [api, setApi] = React.useState<CarouselApi>()
   const activeIndex = STEP_ORDER.indexOf(activeTab)
+
+  React.useEffect(() => {
+    if (!api) return
+    api.scrollTo(activeIndex)
+  }, [api, activeIndex])
 
   return (
     <nav
       aria-label="Institute Setup Steps"
-      className="w-full rounded-2xl border border-border/70 bg-card/60 p-3 shadow-2xs sm:p-4"
+      className="w-full overflow-hidden rounded-2xl border border-border/70 bg-card/60 p-2.5 shadow-2xs sm:p-3"
     >
-      <ol className="flex w-full items-center justify-between gap-1 sm:gap-2">
-        {STEPS.map(({ id, icon: Icon, label, stepNumber }, index) => {
-          const isCompleted = index < activeIndex
-          const isActive = activeTab === id
-          const isUpcoming = index > activeIndex
+      <Carousel
+        setApi={setApi}
+        opts={{ align: "start", dragFree: true }}
+        className="w-full"
+      >
+        <CarouselContent className="-ms-2.5">
+          {STEPS.map(({ id, icon: Icon, label, stepNumber }, index) => {
+            const isCompleted = index < activeIndex
+            const isActive = activeTab === id
+            const isUpcoming = index > activeIndex
 
-          return (
-            <li
-              key={id}
-              className={cn(
-                "flex flex-1 items-center",
-                index === STEPS.length - 1 && "flex-initial"
-              )}
-            >
-              <button
-                type="button"
-                onClick={() => onChange(id)}
-                aria-current={isActive ? "step" : undefined}
-                className="group flex cursor-pointer items-center gap-2 transition-all focus-visible:outline-hidden sm:gap-3"
+            return (
+              <CarouselItem
+                key={id}
+                className="min-w-0 shrink-0 basis-[60%] ps-2.5 sm:basis-[48%]"
               >
-                {/* Step Circle Badge */}
-                <div
+                <button
+                  type="button"
+                  onClick={() => onChange(id)}
+                  aria-current={isActive ? "step" : undefined}
                   className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold transition-all duration-200 sm:size-11 sm:text-sm",
-                    isCompleted &&
-                      "bg-primary text-primary-foreground shadow-2xs",
-                    isActive &&
-                      "bg-primary text-primary-foreground shadow-xs ring-4 ring-primary/20",
-                    isUpcoming &&
-                      "border border-border/80 bg-muted/60 text-muted-foreground group-hover:border-foreground/30 group-hover:text-foreground"
+                    "group flex h-full min-h-[58px] w-full cursor-pointer items-center gap-3 rounded-xl border p-2.5 text-start transition-all focus-visible:outline-hidden",
+                    isActive
+                      ? "border-primary/80 bg-primary/10 shadow-2xs ring-1 ring-primary/30"
+                      : isCompleted
+                        ? "border-border/80 bg-card hover:border-primary/40 hover:bg-muted/30"
+                        : "border-border/60 bg-card/40 text-muted-foreground hover:border-border hover:bg-muted/20"
                   )}
                 >
-                  {isCompleted ? (
-                    <Check
-                      className="size-4 stroke-[2.5] sm:size-5"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <span>{formatNumber(stepNumber, locale)}</span>
-                  )}
-                </div>
-
-                {/* Step Text / Info */}
-                <div className="flex flex-col text-start">
-                  <span
+                  {/* Step Circle Badge */}
+                  <div
                     className={cn(
-                      "text-[10px] font-medium transition-colors sm:text-xs",
+                      "flex size-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold transition-all duration-200",
                       isActive
-                        ? "font-bold text-foreground"
+                        ? "bg-primary text-primary-foreground shadow-xs ring-4 ring-primary/20"
                         : isCompleted
-                          ? "font-semibold text-foreground"
-                          : "text-muted-foreground group-hover:text-foreground"
+                          ? "bg-primary text-primary-foreground shadow-2xs"
+                          : "border border-border/80 bg-muted/60 text-muted-foreground group-hover:border-foreground/30 group-hover:text-foreground"
                     )}
                   >
-                    <Icon
-                      className={cn(
-                        "me-1 inline-block size-3.5 -translate-y-px",
-                        isActive
-                          ? "text-primary"
-                          : isCompleted
-                            ? "text-foreground"
-                            : "text-muted-foreground"
-                      )}
-                      aria-hidden="true"
-                    />
-                    <span className="hidden sm:inline">
-                      {t(`createModal.${label}`)}
-                    </span>
-                    <span className="sm:hidden">
-                      {t(`createModal.${label}`)}
-                    </span>
-                  </span>
-                </div>
-              </button>
+                    {isCompleted ? (
+                      <Check
+                        className="size-4.5 stroke-[2.5]"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <span>{formatNumber(stepNumber, locale)}</span>
+                    )}
+                  </div>
 
-              {/* Connecting Horizontal Line */}
-              {index < STEPS.length - 1 && (
-                <div
-                  className={cn(
-                    "mx-2 h-0.5 flex-1 rounded-full transition-colors duration-300 sm:mx-3",
-                    index < activeIndex ? "bg-primary" : "bg-muted"
-                  )}
-                  aria-hidden="true"
-                />
-              )}
-            </li>
-          )
-        })}
-      </ol>
+                  {/* Step Info */}
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <Icon
+                        className={cn(
+                          "size-4 shrink-0",
+                          isActive
+                            ? "text-primary"
+                            : isCompleted
+                              ? "text-foreground"
+                              : "text-muted-foreground group-hover:text-foreground"
+                        )}
+                        aria-hidden="true"
+                      />
+                      <span
+                        className={cn(
+                          "truncate text-xs font-semibold transition-colors sm:text-sm",
+                          isActive
+                            ? "font-bold text-foreground"
+                            : isCompleted
+                              ? "font-semibold text-foreground"
+                              : "text-muted-foreground group-hover:text-foreground"
+                        )}
+                      >
+                        {t(`createModal.${label}`)}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              </CarouselItem>
+            )
+          })}
+        </CarouselContent>
+      </Carousel>
     </nav>
   )
 }

@@ -41,6 +41,8 @@ export default function ClassesPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const isListEmpty = !isLoading && (!classes || classes.length === 0)
+
   const handleCreate = () => openModal("createClass")
   const handleEdit = (cls: ClassDto) => openModal("editClass", { cls })
   const handleViewDetails = (cls: ClassDto) =>
@@ -59,7 +61,7 @@ export default function ClassesPage() {
               onCourseChange={setCourseId}
               search={search}
               onSearchChange={setSearch}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
           modals={
@@ -81,17 +83,19 @@ export default function ClassesPage() {
               onEdit={handleEdit}
               onViewDetails={handleViewDetails}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
 
           {/* Mobile: flat divider list */}
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <ClassesList
               classes={classes}
               isLoading={isLoading}
               onEdit={handleEdit}
               onViewDetails={handleViewDetails}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
         </AdminPageShell>

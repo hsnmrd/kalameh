@@ -47,6 +47,8 @@ export default function BranchesPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const isListEmpty = !isLoading && branches.length === 0
+
   const handleCreate = () => openModal("createBranch")
   const handleEdit = (branch: BranchWithStats) =>
     openModal("editBranch", { branch })
@@ -61,7 +63,7 @@ export default function BranchesPage() {
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
           modals={<ModalGateway registry={modalRegistry} />}
@@ -80,15 +82,17 @@ export default function BranchesPage() {
               branches={branches}
               isLoading={isLoading}
               onEdit={handleEdit}
+              onAdd={handleCreate}
             />
           </div>
 
           {/* Mobile: flat divider list */}
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <BranchesList
               branches={branches}
               isLoading={isLoading}
               onEdit={handleEdit}
+              onAdd={handleCreate}
             />
           </div>
         </AdminPageShell>

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Layers, Edit2, GraduationCap, Eye, Trash2 } from "lucide-react"
+import { Layers, Edit2, GraduationCap, Eye, Trash2, Plus } from "lucide-react"
 import { Link } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -15,6 +15,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { Price } from "@workspace/ui/components/price"
 import { formatNumber } from "@workspace/ui/lib/utils"
@@ -31,6 +32,7 @@ export interface ClassesTableProps {
   onEdit: (cls: ClassDto) => void
   onViewDetails?: (cls: ClassDto) => void
   onDelete?: (cls: ClassDto) => void
+  onAdd?: () => void
 }
 
 export function ClassesTable({
@@ -39,6 +41,7 @@ export function ClassesTable({
   onEdit,
   onViewDetails,
   onDelete,
+  onAdd,
 }: ClassesTableProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -250,6 +253,23 @@ export function ClassesTable({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSES}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addClass")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

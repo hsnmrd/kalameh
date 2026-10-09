@@ -10,7 +10,9 @@ import {
   GraduationCap,
   FileText,
   Clock,
+  Plus,
 } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import {
   MobileList,
   MobileListItem,
@@ -31,6 +33,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
@@ -46,6 +49,7 @@ export interface StudentsListProps {
   onEdit: (student: StudentDto) => void
   onResetPassword: (student: StudentDto) => void
   onAvailability?: (student: StudentDto) => void
+  onAdd?: () => void
 }
 
 export function StudentsList({
@@ -56,6 +60,7 @@ export function StudentsList({
   onEdit,
   onResetPassword,
   onAvailability,
+  onAdd,
 }: StudentsListProps) {
   const t = useTranslations("students")
 
@@ -77,6 +82,23 @@ export function StudentsList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_STUDENTS}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addStudent")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

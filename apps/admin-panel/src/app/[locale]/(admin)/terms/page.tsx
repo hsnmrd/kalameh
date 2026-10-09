@@ -48,6 +48,8 @@ export default function TermsPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const isListEmpty = !isLoading && terms.length === 0
+
   const handleCreate = () => openModal("createTerm")
   const handleView = (term: TermDto) => openModal("viewTerm", { term })
   const handleEdit = (term: TermDto) => openModal("editTerm", { term })
@@ -63,7 +65,7 @@ export default function TermsPage() {
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
               onBatchClick={() => router.push("/terms/generate")}
             />
           }
@@ -90,17 +92,19 @@ export default function TermsPage() {
               onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
 
           {/* Mobile: flat divider list */}
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <TermsList
               terms={terms}
               isLoading={isLoading}
               onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
         </AdminPageShell>

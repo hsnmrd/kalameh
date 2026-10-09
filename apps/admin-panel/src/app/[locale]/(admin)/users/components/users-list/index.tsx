@@ -3,7 +3,8 @@
 import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
-import { Users, Edit2, KeyRound, Trash2, Eye } from "lucide-react"
+import { Users, Edit2, KeyRound, Trash2, Eye, Plus } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import {
   MobileList,
   MobileListItem,
@@ -24,6 +25,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type AuthUser } from "@workspace/types"
@@ -37,6 +39,7 @@ export interface UsersListProps {
   onEdit: (user: AuthUser) => void
   onResetPassword: (user: AuthUser) => void
   onDelete: (user: AuthUser) => void
+  onAdd?: () => void
 }
 
 export function UsersList({
@@ -46,6 +49,7 @@ export function UsersList({
   onEdit,
   onResetPassword,
   onDelete,
+  onAdd,
 }: UsersListProps) {
   const t = useTranslations("users")
 
@@ -67,6 +71,16 @@ export function UsersList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="hide">
+              <Button onClick={onAdd} className="cursor-pointer gap-2">
+                <Plus className="size-4" />
+                <span>{t("addUser")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

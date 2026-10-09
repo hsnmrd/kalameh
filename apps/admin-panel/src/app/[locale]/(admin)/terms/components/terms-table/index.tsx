@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Calendar, Edit2, Trash2, Eye } from "lucide-react"
+import { Calendar, Edit2, Trash2, Eye, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
@@ -13,6 +13,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, isTermDeletable, type TermDto } from "@workspace/types"
@@ -25,6 +26,7 @@ export interface TermsTableProps {
   onView: (term: TermDto) => void
   onEdit: (term: TermDto) => void
   onDelete?: (term: TermDto) => void
+  onAdd?: () => void
 }
 
 export function TermsTable({
@@ -33,6 +35,7 @@ export function TermsTable({
   onView,
   onEdit,
   onDelete,
+  onAdd,
 }: TermsTableProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
@@ -182,6 +185,20 @@ export function TermsTable({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addTerm")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

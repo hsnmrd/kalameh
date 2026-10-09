@@ -2,8 +2,9 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Layers, Edit2, GraduationCap, Eye, Trash2 } from "lucide-react"
+import { Layers, Edit2, GraduationCap, Eye, Trash2, Plus } from "lucide-react"
 import { useRouter } from "@/i18n/routing"
+import { Button } from "@workspace/ui/components/button"
 import {
   MobileList,
   MobileListItem,
@@ -25,6 +26,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import {
@@ -40,6 +42,7 @@ export interface ClassesListProps {
   onEdit: (cls: ClassDto) => void
   onViewDetails?: (cls: ClassDto) => void
   onDelete?: (cls: ClassDto) => void
+  onAdd?: () => void
 }
 
 export function ClassesList({
@@ -48,6 +51,7 @@ export function ClassesList({
   onEdit,
   onViewDetails,
   onDelete,
+  onAdd,
 }: ClassesListProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -71,6 +75,23 @@ export function ClassesList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSES}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addClass")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }
