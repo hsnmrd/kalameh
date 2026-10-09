@@ -200,7 +200,7 @@ export function MobileBottomNavigation({
                 </span>
                 <span className="max-w-full truncate">{t("nav.menu")}</span>
                 {isMenuActive && (
-                  <span className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-primary" />
+                  <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-primary" />
                 )}
               </Button>
             )
