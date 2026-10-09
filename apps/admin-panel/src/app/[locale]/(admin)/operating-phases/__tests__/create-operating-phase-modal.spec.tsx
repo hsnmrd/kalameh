@@ -288,4 +288,24 @@ describe("CreateOperatingPhaseModal Component", () => {
 
     expect(handleClose).toHaveBeenCalled()
   })
+
+  it("renders Counter component for session duration and steps by 5 minutes", async () => {
+    render(<CreateOperatingPhaseModal open={true} onClose={vi.fn()} />)
+
+    const incrementBtn = screen.getByRole("button", { name: "افزایش" })
+    const decrementBtn = screen.getByRole("button", { name: "کاهش" })
+
+    expect(incrementBtn).toBeInTheDocument()
+    expect(decrementBtn).toBeInTheDocument()
+
+    // Default duration is 90
+    // Click increment -> should become 95 (step is 5)
+    fireEvent.click(incrementBtn)
+
+    await waitFor(() => {
+      // With 15:00 to 21:00 (360m) and 95m slot duration:
+      // 3 full slots (285m) + 75m remainder -> remainder warning appears!
+      expect(screen.getByText(/75 دقیقه زمان مازاد/i)).toBeInTheDocument()
+    })
+  })
 })

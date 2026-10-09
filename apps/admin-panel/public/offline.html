@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <title>آفلاین | سامانه مدیریت کلمه</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent-glow: rgba(37, 99, 235, 0.15);
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f8fafc;
+        --card-bg: #ffffff;
+        --border: #e2e8f0;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --accent-glow: rgba(37, 99, 235, 0.08);
+      }
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, Tahoma, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      min-height: 100dvh;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .container {
+      max-width: 440px;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .icon-wrapper {
+      width: 4.5rem;
+      height: 4.5rem;
+      border-radius: 1.25rem;
+      background: var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+    }
+    .icon-wrapper svg {
+      width: 2.25rem;
+      height: 2.25rem;
+      color: var(--primary);
+    }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    p {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+    .divider {
+      width: 100%;
+      height: 1px;
+      background-color: var(--border);
+      margin: 0.25rem 0;
+    }
+    .subtitle-en {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      direction: ltr;
+    }
+    .button {
+      margin-top: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      height: 3.5rem;
+      width: 100%;
+      border-radius: 1rem;
+      background-color: var(--primary);
+      color: #ffffff;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      outline: none;
+    }
+    .button:hover {
+      background-color: var(--primary-hover);
+    }
+    .button:active {
+      transform: scale(0.98);
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #ef4444;
+    }
+    .status-dot.online {
+      background-color: #22c55e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon-wrapper">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M12 18h.01M8.5 14.5a5 5 0 017 0M5 11a10 10 0 0110.5-2.5M1.5 7.5A15 15 0 0118 5" />
+      </svg>
+    </div>
+    <h1>ارتباط با اینترنت برقرار نیست</h1>
+    <p>دسترسی شما به شبکه موقتاً قطع شده است. به محض برقراری اتصال مجدد، صفحه را تازه‌سازی نمایید.</p>
+    
+    <div class="divider"></div>
+    <div class="subtitle-en">No Internet connection. Please check your network and try again.</div>
+
+    <button class="button" id="retry-btn" onclick="retryConnection()">
+      <span>تلاش مجدد</span>
+    </button>
+
+    <div class="status-indicator">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">عدم دسترسی به شبکه</span>
+    </div>
+  </div>
+
+  <script>
+    function updateStatus() {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      if (navigator.onLine) {
+        dot.classList.add('online');
+        text.innerText = 'اتصال برقرار است، در حال اتصال مجدد...';
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        dot.classList.remove('online');
+        text.innerText = 'عدم دسترسی به شبکه';
+      }
+    }
+
+    function retryConnection() {
+      const btn = document.getElementById('retry-btn');
+      btn.innerText = 'در حال بررسی...';
+      if (navigator.onLine) {
+        window.location.reload();
+      } else {
+        setTimeout(() => {
+          btn.innerText = 'تلاش مجدد';
+          updateStatus();
+        }, 1200);
+      }
+    }
+
+    window.addEventListener('online', updateStatus);
+    window.addEventListener('offline', updateStatus);
+  </script>
+</body>
+</html>

@@ -2,13 +2,14 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Building2, LogOut, Settings } from "lucide-react"
+import { Building2, Download, LogOut, Settings } from "lucide-react"
 import { ROLES, type Role, type AuthUser } from "@workspace/types"
 import { ResponsivePopover } from "@workspace/ui/components/popover"
 import { Button } from "@workspace/ui/components/button"
 import { useActiveInstitute } from "@/lib/stores"
 import dynamic from "next/dynamic"
 import { useRouter } from "@/i18n/routing"
+import { usePwaContext } from "@/components/pwa-provider"
 import { UserBadgeTrigger } from "./user-badge-trigger"
 import { ActiveInstituteCard } from "./active-institute-card"
 import { UserProfileDetails } from "./user-profile-details"
@@ -78,6 +79,13 @@ export function UserBadge({ user, role, onLogout }: UserBadgeProps) {
     router.push("/institutes")
   }
 
+  const { isInstallable, installApp } = usePwaContext()
+
+  const handleInstallApp = async () => {
+    setOpen(false)
+    await installApp()
+  }
+
   const handleLogout = () => {
     setOpen(false)
     onLogout?.()
@@ -141,6 +149,22 @@ export function UserBadge({ user, role, onLogout }: UserBadgeProps) {
               <Building2 className="size-3.5 text-muted-foreground" />
               <span>{t("userProfile.selectInstitute")}</span>
             </Button>
+          )}
+
+          {/* Install App Action */}
+          {isInstallable && (
+            <div className="border-t border-border pt-2.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleInstallApp}
+                className="flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-border text-xs font-medium text-foreground hover:bg-muted active:scale-95"
+              >
+                <Download className="size-3.5 text-muted-foreground" />
+                <span>{t("pwa.install")}</span>
+              </Button>
+            </div>
           )}
 
           {/* Settings Action */}

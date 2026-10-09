@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { fireEvent, render, screen } from "../../../../../test/test-utils"
 import { ROLES } from "@workspace/types"
 import * as stores from "@/lib/stores"
+import * as pwaProvider from "@/components/pwa-provider"
 import { UserBadge } from "../index"
 
 const mockPush = vi.fn()
@@ -163,5 +164,39 @@ describe("UserBadge", () => {
     expect(
       screen.getByRole("button", { name: "انتخاب آموزشگاه" })
     ).toBeInTheDocument()
+  })
+
+  it("shows install app button when app is installable and invokes installApp on click", async () => {
+    const installAppMock = vi.fn().mockResolvedValue(true)
+    vi.spyOn(pwaProvider, "usePwaContext").mockReturnValue({
+      isSupported: true,
+      isInstalled: false,
+      isInstallable: true,
+      isOffline: false,
+      isUpdateAvailable: false,
+      installApp: installAppMock,
+      updateApp: vi.fn(),
+    })
+
+    render(
+      <UserBadge
+        role={ROLES.ADMIN}
+        user={{
+          firstName: "مدیر",
+          lastName: "آموزشگاه",
+          role: ROLES.ADMIN,
+          isActive: true,
+        }}
+      />
+    )
+
+    // Open popover
+    fireEvent.click(screen.getByRole("button", { name: "اطلاعات کاربری" }))
+
+    const installBtn = screen.getByRole("button", { name: "نصب برنامه" })
+    expect(installBtn).toBeInTheDocument()
+
+    fireEvent.click(installBtn)
+    expect(installAppMock).toHaveBeenCalledTimes(1)
   })
 })

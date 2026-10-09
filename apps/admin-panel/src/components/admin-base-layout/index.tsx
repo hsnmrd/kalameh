@@ -15,6 +15,7 @@ import { SidebarFooter } from "./sidebar-footer"
 import { MobileBottomNavigation } from "./mobile-bottom-navigation"
 import { AdminHeader } from "./admin-header"
 import { HeaderActionsProvider } from "./header-actions-context"
+import { PwaNotifier } from "@/components/pwa-notifier"
 import {
   SUPER_ADMIN_PLATFORM_NAV,
   DASHBOARD_NAV_ITEM,
@@ -139,6 +140,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
 
   return (
     <HeaderActionsProvider>
+      <PwaNotifier />
       <div className="flex min-h-[100dvh] bg-background font-sans text-foreground">
         {/* Desktop Static Sidebar */}
         <aside

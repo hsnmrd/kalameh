@@ -8,6 +8,7 @@ import { ThemeProvider } from "@workspace/ui/components/theme-provider"
 import { MicroApiError } from "micro-rq"
 import { DirectionProvider } from "@workspace/ui/components/direction-provider"
 import { ModalProvider } from "@/components/modal-provider"
+import { PwaProvider } from "@/components/pwa-provider"
 
 export function Providers({
   children,
@@ -45,10 +46,12 @@ export function Providers({
     <ThemeProvider>
       <DirectionProvider direction={direction}>
         <QueryClientProvider client={queryClient}>
-          <ModalProvider>
-            {children}
-            <Toaster />
-          </ModalProvider>
+          <PwaProvider>
+            <ModalProvider>
+              {children}
+              <Toaster />
+            </ModalProvider>
+          </PwaProvider>
         </QueryClientProvider>
       </DirectionProvider>
     </ThemeProvider>

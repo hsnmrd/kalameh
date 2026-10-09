@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="maskable-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="50%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+    <linearGradient id="maskable-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e0e7ff" />
+    </linearGradient>
+    <filter id="mshadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  
+  <!-- Edge-to-edge background for adaptive cropping -->
+  <rect width="512" height="512" fill="url(#maskable-bg)" />
+
+  <!-- Center Decorative Glow -->
+  <circle cx="256" cy="256" r="120" fill="#ffffff" opacity="0.08" />
+
+  <!-- Scaled Emblem (Safe Zone: within central 360x360) -->
+  <g filter="url(#mshadow)" transform="translate(256, 260) scale(0.8)">
+    <path d="M -130,50 C -70,20 -20,35 0,65 C 20,35 70,20 130,50 C 130,-40 70,-70 0,-45 C -70,-70 -130,-40 -130,50 Z" 
+          fill="url(#maskable-accent)" />
+    
+    <path d="M 0,-42 L 0,63" stroke="#2563eb" stroke-width="6" stroke-linecap="round" />
+
+    <path d="M 0,-115 L 75,-78 L 0,-42 L -75,-78 Z" fill="#ffffff" />
+    <path d="M 50,-65 L 50,-10 C 45,5 30,12 15,12 C 0,12 -15,5 -20,-10 L -20,-65" 
+          stroke="#ffffff" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.9" />
+    <circle cx="68" cy="-5" r="5" fill="#fbbf24" />
+    <path d="M 68,-5 L 68,15" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" />
+  </g>
+</svg>

@@ -166,5 +166,20 @@
         "description": "Virtual classrooms, webinars, and live session rooms"
       }
     }
+  },
+  "pwa": {
+    "install": "Install App",
+    "installTitle": "Install Kalameh Admin",
+    "installDescription": "Install Kalameh Admin on your device for faster access, smoother performance, and offline reliability.",
+    "installButton": "Install on Device",
+    "installDismiss": "Later",
+    "installedSuccess": "App installed successfully",
+    "offlineTitle": "No Internet Connection",
+    "offlineDescription": "You are currently offline. Some features may not be available until your connection is restored.",
+    "offlineRetry": "Retry",
+    "updateAvailable": "New update available",
+    "updateDescription": "A new version of Kalameh Admin is available.",
+    "updateButton": "Update Now",
+    "onlineBack": "Internet connection restored"
   }
 }
