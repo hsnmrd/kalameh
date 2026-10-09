@@ -136,6 +136,22 @@ describe("GeneratePhaseTermsPage (/terms/generate)", () => {
     expect(screen.queryByText("بازگشت")).not.toBeInTheDocument()
   })
 
+  it("opens generatePhaseTerms modal when clicking edit config filter button", async () => {
+    render(<GeneratePhaseTermsPage />)
+
+    const editConfigBtn = screen.getByRole("button", {
+      name: /ویرایش تنظیمات/i,
+    })
+    await act(async () => {
+      editConfigBtn.click()
+    })
+
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.stringContaining("modal=generatePhaseTerms"),
+      expect.anything()
+    )
+  })
+
   it("redirects to /terms?modal=generatePhaseTerms if accessed without proposals", () => {
     usePhaseTermsGenerateStore.setState({ proposals: [] })
     render(<GeneratePhaseTermsPage />)

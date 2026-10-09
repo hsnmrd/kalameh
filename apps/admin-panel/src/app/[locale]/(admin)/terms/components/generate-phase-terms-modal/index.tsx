@@ -50,19 +50,19 @@ export function GeneratePhaseTermsModal({
   } = useGeneratePhaseTerms()
 
   const currentSessions = sessionsPerTerm ?? 15
+  const [isProceeding, setIsProceeding] = React.useState(false)
 
   const handleProceed = async () => {
-    const success = await handleProceedToPreview()
-    if (success) {
-      onClose()
+    setIsProceeding(true)
+    try {
+      await handleProceedToPreview()
+    } finally {
+      setIsProceeding(false)
     }
   }
 
   const isProceedDisabled =
-    !activePhaseId ||
-    previewQuery.isFetching ||
-    isLoadingExisting ||
-    isPhasePast
+    !activePhaseId || isProceeding || isLoadingExisting || isPhasePast
 
   return (
     <FormDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -150,13 +150,13 @@ export function GeneratePhaseTermsModal({
             disabled={isProceedDisabled}
             onClick={handleProceed}
           >
-            {previewQuery.isFetching ? (
+            {isProceeding ? (
               <Spinner className="size-5" />
             ) : (
               <ActionArrow className="size-5" />
             )}
             <span>
-              {previewQuery.isFetching
+              {isProceeding
                 ? t("batchModal.previewing")
                 : t("batchModal.proceedToPreview")}
             </span>

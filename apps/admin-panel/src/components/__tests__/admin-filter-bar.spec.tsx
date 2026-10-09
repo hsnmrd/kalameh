@@ -112,6 +112,24 @@ describe("Admin Filter System Components", () => {
       expect(screen.getByTestId("dialog-filter-content")).toBeInTheDocument()
     })
 
+    it("should call onFilterClick when filter button is clicked and onFilterClick is provided", () => {
+      const handleFilterClick = vi.fn()
+      render(
+        <AdminFilterBar
+          onFilterClick={handleFilterClick}
+          filterButtonLabel="ویرایش تنظیمات"
+        />
+      )
+
+      const filterBtn = screen.getByRole("button", {
+        name: /ویرایش تنظیمات/i,
+      })
+      expect(filterBtn).toBeInTheDocument()
+
+      fireEvent.click(filterBtn)
+      expect(handleFilterClick).toHaveBeenCalledTimes(1)
+    })
+
     it("should render actions slot when provided", () => {
       render(
         <AdminFilterBar

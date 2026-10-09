@@ -31,6 +31,8 @@ export interface AdminFilterBarProps {
   activeFiltersCount?: number
   /** Callback to clear all active filters */
   onClearFilters?: () => void
+  /** Custom callback when filter button is clicked (bypasses internal dialog) */
+  onFilterClick?: () => void
   /** Keep revealed on mobile (e.g. active filter or active search) */
   isPinned?: boolean
   /** Whether auto-collapsing on mobile scroll is enabled (default: true) */
@@ -51,6 +53,7 @@ export function AdminFilterBar({
   filterButtonAriaLabel,
   activeFiltersCount = 0,
   onClearFilters,
+  onFilterClick,
   isPinned = false,
   autoHideOnMobile = true,
   actions,
@@ -58,7 +61,8 @@ export function AdminFilterBar({
 }: AdminFilterBarProps) {
   const t = useTranslations("common.filter")
   const [dialogOpen, setDialogOpen] = React.useState(false)
-  const hasFilters = Boolean(filters || children)
+  const hasDialog = Boolean(filters || children)
+  const hasFilters = Boolean(hasDialog || onFilterClick)
   const hasActiveFilters = Boolean(isPinned || activeFiltersCount > 0)
 
   const { isRevealed } = useMobileScrollReveal({
@@ -67,7 +71,8 @@ export function AdminFilterBar({
 
   const resolvedDialogTitle = filterDialogTitle || t("title")
   const resolvedButtonLabel = filterButtonLabel || t("button")
-  const resolvedButtonAriaLabel = filterButtonAriaLabel || t("button")
+  const resolvedButtonAriaLabel =
+    filterButtonAriaLabel || filterButtonLabel || t("button")
 
   return (
     <>
@@ -93,7 +98,13 @@ export function AdminFilterBar({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setDialogOpen(true)}
+                onClick={() => {
+                  if (onFilterClick) {
+                    onFilterClick()
+                  } else {
+                    setDialogOpen(true)
+                  }
+                }}
                 disabled={disabled}
                 aria-label={resolvedButtonAriaLabel}
                 className={cn(
@@ -133,7 +144,7 @@ export function AdminFilterBar({
       </div>
 
       {/* Filter Modal (Desktop) / Bottom-Sheet Drawer (Mobile) */}
-      {hasFilters && (
+      {hasDialog && (
         <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <ResponsiveDialogContent className="overflow-hidden p-0 sm:max-w-md">
             <ResponsiveDialogHeader className="border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">

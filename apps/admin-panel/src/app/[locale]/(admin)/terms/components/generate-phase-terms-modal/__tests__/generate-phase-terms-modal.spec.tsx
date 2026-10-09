@@ -168,7 +168,6 @@ describe("GeneratePhaseTermsModal", () => {
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith("/terms/generate")
-      expect(mockOnClose).toHaveBeenCalledTimes(1)
     })
   })
 

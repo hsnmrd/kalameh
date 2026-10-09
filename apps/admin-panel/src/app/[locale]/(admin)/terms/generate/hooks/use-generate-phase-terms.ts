@@ -130,6 +130,7 @@ export function useGeneratePhaseTerms() {
     proposals,
     setProposals,
     setCustomTitles,
+    setSelectedPhaseId,
     reset,
   })
 

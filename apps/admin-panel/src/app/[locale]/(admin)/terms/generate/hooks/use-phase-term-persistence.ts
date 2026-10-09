@@ -23,6 +23,7 @@ interface PhaseTermPersistenceOptions {
   proposals: GeneratedTermProposal[]
   setProposals: (proposals: GeneratedTermProposal[]) => void
   setCustomTitles: (titles: Record<number, string>) => void
+  setSelectedPhaseId?: (phaseId: string) => void
   reset?: () => void
 }
 
@@ -36,6 +37,7 @@ export function usePhaseTermPersistence({
   proposals,
   setProposals,
   setCustomTitles,
+  setSelectedPhaseId,
   reset,
 }: PhaseTermPersistenceOptions) {
   const t = useTranslations("terms")
@@ -73,7 +75,7 @@ export function usePhaseTermPersistence({
   const handleProceedToPreview = async () => {
     if (!activePhaseId || isLoadingExisting) {
       if (!activePhaseId) toast.error(t("batchModal.phasePlaceholder"))
-      return
+      return false
     }
 
     if (
@@ -82,18 +84,27 @@ export function usePhaseTermPersistence({
       isPhaseInPast(selectedPhaseMonths, jalaliYear)
     ) {
       toast.error(t("batchModal.pastMonthsNotAllowed"))
-      return
+      return false
     }
 
     try {
-      const result = await previewQuery.refetch()
-      if (result.isError) return false
-      if (result.data?.length) {
-        setProposals(result.data)
+      const data = await queryClient.fetchQuery({
+        ...termsResource.previewPhase.toQuery({
+          operatingPhaseId: activePhaseId,
+          jalaliYear,
+          sessionsPerTerm,
+          daysPerTerm: sessionsPerTerm,
+          gapDays,
+        }),
+      })
+
+      if (data && data.length > 0) {
+        setSelectedPhaseId?.(activePhaseId)
+        setProposals(data)
         setCustomTitles({})
         router.push("/terms/generate")
         return true
-      } else if (result.data) {
+      } else if (data) {
         toast.error(t("batchModal.noProposals"))
         return false
       }

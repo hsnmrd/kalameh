@@ -14,6 +14,7 @@ import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "../../../modal"
 import { useRouter } from "@/i18n/routing"
 import { useModal } from "@/lib/hooks"
+import { usePhaseTermsGenerateStore } from "@/lib/stores"
 import { useGeneratePhaseTerms } from "../../hooks/use-generate-phase-terms"
 import { StepPreview } from "../step-preview"
 import { PreviewFilter } from "../preview-filter"
@@ -43,6 +44,23 @@ export function GeneratePhaseTermsPreviewContent() {
     existingTerms,
   } = useGeneratePhaseTerms()
 
+  const [hasHydrated, setHasHydrated] = React.useState(
+    () => usePhaseTermsGenerateStore.persist?.hasHydrated?.() ?? true
+  )
+
+  React.useEffect(() => {
+    if (usePhaseTermsGenerateStore.persist?.hasHydrated?.()) {
+      setHasHydrated(true)
+      return
+    }
+    const unsub = usePhaseTermsGenerateStore.persist?.onFinishHydration?.(
+      () => {
+        setHasHydrated(true)
+      }
+    )
+    return unsub
+  }, [])
+
   const isSubmittingRef = React.useRef(false)
   if (batchCreateMutation.isPending || batchCreateMutation.isSuccess) {
     isSubmittingRef.current = true
@@ -50,6 +68,7 @@ export function GeneratePhaseTermsPreviewContent() {
 
   React.useEffect(() => {
     if (
+      hasHydrated &&
       proposals.length === 0 &&
       !isSubmittingRef.current &&
       !batchCreateMutation.isPending &&
@@ -58,6 +77,7 @@ export function GeneratePhaseTermsPreviewContent() {
       router.replace("/terms?modal=generatePhaseTerms")
     }
   }, [
+    hasHydrated,
     proposals.length,
     batchCreateMutation.isPending,
     batchCreateMutation.isSuccess,
@@ -65,7 +85,7 @@ export function GeneratePhaseTermsPreviewContent() {
   ])
 
   if (
-    proposals.length === 0 &&
+    (!hasHydrated || proposals.length === 0) &&
     !isSubmittingRef.current &&
     !batchCreateMutation.isSuccess
   ) {
