@@ -508,8 +508,8 @@ export function SchedulingPlanCalendarClassCard({
                     variant="ghost"
                     size="icon-xs"
                     data-testid={`swap-teacher-btn-${proposal.id}`}
-                    title={t("calendarView.swapTeacher")}
-                    aria-label={t("calendarView.swapTeacher")}
+                    title={t("calendarView.swapSession")}
+                    aria-label={t("calendarView.swapSession")}
                     onClick={(e) => {
                       if (isShaking) return
                       e.stopPropagation()

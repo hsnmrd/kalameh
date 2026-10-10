@@ -323,6 +323,7 @@
       "assignSlotTitle": "تخصیص کلاس به این زمان",
       "assignSlotDescription": "یک کلاس حل‌نشده را برای برگزاری در روزهای {days} ساعت {start} تا {end} انتخاب کنید.",
       "newTeacherBadge": "استاد جدید",
+      "swapSession": "جابجایی جلسه",
       "swapTeacher": "جابجایی استاد",
       "removeTeacher": "حذف استاد",
       "removeTeacherTitle": "حذف استاد از کلاس",

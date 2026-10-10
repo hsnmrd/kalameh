@@ -323,6 +323,7 @@
       "assignSlotTitle": "Assign Class to this Time",
       "assignSlotDescription": "Select an unscheduled class to hold on {days} from {start} to {end}.",
       "newTeacherBadge": "New Teacher",
+      "swapSession": "Swap session",
       "swapTeacher": "Swap teacher",
       "removeTeacher": "Remove teacher",
       "removeTeacherTitle": "Remove Teacher from Class",
