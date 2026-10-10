@@ -38,9 +38,9 @@ describe("SchedulingPlanCalendarClassCard Component", () => {
     expect(card).not.toHaveAttribute("data-has-no-teacher")
     expect(card).toHaveClass("border-s-4")
     expect(card).toHaveTextContent("علی محمدی")
-    expect(
-      screen.getByTestId("calendar-class-room-badge-prop-1")
-    ).toHaveTextContent("کلاس ۱۰۱")
+    const roomBadge = screen.getByTestId("calendar-class-room-badge-prop-1")
+    expect(roomBadge).not.toHaveTextContent("کلاس ۱۰۱")
+    expect(roomBadge).toHaveAttribute("title", "کلاس ۱۰۱")
   })
 
   it("renders with orange theme and dashed border when session has no master", () => {

@@ -389,57 +389,64 @@ export function SchedulingPlanCalendarClassCard({
         {/* End (Left in RTL): Location, Status Icons & Actions */}
         <div className="flex min-w-0 shrink items-center gap-1.5">
           {/* Location (Classroom / Room) */}
-          <div
-            data-testid={`calendar-class-room-badge-${proposal.id}`}
-            onClick={
-              onRoomClick && !isOnline
-                ? (e) => {
-                    e.stopPropagation()
-                    onRoomClick(proposal)
-                  }
-                : undefined
-            }
-            role={onRoomClick && !isOnline ? "button" : undefined}
-            tabIndex={onRoomClick && !isOnline ? 0 : undefined}
-            className={cn(
-              "flex max-w-[85px] min-w-0 shrink items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition-colors sm:max-w-[105px]",
-              hasNoTeacher
-                ? "bg-warning/20 text-warning-foreground"
-                : "bg-muted/40 text-muted-foreground",
-              onRoomClick &&
-                !isOnline &&
-                (hasNoTeacher
-                  ? "cursor-pointer hover:bg-warning/30 hover:text-warning-foreground active:scale-95"
-                  : "cursor-pointer hover:bg-muted hover:text-foreground active:scale-95")
-            )}
-            title={locationName}
-          >
-            {isOnline ? (
-              <Globe
-                aria-hidden
-                className={cn(
-                  "size-3.5 shrink-0",
-                  hasNoTeacher ? "text-inherit" : "text-muted-foreground"
-                )}
-              />
-            ) : (
-              <DoorOpen
-                aria-hidden
-                className={cn(
-                  "size-3.5 shrink-0",
-                  hasNoTeacher ? "text-inherit" : "text-muted-foreground"
-                )}
-              />
-            )}
+          {isOnline ? (
             <span
+              data-testid={`calendar-class-room-badge-${proposal.id}`}
+              title={locationName}
               className={cn(
-                "truncate font-medium",
-                hasNoTeacher ? "text-inherit" : "text-foreground/90"
+                "flex size-6 shrink-0 items-center justify-center rounded-md",
+                hasNoTeacher
+                  ? "bg-warning/20 text-warning-foreground"
+                  : "bg-muted/40 text-muted-foreground"
               )}
             >
-              {locationName}
+              <Globe aria-hidden className="size-3.5 shrink-0 text-inherit" />
             </span>
-          </div>
+          ) : onRoomClick ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              data-testid={`calendar-class-room-badge-${proposal.id}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                onRoomClick(proposal)
+              }}
+              title={locationName}
+              aria-label={
+                proposal.classroom?.name
+                  ? `${t("calendarView.switchRoomTitle")}: ${proposal.classroom.name}`
+                  : t("calendarView.switchRoomTitle")
+              }
+              className={cn(
+                "size-6 rounded-md",
+                hasNoTeacher
+                  ? "bg-warning/20 text-warning-foreground hover:bg-warning/30 hover:text-warning-foreground"
+                  : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <DoorOpen
+                aria-hidden
+                className="size-3.5 shrink-0 text-inherit"
+              />
+            </Button>
+          ) : (
+            <span
+              data-testid={`calendar-class-room-badge-${proposal.id}`}
+              title={locationName}
+              className={cn(
+                "flex size-6 shrink-0 items-center justify-center rounded-md",
+                hasNoTeacher
+                  ? "bg-warning/20 text-warning-foreground"
+                  : "bg-muted/40 text-muted-foreground"
+              )}
+            >
+              <DoorOpen
+                aria-hidden
+                className="size-3.5 shrink-0 text-inherit"
+              />
+            </span>
+          )}
 
           {proposal.isLocked && (
             <span

@@ -134,8 +134,8 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     expect(screen.getAllByText("علی محمدی").length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText("مریم رضایی").length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText("کلاس ۱۰۱").length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText("کلاس ۱۰۲").length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByTitle("کلاس ۱۰۱").length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByTitle("کلاس ۱۰۲").length).toBeGreaterThanOrEqual(1)
 
     // The class card itself should not render inline clock/timeRange since time is in the Time column
     const card = screen.getAllByRole("article")[0]
@@ -144,7 +144,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(card).not.toHaveTextContent("09:00 تا 10:30")
   })
 
-  it("does not render delivery mode icon and renders room name with ellipsis truncation to prioritize session title", () => {
+  it("does not render delivery mode icon and renders only room icon without room name text", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
@@ -160,9 +160,9 @@ describe("SchedulingPlanCalendarView Component", () => {
       within(card).getByText("American English File 1")
     ).toBeInTheDocument()
 
-    // Room name is inside a truncating container
-    const roomSpan = within(card).getByText("کلاس ۱۰۱")
-    expect(roomSpan).toHaveClass("truncate")
+    // Room icon is rendered without room name text, room name available via title
+    expect(within(card).queryByText("کلاس ۱۰۱")).not.toBeInTheDocument()
+    expect(within(card).getByTitle("کلاس ۱۰۱")).toBeInTheDocument()
   })
 
   it("uses warning border instead of warning icon when session has warnings", () => {
@@ -1400,7 +1400,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     const updatedProp1Card = screen.getAllByTestId(
       "calendar-class-card-prop-1"
     )[0]!
-    expect(updatedProp1Card).toHaveTextContent("کلاس ۱۰۳")
+    expect(within(updatedProp1Card).getByTitle("کلاس ۱۰۳")).toBeInTheDocument()
 
     toMutationSpy.mockRestore()
   })
@@ -2507,7 +2507,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(knownCard).toBeInTheDocument()
     expect(missedCard).toBeInTheDocument()
     expect(missedCard).toHaveTextContent("کلاس ۱۰۲")
-    expect(knownCard).toHaveTextContent("کلاس ۱۰۱")
+    expect(within(knownCard).getByTitle("کلاس ۱۰۱")).toBeInTheDocument()
 
     // Click known teacher card to enter swap mode
     fireEvent.click(knownCard)
