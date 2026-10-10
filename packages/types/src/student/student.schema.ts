@@ -52,6 +52,7 @@ export const StudentLookupResponseSchema = z.object({
       emergencyPhone: z.string().nullable().optional(),
       address: z.string().nullable().optional(),
       currentAllowedCourseId: z.string().nullable().optional(),
+      branchId: z.string().uuid().nullable().optional(),
     })
     .nullable()
     .optional(),

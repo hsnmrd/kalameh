@@ -95,6 +95,14 @@ export class StudentsService {
           ...(avatarUrl !== undefined ? { avatarUrl } : {}),
           currentAllowedCourseId: dto.currentAllowedCourseId,
         },
+        include: {
+          branch: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       });
 
       const profile = await tx.studentProfile.create({
@@ -167,6 +175,8 @@ export class StudentsService {
     return {
       id: student.id,
       instituteId: student.instituteId,
+      branchId: student.branchId,
+      branch: student.branch,
       role: student.role,
       firstName: student.firstName,
       lastName: student.lastName,
@@ -288,6 +298,12 @@ export class StudentsService {
         ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
       },
       include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         studentProfile: {
           include: {
             availabilities: {
@@ -413,6 +429,14 @@ export class StudentsService {
             ? { branchId: dto.branchId || null }
             : {}),
         },
+        include: {
+          branch: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       });
 
       const profile = await tx.studentProfile.upsert({
@@ -497,6 +521,8 @@ export class StudentsService {
     return {
       id: updated.id,
       instituteId: updated.instituteId,
+      branchId: updated.branchId,
+      branch: updated.branch,
       role: updated.role,
       firstName: updated.firstName,
       lastName: updated.lastName,
@@ -651,6 +677,7 @@ export class StudentsService {
         emergencyPhone: profile?.emergencyPhone ?? null,
         address: profile?.address ?? null,
         currentAllowedCourseId: matchedUser.currentAllowedCourseId,
+        branchId: matchedUser.branchId,
       },
     };
   }

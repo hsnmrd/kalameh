@@ -121,6 +121,7 @@
     "contactInfo": "Contact & Residential Information",
     "guardianInfo": "Guardian & Emergency Contact",
     "academicInfo": "Academic Status",
+    "branch": "Branch",
     "addNote": "Add Note",
     "addNotePlaceholder": "Write a note and save",
     "addNoteButton": "Save Note",

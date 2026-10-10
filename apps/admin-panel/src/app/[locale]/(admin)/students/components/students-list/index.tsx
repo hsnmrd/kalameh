@@ -138,6 +138,14 @@ export function StudentsList({
                   secondary={
                     <div className="flex items-center gap-1.5 font-mono text-xs">
                       <span>{student.phone}</span>
+                      {student.branch && (
+                        <>
+                          <span>•</span>
+                          <span className="font-sans">
+                            {student.branch.name}
+                          </span>
+                        </>
+                      )}
                       {student.currentAllowedCourse && (
                         <>
                           <span>•</span>

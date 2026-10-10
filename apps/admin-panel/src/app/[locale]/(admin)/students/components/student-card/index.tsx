@@ -80,7 +80,13 @@ export function StudentCard({
           </span>
           <span>{student.nationalCode || "-"}</span>
         </div>
-        <div className="col-span-2 flex items-center gap-1 pt-1">
+        <div>
+          <span className="font-medium text-foreground">
+            {t("table.branch")}:{" "}
+          </span>
+          <span>{student.branch?.name || "-"}</span>
+        </div>
+        <div className="flex items-center gap-1">
           <span className="font-medium text-foreground">
             {t("table.currentLevel")}:{" "}
           </span>

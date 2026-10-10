@@ -95,6 +95,11 @@ export function useStudentLookup({
             shouldValidate: true,
           })
         }
+        if (student.branchId) {
+          setValue("branchId", student.branchId, {
+            shouldValidate: true,
+          })
+        }
       }
     }
   }, [open, lookupData, setValue])
