@@ -4,7 +4,6 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { z } from 'zod';
 import {
   ROLES,
   type JwtPayload,
@@ -15,27 +14,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { ExcelService } from '../common/excel/excel.service';
-
-const TeacherImportRowSchema = z.object({
-  firstName: z
-    .string()
-    .trim()
-    .min(2, { message: 'نام باید حداقل ۲ کاراکتر باشد' }),
-  lastName: z
-    .string()
-    .trim()
-    .min(2, { message: 'نام خانوادگی باید حداقل ۲ کاراکتر باشد' }),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^09\d{9}$/, {
-      message: 'شماره تماس باید ۱۱ رقم و با ۰۹ شروع شود',
-    }),
-  nationalCode: z.string().trim().optional(),
-  degree: z.string().trim().optional(),
-  bio: z.string().trim().optional(),
-  password: z.string().trim().optional(),
-});
+import { TeacherImportRowSchema } from '../common/excel/teacher-workbook';
 
 @Injectable()
 export class TeacherExcelService {
@@ -93,16 +72,18 @@ export class TeacherExcelService {
         nationalCode: true,
         isActive: true,
         createdAt: true,
+        branch: { select: { name: true } },
         teacherProfile: {
           select: {
             degree: true,
+            bio: true,
+            specialties: true,
+            teachableCourses: {
+              select: { course: { select: { title: true } } },
+            },
           },
         },
-        teachingClasses: {
-          select: {
-            id: true,
-          },
-        },
+        teachingClasses: { select: { id: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -113,6 +94,11 @@ export class TeacherExcelService {
       phone: t.phone,
       nationalCode: t.nationalCode,
       degree: t.teacherProfile?.degree ?? null,
+      teachableCourses:
+        t.teacherProfile?.teachableCourses?.map((tc) => tc.course.title) || [],
+      specialties: t.teacherProfile?.specialties || [],
+      branchName: t.branch?.name ?? null,
+      bio: t.teacherProfile?.bio ?? null,
       classesCount: t.teachingClasses.length,
       isActive: t.isActive,
       createdAt: t.createdAt,
@@ -154,22 +140,42 @@ export class TeacherExcelService {
       };
     }
 
-    // Preload existing phones in institute
-    const existingUsers = await this.prisma.user.findMany({
-      where: { instituteId: targetInstituteId },
-      select: { phone: true },
-    });
-    const existingPhones = new Set(existingUsers.map((u) => u.phone));
-    const seenPhonesInBatch = new Set<string>();
+    const [existingUsers, instituteCourses, instituteBranches] =
+      await Promise.all([
+        this.prisma.user.findMany({
+          where: { instituteId: targetInstituteId },
+          select: { phone: true },
+        }),
+        this.prisma.course.findMany({
+          where: { instituteId: targetInstituteId },
+          select: { id: true, title: true },
+        }),
+        this.prisma.branch.findMany({
+          where: { instituteId: targetInstituteId },
+          select: { id: true, name: true },
+        }),
+      ]);
 
+    const existingPhones = new Set(existingUsers.map((u) => u.phone));
+    const courseMap = new Map(
+      instituteCourses.map((c) => [c.title.trim().toLowerCase(), c.id]),
+    );
+    const branchMap = new Map(
+      instituteBranches.map((b) => [b.name.trim().toLowerCase(), b.id]),
+    );
+
+    const seenPhonesInBatch = new Set<string>();
     const validRowsToInsert: Array<{
       instituteId: string;
       firstName: string;
       lastName: string;
       phone: string;
       nationalCode?: string;
+      branchId?: string;
       degree?: string;
       bio?: string;
+      specialties?: string[];
+      courseIds?: string[];
       password: string;
     }> = [];
 
@@ -181,13 +187,10 @@ export class TeacherExcelService {
 
       const parseResult = TeacherImportRowSchema.safeParse(raw);
       if (!parseResult.success) {
-        const errorMsg = parseResult.error.errors
-          .map((e) => e.message)
-          .join('، ');
         errors.push({
           row: rowNumber,
           phone: raw.phone || undefined,
-          message: errorMsg,
+          message: parseResult.error.errors.map((e) => e.message).join('، '),
         });
         continue;
       }
@@ -220,6 +223,18 @@ export class TeacherExcelService {
 
       seenPhonesInBatch.add(row.phone);
 
+      const matchedCourseIds: string[] = [];
+      if (row.teachableCourses?.length) {
+        for (const tc of row.teachableCourses) {
+          const id = courseMap.get(tc.toLowerCase());
+          if (id) matchedCourseIds.push(id);
+        }
+      }
+
+      const branchId = row.branchName
+        ? branchMap.get(row.branchName.toLowerCase())
+        : undefined;
+
       const rawPassword = row.password || row.phone;
       const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
@@ -229,8 +244,11 @@ export class TeacherExcelService {
         lastName: row.lastName,
         phone: row.phone,
         nationalCode: row.nationalCode || undefined,
+        branchId,
         degree: row.degree || undefined,
         bio: row.bio || undefined,
+        specialties: row.specialties,
+        courseIds: matchedCourseIds,
         password: hashedPassword,
       });
     }
@@ -241,6 +259,7 @@ export class TeacherExcelService {
           this.prisma.user.create({
             data: {
               instituteId: item.instituteId,
+              branchId: item.branchId,
               firstName: item.firstName,
               lastName: item.lastName,
               phone: item.phone,
@@ -252,6 +271,15 @@ export class TeacherExcelService {
                 create: {
                   degree: item.degree,
                   bio: item.bio,
+                  specialties: item.specialties || [],
+                  teachableCourses: item.courseIds?.length
+                    ? {
+                        create: item.courseIds.map((courseId) => ({
+                          instituteId: item.instituteId,
+                          courseId,
+                        })),
+                      }
+                    : undefined,
                 },
               },
             },

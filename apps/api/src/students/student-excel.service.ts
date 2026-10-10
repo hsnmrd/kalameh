@@ -4,7 +4,6 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { z } from 'zod';
 import {
   ROLES,
   type JwtPayload,
@@ -15,28 +14,12 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { ExcelService } from '../common/excel/excel.service';
-import { StudentFilterDto } from './dto/student-filter.dto';
-
-const StudentImportRowSchema = z.object({
-  firstName: z
-    .string()
-    .trim()
-    .min(2, { message: 'نام باید حداقل ۲ کاراکتر باشد' }),
-  lastName: z
-    .string()
-    .trim()
-    .min(2, { message: 'نام خانوادگی باید حداقل ۲ کاراکتر باشد' }),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^09\d{9}$/, {
-      message: 'شماره تماس باید ۱۱ رقم و با ۰۹ شروع شود',
-    }),
-  nationalCode: z.string().trim().optional(),
-  fatherName: z.string().trim().optional(),
-  emergencyPhone: z.string().trim().optional(),
-  password: z.string().trim().optional(),
-});
+import {
+  StudentImportRowSchema,
+  ValidStudentImportRow,
+  parseShift,
+  parseDayPref,
+} from '../common/excel/student-workbook';
 
 @Injectable()
 export class StudentExcelService {
@@ -52,47 +35,36 @@ export class StudentExcelService {
 
   async exportToExcel(
     currentUser: JwtPayload,
-    filter: StudentFilterDto,
+    query: { search?: string; isActive?: boolean; instituteId?: string },
     locale: SupportedLocale = 'fa',
   ): Promise<Buffer> {
     const targetInstituteId =
-      currentUser.role === ROLES.SUPER_ADMIN && filter.instituteId
-        ? filter.instituteId
+      currentUser.role === ROLES.SUPER_ADMIN && query.instituteId
+        ? query.instituteId
         : currentUser.instituteId;
 
     if (!targetInstituteId) {
       throw new BadRequestException(
-        locale === 'fa'
-          ? 'شناسه آموزشگاه برای این عملیات الزامی است'
-          : 'Institute is required',
+        this.i18n.t('students.instituteRequired', locale),
       );
     }
 
     const where: Record<string, unknown> = {
       instituteId: targetInstituteId,
-      role: 'STUDENT',
+      role: ROLES.STUDENT,
     };
 
-    if (filter.isActive !== undefined) {
-      where.isActive = filter.isActive;
+    if (query.isActive !== undefined) {
+      where.isActive = query.isActive;
     }
 
-    if (filter.courseId) {
-      where.currentAllowedCourseId = filter.courseId;
-    }
-
-    if (filter.search?.trim()) {
-      const term = filter.search.trim();
+    if (query.search?.trim()) {
+      const term = query.search.trim();
       where.OR = [
         { firstName: { contains: term, mode: 'insensitive' } },
         { lastName: { contains: term, mode: 'insensitive' } },
         { phone: { contains: term } },
         { nationalCode: { contains: term } },
-        {
-          studentProfile: {
-            fatherName: { contains: term, mode: 'insensitive' },
-          },
-        },
       ];
     }
 
@@ -105,15 +77,17 @@ export class StudentExcelService {
         nationalCode: true,
         isActive: true,
         createdAt: true,
-        currentAllowedCourse: {
-          select: {
-            title: true,
-          },
-        },
+        branch: { select: { name: true } },
+        currentAllowedCourse: { select: { title: true } },
         studentProfile: {
           select: {
             fatherName: true,
+            gender: true,
+            birthDate: true,
             emergencyPhone: true,
+            address: true,
+            schoolShift: true,
+            dayPreference: true,
             scheduleStatus: true,
           },
         },
@@ -126,12 +100,18 @@ export class StudentExcelService {
       lastName: s.lastName,
       phone: s.phone,
       nationalCode: s.nationalCode,
+      currentAllowedCourseTitle: s.currentAllowedCourse?.title ?? null,
+      fatherName: s.studentProfile?.fatherName ?? null,
+      gender: s.studentProfile?.gender ?? null,
+      birthDate: s.studentProfile?.birthDate ?? null,
+      emergencyPhone: s.studentProfile?.emergencyPhone ?? null,
+      address: s.studentProfile?.address ?? null,
+      schoolShift: s.studentProfile?.schoolShift ?? null,
+      dayPreference: s.studentProfile?.dayPreference ?? null,
+      branchName: s.branch?.name ?? null,
+      scheduleStatus: s.studentProfile?.scheduleStatus ?? null,
       isActive: s.isActive,
       createdAt: s.createdAt,
-      fatherName: s.studentProfile?.fatherName ?? null,
-      emergencyPhone: s.studentProfile?.emergencyPhone ?? null,
-      currentAllowedCourseTitle: s.currentAllowedCourse?.title ?? null,
-      scheduleStatus: s.studentProfile?.scheduleStatus ?? null,
     }));
 
     return this.excelService.exportStudents(mapped, locale);
@@ -170,23 +150,32 @@ export class StudentExcelService {
       };
     }
 
-    const existingUsers = await this.prisma.user.findMany({
-      where: { instituteId: targetInstituteId },
-      select: { phone: true },
-    });
-    const existingPhones = new Set(existingUsers.map((u) => u.phone));
-    const seenPhonesInBatch = new Set<string>();
+    const [existingUsers, instituteCourses, instituteBranches] =
+      await Promise.all([
+        this.prisma.user.findMany({
+          where: { instituteId: targetInstituteId },
+          select: { phone: true },
+        }),
+        this.prisma.course.findMany({
+          where: { instituteId: targetInstituteId },
+          select: { id: true, title: true },
+        }),
+        this.prisma.branch.findMany({
+          where: { instituteId: targetInstituteId },
+          select: { id: true, name: true },
+        }),
+      ]);
 
-    const validRowsToInsert: Array<{
-      instituteId: string;
-      firstName: string;
-      lastName: string;
-      phone: string;
-      nationalCode?: string;
-      fatherName?: string;
-      emergencyPhone?: string;
-      password: string;
-    }> = [];
+    const existingPhones = new Set(existingUsers.map((u) => u.phone));
+    const courseMap = new Map(
+      instituteCourses.map((c) => [c.title.trim().toLowerCase(), c.id]),
+    );
+    const branchMap = new Map(
+      instituteBranches.map((b) => [b.name.trim().toLowerCase(), b.id]),
+    );
+
+    const seenPhonesInBatch = new Set<string>();
+    const validRowsToInsert: ValidStudentImportRow[] = [];
 
     const errors: ExcelImportError[] = [];
 
@@ -196,13 +185,10 @@ export class StudentExcelService {
 
       const parseResult = StudentImportRowSchema.safeParse(raw);
       if (!parseResult.success) {
-        const errorMsg = parseResult.error.errors
-          .map((e) => e.message)
-          .join('، ');
         errors.push({
           row: rowNumber,
           phone: raw.phone || undefined,
-          message: errorMsg,
+          message: parseResult.error.errors.map((e) => e.message).join('، '),
         });
         continue;
       }
@@ -235,6 +221,20 @@ export class StudentExcelService {
 
       seenPhonesInBatch.add(row.phone);
 
+      const courseId = row.currentAllowedCourseTitle
+        ? courseMap.get(row.currentAllowedCourseTitle.toLowerCase())
+        : undefined;
+
+      const branchId = row.branchName
+        ? branchMap.get(row.branchName.toLowerCase())
+        : undefined;
+
+      let parsedBirthDate: Date | undefined;
+      if (row.birthDate) {
+        const d = new Date(row.birthDate);
+        if (!isNaN(d.getTime())) parsedBirthDate = d;
+      }
+
       const rawPassword = row.password || row.phone;
       const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
@@ -244,8 +244,15 @@ export class StudentExcelService {
         lastName: row.lastName,
         phone: row.phone,
         nationalCode: row.nationalCode || undefined,
+        currentAllowedCourseId: courseId,
+        branchId,
         fatherName: row.fatherName || undefined,
+        gender: row.gender || undefined,
+        birthDate: parsedBirthDate,
         emergencyPhone: row.emergencyPhone || undefined,
+        address: row.address || undefined,
+        schoolShift: parseShift(row.schoolShift),
+        dayPreference: parseDayPref(row.dayPreference),
         password: hashedPassword,
       });
     }
@@ -256,20 +263,24 @@ export class StudentExcelService {
           this.prisma.user.create({
             data: {
               instituteId: item.instituteId,
+              branchId: item.branchId,
+              currentAllowedCourseId: item.currentAllowedCourseId,
               firstName: item.firstName,
               lastName: item.lastName,
               phone: item.phone,
               nationalCode: item.nationalCode,
               password: item.password,
-              role: 'STUDENT',
+              role: ROLES.STUDENT,
               isActive: true,
               studentProfile: {
                 create: {
                   fatherName: item.fatherName,
+                  gender: item.gender,
+                  birthDate: item.birthDate,
                   emergencyPhone: item.emergencyPhone,
-                  schoolShift: 'FLEXIBLE',
-                  dayPreference: 'ANY',
-                  scheduleStatus: 'INCOMPLETE',
+                  address: item.address,
+                  schoolShift: item.schoolShift,
+                  dayPreference: item.dayPreference,
                 },
               },
             },

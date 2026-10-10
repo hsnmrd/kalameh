@@ -1,15 +1,32 @@
+import { z } from 'zod';
 import type { SupportedLocale } from '@workspace/types';
 import { buildXlsxBuffer } from './xlsx-writer';
 
-export interface TeacherTemplateRow {
-  firstName: string;
-  lastName: string;
-  phone: string;
-  nationalCode?: string;
-  degree?: string;
-  bio?: string;
-  password?: string;
-}
+export const TeacherImportRowSchema = z.object({
+  firstName: z
+    .string()
+    .trim()
+    .min(2, { message: 'نام باید حداقل ۲ کاراکتر باشد' }),
+  lastName: z
+    .string()
+    .trim()
+    .min(2, { message: 'نام خانوادگی باید حداقل ۲ کاراکتر باشد' }),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^09\d{9}$/, {
+      message: 'شماره تماس باید ۱۱ رقم و با ۰۹ شروع شود',
+    }),
+  nationalCode: z.string().trim().optional(),
+  degree: z.string().trim().optional(),
+  teachableCourses: z.array(z.string()).optional(),
+  specialties: z.array(z.string()).optional(),
+  branchName: z.string().trim().optional(),
+  bio: z.string().trim().optional(),
+  password: z.string().trim().optional(),
+});
+
+export type TeacherTemplateRow = z.infer<typeof TeacherImportRowSchema>;
 
 export function generateTeacherTemplate(
   locale: SupportedLocale = 'fa',
@@ -23,6 +40,9 @@ export function generateTeacherTemplate(
         'شماره موبایل',
         'کد ملی',
         'مدرک تحصیلی',
+        'دوره‌های قابل تدریس',
+        'تخصص‌ها',
+        'شعبه',
         'بیوگرافی و سوابق',
         'رمز عبور اولیه',
       ]
@@ -32,6 +52,9 @@ export function generateTeacherTemplate(
         'Phone Number',
         'National Code',
         'Degree',
+        'Teachable Courses',
+        'Specialties',
+        'Branch',
         'Bio',
         'Initial Password',
       ];
@@ -44,7 +67,10 @@ export function generateTeacherTemplate(
           '09121111111',
           '0012345678',
           'کارشناسی ارشد آموزش زبان انگلیسی',
-          '۱۰ سال سابقه تدریس دوره‌های IELTS',
+          'انگلیسی بزرگسالان، IELTS',
+          'مکالمه پیشرفته، گرامر',
+          'شعبه مرکزی',
+          '۱۰ سال سابقه تدریس دوره‌های تخصصی',
           '123456',
         ],
         [
@@ -53,7 +79,10 @@ export function generateTeacherTemplate(
           '09122222222',
           '0023456789',
           'دکترای زبان‌شناسی',
-          'مدرس دوره‌های پیشرفته مکالمه',
+          'انگلیسی نوجوانان',
+          'آموزش کودکان و نوجوانان',
+          '',
+          'مدرس دوره‌های مکالمه',
           '',
         ],
       ]
@@ -64,7 +93,10 @@ export function generateTeacherTemplate(
           '09121111111',
           '0012345678',
           'MA in TEFL',
-          '10 years experience teaching IELTS',
+          'Adults English, IELTS',
+          'Advanced Conversation, Grammar',
+          'Main Branch',
+          '10 years teaching experience',
           '123456',
         ],
         [
@@ -73,7 +105,10 @@ export function generateTeacherTemplate(
           '09122222222',
           '0023456789',
           'PhD in Linguistics',
-          'Advanced Conversation Instructor',
+          'Teen English',
+          'Kids Education',
+          '',
+          'Conversation Lecturer',
           '',
         ],
       ];
@@ -96,6 +131,10 @@ export function exportTeachers(
     createdAt: Date | string;
     classesCount?: number;
     degree?: string | null;
+    teachableCourses?: string[];
+    specialties?: string[];
+    branchName?: string | null;
+    bio?: string | null;
   }>,
   locale: SupportedLocale = 'fa',
 ): Buffer {
@@ -108,6 +147,10 @@ export function exportTeachers(
         'شماره موبایل',
         'کد ملی',
         'مدرک تحصیلی',
+        'دوره‌های قابل تدریس',
+        'تخصص‌ها',
+        'شعبه',
+        'بیوگرافی',
         'تعداد کلاس‌ها',
         'وضعیت',
         'تاریخ عضویت',
@@ -118,6 +161,10 @@ export function exportTeachers(
         'Phone Number',
         'National Code',
         'Degree',
+        'Teachable Courses',
+        'Specialties',
+        'Branch',
+        'Bio',
         'Classes Count',
         'Status',
         'Registration Date',
@@ -152,6 +199,12 @@ export function exportTeachers(
       t.phone || '',
       t.nationalCode || '—',
       t.degree || '—',
+      t.teachableCourses?.length
+        ? t.teachableCourses.join(isFa ? '، ' : ', ')
+        : '—',
+      t.specialties?.length ? t.specialties.join(isFa ? '، ' : ', ') : '—',
+      t.branchName || '—',
+      t.bio || '—',
       String(t.classesCount ?? 0),
       statusLabel,
       formattedDate,
@@ -185,6 +238,14 @@ export function parseTeacherRows(
       }
     }
     return '';
+  };
+
+  const splitList = (raw: string): string[] => {
+    if (!raw) return [];
+    return raw
+      .split(/[,،;؛\n]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
   };
 
   return rawRecords.map((record) => {
@@ -228,6 +289,34 @@ export function parseTeacherRows(
       'Degree',
       'Education',
     );
+    const rawTeachable = getField(
+      record,
+      'دوره‌های قابل تدریس',
+      'دوره ها',
+      'دوره‌ها',
+      'دوره‌های تدریس',
+      'سطوح تدریس',
+      'teachableCourses',
+      'Teachable Courses',
+      'Courses',
+    );
+    const rawSpecialties = getField(
+      record,
+      'تخصص‌ها',
+      'تخصص ها',
+      'تخصص',
+      'مهارت‌ها',
+      'specialties',
+      'Specialties',
+    );
+    const branchName = getField(
+      record,
+      'شعبه',
+      'نام شعبه',
+      'branch',
+      'Branch',
+      'Branch Name',
+    );
     const bio = getField(
       record,
       'بیوگرافی',
@@ -243,6 +332,7 @@ export function parseTeacherRows(
       'کلمه عبور',
       'رمز عبور اولیه',
       'password',
+      'Initial Password',
     );
 
     return {
@@ -251,6 +341,9 @@ export function parseTeacherRows(
       phone: normalizeDigits(rawPhone),
       nationalCode: normalizeDigits(rawNationalCode) || undefined,
       degree: degree || undefined,
+      teachableCourses: splitList(rawTeachable),
+      specialties: splitList(rawSpecialties),
+      branchName: branchName || undefined,
       bio: bio || undefined,
       password: password || undefined,
     };
