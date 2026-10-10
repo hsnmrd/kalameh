@@ -48,10 +48,17 @@ export interface OccupiedClassroomSlot {
 }
 
 const ALL_FLAG_COMBINATIONS: readonly SwapCombinationFlags[] = [
+  // 1. Same-slot swaps:
   { changeTeacher: true, changeClassroom: false, changeDate: false },
   { changeTeacher: false, changeClassroom: true, changeDate: false },
   { changeTeacher: true, changeClassroom: true, changeDate: false },
+  // 2. Full session/slot swap: Courses exchange slots, keeping master and room in their respective slots
+  { changeTeacher: true, changeClassroom: true, changeDate: true },
+  // 3. Move date with classroom (keep master):
   { changeTeacher: false, changeClassroom: true, changeDate: true },
+  // 4. Move date with master (keep classroom):
+  { changeTeacher: true, changeClassroom: false, changeDate: true },
+  // 5. Move date with both master and classroom:
   { changeTeacher: false, changeClassroom: false, changeDate: true },
 ]
 
@@ -103,28 +110,25 @@ export function evaluateProposalSwap(
   const targetClassroomId = getProposalClassroomId(target)
 
   const canSwapTeacher =
-    Boolean(sourceTeacherId && targetTeacherId) &&
+    Boolean(sourceTeacherId || targetTeacherId) &&
     sourceTeacherId !== targetTeacherId
   const hasDifferentTeacher = sourceTeacherId !== targetTeacherId
   const hasDifferentClassroom =
     source.deliveryMode === "IN_PERSON" &&
     target.deliveryMode === "IN_PERSON" &&
-    Boolean(sourceClassroomId && targetClassroomId) &&
     sourceClassroomId !== targetClassroomId
   const hasDifferentDate =
     source.startTime !== target.startTime ||
     source.endTime !== target.endTime ||
     !haveSameDays(source.daysOfWeek, target.daysOfWeek)
 
+  const isSameCourse = source.course.id === target.course.id
+
   const validCombinations = ALL_FLAG_COMBINATIONS.filter((flags) => {
     if (flags.changeTeacher && !canSwapTeacher) return false
     if (flags.changeClassroom && !hasDifferentClassroom) return false
     if (flags.changeDate && !hasDifferentDate) return false
-    if (flags.changeTeacher && flags.changeDate) return false
     if (flags.changeClassroom && !flags.changeDate && hasDifferentDate) {
-      return false
-    }
-    if (flags.changeDate && hasDifferentClassroom && !flags.changeClassroom) {
       return false
     }
 
@@ -132,7 +136,10 @@ export function evaluateProposalSwap(
       (!hasDifferentTeacher || flags.changeTeacher) &&
       (!hasDifferentClassroom || flags.changeClassroom) &&
       (!hasDifferentDate || flags.changeDate)
-    if (source.course.id === target.course.id && swapsAllDifferingAttributes) {
+
+    // Swapping all differing attributes for two classes of the exact same course
+    // is an identity no-op (exchanging identical classes).
+    if (isSameCourse && swapsAllDifferingAttributes) {
       return false
     }
 
@@ -176,12 +183,29 @@ export function evaluateProposalSwap(
       occupiedClassroomSlots
     )
 
-  const canChangeTeacher = validCombinations.some((c) => c.changeTeacher)
+  const canChangeTeacher =
+    hasDifferentTeacher && validCombinations.some((c) => c.changeTeacher)
   const canChangeClassroom =
+    hasDifferentClassroom &&
     !isTargetRoomOccupiedAtSourceTime &&
     !isSourceRoomOccupiedAtTargetTime &&
     validCombinations.some((c) => c.changeClassroom)
-  const canChangeDate = validCombinations.some((c) => c.changeDate)
+  const canChangeDate =
+    hasDifferentDate && validCombinations.some((c) => c.changeDate)
+
+  const preferredDefault = isSameCourse
+    ? (validCombinations.find(
+        (c) => c.changeTeacher && !c.changeDate && !c.changeClassroom
+      ) ??
+      validCombinations.find((c) => c.changeTeacher) ??
+      validCombinations[0]!)
+    : hasDifferentDate
+      ? (validCombinations.find(
+          (c) => c.changeDate && c.changeTeacher && c.changeClassroom
+        ) ??
+        validCombinations.find((c) => c.changeDate) ??
+        validCombinations[0]!)
+      : validCombinations[0]!
 
   return {
     canSwap: true,
@@ -189,7 +213,7 @@ export function evaluateProposalSwap(
     canChangeTeacher,
     canChangeClassroom,
     canChangeDate,
-    defaultSelection: validCombinations[0]!,
+    defaultSelection: preferredDefault,
   }
 }
 
@@ -381,55 +405,57 @@ function isProposalCombinationValid(
   const nextTargetStart = flags.changeDate ? source.startTime : target.startTime
   const nextTargetEnd = flags.changeDate ? source.endTime : target.endTime
 
-  const allCourses = collectKnownCourses(allProposals, teacherCalendars)
-
-  if (flags.changeTeacher) {
-    if (!nextSourceTeacherId || !nextTargetTeacherId) return false
-    if (
-      !isTeacherQualifiedForCourse(
-        nextSourceTeacherId,
-        source.course,
-        allProposals,
-        teacherCalendars,
-        allCourses
-      ) ||
-      !isTeacherQualifiedForCourse(
-        nextTargetTeacherId,
-        target.course,
-        allProposals,
-        teacherCalendars,
-        allCourses
-      )
-    ) {
-      return false
-    }
+  const sourceBranchId = getProposalBranchId(source)
+  const targetBranchId = getProposalBranchId(target)
+  if (sourceBranchId && targetBranchId && sourceBranchId !== targetBranchId) {
+    return false
   }
 
-  if (flags.changeClassroom) {
+  // Ensure the two resulting classes do not conflict with each other
+  const schedulesOverlap =
+    nextSourceDays.some((day) => nextTargetDays.includes(day)) &&
+    nextSourceStart < nextTargetEnd &&
+    nextTargetStart < nextSourceEnd
+
+  if (schedulesOverlap) {
+    if (nextSourceTeacherId && nextSourceTeacherId === nextTargetTeacherId) {
+      return false
+    }
     if (
       source.deliveryMode === "IN_PERSON" &&
-      (!nextSourceClassroom || nextSourceClassroom.capacity < source.capacity)
-    ) {
-      return false
-    }
-    if (
       target.deliveryMode === "IN_PERSON" &&
-      (!nextTargetClassroom || nextTargetClassroom.capacity < target.capacity)
+      nextSourceClassroomId &&
+      nextSourceClassroomId === nextTargetClassroomId
     ) {
-      return false
-    }
-    const sourceBranchId = getProposalBranchId(source)
-    const targetBranchId = getProposalBranchId(target)
-    if (sourceBranchId && targetBranchId && sourceBranchId !== targetBranchId) {
       return false
     }
   }
 
   const ignoredIds = [source.id, target.id]
+  const isSameCourse = source.course.id === target.course.id
 
-  if (flags.changeTeacher || flags.changeDate) {
+  // Full session/slot swap: courses exchange slots, keeping teachers & rooms in their respective time slots.
+  // Neither teacher nor room changes time slot, so availability/occupancy does not conflict.
+  // Capacity and qualification are not blockers (can be manually managed by supervisor).
+  const isFullSessionSwap =
+    flags.changeDate && flags.changeTeacher && flags.changeClassroom
+
+  if (isFullSessionSwap) {
+    return true
+  }
+
+  // Teacher availability check:
+  // When moving a teacher to a DIFFERENT time slot (e.g. same-course teacher swap across dates,
+  // or moving dates without swapping teachers), ensure teacher is available in destination slot.
+  const sourceTeacherMovesSlot =
+    (flags.changeDate && !flags.changeTeacher) ||
+    (!flags.changeDate && flags.changeTeacher && isSameCourse)
+  const targetTeacherMovesSlot =
+    (flags.changeDate && !flags.changeTeacher) ||
+    (!flags.changeDate && flags.changeTeacher && isSameCourse)
+
+  if (sourceTeacherMovesSlot && nextSourceTeacherId) {
     if (
-      nextSourceTeacherId &&
       !isTeacherAvailableForSchedule(
         nextSourceTeacherId,
         nextSourceDays,
@@ -442,8 +468,10 @@ function isProposalCombinationValid(
     ) {
       return false
     }
+  }
+
+  if (targetTeacherMovesSlot && nextTargetTeacherId) {
     if (
-      nextTargetTeacherId &&
       !isTeacherAvailableForSchedule(
         nextTargetTeacherId,
         nextTargetDays,
@@ -458,7 +486,11 @@ function isProposalCombinationValid(
     }
   }
 
-  if (flags.changeClassroom || flags.changeDate) {
+  // Physical room availability check:
+  // When moving a physical classroom to a DIFFERENT time slot (changeDate is true, but changeClassroom is false),
+  // ensure the physical room is not already occupied in that time slot.
+  const roomMovesSlot = flags.changeDate && !flags.changeClassroom
+  if (roomMovesSlot) {
     if (
       !isClassroomAvailableForSchedule(
         nextSourceClassroomId,
@@ -480,26 +512,6 @@ function isProposalCombinationValid(
         allProposals,
         occupiedClassroomSlots
       )
-    ) {
-      return false
-    }
-  }
-
-  // Ensure the two resulting classes do not conflict with each other
-  const schedulesOverlap =
-    nextSourceDays.some((day) => nextTargetDays.includes(day)) &&
-    nextSourceStart < nextTargetEnd &&
-    nextTargetStart < nextSourceEnd
-
-  if (schedulesOverlap) {
-    if (nextSourceTeacherId && nextSourceTeacherId === nextTargetTeacherId) {
-      return false
-    }
-    if (
-      source.deliveryMode === "IN_PERSON" &&
-      target.deliveryMode === "IN_PERSON" &&
-      nextSourceClassroomId &&
-      nextSourceClassroomId === nextTargetClassroomId
     ) {
       return false
     }

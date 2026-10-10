@@ -3850,5 +3850,207 @@ describe("SchedulingPlanCalendarView Component", () => {
 
       toMutationSpy.mockRestore()
     })
+
+    it("allows swapping sessions between Even and Odd days for different courses without being blocked by teacher availability or room capacity", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const crossDayProposals: Proposal[] = [
+        {
+          id: "prop-even-ame-2-3",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-3",
+          course: { id: "c-ame-2-3", title: "American English File 2-3" },
+          teacher: { id: "t-nastaran", firstName: "نسترن", lastName: "عزیزی" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-101", name: "کلاس ۱۰۱", capacity: 20 },
+          capacity: 18,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-odd-ame-2-1",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-1",
+          course: { id: "c-ame-2-1", title: "American English File 2-1" },
+          teacher: { id: "t-odd", firstName: "محمد", lastName: "کریمی" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-105", name: "کلاس ۱۰۵", capacity: 15 }, // Capacity 15 is less than AME 2-3's 18 students
+          capacity: 14,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      // Nastaran is ONLY available on Even days (no availability on Odd days).
+      // Mohammad is ONLY available on Odd days (no availability on Even days).
+      const calendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: { id: "t-nastaran", firstName: "نسترن", lastName: "عزیزی" },
+          teachableCourses: [
+            { id: "c-ame-2-3", title: "American English File 2-3" },
+          ],
+          slots: [
+            {
+              dayOfWeek: "SATURDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-3",
+              source: "PLAN",
+            },
+            {
+              dayOfWeek: "MONDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-3",
+              source: "PLAN",
+            },
+            {
+              dayOfWeek: "WEDNESDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-3",
+              source: "PLAN",
+            },
+          ],
+        },
+        {
+          teacher: { id: "t-odd", firstName: "محمد", lastName: "کریمی" },
+          teachableCourses: [
+            { id: "c-ame-2-1", title: "American English File 2-1" },
+          ],
+          slots: [
+            {
+              dayOfWeek: "SUNDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-1",
+              source: "PLAN",
+            },
+            {
+              dayOfWeek: "TUESDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-1",
+              source: "PLAN",
+            },
+            {
+              dayOfWeek: "THURSDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-1",
+              source: "PLAN",
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={crossDayProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+          teacherCalendars={calendars}
+        />
+      )
+
+      const evenCard = screen.getAllByTestId(
+        "calendar-class-card-prop-even-ame-2-3"
+      )[0]!
+      const oddCard = screen.getAllByTestId(
+        "calendar-class-card-prop-odd-ame-2-1"
+      )[0]!
+
+      // 1. Click swap button on AME 2-3 (Even days)
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-even-ame-2-3")
+      fireEvent.click(swapBtn)
+
+      // 2. The Odd-day session MUST NOT be dimmed and MUST be swappable!
+      expect(oddCard).not.toHaveAttribute("data-dimmed")
+      expect(oddCard).toHaveAttribute("data-swappable", "true")
+
+      // 3. Clicking the Odd-day card opens the SwapClassDialog
+      fireEvent.click(oddCard)
+      expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+
+      // 4. Default selection is full session swap: changeTeacher=true, changeClassroom=true, changeDate=true
+      expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
+        "aria-checked",
+        "true"
+      )
+      expect(screen.getByTestId("swap-option-teacher")).toHaveAttribute(
+        "aria-checked",
+        "true"
+      )
+      expect(screen.getByTestId("swap-option-classroom")).toHaveAttribute(
+        "aria-checked",
+        "true"
+      )
+
+      // 5. Submit the swap
+      const confirmBtn = screen.getByTestId("swap-confirm-btn")
+      fireEvent.click(confirmBtn)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+      })
+
+      // Verify AME 2-3 moves to Odd days with Mohammad Karimi in Room 105
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-even-ame-2-3",
+          body: expect.objectContaining({
+            teacherId: "t-odd",
+            classroomId: "cr-105",
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      // Verify AME 2-1 moves to Even days with Nastaran Azizi in Room 101
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-odd-ame-2-1",
+          body: expect.objectContaining({
+            teacherId: "t-nastaran",
+            classroomId: "cr-101",
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
   })
 })

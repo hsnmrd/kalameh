@@ -145,41 +145,8 @@ export function SwapClassDialog({
   ) => {
     const prev = flags
     const next = { ...prev, [key]: checked }
-    if (isCombinationValid(evaluation, next)) {
-      setOverrideState({ key: selectionKey, flags: next })
-      return
-    }
-    if (checked) {
-      if (key === "changeDate") {
-        const withRoom = {
-          changeTeacher: false,
-          changeClassroom: true,
-          changeDate: true,
-        }
-        if (isCombinationValid(evaluation, withRoom)) {
-          setOverrideState({ key: selectionKey, flags: withRoom })
-          return
-        }
-      }
-      if (key === "changeClassroom" && evaluation.canChangeDate) {
-        const withDate = {
-          changeTeacher: false,
-          changeClassroom: true,
-          changeDate: true,
-        }
-        if (isCombinationValid(evaluation, withDate)) {
-          setOverrideState({ key: selectionKey, flags: withDate })
-          return
-        }
-      }
-      const fallbackValid = evaluation.validCombinations.find(
-        (combo) => combo[key]
-      )
-      if (fallbackValid) {
-        setOverrideState({ key: selectionKey, flags: fallbackValid })
-        return
-      }
-    } else {
+
+    if (!checked) {
       if (key === "changeDate" && prev.changeClassroom) {
         const withoutRoom = { ...next, changeClassroom: false }
         setOverrideState({ key: selectionKey, flags: withoutRoom })
@@ -190,6 +157,64 @@ export function SwapClassDialog({
         setOverrideState({ key: selectionKey, flags: withoutDate })
         return
       }
+      if (isCombinationValid(evaluation, next)) {
+        setOverrideState({ key: selectionKey, flags: next })
+        return
+      }
+      setOverrideState({ key: selectionKey, flags: next })
+      return
+    }
+
+    if (key === "changeDate") {
+      const allThree = {
+        changeTeacher: true,
+        changeClassroom: true,
+        changeDate: true,
+      }
+      if (isCombinationValid(evaluation, allThree)) {
+        setOverrideState({ key: selectionKey, flags: allThree })
+        return
+      }
+      const withRoom = {
+        changeTeacher: false,
+        changeClassroom: true,
+        changeDate: true,
+      }
+      if (isCombinationValid(evaluation, withRoom)) {
+        setOverrideState({ key: selectionKey, flags: withRoom })
+        return
+      }
+    }
+    if (key === "changeClassroom" && evaluation.canChangeDate) {
+      const allThree = {
+        changeTeacher: true,
+        changeClassroom: true,
+        changeDate: true,
+      }
+      if (isCombinationValid(evaluation, allThree)) {
+        setOverrideState({ key: selectionKey, flags: allThree })
+        return
+      }
+      const withDate = {
+        changeTeacher: false,
+        changeClassroom: true,
+        changeDate: true,
+      }
+      if (isCombinationValid(evaluation, withDate)) {
+        setOverrideState({ key: selectionKey, flags: withDate })
+        return
+      }
+    }
+    if (isCombinationValid(evaluation, next)) {
+      setOverrideState({ key: selectionKey, flags: next })
+      return
+    }
+    const fallbackValid = evaluation.validCombinations.find(
+      (combo) => combo[key]
+    )
+    if (fallbackValid) {
+      setOverrideState({ key: selectionKey, flags: fallbackValid })
+      return
     }
     setOverrideState({ key: selectionKey, flags: next })
   }
@@ -227,10 +252,10 @@ export function SwapClassDialog({
             instituteId: effectiveInstituteId,
             body: {
               ...(flags.changeTeacher
-                ? { teacherId: targetTeacherId ?? undefined }
+                ? { teacherId: targetTeacherId ?? null }
                 : {}),
               ...(flags.changeClassroom
-                ? { classroomId: targetClassroomId }
+                ? { classroomId: targetClassroomId ?? null }
                 : {}),
               ...(flags.changeDate
                 ? {
@@ -250,10 +275,10 @@ export function SwapClassDialog({
             instituteId: effectiveInstituteId,
             body: {
               ...(flags.changeTeacher
-                ? { teacherId: sourceTeacherId ?? undefined }
+                ? { teacherId: sourceTeacherId ?? null }
                 : {}),
               ...(flags.changeClassroom
-                ? { classroomId: sourceClassroomId }
+                ? { classroomId: sourceClassroomId ?? null }
                 : {}),
               ...(flags.changeDate
                 ? {
