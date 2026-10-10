@@ -2757,6 +2757,9 @@ export function SchedulingPlanCalendarView({
         sourceProposal={swapDialogState?.sourceProposal ?? null}
         target={swapDialogState?.target ?? null}
         evaluation={swapDialogState?.evaluation ?? null}
+        allProposals={allSwappableProposals}
+        instituteClassrooms={instituteClassrooms}
+        occupiedClassroomSlots={occupiedClassroomSlots}
         onSwapSuccess={handleSwapSuccess}
       />
 

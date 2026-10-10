@@ -3,7 +3,13 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { ArrowLeftRight, Building2, CalendarClock, User } from "lucide-react"
+import {
+  ArrowLeftRight,
+  Building2,
+  CalendarClock,
+  Info,
+  User,
+} from "lucide-react"
 import type { SchedulingPlanDetailsDto, WeekDay } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -26,10 +32,16 @@ import {
   getProposalTeacherId,
   isCombinationValid,
   resolveFreeTeacherTargetDays,
+  type OccupiedClassroomSlot,
   type SwapCombinationFlags,
   type SwapEvaluationResult,
   type SwapTarget,
 } from "../helper/swap-eligibility.helper"
+import {
+  planSessionSwap,
+  type ClassroomOption,
+  type SessionSwapExecutionPlan,
+} from "../helper/period-classroom-resolver.helper"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
@@ -39,6 +51,9 @@ export interface SwapClassDialogProps {
   sourceProposal: Proposal | null
   target: SwapTarget | null
   evaluation: SwapEvaluationResult | null
+  allProposals?: Proposal[]
+  instituteClassrooms?: ClassroomOption[]
+  occupiedClassroomSlots?: OccupiedClassroomSlot[]
   onSwapSuccess?: (updatedProposals: Proposal[]) => void
 }
 
@@ -48,6 +63,9 @@ export function SwapClassDialog({
   sourceProposal,
   target,
   evaluation,
+  allProposals,
+  instituteClassrooms,
+  occupiedClassroomSlots,
   onSwapSuccess,
 }: SwapClassDialogProps) {
   const t = useTranslations("scheduling.planDetails")
@@ -80,6 +98,36 @@ export function SwapClassDialog({
   const updateMutation = useMutation({
     ...schedulingResource.updateProposal.toMutation(),
   })
+
+  const swapPlan = React.useMemo<SessionSwapExecutionPlan | null>(() => {
+    if (!sourceProposal || !target || target.kind !== "PROPOSAL") return null
+    const classroomsMap = new Map<string, ClassroomOption>()
+    for (const p of allProposals ?? [sourceProposal, target.proposal]) {
+      if (p.classroom) {
+        const existing = classroomsMap.get(p.classroom.id)
+        if (!existing || p.classroom.capacity > existing.capacity) {
+          classroomsMap.set(p.classroom.id, p.classroom)
+        }
+      }
+    }
+    const classrooms =
+      instituteClassrooms && instituteClassrooms.length > 0
+        ? instituteClassrooms
+        : Array.from(classroomsMap.values())
+    return planSessionSwap(
+      sourceProposal,
+      target.proposal,
+      allProposals ?? [sourceProposal, target.proposal],
+      classrooms,
+      occupiedClassroomSlots
+    )
+  }, [
+    sourceProposal,
+    target,
+    allProposals,
+    instituteClassrooms,
+    occupiedClassroomSlots,
+  ])
 
   if (!sourceProposal || !target || !evaluation) return null
 
@@ -120,18 +168,46 @@ export function SwapClassDialog({
     target.kind === "PROPOSAL" ? target.proposal.endTime : target.endTime
   const targetScheduleLabel = `${formatDays(targetDays)} · ${targetStartTime}–${targetEndTime}`
 
-  const previewSourceTeacherName = flags.changeTeacher
-    ? targetTeacherName
-    : sourceTeacherName
-  const previewTargetTeacherName = flags.changeTeacher
-    ? sourceTeacherName
-    : targetTeacherName
-  const previewSourceRoomName = flags.changeClassroom
-    ? targetRoomName
-    : sourceRoomName
-  const previewTargetRoomName = flags.changeClassroom
-    ? sourceRoomName
-    : targetRoomName
+  const previewSourceTeacherName =
+    target.kind === "PROPOSAL"
+      ? flags.changeDate
+        ? t("calendarView.newTeacherBadge")
+        : flags.changeTeacher
+          ? targetTeacherName
+          : sourceTeacherName
+      : flags.changeTeacher
+        ? targetTeacherName
+        : sourceTeacherName
+
+  const previewTargetTeacherName =
+    target.kind === "PROPOSAL"
+      ? flags.changeDate
+        ? t("calendarView.newTeacherBadge")
+        : flags.changeTeacher
+          ? sourceTeacherName
+          : targetTeacherName
+      : flags.changeTeacher
+        ? sourceTeacherName
+        : targetTeacherName
+
+  const previewSourceRoomName =
+    target.kind === "PROPOSAL" && flags.changeDate
+      ? sourceProposal.deliveryMode === "ONLINE"
+        ? t("deliveryModes.ONLINE")
+        : (swapPlan?.sourceNewClassroom?.name ?? targetRoomName)
+      : flags.changeClassroom
+        ? targetRoomName
+        : sourceRoomName
+
+  const previewTargetRoomName =
+    target.kind === "PROPOSAL" && flags.changeDate
+      ? target.proposal.deliveryMode === "ONLINE"
+        ? t("deliveryModes.ONLINE")
+        : (swapPlan?.targetNewClassroom?.name ?? sourceRoomName)
+      : flags.changeClassroom
+        ? sourceRoomName
+        : targetRoomName
+
   const previewSourceScheduleLabel = flags.changeDate
     ? targetScheduleLabel
     : sourceScheduleLabel
@@ -240,105 +316,197 @@ export function SwapClassDialog({
     try {
       if (target.kind === "PROPOSAL") {
         const targetProposal = target.proposal
-        const targetTeacherId = getProposalTeacherId(targetProposal)
-        const targetClassroomId = getProposalClassroomId(targetProposal)
         const isSourceMissed = sourceProposal.id.startsWith("missed:")
         const isTargetMissed = targetProposal.id.startsWith("missed:")
 
-        if (!isSourceMissed) {
-          await updateMutation.mutateAsync({
-            planId: sourceProposal.planId,
-            proposalId: sourceProposal.id,
-            instituteId: effectiveInstituteId,
-            body: {
-              ...(flags.changeTeacher
-                ? { teacherId: targetTeacherId ?? null }
-                : {}),
-              ...(flags.changeClassroom
-                ? { classroomId: targetClassroomId ?? null }
-                : {}),
-              ...(flags.changeDate
-                ? {
-                    daysOfWeek: targetProposal.daysOfWeek,
-                    startTime: targetProposal.startTime,
-                    endTime: targetProposal.endTime,
-                  }
-                : {}),
-            },
-          })
-        }
-
-        if (!isTargetMissed) {
-          await updateMutation.mutateAsync({
-            planId: targetProposal.planId,
-            proposalId: targetProposal.id,
-            instituteId: effectiveInstituteId,
-            body: {
-              ...(flags.changeTeacher
-                ? { teacherId: sourceTeacherId ?? null }
-                : {}),
-              ...(flags.changeClassroom
-                ? { classroomId: sourceClassroomId ?? null }
-                : {}),
-              ...(flags.changeDate
-                ? {
-                    daysOfWeek: sourceProposal.daysOfWeek,
-                    startTime: sourceProposal.startTime,
-                    endTime: sourceProposal.endTime,
-                  }
-                : {}),
-            },
-          })
-        }
-
-        updatedProposals.push(
-          {
-            ...sourceProposal,
-            ...(flags.changeTeacher
-              ? {
-                  teacherId: targetTeacherId ?? undefined,
-                  teacher: targetProposal.teacher,
-                }
-              : {}),
-            ...(flags.changeClassroom
-              ? {
-                  classroomId: targetClassroomId,
-                  classroom: targetProposal.classroom,
-                }
-              : {}),
-            ...(flags.changeDate
-              ? {
-                  daysOfWeek: targetProposal.daysOfWeek,
-                  startTime: targetProposal.startTime,
-                  endTime: targetProposal.endTime,
-                }
-              : {}),
-            isManuallyEdited: true,
-          },
-          {
-            ...targetProposal,
-            ...(flags.changeTeacher
-              ? {
-                  teacherId: sourceTeacherId ?? undefined,
-                  teacher: sourceProposal.teacher,
-                }
-              : {}),
-            ...(flags.changeClassroom
-              ? {
-                  classroomId: sourceClassroomId,
-                  classroom: sourceProposal.classroom,
-                }
-              : {}),
-            ...(flags.changeDate
-              ? {
-                  daysOfWeek: sourceProposal.daysOfWeek,
-                  startTime: sourceProposal.startTime,
-                  endTime: sourceProposal.endTime,
-                }
-              : {}),
-            isManuallyEdited: true,
+        if (flags.changeDate) {
+          const classroomsMap = new Map<string, ClassroomOption>()
+          for (const p of allProposals ?? [sourceProposal, targetProposal]) {
+            if (p.classroom) {
+              const existing = classroomsMap.get(p.classroom.id)
+              if (!existing || p.classroom.capacity > existing.capacity) {
+                classroomsMap.set(p.classroom.id, p.classroom)
+              }
+            }
           }
-        )
+          const classrooms =
+            instituteClassrooms && instituteClassrooms.length > 0
+              ? instituteClassrooms
+              : Array.from(classroomsMap.values())
+
+          const plan =
+            swapPlan ??
+            planSessionSwap(
+              sourceProposal,
+              targetProposal,
+              allProposals ?? [sourceProposal, targetProposal],
+              classrooms,
+              occupiedClassroomSlots
+            )
+
+          if (!isSourceMissed) {
+            await updateMutation.mutateAsync({
+              planId: sourceProposal.planId,
+              proposalId: sourceProposal.id,
+              instituteId: effectiveInstituteId,
+              body: {
+                teacherId: null,
+                classroomId: plan.sourceNewClassroom?.id ?? null,
+                daysOfWeek: plan.sourceNewDays,
+                startTime: plan.sourceNewStartTime,
+                endTime: plan.sourceNewEndTime,
+              },
+            })
+          }
+
+          if (!isTargetMissed) {
+            await updateMutation.mutateAsync({
+              planId: targetProposal.planId,
+              proposalId: targetProposal.id,
+              instituteId: effectiveInstituteId,
+              body: {
+                teacherId: null,
+                classroomId: plan.targetNewClassroom?.id ?? null,
+                daysOfWeek: plan.targetNewDays,
+                startTime: plan.targetNewStartTime,
+                endTime: plan.targetNewEndTime,
+              },
+            })
+          }
+
+          for (const reassignment of plan.innerReassignments) {
+            if (!reassignment.proposal.id.startsWith("missed:")) {
+              await updateMutation.mutateAsync({
+                planId: reassignment.proposal.planId,
+                proposalId: reassignment.proposal.id,
+                instituteId: effectiveInstituteId,
+                body: {
+                  classroomId: reassignment.toClassroom.id,
+                },
+              })
+            }
+          }
+
+          updatedProposals.push(
+            {
+              ...sourceProposal,
+              teacherId: undefined,
+              teacher: null,
+              classroomId: plan.sourceNewClassroom?.id ?? null,
+              classroom: plan.sourceNewClassroom
+                ? {
+                    id: plan.sourceNewClassroom.id,
+                    name: plan.sourceNewClassroom.name,
+                    capacity: plan.sourceNewClassroom.capacity,
+                  }
+                : null,
+              daysOfWeek: plan.sourceNewDays,
+              startTime: plan.sourceNewStartTime,
+              endTime: plan.sourceNewEndTime,
+              isManuallyEdited: true,
+            },
+            {
+              ...targetProposal,
+              teacherId: undefined,
+              teacher: null,
+              classroomId: plan.targetNewClassroom?.id ?? null,
+              classroom: plan.targetNewClassroom
+                ? {
+                    id: plan.targetNewClassroom.id,
+                    name: plan.targetNewClassroom.name,
+                    capacity: plan.targetNewClassroom.capacity,
+                  }
+                : null,
+              daysOfWeek: plan.targetNewDays,
+              startTime: plan.targetNewStartTime,
+              endTime: plan.targetNewEndTime,
+              isManuallyEdited: true,
+            }
+          )
+
+          for (const reassignment of plan.innerReassignments) {
+            updatedProposals.push({
+              ...reassignment.proposal,
+              classroomId: reassignment.toClassroom.id,
+              classroom: {
+                id: reassignment.toClassroom.id,
+                name: reassignment.toClassroom.name,
+                capacity: reassignment.toClassroom.capacity,
+              },
+              isManuallyEdited: true,
+            })
+          }
+        } else {
+          const targetTeacherId = getProposalTeacherId(targetProposal)
+          const targetClassroomId = getProposalClassroomId(targetProposal)
+
+          if (!isSourceMissed) {
+            await updateMutation.mutateAsync({
+              planId: sourceProposal.planId,
+              proposalId: sourceProposal.id,
+              instituteId: effectiveInstituteId,
+              body: {
+                ...(flags.changeTeacher
+                  ? { teacherId: targetTeacherId ?? null }
+                  : {}),
+                ...(flags.changeClassroom
+                  ? { classroomId: targetClassroomId ?? null }
+                  : {}),
+              },
+            })
+          }
+
+          if (!isTargetMissed) {
+            await updateMutation.mutateAsync({
+              planId: targetProposal.planId,
+              proposalId: targetProposal.id,
+              instituteId: effectiveInstituteId,
+              body: {
+                ...(flags.changeTeacher
+                  ? { teacherId: sourceTeacherId ?? null }
+                  : {}),
+                ...(flags.changeClassroom
+                  ? { classroomId: sourceClassroomId ?? null }
+                  : {}),
+              },
+            })
+          }
+
+          updatedProposals.push(
+            {
+              ...sourceProposal,
+              ...(flags.changeTeacher
+                ? {
+                    teacherId: targetTeacherId ?? undefined,
+                    teacher: targetProposal.teacher,
+                  }
+                : {}),
+              ...(flags.changeClassroom
+                ? {
+                    classroomId: targetClassroomId,
+                    classroom: targetProposal.classroom,
+                  }
+                : {}),
+              isManuallyEdited: true,
+            },
+            {
+              ...targetProposal,
+              ...(flags.changeTeacher
+                ? {
+                    teacherId: sourceTeacherId ?? undefined,
+                    teacher: sourceProposal.teacher,
+                  }
+                : {}),
+              ...(flags.changeClassroom
+                ? {
+                    classroomId: sourceClassroomId,
+                    classroom: sourceProposal.classroom,
+                  }
+                : {}),
+              isManuallyEdited: true,
+            }
+          )
+        }
       } else {
         await updateMutation.mutateAsync({
           planId: sourceProposal.planId,
@@ -379,7 +547,11 @@ export function SwapClassDialog({
         (p) => !p.id.startsWith("missed:")
       )
 
-      toast.success(t("calendarView.swapDialog.success"))
+      toast.success(
+        target.kind === "PROPOSAL" && flags.changeDate
+          ? t("calendarView.sessionSwapSuccess")
+          : t("calendarView.swapDialog.success")
+      )
       onSwapSuccess?.(updatedProposals)
       onOpenChange(false)
 
@@ -484,6 +656,45 @@ export function SwapClassDialog({
                 </p>
               </div>
             </div>
+
+            {/* If session swap, show notice */}
+            {target.kind === "PROPOSAL" && flags.changeDate && (
+              <div
+                data-testid="session-swap-notice"
+                className="flex items-start gap-2.5 rounded-2xl border border-primary/30 bg-primary/5 p-3.5 text-xs text-foreground"
+              >
+                <Info
+                  aria-hidden
+                  className="mt-0.5 size-4 shrink-0 text-foreground"
+                />
+                <span>{t("calendarView.sessionSwapNotice")}</span>
+              </div>
+            )}
+
+            {/* If inner reassignments exist, show notice */}
+            {swapPlan &&
+              swapPlan.innerReassignments.length > 0 &&
+              flags.changeDate && (
+                <div
+                  data-testid="swap-inner-reassignments-notice"
+                  className="flex flex-col gap-2 rounded-2xl border border-warning/30 bg-warning/10 p-3.5 text-xs text-foreground"
+                >
+                  <div className="flex items-center gap-2 font-bold text-foreground">
+                    <Building2 aria-hidden className="size-4 text-foreground" />
+                    <span>{t("calendarView.swapInnerReassignmentsTitle")}</span>
+                  </div>
+                  <ul className="flex list-disc flex-col gap-1 pr-4 text-muted-foreground">
+                    {swapPlan.innerReassignments.map((r) => (
+                      <li key={r.proposal.id}>
+                        {t("calendarView.swapInnerReassignmentItem", {
+                          title: r.proposal.course.title,
+                          room: r.toClassroom.name,
+                        })}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
             {/* Swap Option Checkboxes */}
             <div className="flex flex-col gap-2.5">

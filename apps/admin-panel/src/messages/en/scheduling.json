@@ -403,8 +403,11 @@
       "switchTeacherSuccess": "Teacher updated successfully.",
       "swapTeacherSuccess": "Teachers swapped successfully between sessions.",
       "sessionSwapConfirmTitle": "Swap Sessions",
-      "sessionSwapConfirmDescription": "Only sessions will be swapped; teachers and classrooms will remain in their respective time slots.",
+      "sessionSwapConfirmDescription": "Teachers for these two sessions are left unassigned for manual supervisor selection, and classrooms are allocated automatically.",
       "sessionSwapSuccess": "Sessions swapped successfully.",
+      "swapInnerReassignmentsTitle": "Automatic classroom rebalancing to provide sufficient capacity",
+      "swapInnerReassignmentItem": "Session \"{title}\" moves to \"{room}\".",
+      "sessionSwapNotice": "Teachers for these two sessions are left unassigned for manual supervisor selection. Classrooms have been allocated automatically based on capacity.",
       "swapDialog": {
         "title": "Swap Class",
         "description": "Only sessions will be swapped; teachers and classrooms will remain in their respective time slots.",

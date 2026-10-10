@@ -1374,6 +1374,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       proposalId: "prop-1",
       instituteId: "inst-1",
       body: {
+        teacherId: null,
         classroomId: "cr3",
         daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
         startTime: "11:00",
@@ -1385,6 +1386,7 @@ describe("SchedulingPlanCalendarView Component", () => {
       proposalId: "prop-swap-target",
       instituteId: "inst-1",
       body: {
+        teacherId: null,
         classroomId: "cr1",
         daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
         startTime: "09:00",
@@ -4020,13 +4022,13 @@ describe("SchedulingPlanCalendarView Component", () => {
         expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
       })
 
-      // Verify AME 2-3 moves to Odd days with Mohammad Karimi in Room 105
+      // Verify AME 2-3 moves to Odd days with unassigned master (teacherId: null) and automatic classroom (cr-101 has capacity 20 >= 18)
       expect(updateProposalMutationFn).toHaveBeenCalledWith(
         expect.objectContaining({
           proposalId: "prop-even-ame-2-3",
           body: expect.objectContaining({
-            teacherId: "t-odd",
-            classroomId: "cr-105",
+            teacherId: null,
+            classroomId: "cr-101",
             daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
             startTime: "15:00",
             endTime: "16:30",
@@ -4035,12 +4037,12 @@ describe("SchedulingPlanCalendarView Component", () => {
         expect.anything()
       )
 
-      // Verify AME 2-1 moves to Even days with Nastaran Azizi in Room 101
+      // Verify AME 2-1 moves to Even days with unassigned master (teacherId: null) and automatic classroom
       expect(updateProposalMutationFn).toHaveBeenCalledWith(
         expect.objectContaining({
           proposalId: "prop-odd-ame-2-1",
           body: expect.objectContaining({
-            teacherId: "t-nastaran",
+            teacherId: null,
             classroomId: "cr-101",
             daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
             startTime: "15:00",
@@ -4225,6 +4227,179 @@ describe("SchedulingPlanCalendarView Component", () => {
             startTime: "15:00",
             endTime: "16:30",
           }),
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("automatically rebalances classrooms with an existing concurrent session when the destination free room does not have enough capacity", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const rebalanceProposals: Proposal[] = [
+        {
+          id: "prop-even-12",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-3",
+          course: { id: "c-ame-2-3", title: "American English File 2-3" },
+          teacher: { id: "t-even", firstName: "استاد", lastName: "زوج" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-even", name: "Room Even", capacity: 15 },
+          capacity: 12,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-odd-target",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "Touchstone 2",
+          course: { id: "c-ts-2", title: "Touchstone 2" },
+          teacher: { id: "t-odd-1", firstName: "استاد", lastName: "فرد یک" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-8", name: "Room 8", capacity: 8 },
+          capacity: 6,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-odd-concurrent",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "Touchstone 1",
+          course: { id: "c-ts-1", title: "Touchstone 1" },
+          teacher: { id: "t-odd-2", firstName: "استاد", lastName: "فرد دو" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-18", name: "Room 18", capacity: 18 },
+          capacity: 7,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-odd-in-even-room",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "English 1",
+          course: { id: "c-eng-1", title: "English 1" },
+          teacher: { id: "t-odd-3", firstName: "استاد", lastName: "فرد سه" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-even", name: "Room Even", capacity: 15 },
+          capacity: 10,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={rebalanceProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      // 1. Click swap on prop-even-12 and select prop-odd-target
+      fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-even-12"))
+      const oddTargetCard = screen.getAllByTestId(
+        "calendar-class-card-prop-odd-target"
+      )[0]!
+      fireEvent.click(oddTargetCard)
+
+      expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+
+      // 2. Summary cards show Room 18 for source and Room Even for target
+      expect(screen.getByTestId("swap-source-card")).toHaveTextContent(
+        "Room 18"
+      )
+      expect(screen.getByTestId("swap-target-card")).toHaveTextContent(
+        "Room Even"
+      )
+
+      // 3. Inner reassignments notice is displayed
+      expect(
+        screen.getByTestId("swap-inner-reassignments-notice")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("swap-inner-reassignments-notice")
+      ).toHaveTextContent("Room 8")
+
+      // 4. Submit the swap
+      const confirmBtn = screen.getByTestId("swap-confirm-btn")
+      fireEvent.click(confirmBtn)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(3)
+      })
+
+      // Verify prop-even-12 moves to Odd days in Room 18 with teacherId: null
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-even-12",
+          body: expect.objectContaining({
+            teacherId: null,
+            classroomId: "cr-18",
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      // Verify prop-odd-target moves to Even days in Room Even with teacherId: null
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-odd-target",
+          body: expect.objectContaining({
+            teacherId: null,
+            classroomId: "cr-even",
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      // Verify prop-odd-concurrent is rebalanced to Room 8
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-odd-concurrent",
+          body: {
+            classroomId: "cr-8",
+          },
         }),
         expect.anything()
       )
