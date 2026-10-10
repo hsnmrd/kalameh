@@ -232,6 +232,7 @@ export interface SchedulingPlanCalendarClassCardProps {
   onChangeDeliveryMode?: (proposal: Proposal) => Promise<boolean | void> | void
   isDeliveryModePending?: boolean
   onRoomClick?: (proposal: Proposal) => void
+  onTeacherClick?: (proposal: Proposal) => void
 }
 
 export function SchedulingPlanCalendarClassCard({
@@ -255,6 +256,7 @@ export function SchedulingPlanCalendarClassCard({
   onChangeDeliveryMode,
   isDeliveryModePending = false,
   onRoomClick,
+  onTeacherClick,
 }: SchedulingPlanCalendarClassCardProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -525,7 +527,73 @@ export function SchedulingPlanCalendarClassCard({
         )}
       >
         {/* Start (Right in RTL): Teacher Avatar & Name */}
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        <div
+          data-testid={`calendar-class-teacher-info-${proposal.id}`}
+          onClick={(e) => {
+            if (
+              onTeacherClick &&
+              canEdit &&
+              !proposal.isLocked &&
+              !proposal.publishedClassId
+            ) {
+              e.stopPropagation()
+              onTeacherClick(proposal)
+            }
+          }}
+          role={
+            onTeacherClick &&
+            canEdit &&
+            !proposal.isLocked &&
+            !proposal.publishedClassId
+              ? "button"
+              : undefined
+          }
+          tabIndex={
+            onTeacherClick &&
+            canEdit &&
+            !proposal.isLocked &&
+            !proposal.publishedClassId
+              ? 0
+              : undefined
+          }
+          onKeyDown={(e) => {
+            if (
+              onTeacherClick &&
+              canEdit &&
+              !proposal.isLocked &&
+              !proposal.publishedClassId &&
+              (e.key === "Enter" || e.key === " ")
+            ) {
+              e.preventDefault()
+              e.stopPropagation()
+              onTeacherClick(proposal)
+            }
+          }}
+          title={
+            onTeacherClick &&
+            canEdit &&
+            !proposal.isLocked &&
+            !proposal.publishedClassId
+              ? t("calendarView.switchTeacherTitle")
+              : undefined
+          }
+          aria-label={
+            onTeacherClick &&
+            canEdit &&
+            !proposal.isLocked &&
+            !proposal.publishedClassId
+              ? `${t("calendarView.switchTeacherTitle")}: ${teacherName}`
+              : undefined
+          }
+          className={cn(
+            "flex min-w-0 flex-1 items-center gap-2.5 rounded-lg transition-opacity",
+            onTeacherClick &&
+              canEdit &&
+              !proposal.isLocked &&
+              !proposal.publishedClassId &&
+              "cursor-pointer hover:opacity-80 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden active:opacity-70"
+          )}
+        >
           <div
             className={cn(
               "relative flex size-7.5 shrink-0 items-center justify-center overflow-hidden rounded-full ring-1",

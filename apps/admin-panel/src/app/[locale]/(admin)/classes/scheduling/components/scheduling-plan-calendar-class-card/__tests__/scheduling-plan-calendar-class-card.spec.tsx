@@ -119,4 +119,20 @@ describe("SchedulingPlanCalendarClassCard Component", () => {
     fireEvent.click(roomBadge)
     expect(handleRoomClick).toHaveBeenCalledWith(unassignedProposal)
   })
+
+  it("allows clicking teacher info to trigger onTeacherClick", () => {
+    const handleTeacherClick = vi.fn()
+
+    render(
+      <SchedulingPlanCalendarClassCard
+        proposal={baseProposal}
+        canEdit={true}
+        onTeacherClick={handleTeacherClick}
+      />
+    )
+
+    const teacherInfo = screen.getByTestId("calendar-class-teacher-info-prop-1")
+    fireEvent.click(teacherInfo)
+    expect(handleTeacherClick).toHaveBeenCalledWith(baseProposal)
+  })
 })

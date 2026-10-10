@@ -4231,5 +4231,191 @@ describe("SchedulingPlanCalendarView Component", () => {
 
       toMutationSpy.mockRestore()
     })
+
+    it("opens SwitchTeacherDialog when clicking teacher info and switches to a free teacher", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "prop-1",
+        teacherId: "t-free",
+        warnings: [],
+      } as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const testProposals: Proposal[] = [
+        {
+          ...mockProposals[0]!,
+          id: "prop-switch-teacher-test",
+          teacherId: "t1",
+          teacher: { id: "t1", firstName: "علی", lastName: "محمدی" },
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+        },
+      ]
+
+      const calendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: { id: "t1", firstName: "علی", lastName: "محمدی" },
+          teachableCourses: [{ id: "c1", title: "American English File 1" }],
+          slots: [],
+        },
+        {
+          teacher: { id: "t-free", firstName: "زهرا", lastName: "حسینی" },
+          teachableCourses: [{ id: "c1", title: "American English File 1" }],
+          slots: [
+            {
+              dayOfWeek: "SATURDAY",
+              startTime: "09:00",
+              endTime: "10:30",
+              status: "FREE",
+              title: null,
+              source: "AVAILABILITY",
+            },
+            {
+              dayOfWeek: "MONDAY",
+              startTime: "09:00",
+              endTime: "10:30",
+              status: "FREE",
+              title: null,
+              source: "AVAILABILITY",
+            },
+            {
+              dayOfWeek: "WEDNESDAY",
+              startTime: "09:00",
+              endTime: "10:30",
+              status: "FREE",
+              title: null,
+              source: "AVAILABILITY",
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={testProposals}
+          canEdit={true}
+          teacherCalendars={calendars}
+          defaultCollapsed={false}
+        />
+      )
+
+      // Click on teacher info of prop-switch-teacher-test
+      const teacherInfo = screen.getByTestId(
+        "calendar-class-teacher-info-prop-switch-teacher-test"
+      )
+      fireEvent.click(teacherInfo)
+
+      // SwitchTeacherDialog opens
+      expect(screen.getByTestId("switch-teacher-dialog")).toBeInTheDocument()
+      expect(screen.getByTestId("teacher-item-t1")).toBeInTheDocument()
+      expect(screen.getByTestId("teacher-item-t-free")).toBeInTheDocument()
+
+      // Select free teacher
+      const selectTeacherBtn = screen.getByTestId("switch-teacher-btn-t-free")
+      fireEvent.click(selectTeacherBtn)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            proposalId: "prop-switch-teacher-test",
+            body: expect.objectContaining({
+              teacherId: "t-free",
+            }),
+          }),
+          expect.anything()
+        )
+      })
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("opens SwitchTeacherDialog and swaps teachers between two sessions in the same period", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const twoProposalsInSlot: Proposal[] = [
+        {
+          ...mockProposals[0]!,
+          id: "prop-slot-1",
+          course: { id: "c1", title: "Course 1" },
+          teacherId: "t-teacher-1",
+          teacher: { id: "t-teacher-1", firstName: "مدرس", lastName: "یک" },
+          classroom: { id: "cr1", name: "کلاس ۱۰۱", capacity: 20 },
+          classroomId: "cr1",
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+        },
+        {
+          ...mockProposals[0]!,
+          id: "prop-slot-2",
+          course: { id: "c2", title: "Course 2" },
+          teacherId: "t-teacher-2",
+          teacher: { id: "t-teacher-2", firstName: "مدرس", lastName: "دو" },
+          classroom: { id: "cr2", name: "کلاس ۱۰۲", capacity: 20 },
+          classroomId: "cr2",
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={twoProposalsInSlot}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      // Click teacher info of prop-slot-1
+      const teacherInfo = screen.getByTestId(
+        "calendar-class-teacher-info-prop-slot-1"
+      )
+      fireEvent.click(teacherInfo)
+
+      expect(screen.getByTestId("switch-teacher-dialog")).toBeInTheDocument()
+
+      // Teacher 2 is shown as swappable
+      const swapTeacherBtn = screen.getByTestId(
+        "switch-teacher-btn-t-teacher-2"
+      )
+      expect(swapTeacherBtn).toBeInTheDocument()
+      fireEvent.click(swapTeacherBtn)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+      })
+
+      // prop-slot-1 gets t-teacher-2
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-slot-1",
+          body: { teacherId: "t-teacher-2" },
+        }),
+        expect.anything()
+      )
+
+      // prop-slot-2 gets t-teacher-1
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-slot-2",
+          body: { teacherId: "t-teacher-1" },
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
   })
 })
