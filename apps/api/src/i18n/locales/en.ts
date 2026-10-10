@@ -64,6 +64,10 @@ export const en: TranslationDictionary = {
     invalidCourses:
       'One or more selected courses are not valid for this institute',
     instituteRequired: 'Selecting an institute is required for this operation',
+    availabilityBranchConflict:
+      'A teacher cannot be available in two branches during the same time period. This slot is already reserved in "{branch}"',
+    availabilitySlotConflict:
+      'Time conflict detected between the selected availability slots',
   },
   institutes: {
     instituteNotFound: 'Requested institute was not found',

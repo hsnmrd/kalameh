@@ -45,6 +45,8 @@ export interface TranslationDictionary {
     emptyImportFile: string;
     invalidCourses: string;
     instituteRequired: string;
+    availabilityBranchConflict: string;
+    availabilitySlotConflict: string;
   };
   institutes: {
     instituteNotFound: string;

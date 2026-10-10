@@ -58,6 +58,10 @@ export const fa: TranslationDictionary = {
     invalidCourses:
       'یک یا چند سطح انتخاب‌شده برای این استاد در آموزشگاه معتبر نیست',
     instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
+    availabilityBranchConflict:
+      'استاد نمی‌تواند در دو شعبه در یک بازه زمانی مشترک حضور داشته باشد. این زمان قبلاً در «{branch}» ثبت شده است',
+    availabilitySlotConflict:
+      'تداخل زمانی بین بازه‌های انتخابی برای استاد وجود دارد',
   },
   institutes: {
     instituteNotFound: 'آموزشگاه مورد نظر یافت نشد',

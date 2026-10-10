@@ -1,7 +1,87 @@
 import { describe, it, expect, vi } from "vitest"
-import { render, screen, fireEvent } from "../../../../../test/test-utils"
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "../../../../../test/test-utils"
 import { TeacherAvailabilityModal } from "../components/teacher-availability-modal"
 import type { TeacherDto } from "@workspace/types"
+
+vi.mock("@/lib/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api")>()
+  return {
+    ...actual,
+    termsResource: {
+      ...actual.termsResource,
+      list: {
+        toQuery: vi.fn(() => ({
+          queryKey: ["terms"],
+          queryFn: () => [
+            {
+              id: "term-1",
+              title: "ترم پاییز",
+              isActive: true,
+              operatingPhase: {
+                id: "phase-1",
+                startTime: "08:00",
+                endTime: "12:00",
+                slotDurationMinutes: 120,
+                daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+                hasBreak: false,
+              },
+            },
+          ],
+        })),
+      },
+    },
+    branchesResource: {
+      ...actual.branchesResource,
+      list: {
+        toQuery: vi.fn(() => ({
+          queryKey: ["branches"],
+          queryFn: () => [
+            { id: "branch-central", name: "شعبه مرکزی", isActive: true },
+            { id: "branch-west", name: "شعبه غرب", isActive: true },
+          ],
+        })),
+      },
+    },
+    teachersResource: {
+      ...actual.teachersResource,
+      detail: {
+        toQuery: vi.fn(() => ({
+          queryKey: ["teacher", "detail"],
+          queryFn: () => mockTeacher,
+        })),
+      },
+      getAvailabilities: {
+        toQuery: vi.fn(() => ({
+          queryKey: ["teacher", "availabilities"],
+          queryFn: () => [
+            {
+              id: "slot-west",
+              teacherProfileId: "profile-1",
+              branchId: "branch-west",
+              dayOfWeek: "SATURDAY",
+              startTime: "08:00",
+              endTime: "10:00",
+            },
+          ],
+        })),
+        baseKey: vi.fn(() => ["teachers", "availabilities"]),
+      },
+      updateAvailabilities: {
+        toMutation: vi.fn(() => ({
+          mutationFn: vi.fn(),
+        })),
+      },
+      list: {
+        baseKey: vi.fn(() => ["teachers", "list"]),
+      },
+    },
+  }
+})
 
 const mockTeacher: TeacherDto = {
   id: "teacher-123",
@@ -85,5 +165,22 @@ describe("TeacherAvailabilityModal", () => {
     const cancelButton = screen.getByText(/انصراف|Cancel/i)
     fireEvent.click(cancelButton)
     expect(onCloseMock).toHaveBeenCalled()
+  })
+
+  it("should display slot occupied by another branch as reserved and disabled", async () => {
+    render(
+      <TeacherAvailabilityModal
+        teacher={{ ...mockTeacher, branchId: "branch-central" }}
+        open={true}
+        onClose={vi.fn()}
+        instituteId="inst-1"
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/رزرو در شعبه غرب|Reserved in شعبه غرب/i)
+      ).toBeInTheDocument()
+    })
   })
 })

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  doTimeRangesOverlap,
   isAvailabilityCoveringSlot,
   subtractSlotFromAvailability,
   type TeacherAvailabilityInput,
@@ -154,6 +155,74 @@ describe("Teacher Availability Helpers", () => {
         endTime: "12:00",
       })
       expect(result).toEqual([item])
+    })
+  })
+
+  describe("doTimeRangesOverlap", () => {
+    it("returns true for identical intervals", () => {
+      expect(
+        doTimeRangesOverlap(
+          { startTime: "10:00", endTime: "12:00" },
+          { startTime: "10:00", endTime: "12:00" }
+        )
+      ).toBe(true)
+    })
+
+    it("returns true for partial overlaps", () => {
+      expect(
+        doTimeRangesOverlap(
+          { startTime: "10:00", endTime: "12:00" },
+          { startTime: "11:00", endTime: "13:00" }
+        )
+      ).toBe(true)
+      expect(
+        doTimeRangesOverlap(
+          { startTime: "11:00", endTime: "13:00" },
+          { startTime: "10:00", endTime: "12:00" }
+        )
+      ).toBe(true)
+    })
+
+    it("returns true for contained intervals", () => {
+      expect(
+        doTimeRangesOverlap(
+          { startTime: "10:00", endTime: "14:00" },
+          { startTime: "11:00", endTime: "12:00" }
+        )
+      ).toBe(true)
+    })
+
+    it("returns false for adjacent intervals (end time equals start time)", () => {
+      expect(
+        doTimeRangesOverlap(
+          { startTime: "10:00", endTime: "12:00" },
+          { startTime: "12:00", endTime: "14:00" }
+        )
+      ).toBe(false)
+      expect(
+        doTimeRangesOverlap(
+          { startTime: "12:00", endTime: "14:00" },
+          { startTime: "10:00", endTime: "12:00" }
+        )
+      ).toBe(false)
+    })
+
+    it("returns false for completely disjoint intervals", () => {
+      expect(
+        doTimeRangesOverlap(
+          { startTime: "08:00", endTime: "10:00" },
+          { startTime: "14:00", endTime: "16:00" }
+        )
+      ).toBe(false)
+    })
+
+    it("returns false for invalid time formats", () => {
+      expect(
+        doTimeRangesOverlap(
+          { startTime: "invalid", endTime: "10:00" },
+          { startTime: "09:00", endTime: "11:00" }
+        )
+      ).toBe(false)
     })
   })
 })

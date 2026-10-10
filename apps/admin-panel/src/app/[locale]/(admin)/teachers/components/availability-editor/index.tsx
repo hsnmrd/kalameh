@@ -13,6 +13,7 @@ import {
   type PhaseGeneratedSlot,
   type TeacherAvailabilityInput,
   type WeekDay,
+  type OccupiedSlotInfo,
 } from "@workspace/types"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { termsResource } from "@/lib/api"
@@ -23,6 +24,7 @@ import { TrackSlotRow } from "./track-slot-row"
 export interface AvailabilityEditorProps {
   value: TeacherAvailabilityInput[]
   onChange: (slots: TeacherAvailabilityInput[]) => void
+  occupiedSlots?: OccupiedSlotInfo[]
   selectedTermId?: string | null
   onSelectTermId?: (termId: string) => void
   instituteId?: string
@@ -39,6 +41,7 @@ interface DayTrack {
 export function AvailabilityEditor({
   value = [],
   onChange,
+  occupiedSlots = [],
   selectedTermId,
   onSelectTermId,
   instituteId,
@@ -144,6 +147,13 @@ export function AvailabilityEditor({
   }, [activeDays, t])
 
   const handleToggleSlot = (trackDays: WeekDay[], slot: PhaseGeneratedSlot) => {
+    const isOccupied = occupiedSlots.some(
+      (occ) =>
+        trackDays.includes(occ.dayOfWeek as WeekDay) &&
+        isAvailabilityCoveringSlot(occ, slot)
+    )
+    if (isOccupied) return
+
     const isAllSelected = trackDays.every((day) =>
       value.some(
         (s) => s.dayOfWeek === day && isAvailabilityCoveringSlot(s, slot)
@@ -234,6 +244,7 @@ export function AvailabilityEditor({
               slots={standardSlots}
               breakInfo={phaseCalculation?.breakInfo}
               value={value}
+              occupiedSlots={occupiedSlots}
               onToggleSlot={handleToggleSlot}
               onSelectAllTrack={handleSelectAllTrack}
               onClearTrack={handleClearTrack}

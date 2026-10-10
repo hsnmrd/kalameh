@@ -131,6 +131,27 @@ export class TeacherUpdateService {
       }
     }
 
+    if (dto.availabilities && dto.availabilities.length > 0) {
+      for (let i = 0; i < dto.availabilities.length; i++) {
+        const a = dto.availabilities[i];
+        if (a.startTime >= a.endTime) {
+          throw new BadRequestException(
+            this.i18n.t('teachers.availabilitySlotConflict', locale),
+          );
+        }
+        for (let j = i + 1; j < dto.availabilities.length; j++) {
+          const b = dto.availabilities[j];
+          if (a.dayOfWeek === b.dayOfWeek) {
+            if (a.startTime < b.endTime && a.endTime > b.startTime) {
+              throw new BadRequestException(
+                this.i18n.t('teachers.availabilitySlotConflict', locale),
+              );
+            }
+          }
+        }
+      }
+    }
+
     const updated = await this.prisma.$transaction(async (tx) => {
       if (hasProfileUpdate) {
         const profile = await tx.teacherProfile.upsert({

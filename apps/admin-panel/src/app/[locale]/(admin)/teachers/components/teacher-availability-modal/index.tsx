@@ -14,7 +14,12 @@ import {
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
-import type { TeacherDto, TeacherAvailabilityInput } from "@workspace/types"
+import type {
+  TeacherDto,
+  TeacherAvailabilityInput,
+  OccupiedSlotInfo,
+  WeekDay,
+} from "@workspace/types"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { branchesResource, teachersResource, termsResource } from "@/lib/api"
 import { AvailabilityEditor } from "../availability-editor"
@@ -76,12 +81,11 @@ export function TeacherAvailabilityModal({
     enabled: open && Boolean(teacher?.id),
   })
 
-  const { data: termAvailabilities, isLoading: isLoadingAvailabilities } =
+  const { data: allTermAvailabilities, isLoading: isLoadingAvailabilities } =
     useQuery({
       ...teachersResource.getAvailabilities.toQuery({
         id: teacher?.id || "",
         termId: currentTermId || undefined,
-        branchId: currentBranchId || undefined,
       }),
       enabled: open && Boolean(teacher?.id),
     })
@@ -94,15 +98,17 @@ export function TeacherAvailabilityModal({
   >({})
 
   const serverSlots = React.useMemo<TeacherAvailabilityInput[]>(() => {
-    if (termAvailabilities) {
-      return termAvailabilities.map((slot) => ({
-        id: slot.id,
-        termId: slot.termId,
-        branchId: slot.branchId,
-        dayOfWeek: slot.dayOfWeek,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-      }))
+    if (allTermAvailabilities) {
+      return allTermAvailabilities
+        .filter((slot) => !currentBranchId || slot.branchId === currentBranchId)
+        .map((slot) => ({
+          id: slot.id,
+          termId: slot.termId,
+          branchId: slot.branchId,
+          dayOfWeek: slot.dayOfWeek,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        }))
     }
     const all = currentTeacher?.teacherProfile?.availabilities || []
     const forTerm = currentTermId
@@ -126,9 +132,42 @@ export function TeacherAvailabilityModal({
       startTime: slot.startTime,
       endTime: slot.endTime,
     }))
-  }, [termAvailabilities, currentTeacher, currentTermId, currentBranchId])
+  }, [allTermAvailabilities, currentTeacher, currentTermId, currentBranchId])
 
   const activeSlots = draftSlotsByScope[draftKey] ?? serverSlots
+
+  const occupiedSlots = React.useMemo<OccupiedSlotInfo[]>(() => {
+    if (!currentBranchId) return []
+    const otherBranches = activeBranches.filter((b) => b.id !== currentBranchId)
+    const result: OccupiedSlotInfo[] = []
+
+    for (const otherBranch of otherBranches) {
+      const scopeKey = `${currentTermId || "all"}:${otherBranch.id}`
+      const slots =
+        draftSlotsByScope[scopeKey] ??
+        (allTermAvailabilities || []).filter(
+          (s) => s.branchId === otherBranch.id
+        )
+
+      for (const slot of slots) {
+        result.push({
+          dayOfWeek: slot.dayOfWeek as WeekDay,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          branchId: otherBranch.id,
+          branchName: otherBranch.name,
+        })
+      }
+    }
+
+    return result
+  }, [
+    activeBranches,
+    currentBranchId,
+    currentTermId,
+    draftSlotsByScope,
+    allTermAvailabilities,
+  ])
 
   const handleSlotsChange = React.useCallback(
     (slots: TeacherAvailabilityInput[]) => {
@@ -173,20 +212,52 @@ export function TeacherAvailabilityModal({
 
   const handleSave = () => {
     if (!teacher.id) return
+
+    const touchedBranchIds = activeBranches
+      .map((b) => b.id)
+      .filter((branchId) => {
+        const key = `${currentTermId || "all"}:${branchId}`
+        return draftSlotsByScope[key] !== undefined
+      })
+
+    if (touchedBranchIds.length <= 1) {
+      updateMutation.mutate({
+        id: teacher.id,
+        termId: currentTermId || undefined,
+        branchId: currentBranchId || undefined,
+        availabilities: activeSlots.map((slot) => ({
+          ...slot,
+          branchId: slot.branchId || currentBranchId || undefined,
+        })),
+      })
+      return
+    }
+
+    const allSlots: TeacherAvailabilityInput[] = []
+    for (const branch of activeBranches) {
+      const key = `${currentTermId || "all"}:${branch.id}`
+      const slots =
+        draftSlotsByScope[key] ??
+        (allTermAvailabilities || []).filter((s) => s.branchId === branch.id)
+      for (const s of slots) {
+        allSlots.push({
+          ...s,
+          branchId: branch.id,
+          termId: currentTermId || undefined,
+        })
+      }
+    }
+
     updateMutation.mutate({
       id: teacher.id,
       termId: currentTermId || undefined,
-      branchId: currentBranchId || undefined,
-      availabilities: activeSlots.map((slot) => ({
-        ...slot,
-        branchId: slot.branchId || currentBranchId || undefined,
-      })),
+      availabilities: allSlots,
     })
   }
 
   const isLoadingData =
     (isLoadingTeacher && !detailedTeacher) ||
-    (isLoadingAvailabilities && !termAvailabilities)
+    (isLoadingAvailabilities && !allTermAvailabilities)
 
   return (
     <FormDialog open={open} onOpenChange={(val) => !val && handleClose()}>
@@ -223,6 +294,7 @@ export function TeacherAvailabilityModal({
             <AvailabilityEditor
               value={activeSlots}
               onChange={handleSlotsChange}
+              occupiedSlots={occupiedSlots}
               selectedTermId={currentTermId}
               onSelectTermId={setSelectedTermId}
               instituteId={resolvedInstituteId}

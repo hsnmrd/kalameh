@@ -113,7 +113,9 @@
     "trackCollapsedCount": "{count} free classes",
     "trackCollapsedEmpty": "No free classes",
     "collapseTrack": "Collapse track",
-    "expandTrack": "Expand track"
+    "expandTrack": "Expand track",
+    "occupiedInOtherBranch": "Reserved in {branch}",
+    "occupiedInOtherBranchTooltip": "The teacher is already available in {branch} during this period and cannot be in two branches at the same time."
   },
   "qualifications": {
     "title": "Teachable courses",

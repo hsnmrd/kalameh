@@ -413,6 +413,21 @@ export class SchedulingTeacherOutreachToggleService {
             slot.endTime >= input.endTime,
         );
         if (!covered) {
+          const conflictingOtherBranchSlot =
+            teacher.teacherProfile!.availabilities.find(
+              (slot) =>
+                !swappedOut?.createdAvailabilityIds.includes(slot.id) &&
+                slot.branchId !== requirement.branchId &&
+                slot.dayOfWeek === dayOfWeek &&
+                slot.startTime < input.endTime &&
+                slot.endTime > input.startTime,
+            );
+          if (conflictingOtherBranchSlot) {
+            throw new BadRequestException(
+              'Teacher already has availability in another branch during this time period',
+            );
+          }
+
           const created = await tx.teacherAvailability.create({
             data: {
               teacherProfileId: teacher.teacherProfile!.id,

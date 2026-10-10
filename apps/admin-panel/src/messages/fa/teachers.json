@@ -113,7 +113,9 @@
     "trackCollapsedCount": "{count} کلاس آزاد",
     "trackCollapsedEmpty": "بدون کلاس آزاد",
     "collapseTrack": "بستن بخش",
-    "expandTrack": "باز کردن بخش"
+    "expandTrack": "باز کردن بخش",
+    "occupiedInOtherBranch": "رزرو در {branch}",
+    "occupiedInOtherBranchTooltip": "استاد در این زمان در {branch} دارای زمان آزاد است و نمی‌تواند همزمان در دو شعبه حضور داشته باشد."
   },
   "qualifications": {
     "title": "سطح‌های قابل تدریس",
