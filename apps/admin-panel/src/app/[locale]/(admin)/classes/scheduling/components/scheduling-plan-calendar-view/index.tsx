@@ -414,17 +414,14 @@ export function SchedulingPlanCalendarView({
     [canPlaceMissedClassOnDay]
   )
 
-  const allSwappableProposals = React.useMemo(
-    () => proposals.filter((p) => Boolean(p.teacherId || p.teacher)),
-    [proposals]
-  )
+  const allSwappableProposals = React.useMemo(() => proposals, [proposals])
 
   const activeProposal = React.useMemo(
     () =>
       activeClassId
-        ? (allSwappableProposals.find((p) => p.id === activeClassId) ?? null)
+        ? (proposals.find((p) => p.id === activeClassId) ?? null)
         : null,
-    [activeClassId, allSwappableProposals]
+    [activeClassId, proposals]
   )
 
   const swappingProposal = React.useMemo(
@@ -795,6 +792,19 @@ export function SchedulingPlanCalendarView({
 
   const handleCardClick = React.useCallback(
     (id: string) => {
+      // If already in swapping mode (initiated via swap button)
+      if (swappingProposal && id !== swappingProposal.id) {
+        if (isSwappingInProgress) return
+        const swapEvaluation = swappableByProposalId.get(id)
+        const swappableTarget = allSwappableProposals.find((p) => p.id === id)
+        if (swapEvaluation && swappableTarget) {
+          handleDirectSessionSwap(swappingProposal, swappableTarget)
+          return
+        }
+        // If clicking on an unswappable card, exit swap mode and select the clicked card
+        setSwappingProposalId(null)
+      }
+
       const targetProposal = proposals.find((p) => p.id === id)
       if (
         targetProposal &&
@@ -840,19 +850,6 @@ export function SchedulingPlanCalendarView({
           ],
         })
         return
-      }
-
-      // If already in swapping mode (initiated via swap button)
-      if (swappingProposal && id !== swappingProposal.id) {
-        if (isSwappingInProgress) return
-        const swapEvaluation = swappableByProposalId.get(id)
-        const swappableTarget = allSwappableProposals.find((p) => p.id === id)
-        if (swapEvaluation && swappableTarget) {
-          handleDirectSessionSwap(swappingProposal, swappableTarget)
-          return
-        }
-        // If clicking on an unswappable card, exit swap mode and select the clicked card
-        setSwappingProposalId(null)
       }
 
       if (swappingProposalId === id) {
@@ -2620,14 +2617,8 @@ export function SchedulingPlanCalendarView({
                                                   hasSameTeacher ||
                                                   hasSameCourse
                                                 ))
-                                          const hasTeacher = Boolean(
-                                            proposal.teacherId ||
-                                            proposal.teacher
-                                          )
                                           const isProposalSwappable =
-                                            !isSwappingInProgress &&
-                                            hasTeacher &&
-                                            isSwappable
+                                            !isSwappingInProgress && isSwappable
                                           const isCardLoading =
                                             isSwappingInProgress &&
                                             (proposal.id ===

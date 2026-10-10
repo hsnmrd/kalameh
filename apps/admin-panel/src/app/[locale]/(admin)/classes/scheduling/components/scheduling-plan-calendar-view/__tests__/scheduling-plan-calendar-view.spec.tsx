@@ -4660,5 +4660,127 @@ describe("SchedulingPlanCalendarView Component", () => {
 
       toMutationSpy.mockRestore()
     })
+
+    it("allows swapping and shakes cards for sessions without a master, including restoring previously swapped sessions", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "mock-id",
+        warnings: [],
+      })
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationFn: updateProposalMutationFn,
+        } as unknown as ReturnType<
+          typeof schedulingResource.updateProposal.toMutation
+        >)
+
+      const masterlessProposals: Proposal[] = [
+        {
+          id: "prop-no-teacher-even",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-3 (No Master)",
+          course: { id: "c-ame-2-3", title: "American English File 2-3" },
+          teacher: null,
+          teacherId: null,
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-1", name: "Classroom 1", capacity: 20 },
+          capacity: 15,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-no-teacher-odd",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-1 (No Master)",
+          course: { id: "c-ame-2-1", title: "American English File 2-1" },
+          teacher: null,
+          teacherId: null,
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-2", name: "Classroom 2", capacity: 20 },
+          capacity: 15,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={masterlessProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      const evenCard = screen.getAllByTestId(
+        "calendar-class-card-prop-no-teacher-even"
+      )[0]!
+      const oddCard = screen.getAllByTestId(
+        "calendar-class-card-prop-no-teacher-odd"
+      )[0]!
+
+      expect(evenCard).toHaveAttribute("data-has-no-teacher", "true")
+      expect(oddCard).toHaveAttribute("data-has-no-teacher", "true")
+
+      // 1. Swap button is present and clickable on session without a master
+      const swapBtnEven = screen.getByTestId(
+        "swap-teacher-btn-prop-no-teacher-even"
+      )
+      expect(swapBtnEven).toBeInTheDocument()
+      fireEvent.click(swapBtnEven)
+
+      // 2. The other session (also without a master) MUST shake and be marked swappable
+      expect(oddCard).toHaveAttribute("data-swappable", "true")
+      expect(oddCard).toHaveClass("animate-calendar-card-shake")
+
+      // 3. Clicking on the target session without a master executes direct session swap
+      // (MUST NOT open StaffingFallbackDialog or cancel swap mode)
+      fireEvent.click(oddCard)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+      })
+
+      // Verify payloads: teacherId remains null, slots and classrooms swapped
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-no-teacher-even",
+          body: expect.objectContaining({
+            teacherId: null,
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-no-teacher-odd",
+          body: expect.objectContaining({
+            teacherId: null,
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
   })
 })
