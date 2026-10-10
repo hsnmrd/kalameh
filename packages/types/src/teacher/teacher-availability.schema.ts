@@ -15,6 +15,13 @@ export const TeacherAvailabilitySchema = z.object({
       name: z.string(),
     })
     .optional(),
+  term: z
+    .object({
+      id: z.string(),
+      title: z.string(),
+    })
+    .nullable()
+    .optional(),
   dayOfWeek: z.enum(WEEK_DAYS),
   startTime: z.string().regex(TIME_REGEX, "Invalid start time format (HH:mm)"),
   endTime: z.string().regex(TIME_REGEX, "Invalid end time format (HH:mm)"),

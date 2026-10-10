@@ -635,7 +635,15 @@ describe('TeachersService', () => {
 
       expect(result).toHaveLength(1);
       expect(prisma.teacherAvailability.findMany).toHaveBeenCalledWith({
-        where: { teacherProfileId: 'profile-1', termId: 'term-1' },
+        where: {
+          teacherProfileId: 'profile-1',
+          termId: 'term-1',
+          branch: { instituteId: 'inst-1' },
+        },
+        include: {
+          branch: { select: { id: true, name: true } },
+          term: { select: { id: true, title: true } },
+        },
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });
     });
@@ -666,7 +674,15 @@ describe('TeachersService', () => {
 
       expect(result).toHaveLength(1);
       expect(prisma.teacherAvailability.findMany).toHaveBeenLastCalledWith({
-        where: { teacherProfileId: 'profile-1', termId: null },
+        where: {
+          teacherProfileId: 'profile-1',
+          termId: null,
+          branch: { instituteId: 'inst-1' },
+        },
+        include: {
+          branch: { select: { id: true, name: true } },
+          term: { select: { id: true, title: true } },
+        },
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });
     });

@@ -19,13 +19,16 @@ export class TeacherAvailabilityService {
     termId?: string,
     branchId?: string,
   ) {
+    const targetInstituteId =
+      currentUser.role === ROLES.SUPER_ADMIN
+        ? undefined
+        : currentUser.instituteId;
+
     const teacher = await this.prisma.user.findFirstOrThrow({
       where: {
         id: teacherId,
         role: ROLES.TEACHER,
-        ...(currentUser.role === ROLES.SUPER_ADMIN
-          ? {}
-          : { instituteId: currentUser.instituteId }),
+        ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
       },
       include: {
         teacherProfile: true,
@@ -36,7 +39,16 @@ export class TeacherAvailabilityService {
       return [];
     }
 
-    const branchFilter = branchId ? { branchId } : {};
+    const branchFilter = branchId
+      ? { branchId }
+      : targetInstituteId
+        ? { branch: { instituteId: targetInstituteId } }
+        : {};
+
+    const includeRelations = {
+      branch: { select: { id: true, name: true } },
+      term: { select: { id: true, title: true } },
+    };
 
     if (termId) {
       const termAvailabilities = await this.prisma.teacherAvailability.findMany(
@@ -46,6 +58,7 @@ export class TeacherAvailabilityService {
             termId,
             ...branchFilter,
           },
+          include: includeRelations,
           orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
         },
       );
@@ -60,6 +73,7 @@ export class TeacherAvailabilityService {
           termId: null,
           ...branchFilter,
         },
+        include: includeRelations,
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });
     }
@@ -69,6 +83,7 @@ export class TeacherAvailabilityService {
         teacherProfileId: teacher.teacherProfile.id,
         ...branchFilter,
       },
+      include: includeRelations,
       orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
     });
   }
@@ -221,6 +236,10 @@ export class TeacherAvailabilityService {
           teacherProfileId: profile.id,
           ...(dto.termId !== undefined ? { termId: dto.termId } : {}),
           ...branchFilter,
+        },
+        include: {
+          branch: { select: { id: true, name: true } },
+          term: { select: { id: true, title: true } },
         },
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });
