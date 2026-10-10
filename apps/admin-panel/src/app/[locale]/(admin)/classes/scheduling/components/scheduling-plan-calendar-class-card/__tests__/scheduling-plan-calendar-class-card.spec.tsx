@@ -204,4 +204,32 @@ describe("SchedulingPlanCalendarClassCard Component", () => {
     fireEvent.click(swapBtn)
     expect(handleSwapClick).toHaveBeenCalledWith("prop-1")
   })
+
+  it("renders loading overlay with spinner, prevents clicks and stops shaking when isLoading=true", () => {
+    const handleCardClick = vi.fn()
+
+    render(
+      <SchedulingPlanCalendarClassCard
+        proposal={baseProposal}
+        canEdit={true}
+        canSwap={true}
+        isSwappable={true}
+        isLoading={true}
+        onClick={handleCardClick}
+      />
+    )
+
+    const card = screen.getByTestId("calendar-class-card-prop-1")
+    expect(card).toHaveAttribute("data-loading", "true")
+    expect(card).toHaveAttribute("aria-busy", "true")
+    expect(card).not.toHaveClass("animate-calendar-card-shake")
+
+    const loadingOverlay = screen.getByTestId(
+      "calendar-class-card-loading-prop-1"
+    )
+    expect(loadingOverlay).toBeInTheDocument()
+
+    fireEvent.click(card)
+    expect(handleCardClick).not.toHaveBeenCalled()
+  })
 })

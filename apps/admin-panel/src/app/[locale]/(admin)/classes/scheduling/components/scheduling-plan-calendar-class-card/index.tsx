@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
 import { SchedulingProposalActions } from "../scheduling-proposal-actions"
@@ -216,6 +217,7 @@ export interface SchedulingPlanCalendarClassCardProps {
   canEdit: boolean
   canSwap?: boolean
   isSwapping?: boolean
+  isLoading?: boolean
   colorIndex?: number
   isActive?: boolean
   isSwappable?: boolean
@@ -240,6 +242,7 @@ export function SchedulingPlanCalendarClassCard({
   canEdit,
   canSwap = true,
   isSwapping = false,
+  isLoading = false,
   colorIndex,
   isActive = false,
   isSwappable = false,
@@ -278,7 +281,7 @@ export function SchedulingPlanCalendarClassCard({
 
   const maxCapacity = proposal.classroom?.capacity ?? proposal.capacity
 
-  const isShaking = Boolean(isSwappable && !isSwapping)
+  const isShaking = Boolean(isSwappable && !isSwapping && !isLoading)
   const hasHighlightTag = hasSameTeacher || hasSameCourse
   const isGrayscale = isDimmed && !isActive && !isSwappable && !hasHighlightTag
   const hasWarnings = proposal.warnings.length > 0
@@ -308,15 +311,19 @@ export function SchedulingPlanCalendarClassCard({
       data-same-teacher-count={sameTeacherCount}
       data-same-course-count={sameCourseCount}
       data-has-warnings={hasWarnings ? "true" : undefined}
+      data-loading={isLoading ? "true" : undefined}
+      aria-busy={isLoading ? "true" : undefined}
       title={warningTitle}
-      onMouseEnter={() => onHover?.(proposal.id)}
-      onMouseLeave={() => onHover?.(null)}
+      onMouseEnter={() => !isLoading && onHover?.(proposal.id)}
+      onMouseLeave={() => !isLoading && onHover?.(null)}
       onClick={(e) => {
         e.stopPropagation()
+        if (isLoading) return
         onClick?.(proposal.id)
       }}
-      tabIndex={0}
+      tabIndex={isLoading ? -1 : 0}
       onKeyDown={(e) => {
+        if (isLoading) return
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault()
           onClick?.(proposal.id)
@@ -343,13 +350,24 @@ export function SchedulingPlanCalendarClassCard({
               isActive &&
                 "z-10 scale-[1.01] opacity-100 shadow-md ring-2 ring-primary"
             ),
-        isSwappable &&
+        isShaking &&
           "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
         isDimmed && "opacity-25 hover:opacity-60",
-        isGrayscale && "grayscale hover:grayscale-0"
+        isGrayscale && "grayscale hover:grayscale-0",
+        isLoading && "pointer-events-none cursor-wait"
       )}
       aria-label={proposal.course.title}
     >
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div
+          data-testid={`calendar-class-card-loading-${proposal.id}`}
+          className="absolute inset-0 z-30 flex items-center justify-center rounded-xl bg-card/75 backdrop-blur-[1px] transition-opacity duration-200"
+          aria-hidden="true"
+        >
+          <Spinner className="size-5 text-primary" />
+        </div>
+      )}
       {/* Row 1: Course Title & Level, Mode, Location, Status & Actions */}
       <div className="flex min-w-0 items-center justify-between gap-2 pb-2.5">
         {/* Start (Right in RTL): Dot, Course Title, Badges */}

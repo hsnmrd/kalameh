@@ -250,6 +250,8 @@ export function SchedulingPlanCalendarView({
     enabled: Boolean(activeInstituteId),
   })
   const [isSwappingInProgress, setIsSwappingInProgress] = React.useState(false)
+  const [swappingTargetProposalId, setSwappingTargetProposalId] =
+    React.useState<string | null>(null)
   const [staffingDialogSession, setStaffingDialogSession] = React.useState<{
     courseTitle: string
     unresolvedRequirementId?: string
@@ -568,6 +570,7 @@ export function SchedulingPlanCalendarView({
 
       setSelectedClassId(null)
       setSwappingProposalId(null)
+      setSwappingTargetProposalId(null)
     },
     [onUpdateMissedClassesAssignments]
   )
@@ -576,6 +579,7 @@ export function SchedulingPlanCalendarView({
     async (sourceProposal: Proposal, targetProposal: Proposal) => {
       if (isSwappingInProgress) return
       setIsSwappingInProgress(true)
+      setSwappingTargetProposalId(targetProposal.id)
 
       const targetInstituteId =
         activeInstituteId || sourceProposal.instituteId || planId
@@ -714,6 +718,7 @@ export function SchedulingPlanCalendarView({
         toast.error(t("calendarView.swapDialog.invalidCombination"))
       } finally {
         setIsSwappingInProgress(false)
+        setSwappingTargetProposalId(null)
       }
     },
     [
@@ -1079,6 +1084,7 @@ export function SchedulingPlanCalendarView({
   React.useEffect(() => {
     if (
       (!selectedClassId && !swappingProposalId) ||
+      isSwappingInProgress ||
       assignSlotTarget ||
       switchRoomProposal ||
       switchTeacherProposal
@@ -1095,6 +1101,7 @@ export function SchedulingPlanCalendarView({
   }, [
     selectedClassId,
     swappingProposalId,
+    isSwappingInProgress,
     assignSlotTarget,
     switchRoomProposal,
     switchTeacherProposal,
@@ -2073,7 +2080,7 @@ export function SchedulingPlanCalendarView({
       <div
         className="flex flex-col gap-4"
         onClick={(e) => {
-          if (assignSlotTarget) return
+          if (isSwappingInProgress || assignSlotTarget) return
           if (!e.currentTarget.contains(e.target as Node)) return
           if (selectedClassId || swappingProposalId) {
             setSelectedClassId(null)
@@ -2618,7 +2625,15 @@ export function SchedulingPlanCalendarView({
                                             proposal.teacher
                                           )
                                           const isProposalSwappable =
-                                            hasTeacher && isSwappable
+                                            !isSwappingInProgress &&
+                                            hasTeacher &&
+                                            isSwappable
+                                          const isCardLoading =
+                                            isSwappingInProgress &&
+                                            (proposal.id ===
+                                              swappingTargetProposalId ||
+                                              proposal.id ===
+                                                swappingProposalId)
 
                                           return (
                                             <SchedulingPlanCalendarClassCard
@@ -2630,6 +2645,7 @@ export function SchedulingPlanCalendarView({
                                                 swappingProposalId ===
                                                 proposal.id
                                               }
+                                              isLoading={isCardLoading}
                                               colorIndex={proposalColorMap.get(
                                                 proposal.id
                                               )}

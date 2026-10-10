@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from "vitest"
-import { fireEvent, render, screen, waitFor, within } from "@/test/test-utils"
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@/test/test-utils"
 import type {
   SchedulingPlanDetailsDto,
   SchedulingTeacherCalendar,
@@ -4535,6 +4542,121 @@ describe("SchedulingPlanCalendarView Component", () => {
         }),
         expect.anything()
       )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("shows loading overlay on target and source session cards while swap request is sending", async () => {
+      let resolveFirst: (() => void) | undefined
+      const updateProposalMutationFn = vi.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            if (!resolveFirst) {
+              resolveFirst = () => resolve({} as never)
+            } else {
+              resolve({} as never)
+            }
+          })
+      )
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const proposals: Proposal[] = [
+        {
+          id: "prop-load-even",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-3",
+          course: { id: "c-ame-2-3", title: "American English File 2-3" },
+          teacher: { id: "t-1", firstName: "استاد", lastName: "یک" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-1", name: "Classroom 1", capacity: 20 },
+          capacity: 15,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-load-odd",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-1",
+          course: { id: "c-ame-2-1", title: "American English File 2-1" },
+          teacher: { id: "t-2", firstName: "استاد", lastName: "دو" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-2", name: "Classroom 2", capacity: 20 },
+          capacity: 15,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={proposals}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      const evenCard = screen.getAllByTestId(
+        "calendar-class-card-prop-load-even"
+      )[0]!
+      const oddCard = screen.getAllByTestId(
+        "calendar-class-card-prop-load-odd"
+      )[0]!
+
+      // 1. Initiate swap on Even card
+      fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-load-even"))
+      expect(oddCard).toHaveAttribute("data-swappable", "true")
+
+      // 2. Click target Odd card
+      fireEvent.click(oddCard)
+
+      // 3. Target card MUST show loading overlay while mutation is pending!
+      expect(oddCard).toHaveAttribute("data-loading", "true")
+      expect(
+        screen.getByTestId("calendar-class-card-loading-prop-load-odd")
+      ).toBeInTheDocument()
+      expect(evenCard).toHaveAttribute("data-loading", "true")
+
+      // Neither card should shake while loading
+      expect(oddCard).not.toHaveClass("animate-calendar-card-shake")
+
+      // 4. Wait for mutation call to register, then resolve in-flight mutation
+      await waitFor(() => {
+        expect(resolveFirst).toBeDefined()
+      })
+
+      await act(async () => {
+        resolveFirst!()
+      })
+
+      // 5. After mutation completes, loading is cleaned up
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+      })
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId("calendar-class-card-loading-prop-load-odd")
+        ).not.toBeInTheDocument()
+      })
 
       toMutationSpy.mockRestore()
     })
