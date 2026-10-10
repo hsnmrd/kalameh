@@ -305,7 +305,7 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
           if (!o) setSearch("")
         }}
       >
-        <DrawerContent>
+        <DrawerContent initialFocus={false}>
           <DrawerHeader className="flex flex-row items-center justify-between">
             <DrawerTitle>
               {drawerTitle || (isFa ? "انتخاب گزینه" : "Select option")}
@@ -327,7 +327,6 @@ export function ResponsiveCombobox(props: ResponsiveComboboxProps) {
             <div className="flex items-center border-b border-border px-4 py-2.5">
               <Search className="me-2 size-4 shrink-0 text-muted-foreground" />
               <input
-                autoFocus
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={
