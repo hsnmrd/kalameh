@@ -4782,5 +4782,119 @@ describe("SchedulingPlanCalendarView Component", () => {
 
       toMutationSpy.mockRestore()
     })
+
+    it("renders free masters selection with level comparison inside StaffingFallbackDialog and assigns chosen master", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "mock-id",
+        warnings: [],
+      })
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationFn: updateProposalMutationFn,
+        } as unknown as ReturnType<
+          typeof schedulingResource.updateProposal.toMutation
+        >)
+
+      const masterlessProposal: Proposal = {
+        id: "prop-ame-1-1",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-1",
+        course: { id: "c-ame-1-1", title: "AME 1-1" },
+        teacher: null,
+        teacherId: null,
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr-1", name: "Classroom 1", capacity: 20 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:00",
+        endTime: "16:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      }
+
+      const teacherCalendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: {
+            id: "t-melika",
+            firstName: "ملیکا",
+            lastName: "سعیدی",
+            avatarUrl: null,
+          },
+          teachableCourses: [
+            { id: "c-ame-1-2", title: "AME 1-2" },
+            { id: "c-ame-2-3", title: "AME 2-3" },
+          ],
+          slots: [
+            {
+              id: "s1",
+              dayOfWeek: "SATURDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "FREE",
+            },
+            {
+              id: "s2",
+              dayOfWeek: "MONDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "FREE",
+            },
+            {
+              id: "s3",
+              dayOfWeek: "WEDNESDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "FREE",
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={[masterlessProposal]}
+          teacherCalendars={teacherCalendars}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      // 1. Click on masterless card to open StaffingFallbackDialog
+      const card = screen.getAllByTestId("calendar-class-card-prop-ame-1-1")[0]!
+      fireEvent.click(card)
+
+      // 2. StaffingFallbackDialog is open and FreeMastersSelection is rendered
+      expect(screen.getByTestId("staffing-fallback-dialog")).toBeInTheDocument()
+      expect(screen.getByTestId("free-masters-selection")).toBeInTheDocument()
+
+      // 3. Melika Saeedi is detected as higher level and qualified
+      const melikaItem = screen.getByTestId("free-master-item-t-melika")
+      expect(melikaItem).toHaveAttribute("data-qualified", "true")
+      expect(melikaItem).toHaveAttribute("data-level-status", "HIGHER_LEVEL")
+
+      // 4. Click assign button for Melika Saeedi
+      const assignBtn = screen.getByTestId("assign-free-master-btn-t-melika")
+      await act(async () => {
+        fireEvent.click(assignBtn)
+      })
+
+      // 5. updateProposal mutation is called with teacherId: "t-melika"
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-ame-1-1",
+          body: {
+            teacherId: "t-melika",
+          },
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
   })
 })

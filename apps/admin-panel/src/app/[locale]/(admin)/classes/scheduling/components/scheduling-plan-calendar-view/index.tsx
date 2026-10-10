@@ -259,6 +259,7 @@ export function SchedulingPlanCalendarView({
     hiringAssignments: SchedulingNewTeacherHiringAssignment[]
     requirement?:
       SchedulingPlanDetailsDto["unresolvedRequirements"][number] | null
+    proposal?: Proposal | null
   } | null>(null)
   const [highlightRelated, setHighlightRelated] = React.useState(true)
   const [switchRoomProposal, setSwitchRoomProposal] =
@@ -832,6 +833,7 @@ export function SchedulingPlanCalendarView({
           unresolvedRequirementId: matchedReq?.id,
           fallback,
           requirement: matchedReq ?? null,
+          proposal: targetProposal,
           hiringAssignments: [
             {
               key: `prop-${targetProposal.id}`,
@@ -2911,6 +2913,11 @@ export function SchedulingPlanCalendarView({
         planStatus={planStatus}
         unresolvedRequirementId={staffingDialogSession?.unresolvedRequirementId}
         requirement={staffingDialogSession?.requirement}
+        proposal={staffingDialogSession?.proposal}
+        teacherCalendars={teacherCalendars}
+        allProposals={allSwappableProposals}
+        onAssignTeacher={handleSwitchTeacher}
+        isAssignPending={updateProposalMutation.isPending}
       />
 
       {/* Switch / Swap Room Dialog */}
