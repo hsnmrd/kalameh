@@ -54,6 +54,7 @@ export const en: TranslationDictionary = {
     passwordResetSuccess: 'Student password reset successfully',
     emptyImportFile:
       'The uploaded Excel file is empty or has an invalid structure',
+    instituteRequired: 'Selecting an institute is required for this operation',
   },
   teachers: {
     teacherAlreadyExists:

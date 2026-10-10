@@ -49,6 +49,7 @@ export const fa: TranslationDictionary = {
       'این شماره تماس به کاربر دیگری در این آموزشگاه اختصاص یافته است',
     passwordResetSuccess: 'رمز عبور فراگیر با موفقیت بازنشانی شد',
     emptyImportFile: 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد',
+    instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
   },
   teachers: {
     teacherAlreadyExists:
