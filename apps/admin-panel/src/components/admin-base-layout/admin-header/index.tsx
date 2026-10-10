@@ -120,29 +120,12 @@ export function AdminHeader({
   const BackIcon = isRtl ? ArrowRight : ArrowLeft
 
   const [isScrolled, setIsScrolled] = React.useState(false)
-  const [isVisible, setIsVisible] = React.useState(true)
-  const lastScrollYRef = React.useRef(0)
 
   React.useEffect(() => {
     const handleScroll = () => {
       const currentScrollY =
         window.scrollY || document.documentElement.scrollTop
       setIsScrolled(currentScrollY > 10)
-
-      if (currentScrollY <= 10) {
-        setIsVisible(true)
-      } else {
-        const delta = currentScrollY - lastScrollYRef.current
-        if (delta > 8) {
-          // Scrolling down on mobile -> hide header
-          setIsVisible(false)
-        } else if (delta < -8) {
-          // Scrolling up on mobile -> show header
-          setIsVisible(true)
-        }
-      }
-
-      lastScrollYRef.current = currentScrollY
     }
 
     handleScroll()
@@ -153,10 +136,9 @@ export function AdminHeader({
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 w-full transition-transform duration-300 ease-in-out",
-        isVisible ? "translate-y-0" : "-translate-y-full lg:translate-y-0",
+        "sticky top-0 z-30 w-full transition-all duration-200",
         isScrolled
-          ? "border-b border-border bg-card/90 backdrop-blur-md"
+          ? "border-b border-border bg-card/90 shadow-2xs backdrop-blur-md"
           : "border-b border-transparent bg-transparent",
         className
       )}

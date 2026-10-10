@@ -114,7 +114,7 @@ describe("AdminHeader", () => {
     expect(innerContainer).toHaveClass("mx-auto", "w-full", "max-w-7xl")
   })
 
-  it("translates header up when scrolling down on mobile and brings it back into view when scrolling up", () => {
+  it("applies border and background when scrolled while remaining sticky and visible", () => {
     const { container } = render(
       <HeaderActionsProvider>
         <AdminHeader />
@@ -123,7 +123,9 @@ describe("AdminHeader", () => {
 
     const header = container.querySelector("header")
     expect(header).toBeInTheDocument()
-    expect(header).toHaveClass("translate-y-0")
+    expect(header).toHaveClass("sticky")
+    expect(header).toHaveClass("top-0")
+    expect(header).toHaveClass("border-transparent")
 
     // Simulate scrolling down past top threshold
     act(() => {
@@ -140,26 +142,9 @@ describe("AdminHeader", () => {
       window.dispatchEvent(new Event("scroll"))
     })
 
-    // Should translate up on mobile (-translate-y-full lg:translate-y-0)
-    expect(header).toHaveClass("-translate-y-full")
-    expect(header).toHaveClass("lg:translate-y-0")
-
-    // Simulate scrolling up
-    act(() => {
-      Object.defineProperty(window, "scrollY", {
-        writable: true,
-        configurable: true,
-        value: 50,
-      })
-      Object.defineProperty(document.documentElement, "scrollTop", {
-        writable: true,
-        configurable: true,
-        value: 50,
-      })
-      window.dispatchEvent(new Event("scroll"))
-    })
-
-    // Should return to view (translate-y-0)
-    expect(header).toHaveClass("translate-y-0")
+    // Should stay visible with scrolled styling
+    expect(header).toHaveClass("border-border")
+    expect(header).toHaveClass("backdrop-blur-md")
+    expect(header).not.toHaveClass("-translate-y-full")
   })
 })
