@@ -135,4 +135,73 @@ describe("SchedulingPlanCalendarClassCard Component", () => {
     fireEvent.click(teacherInfo)
     expect(handleTeacherClick).toHaveBeenCalledWith(baseProposal)
   })
+
+  it("disables inner buttons and forwards clicks to card when card is shaking (isSwappable=true, isSwapping=false)", () => {
+    const handleCardClick = vi.fn()
+    const handleSwapClick = vi.fn()
+    const handleRoomClick = vi.fn()
+    const handleTeacherClick = vi.fn()
+
+    render(
+      <SchedulingPlanCalendarClassCard
+        proposal={baseProposal}
+        canEdit={true}
+        canSwap={true}
+        isSwappable={true}
+        isSwapping={false}
+        onClick={handleCardClick}
+        onSwapClick={handleSwapClick}
+        onRoomClick={handleRoomClick}
+        onTeacherClick={handleTeacherClick}
+      />
+    )
+
+    const card = screen.getByTestId("calendar-class-card-prop-1")
+    expect(card).toHaveClass("animate-calendar-card-shake")
+
+    // Room badge
+    const roomBadge = screen.getByTestId("calendar-class-room-badge-prop-1")
+    expect(roomBadge).toHaveClass("pointer-events-none")
+    fireEvent.click(roomBadge)
+    expect(handleRoomClick).not.toHaveBeenCalled()
+    expect(handleCardClick).toHaveBeenCalledWith("prop-1")
+
+    handleCardClick.mockClear()
+
+    // Teacher info
+    const teacherInfo = screen.getByTestId("calendar-class-teacher-info-prop-1")
+    expect(teacherInfo).toHaveClass("pointer-events-none")
+    fireEvent.click(teacherInfo)
+    expect(handleTeacherClick).not.toHaveBeenCalled()
+    expect(handleCardClick).toHaveBeenCalledWith("prop-1")
+
+    handleCardClick.mockClear()
+
+    // Swap button
+    const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+    expect(swapBtn).toHaveClass("pointer-events-none")
+    fireEvent.click(swapBtn)
+    expect(handleSwapClick).not.toHaveBeenCalled()
+    expect(handleCardClick).toHaveBeenCalledWith("prop-1")
+  })
+
+  it("keeps swap button clickable on source swapping card (isSwapping=true)", () => {
+    const handleSwapClick = vi.fn()
+
+    render(
+      <SchedulingPlanCalendarClassCard
+        proposal={baseProposal}
+        canEdit={true}
+        canSwap={true}
+        isSwapping={true}
+        isSwappable={false}
+        onSwapClick={handleSwapClick}
+      />
+    )
+
+    const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+    expect(swapBtn).not.toHaveClass("pointer-events-none")
+    fireEvent.click(swapBtn)
+    expect(handleSwapClick).toHaveBeenCalledWith("prop-1")
+  })
 })

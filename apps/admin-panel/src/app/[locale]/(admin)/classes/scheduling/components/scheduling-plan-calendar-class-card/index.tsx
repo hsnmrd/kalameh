@@ -278,6 +278,7 @@ export function SchedulingPlanCalendarClassCard({
 
   const maxCapacity = proposal.classroom?.capacity ?? proposal.capacity
 
+  const isShaking = Boolean(isSwappable && !isSwapping)
   const hasHighlightTag = hasSameTeacher || hasSameCourse
   const isGrayscale = isDimmed && !isActive && !isSwappable && !hasHighlightTag
   const hasWarnings = proposal.warnings.length > 0
@@ -411,6 +412,7 @@ export function SchedulingPlanCalendarClassCard({
               size="icon-xs"
               data-testid={`calendar-class-room-badge-${proposal.id}`}
               onClick={(e) => {
+                if (isShaking) return
                 e.stopPropagation()
                 onRoomClick(proposal)
               }}
@@ -424,7 +426,8 @@ export function SchedulingPlanCalendarClassCard({
                 "size-6 rounded-md",
                 hasNoTeacher
                   ? "bg-warning/20 text-warning-foreground hover:bg-warning/30 hover:text-warning-foreground"
-                  : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
+                isShaking && "pointer-events-none"
               )}
             >
               <DoorOpen
@@ -468,8 +471,14 @@ export function SchedulingPlanCalendarClassCard({
           )}
           {canEdit && !proposal.publishedClassId && (
             <div
-              className="flex shrink-0 items-center gap-0.5"
-              onClick={(e) => e.stopPropagation()}
+              className={cn(
+                "flex shrink-0 items-center gap-0.5",
+                isShaking && "pointer-events-none"
+              )}
+              onClick={(e) => {
+                if (isShaking) return
+                e.stopPropagation()
+              }}
             >
               <PermissionGuard
                 permission={PERMISSIONS.MANAGE_CLASSES}
@@ -484,6 +493,7 @@ export function SchedulingPlanCalendarClassCard({
                     title={t("calendarView.swapTeacher")}
                     aria-label={t("calendarView.swapTeacher")}
                     onClick={(e) => {
+                      if (isShaking) return
                       e.stopPropagation()
                       onSwapClick?.(proposal.id)
                     }}
@@ -493,7 +503,8 @@ export function SchedulingPlanCalendarClassCard({
                         ? "text-muted-foreground hover:bg-warning/20 hover:text-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       isSwapping &&
-                        "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary"
+                        "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary",
+                      isShaking && "pointer-events-none"
                     )}
                   >
                     <ArrowLeftRight aria-hidden className="size-3.5" />
@@ -530,6 +541,7 @@ export function SchedulingPlanCalendarClassCard({
         <div
           data-testid={`calendar-class-teacher-info-${proposal.id}`}
           onClick={(e) => {
+            if (isShaking) return
             if (
               onTeacherClick &&
               canEdit &&
@@ -541,6 +553,7 @@ export function SchedulingPlanCalendarClassCard({
             }
           }}
           role={
+            !isShaking &&
             onTeacherClick &&
             canEdit &&
             !proposal.isLocked &&
@@ -549,6 +562,7 @@ export function SchedulingPlanCalendarClassCard({
               : undefined
           }
           tabIndex={
+            !isShaking &&
             onTeacherClick &&
             canEdit &&
             !proposal.isLocked &&
@@ -557,6 +571,7 @@ export function SchedulingPlanCalendarClassCard({
               : undefined
           }
           onKeyDown={(e) => {
+            if (isShaking) return
             if (
               onTeacherClick &&
               canEdit &&
@@ -570,6 +585,7 @@ export function SchedulingPlanCalendarClassCard({
             }
           }}
           title={
+            !isShaking &&
             onTeacherClick &&
             canEdit &&
             !proposal.isLocked &&
@@ -578,6 +594,7 @@ export function SchedulingPlanCalendarClassCard({
               : undefined
           }
           aria-label={
+            !isShaking &&
             onTeacherClick &&
             canEdit &&
             !proposal.isLocked &&
@@ -587,11 +604,13 @@ export function SchedulingPlanCalendarClassCard({
           }
           className={cn(
             "flex min-w-0 flex-1 items-center gap-2.5 rounded-lg transition-opacity",
-            onTeacherClick &&
+            !isShaking &&
+              onTeacherClick &&
               canEdit &&
               !proposal.isLocked &&
               !proposal.publishedClassId &&
-              "cursor-pointer hover:opacity-80 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden active:opacity-70"
+              "cursor-pointer hover:opacity-80 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden active:opacity-70",
+            isShaking && "pointer-events-none"
           )}
         >
           <div
