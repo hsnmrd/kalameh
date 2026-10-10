@@ -4052,5 +4052,184 @@ describe("SchedulingPlanCalendarView Component", () => {
 
       toMutationSpy.mockRestore()
     })
+
+    it("allows swapping sessions across Even and Odd days with Change Teacher unchecked so teachers remain on their respective courses", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const crossDayProposals: Proposal[] = [
+        {
+          id: "prop-even-ame-2-3",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-3",
+          course: { id: "c-ame-2-3", title: "American English File 2-3" },
+          teacher: { id: "t-nastaran", firstName: "نسترن", lastName: "عزیزی" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-101", name: "کلاس ۱۰۱", capacity: 20 },
+          capacity: 18,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-odd-ame-2-1",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-1",
+          course: { id: "c-ame-2-1", title: "American English File 2-1" },
+          teacher: { id: "t-kamran", firstName: "کامران", lastName: "میرزایی" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-105", name: "کلاس ۱۰۵", capacity: 20 },
+          capacity: 14,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      // Nastaran is only available Even days, Kamran only Odd days
+      const calendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: { id: "t-nastaran", firstName: "نسترن", lastName: "عزیزی" },
+          teachableCourses: [
+            { id: "c-ame-2-3", title: "American English File 2-3" },
+          ],
+          slots: [
+            {
+              dayOfWeek: "SATURDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-3",
+              source: "PLAN",
+            },
+          ],
+        },
+        {
+          teacher: { id: "t-kamran", firstName: "کامران", lastName: "میرزایی" },
+          teachableCourses: [
+            { id: "c-ame-2-1", title: "American English File 2-1" },
+          ],
+          slots: [
+            {
+              dayOfWeek: "SUNDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-1",
+              source: "PLAN",
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={crossDayProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+          teacherCalendars={calendars}
+        />
+      )
+
+      const oddCard = screen.getAllByTestId(
+        "calendar-class-card-prop-odd-ame-2-1"
+      )[0]!
+
+      // 1. Click swap on AME 2-3 and select Odd-day AME 2-1
+      fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-even-ame-2-3"))
+      fireEvent.click(oddCard)
+      expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+
+      const teacherCheckbox = screen.getByTestId("swap-option-teacher")
+      const dateCheckbox = screen.getByTestId("swap-option-date")
+      const confirmBtn = screen.getByTestId("swap-confirm-btn")
+
+      // Both teacher and date are initially checked
+      expect(teacherCheckbox).toHaveAttribute("aria-checked", "true")
+      expect(dateCheckbox).toHaveAttribute("aria-checked", "true")
+
+      // 2. Uncheck Change Teacher (so teachers remain on their respective courses)
+      fireEvent.click(teacherCheckbox)
+      expect(teacherCheckbox).toHaveAttribute("aria-checked", "false")
+      expect(dateCheckbox).toHaveAttribute("aria-checked", "true")
+
+      // 3. MUST NOT show the invalid combination error message and confirm button must NOT be disabled
+      expect(
+        screen.queryByTestId("swap-invalid-combination-msg")
+      ).not.toBeInTheDocument()
+      expect(confirmBtn).not.toBeDisabled()
+
+      // 4. Click confirm to apply the swap
+      fireEvent.click(confirmBtn)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+      })
+
+      // Verify AME 2-3 moves to Odd days and keeps Nastaran Azizi (no teacherId in update body)
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-even-ame-2-3",
+          body: expect.not.objectContaining({
+            teacherId: expect.anything(),
+          }),
+        }),
+        expect.anything()
+      )
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-even-ame-2-3",
+          body: expect.objectContaining({
+            classroomId: "cr-105",
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      // Verify AME 2-1 moves to Even days and keeps Kamran Mirzaei (no teacherId in update body)
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-odd-ame-2-1",
+          body: expect.not.objectContaining({
+            teacherId: expect.anything(),
+          }),
+        }),
+        expect.anything()
+      )
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-odd-ame-2-1",
+          body: expect.objectContaining({
+            classroomId: "cr-101",
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
   })
 })

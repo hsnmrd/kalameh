@@ -445,14 +445,17 @@ function isProposalCombinationValid(
   }
 
   // Teacher availability check:
-  // When moving a teacher to a DIFFERENT time slot (e.g. same-course teacher swap across dates,
-  // or moving dates without swapping teachers), ensure teacher is available in destination slot.
+  // For same-course classes, moving teachers or dates across slots requires teacher availability.
+  // For different-course sessions, allow the swap even if the master has a calendar constraint or problem,
+  // letting admins manage assignments and resolve any subsequent warnings.
   const sourceTeacherMovesSlot =
-    (flags.changeDate && !flags.changeTeacher) ||
-    (!flags.changeDate && flags.changeTeacher && isSameCourse)
+    isSameCourse &&
+    ((flags.changeDate && !flags.changeTeacher) ||
+      (!flags.changeDate && flags.changeTeacher))
   const targetTeacherMovesSlot =
-    (flags.changeDate && !flags.changeTeacher) ||
-    (!flags.changeDate && flags.changeTeacher && isSameCourse)
+    isSameCourse &&
+    ((flags.changeDate && !flags.changeTeacher) ||
+      (!flags.changeDate && flags.changeTeacher))
 
   if (sourceTeacherMovesSlot && nextSourceTeacherId) {
     if (
