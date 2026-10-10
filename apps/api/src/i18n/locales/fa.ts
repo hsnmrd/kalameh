@@ -48,8 +48,12 @@ export const fa: TranslationDictionary = {
     phoneAlreadyInUse:
       'این شماره تماس به کاربر دیگری در این آموزشگاه اختصاص یافته است',
     passwordResetSuccess: 'رمز عبور فراگیر با موفقیت بازنشانی شد',
+    emptyImportFile: 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد',
   },
   teachers: {
+    teacherAlreadyExists:
+      'استادی با این شماره تماس در این آموزشگاه قبلاً ثبت شده است',
+    emptyImportFile: 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد',
     invalidCourses:
       'یک یا چند سطح انتخاب‌شده برای این استاد در آموزشگاه معتبر نیست',
     instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',

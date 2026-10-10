@@ -5,6 +5,7 @@ import type {
   TeacherLookupResponse,
   TeacherAvailability,
   TeacherAvailabilityInput,
+  ExcelImportResult,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -61,5 +62,15 @@ export const teachersResource = api.resource("teachers", {
     { id: string; password?: string }
   >(({ id }) => `/teachers/${id}/reset-password`, {
     body: ({ password }) => ({ password }),
+  }),
+  importExcel: api.post<
+    ExcelImportResult,
+    { formData: FormData; instituteId?: string } | FormData
+  >("/teachers/import-excel", {
+    query: (params) => {
+      if (params instanceof FormData) return {}
+      return params?.instituteId ? { instituteId: params.instituteId } : {}
+    },
+    body: (params) => (params instanceof FormData ? params : params.formData),
   }),
 })

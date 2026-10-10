@@ -162,5 +162,31 @@
     "cancel": "Cancel",
     "success": "Teacher deleted or deactivated successfully",
     "error": "Failed to delete teacher"
+  },
+  "importModal": {
+    "trigger": "Import from Excel",
+    "title": "Bulk Import Teachers from Excel",
+    "description": "Import teachers in bulk using an Excel or CSV spreadsheet.",
+    "downloadTemplate": "Download Template (.xlsx)",
+    "dragDropText": "Drag and drop your spreadsheet (.xlsx or .csv) here or click to browse",
+    "uploadHint": "Supported formats: XLSX and CSV",
+    "selectedFile": "Selected file:",
+    "submit": "Start Import",
+    "uploading": "Importing...",
+    "cancel": "Cancel",
+    "resultTitle": "Excel Import Results",
+    "totalRows": "Total Rows: {count}",
+    "importedRows": "Successfully Imported: {count}",
+    "failedRows": "Errors: {count}",
+    "errorListTitle": "Row Error Details:",
+    "rowNumber": "Row {row}",
+    "successMessage": "{count} teachers were imported successfully.",
+    "close": "Confirm & Close",
+    "templateDownloadError": "The template could not be downloaded."
+  },
+  "export": {
+    "trigger": "Export to Excel",
+    "exporting": "Generating Excel export...",
+    "error": "Failed to export Excel file"
   }
 }

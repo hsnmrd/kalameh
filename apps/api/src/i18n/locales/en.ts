@@ -52,8 +52,14 @@ export const en: TranslationDictionary = {
     phoneAlreadyInUse:
       'This phone number is already assigned to another user in this institute',
     passwordResetSuccess: 'Student password reset successfully',
+    emptyImportFile:
+      'The uploaded Excel file is empty or has an invalid structure',
   },
   teachers: {
+    teacherAlreadyExists:
+      'A teacher with this phone number already exists in this institute',
+    emptyImportFile:
+      'The uploaded Excel file is empty or has an invalid structure',
     invalidCourses:
       'One or more selected courses are not valid for this institute',
     instituteRequired: 'Selecting an institute is required for this operation',

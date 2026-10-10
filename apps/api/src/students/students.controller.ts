@@ -12,10 +12,14 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Res,
+  BadRequestException,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StudentsService } from './students.service';
 import { StudentAvailabilityService } from './student-availability.service';
+import { StudentExcelService } from './student-excel.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { UpdateStudentAvailabilitiesDto } from './dto/update-student-availabilities.dto';
@@ -44,6 +48,7 @@ export class StudentsController {
   constructor(
     private readonly studentsService: StudentsService,
     private readonly studentAvailabilityService: StudentAvailabilityService,
+    private readonly studentExcelService: StudentExcelService,
   ) {}
 
   @Post()
@@ -66,6 +71,74 @@ export class StudentsController {
     @CurrentLocale() locale?: SupportedLocale,
   ) {
     return this.studentsService.findAll(currentUser, filter, locale);
+  }
+
+  @Get('excel-template')
+  @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
+  excelTemplate(
+    @Res() res: Response,
+    @CurrentLocale() locale: SupportedLocale = 'fa',
+  ) {
+    const buffer = this.studentExcelService.generateTemplate(locale);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="students-import-template.xlsx"',
+    );
+    return res.send(buffer);
+  }
+
+  @Get('export-excel')
+  @RequirePermissions(PERMISSIONS.VIEW_STUDENTS)
+  async exportExcel(
+    @CurrentUser() currentUser: JwtPayload,
+    @Res() res: Response,
+    @Query() filter: StudentFilterDto,
+    @CurrentLocale() locale?: SupportedLocale,
+  ) {
+    const buffer = await this.studentExcelService.exportToExcel(
+      currentUser,
+      filter,
+      locale,
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="students-list.xlsx"',
+    );
+    return res.send(buffer);
+  }
+
+  @Post('import-excel')
+  @UseInterceptors(FileInterceptor('file'))
+  @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
+  async importExcel(
+    @CurrentUser() currentUser: JwtPayload,
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @CurrentLocale() locale: SupportedLocale,
+    @Query('instituteId') queryInstituteId?: string,
+    @Body('instituteId') bodyInstituteId?: string,
+  ) {
+    const instituteId = queryInstituteId || bodyInstituteId;
+    if (!file || !file.buffer) {
+      throw new BadRequestException(
+        locale === 'fa'
+          ? 'لطفاً فایل اکسل معتبر را انتخاب کنید'
+          : 'Please select a valid Excel file',
+      );
+    }
+    return this.studentExcelService.importFromExcel(
+      currentUser,
+      file.buffer,
+      locale,
+      instituteId,
+    );
   }
 
   @Get('lookup')

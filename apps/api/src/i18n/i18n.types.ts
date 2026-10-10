@@ -37,8 +37,11 @@ export interface TranslationDictionary {
     unauthorizedStudentCreation: string;
     phoneAlreadyInUse: string;
     passwordResetSuccess: string;
+    emptyImportFile: string;
   };
   teachers: {
+    teacherAlreadyExists: string;
+    emptyImportFile: string;
     invalidCourses: string;
     instituteRequired: string;
   };

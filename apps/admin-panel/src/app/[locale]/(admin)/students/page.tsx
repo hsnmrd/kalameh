@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useTranslations, useLocale } from "next-intl"
 import type { StudentDto } from "@workspace/types"
 import {
   PERMISSIONS,
@@ -9,11 +10,13 @@ import {
   ROLES,
   parseStatusFilter,
 } from "@workspace/types"
+import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   coursesResource,
   operatingPhasesResource,
   studentsResource,
+  API_BASE_URL,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions, useModal } from "@/lib/hooks"
@@ -22,6 +25,7 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
+import { StudentsHeaderActions } from "./components/students-header-actions"
 import { NoOperatingPhaseAlert } from "./components/no-operating-phase-alert"
 import { StudentsFilter } from "./components/students-filter"
 import { StudentsTable } from "./components/students-table"
@@ -29,11 +33,14 @@ import { StudentsList } from "./components/students-list"
 import { StudentsFabDrawer } from "./components/students-fab-drawer"
 
 export default function StudentsPage() {
+  const t = useTranslations("students")
+  const locale = useLocale()
   const { openModal } = useModal()
 
   const [searchValue, setSearchValue] = React.useState("")
   const [selectedCourseId, setSelectedCourseId] = React.useState("ALL")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
+  const [isExporting, setIsExporting] = React.useState(false)
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -72,7 +79,52 @@ export default function StudentsPage() {
     enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
   })
 
+  const totalCount = students?.length ?? 0
+  const isListEmpty = !isLoading && !hasNoPhases && totalCount === 0
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true)
+      const baseUrl = API_BASE_URL
+      const queryParams = new URLSearchParams()
+      const isActiveFilter = parseStatusFilter(selectedStatus)
+      if (isActiveFilter !== undefined)
+        queryParams.set("isActive", String(isActiveFilter))
+      if (selectedCourseId !== "ALL")
+        queryParams.set("courseId", selectedCourseId)
+      if (searchValue.trim()) queryParams.set("search", searchValue.trim())
+      if (activeInstituteId) queryParams.set("instituteId", activeInstituteId)
+
+      const url = `${baseUrl}/students/export-excel?${queryParams.toString()}`
+      const response = await fetch(url, {
+        headers: {
+          "Accept-Language": locale,
+        },
+        credentials: "include",
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to export")
+      }
+
+      const blob = await response.blob()
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = downloadUrl
+      a.download = "students-list.xlsx"
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(downloadUrl)
+      document.body.removeChild(a)
+    } catch {
+      toast.error(t("export.error"))
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   const handleCreate = () => openModal("createStudent")
+  const handleImport = () => openModal("importStudents")
   const handleSetAllAvailable = () => openModal("setAllAvailable")
   const handleEdit = (student: StudentDto) =>
     openModal("editStudent", { student })
@@ -85,13 +137,18 @@ export default function StudentsPage() {
   const handleResetPassword = (student: StudentDto) =>
     openModal("resetPassword", { student })
 
-  const isListEmpty =
-    !isLoading && !hasNoPhases && (!students || students.length === 0)
-
   return (
     <ModuleGuard module={APP_MODULES.STUDENTS}>
       <PermissionGuard permission={PERMISSIONS.VIEW_STUDENTS} mode="forbidden">
         <AdminPageShell
+          actions={
+            <StudentsHeaderActions
+              totalCount={totalCount}
+              onImportClick={handleImport}
+              onExportClick={handleExport}
+              isExporting={isExporting}
+            />
+          }
           filter={
             <StudentsFilter
               searchValue={searchValue}

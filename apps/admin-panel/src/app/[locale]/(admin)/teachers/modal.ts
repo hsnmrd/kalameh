@@ -9,6 +9,13 @@ export const modalRegistry: ModalRegistry = {
       ),
     { ssr: false }
   ),
+  importTeachers: dynamic(
+    () =>
+      import("./components/import-teachers-modal").then(
+        (m) => m.ImportTeachersModal
+      ),
+    { ssr: false }
+  ),
   viewProfileTeacher: dynamic(
     () =>
       import("./components/teacher-profile-modal").then(

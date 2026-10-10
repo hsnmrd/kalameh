@@ -13,9 +13,13 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Res,
+  BadRequestException,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TeachersService } from './teachers.service';
+import { TeacherExcelService } from './teacher-excel.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { ReplaceTeacherCoursesDto } from './dto/replace-teacher-courses.dto';
@@ -37,7 +41,10 @@ import {
 @Controller('teachers')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class TeachersController {
-  constructor(private readonly teachersService: TeachersService) {}
+  constructor(
+    private readonly teachersService: TeachersService,
+    private readonly teacherExcelService: TeacherExcelService,
+  ) {}
 
   @Post()
   @RequirePermissions(PERMISSIONS.MANAGE_TEACHERS)
@@ -70,6 +77,77 @@ export class TeachersController {
         instituteId,
       },
       locale,
+    );
+  }
+
+  @Get('excel-template')
+  @RequirePermissions(PERMISSIONS.MANAGE_TEACHERS)
+  excelTemplate(
+    @Res() res: Response,
+    @CurrentLocale() locale: SupportedLocale = 'fa',
+  ) {
+    const buffer = this.teacherExcelService.generateTemplate(locale);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="teachers-import-template.xlsx"',
+    );
+    return res.send(buffer);
+  }
+
+  @Get('export-excel')
+  @RequirePermissions(PERMISSIONS.VIEW_TEACHERS)
+  async exportExcel(
+    @CurrentUser() currentUser: JwtPayload,
+    @Res() res: Response,
+    @Query('search') search?: string,
+    @Query('isActive') isActive?: string,
+    @Query('instituteId') instituteId?: string,
+    @CurrentLocale() locale?: SupportedLocale,
+  ) {
+    const parsedIsActive = parseStatusFilter(isActive);
+    const buffer = await this.teacherExcelService.exportToExcel(
+      currentUser,
+      { search, isActive: parsedIsActive, instituteId },
+      locale,
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="teachers-list.xlsx"',
+    );
+    return res.send(buffer);
+  }
+
+  @Post('import-excel')
+  @UseInterceptors(FileInterceptor('file'))
+  @RequirePermissions(PERMISSIONS.MANAGE_TEACHERS)
+  async importExcel(
+    @CurrentUser() currentUser: JwtPayload,
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @CurrentLocale() locale: SupportedLocale,
+    @Query('instituteId') queryInstituteId?: string,
+    @Body('instituteId') bodyInstituteId?: string,
+  ) {
+    const instituteId = queryInstituteId || bodyInstituteId;
+    if (!file || !file.buffer) {
+      throw new BadRequestException(
+        locale === 'fa'
+          ? 'لطفاً فایل اکسل معتبر را انتخاب کنید'
+          : 'Please select a valid Excel file',
+      );
+    }
+    return this.teacherExcelService.importFromExcel(
+      currentUser,
+      file.buffer,
+      locale,
+      instituteId,
     );
   }
 

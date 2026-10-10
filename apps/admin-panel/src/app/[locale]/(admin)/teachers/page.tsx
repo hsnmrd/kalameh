@@ -2,11 +2,12 @@
 
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
+import { toast } from "@workspace/ui/components/sonner"
 import { FABSingle } from "@workspace/ui/components/fab"
 import type { TeacherDto } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
-import { teachersResource } from "@/lib/api"
+import { teachersResource, API_BASE_URL } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
@@ -14,16 +15,19 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
+import { TeachersHeaderActions } from "./components/teachers-header-actions"
 import { TeachersFilter } from "./components/teachers-filter"
 import { TeachersTable } from "./components/teachers-table"
 import { TeachersList } from "./components/teachers-list"
 
 export default function TeachersPage() {
   const t = useTranslations("teachers")
+  const locale = useLocale()
   const { openModal } = useModal()
 
   const [searchValue, setSearchValue] = React.useState("")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
+  const [isExporting, setIsExporting] = React.useState(false)
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -49,9 +53,49 @@ export default function TeachersPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
-  const isListEmpty = !isLoading && (!teachers || teachers.length === 0)
+  const totalCount = teachers?.length ?? 0
+  const isListEmpty = !isLoading && totalCount === 0
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true)
+      const baseUrl = API_BASE_URL
+      const queryParams = new URLSearchParams()
+      if (isActiveFilter !== undefined)
+        queryParams.set("isActive", String(isActiveFilter))
+      if (searchValue.trim()) queryParams.set("search", searchValue.trim())
+      if (activeInstituteId) queryParams.set("instituteId", activeInstituteId)
+
+      const url = `${baseUrl}/teachers/export-excel?${queryParams.toString()}`
+      const response = await fetch(url, {
+        headers: {
+          "Accept-Language": locale,
+        },
+        credentials: "include",
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to export")
+      }
+
+      const blob = await response.blob()
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = downloadUrl
+      a.download = "teachers-list.xlsx"
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(downloadUrl)
+      document.body.removeChild(a)
+    } catch {
+      toast.error(t("export.error"))
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const handleCreate = () => openModal("createTeacher")
+  const handleImport = () => openModal("importTeachers")
   const handleViewProfile = (teacher: TeacherDto) =>
     openModal("viewProfileTeacher", { teacher })
   const handleManageAvailability = (teacher: TeacherDto) =>
@@ -67,6 +111,14 @@ export default function TeachersPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_TEACHERS} mode="forbidden">
         <AdminPageShell
+          actions={
+            <TeachersHeaderActions
+              totalCount={totalCount}
+              onImportClick={handleImport}
+              onExportClick={handleExport}
+              isExporting={isExporting}
+            />
+          }
           filter={
             <TeachersFilter
               searchValue={searchValue}

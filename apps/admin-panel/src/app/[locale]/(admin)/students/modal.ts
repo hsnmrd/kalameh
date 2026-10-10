@@ -9,6 +9,13 @@ export const modalRegistry: ModalRegistry = {
       ),
     { ssr: false }
   ),
+  importStudents: dynamic(
+    () =>
+      import("./components/import-students-modal").then(
+        (m) => m.ImportStudentsModal
+      ),
+    { ssr: false }
+  ),
   editStudent: dynamic(
     () =>
       import("./components/edit-student-modal").then((m) => m.EditStudentModal),

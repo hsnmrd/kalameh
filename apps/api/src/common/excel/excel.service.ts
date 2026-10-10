@@ -4,6 +4,20 @@ import type { SupportedLocale, Role } from '@workspace/types';
 import { parseXlsxBuffer } from './xlsx-parser';
 import { buildXlsxBuffer } from './xlsx-writer';
 import { exportUsers, generateUserTemplate } from './user-workbook';
+import {
+  exportTeachers,
+  generateTeacherTemplate,
+  parseTeacherRows,
+  type TeacherTemplateRow,
+} from './teacher-workbook';
+import {
+  exportStudents,
+  generateStudentTemplate,
+  parseStudentRows,
+  type StudentTemplateRow,
+} from './student-workbook';
+
+export type { TeacherTemplateRow, StudentTemplateRow };
 
 export interface UserTemplateRow {
   firstName: string;
@@ -134,13 +148,9 @@ export class ExcelService {
   }
 
   /**
-   * Parse an uploaded binary buffer (XLSX or CSV).
+   * Parse an uploaded binary buffer into raw string records (XLSX or CSV).
    */
-  parseUserRows(
-    fileBuffer: Buffer,
-    locale: SupportedLocale = 'fa',
-  ): UserTemplateRow[] {
-    void locale;
+  parseRawRecords(fileBuffer: Buffer): Record<string, string>[] {
     const isZip =
       fileBuffer.length > 4 &&
       fileBuffer[0] === 0x50 &&
@@ -148,16 +158,22 @@ export class ExcelService {
       fileBuffer[2] === 0x03 &&
       fileBuffer[3] === 0x04;
 
-    let rawRecords: Record<string, string>[] = [];
-
     if (isZip) {
-      // XLSX file - extract worksheet and sharedStrings
-      rawRecords = parseXlsxBuffer(fileBuffer);
-    } else {
-      // CSV or plain text format
-      const text = fileBuffer.toString('utf-8');
-      rawRecords = this.parseCsv(text);
+      return parseXlsxBuffer(fileBuffer);
     }
+    const text = fileBuffer.toString('utf-8');
+    return this.parseCsv(text);
+  }
+
+  /**
+   * Parse an uploaded binary buffer (XLSX or CSV).
+   */
+  parseUserRows(
+    fileBuffer: Buffer,
+    locale: SupportedLocale = 'fa',
+  ): UserTemplateRow[] {
+    void locale;
+    const rawRecords = this.parseRawRecords(fileBuffer);
 
     return rawRecords.map((record) => {
       // Intelligently map headers regardless of case or Persian/English labels
@@ -223,10 +239,6 @@ export class ExcelService {
     });
   }
 
-  /**
-   * Parse XLSX buffer by extracting sharedStrings and sheet1 XML from ZIP.
-   */
-
   generateUserTemplate(locale: SupportedLocale = 'fa'): Buffer {
     return generateUserTemplate(locale);
   }
@@ -236,6 +248,46 @@ export class ExcelService {
     locale: SupportedLocale = 'fa',
   ): Buffer {
     return exportUsers(users, locale);
+  }
+
+  generateTeacherTemplate(locale: SupportedLocale = 'fa'): Buffer {
+    return generateTeacherTemplate(locale);
+  }
+
+  exportTeachers(
+    teachers: Parameters<typeof exportTeachers>[0],
+    locale: SupportedLocale = 'fa',
+  ): Buffer {
+    return exportTeachers(teachers, locale);
+  }
+
+  parseTeacherRows(
+    fileBuffer: Buffer,
+    locale: SupportedLocale = 'fa',
+  ): TeacherTemplateRow[] {
+    void locale;
+    const rawRecords = this.parseRawRecords(fileBuffer);
+    return parseTeacherRows(rawRecords, (s) => this.normalizeDigits(s));
+  }
+
+  generateStudentTemplate(locale: SupportedLocale = 'fa'): Buffer {
+    return generateStudentTemplate(locale);
+  }
+
+  exportStudents(
+    students: Parameters<typeof exportStudents>[0],
+    locale: SupportedLocale = 'fa',
+  ): Buffer {
+    return exportStudents(students, locale);
+  }
+
+  parseStudentRows(
+    fileBuffer: Buffer,
+    locale: SupportedLocale = 'fa',
+  ): StudentTemplateRow[] {
+    void locale;
+    const rawRecords = this.parseRawRecords(fileBuffer);
+    return parseStudentRows(rawRecords, (s) => this.normalizeDigits(s));
   }
 
   buildXlsxBuffer(
