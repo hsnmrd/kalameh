@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { CalendarOff, Trash2 } from "lucide-react"
+import { CalendarOff, Plus, Trash2 } from "lucide-react"
 import type { InstituteCustomOffDay } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -21,6 +21,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Empty,
+  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
@@ -31,12 +32,14 @@ export interface CustomOffDaysListProps {
   customOffDays: InstituteCustomOffDay[] | undefined
   isLoading: boolean
   onDelete: (offDay: InstituteCustomOffDay) => void
+  onAdd?: () => void
 }
 
 export function CustomOffDaysList({
   customOffDays,
   isLoading,
   onDelete,
+  onAdd,
 }: CustomOffDaysListProps) {
   const t = useTranslations("setting.offDays")
   const locale = useLocale()
@@ -61,6 +64,14 @@ export function CustomOffDaysList({
           </EmptyMedia>
           <EmptyDescription>{t("noCustomOffDays")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <Button onClick={onAdd}>
+              <Plus className="size-4" />
+              <span>{t("addOffDay")}</span>
+            </Button>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

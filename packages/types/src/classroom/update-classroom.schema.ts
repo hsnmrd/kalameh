@@ -17,7 +17,7 @@ export const createUpdateClassroomSchema = (msg?: {
       .int()
       .min(1, msg?.capacityMin ? { message: msg.capacityMin } : undefined)
       .optional(),
-    branchId: z.string().uuid().optional().nullable(),
+    branchId: z.string().uuid().optional(),
     description: z.string().trim().optional().nullable(),
     isActive: z.boolean().optional(),
   })

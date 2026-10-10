@@ -5,8 +5,10 @@
   "searchPlaceholder": "Search",
   "filter": {
     "course": "Course & Level",
+    "branch": "Branch",
     "status": "Account Status",
     "allCourses": "All Courses & Levels",
+    "allBranches": "All Branches",
     "allStatus": "All Statuses",
     "active": "Active Only",
     "inactive": "Suspended/Inactive Only"
@@ -23,6 +25,7 @@
     "currentLevel": "Allowed Course Level",
     "noLevel": "Not Assigned (Root Level)",
     "scheduleStatus": "Availability Schedule",
+    "branch": "Branch",
     "status": "Status",
     "enrollmentsCount": "Enrollments",
     "createdAt": "Registered At",
@@ -63,6 +66,8 @@
     "currentAllowedCourseId": "Initial Course Level",
     "currentLevel": "Initial Course Level",
     "selectCourse": "Select Course Level (Default: Root Course)",
+    "branch": "Branch",
+    "selectBranch": "Select branch",
     "password": "Initial Password",
     "passwordPlaceholder": "Enter password",
     "passwordHint": "If left empty, phone number will be used as default password.",
@@ -76,6 +81,8 @@
   "editModal": {
     "title": "Edit Student Profile",
     "description": "Update identity, guardian, and placement details.",
+    "branch": "Branch",
+    "selectBranch": "Select branch",
     "firstName": "First Name",
     "firstNamePlaceholder": "First name",
     "lastName": "Last Name",

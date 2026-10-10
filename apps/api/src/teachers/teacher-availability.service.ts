@@ -15,6 +15,7 @@ export class TeacherAvailabilityService {
     currentUser: JwtPayload,
     teacherId: string,
     termId?: string,
+    branchId?: string,
   ) {
     const teacher = await this.prisma.user.findFirstOrThrow({
       where: {
@@ -33,12 +34,15 @@ export class TeacherAvailabilityService {
       return [];
     }
 
+    const branchFilter = branchId ? { branchId } : {};
+
     if (termId) {
       const termAvailabilities = await this.prisma.teacherAvailability.findMany(
         {
           where: {
             teacherProfileId: teacher.teacherProfile.id,
             termId,
+            ...branchFilter,
           },
           orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
         },
@@ -52,13 +56,17 @@ export class TeacherAvailabilityService {
         where: {
           teacherProfileId: teacher.teacherProfile.id,
           termId: null,
+          ...branchFilter,
         },
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });
     }
 
     return this.prisma.teacherAvailability.findMany({
-      where: { teacherProfileId: teacher.teacherProfile.id },
+      where: {
+        teacherProfileId: teacher.teacherProfile.id,
+        ...branchFilter,
+      },
       orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
     });
   }
@@ -90,23 +98,44 @@ export class TeacherAvailabilityService {
         },
       }));
 
+    let targetBranchId =
+      dto.branchId ?? dto.availabilities[0]?.branchId ?? teacher.branchId;
+
+    if (!targetBranchId && dto.availabilities.length > 0) {
+      const defaultBranch = await this.prisma.branch.findFirst({
+        where: { instituteId: teacher.instituteId, isActive: true },
+        select: { id: true },
+      });
+      targetBranchId = defaultBranch?.id ?? null;
+    }
+
     const availabilities = await this.prisma.$transaction(async (tx) => {
       await tx.teacherAvailability.deleteMany({
         where: {
           teacherProfileId: profile.id,
           ...(dto.termId !== undefined ? { termId: dto.termId } : {}),
+          ...(targetBranchId ? { branchId: targetBranchId } : {}),
         },
       });
 
       if (dto.availabilities.length > 0) {
         await tx.teacherAvailability.createMany({
-          data: dto.availabilities.map((slot) => ({
-            teacherProfileId: profile.id,
-            termId: slot.termId ?? dto.termId ?? null,
-            dayOfWeek: slot.dayOfWeek,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-          })),
+          data: dto.availabilities.map((slot) => {
+            const slotBranchId = slot.branchId ?? targetBranchId;
+            if (!slotBranchId) {
+              throw new Error(
+                'branchId is required for teacher availability slot',
+              );
+            }
+            return {
+              teacherProfileId: profile.id,
+              termId: slot.termId ?? dto.termId ?? null,
+              branchId: slotBranchId,
+              dayOfWeek: slot.dayOfWeek,
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+            };
+          }),
         });
       }
 
@@ -114,6 +143,7 @@ export class TeacherAvailabilityService {
         where: {
           teacherProfileId: profile.id,
           ...(dto.termId !== undefined ? { termId: dto.termId } : {}),
+          ...(targetBranchId ? { branchId: targetBranchId } : {}),
         },
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });

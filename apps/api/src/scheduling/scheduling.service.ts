@@ -37,7 +37,7 @@ export class SchedulingService {
       input.instituteId,
       locale,
     );
-    const branchId = input.branchId ?? null;
+    const branchId = input.branchId;
 
     const [term, branch, requirements] = await Promise.all([
       this.prisma.term.findFirst({
@@ -66,17 +66,16 @@ export class SchedulingService {
           },
         },
       }),
-      branchId
-        ? this.prisma.branch.findFirst({
-            where: { id: branchId, instituteId },
-            select: { id: true, name: true, isActive: true },
-          })
-        : Promise.resolve(null),
+      this.prisma.branch.findFirst({
+        where: { id: branchId, instituteId },
+        select: { id: true, name: true, isActive: true },
+      }),
       this.prisma.classRequirement.findMany({
         where: {
           id: { in: input.requirementIds },
           instituteId,
           termId: input.termId,
+          branchId,
           isActive: true,
         },
         select: {
@@ -97,11 +96,7 @@ export class SchedulingService {
       }),
     ]);
 
-    if (
-      !term ||
-      !term.isActive ||
-      (branchId !== null && (!branch || !branch.isActive))
-    ) {
+    if (!term || !term.isActive || !branch || !branch.isActive) {
       throw new BadRequestException(
         this.i18n.t('scheduling.invalidScope', locale),
       );
@@ -170,7 +165,12 @@ export class SchedulingService {
               user: {
                 isActive: true,
                 role: 'TEACHER',
-                ...(branchId ? { OR: [{ branchId }, { branchId: null }] } : {}),
+              },
+              availabilities: {
+                some: {
+                  branchId,
+                  OR: [{ termId: input.termId }, { termId: null }],
+                },
               },
             },
           },
@@ -186,11 +186,13 @@ export class SchedulingService {
                 },
                 availabilities: {
                   where: {
+                    branchId,
                     OR: [{ termId: input.termId }, { termId: null }],
                   },
                   select: {
                     id: true,
                     termId: true,
+                    branchId: true,
                     dayOfWeek: true,
                     startTime: true,
                     endTime: true,
@@ -206,9 +208,9 @@ export class SchedulingService {
         this.prisma.user.findMany({
           where: {
             instituteId,
+            branchId,
             isActive: true,
             currentAllowedCourseId: { in: courseIds },
-            ...(branchId ? { OR: [{ branchId }, { branchId: null }] } : {}),
           },
           select: {
             id: true,
@@ -245,7 +247,6 @@ export class SchedulingService {
           where: {
             instituteId,
             termId: input.termId,
-            ...(branchId ? { OR: [{ branchId }, { branchId: null }] } : {}),
           },
           select: {
             id: true,
@@ -264,8 +265,8 @@ export class SchedulingService {
         this.prisma.classroom.findMany({
           where: {
             instituteId,
+            branchId,
             isActive: true,
-            ...(branchId ? { OR: [{ branchId }, { branchId: null }] } : {}),
           },
           select: {
             id: true,
@@ -282,7 +283,14 @@ export class SchedulingService {
             instituteId,
             isActive: true,
             role: 'TEACHER',
-            ...(branchId ? { OR: [{ branchId }, { branchId: null }] } : {}),
+            teacherProfile: {
+              availabilities: {
+                some: {
+                  branchId,
+                  OR: [{ termId: input.termId }, { termId: null }],
+                },
+              },
+            },
           },
           select: {
             id: true,
@@ -462,7 +470,7 @@ export class SchedulingService {
   private async validateRegeneration(
     instituteId: string,
     input: GenerateSchedulingPlanInput,
-    branchId: string | null,
+    branchId: string,
     locale: SupportedLocale,
   ): Promise<{ lockedProposalIds: string[] }> {
     if (input.lockedProposalIds.length > 0 && !input.sourceRunId) {

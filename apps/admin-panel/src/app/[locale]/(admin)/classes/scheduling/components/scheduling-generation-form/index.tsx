@@ -14,6 +14,7 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@workspace/ui/components/field"
@@ -23,8 +24,6 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { useSchedulingGenerationForm } from "../../hooks/use-scheduling-generation-form"
 import { SchedulingRequirementPicker } from "../scheduling-requirement-picker"
 import { SchedulingStudentScheduleWarning } from "../scheduling-student-schedule-warning"
-
-const ALL_BRANCHES = "ALL_BRANCHES"
 
 interface SchedulingGenerationFormProps {
   onCreated: (run: SchedulingRunDto) => void
@@ -74,13 +73,15 @@ export function SchedulingGenerationForm({
   React.useEffect(() => {
     if (defaultBranchId) {
       form.setValue("branchId", defaultBranchId, { shouldValidate: true })
+    } else if (!form.getValues("branchId") && branches.length > 0) {
+      form.setValue("branchId", branches[0]!.id, { shouldValidate: true })
     }
-  }, [defaultBranchId, form])
+  }, [defaultBranchId, branches, form])
 
-  const branchOptions: ComboboxOption[] = [
-    { value: ALL_BRANCHES, label: t("fields.branch.all") },
-    ...branches.map((branch) => ({ value: branch.id, label: branch.name })),
-  ]
+  const branchOptions: ComboboxOption[] = branches.map((branch) => ({
+    value: branch.id,
+    label: branch.name,
+  }))
   const alternativeOptions: ComboboxOption[] = [1, 2, 3].map((count) => ({
     value: String(count),
     label: t("fields.alternatives.option", {
@@ -147,7 +148,7 @@ export function SchedulingGenerationForm({
         ) : (
           <FieldGroup>
             <div className="grid gap-4 md:grid-cols-2">
-              <Field>
+              <Field data-invalid={Boolean(errors.branchId)}>
                 <FieldLabel>{t("fields.branch.label")}</FieldLabel>
                 <Controller
                   control={form.control}
@@ -155,12 +156,8 @@ export function SchedulingGenerationForm({
                   render={({ field }) => (
                     <ResponsiveCombobox
                       items={branchOptions}
-                      value={field.value ?? ALL_BRANCHES}
-                      onValueChange={(value) =>
-                        field.onChange(
-                          value === ALL_BRANCHES || !value ? null : value
-                        )
-                      }
+                      value={field.value}
+                      onValueChange={(value) => field.onChange(value || "")}
                       disabled={isScopeLoading}
                       placeholder={t("fields.branch.placeholder")}
                       drawerTitle={t("fields.branch.drawerTitle")}
@@ -172,6 +169,9 @@ export function SchedulingGenerationForm({
                 <FieldDescription>
                   {t("fields.branch.description")}
                 </FieldDescription>
+                {errors.branchId && (
+                  <FieldError>{errors.branchId.message}</FieldError>
+                )}
               </Field>
 
               <Field data-invalid={Boolean(errors.alternativePlanCount)}>

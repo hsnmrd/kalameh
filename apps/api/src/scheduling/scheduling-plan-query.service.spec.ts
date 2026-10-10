@@ -24,6 +24,7 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
     teacher: uuid(10),
     qualification: uuid(11),
     unresolved: uuid(12),
+    branch: uuid(13),
   };
   const now = new Date('2026-09-09T14:00:00.000Z');
   const admin: JwtPayload = {
@@ -88,7 +89,7 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
               planId: ids.plan,
               classRequirementId: ids.requirement,
               courseId: ids.course,
-              branchId: null,
+              branchId: ids.branch,
               teacherId: ids.teacher,
               classroomId: null,
               teacherQualificationId: ids.qualification,
@@ -150,7 +151,7 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
             id: ids.run,
             status: 'COMPLETED',
             termId: ids.term,
-            branchId: null,
+            branchId: ids.branch,
             inputSnapshot: {},
             settingsSnapshot: {},
             term: {
@@ -159,7 +160,7 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
               startDate: now,
               endDate: new Date('2026-12-31T00:00:00.000Z'),
             },
-            branch: null,
+            branch: { id: ids.branch, name: 'Main' },
           },
           createdAt: now,
           updatedAt: now,

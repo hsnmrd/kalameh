@@ -27,13 +27,7 @@ export class SchedulingDemandApplicationService {
         input.termId,
         input.instituteId,
       );
-    const activeBranches = await this.prisma.branch.findMany({
-      where: { instituteId, isActive: true },
-      select: { id: true },
-    });
-    const targetBranchId =
-      input.branchId ??
-      (activeBranches.length === 1 ? (activeBranches[0]?.id ?? null) : null);
+    const targetBranchId = input.branchId;
     const demand = await this.calculationService.calculateDemand(currentUser, {
       termId: input.termId,
       branchId: targetBranchId,
@@ -92,9 +86,7 @@ export class SchedulingDemandApplicationService {
     const replacementScope = {
       instituteId,
       termId: input.termId,
-      ...(targetBranchId
-        ? { OR: [{ branchId: targetBranchId }, { branchId: null }] }
-        : { branchId: null }),
+      branchId: targetBranchId,
     };
     const previousRequirements = await this.prisma.classRequirement.findMany({
       where: { ...replacementScope, isActive: true },

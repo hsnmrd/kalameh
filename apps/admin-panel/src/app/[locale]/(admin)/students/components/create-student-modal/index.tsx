@@ -17,7 +17,7 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { type ComboboxOption } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { coursesResource, studentsResource } from "@/lib/api"
+import { coursesResource, studentsResource, branchesResource } from "@/lib/api"
 import type { SupportedLocale } from "@workspace/types"
 import {
   useCreateStudentSchema,
@@ -49,6 +49,12 @@ export function CreateStudentModal({
     enabled: open && !!instituteId,
   })
 
+  // Fetch branches to let admin assign branch
+  const { data: branches = [] } = useQuery({
+    ...branchesResource.list.toQuery(instituteId ? { instituteId } : undefined),
+    enabled: open && !!instituteId,
+  })
+
   const genderOptions: ComboboxOption[] = React.useMemo(
     () => [
       { value: "MALE", label: t("createModal.genderMale") },
@@ -63,6 +69,16 @@ export function CreateStudentModal({
       ...courses.map((c) => ({ value: c.id, label: c.title })),
     ],
     [courses, t]
+  )
+
+  const branchOptions: ComboboxOption[] = React.useMemo(
+    () => [
+      { value: "ROOT", label: t("createModal.selectBranch") },
+      ...branches
+        .filter((b) => b.isActive)
+        .map((b) => ({ value: b.id, label: b.name })),
+    ],
+    [branches, t]
   )
 
   const form = useForm<CreateStudentInput>({
@@ -81,6 +97,7 @@ export function CreateStudentModal({
       address: "",
       notes: "",
       currentAllowedCourseId: null,
+      branchId: null,
       password: "",
     },
   })
@@ -163,6 +180,7 @@ export function CreateStudentModal({
               locale={locale}
               genderOptions={genderOptions}
               courseOptions={courseOptions}
+              branchOptions={branchOptions}
             />
           </div>
 

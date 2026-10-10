@@ -115,22 +115,20 @@ export class ClassroomsService {
         ? dto.instituteId
         : currentUser.instituteId;
 
-    if (dto.branchId) {
-      const branch = await this.prisma.branch.findFirst({
-        where: { id: dto.branchId, instituteId },
-      });
-      if (!branch) {
-        throw new BadRequestException(
-          this.i18n.t('branches.branchNotFound', locale),
-        );
-      }
+    const branch = await this.prisma.branch.findFirst({
+      where: { id: dto.branchId, instituteId },
+    });
+    if (!branch) {
+      throw new BadRequestException(
+        this.i18n.t('branches.branchNotFound', locale),
+      );
     }
 
     const existing = await this.prisma.classroom.findFirst({
       where: {
         name: dto.name,
         instituteId,
-        branchId: dto.branchId || null,
+        branchId: dto.branchId,
       },
     });
 
@@ -143,7 +141,7 @@ export class ClassroomsService {
     const created = await this.prisma.classroom.create({
       data: {
         instituteId,
-        branchId: dto.branchId || null,
+        branchId: dto.branchId,
         name: dto.name,
         capacity: dto.capacity,
         description: dto.description || null,
@@ -202,7 +200,7 @@ export class ClassroomsService {
           id: { not: id },
           name: dto.name || existing.name,
           instituteId: existing.instituteId,
-          branchId: targetBranchId || null,
+          branchId: targetBranchId,
         },
       });
       if (duplicate) {
@@ -217,9 +215,7 @@ export class ClassroomsService {
       data: {
         ...(dto.name ? { name: dto.name } : {}),
         ...(dto.capacity !== undefined ? { capacity: dto.capacity } : {}),
-        ...(dto.branchId !== undefined
-          ? { branchId: dto.branchId || null }
-          : {}),
+        ...(dto.branchId !== undefined ? { branchId: dto.branchId } : {}),
         ...(dto.description !== undefined
           ? { description: dto.description || null }
           : {}),

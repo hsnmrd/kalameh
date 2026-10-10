@@ -21,6 +21,7 @@ interface ProfileFieldsProps {
   locale: SupportedLocale
   genderOptions: ComboboxOption[]
   courseOptions: ComboboxOption[]
+  branchOptions: ComboboxOption[]
 }
 
 export function ProfileFields({
@@ -28,6 +29,7 @@ export function ProfileFields({
   locale,
   genderOptions,
   courseOptions,
+  branchOptions,
 }: ProfileFieldsProps) {
   const t = useTranslations("students")
   const {
@@ -108,6 +110,27 @@ export function ProfileFields({
         </div>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Field data-invalid={Boolean(errors.branchId)}>
+          <FieldLabel>{t("createModal.branch")}</FieldLabel>
+          <Controller
+            control={control}
+            name="branchId"
+            render={({ field }) => (
+              <ResponsiveCombobox
+                items={branchOptions}
+                value={field.value || "ROOT"}
+                onValueChange={(val) =>
+                  field.onChange(val === "ROOT" ? null : val || null)
+                }
+                placeholder={t("createModal.selectBranch")}
+                drawerTitle={t("createModal.branch")}
+                clearable={false}
+                data-invalid={Boolean(errors.branchId)}
+              />
+            )}
+          />
+          <FieldError>{errors.branchId?.message}</FieldError>
+        </Field>
         <Field data-invalid={Boolean(errors.currentAllowedCourseId)}>
           <FieldLabel>{t("createModal.currentAllowedCourseId")}</FieldLabel>
           <Controller

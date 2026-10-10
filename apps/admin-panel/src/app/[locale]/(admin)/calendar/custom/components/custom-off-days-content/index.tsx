@@ -99,6 +99,7 @@ export function CustomOffDaysContent() {
           customOffDays={filteredOffDays}
           isLoading={isLoading}
           onDelete={(item) => openModal("deleteOffDay", { offDay: item })}
+          onAdd={() => openModal("addOffDay")}
         />
       </div>
 
@@ -108,6 +109,7 @@ export function CustomOffDaysContent() {
           customOffDays={filteredOffDays}
           isLoading={isLoading}
           onDelete={(item) => openModal("deleteOffDay", { offDay: item })}
+          onAdd={() => openModal("addOffDay")}
         />
       </div>
     </AdminPageShell>

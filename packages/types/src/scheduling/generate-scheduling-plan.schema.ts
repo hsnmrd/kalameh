@@ -7,7 +7,7 @@ const uniqueUuidArray = z
 export const GenerateSchedulingPlanSchema = z.object({
   instituteId: z.string().uuid().optional(),
   termId: z.string().uuid(),
-  branchId: z.string().uuid().nullable().optional(),
+  branchId: z.string().uuid(),
   requirementIds: uniqueUuidArray.pipe(z.array(z.string().uuid()).min(1)),
   alternativePlanCount: z.number().int().min(1).max(3).default(3),
   sourceRunId: z.string().uuid().nullable().optional(),

@@ -50,23 +50,19 @@ export function SchedulingFilter({
     ? { instituteId: activeInstituteId }
     : undefined
 
-  const {
-    data: branchOptions = [
-      { value: "all", label: t("demand.filters.allBranches") },
-    ],
-  } = useQuery({
+  const { data: branchOptions = [] } = useQuery({
     ...branchesResource.list.toQuery(queryParams),
     enabled: Boolean(activeInstituteId),
-    select: (branches) => [
-      { value: "all", label: t("demand.filters.allBranches") },
-      ...branches.map((branch) => ({
-        value: branch.id,
-        label: branch.name,
-      })),
-    ],
+    select: (branches) =>
+      branches
+        .filter((branch) => branch.isActive)
+        .map((branch) => ({
+          value: branch.id,
+          label: branch.name,
+        })),
   })
 
-  const activeFiltersCount = branchId && branchId !== "all" ? 1 : 0
+  const activeFiltersCount = branchId ? 1 : 0
 
   const handleClearFilters = React.useCallback(() => {
     onBranchChange("")
@@ -84,7 +80,7 @@ export function SchedulingFilter({
             <Button
               type="button"
               onClick={onGenerateSchedule}
-              disabled={!term || isGenerating}
+              disabled={!term || !branchId || isGenerating}
               className="shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs"
             >
               {isGenerating ? (
@@ -103,10 +99,8 @@ export function SchedulingFilter({
             <FieldLabel>{t("demand.filters.branch")}</FieldLabel>
             <ResponsiveCombobox
               items={branchOptions}
-              value={branchId || "all"}
-              onValueChange={(val) =>
-                onBranchChange(val === "all" || !val ? "" : val)
-              }
+              value={branchId}
+              onValueChange={(val) => onBranchChange(val || "")}
               placeholder={t("demand.filters.branch")}
               drawerTitle={t("demand.filters.branch")}
               clearable={false}

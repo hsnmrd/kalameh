@@ -63,10 +63,50 @@ export class TeacherCreateService {
       locale,
     );
 
+    let defaultBranchId: string | null = null;
+    if (dto.availabilities && dto.availabilities.length > 0) {
+      const explicitBranchIds = Array.from(
+        new Set(
+          dto.availabilities
+            .map((s) => s.branchId)
+            .filter((b): b is string => !!b),
+        ),
+      );
+      if (explicitBranchIds.length > 0) {
+        const foundBranches = await this.prisma.branch.findMany({
+          where: {
+            id: { in: explicitBranchIds },
+            instituteId: targetInstituteId,
+          },
+          select: { id: true },
+        });
+        if (foundBranches.length !== explicitBranchIds.length) {
+          throw new BadRequestException(
+            this.i18n.t('branches.branchNotFound', locale),
+          );
+        }
+      }
+
+      const hasMissingBranch = dto.availabilities.some((s) => !s.branchId);
+      if (hasMissingBranch) {
+        const firstBranch = await this.prisma.branch.findFirst({
+          where: { instituteId: targetInstituteId, isActive: true },
+          select: { id: true },
+        });
+        if (!firstBranch) {
+          throw new BadRequestException(
+            this.i18n.t('branches.branchNotFound', locale),
+          );
+        }
+        defaultBranchId = firstBranch.id;
+      }
+    }
+
     const availabilitiesData =
       dto.availabilities && dto.availabilities.length > 0
         ? {
             create: dto.availabilities.map((slot) => ({
+              branchId: slot.branchId || defaultBranchId!,
               dayOfWeek: slot.dayOfWeek,
               startTime: slot.startTime,
               endTime: slot.endTime,

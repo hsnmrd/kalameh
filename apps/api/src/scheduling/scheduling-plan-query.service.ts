@@ -65,7 +65,7 @@ export class SchedulingPlanQueryService {
           instituteId,
           status: 'COMPLETED',
           term: { instituteId },
-          OR: [{ branchId: null }, { branch: { instituteId } }],
+          branch: { instituteId },
         },
         proposals: {
           every: {
@@ -74,9 +74,7 @@ export class SchedulingPlanQueryService {
             teacher: { instituteId },
             sessions: { every: { instituteId } },
             AND: [
-              {
-                OR: [{ branchId: null }, { branch: { instituteId } }],
-              },
+              { branch: { instituteId } },
               {
                 OR: [{ classroomId: null }, { classroom: { instituteId } }],
               },

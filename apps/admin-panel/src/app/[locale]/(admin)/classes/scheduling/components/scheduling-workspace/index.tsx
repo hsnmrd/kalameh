@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { AlertTriangle, Calendar, CalendarClock } from "lucide-react"
+import { AlertTriangle, Building2, Calendar, CalendarClock } from "lucide-react"
 import {
   calculateUncoveredStudents,
   rebalanceClassCapacities,
@@ -33,7 +33,11 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { useRouter } from "@/i18n/routing"
-import { classRequirementsResource, schedulingResource } from "@/lib/api"
+import {
+  branchesResource,
+  classRequirementsResource,
+  schedulingResource,
+} from "@/lib/api"
 import { useActiveInstitute, useSchedulingRunStore } from "@/lib/stores"
 import { selectDefaultSchedulingTerm } from "../../helper/term-selection"
 import { SchedulingDemandView } from "../scheduling-demand-view"
@@ -84,13 +88,28 @@ export function SchedulingWorkspace() {
     ),
     enabled: Boolean(activeInstituteId),
   })
+  const branchesQuery = useQuery({
+    ...branchesResource.list.toQuery(
+      activeInstituteId ? { instituteId: activeInstituteId } : undefined
+    ),
+    enabled: Boolean(activeInstituteId),
+  })
+  const activeBranches = React.useMemo(
+    () => (branchesQuery.data ?? []).filter((b) => b.isActive),
+    [branchesQuery.data]
+  )
+  const effectiveBranchId =
+    (branchSelection.instituteId === activeInstituteId &&
+      branchSelection.value) ||
+    activeBranches[0]?.id ||
+    ""
   const selectedTerm = React.useMemo(
     () => selectDefaultSchedulingTerm(termsQuery.data),
     [termsQuery.data]
   )
   const workspaceKey = buildWorkspaceKey(
     selectedTerm?.id,
-    branchId,
+    effectiveBranchId,
     activeInstituteId,
     maxStudentsPerClass
   )
@@ -122,16 +141,16 @@ export function SchedulingWorkspace() {
   const calculateDemand = calculateMutation.mutate
 
   React.useEffect(() => {
-    if (!selectedTerm) return
+    if (!selectedTerm || !effectiveBranchId) return
     calculateDemand({
       termId: selectedTerm.id,
-      branchId: branchId && branchId !== "all" ? branchId : undefined,
+      branchId: effectiveBranchId,
       instituteId: activeInstituteId || undefined,
       maxStudentsPerClass,
     })
   }, [
     selectedTerm,
-    branchId,
+    effectiveBranchId,
     activeInstituteId,
     maxStudentsPerClass,
     calculateDemand,
@@ -263,17 +282,17 @@ export function SchedulingWorkspace() {
         queryKey: classRequirementsResource.list.baseKey(),
       })
       const params = new URLSearchParams({ termId: selectedTerm?.id ?? "" })
-      if (branchId && branchId !== "all") params.set("branchId", branchId)
+      if (effectiveBranchId) params.set("branchId", effectiveBranchId)
       router.push(`/classes/scheduling/generate?${params.toString()}`)
     },
   })
 
   const applyReviewedDemand = React.useCallback(
     (acknowledgeShortfall: boolean) => {
-      if (!selectedTerm || !demandData) return
+      if (!selectedTerm || !demandData || !effectiveBranchId) return
       applyMutation.mutate({
         termId: selectedTerm.id,
-        branchId: branchId && branchId !== "all" ? branchId : undefined,
+        branchId: effectiveBranchId,
         instituteId: activeInstituteId || undefined,
         acknowledgeShortfall,
         items: buildDemandItems(demandData.courses, suggestions),
@@ -283,7 +302,7 @@ export function SchedulingWorkspace() {
       selectedTerm,
       demandData,
       applyMutation,
-      branchId,
+      effectiveBranchId,
       activeInstituteId,
       suggestions,
     ]
@@ -317,7 +336,7 @@ export function SchedulingWorkspace() {
           <SchedulingFilter
             term={selectedTerm}
             isLoadingTerm={termsQuery.isLoading}
-            branchId={branchId}
+            branchId={effectiveBranchId}
             onBranchChange={setBranchId}
             maxStudentsPerClass={maxStudentsPerClass}
             onMaxStudentsPerClassChange={setMaxStudentsPerClass}
@@ -349,6 +368,18 @@ export function SchedulingWorkspace() {
               <EmptyTitle>{t("termsList.empty.title")}</EmptyTitle>
               <EmptyDescription>
                 {t("termsList.empty.description")}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : activeBranches.length === 0 ? (
+          <Empty variant="default" className="border border-border bg-card">
+            <EmptyMedia variant="icon">
+              <Building2 className="size-7 text-foreground" aria-hidden />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>{t("demand.noBranch.title")}</EmptyTitle>
+              <EmptyDescription>
+                {t("demand.noBranch.description")}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>

@@ -318,6 +318,7 @@ export class SchedulingTeacherOutreachToggleService {
             availabilities: {
               select: {
                 id: true,
+                branchId: true,
                 dayOfWeek: true,
                 startTime: true,
                 endTime: true,
@@ -406,6 +407,7 @@ export class SchedulingTeacherOutreachToggleService {
         const covered = teacher.teacherProfile!.availabilities.some(
           (slot) =>
             !swappedOut?.createdAvailabilityIds.includes(slot.id) &&
+            slot.branchId === requirement.branchId &&
             slot.dayOfWeek === dayOfWeek &&
             slot.startTime <= input.startTime &&
             slot.endTime >= input.endTime,
@@ -414,6 +416,7 @@ export class SchedulingTeacherOutreachToggleService {
           const created = await tx.teacherAvailability.create({
             data: {
               teacherProfileId: teacher.teacherProfile!.id,
+              branchId: requirement.branchId,
               dayOfWeek,
               startTime: input.startTime,
               endTime: input.endTime,

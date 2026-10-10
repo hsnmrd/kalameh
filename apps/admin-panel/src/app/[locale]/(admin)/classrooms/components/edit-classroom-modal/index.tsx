@@ -65,7 +65,7 @@ export function EditClassroomModal({
     defaultValues: {
       name: "",
       capacity: 20,
-      branchId: null,
+      branchId: undefined,
       description: "",
       isActive: true,
     },
@@ -76,7 +76,7 @@ export function EditClassroomModal({
       reset({
         name: classroom.name,
         capacity: classroom.capacity,
-        branchId: classroom.branchId || null,
+        branchId: classroom.branchId || undefined,
         description: classroom.description || "",
         isActive: classroom.isActive,
       })
@@ -84,14 +84,11 @@ export function EditClassroomModal({
   }, [classroom, reset])
 
   const branchOptions: ComboboxOption[] = React.useMemo(() => {
-    return [
-      { value: "NONE", label: t("editModal.noBranch") },
-      ...branches.map((b) => ({
-        value: b.id,
-        label: b.name,
-      })),
-    ]
-  }, [branches, t])
+    return branches.map((b) => ({
+      value: b.id,
+      label: b.name,
+    }))
+  }, [branches])
 
   const updateMutation = useMutation({
     ...classroomsResource.update.toMutation(),
@@ -110,7 +107,6 @@ export function EditClassroomModal({
       id: classroom.id,
       body: {
         ...data,
-        branchId: data.branchId === "NONE" ? null : data.branchId || null,
       },
     })
   }
@@ -147,10 +143,8 @@ export function EditClassroomModal({
                   render={({ field }) => (
                     <ResponsiveCombobox
                       items={branchOptions}
-                      value={field.value || "NONE"}
-                      onValueChange={(val) =>
-                        field.onChange(val === "NONE" ? null : val)
-                      }
+                      value={field.value || ""}
+                      onValueChange={(val) => field.onChange(val || undefined)}
                       placeholder={t("editModal.branchPlaceholder")}
                     />
                   )}

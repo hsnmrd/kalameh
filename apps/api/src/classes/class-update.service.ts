@@ -140,9 +140,7 @@ export class ClassUpdateService {
         ...(dto.title ? { title: dto.title } : {}),
         ...(dto.termId ? { termId: dto.termId } : {}),
         ...(dto.courseId ? { courseId: dto.courseId } : {}),
-        ...(dto.branchId !== undefined
-          ? { branchId: dto.branchId || null }
-          : {}),
+        ...(dto.branchId ? { branchId: dto.branchId } : {}),
         ...(dto.classroomId !== undefined
           ? { classroomId: dto.classroomId || null }
           : {}),

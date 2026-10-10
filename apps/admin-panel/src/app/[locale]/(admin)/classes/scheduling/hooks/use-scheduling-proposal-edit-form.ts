@@ -132,7 +132,7 @@ export function useSchedulingProposalEditForm(
       body: {
         ...values,
         teacherId: values.teacherId ?? null,
-        branchId: values.branchId ?? null,
+        branchId: values.branchId || undefined,
         classroomId:
           values.deliveryMode === "ONLINE"
             ? null

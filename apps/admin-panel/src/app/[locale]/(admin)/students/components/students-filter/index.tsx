@@ -15,9 +15,12 @@ export interface StudentsFilterProps {
   onSearchChange: (value: string) => void
   selectedCourseId: string
   onCourseChange: (value: string) => void
+  selectedBranchId?: string
+  onBranchChange?: (value: string) => void
   selectedStatus: string
   onStatusChange: (value: string) => void
   courses?: CourseDto[]
+  branches?: { id: string; name: string }[]
   onAddClick?: () => void
   onSetAllAvailableClick?: () => void
   actions?: React.ReactNode
@@ -29,9 +32,12 @@ export function StudentsFilter({
   onSearchChange,
   selectedCourseId,
   onCourseChange,
+  selectedBranchId = "ALL",
+  onBranchChange,
   selectedStatus,
   onStatusChange,
   courses = [],
+  branches = [],
   onAddClick,
   onSetAllAvailableClick,
   actions,
@@ -46,6 +52,13 @@ export function StudentsFilter({
     ]
   }, [courses, t])
 
+  const branchOptions: ComboboxOption[] = React.useMemo(() => {
+    return [
+      { value: "ALL", label: t("filter.allBranches") },
+      ...branches.map((b) => ({ value: b.id, label: b.name })),
+    ]
+  }, [branches, t])
+
   const statusOptions: ComboboxOption[] = React.useMemo(() => {
     return [
       { value: "ALL", label: t("filter.allStatus") },
@@ -55,14 +68,17 @@ export function StudentsFilter({
   }, [t])
 
   const activeFiltersCount =
-    (selectedCourseId !== "ALL" ? 1 : 0) + (selectedStatus !== "ALL" ? 1 : 0)
+    (selectedCourseId !== "ALL" ? 1 : 0) +
+    (selectedBranchId !== "ALL" ? 1 : 0) +
+    (selectedStatus !== "ALL" ? 1 : 0)
 
   const hasActiveFilter = Boolean(searchValue.trim() || activeFiltersCount > 0)
 
   const handleClearFilters = React.useCallback(() => {
     onCourseChange("ALL")
+    onBranchChange?.("ALL")
     onStatusChange("ALL")
-  }, [onCourseChange, onStatusChange])
+  }, [onCourseChange, onBranchChange, onStatusChange])
 
   const desktopActions =
     actions ??
@@ -104,6 +120,22 @@ export function StudentsFilter({
               disabled={disabled}
             />
           </Field>
+
+          {/* Branch Combobox Filter */}
+          {branches.length > 0 && onBranchChange && (
+            <Field>
+              <FieldLabel>{t("filter.branch")}</FieldLabel>
+              <ResponsiveCombobox
+                items={branchOptions}
+                value={selectedBranchId}
+                onValueChange={(val) => onBranchChange(val || "ALL")}
+                placeholder={t("filter.allBranches")}
+                drawerTitle={t("filter.branch")}
+                clearable={false}
+                disabled={disabled}
+              />
+            </Field>
+          )}
 
           {/* Status Combobox Filter */}
           <Field>

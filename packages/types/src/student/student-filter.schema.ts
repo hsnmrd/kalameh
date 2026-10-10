@@ -11,6 +11,7 @@ const StudentStatusFilterSchema = z.preprocess((value) => {
 export const StudentFilterSchema = z.object({
   search: z.string().trim().optional(),
   courseId: z.string().uuid().optional(),
+  branchId: z.string().uuid().optional(),
   isActive: StudentStatusFilterSchema,
   instituteId: z.string().uuid().optional(),
 })

@@ -32,12 +32,14 @@ const ids = {
   requirement: "00000000-0000-4000-8000-000000000003",
   course: "00000000-0000-4000-8000-000000000004",
   teacher: "00000000-0000-4000-8000-000000000005",
+  branch: "00000000-0000-4000-8000-000000000006",
 }
 
 describe("MVP-011 scheduling schemas", () => {
   it("requires exactly one class cadence", () => {
     const baseRequirement = {
       termId: ids.plan,
+      branchId: ids.branch,
       courseId: ids.course,
       requiredClassCount: 2,
       capacity: 12,
@@ -66,6 +68,7 @@ describe("MVP-011 scheduling schemas", () => {
     const input = GenerateSchedulingPlanSchema.parse({
       instituteId: ids.institute,
       termId: ids.plan,
+      branchId: ids.branch,
       requirementIds: [ids.requirement, ids.requirement],
     })
 
@@ -490,6 +493,7 @@ describe("MVP-011 scheduling schemas", () => {
       planId: ids.plan,
       classRequirementId: ids.requirement,
       courseId: ids.course,
+      branchId: ids.branch,
       teacherId: ids.teacher,
       qualificationCheckedAt: "2026-09-08T08:00:00.000Z",
       title: "Proposed class",

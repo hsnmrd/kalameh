@@ -79,9 +79,10 @@ describe("MVP-034 scheduling generation form", () => {
         },
       ],
     } as never)
+    const branchId = "33333333-3333-4333-8333-333333333333"
     vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
       queryKey: ["branches", "active"],
-      queryFn: async () => [],
+      queryFn: async () => [{ id: branchId, name: "شعبه ونک", isActive: true }],
     } as never)
     const requirementsQuerySpy = vi
       .spyOn(classRequirementsResource.list, "toQuery")
@@ -117,7 +118,7 @@ describe("MVP-034 scheduling generation form", () => {
         expect.objectContaining({
           instituteId,
           termId,
-          branchId: null,
+          branchId,
           requirementIds: [requirementId],
           alternativePlanCount: 3,
         })
@@ -164,7 +165,13 @@ describe("MVP-034 scheduling generation form", () => {
     } as never)
     vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
       queryKey: ["branches", "active"],
-      queryFn: async () => [],
+      queryFn: async () => [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "شعبه ونک",
+          isActive: true,
+        },
+      ],
     } as never)
     vi.spyOn(classRequirementsResource.list, "toQuery").mockImplementation(
       (params) =>

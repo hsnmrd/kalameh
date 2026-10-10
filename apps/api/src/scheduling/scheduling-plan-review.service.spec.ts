@@ -18,6 +18,7 @@ describe('MVP-030 SchedulingPlanReviewService', () => {
     course: uuid(6),
     teacher: uuid(7),
     qualification: uuid(8),
+    branch: uuid(9),
   };
   const now = new Date('2026-09-09T15:00:00.000Z');
   const admin: JwtPayload = {
@@ -31,7 +32,7 @@ describe('MVP-030 SchedulingPlanReviewService', () => {
     courseId: ids.course,
     title: 'A2',
     teacherId: ids.teacher,
-    branchId: null,
+    branchId: ids.branch,
     classroomId: null,
     capacity: 12,
     deliveryMode: 'ONLINE',
@@ -46,7 +47,7 @@ describe('MVP-030 SchedulingPlanReviewService', () => {
     planId: ids.plan,
     classRequirementId: null,
     courseId: ids.course,
-    branchId: null,
+    branchId: ids.branch,
     teacherId: ids.teacher,
     classroomId: null,
     teacherQualificationId: ids.qualification,

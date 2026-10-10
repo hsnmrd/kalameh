@@ -10,6 +10,7 @@ export const TeacherDtoSchema = z.object({
   phone: z.string(),
   nationalCode: z.string().nullable().optional(),
   avatarUrl: z.string().nullable().optional(),
+  branchId: z.string().uuid().nullable().optional(),
   isActive: z.boolean(),
   teacherProfile: TeacherProfileSchema.nullable().optional(),
   classesCount: z.number().optional(),

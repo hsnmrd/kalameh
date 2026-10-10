@@ -8,6 +8,7 @@ export const TeacherAvailabilitySchema = z.object({
   id: z.string().uuid().optional(),
   teacherProfileId: z.string().uuid().optional(),
   termId: z.string().uuid().nullable().optional(),
+  branchId: z.string().uuid(),
   dayOfWeek: z.enum(WEEK_DAYS),
   startTime: z.string().regex(TIME_REGEX, "Invalid start time format (HH:mm)"),
   endTime: z.string().regex(TIME_REGEX, "Invalid end time format (HH:mm)"),
@@ -20,6 +21,7 @@ export type TeacherAvailability = z.infer<typeof TeacherAvailabilitySchema>
 export const TeacherAvailabilityInputSchema = z.object({
   id: z.string().uuid().optional(),
   termId: z.string().uuid().nullable().optional(),
+  branchId: z.string().uuid().optional(),
   dayOfWeek: z.enum(WEEK_DAYS),
   startTime: z.string().regex(TIME_REGEX, "Invalid start time format (HH:mm)"),
   endTime: z.string().regex(TIME_REGEX, "Invalid end time format (HH:mm)"),
@@ -31,6 +33,7 @@ export type TeacherAvailabilityInput = z.infer<
 
 export const ReplaceTeacherAvailabilitiesSchema = z.object({
   termId: z.string().uuid().optional(),
+  branchId: z.string().uuid().optional(),
   availabilities: z.array(TeacherAvailabilityInputSchema),
 })
 

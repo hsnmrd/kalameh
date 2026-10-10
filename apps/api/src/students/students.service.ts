@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   ConflictException,
   ForbiddenException,
@@ -64,6 +65,17 @@ export class StudentsService {
       );
     }
 
+    if (dto.branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: { id: dto.branchId, instituteId: targetInstituteId },
+      });
+      if (!branch) {
+        throw new BadRequestException(
+          this.i18n.t('branches.branchNotFound', locale),
+        );
+      }
+    }
+
     const rawPassword = dto.password || dto.phone;
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     const parsedBirthDate = dto.birthDate ? new Date(dto.birthDate) : null;
@@ -73,6 +85,7 @@ export class StudentsService {
       const user = await tx.user.create({
         data: {
           instituteId: targetInstituteId,
+          branchId: dto.branchId ?? null,
           firstName: dto.firstName,
           lastName: dto.lastName,
           phone: dto.phone,
@@ -191,6 +204,7 @@ export class StudentsService {
         ...(filter?.courseId
           ? { currentAllowedCourseId: filter.courseId }
           : {}),
+        ...(filter?.branchId ? { branchId: filter.branchId } : {}),
         ...(typeof filter?.isActive === 'boolean'
           ? { isActive: filter.isActive }
           : {}),
@@ -211,6 +225,12 @@ export class StudentsService {
           : {}),
       },
       include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         studentProfile: {
           include: {
             notes: {
@@ -357,6 +377,16 @@ export class StudentsService {
         );
       }
     }
+    if (dto.branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: { id: dto.branchId, instituteId: existing.instituteId },
+      });
+      if (!branch) {
+        throw new BadRequestException(
+          this.i18n.t('branches.branchNotFound', locale),
+        );
+      }
+    }
 
     const parsedBirthDate =
       dto.birthDate !== undefined
@@ -379,6 +409,9 @@ export class StudentsService {
           ...(avatarUrl !== undefined ? { avatarUrl } : {}),
           isActive: dto.isActive,
           currentAllowedCourseId: dto.currentAllowedCourseId,
+          ...(dto.branchId !== undefined
+            ? { branchId: dto.branchId || null }
+            : {}),
         },
       });
 

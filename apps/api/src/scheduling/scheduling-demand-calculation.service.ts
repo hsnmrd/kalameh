@@ -65,9 +65,7 @@ export class SchedulingDemandCalculationService {
       instituteId,
       term.startDate,
     );
-    const branchScope = input.branchId
-      ? { OR: [{ branchId: input.branchId }, { branchId: null }] }
-      : {};
+    const branchScope = { branchId: input.branchId };
 
     const courses = await this.prisma.course.findMany({
       where: { instituteId },
@@ -126,13 +124,11 @@ export class SchedulingDemandCalculationService {
         instituteId,
         termId: input.termId,
         isActive: true,
-        ...(input.branchId
-          ? { OR: [{ branchId: input.branchId }, { branchId: null }] }
-          : { branchId: null }),
+        branchId: input.branchId,
       },
     });
     const classrooms = await this.prisma.classroom.findMany({
-      where: { instituteId, isActive: true, ...branchScope },
+      where: { instituteId, isActive: true, branchId: input.branchId },
       select: { capacity: true },
     });
 

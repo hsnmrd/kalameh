@@ -40,16 +40,27 @@ export const teachersResource = api.resource("teachers", {
   ),
   getAvailabilities: api.get<
     TeacherAvailability[],
-    { id: string; termId?: string }
+    { id: string; termId?: string; branchId?: string }
   >(({ id }) => `/teachers/${id}/availabilities`, {
-    query: (params) => (params.termId ? { termId: params.termId } : {}),
+    query: (params) => {
+      const q: { termId?: string; branchId?: string } = {}
+      if (params.termId) q.termId = params.termId
+      if (params.branchId) q.branchId = params.branchId
+      return q
+    },
   }),
   updateAvailabilities: api.put<
     TeacherAvailability[],
-    { id: string; termId?: string; availabilities: TeacherAvailabilityInput[] }
+    {
+      id: string
+      termId?: string
+      branchId?: string
+      availabilities: TeacherAvailabilityInput[]
+    }
   >(({ id }) => `/teachers/${id}/availabilities`, {
-    body: ({ termId, availabilities }) => ({
+    body: ({ termId, branchId, availabilities }) => ({
       ...(termId ? { termId } : {}),
+      ...(branchId ? { branchId } : {}),
       availabilities,
     }),
   }),

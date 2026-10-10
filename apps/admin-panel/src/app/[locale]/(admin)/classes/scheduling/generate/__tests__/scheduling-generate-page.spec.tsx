@@ -106,7 +106,13 @@ describe("SchedulingGeneratePage", () => {
 
     vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
       queryKey: ["branches", "active"],
-      queryFn: async () => [],
+      queryFn: async () => [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "شعبه ونک",
+          isActive: true,
+        },
+      ],
     } as never)
 
     vi.spyOn(classRequirementsResource.list, "toQuery").mockReturnValue({

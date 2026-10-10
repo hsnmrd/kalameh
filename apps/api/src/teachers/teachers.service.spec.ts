@@ -78,6 +78,9 @@ describe('TeachersService', () => {
       course: {
         findMany: jest.fn(),
       },
+      branch: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'branch-1' }),
+      },
       $transaction: jest.fn((callback) => callback(prisma)),
     };
 
@@ -463,13 +466,14 @@ describe('TeachersService', () => {
       );
 
       expect(prisma.teacherAvailability.deleteMany).toHaveBeenCalledWith({
-        where: { teacherProfileId: 'profile-1' },
+        where: { teacherProfileId: 'profile-1', branchId: 'branch-1' },
       });
       expect(prisma.teacherAvailability.createMany).toHaveBeenCalledWith({
         data: [
           {
             teacherProfileId: 'profile-1',
             termId: null,
+            branchId: 'branch-1',
             dayOfWeek: 'SATURDAY',
             startTime: '08:00',
             endTime: '10:00',
@@ -477,6 +481,7 @@ describe('TeachersService', () => {
           {
             teacherProfileId: 'profile-1',
             termId: null,
+            branchId: 'branch-1',
             dayOfWeek: 'MONDAY',
             startTime: '08:00',
             endTime: '10:00',
@@ -507,13 +512,20 @@ describe('TeachersService', () => {
         },
       ]);
 
+      const branchId = '22222222-2222-4222-8222-222222222222';
       const result = await service.replaceAvailabilities(
         mockAdmin,
         'teacher-1',
         {
           termId: '11111111-1111-4111-8111-111111111111',
+          branchId,
           availabilities: [
-            { dayOfWeek: 'SATURDAY', startTime: '08:00', endTime: '10:00' },
+            {
+              dayOfWeek: 'SATURDAY',
+              startTime: '08:00',
+              endTime: '10:00',
+              branchId,
+            },
           ],
         },
       );
@@ -522,6 +534,7 @@ describe('TeachersService', () => {
         where: {
           teacherProfileId: 'profile-1',
           termId: '11111111-1111-4111-8111-111111111111',
+          branchId,
         },
       });
       expect(prisma.teacherAvailability.createMany).toHaveBeenCalledWith({
@@ -529,6 +542,7 @@ describe('TeachersService', () => {
           {
             teacherProfileId: 'profile-1',
             termId: '11111111-1111-4111-8111-111111111111',
+            branchId,
             dayOfWeek: 'SATURDAY',
             startTime: '08:00',
             endTime: '10:00',

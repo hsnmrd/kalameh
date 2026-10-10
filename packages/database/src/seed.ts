@@ -207,6 +207,26 @@ async function main() {
   })
   console.log(`🏢 Branch created: ${centralBranch.name}`)
 
+  // 2.2. West Branch
+  const westBranch = await prisma.branch.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000020" },
+    update: {
+      name: "شعبه غرب (سعادت‌آباد)",
+      address: "تهران، سعادت‌آباد، میدان کاج، پلاک ۴۵",
+      phones: ["02122003344"],
+      isActive: true,
+    },
+    create: {
+      id: "00000000-0000-0000-0000-000000000020",
+      instituteId: institute.id,
+      name: "شعبه غرب (سعادت‌آباد)",
+      address: "تهران، سعادت‌آباد، میدان کاج، پلاک ۴۵",
+      phones: ["02122003344"],
+      isActive: true,
+    },
+  })
+  console.log(`🏢 Branch created: ${westBranch.name}`)
+
   // 3. Super Admin User
   await prisma.user.upsert({
     where: {
@@ -364,48 +384,56 @@ async function main() {
       name: "اتاق ۱۰۱ (نیلوفر)",
       capacity: 18,
       description: "طبقه اول - مجهز به ویدیو پروژکتور",
+      branchId: centralBranch.id,
     },
     {
       id: "00000000-0000-0000-0000-000000000032",
       name: "اتاق ۱۰۲ (یاس)",
       capacity: 20,
       description: "طبقه اول - مجهز به سیستم صوتی",
+      branchId: centralBranch.id,
     },
     {
       id: "00000000-0000-0000-0000-000000000033",
       name: "اتاق ۱۰۳ (سرو)",
       capacity: 22,
       description: "طبقه اول - نورگیر عالی",
+      branchId: centralBranch.id,
     },
     {
       id: "00000000-0000-0000-0000-000000000034",
       name: "اتاق ۱۰۴ (صنوبر)",
       capacity: 16,
       description: "طبقه اول - کلاس ویژه مکالمه",
+      branchId: centralBranch.id,
     },
     {
       id: "00000000-0000-0000-0000-000000000035",
       name: "اتاق ۲۰۱ (لابراتوار A)",
       capacity: 24,
       description: "طبقه دوم - لابراتوار کامپیوتری",
+      branchId: westBranch.id,
     },
     {
       id: "00000000-0000-0000-0000-000000000036",
       name: "اتاق ۲۰۲ (لابراتوار B)",
       capacity: 20,
       description: "طبقه دوم - تجهیزات پیشرفته شنوایی",
+      branchId: westBranch.id,
     },
     {
       id: "00000000-0000-0000-0000-000000000037",
       name: "اتاق ۲۰۳ (سمینار)",
       capacity: 30,
       description: "طبقه دوم - سالن همایش و سمینار",
+      branchId: westBranch.id,
     },
     {
       id: "00000000-0000-0000-0000-000000000038",
       name: "اتاق ۲۰۴ (کارگاه تخصصی)",
       capacity: 15,
       description: "طبقه دوم - مناسب دوره‌های فشرده IELTS",
+      branchId: westBranch.id,
     },
   ]
 
@@ -416,13 +444,13 @@ async function main() {
         name: r.name,
         capacity: r.capacity,
         description: r.description,
-        branchId: centralBranch.id,
+        branchId: r.branchId,
         isActive: true,
       },
       create: {
         id: r.id,
         instituteId: institute.id,
-        branchId: centralBranch.id,
+        branchId: r.branchId,
         name: r.name,
         capacity: r.capacity,
         description: r.description,
@@ -452,6 +480,8 @@ async function main() {
     const phone = `0912200${String(i).padStart(4, "0")}`
     const nationalCode = `00${String(20000000 + i)}`
 
+    const teacherBranch = i <= 9 ? centralBranch : westBranch
+
     const user = await prisma.user.upsert({
       where: {
         phone_instituteId: {
@@ -466,11 +496,11 @@ async function main() {
         password: hashedPassword,
         nationalCode,
         isActive: true,
-        branchId: centralBranch.id,
+        branchId: teacherBranch.id,
       },
       create: {
         instituteId: institute.id,
-        branchId: centralBranch.id,
+        branchId: teacherBranch.id,
         phone,
         firstName,
         lastName,
@@ -513,7 +543,7 @@ async function main() {
       },
     })
 
-    // Add standard availabilities for teachers
+    // Add standard availabilities for teachers with branchId
     await prisma.teacherAvailability.deleteMany({
       where: { teacherProfileId: teacherProfile.id },
     })
@@ -523,12 +553,60 @@ async function main() {
         ? ["SATURDAY", "MONDAY", "WEDNESDAY"]
         : ["SUNDAY", "TUESDAY", "THURSDAY"]
 
+    type AvailabilitySlot = {
+      dayOfWeek:
+        "SATURDAY" | "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY"
+      branchId: string
+      startTime: string
+      endTime: string
+    }
+    const availData: AvailabilitySlot[] = []
+
+    if (i <= 7) {
+      days.forEach((day) =>
+        availData.push({
+          dayOfWeek: day as AvailabilitySlot["dayOfWeek"],
+          branchId: centralBranch.id,
+          startTime: "15:00",
+          endTime: "20:00",
+        })
+      )
+    } else if (i <= 12) {
+      days.forEach((day) =>
+        availData.push({
+          dayOfWeek: day as AvailabilitySlot["dayOfWeek"],
+          branchId: westBranch.id,
+          startTime: "15:00",
+          endTime: "20:00",
+        })
+      )
+    } else {
+      // Roaming teachers (13-15): Sat/Mon/Wed at Central, Sun/Tue/Thu at West
+      ;["SATURDAY", "MONDAY", "WEDNESDAY"].forEach((day) =>
+        availData.push({
+          dayOfWeek: day as AvailabilitySlot["dayOfWeek"],
+          branchId: centralBranch.id,
+          startTime: "15:00",
+          endTime: "18:00",
+        })
+      )
+      ;["SUNDAY", "TUESDAY", "THURSDAY"].forEach((day) =>
+        availData.push({
+          dayOfWeek: day as AvailabilitySlot["dayOfWeek"],
+          branchId: westBranch.id,
+          startTime: "15:00",
+          endTime: "18:00",
+        })
+      )
+    }
+
     await prisma.teacherAvailability.createMany({
-      data: days.map((day) => ({
+      data: availData.map((slot) => ({
         teacherProfileId: teacherProfile.id,
-        dayOfWeek: day,
-        startTime: "15:00",
-        endTime: "20:00",
+        branchId: slot.branchId,
+        dayOfWeek: slot.dayOfWeek,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
       })),
     })
 
@@ -651,12 +729,20 @@ async function main() {
   console.log(`📅 Preceding Term seeded: ${summerTerm.title}`)
 
   // Seed Summer classes for courses AME 1-1 to AME 5-4 (first 20 courses)
-  const summerClasses: { courseId: string; classId: string }[] = []
+  const summerClasses: {
+    courseId: string
+    classId: string
+    branchId: string
+  }[] = []
   for (let cIdx = 0; cIdx < coursesToSeed.length - 1; cIdx++) {
     const course = coursesToSeed[cIdx]
     const classId = `00000000-0000-0000-0000-00000001${String(cIdx + 1).padStart(4, "0")}`
     const teacher = seededTeachers[cIdx % seededTeachers.length]
-    const room = roomsData[cIdx % roomsData.length]
+    const isCentral = cIdx < 12
+    const classBranch = isCentral ? centralBranch : westBranch
+    const room = isCentral
+      ? roomsData[cIdx % 4]
+      : roomsData[4 + ((cIdx - 12) % 4)]
     const isEven = cIdx % 2 === 0
     const daysOfWeek = isEven
       ? ["SATURDAY", "MONDAY", "WEDNESDAY"]
@@ -665,9 +751,9 @@ async function main() {
     const cls = await prisma.class.upsert({
       where: { id: classId },
       update: {
-        title: `کلاس ${course.title} - تابستان ۱۴۰۵`,
+        title: `کلاس ${course.title} - تابستان ۱۴۰۵ (${isCentral ? "مرکزی" : "غرب"})`,
         instituteId: institute.id,
-        branchId: centralBranch.id,
+        branchId: classBranch.id,
         termId: summerTerm.id,
         courseId: course.id,
         classroomId: room.id,
@@ -681,9 +767,9 @@ async function main() {
       },
       create: {
         id: classId,
-        title: `کلاس ${course.title} - تابستان ۱۴۰۵`,
+        title: `کلاس ${course.title} - تابستان ۱۴۰۵ (${isCentral ? "مرکزی" : "غرب"})`,
         instituteId: institute.id,
-        branchId: centralBranch.id,
+        branchId: classBranch.id,
         termId: summerTerm.id,
         courseId: course.id,
         classroomId: room.id,
@@ -696,9 +782,15 @@ async function main() {
         endTime: "17:30",
       },
     })
-    summerClasses.push({ courseId: course.id, classId: cls.id })
+    summerClasses.push({
+      courseId: course.id,
+      classId: cls.id,
+      branchId: classBranch.id,
+    })
   }
-  console.log(`🏫 20 Summer classes seeded for preceding term`)
+  console.log(
+    `🏫 20 Summer classes seeded for preceding term (12 Central, 8 West)`
+  )
 
   // 10. Seed 420 Students (200 continuing from Summer + 220 newly placed)
   console.log("🎓 Seeding 420 students...")
@@ -745,6 +837,7 @@ async function main() {
 
     let assignedCourseId: string
     let enrolledClassId: string | null = null
+    let studentBranchId: string
 
     if (i <= 200) {
       // Continuing students: enrolled in Summer class, then eligible for next course in Fall
@@ -752,9 +845,11 @@ async function main() {
       const summerClass = summerClasses[classIndex]
       enrolledClassId = summerClass.classId
       assignedCourseId = coursesToSeed[classIndex + 1].id
+      studentBranchId = summerClass.branchId
     } else {
       // Newly placed students (201 to 420):
       assignedCourseId = newPlacementCourseAssignments[i - 201]
+      studentBranchId = i <= 330 ? centralBranch.id : westBranch.id
     }
 
     const user = await prisma.user.upsert({
@@ -771,12 +866,12 @@ async function main() {
         password: hashedPassword,
         nationalCode,
         isActive: true,
-        branchId: centralBranch.id,
+        branchId: studentBranchId,
         currentAllowedCourseId: assignedCourseId,
       },
       create: {
         instituteId: institute.id,
-        branchId: centralBranch.id,
+        branchId: studentBranchId,
         phone,
         firstName,
         lastName,
@@ -846,6 +941,7 @@ async function main() {
   console.log("✨ Seeding completed successfully!")
   console.log("📊 Summary:")
   console.log("  • Sample Institute: tehran")
+  console.log("  • Branches: شعبه مرکزی (آزادی), شعبه غرب (سعادت‌آباد)")
   console.log(`  • Courses: ${coursesToSeed.length} (AME 1-1 to AME 5-5)`)
   console.log("  • Rooms: 8")
   console.log("  • Teachers: 15 (Phones: 09122000001 to 09122000015)")

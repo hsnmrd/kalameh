@@ -76,6 +76,8 @@
     "title": "Weekly Free Time Schedule",
     "modalTitle": "Weekly Availability Schedule",
     "modalDescription": "Define available time slots for {name} across even and odd days for class scheduling",
+    "branch": "Branch",
+    "selectBranch": "Select branch",
     "save": "Save",
     "updateSuccess": "Teacher availability updated successfully",
     "updateError": "Failed to update teacher availability",

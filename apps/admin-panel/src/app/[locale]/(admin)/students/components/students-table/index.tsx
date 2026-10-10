@@ -130,6 +130,15 @@ export function StudentsTable({
         ),
       },
       {
+        accessorKey: "branch",
+        header: t("table.branch"),
+        cell: ({ row }) => (
+          <span className="text-sm text-foreground/90">
+            {row.original.branch?.name || "—"}
+          </span>
+        ),
+      },
+      {
         accessorKey: "isActive",
         header: t("table.status"),
         cell: ({ row }) => (

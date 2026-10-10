@@ -211,8 +211,14 @@ export class TeachersController {
     @CurrentUser() currentUser: JwtPayload,
     @Param('id') id: string,
     @Query('termId') termId?: string,
+    @Query('branchId') branchId?: string,
   ) {
-    return this.teachersService.getAvailabilities(currentUser, id, termId);
+    return this.teachersService.getAvailabilities(
+      currentUser,
+      id,
+      termId,
+      branchId,
+    );
   }
 
   @Put(':id/availabilities')

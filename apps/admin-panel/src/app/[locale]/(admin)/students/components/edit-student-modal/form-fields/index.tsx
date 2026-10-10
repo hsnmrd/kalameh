@@ -25,6 +25,7 @@ interface FormFieldsProps {
   genderOptions: ComboboxOption[]
   courseOptions: ComboboxOption[]
   statusOptions: ComboboxOption[]
+  branchOptions: ComboboxOption[]
 }
 
 export function FormFields({
@@ -33,6 +34,7 @@ export function FormFields({
   genderOptions,
   courseOptions,
   statusOptions,
+  branchOptions,
 }: FormFieldsProps) {
   const t = useTranslations("students")
   const {
@@ -165,6 +167,27 @@ export function FormFields({
         </div>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Field data-invalid={Boolean(errors.branchId)}>
+          <FieldLabel>{t("editModal.branch")}</FieldLabel>
+          <Controller
+            control={control}
+            name="branchId"
+            render={({ field }) => (
+              <ResponsiveCombobox
+                items={branchOptions}
+                value={field.value || "ROOT"}
+                onValueChange={(val) =>
+                  field.onChange(val === "ROOT" ? null : val || null)
+                }
+                placeholder={t("editModal.selectBranch")}
+                drawerTitle={t("editModal.branch")}
+                clearable={false}
+                data-invalid={Boolean(errors.branchId)}
+              />
+            )}
+          />
+          <FieldError>{errors.branchId?.message}</FieldError>
+        </Field>
         <Field data-invalid={Boolean(errors.currentAllowedCourseId)}>
           <FieldLabel>{t("editModal.currentAllowedCourseId")}</FieldLabel>
           <Controller

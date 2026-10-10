@@ -17,6 +17,7 @@ export const studentsResource = api.resource("students", {
     | {
         search?: string
         courseId?: string
+        branchId?: string
         isActive?: boolean
         instituteId?: string
       }

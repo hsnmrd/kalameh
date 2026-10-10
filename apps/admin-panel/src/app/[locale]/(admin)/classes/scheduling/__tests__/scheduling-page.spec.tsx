@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { QueryClient } from "@tanstack/react-query"
 import type { AnchorHTMLAttributes, ReactNode } from "react"
 import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
@@ -7,13 +7,25 @@ import commonMessagesEn from "@/messages/en/common.json"
 import schedulingMessagesEn from "@/messages/en/scheduling.json"
 import * as hooks from "@/lib/hooks"
 import * as stores from "@/lib/stores"
-import { classRequirementsResource, schedulingResource } from "@/lib/api"
+import {
+  branchesResource,
+  classRequirementsResource,
+  schedulingResource,
+} from "@/lib/api"
 import {
   APP_MODULES,
   ROLES,
   type SchedulingTermSummaryDto,
 } from "@workspace/types"
 import SchedulingPage from "../page"
+
+const mockBranches = [
+  {
+    id: "11111111-2222-3333-4444-555555555555",
+    name: "شعبه مرکزی",
+    isActive: true,
+  },
+]
 
 const { mockPush, mockReplace } = vi.hoisted(() => ({
   mockPush: vi.fn(),
@@ -46,6 +58,13 @@ vi.mock("@/i18n/routing", () => ({
 }))
 
 describe("Unified scheduling workspace", () => {
+  beforeEach(() => {
+    vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
+      queryKey: ["branches", "list"],
+      queryFn: async () => mockBranches,
+    } as never)
+  })
+
   afterEach(() => vi.restoreAllMocks())
 
   it("does not expose scheduling as a standalone navbar item in institute navigation", () => {
@@ -250,6 +269,7 @@ describe("Unified scheduling workspace", () => {
       expect(applyMutationSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           termId: "term-fall",
+          branchId: "11111111-2222-3333-4444-555555555555",
           items: expect.arrayContaining([
             expect.objectContaining({
               courseId: "11111111-1111-1111-1111-111111111111",
@@ -266,7 +286,7 @@ describe("Unified scheduling workspace", () => {
         queryKey: classRequirementsResource.list.baseKey(),
       })
       expect(mockPush).toHaveBeenCalledWith(
-        "/classes/scheduling/generate?termId=term-fall"
+        "/classes/scheduling/generate?termId=term-fall&branchId=11111111-2222-3333-4444-555555555555"
       )
     })
   })
@@ -361,7 +381,11 @@ describe("Unified scheduling workspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "ادامه" }))
     await waitFor(() =>
       expect(applyMutationSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ acknowledgeShortfall: true }),
+        expect.objectContaining({
+          termId: "term-fall",
+          branchId: "11111111-2222-3333-4444-555555555555",
+          acknowledgeShortfall: true,
+        }),
         expect.anything()
       )
     )

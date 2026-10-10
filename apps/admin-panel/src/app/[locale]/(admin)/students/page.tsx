@@ -16,6 +16,7 @@ import {
   coursesResource,
   operatingPhasesResource,
   studentsResource,
+  branchesResource,
   API_BASE_URL,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
@@ -39,6 +40,7 @@ export default function StudentsPage() {
 
   const [searchValue, setSearchValue] = React.useState("")
   const [selectedCourseId, setSelectedCourseId] = React.useState("ALL")
+  const [selectedBranchId, setSelectedBranchId] = React.useState("ALL")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
   const [isExporting, setIsExporting] = React.useState(false)
 
@@ -68,11 +70,20 @@ export default function StudentsPage() {
     enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
   })
 
+  // Fetch list of branches for branch filter
+  const { data: branches = [] } = useQuery({
+    ...branchesResource.list.toQuery(
+      activeInstituteId ? { instituteId: activeInstituteId } : undefined
+    ),
+    enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
+  })
+
   // Query students
   const { data: students, isLoading } = useQuery({
     ...studentsResource.list.toQuery({
       search: searchValue.trim() || undefined,
       courseId: selectedCourseId !== "ALL" ? selectedCourseId : undefined,
+      branchId: selectedBranchId !== "ALL" ? selectedBranchId : undefined,
       isActive: parseStatusFilter(selectedStatus),
       instituteId: activeInstituteId,
     }),
@@ -92,6 +103,8 @@ export default function StudentsPage() {
         queryParams.set("isActive", String(isActiveFilter))
       if (selectedCourseId !== "ALL")
         queryParams.set("courseId", selectedCourseId)
+      if (selectedBranchId !== "ALL")
+        queryParams.set("branchId", selectedBranchId)
       if (searchValue.trim()) queryParams.set("search", searchValue.trim())
       if (activeInstituteId) queryParams.set("instituteId", activeInstituteId)
 
@@ -155,9 +168,12 @@ export default function StudentsPage() {
               onSearchChange={setSearchValue}
               selectedCourseId={selectedCourseId}
               onCourseChange={setSelectedCourseId}
+              selectedBranchId={selectedBranchId}
+              onBranchChange={setSelectedBranchId}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
               courses={courses}
+              branches={branches}
               onAddClick={isListEmpty ? undefined : handleCreate}
               onSetAllAvailableClick={
                 isListEmpty ? undefined : handleSetAllAvailable

@@ -5,8 +5,10 @@
   "searchPlaceholder": "جستجو",
   "filter": {
     "course": "دوره و سطح آموزشی",
+    "branch": "شعبه",
     "status": "وضعیت حساب کاربری",
     "allCourses": "همه دوره‌ها و سطوح",
+    "allBranches": "همه شعب",
     "allStatus": "همه وضعیت‌ها",
     "active": "فقط فعال",
     "inactive": "فقط مسدود/غیرفعال"
@@ -23,6 +25,7 @@
     "currentLevel": "سطح مجاز فعلی",
     "noLevel": "تعیین سطح نشده (سطح پایه)",
     "scheduleStatus": "برنامه حضور",
+    "branch": "شعبه",
     "status": "وضعیت",
     "enrollmentsCount": "ثبت‌نام‌ها",
     "createdAt": "تاریخ ثبت‌نام",
@@ -63,6 +66,8 @@
     "currentAllowedCourseId": "سطح مجاز اولیه",
     "currentLevel": "سطح مجاز اولیه",
     "selectCourse": "انتخاب سطح مجاز (پیش‌فرض: سطح پایه)",
+    "branch": "شعبه",
+    "selectBranch": "انتخاب شعبه",
     "password": "رمز عبور اولیه",
     "passwordPlaceholder": "رمز عبور را وارد کنید",
     "passwordHint": "در صورت خالی بودن، شماره تماس به عنوان رمز پیش‌فرض تنظیم می‌شود.",
@@ -76,6 +81,8 @@
   "editModal": {
     "title": "ویرایش اطلاعات فراگیر",
     "description": "مشخصات هویتی، تماس و وضعیت تحصیلی فراگیر را ویرایش کنید.",
+    "branch": "شعبه",
+    "selectBranch": "انتخاب شعبه",
     "firstName": "نام",
     "firstNamePlaceholder": "نام",
     "lastName": "نام خانوادگی",

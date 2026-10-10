@@ -63,7 +63,7 @@ describe('ClassesService', () => {
         findUnique: jest.fn(),
       },
       branch: {
-        findFirst: jest.fn(),
+        findFirst: jest.fn().mockResolvedValue({ id: 'branch-1' }),
       },
       classroom: {
         findFirst: jest.fn(),

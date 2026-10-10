@@ -45,10 +45,9 @@
         "drawerTitle": "Select term"
       },
       "branch": {
-        "label": "Branch scope",
-        "placeholder": "All branches",
-        "all": "All branches",
-        "description": "Optional — narrow the suggestions to one branch.",
+        "label": "Branch",
+        "placeholder": "Select branch",
+        "description": "Selecting a specific branch is required for class scheduling.",
         "drawerTitle": "Select branch"
       },
       "alternatives": {
@@ -79,6 +78,7 @@
     },
     "validation": {
       "term": "Select a term.",
+      "branch": "Select a branch.",
       "requirements": "Select at least one class requirement."
     },
     "selectionSummary": "{count} requirements selected",
@@ -904,6 +904,10 @@
       "save": "Confirm",
       "cancel": "Cancel",
       "success": "Class requirement updated successfully."
+    },
+    "noBranch": {
+      "title": "No active branch found",
+      "description": "To calculate demand and schedule classes, you must first create at least one active branch in the institute."
     },
     "filters": {
       "term": "Term",

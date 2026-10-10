@@ -59,11 +59,26 @@ async function main() {
     })
   }
 
+  let westBranch = institute.branches.find((b) => b.name === "شعبه غرب")
+  if (!westBranch) {
+    westBranch = await prisma.branch.create({
+      data: {
+        instituteId: institute.id,
+        name: "شعبه غرب",
+        address: "تهران، شهرک غرب، بلوار فرحزادی",
+        phones: ["02122334455"],
+        isActive: true,
+      },
+    })
+  }
+
   const instituteId = institute.id
   const centralBranchId = centralBranch.id
+  const westBranchId = westBranch.id
 
   console.log(`✅ Target Institute: ${institute.name} (${instituteId})`)
   console.log(`✅ Central Branch: ${centralBranch.name} (${centralBranchId})`)
+  console.log(`✅ West Branch: ${westBranch.name} (${westBranchId})`)
 
   // 1.1 Ensure Admin User for Zabanland
   await prisma.user.upsert({
@@ -321,27 +336,55 @@ async function main() {
     }
   }
 
-  // 3. Classrooms (Capacity Contention: Cap 14, 18, 20, 25)
+  // 3. Classrooms (Capacity Contention: Cap 14, 18, 20, 25 across Central and West branches)
   const classroomsData = [
     {
       name: "کلاس A (اتاق ۱۰۱)",
       capacity: 20,
       description: "کلاس استاندارد با پروژکتور",
+      branchId: centralBranchId,
     },
     {
       name: "کلاس B (اتاق ۱۰۲)",
       capacity: 18,
       description: "کلاس استاندارد با پروژکتور و تخته هوشمند",
+      branchId: centralBranchId,
     },
     {
       name: "کلاس C (اتاق ۱۰۳)",
       capacity: 14, // Small room: rejects classes with cap > 14 (e.g. AME 1-5 with cap 16)
       description: "کلاس نیمه خصوصی (ظرفیت کوچک ۱۴ نفر)",
+      branchId: centralBranchId,
     },
     {
       name: "کلاس D (آزمایشگاه زبان)",
       capacity: 25,
       description: "سالن چندرسانه‌ای و آزمایشگاه زبان بزرگ",
+      branchId: centralBranchId,
+    },
+    {
+      name: "کلاس ۱۰۱ غرب",
+      capacity: 20,
+      description: "کلاس استاندارد با پروژکتور در شعبه غرب",
+      branchId: westBranchId,
+    },
+    {
+      name: "کلاس ۱۰۲ غرب",
+      capacity: 18,
+      description: "کلاس استاندارد با تخته هوشمند در شعبه غرب",
+      branchId: westBranchId,
+    },
+    {
+      name: "کلاس ۱۰۳ غرب",
+      capacity: 14,
+      description: "کلاس نیمه خصوصی در شعبه غرب",
+      branchId: westBranchId,
+    },
+    {
+      name: "کلاس ۱۰۴ غرب (آزمایشگاه)",
+      capacity: 25,
+      description: "آزمایشگاه زبان شعبه غرب",
+      branchId: westBranchId,
     },
   ]
 
@@ -353,7 +396,7 @@ async function main() {
       await prisma.classroom.create({
         data: {
           instituteId,
-          branchId: centralBranchId,
+          branchId: room.branchId,
           name: room.name,
           capacity: room.capacity,
           description: room.description,
@@ -366,14 +409,14 @@ async function main() {
         data: {
           capacity: room.capacity,
           description: room.description,
-          branchId: centralBranchId,
+          branchId: room.branchId,
           isActive: true,
         },
       })
     }
   }
   console.log(
-    "✅ Seeded 4 Classrooms with capacity bottlenecks (Cap 14, 18, 20, 25)"
+    "✅ Seeded 8 Classrooms across Central and West Branches (Cap 14, 18, 20, 25)"
   )
 
   // 4. Nine Teachers with Qualifications across AME 1-1 to AME 5-5
@@ -437,7 +480,8 @@ async function main() {
     indexes.flatMap((index) => (phaseSlots[index] ? [phaseSlots[index]] : []))
 
   function buildEvenTrackSlots(
-    timeRanges: Array<{ startTime: string; endTime: string }>
+    timeRanges: Array<{ startTime: string; endTime: string }>,
+    branchId: string
   ) {
     const days = ["SATURDAY", "MONDAY", "WEDNESDAY"].filter((day) =>
       phaseDays.has(day)
@@ -445,6 +489,7 @@ async function main() {
     return days.flatMap((dayOfWeek) =>
       timeRanges.map((tr) => ({
         dayOfWeek,
+        branchId,
         startTime: tr.startTime,
         endTime: tr.endTime,
       }))
@@ -452,7 +497,8 @@ async function main() {
   }
 
   function buildOddTrackSlots(
-    timeRanges: Array<{ startTime: string; endTime: string }>
+    timeRanges: Array<{ startTime: string; endTime: string }>,
+    branchId: string
   ) {
     const days = ["SUNDAY", "TUESDAY", "THURSDAY"].filter((day) =>
       phaseDays.has(day)
@@ -460,6 +506,7 @@ async function main() {
     return days.flatMap((dayOfWeek) =>
       timeRanges.map((tr) => ({
         dayOfWeek,
+        branchId,
         startTime: tr.startTime,
         endTime: tr.endTime,
       }))
@@ -472,6 +519,7 @@ async function main() {
       firstName: "امیرحسین",
       lastName: "رضایی",
       degree: "کارشناسی ارشد آموزش زبان انگلیسی",
+      branchId: centralBranchId,
       specialties: [
         "AME 1-1",
         "AME 1-2",
@@ -490,13 +538,14 @@ async function main() {
         "AME 2-1",
         "AME 2-2",
       ],
-      availabilities: buildEvenTrackSlots(phaseSlots),
+      availabilities: buildEvenTrackSlots(phaseSlots, centralBranchId),
     },
     {
       phone: "09127770002",
       firstName: "مریم",
       lastName: "کاظمی",
       degree: "دکتری زبان‌شناسی کاربردی",
+      branchId: centralBranchId,
       specialties: [
         "AME 2-1",
         "AME 2-2",
@@ -515,13 +564,14 @@ async function main() {
         "AME 3-1",
         "AME 3-2",
       ],
-      availabilities: buildOddTrackSlots(phaseSlots),
+      availabilities: buildOddTrackSlots(phaseSlots, centralBranchId),
     },
     {
       phone: "09127770003",
       firstName: "علیرضا",
       lastName: "شمس",
       degree: "کارشناسی ادبیات انگلیسی",
+      branchId: centralBranchId,
       specialties: [
         "AME 1-1",
         "AME 1-2",
@@ -539,8 +589,8 @@ async function main() {
         "AME 3-1",
       ],
       availabilities: [
-        ...buildEvenTrackSlots(selectPhaseSlots(0, 1)),
-        ...buildOddTrackSlots(selectPhaseSlots(0, 1)),
+        ...buildEvenTrackSlots(selectPhaseSlots(0, 1), centralBranchId),
+        ...buildOddTrackSlots(selectPhaseSlots(0, 1), westBranchId),
       ],
     },
     {
@@ -548,6 +598,7 @@ async function main() {
       firstName: "نیلوفر",
       lastName: "صادقی",
       degree: "کارشناسی ارشد مترجمی زبان",
+      branchId: centralBranchId,
       specialties: [
         "AME 3-1",
         "AME 3-2",
@@ -566,13 +617,17 @@ async function main() {
         "AME 4-1",
         "AME 4-2",
       ],
-      availabilities: buildEvenTrackSlots(selectPhaseSlots(1, 2, 3)),
+      availabilities: buildEvenTrackSlots(
+        selectPhaseSlots(1, 2, 3),
+        centralBranchId
+      ),
     },
     {
       phone: "09127770005",
       firstName: "کامران",
       lastName: "حسینی",
       degree: "کارشناسی آموزش زبان انگلیسی",
+      branchId: westBranchId,
       specialties: [
         "AME 2-2",
         "AME 2-3",
@@ -591,13 +646,17 @@ async function main() {
         "AME 3-2",
         "AME 3-3",
       ],
-      availabilities: buildOddTrackSlots(selectPhaseSlots(0, 1, 2)),
+      availabilities: buildOddTrackSlots(
+        selectPhaseSlots(0, 1, 2),
+        westBranchId
+      ),
     },
     {
       phone: "09127770006",
       firstName: "دکتر فرهاد",
       lastName: "رستمی",
       degree: "دکتری زبان و ادبیات انگلیسی",
+      branchId: westBranchId,
       specialties: [
         "AME 4-1",
         "AME 4-2",
@@ -623,8 +682,8 @@ async function main() {
         "AME 5-5",
       ],
       availabilities: [
-        ...buildEvenTrackSlots(selectPhaseSlots(3)),
-        ...buildOddTrackSlots(selectPhaseSlots(3)),
+        ...buildEvenTrackSlots(selectPhaseSlots(3), westBranchId),
+        ...buildOddTrackSlots(selectPhaseSlots(3), centralBranchId),
       ],
     },
     {
@@ -632,6 +691,7 @@ async function main() {
       firstName: "آرزو",
       lastName: "احمدی",
       degree: "کارشناسی ارشد آموزش زبان انگلیسی",
+      branchId: centralBranchId,
       specialties: [
         "AME 1-1",
         "AME 1-2",
@@ -650,13 +710,17 @@ async function main() {
         "AME 2-1",
         "AME 2-2",
       ],
-      availabilities: buildEvenTrackSlots(selectPhaseSlots(0, 1, 2)),
+      availabilities: buildEvenTrackSlots(
+        selectPhaseSlots(0, 1, 2),
+        centralBranchId
+      ),
     },
     {
       phone: "09127770008",
       firstName: "دکتر بهنام",
       lastName: "مرادی",
       degree: "دکتری آموزش زبان انگلیسی (TEFL)",
+      branchId: westBranchId,
       specialties: [
         "AME 3-3",
         "AME 3-4",
@@ -687,13 +751,17 @@ async function main() {
         "AME 5-4",
         "AME 5-5",
       ],
-      availabilities: buildOddTrackSlots(selectPhaseSlots(1, 2, 3)),
+      availabilities: buildOddTrackSlots(
+        selectPhaseSlots(1, 2, 3),
+        westBranchId
+      ),
     },
     {
       phone: "09127770009",
       firstName: "سمیرا",
       lastName: "یزدانی",
       degree: "کارشناسی ارشد زبان‌شناسی همگانی",
+      branchId: westBranchId,
       specialties: [
         "AME 4-3",
         "AME 4-4",
@@ -714,7 +782,10 @@ async function main() {
         "AME 5-4",
         "AME 5-5",
       ],
-      availabilities: buildEvenTrackSlots(selectPhaseSlots(0, 1, 2)),
+      availabilities: buildEvenTrackSlots(
+        selectPhaseSlots(0, 1, 2),
+        westBranchId
+      ),
     },
   ]
 
@@ -730,12 +801,12 @@ async function main() {
         firstName: t.firstName,
         lastName: t.lastName,
         role: Role.TEACHER,
-        branchId: centralBranchId,
+        branchId: t.branchId,
         isActive: true,
       },
       create: {
         instituteId,
-        branchId: centralBranchId,
+        branchId: t.branchId,
         phone: t.phone,
         firstName: t.firstName,
         lastName: t.lastName,
@@ -783,6 +854,7 @@ async function main() {
     await prisma.teacherAvailability.createMany({
       data: t.availabilities.map((avail) => ({
         teacherProfileId: teacherProfile.id,
+        branchId: avail.branchId,
         dayOfWeek: avail.dayOfWeek,
         startTime: avail.startTime,
         endTime: avail.endTime,
@@ -800,6 +872,7 @@ async function main() {
     firstName: string
     lastName: string
     courseId: string
+    branchId: string
     shift: StudentSchoolShift
     dayPref: StudentDayPreference
     gender: "MALE" | "FEMALE"
@@ -949,11 +1022,15 @@ async function main() {
         dayPrefOptions[(i + globalStudentIndex * 2) % dayPrefOptions.length] ??
         StudentDayPreference.ANY
 
+      const studentBranchId =
+        globalStudentIndex % 3 === 0 ? westBranchId : centralBranchId
+
       studentData.push({
         phone,
         firstName: fn,
         lastName: ln,
         courseId: course.id,
+        branchId: studentBranchId,
         shift,
         dayPref,
         gender: isFemale ? "FEMALE" : "MALE",
@@ -975,12 +1052,12 @@ async function main() {
         lastName: s.lastName,
         role: Role.STUDENT,
         currentAllowedCourseId: s.courseId,
-        branchId: centralBranchId,
+        branchId: s.branchId,
         isActive: true,
       },
       create: {
         instituteId,
-        branchId: centralBranchId,
+        branchId: s.branchId,
         phone: s.phone,
         firstName: s.firstName,
         lastName: s.lastName,
@@ -1021,12 +1098,17 @@ async function main() {
   const summerStartDate = new Date("2026-06-22T00:00:00.000Z")
   const summerEndDate = new Date("2026-09-10T00:00:00.000Z")
 
+  const summerPhase = await prisma.instituteOperatingPhase.findFirst({
+    where: { instituteId, title: "تابستان" },
+  })
+
   const summerTerm = await prisma.term.upsert({
     where: { id: "00000000-0000-0000-0000-000000000077" },
     update: {
       title: "تابستان ۱۴۰۵",
       startDate: summerStartDate,
       endDate: summerEndDate,
+      operatingPhaseId: summerPhase?.id ?? targetOperatingPhase.id,
       isActive: false,
     },
     create: {
@@ -1035,6 +1117,7 @@ async function main() {
       title: "تابستان ۱۴۰۵",
       startDate: summerStartDate,
       endDate: summerEndDate,
+      operatingPhaseId: summerPhase?.id ?? targetOperatingPhase.id,
       isActive: false,
     },
   })
@@ -1043,7 +1126,8 @@ async function main() {
   async function ensureSummerClass(
     id: string,
     title: string,
-    courseId: string
+    courseId: string,
+    branchId: string
   ) {
     return prisma.class.upsert({
       where: { id },
@@ -1051,7 +1135,7 @@ async function main() {
         title,
         termId: summerTerm.id,
         courseId,
-        branchId: centralBranchId,
+        branchId,
         capacity: 16,
         fee: 1500000,
       },
@@ -1060,7 +1144,7 @@ async function main() {
         instituteId,
         termId: summerTerm.id,
         courseId,
-        branchId: centralBranchId,
+        branchId,
         title,
         capacity: 16,
         fee: 1500000,
@@ -1074,6 +1158,7 @@ async function main() {
       title: "کلاس تابستان AME 1-1",
       course: getCourse("AME 1-1"),
       nextCourse: getCourse("AME 1-2"),
+      branchId: centralBranchId,
       count: 12,
     },
     {
@@ -1081,6 +1166,7 @@ async function main() {
       title: "کلاس تابستان AME 1-2",
       course: getCourse("AME 1-2"),
       nextCourse: getCourse("AME 1-3"),
+      branchId: centralBranchId,
       count: 12,
     },
     {
@@ -1088,6 +1174,7 @@ async function main() {
       title: "کلاس تابستان AME 1-3",
       course: getCourse("AME 1-3"),
       nextCourse: getCourse("AME 1-4"),
+      branchId: centralBranchId,
       count: 10,
     },
     {
@@ -1095,6 +1182,7 @@ async function main() {
       title: "کلاس تابستان AME 1-4",
       course: getCourse("AME 1-4"),
       nextCourse: getCourse("AME 1-5"),
+      branchId: centralBranchId,
       count: 10,
     },
     {
@@ -1102,6 +1190,7 @@ async function main() {
       title: "کلاس تابستان AME 1-5",
       course: getCourse("AME 1-5"),
       nextCourse: getCourse("AME 2-1"),
+      branchId: centralBranchId,
       count: 10,
     },
     {
@@ -1109,6 +1198,7 @@ async function main() {
       title: "کلاس تابستان AME 2-5",
       course: getCourse("AME 2-5"),
       nextCourse: getCourse("AME 3-1"),
+      branchId: westBranchId,
       count: 8,
     },
     {
@@ -1116,6 +1206,7 @@ async function main() {
       title: "کلاس تابستان AME 3-5",
       course: getCourse("AME 3-5"),
       nextCourse: getCourse("AME 4-1"),
+      branchId: westBranchId,
       count: 6,
     },
     {
@@ -1123,6 +1214,7 @@ async function main() {
       title: "کلاس تابستان AME 4-5",
       course: getCourse("AME 4-5"),
       nextCourse: getCourse("AME 5-1"),
+      branchId: westBranchId,
       count: 5,
     },
   ]
@@ -1131,10 +1223,15 @@ async function main() {
     const sClass = await ensureSummerClass(
       checkpoint.id,
       checkpoint.title,
-      checkpoint.course.id
+      checkpoint.course.id,
+      checkpoint.branchId
     )
     const candidates = seededStudentUsers
-      .filter((u) => u.currentAllowedCourseId === checkpoint.nextCourse.id)
+      .filter(
+        (u) =>
+          u.currentAllowedCourseId === checkpoint.nextCourse.id &&
+          u.branchId === checkpoint.branchId
+      )
       .slice(0, checkpoint.count)
 
     for (const st of candidates) {
@@ -1166,83 +1263,121 @@ async function main() {
     where: { instituteId, termId: activeTerm.id },
   })
 
-  // 18 Parallel Classes to Schedule (Intense multi-level scheduling stress-test):
-  // - AME 1-1: 2 classes (In-Person, Cap 14)
-  // - AME 1-2: 2 classes (In-Person, Cap 14)
-  // - AME 1-3: 2 classes (In-Person, Cap 14)
-  // - AME 1-4: 2 classes (In-Person, Cap 14)
-  // - AME 1-5: 2 classes (In-Person, Cap 16 - exceeds Room C cap 14!)
-  // - AME 2-1: 2 classes (In-Person, Cap 14)
-  // - AME 2-5: 1 class (In-Person, Cap 16 - forces larger room!)
-  // - AME 3-1: 1 class (In-Person, Cap 14)
-  // - AME 3-5: 1 class (In-Person, Cap 14)
-  // - AME 4-1: 1 class (In-Person, Cap 14)
-  // - AME 4-5: 1 class (In-Person, Cap 14)
-  // - AME 5-1: 1 class (In-Person, Cap 14)
-  // - AME 5-5: 1 class (In-Person, Cap 14)
+  // Parallel Classes to Schedule across both Central and West Branches:
   const requirementsData = [
+    // Central Branch Requirements (18 parallel classes):
     {
       courseId: getCourse("AME 1-1").id,
+      branchId: centralBranchId,
       requiredClassCount: 2,
       capacity: 14,
     },
     {
       courseId: getCourse("AME 1-2").id,
+      branchId: centralBranchId,
       requiredClassCount: 2,
       capacity: 14,
     },
     {
       courseId: getCourse("AME 1-3").id,
+      branchId: centralBranchId,
       requiredClassCount: 2,
       capacity: 14,
     },
     {
       courseId: getCourse("AME 1-4").id,
+      branchId: centralBranchId,
       requiredClassCount: 2,
       capacity: 14,
     },
     {
       courseId: getCourse("AME 1-5").id,
+      branchId: centralBranchId,
       requiredClassCount: 2,
       capacity: 16,
     }, // Rejects Room C!
     {
       courseId: getCourse("AME 2-1").id,
+      branchId: centralBranchId,
       requiredClassCount: 2,
       capacity: 14,
     },
     {
       courseId: getCourse("AME 2-5").id,
+      branchId: centralBranchId,
       requiredClassCount: 1,
       capacity: 16,
     }, // Rejects Room C!
     {
       courseId: getCourse("AME 3-1").id,
+      branchId: centralBranchId,
       requiredClassCount: 1,
       capacity: 14,
     },
     {
       courseId: getCourse("AME 3-5").id,
+      branchId: centralBranchId,
       requiredClassCount: 1,
       capacity: 14,
     },
     {
       courseId: getCourse("AME 4-1").id,
+      branchId: centralBranchId,
       requiredClassCount: 1,
       capacity: 14,
     },
     {
       courseId: getCourse("AME 4-5").id,
+      branchId: centralBranchId,
       requiredClassCount: 1,
       capacity: 14,
     },
     {
       courseId: getCourse("AME 5-1").id,
+      branchId: centralBranchId,
       requiredClassCount: 1,
       capacity: 14,
     },
     {
       courseId: getCourse("AME 5-5").id,
+      branchId: centralBranchId,
+      requiredClassCount: 1,
+      capacity: 14,
+    },
+    // West Branch Requirements (7 parallel classes):
+    {
+      courseId: getCourse("AME 1-1").id,
+      branchId: westBranchId,
+      requiredClassCount: 2,
+      capacity: 14,
+    },
+    {
+      courseId: getCourse("AME 1-2").id,
+      branchId: westBranchId,
+      requiredClassCount: 1,
+      capacity: 14,
+    },
+    {
+      courseId: getCourse("AME 2-1").id,
+      branchId: westBranchId,
+      requiredClassCount: 1,
+      capacity: 14,
+    },
+    {
+      courseId: getCourse("AME 3-1").id,
+      branchId: westBranchId,
+      requiredClassCount: 1,
+      capacity: 14,
+    },
+    {
+      courseId: getCourse("AME 4-1").id,
+      branchId: westBranchId,
+      requiredClassCount: 1,
+      capacity: 14,
+    },
+    {
+      courseId: getCourse("AME 5-1").id,
+      branchId: westBranchId,
       requiredClassCount: 1,
       capacity: 14,
     },
@@ -1255,7 +1390,7 @@ async function main() {
         instituteId,
         termId: activeTerm.id,
         courseId: req.courseId,
-        branchId: centralBranchId,
+        branchId: req.branchId,
         requiredClassCount: req.requiredClassCount,
         capacity: req.capacity,
         sessionDurationMinutes: targetOperatingPhase.slotDurationMinutes,
