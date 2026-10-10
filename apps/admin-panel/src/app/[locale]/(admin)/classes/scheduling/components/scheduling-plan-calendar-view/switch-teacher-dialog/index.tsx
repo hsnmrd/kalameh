@@ -67,6 +67,20 @@ export function SwitchTeacherDialog({
     }
   }, [open])
 
+  // Collect all courses across proposals and calendars for hierarchy evaluation
+  const allCourses = React.useMemo(() => {
+    const map = new Map<string, { id: string; title: string }>()
+    for (const p of proposals) {
+      if (p.course) map.set(p.course.id, p.course)
+    }
+    for (const cal of teacherCalendars) {
+      for (const tc of cal.teachableCourses ?? []) {
+        map.set(tc.id, tc)
+      }
+    }
+    return Array.from(map.values())
+  }, [proposals, teacherCalendars])
+
   if (!proposal) return null
 
   const currentTeacherId = proposal.teacherId ?? proposal.teacher?.id ?? null
@@ -117,7 +131,7 @@ export function SwitchTeacherDialog({
 
   // Filter teachers: ONLY show masters who are present in that specific period of time:
   // 1. Current teacher
-  // 2. Swappable teacher: teaching another proposal in this period
+  // 2. Swappable teacher: teaching another proposal in this period (both teachers must be qualified)
   // 3. Free teacher: available according to their calendar slots
   const teacherItems = Array.from(candidateTeachersMap.values())
     .map((teacher) => {
@@ -133,23 +147,66 @@ export function SwitchTeacherDialog({
           isClickable: false,
           occupyingProposal: null,
           isQualified: true,
+          disabledReason: null,
         }
       }
 
       if (occupyingProposal) {
-        const isQualified = isTeacherQualifiedForCourse(
+        const targetTeacherQualifiedForCurrent = isTeacherQualifiedForCourse(
           teacher.id,
           proposal.course,
           proposals,
-          teacherCalendars
+          teacherCalendars,
+          allCourses
         )
+        const currentTeacherQualifiedForOther = currentTeacherId
+          ? isTeacherQualifiedForCourse(
+              currentTeacherId,
+              occupyingProposal.course,
+              proposals,
+              teacherCalendars,
+              allCourses
+            )
+          : false
+
+        const canSwap = Boolean(
+          currentTeacherId &&
+          targetTeacherQualifiedForCurrent &&
+          currentTeacherQualifiedForOther
+        )
+
+        let disabledReason: string | null = null
+        if (!currentTeacherId) {
+          disabledReason = t("calendarView.noCurrentTeacherToSwap")
+        } else if (!currentTeacherQualifiedForOther) {
+          disabledReason = t(
+            "calendarView.currentTeacherNotQualifiedForOther",
+            {
+              teacher: currentTeacherName,
+              course:
+                occupyingProposal.course?.title ?? occupyingProposal.title,
+            }
+          )
+        } else if (!targetTeacherQualifiedForCurrent) {
+          disabledReason = t(
+            "calendarView.targetTeacherNotQualifiedForCurrent",
+            {
+              teacher: `${teacher.firstName} ${teacher.lastName}`,
+              course: proposal.course?.title ?? proposal.title,
+            }
+          )
+        }
+
         return {
           teacher,
           isCurrent: false,
-          type: "SWAPPABLE" as const,
-          isClickable: true,
+          type: canSwap
+            ? ("SWAPPABLE" as const)
+            : ("OCCUPIED_DISABLED" as const),
+          isClickable: canSwap,
           occupyingProposal,
-          isQualified,
+          isQualified: targetTeacherQualifiedForCurrent,
+          disabledReason,
         }
       }
 
@@ -169,15 +226,24 @@ export function SwitchTeacherDialog({
           teacher.id,
           proposal.course,
           proposals,
-          teacherCalendars
+          teacherCalendars,
+          allCourses
         )
+        const disabledReason = isQualified
+          ? null
+          : t("calendarView.targetTeacherNotQualifiedForCurrent", {
+              teacher: `${teacher.firstName} ${teacher.lastName}`,
+              course: proposal.course?.title ?? proposal.title,
+            })
+
         return {
           teacher,
           isCurrent: false,
           type: "FREE" as const,
-          isClickable: true,
+          isClickable: isQualified,
           occupyingProposal: null,
           isQualified,
+          disabledReason,
         }
       }
 
@@ -188,6 +254,8 @@ export function SwitchTeacherDialog({
     .sort((a, b) => {
       if (a.isCurrent) return -1
       if (b.isCurrent) return 1
+      if (a.isClickable && !b.isClickable) return -1
+      if (!a.isClickable && b.isClickable) return 1
       if (a.type === "FREE" && b.type !== "FREE") return -1
       if (a.type !== "FREE" && b.type === "FREE") return 1
       return (a.teacher.lastName ?? "").localeCompare(b.teacher.lastName ?? "")
@@ -198,6 +266,9 @@ export function SwitchTeacherDialog({
     occupyingProposal?: Proposal | null
   ) => {
     if (isPending) return
+    const item = teacherItems.find((t) => t.teacher.id === targetTeacherId)
+    if (!item?.isClickable) return
+
     setSelectedTeacherId(targetTeacherId)
     try {
       await onSwitchTeacher(
@@ -281,6 +352,7 @@ export function SwitchTeacherDialog({
                   isClickable,
                   occupyingProposal,
                   isQualified,
+                  disabledReason,
                 }) => {
                   const isSelectedPending =
                     isPending && selectedTeacherId === teacher.id
@@ -295,8 +367,12 @@ export function SwitchTeacherDialog({
                         isCurrent
                           ? "border-primary/40 bg-primary/5"
                           : type === "FREE"
-                            ? "border-border/60 bg-card hover:border-success/60 hover:bg-success/5"
-                            : "border-border/60 bg-card hover:border-primary/60 hover:bg-primary/5"
+                            ? isClickable
+                              ? "border-border/60 bg-card hover:border-success/60 hover:bg-success/5"
+                              : "border-border/60 bg-muted/20 opacity-70"
+                            : type === "SWAPPABLE"
+                              ? "border-border/60 bg-card hover:border-primary/60 hover:bg-primary/5"
+                              : "border-border/60 bg-muted/20 opacity-70"
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -357,6 +433,14 @@ export function SwitchTeacherDialog({
                               {t("calendarView.swappableTeacherBadge")}
                             </Badge>
                           )}
+                          {type === "OCCUPIED_DISABLED" && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs text-muted-foreground"
+                            >
+                              {t("calendarView.teachingBadge")}
+                            </Badge>
+                          )}
                         </div>
                       </div>
 
@@ -371,6 +455,13 @@ export function SwitchTeacherDialog({
                             })}
                           </span>
                         </div>
+                      )}
+
+                      {/* Disabled reason hint */}
+                      {disabledReason && (
+                        <p className="text-[11px] font-medium text-destructive">
+                          {disabledReason}
+                        </p>
                       )}
 
                       {/* Action button */}
@@ -389,18 +480,18 @@ export function SwitchTeacherDialog({
                           >
                             {isSelectedPending ? (
                               <Spinner className="size-3.5" />
-                            ) : type === "SWAPPABLE" ? (
+                            ) : type === "FREE" ? (
+                              <>
+                                <Check aria-hidden className="size-3.5" />
+                                <span>{t("calendarView.selectTeacher")}</span>
+                              </>
+                            ) : (
                               <>
                                 <ArrowLeftRight
                                   aria-hidden
                                   className="size-3.5"
                                 />
                                 <span>{t("calendarView.swapWithTeacher")}</span>
-                              </>
-                            ) : (
-                              <>
-                                <Check aria-hidden className="size-3.5" />
-                                <span>{t("calendarView.selectTeacher")}</span>
                               </>
                             )}
                           </Button>

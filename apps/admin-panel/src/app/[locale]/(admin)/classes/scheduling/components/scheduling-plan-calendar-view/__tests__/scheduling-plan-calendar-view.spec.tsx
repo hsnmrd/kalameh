@@ -4487,7 +4487,7 @@ describe("SchedulingPlanCalendarView Component", () => {
         {
           ...mockProposals[0]!,
           id: "prop-slot-2",
-          course: { id: "c2", title: "Course 2" },
+          course: { id: "c1", title: "Course 1" },
           teacherId: "t-teacher-2",
           teacher: { id: "t-teacher-2", firstName: "مدرس", lastName: "دو" },
           classroom: { id: "cr2", name: "کلاس ۱۰۲", capacity: 20 },

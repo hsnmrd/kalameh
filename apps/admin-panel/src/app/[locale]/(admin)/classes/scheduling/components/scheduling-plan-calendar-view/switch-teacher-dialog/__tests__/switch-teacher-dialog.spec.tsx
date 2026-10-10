@@ -51,7 +51,10 @@ const mockOccupyingProposal: Proposal = {
 const mockTeacherCalendars: SchedulingTeacherCalendar[] = [
   {
     teacher: { id: "t-current", firstName: "سارا", lastName: "احمدی" },
-    teachableCourses: [{ id: "c-ame-2-3", title: "American English File 2-3" }],
+    teachableCourses: [
+      { id: "c-ame-2-3", title: "American English File 2-3" },
+      { id: "c-ts-1", title: "Touchstone 1" },
+    ],
     slots: [
       {
         dayOfWeek: "SATURDAY",
@@ -289,5 +292,94 @@ describe("SwitchTeacherDialog Component", () => {
     expect(
       screen.getByText("هیچ استادی در این بازه زمانی در دسترس نیست.")
     ).toBeInTheDocument()
+  })
+
+  it("disables swapping and displays reason when current teacher cannot teach the other proposal's course (e.g. AME 2-2 vs AME 4-2)", () => {
+    const ame2Proposal: Proposal = {
+      ...mockProposal,
+      id: "prop-ame-2-2",
+      title: "AME 2-2",
+      course: { id: "c-ame-2-2", title: "AME 2-2" },
+      teacher: { id: "t-bahareh", firstName: "بهاره", lastName: "خانی" },
+    }
+
+    const ame4Proposal: Proposal = {
+      ...mockOccupyingProposal,
+      id: "prop-ame-4-2",
+      title: "AME 4-2",
+      course: { id: "c-ame-4-2", title: "AME 4-2" },
+      teacher: { id: "t-yasaman", firstName: "یاسمن", lastName: "زمانی" },
+    }
+
+    const calendars: SchedulingTeacherCalendar[] = [
+      {
+        teacher: { id: "t-bahareh", firstName: "بهاره", lastName: "خانی" },
+        // Bahareh only teaches AME 2-2 (cannot teach AME 4-2)
+        teachableCourses: [{ id: "c-ame-2-2", title: "AME 2-2" }],
+        slots: [
+          {
+            dayOfWeek: "SATURDAY",
+            startTime: "14:00",
+            endTime: "15:30",
+            status: "BUSY",
+            title: "AME 2-2",
+            source: "PLAN",
+          },
+        ],
+      },
+      {
+        teacher: { id: "t-yasaman", firstName: "یاسمن", lastName: "زمانی" },
+        // Yasaman teaches AME 4-2 (can teach AME 2-2 as higher level)
+        teachableCourses: [{ id: "c-ame-4-2", title: "AME 4-2" }],
+        slots: [
+          {
+            dayOfWeek: "SATURDAY",
+            startTime: "14:00",
+            endTime: "15:30",
+            status: "BUSY",
+            title: "AME 4-2",
+            source: "PLAN",
+          },
+        ],
+      },
+    ]
+
+    const onSwitchTeacherMock = vi.fn()
+
+    render(
+      <SwitchTeacherDialog
+        open={true}
+        onOpenChange={vi.fn()}
+        proposal={ame2Proposal}
+        teacherCalendars={calendars}
+        proposals={[ame2Proposal, ame4Proposal]}
+        onSwitchTeacher={onSwitchTeacherMock}
+      />
+    )
+
+    // Yasaman is shown as teaching AME 4-2
+    const yasamanItem = screen.getByTestId("teacher-item-t-yasaman")
+    expect(yasamanItem).toBeInTheDocument()
+
+    // Does NOT show "قابل جابه‌جایی" badge
+    expect(screen.queryByText("قابل جابه‌جایی")).not.toBeInTheDocument()
+
+    // Shows "در حال تدریس" badge
+    expect(screen.getByText("در حال تدریس")).toBeInTheDocument()
+
+    // Shows explanatory reason why Bahareh cannot take AME 4-2
+    expect(
+      screen.getByText(
+        /استاد فعلی \(بهاره خانی\) صلاحیت تدریس دوره «AME 4-2» را ندارد/
+      )
+    ).toBeInTheDocument()
+
+    // Swap button is disabled
+    const swapBtn = screen.getByTestId("switch-teacher-btn-t-yasaman")
+    expect(swapBtn).toBeDisabled()
+
+    // Clicking does not call onSwitchTeacher
+    fireEvent.click(swapBtn)
+    expect(onSwitchTeacherMock).not.toHaveBeenCalled()
   })
 })
