@@ -130,6 +130,41 @@ describe("Student Modals", () => {
       expect(handleClose).toHaveBeenCalled()
       expect(handleAddNote).toHaveBeenCalledWith(mockStudent)
     })
+
+    it("should render backdrop and drawer overlay on mobile", () => {
+      window.matchMedia = vi.fn().mockImplementation((query) => ({
+        matches: true,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }))
+
+      render(
+        <StudentProfileModal
+          student={mockStudent}
+          open={true}
+          onClose={vi.fn()}
+          onEdit={vi.fn()}
+        />
+      )
+
+      const moreBtn = screen.getByRole("button", {
+        name: /مشاهده پرونده|View Profile/i,
+      })
+      fireEvent.click(moreBtn)
+
+      // Drawer overlay should be mounted and have blur & dimming backdrop
+      const overlay = document.querySelector('[data-slot="drawer-overlay"]')
+      expect(overlay).toBeInTheDocument()
+      expect(overlay).toHaveClass("backdrop-blur-sm", "bg-black/65")
+
+      // Drawer content should be rendered
+      expect(screen.getByText(/ویرایش مشخصات|Edit/i)).toBeInTheDocument()
+    })
   })
 
   describe("ResetPasswordModal", () => {
