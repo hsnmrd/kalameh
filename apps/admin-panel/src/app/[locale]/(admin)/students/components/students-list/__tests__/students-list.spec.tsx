@@ -82,7 +82,7 @@ describe("StudentsList Component", () => {
     expect(screen.queryByText(/^فعال$/)).not.toBeInTheDocument()
   })
 
-  it("should show a red circle indicator on the avatar for disabled students and NOT for active students", () => {
+  it("should show a gray circle AvatarBadge on the avatar for disabled students and NOT for active students", () => {
     const { container } = render(
       <StudentsList
         students={mockStudents}
@@ -94,16 +94,17 @@ describe("StudentsList Component", () => {
       />
     )
 
-    // Exactly one red circle indicator for the inactive student
+    // Exactly one gray indicator for the inactive student
     const disabledDots = container.querySelectorAll(
-      ".bg-destructive.rounded-full"
+      "[data-slot='avatar-badge']"
     )
     expect(disabledDots.length).toBe(1)
 
-    // The dot should be placed on student-2's avatar
+    // The dot should be placed on student-2's avatar with bg-muted-foreground
     const inactiveBadge = screen.getByLabelText(/غیرفعال|Inactive/i)
     expect(inactiveBadge).toBeInTheDocument()
-    expect(inactiveBadge).toHaveClass("bg-destructive")
+    expect(inactiveBadge).toHaveAttribute("data-slot", "avatar-badge")
+    expect(inactiveBadge).toHaveClass("bg-muted-foreground")
     expect(inactiveBadge).toHaveClass("rounded-full")
     expect(inactiveBadge).toHaveClass("absolute")
   })
@@ -124,6 +125,33 @@ describe("StudentsList Component", () => {
 
     fireEvent.click(screen.getByText("Ali Rezaei"))
     expect(handleViewProfile).toHaveBeenCalledWith(mockStudents[0])
+  })
+
+  it("should render schedule status icon in front of student name with 4px gap", () => {
+    render(
+      <StudentsList
+        students={mockStudents}
+        isLoading={false}
+        onViewProfile={vi.fn()}
+        onAddNote={vi.fn()}
+        onEdit={vi.fn()}
+        onResetPassword={vi.fn()}
+      />
+    )
+
+    // Complete student has Check icon in front of name
+    const completeIcon = screen.getByLabelText(/مشخص شده|Complete/i)
+    expect(completeIcon).toBeInTheDocument()
+    expect(completeIcon.parentElement).toHaveClass("text-success")
+    expect(completeIcon.closest(".flex.items-center.gap-1")).toBeInTheDocument()
+
+    // Incomplete student has Clock icon in front of name
+    const incompleteIcon = screen.getByLabelText(/نیاز به تماس|Incomplete/i)
+    expect(incompleteIcon).toBeInTheDocument()
+    expect(incompleteIcon.parentElement).toHaveClass("text-muted-foreground")
+    expect(
+      incompleteIcon.closest(".flex.items-center.gap-1")
+    ).toBeInTheDocument()
   })
 
   it("should render empty state when no students are provided", () => {

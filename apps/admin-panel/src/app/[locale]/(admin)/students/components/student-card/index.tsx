@@ -10,13 +10,15 @@ import {
   Phone,
   GraduationCap,
   FileText,
+  Check,
+  Clock,
 } from "lucide-react"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { AvatarBadge } from "@workspace/ui/components/avatar"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
-import { StudentScheduleStatusBadge } from "../student-schedule-status-badge"
 
 export interface StudentCardProps {
   student: StudentDto
@@ -55,15 +57,39 @@ export function StudentCard({
               <span>{initial}</span>
             )}
             {!student.isActive && (
-              <span
-                className="absolute end-0 bottom-0 size-3 rounded-full bg-destructive ring-2 ring-background"
+              <AvatarBadge
+                className="size-3 bg-muted-foreground"
                 aria-label={t("status.inactive")}
                 title={t("status.inactive")}
               />
             )}
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">{fullName}</h3>
+            <div className="flex items-center gap-1">
+              <h3 className="font-semibold text-foreground">{fullName}</h3>
+              {student.studentProfile?.scheduleStatus === "COMPLETE" && (
+                <span
+                  title={t("scheduleStatus.complete")}
+                  className="inline-flex shrink-0 items-center text-success"
+                >
+                  <Check
+                    className="size-3.5 text-inherit"
+                    aria-label={t("scheduleStatus.complete")}
+                  />
+                </span>
+              )}
+              {student.studentProfile?.scheduleStatus === "INCOMPLETE" && (
+                <span
+                  title={t("scheduleStatus.incomplete")}
+                  className="inline-flex shrink-0 items-center text-muted-foreground"
+                >
+                  <Clock
+                    className="size-3.5 text-inherit"
+                    aria-label={t("scheduleStatus.incomplete")}
+                  />
+                </span>
+              )}
+            </div>
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
               <Phone className="size-3" />
               <span>{student.phone}</span>
@@ -108,13 +134,13 @@ export function StudentCard({
           </span>
           <span>{student.branch?.name || "-"}</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div>
           <span className="font-medium text-foreground">
-            {t("table.scheduleStatus")}:{" "}
+            {t("createModal.emergencyPhone")}:{" "}
           </span>
-          <StudentScheduleStatusBadge
-            scheduleStatus={student.studentProfile?.scheduleStatus}
-          />
+          <span className="font-mono">
+            {student.studentProfile?.emergencyPhone || "-"}
+          </span>
         </div>
       </div>
 

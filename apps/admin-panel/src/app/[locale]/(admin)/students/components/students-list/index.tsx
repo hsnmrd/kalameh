@@ -10,10 +10,12 @@ import {
   GraduationCap,
   FileText,
   Clock,
+  Check,
   Plus,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { AvatarBadge } from "@workspace/ui/components/avatar"
 import {
   MobileList,
   MobileListItem,
@@ -39,7 +41,6 @@ import {
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
-import { StudentScheduleStatusBadge } from "../student-schedule-status-badge"
 
 export interface StudentsListProps {
   students: StudentDto[] | undefined
@@ -134,8 +135,8 @@ export function StudentsList({
                     )}
                   </MobileListItemIcon>
                   {!student.isActive && (
-                    <span
-                      className="absolute end-0 bottom-0 size-3.5 rounded-full bg-destructive ring-2 ring-background"
+                    <AvatarBadge
+                      className="size-3.5 bg-muted-foreground"
                       aria-label={t("status.inactive")}
                       title={t("status.inactive")}
                     />
@@ -143,7 +144,35 @@ export function StudentsList({
                 </div>
 
                 <MobileListItemContent
-                  primary={fullName}
+                  primary={
+                    <div className="flex items-center gap-1">
+                      <span className="truncate">{fullName}</span>
+                      {student.studentProfile?.scheduleStatus ===
+                        "COMPLETE" && (
+                        <span
+                          title={t("scheduleStatus.complete")}
+                          className="inline-flex shrink-0 items-center text-success"
+                        >
+                          <Check
+                            className="size-3.5 text-inherit"
+                            aria-label={t("scheduleStatus.complete")}
+                          />
+                        </span>
+                      )}
+                      {student.studentProfile?.scheduleStatus ===
+                        "INCOMPLETE" && (
+                        <span
+                          title={t("scheduleStatus.incomplete")}
+                          className="inline-flex shrink-0 items-center text-muted-foreground"
+                        >
+                          <Clock
+                            className="size-3.5 text-inherit"
+                            aria-label={t("scheduleStatus.incomplete")}
+                          />
+                        </span>
+                      )}
+                    </div>
+                  }
                   secondary={
                     <div className="flex items-center gap-1.5 font-mono text-xs">
                       <span>{student.phone}</span>
@@ -160,9 +189,6 @@ export function StudentsList({
                 />
 
                 <MobileListItemTrailing>
-                  <StudentScheduleStatusBadge
-                    scheduleStatus={student.studentProfile?.scheduleStatus}
-                  />
                   {student.currentAllowedCourse ? (
                     <Badge
                       variant="outline"
