@@ -27,8 +27,10 @@
     "viewDetails": "View Details",
     "delete": "Delete Class",
     "editDisabledOutsideActivation": "Editing is only permitted during the term activation window (7 days before to 7 days after the start date).",
+    "ended": "Finished",
     "empty": "No classes found with matching filters."
   },
+
   "createModal": {
     "title": "Create New Class",
     "description": "Enter the class details, term, course, capacity, and timetable.",
