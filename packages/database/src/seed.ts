@@ -937,6 +937,70 @@ async function main() {
     `✅ 420 Students seeded (Phones: 09121000001 - 09121000420, Password: ${defaultPassword})`
   )
 
+  // Seed default full availability for all students in Fall and Summer operating phases
+  const seededProfiles = await prisma.studentProfile.findMany({
+    where: { user: { instituteId: institute.id, role: Role.STUDENT } },
+    select: { id: true },
+  })
+
+  const fallSlots = [
+    { startTime: "15:00", endTime: "16:30" },
+    { startTime: "16:30", endTime: "18:00" },
+    { startTime: "18:00", endTime: "19:30" },
+    { startTime: "19:30", endTime: "21:00" },
+  ]
+  const summerSlots = [
+    { startTime: "09:00", endTime: "10:30" },
+    { startTime: "10:30", endTime: "12:00" },
+    { startTime: "12:00", endTime: "13:30" },
+    { startTime: "13:30", endTime: "15:00" },
+    { startTime: "15:00", endTime: "16:30" },
+    { startTime: "16:30", endTime: "18:00" },
+    { startTime: "18:00", endTime: "19:30" },
+    { startTime: "19:30", endTime: "21:00" },
+  ]
+
+  const availabilitiesToCreate: {
+    studentProfileId: string
+    operatingPhaseId: string
+    dayOfWeek: string
+    startTime: string
+    endTime: string
+  }[] = []
+
+  for (const prof of seededProfiles) {
+    for (const day of defaultDaysOfWeek) {
+      for (const slot of fallSlots) {
+        availabilitiesToCreate.push({
+          studentProfileId: prof.id,
+          operatingPhaseId: "00000000-0000-0000-0000-000000000020",
+          dayOfWeek: day,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        })
+      }
+      for (const slot of summerSlots) {
+        availabilitiesToCreate.push({
+          studentProfileId: prof.id,
+          operatingPhaseId: "00000000-0000-0000-0000-000000000023",
+          dayOfWeek: day,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        })
+      }
+    }
+  }
+
+  for (let i = 0; i < availabilitiesToCreate.length; i += 5000) {
+    await prisma.studentAvailability.createMany({
+      data: availabilitiesToCreate.slice(i, i + 5000),
+      skipDuplicates: true,
+    })
+  }
+  console.log(
+    `⏰ Seeded ${availabilitiesToCreate.length} availability slots for all students`
+  )
+
   console.log("\n=========================================")
   console.log("✨ Seeding completed successfully!")
   console.log("📊 Summary:")

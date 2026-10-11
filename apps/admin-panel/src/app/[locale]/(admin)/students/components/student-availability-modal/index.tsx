@@ -96,16 +96,59 @@ export function StudentAvailabilityModal({
     Record<string, StudentAvailabilitySlotInput[]>
   >({})
 
+  const phaseCalculation = React.useMemo(() => {
+    if (!currentPhase) return null
+    return calculatePhaseSlots(
+      currentPhase.startTime,
+      currentPhase.endTime,
+      currentPhase.slotDurationMinutes,
+      {
+        hasBreak: currentPhase.hasBreak,
+        breakStartTime: currentPhase.breakStartTime,
+        breakEndTime: currentPhase.breakEndTime,
+      }
+    )
+  }, [currentPhase])
+
+  const standardSlots: PhaseGeneratedSlot[] = React.useMemo(() => {
+    return phaseCalculation?.slots ?? []
+  }, [phaseCalculation])
+
+  const activeDays = React.useMemo<WeekDay[]>(() => {
+    if (currentPhase?.daysOfWeek && currentPhase.daysOfWeek.length > 0) {
+      return WEEK_DAYS.filter((d) => currentPhase.daysOfWeek.includes(d))
+    }
+    return WEEK_DAYS as unknown as WeekDay[]
+  }, [currentPhase])
+
+  const allPhaseSlots = React.useMemo<StudentAvailabilitySlotInput[]>(() => {
+    if (!currentPhase) return []
+    const slots: StudentAvailabilitySlotInput[] = []
+    for (const day of activeDays) {
+      for (const slot of standardSlots) {
+        slots.push({
+          dayOfWeek: day,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        })
+      }
+    }
+    return slots
+  }, [currentPhase, activeDays, standardSlots])
+
   const activeSlots = React.useMemo<StudentAvailabilitySlotInput[]>(() => {
     if (!currentPhase) return []
     const draft = draftSlotsByPhase[currentPhase.id]
     if (draft !== undefined) return draft
-    return serverSlots.map((s) => ({
-      dayOfWeek: s.dayOfWeek as WeekDay,
-      startTime: s.startTime,
-      endTime: s.endTime,
-    }))
-  }, [currentPhase, draftSlotsByPhase, serverSlots])
+    if (serverSlots.length > 0) {
+      return serverSlots.map((s) => ({
+        dayOfWeek: s.dayOfWeek as WeekDay,
+        startTime: s.startTime,
+        endTime: s.endTime,
+      }))
+    }
+    return allPhaseSlots
+  }, [currentPhase, draftSlotsByPhase, serverSlots, allPhaseSlots])
 
   const handleClose = React.useCallback(() => {
     setDraftSlotsByPhase({})
@@ -134,31 +177,6 @@ export function StudentAvailabilityModal({
       toast.error(t("availabilityModal.saveError"))
     },
   })
-
-  const phaseCalculation = React.useMemo(() => {
-    if (!currentPhase) return null
-    return calculatePhaseSlots(
-      currentPhase.startTime,
-      currentPhase.endTime,
-      currentPhase.slotDurationMinutes,
-      {
-        hasBreak: currentPhase.hasBreak,
-        breakStartTime: currentPhase.breakStartTime,
-        breakEndTime: currentPhase.breakEndTime,
-      }
-    )
-  }, [currentPhase])
-
-  const standardSlots: PhaseGeneratedSlot[] = React.useMemo(() => {
-    return phaseCalculation?.slots ?? []
-  }, [phaseCalculation])
-
-  const activeDays = React.useMemo<WeekDay[]>(() => {
-    if (currentPhase?.daysOfWeek && currentPhase.daysOfWeek.length > 0) {
-      return WEEK_DAYS.filter((d) => currentPhase.daysOfWeek.includes(d))
-    }
-    return WEEK_DAYS as unknown as WeekDay[]
-  }, [currentPhase])
 
   const tracks = React.useMemo<DayTrack[]>(() => {
     const list: DayTrack[] = []
