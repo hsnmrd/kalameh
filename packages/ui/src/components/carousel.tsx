@@ -67,7 +67,10 @@ function Carousel({
     {
       ...opts,
       axis: orientation === "horizontal" ? "x" : "y",
-      direction: opts?.direction ?? (isRtl ? "rtl" : "ltr"),
+      direction:
+        orientation === "vertical"
+          ? undefined
+          : (opts?.direction ?? (isRtl ? "rtl" : "ltr")),
     },
     plugins
   )
@@ -187,7 +190,7 @@ function CarouselContent({
       <div
         className={cn(
           "flex",
-          orientation === "horizontal" ? "-ms-2.5" : "-mt-2.5 flex-col",
+          orientation === "horizontal" ? "-ms-2.5" : "-mt-2.5 h-full flex-col",
           className
         )}
         {...props}

@@ -179,6 +179,7 @@ export function SetupFlow({
         opts={{
           align: "start",
           startIndex,
+          containScroll: false,
         }}
         className="w-full"
       >
@@ -188,8 +189,8 @@ export function SetupFlow({
         />
 
         <div className="mt-1 flex items-center gap-2.5 ltr:flex-row-reverse rtl:flex-row">
-          <div className="min-w-0 flex-1">
-            <CarouselContent wrapperClassName="h-[185px]" className="-mt-2">
+          <div className="h-[185px] min-w-0 flex-1">
+            <CarouselContent wrapperClassName="h-full" className="-mt-2 h-full">
               {steps.map((step) => {
                 return (
                   <CarouselItem key={step.id} className="basis-auto pt-2">
