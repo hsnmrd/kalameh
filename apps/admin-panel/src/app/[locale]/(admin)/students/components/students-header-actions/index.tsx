@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { FileSpreadsheet, Download, MoreVertical } from "lucide-react"
+import { Clock, FileSpreadsheet, Download, MoreVertical } from "lucide-react"
 import { PERMISSIONS } from "@workspace/types"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
@@ -18,6 +18,7 @@ export interface StudentsHeaderActionsProps {
   onImportClick?: () => void
   onExportClick?: () => void
   isExporting?: boolean
+  onConfirmScheduleClick?: () => void
 }
 
 export function StudentsHeaderActions({
@@ -25,9 +26,13 @@ export function StudentsHeaderActions({
   onImportClick,
   onExportClick,
   isExporting,
+  onConfirmScheduleClick,
 }: StudentsHeaderActionsProps) {
   const t = useTranslations("common")
-  const hasExtraActions = Boolean(onImportClick || onExportClick)
+  const tStudents = useTranslations("students")
+  const hasExtraActions = Boolean(
+    onImportClick || onExportClick || onConfirmScheduleClick
+  )
 
   if (!hasExtraActions) return null
 
@@ -69,6 +74,21 @@ export function StudentsHeaderActions({
                 <Download className="size-4 text-foreground" />
               )}
               <span>{t("export.trigger")}</span>
+            </DropdownMenuItem>
+          </PermissionGuard>
+        )}
+
+        {onConfirmScheduleClick && (
+          <PermissionGuard
+            permission={PERMISSIONS.APPROVE_STUDENTS_TIME}
+            mode="hide"
+          >
+            <DropdownMenuItem
+              onClick={onConfirmScheduleClick}
+              className="flex cursor-pointer items-center gap-2 text-foreground"
+            >
+              <Clock className="size-4 text-foreground" />
+              <span>{tStudents("confirmStudentSchedules.action")}</span>
             </DropdownMenuItem>
           </PermissionGuard>
         )}

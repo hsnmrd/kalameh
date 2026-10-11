@@ -100,10 +100,14 @@ describe("MVP-034 scheduling generation form", () => {
 
     render(<SchedulingGenerationForm onCreated={onCreated} />)
 
-    // The active eligible term is automatically selected and displayed in the header
+    // The active eligible term and branch are displayed in the header badges
     expect(await screen.findByText("ترم پاییز")).toBeInTheDocument()
+    expect(await screen.findByText("شعبه ونک")).toBeInTheDocument()
     expect(
       screen.queryByRole("combobox", { name: "انتخاب ترم" })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("combobox", { name: "انتخاب شعبه" })
     ).not.toBeInTheDocument()
     await waitFor(() =>
       expect(requirementsQuerySpy).toHaveBeenCalledWith(
@@ -243,8 +247,11 @@ describe("MVP-034 scheduling generation form", () => {
 
     expect(await screen.findByText("ترم پاییز")).toBeInTheDocument()
     expect(
-      await screen.findByRole("button", { name: "تأیید برنامه زمانی فراگیران" })
+      await screen.findByText("تأیید برنامه زمانی فراگیران")
     ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "تأیید برنامه زمانی فراگیران" })
+    ).not.toBeInTheDocument()
 
     const submitButton = screen.getByRole("button", { name: "ساخت پیشنهادها" })
     expect(submitButton).toBeDisabled()

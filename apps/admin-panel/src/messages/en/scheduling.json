@@ -922,6 +922,10 @@
       "title": "No active branch found",
       "description": "To calculate demand and schedule classes, you must first create at least one active branch in the institute."
     },
+    "selectBranch": {
+      "title": "Select a Branch",
+      "description": "To check required classes and sessions, please select a branch first."
+    },
     "filters": {
       "term": "Term",
       "branch": "Branch",

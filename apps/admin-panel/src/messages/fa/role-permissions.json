@@ -78,6 +78,7 @@
     "teachers:view": "مشاهده لیست اساتید",
     "students:manage": "ثبت‌نام و ویرایش مشخصات فراگیران",
     "students:notes": "ثبت و پیگیری یادداشت پرونده فراگیران",
+    "students:approve_time": "تأیید زمان و برنامه حضور فراگیران",
     "students:view": "مشاهده پرونده فراگیران",
     "enrollments:manage": "تأیید و مدیریت ثبت‌نام کلاس‌ها",
     "enrollments:view": "مشاهده لیست ثبت‌نام‌ها",

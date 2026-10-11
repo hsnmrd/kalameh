@@ -19,56 +19,30 @@ const mockTerm: TermDto = {
 }
 
 describe("SchedulingStudentScheduleConfirmation", () => {
-  it("renders warning state and calls mutation when confirm button is clicked", async () => {
-    const mutationFn = vi.fn().mockResolvedValue({
-      ...mockTerm,
-      studentSchedulesConfirmedAt: "2026-10-11T10:00:00.000Z",
-    })
-    vi.spyOn(
-      termsResource.confirmStudentSchedules,
-      "toMutation"
-    ).mockReturnValue({
-      mutationFn,
-    } as never)
+  it("renders warning message without any confirm button when student schedules are unconfirmed", () => {
+    render(<SchedulingStudentScheduleConfirmation term={mockTerm} />)
 
-    const onConfirmed = vi.fn()
-
-    render(
-      <SchedulingStudentScheduleConfirmation
-        term={mockTerm}
-        onConfirmed={onConfirmed}
-      />
-    )
-
-    const confirmButton = screen.getByRole("button", {
-      name: "تأیید برنامه زمانی فراگیران",
-    })
-    expect(confirmButton).toBeInTheDocument()
-
-    fireEvent.click(confirmButton)
-
-    await waitFor(() => {
-      expect(mutationFn).toHaveBeenCalledWith(mockTerm.id, expect.anything())
-      expect(onConfirmed).toHaveBeenCalled()
-    })
-  })
-
-  it("renders confirmed state when student schedules are confirmed", () => {
-    const confirmedTerm: TermDto = {
-      ...mockTerm,
-      studentSchedulesConfirmedAt: "2026-10-11T10:00:00.000Z",
-      studentSchedulesConfirmedByUser: {
-        id: "00000000-0000-4000-8000-000000000099",
-        firstName: "علی",
-        lastName: "محمدی",
-      },
-    }
-
-    render(<SchedulingStudentScheduleConfirmation term={confirmedTerm} />)
-
-    expect(screen.getByText(/علی محمدی/)).toBeInTheDocument()
+    expect(screen.getByText("تأیید برنامه زمانی فراگیران")).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "برنامه زمانی فراگیران برای این ترم هنوز تأیید نشده است. پیش از ساخت پیشنهادهای زمان‌بندی، برنامه زمانی فراگیران باید توسط اپراتور تأیید شود."
+      )
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole("button", { name: "تأیید برنامه زمانی فراگیران" })
     ).not.toBeInTheDocument()
+  })
+
+  it("returns null when student schedules are confirmed", () => {
+    const confirmedTerm: TermDto = {
+      ...mockTerm,
+      studentSchedulesConfirmedAt: "2026-10-11T10:00:00.000Z",
+    }
+
+    const { container } = render(
+      <SchedulingStudentScheduleConfirmation term={confirmedTerm} />
+    )
+
+    expect(container).toBeEmptyDOMElement()
   })
 })

@@ -39,30 +39,39 @@ export function AdminBreadcrumb({
   if (items.length === 0) return null
 
   return (
-    <div
-      className={cn("flex flex-wrap items-center gap-2 sm:gap-3", className)}
-    >
+    <div className={cn("flex min-w-0 items-center gap-2 sm:gap-3", className)}>
       {items.length > 0 && (
         <nav
           aria-label="Breadcrumb"
-          className="flex items-center gap-1.5 text-xs text-muted-foreground"
+          className="flex min-w-0 flex-1 items-center gap-1.5 text-xs text-muted-foreground"
         >
           {items.map((item, idx) => {
             const isLast = idx === items.length - 1
             return (
               <React.Fragment key={idx}>
                 {idx > 0 && (
-                  <ChevronIcon className="size-3 text-muted-foreground/50" />
+                  <ChevronIcon
+                    className="size-3 shrink-0 text-muted-foreground/50"
+                    aria-hidden
+                  />
                 )}
                 {item.href && !isLast ? (
                   <Link
                     href={item.href}
-                    className="transition-colors hover:text-foreground"
+                    className="shrink-0 whitespace-nowrap transition-colors hover:text-foreground"
                   >
                     {item.label}
                   </Link>
                 ) : (
-                  <span className={cn(isLast && "font-medium text-foreground")}>
+                  <span
+                    title={item.label}
+                    aria-current={isLast ? "page" : undefined}
+                    className={cn(
+                      isLast
+                        ? "min-w-0 truncate font-medium text-foreground"
+                        : "shrink-0 whitespace-nowrap"
+                    )}
+                  >
                     {item.label}
                   </span>
                 )}

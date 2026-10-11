@@ -152,7 +152,7 @@ export class TermsController {
   }
 
   @Post(':id/confirm-student-schedules')
-  @RequirePermissions(PERMISSIONS.MANAGE_STUDENTS)
+  @RequirePermissions(PERMISSIONS.APPROVE_STUDENTS_TIME)
   async confirmStudentSchedules(
     @Param('id') id: string,
     @CurrentUser() currentUser: JwtPayload,

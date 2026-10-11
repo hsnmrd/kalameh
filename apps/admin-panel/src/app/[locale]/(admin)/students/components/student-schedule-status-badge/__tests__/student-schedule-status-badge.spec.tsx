@@ -3,42 +3,53 @@ import { render, screen } from "@/test/test-utils"
 import { StudentScheduleStatusBadge } from "../index"
 
 describe("StudentScheduleStatusBadge Component", () => {
-  it("renders checkmark icon and hides 'برنامه مشخص شده' on mobile size (hidden sm:inline) when COMPLETE", () => {
+  it("renders simple check icon with accessible title and aria-label when COMPLETE", () => {
     const { container } = render(
       <StudentScheduleStatusBadge scheduleStatus="COMPLETE" />
     )
 
-    // The text should have hidden sm:inline to hide on mobile size
-    const textSpan = screen.getByText("برنامه مشخص شده")
-    expect(textSpan).toBeInTheDocument()
-    expect(textSpan).toHaveClass("hidden")
-    expect(textSpan).toHaveClass("sm:inline")
+    // Should NOT render visible text by default
+    expect(screen.queryByText("برنامه مشخص شده")).not.toBeInTheDocument()
 
     // Check icon SVG should be rendered
     const svg = container.querySelector("svg")
     expect(svg).toBeInTheDocument()
 
-    // Accessible title & aria-label should be set
-    const badge = container.querySelector('[aria-label="برنامه مشخص شده"]')
-    expect(badge).toBeInTheDocument()
-    expect(badge).toHaveAttribute("title", "برنامه مشخص شده")
+    // Accessible title & aria-label should be set on the wrapper span
+    const iconWrapper = container.querySelector(
+      '[aria-label="برنامه مشخص شده"]'
+    )
+    expect(iconWrapper).toBeInTheDocument()
+    expect(iconWrapper).toHaveAttribute("title", "برنامه مشخص شده")
+    expect(iconWrapper).toHaveClass("text-success")
   })
 
-  it("renders clock icon and status text when INCOMPLETE", () => {
+  it("renders simple clock icon with accessible title and aria-label when INCOMPLETE", () => {
     const { container } = render(
       <StudentScheduleStatusBadge scheduleStatus="INCOMPLETE" />
     )
 
-    const textSpan = screen.getByText("نیاز به تماس")
-    expect(textSpan).toBeInTheDocument()
-    // Should NOT have hidden sm:inline
-    expect(textSpan).not.toHaveClass("hidden")
+    // Should NOT render visible text by default
+    expect(screen.queryByText("نیاز به تماس")).not.toBeInTheDocument()
 
     const svg = container.querySelector("svg")
     expect(svg).toBeInTheDocument()
 
-    const badge = container.querySelector('[aria-label="نیاز به تماس"]')
-    expect(badge).toBeInTheDocument()
-    expect(badge).toHaveAttribute("title", "نیاز به تماس")
+    const iconWrapper = container.querySelector('[aria-label="نیاز به تماس"]')
+    expect(iconWrapper).toBeInTheDocument()
+    expect(iconWrapper).toHaveAttribute("title", "نیاز به تماس")
+    expect(iconWrapper).toHaveClass("text-muted-foreground")
+  })
+
+  it("renders dash when scheduleStatus is null or undefined", () => {
+    render(<StudentScheduleStatusBadge scheduleStatus={null} />)
+    expect(screen.getByText("—")).toBeInTheDocument()
+  })
+
+  it("renders status label alongside icon when showLabel is true", () => {
+    render(
+      <StudentScheduleStatusBadge scheduleStatus="COMPLETE" showLabel={true} />
+    )
+    expect(screen.getByText("برنامه مشخص شده")).toBeInTheDocument()
   })
 })
