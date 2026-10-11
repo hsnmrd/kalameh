@@ -155,4 +155,37 @@ describe('MVP-016 SchedulingPreflightService', () => {
       }),
     );
   });
+
+  it('blocks when term student schedules are not confirmed by operator', () => {
+    const report = service.evaluate({
+      ...baseInput,
+      term: {
+        id: '00000000-0000-4000-8000-000000000099',
+        studentSchedulesConfirmedAt: null,
+      },
+    });
+
+    expect(report.passed).toBe(false);
+    expect(report.issues).toContainEqual(
+      expect.objectContaining({
+        code: 'STUDENT_SCHEDULES_NOT_CONFIRMED',
+        severity: 'BLOCKING',
+      }),
+    );
+  });
+
+  it('passes when term student schedules are confirmed by operator', () => {
+    const report = service.evaluate({
+      ...baseInput,
+      term: {
+        id: '00000000-0000-4000-8000-000000000099',
+        studentSchedulesConfirmedAt: new Date('2026-09-08T09:00:00.000Z'),
+      },
+    });
+
+    expect(report.passed).toBe(true);
+    expect(
+      report.issues.some((i) => i.code === 'STUDENT_SCHEDULES_NOT_CONFIRMED'),
+    ).toBe(false);
+  });
 });

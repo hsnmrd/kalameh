@@ -43,6 +43,10 @@ type PreflightActiveTeacher = {
 
 export type SchedulingPreflightInput = {
   checkedAt?: Date;
+  term?: {
+    id: string;
+    studentSchedulesConfirmedAt?: Date | string | null;
+  };
   requirements: PreflightRequirement[];
   teachers: PreflightTeacherQualification[];
   students: PreflightStudent[];
@@ -63,6 +67,17 @@ export type SchedulingPreflightInput = {
 export class SchedulingPreflightService {
   evaluate(input: SchedulingPreflightInput): SchedulingPreflightReport {
     const issues: SchedulingPreflightIssue[] = [];
+
+    if (input.term && !input.term.studentSchedulesConfirmedAt) {
+      issues.push({
+        code: 'STUDENT_SCHEDULES_NOT_CONFIRMED',
+        severity: 'BLOCKING',
+        scope: 'INPUT',
+        entityId: input.term.id,
+        context: {},
+      });
+    }
+
     const courseIds = Array.from(
       new Set(input.requirements.map((requirement) => requirement.courseId)),
     ).sort();

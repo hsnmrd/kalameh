@@ -104,19 +104,20 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  institute               Institute            @relation(fields: [instituteId], references: [id])
-  branch                  Branch?              @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  currentAllowedCourse    Course?              @relation("UserAllowedCourse", fields: [currentAllowedCourseId], references: [id])
-  studentProfile          StudentProfile?
-  teacherProfile          TeacherProfile?
-  teachingClasses         Class[]              @relation("TeacherClasses")
-  enrollments             Enrollment[]
-  transactions            Transaction[]
-  studentNotesCreated     StudentNote[]        @relation("StudentNoteAuthor")
-  auditLogs               AuditLog[]
-  schedulingRunsRequested SchedulingRun[]      @relation("SchedulingRunRequester")
-  schedulingProposals     SchedulingProposal[] @relation("SchedulingProposalTeacher")
-  schedulingProposalLocks SchedulingProposal[] @relation("SchedulingProposalLocker")
+  institute                     Institute            @relation(fields: [instituteId], references: [id])
+  branch                        Branch?              @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  currentAllowedCourse          Course?              @relation("UserAllowedCourse", fields: [currentAllowedCourseId], references: [id])
+  studentProfile                StudentProfile?
+  teacherProfile                TeacherProfile?
+  teachingClasses               Class[]              @relation("TeacherClasses")
+  enrollments                   Enrollment[]
+  transactions                  Transaction[]
+  studentNotesCreated           StudentNote[]        @relation("StudentNoteAuthor")
+  auditLogs                     AuditLog[]
+  schedulingRunsRequested       SchedulingRun[]      @relation("SchedulingRunRequester")
+  schedulingProposals           SchedulingProposal[] @relation("SchedulingProposalTeacher")
+  schedulingProposalLocks       SchedulingProposal[] @relation("SchedulingProposalLocker")
+  confirmedTermStudentSchedules Term[]               @relation("TermStudentSchedulesConfirmedBy")
 
   @@unique([phone, instituteId])
   @@index([instituteId])
@@ -232,11 +233,16 @@ model Term {
   schedulingRuns        SchedulingRun[]
   teacherAvailabilities TeacherAvailability[]
 
+  studentSchedulesConfirmedAt       DateTime?
+  studentSchedulesConfirmedByUserId String?
+  studentSchedulesConfirmedByUser   User?     @relation("TermStudentSchedulesConfirmedBy", fields: [studentSchedulesConfirmedByUserId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
   @@index([operatingPhaseId])
+  @@index([studentSchedulesConfirmedByUserId])
 }
 
 model Course {

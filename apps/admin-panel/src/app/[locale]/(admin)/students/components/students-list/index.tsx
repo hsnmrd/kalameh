@@ -13,6 +13,7 @@ import {
   Plus,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { Badge } from "@workspace/ui/components/badge"
 import {
   MobileList,
   MobileListItem,
@@ -38,7 +39,6 @@ import {
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
-import { StudentStatusBadge } from "../student-status-badge"
 import { StudentScheduleStatusBadge } from "../student-schedule-status-badge"
 
 export interface StudentsListProps {
@@ -116,22 +116,31 @@ export function StudentsList({
                 onClick={() => onViewProfile(student)}
                 isLast={index === students.length - 1}
               >
-                <MobileListItemIcon>
-                  {student.avatarUrl ? (
-                    <Image
-                      src={getAssetUrl(student.avatarUrl)}
-                      alt={fullName}
-                      width={44}
-                      height={44}
-                      className="size-11 rounded-full object-cover"
-                      unoptimized
+                <div className="relative shrink-0">
+                  <MobileListItemIcon>
+                    {student.avatarUrl ? (
+                      <Image
+                        src={getAssetUrl(student.avatarUrl)}
+                        alt={fullName}
+                        width={44}
+                        height={44}
+                        className="size-11 rounded-full object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="text-xs font-semibold text-foreground">
+                        {initials}
+                      </span>
+                    )}
+                  </MobileListItemIcon>
+                  {!student.isActive && (
+                    <span
+                      className="absolute end-0 bottom-0 size-3.5 rounded-full bg-destructive ring-2 ring-background"
+                      aria-label={t("status.inactive")}
+                      title={t("status.inactive")}
                     />
-                  ) : (
-                    <span className="text-xs font-semibold text-foreground">
-                      {initials}
-                    </span>
                   )}
-                </MobileListItemIcon>
+                </div>
 
                 <MobileListItemContent
                   primary={fullName}
@@ -146,14 +155,6 @@ export function StudentsList({
                           </span>
                         </>
                       )}
-                      {student.currentAllowedCourse && (
-                        <>
-                          <span>•</span>
-                          <span className="font-sans">
-                            {student.currentAllowedCourse.title}
-                          </span>
-                        </>
-                      )}
                     </div>
                   }
                 />
@@ -162,7 +163,26 @@ export function StudentsList({
                   <StudentScheduleStatusBadge
                     scheduleStatus={student.studentProfile?.scheduleStatus}
                   />
-                  <StudentStatusBadge isActive={student.isActive} />
+                  {student.currentAllowedCourse ? (
+                    <Badge
+                      variant="outline"
+                      className="gap-1 border-primary/30 bg-primary/10 text-[11px] text-primary"
+                    >
+                      <GraduationCap className="size-3 text-inherit" />
+                      <span className="max-w-[120px] truncate sm:max-w-none">
+                        {student.currentAllowedCourse.title}
+                      </span>
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="border-muted-foreground/30 bg-muted/40 text-[11px] text-muted-foreground"
+                    >
+                      <span className="max-w-[120px] truncate sm:max-w-none">
+                        {t("table.noLevel")}
+                      </span>
+                    </Badge>
+                  )}
                 </MobileListItemTrailing>
               </MobileListItem>
             </ContextMenuTrigger>

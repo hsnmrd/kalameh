@@ -24,6 +24,7 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { useSchedulingGenerationForm } from "../../hooks/use-scheduling-generation-form"
 import { SchedulingRequirementPicker } from "../scheduling-requirement-picker"
 import { SchedulingStudentScheduleWarning } from "../scheduling-student-schedule-warning"
+import { SchedulingStudentScheduleConfirmation } from "../scheduling-student-schedule-confirmation"
 
 interface SchedulingGenerationFormProps {
   onCreated: (run: SchedulingRunDto) => void
@@ -214,6 +215,8 @@ export function SchedulingGenerationForm({
               onNavigateToDemand={onNavigateToDemand}
             />
 
+            <SchedulingStudentScheduleConfirmation term={activeTerm} />
+
             <SchedulingStudentScheduleWarning
               requirements={requirements}
               selectedRequirementIds={requirementIds}
@@ -232,7 +235,12 @@ export function SchedulingGenerationForm({
               >
                 <Button
                   type="submit"
-                  disabled={isPending || !termId || requirements.length === 0}
+                  disabled={
+                    isPending ||
+                    !termId ||
+                    requirements.length === 0 ||
+                    !activeTerm?.studentSchedulesConfirmedAt
+                  }
                   className="w-full px-6 sm:w-auto"
                 >
                   {isPending ? (

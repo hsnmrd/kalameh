@@ -16,7 +16,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
-import { StudentStatusBadge } from "../student-status-badge"
+import { StudentScheduleStatusBadge } from "../student-schedule-status-badge"
 
 export interface StudentCardProps {
   student: StudentDto
@@ -41,7 +41,7 @@ export function StudentCard({
     <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-xs">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+          <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
             {student.avatarUrl ? (
               <Image
                 src={getAssetUrl(student.avatarUrl)}
@@ -54,6 +54,13 @@ export function StudentCard({
             ) : (
               <span>{initial}</span>
             )}
+            {!student.isActive && (
+              <span
+                className="absolute end-0 bottom-0 size-3 rounded-full bg-destructive ring-2 ring-background"
+                aria-label={t("status.inactive")}
+                title={t("status.inactive")}
+              />
+            )}
           </div>
           <div>
             <h3 className="font-semibold text-foreground">{fullName}</h3>
@@ -64,7 +71,22 @@ export function StudentCard({
           </div>
         </div>
 
-        <StudentStatusBadge isActive={student.isActive} />
+        {student.currentAllowedCourse ? (
+          <Badge
+            variant="outline"
+            className="gap-1 border-primary/30 bg-primary/10 text-xs text-primary"
+          >
+            <GraduationCap className="size-3 text-inherit" />
+            <span>{student.currentAllowedCourse.title}</span>
+          </Badge>
+        ) : (
+          <Badge
+            variant="outline"
+            className="border-muted-foreground/30 bg-muted/40 text-xs text-muted-foreground"
+          >
+            <span>{t("table.noLevel")}</span>
+          </Badge>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-2 border-t border-border/60 pt-3 text-xs text-muted-foreground">
@@ -88,16 +110,11 @@ export function StudentCard({
         </div>
         <div className="flex items-center gap-1">
           <span className="font-medium text-foreground">
-            {t("table.currentLevel")}:{" "}
+            {t("table.scheduleStatus")}:{" "}
           </span>
-          {student.currentAllowedCourse ? (
-            <Badge variant="outline" className="gap-1 text-xs">
-              <GraduationCap className="size-3" />
-              <span>{student.currentAllowedCourse.title}</span>
-            </Badge>
-          ) : (
-            <span>{t("table.noLevel")}</span>
-          )}
+          <StudentScheduleStatusBadge
+            scheduleStatus={student.studentProfile?.scheduleStatus}
+          />
         </div>
       </div>
 

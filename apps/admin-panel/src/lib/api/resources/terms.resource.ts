@@ -51,4 +51,10 @@ export const termsResource = api.resource("terms", {
   batchCreatePhase: api.post<TermDto[], BatchCreatePhaseTermsInput>(
     "/terms/batch-phase"
   ),
+  confirmStudentSchedules: api.post<TermDto, string>(
+    (id) => `/terms/${id}/confirm-student-schedules`,
+    {
+      body: () => undefined,
+    }
+  ),
 })

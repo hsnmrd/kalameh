@@ -213,6 +213,7 @@ async function main() {
           endDate: autumnEndDate,
           isActive: true,
           operatingPhaseId: targetOperatingPhase.id,
+          studentSchedulesConfirmedAt: new Date(),
         },
       })
     : await prisma.term.upsert({
@@ -223,6 +224,7 @@ async function main() {
           endDate: autumnEndDate,
           isActive: true,
           operatingPhaseId: targetOperatingPhase.id,
+          studentSchedulesConfirmedAt: new Date(),
         },
         create: {
           id: "00000000-0000-0000-0000-000000000078",
@@ -232,6 +234,7 @@ async function main() {
           endDate: autumnEndDate,
           isActive: true,
           operatingPhaseId: targetOperatingPhase.id,
+          studentSchedulesConfirmedAt: new Date(),
         },
       })
   console.log(
