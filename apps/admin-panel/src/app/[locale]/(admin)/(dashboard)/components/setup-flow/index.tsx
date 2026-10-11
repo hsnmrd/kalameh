@@ -15,6 +15,7 @@ import {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  type CarouselApi,
 } from "@workspace/ui/components/carousel"
 import { useIsRtl } from "@/i18n/routing"
 import { cn } from "@workspace/ui/lib/utils"
@@ -29,6 +30,7 @@ export interface SetupFlowProps {
 
 export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
   const isRtl = useIsRtl()
+  const [api, setApi] = React.useState<CarouselApi>()
 
   const {
     isStep1Done,
@@ -162,12 +164,33 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
   const currentStepIndex = steps.findIndex((s) => s.status === "current")
   const startIndex = currentStepIndex >= 0 ? currentStepIndex : 0
 
+  const [selectedIndex, setSelectedIndex] = React.useState(startIndex)
+
+  React.useEffect(() => {
+    if (!api) return
+
+    setSelectedIndex(api.selectedScrollSnap())
+
+    const onSelect = () => {
+      setSelectedIndex(api.selectedScrollSnap())
+    }
+
+    api.on("select", onSelect)
+    api.on("reInit", onSelect)
+
+    return () => {
+      api.off("select", onSelect)
+    }
+  }, [api])
+
   return (
     <div className="flex flex-col gap-3">
       <Carousel
+        orientation="vertical"
+        setApi={setApi}
         opts={{
-          direction: isRtl ? "rtl" : "ltr",
-          align: "start",
+          align: "center",
+          containScroll: false,
           startIndex,
         }}
         className="w-full"
@@ -175,37 +198,38 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
         <SetupFlowHeader
           completedCount={completedCount}
           totalSteps={steps.length}
-          actions={
-            <div className="flex items-center gap-1">
-              <CarouselPrevious className="static size-8 translate-x-0 translate-y-0" />
-              <CarouselNext className="static size-8 translate-x-0 translate-y-0" />
-            </div>
-          }
         />
 
-        <div className="mt-2">
-          <CarouselContent className="-ms-3 py-1">
-            {steps.map((step) => {
-              const isComp = step.status === "completed"
-              const isCurr = step.status === "current"
+        <div className="mt-2 flex items-center gap-3">
+          {/* Main vertical carousel area (Start in RTL = right) */}
+          <div className="relative min-w-0 flex-1 overflow-hidden">
+            <CarouselContent className="h-[210px] sm:h-[220px]">
+              {steps.map((step, index) => {
+                const isSelected = index === selectedIndex
 
-              return (
-                <CarouselItem
-                  key={step.id}
-                  className={cn(
-                    "ps-3",
-                    isCurr
-                      ? "basis-[85%] sm:basis-[56%] md:basis-[42%] lg:basis-[32%] xl:basis-[28%]"
-                      : isComp
-                        ? "basis-[68%] sm:basis-[38%] md:basis-[26%] lg:basis-[20%] xl:basis-[18%]"
-                        : "basis-[68%] sm:basis-[38%] md:basis-[26%] lg:basis-[20%] xl:basis-[18%]"
-                  )}
-                >
-                  <SetupCarouselCard step={step} />
-                </CarouselItem>
-              )
-            })}
-          </CarouselContent>
+                return (
+                  <CarouselItem
+                    key={step.id}
+                    onClick={() => api?.scrollTo(index)}
+                    className={cn(
+                      "basis-[80%] py-1.5 transition-all duration-300",
+                      isSelected
+                        ? "scale-100 opacity-100"
+                        : "scale-[0.98] cursor-pointer opacity-50 hover:opacity-80"
+                    )}
+                  >
+                    <SetupCarouselCard step={step} />
+                  </CarouselItem>
+                )
+              })}
+            </CarouselContent>
+          </div>
+
+          {/* Navigation vertical arrow buttons (End in RTL = left, matching design) */}
+          <div className="flex shrink-0 flex-col gap-1.5">
+            <CarouselPrevious className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-full border border-border/80 bg-background/90 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
+            <CarouselNext className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-full border border-border/80 bg-background/90 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
+          </div>
         </div>
       </Carousel>
     </div>
