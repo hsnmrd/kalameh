@@ -152,7 +152,6 @@ describe("Unified scheduling workspace", () => {
     expect(
       (await screen.findAllByText("پاییز ۱۴۰۵")).length
     ).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText("آماده تولید برنامه")).toBeInTheDocument()
     // Verify no search input exists
     expect(
       screen.queryByPlaceholderText("جست‌وجوی دوره...")

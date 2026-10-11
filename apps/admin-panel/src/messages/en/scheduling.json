@@ -816,6 +816,11 @@
       "noPrerequisite": "—",
       "students": "Applicants",
       "studentsDetail": "{continuing} continuing + {new} placement = {total} students",
+      "continuingTooltip": "{count} continuing students",
+      "newPlacementTooltip": "{count} new placement students",
+      "totalTooltip": "Total: {count} applicants",
+      "editClassesTitle": "Edit Classes for {course}",
+      "confirm": "Confirm",
       "classesCountColumn": "Class Count",
       "classesCountSummary": "{count} classes",
       "suggestedClasses": "Suggested Classes",
@@ -833,7 +838,7 @@
       "closeClasses": "Close"
     },
     "summary": {
-      "eligible": "{count} eligible students",
+      "eligible": "{count} students",
       "effectiveLimit": "Maximum {count} per class",
       "uncovered": "{count} students uncovered"
     },

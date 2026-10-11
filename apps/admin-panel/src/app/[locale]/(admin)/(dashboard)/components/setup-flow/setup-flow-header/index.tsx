@@ -19,12 +19,9 @@ export function SetupFlowHeader({ actions }: SetupFlowHeaderProps) {
         <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Compass className="size-4" />
         </div>
-        <div>
-          <h2 className="text-sm font-semibold text-foreground sm:text-base">
-            {t("title")}
-          </h2>
-          <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
-        </div>
+        <h2 className="text-sm font-semibold text-foreground sm:text-base">
+          {t("title")}
+        </h2>
       </div>
 
       {actions && (

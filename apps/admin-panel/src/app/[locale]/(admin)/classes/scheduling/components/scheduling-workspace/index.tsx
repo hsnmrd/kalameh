@@ -41,8 +41,8 @@ import {
 import { useActiveInstitute, useSchedulingRunStore } from "@/lib/stores"
 import { selectDefaultSchedulingTerm } from "../../helper/term-selection"
 import { SchedulingDemandView } from "../scheduling-demand-view"
-import { SchedulingFab } from "../scheduling-fab"
 import { SchedulingFilter } from "../scheduling-filter"
+import { SchedulingStickyBar } from "../scheduling-sticky-bar"
 import {
   buildDemandItems,
   buildSuggestionDraft,
@@ -322,6 +322,7 @@ export function SchedulingWorkspace() {
   return (
     <>
       <AdminPageShell
+        className="pb-24 sm:pb-0"
         breadcrumb={
           <AdminBreadcrumb
             backHref="/classes"
@@ -345,13 +346,6 @@ export function SchedulingWorkspace() {
             }
             onGenerateSchedule={handleGenerateSchedule}
             isGenerating={isActionPending}
-          />
-        }
-        fab={
-          <SchedulingFab
-            termId={selectedTerm?.id}
-            onGenerateSchedule={handleGenerateSchedule}
-            disabled={!selectedTerm || !demandData || isActionPending}
           />
         }
       >
@@ -408,6 +402,13 @@ export function SchedulingWorkspace() {
           />
         )}
       </AdminPageShell>
+
+      <SchedulingStickyBar
+        termId={selectedTerm?.id}
+        onGenerateSchedule={handleGenerateSchedule}
+        disabled={!selectedTerm || !demandData || isActionPending}
+        isGenerating={isActionPending}
+      />
 
       <AlertDialog
         open={shortfallDialogOpen}

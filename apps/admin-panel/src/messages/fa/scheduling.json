@@ -816,6 +816,11 @@
       "noPrerequisite": "—",
       "students": "متقاضیان",
       "studentsDetail": "{continuing} ارتقا از ترم قبل + {new} تعیین‌سطح = {total} نفر",
+      "continuingTooltip": "{count} نفر ارتقا از ترم قبل",
+      "newPlacementTooltip": "{count} نفر تعیین‌سطح جدید",
+      "totalTooltip": "مجموع: {count} نفر",
+      "editClassesTitle": "ویرایش کلاس‌های {course}",
+      "confirm": "تأیید",
       "classesCountColumn": "تعداد کلاس",
       "classesCountSummary": "{count} کلاس",
       "suggestedClasses": "تعداد کلاس پیشنهادی",
@@ -833,7 +838,7 @@
       "closeClasses": "بستن"
     },
     "summary": {
-      "eligible": "{count} زبان‌آموز واجد شرایط",
+      "eligible": "{count} زبان‌آموز",
       "effectiveLimit": "حداکثر {count} نفر در هر کلاس",
       "uncovered": "{count} نفر بدون ظرفیت"
     },
