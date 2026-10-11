@@ -148,7 +148,7 @@ describe("TeacherProfileModal - AvailabilitySchedule redesign", () => {
     const manageBtn = screen.getByText("تعیین زمان‌های آزاد")
     fireEvent.click(manageBtn)
 
-    expect(onClose).toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
     expect(onManage).toHaveBeenCalledWith(mockTeacherWithAvailabilities)
   })
 

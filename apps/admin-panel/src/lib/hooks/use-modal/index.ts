@@ -162,9 +162,10 @@ export function useModal<TData = any>(
       nextKeys.push(...incomingKeys)
 
       const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
-      nextParams.delete(paramKey)
       if (nextKeys.length > 0) {
         nextParams.set(paramKey, nextKeys.join(","))
+      } else {
+        nextParams.delete(paramKey)
       }
 
       const queryStr = nextParams.toString()
@@ -216,9 +217,10 @@ export function useModal<TData = any>(
       }
 
       const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
-      nextParams.delete(paramKey)
       if (nextKeys.length > 0) {
         nextParams.set(paramKey, nextKeys.join(","))
+      } else {
+        nextParams.delete(paramKey)
       }
 
       const queryStr = nextParams.toString()

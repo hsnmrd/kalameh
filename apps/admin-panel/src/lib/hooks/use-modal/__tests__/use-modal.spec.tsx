@@ -52,6 +52,36 @@ describe("useModal hook", () => {
     expect(result.current.isModalOpen("deleteConfirm")).toBe(true)
   })
 
+  it("detects multiple active modals from repeated URL query parameters", () => {
+    currentSearchParams = new URLSearchParams()
+    currentSearchParams.append("modal", "viewProfileTeacher")
+    currentSearchParams.append("modal", "availabilityTeacher")
+    const { result } = renderHook(() => useModal())
+
+    expect(result.current.activeModals).toEqual([
+      "viewProfileTeacher",
+      "availabilityTeacher",
+    ])
+    expect(result.current.isModalOpen("viewProfileTeacher")).toBe(true)
+    expect(result.current.isModalOpen("availabilityTeacher")).toBe(true)
+  })
+
+  it("closes topmost modal when closeModal is called without arguments", () => {
+    currentSearchParams = new URLSearchParams(
+      "modal=viewProfileTeacher,availabilityTeacher"
+    )
+    const { result } = renderHook(() => useModal())
+
+    act(() => {
+      result.current.closeModal()
+    })
+
+    expect(mockPush).toHaveBeenCalledWith(
+      "/fa/classes?modal=viewProfileTeacher",
+      { scroll: false }
+    )
+  })
+
   it("opens modal and updates router and store with data", () => {
     const { result } = renderHook(() => useModal())
     const data = { id: "c1", title: "Level 1" }

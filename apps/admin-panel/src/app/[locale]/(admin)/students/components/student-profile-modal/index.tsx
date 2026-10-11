@@ -199,7 +199,6 @@ export function StudentProfileModal({
             <Button
               type="button"
               onClick={() => {
-                onClose()
                 onAvailability(student)
               }}
               className="gap-2"

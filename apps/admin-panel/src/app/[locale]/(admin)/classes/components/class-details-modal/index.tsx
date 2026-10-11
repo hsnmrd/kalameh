@@ -91,7 +91,6 @@ export function ClassDetailsModal({
                 >
                   <DropdownMenuItem
                     onClick={() => {
-                      onClose()
                       onEdit?.(cls)
                     }}
                   >
@@ -101,7 +100,6 @@ export function ClassDetailsModal({
                   <DropdownMenuItem
                     variant="destructive"
                     onClick={() => {
-                      onClose()
                       onDelete?.(cls)
                     }}
                   >
