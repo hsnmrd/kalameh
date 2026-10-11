@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Controller } from "react-hook-form"
 import { useLocale, useTranslations } from "next-intl"
-import { Calendar, CalendarClock, Sparkles } from "lucide-react"
+import { Building2, Calendar, CalendarClock, Sparkles } from "lucide-react"
 import { PERMISSIONS, type SchedulingRunDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -24,6 +24,7 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { useSchedulingGenerationForm } from "../../hooks/use-scheduling-generation-form"
 import { SchedulingRequirementPicker } from "../scheduling-requirement-picker"
 import { SchedulingStudentScheduleWarning } from "../scheduling-student-schedule-warning"
+import { SchedulingStudentScheduleConfirmation } from "../scheduling-student-schedule-confirmation"
 
 interface SchedulingGenerationFormProps {
   onCreated: (run: SchedulingRunDto) => void
@@ -63,6 +64,19 @@ export function SchedulingGenerationForm({
     return terms[0] ?? null
   }, [defaultTermId, terms])
 
+  const activeBranch = React.useMemo(() => {
+    if (defaultBranchId) {
+      const found = branches.find((b) => b.id === defaultBranchId)
+      if (found) return found
+    }
+    const formBranchId = form.getValues("branchId")
+    if (formBranchId) {
+      const found = branches.find((b) => b.id === formBranchId)
+      if (found) return found
+    }
+    return branches[0] ?? null
+  }, [defaultBranchId, branches, form])
+
   // Auto-select eligible active term
   React.useEffect(() => {
     if (activeTerm) {
@@ -78,10 +92,6 @@ export function SchedulingGenerationForm({
     }
   }, [defaultBranchId, branches, form])
 
-  const branchOptions: ComboboxOption[] = branches.map((branch) => ({
-    value: branch.id,
-    label: branch.name,
-  }))
   const alternativeOptions: ComboboxOption[] = [1, 2, 3].map((count) => ({
     value: String(count),
     label: t("fields.alternatives.option", {
@@ -91,8 +101,8 @@ export function SchedulingGenerationForm({
   const errors = form.formState.errors
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-border bg-card">
-      <div className="flex flex-col gap-3 border-b border-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <div className="flex w-full flex-col">
+      <div className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Sparkles aria-hidden className="size-5" />
@@ -105,20 +115,29 @@ export function SchedulingGenerationForm({
           </div>
         </div>
 
-        {activeTerm && (
-          <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {activeTerm && (
             <Badge
               variant="outline"
               className="gap-2 border-border bg-muted/30 px-3.5 py-1.5 text-xs font-semibold text-foreground sm:text-sm"
             >
-              <Calendar className="size-4 text-primary" />
+              <Calendar className="size-4 text-foreground" />
               <span>{activeTerm.title}</span>
             </Badge>
-          </div>
-        )}
+          )}
+          {activeBranch && (
+            <Badge
+              variant="outline"
+              className="gap-2 border-border bg-muted/30 px-3.5 py-1.5 text-xs font-semibold text-foreground sm:text-sm"
+            >
+              <Building2 className="size-4 text-foreground" />
+              <span>{activeBranch.name}</span>
+            </Badge>
+          )}
+        </div>
       </div>
 
-      <form onSubmit={submit} className="p-5 sm:p-6">
+      <form onSubmit={submit} className="w-full">
         {!hasInstitute ? (
           <div className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-5 text-center">
             <CalendarClock
@@ -147,55 +166,30 @@ export function SchedulingGenerationForm({
           </div>
         ) : (
           <FieldGroup>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field data-invalid={Boolean(errors.branchId)}>
-                <FieldLabel>{t("fields.branch.label")}</FieldLabel>
-                <Controller
-                  control={form.control}
-                  name="branchId"
-                  render={({ field }) => (
-                    <ResponsiveCombobox
-                      items={branchOptions}
-                      value={field.value}
-                      onValueChange={(value) => field.onChange(value || "")}
-                      disabled={isScopeLoading}
-                      placeholder={t("fields.branch.placeholder")}
-                      drawerTitle={t("fields.branch.drawerTitle")}
-                      locale={locale}
-                      clearable={false}
-                    />
-                  )}
-                />
-                <FieldDescription>
-                  {t("fields.branch.description")}
-                </FieldDescription>
-                {errors.branchId && (
-                  <FieldError>{errors.branchId.message}</FieldError>
+            <Field
+              data-invalid={Boolean(errors.alternativePlanCount)}
+              className="max-w-xs"
+            >
+              <FieldLabel>{t("fields.alternatives.label")}</FieldLabel>
+              <Controller
+                control={form.control}
+                name="alternativePlanCount"
+                render={({ field }) => (
+                  <ResponsiveCombobox
+                    items={alternativeOptions}
+                    value={String(field.value)}
+                    onValueChange={(value) =>
+                      field.onChange(Number(value ?? 3))
+                    }
+                    placeholder={t("fields.alternatives.placeholder")}
+                    drawerTitle={t("fields.alternatives.drawerTitle")}
+                    locale={locale}
+                    clearable={false}
+                    searchable={false}
+                  />
                 )}
-              </Field>
-
-              <Field data-invalid={Boolean(errors.alternativePlanCount)}>
-                <FieldLabel>{t("fields.alternatives.label")}</FieldLabel>
-                <Controller
-                  control={form.control}
-                  name="alternativePlanCount"
-                  render={({ field }) => (
-                    <ResponsiveCombobox
-                      items={alternativeOptions}
-                      value={String(field.value)}
-                      onValueChange={(value) =>
-                        field.onChange(Number(value ?? 3))
-                      }
-                      placeholder={t("fields.alternatives.placeholder")}
-                      drawerTitle={t("fields.alternatives.drawerTitle")}
-                      locale={locale}
-                      clearable={false}
-                      searchable={false}
-                    />
-                  )}
-                />
-              </Field>
-            </div>
+              />
+            </Field>
 
             <SchedulingRequirementPicker
               items={requirements}
@@ -213,6 +207,8 @@ export function SchedulingGenerationForm({
               }
               onNavigateToDemand={onNavigateToDemand}
             />
+
+            <SchedulingStudentScheduleConfirmation term={activeTerm} />
 
             <SchedulingStudentScheduleWarning
               requirements={requirements}
@@ -232,7 +228,12 @@ export function SchedulingGenerationForm({
               >
                 <Button
                   type="submit"
-                  disabled={isPending || !termId || requirements.length === 0}
+                  disabled={
+                    isPending ||
+                    !termId ||
+                    requirements.length === 0 ||
+                    !activeTerm?.studentSchedulesConfirmedAt
+                  }
                   className="w-full px-6 sm:w-auto"
                 >
                   {isPending ? (
@@ -247,6 +248,6 @@ export function SchedulingGenerationForm({
           </FieldGroup>
         )}
       </form>
-    </section>
+    </div>
   )
 }

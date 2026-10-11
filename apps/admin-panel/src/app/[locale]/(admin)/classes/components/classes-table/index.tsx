@@ -30,8 +30,10 @@ import { formatNumber } from "@workspace/ui/lib/utils"
 import {
   PERMISSIONS,
   isTermInActivationWindow,
+  isClassDone,
   type ClassDto,
 } from "@workspace/types"
+
 import { PermissionGuard } from "@/components/permission-guard"
 
 export interface ClassesTableProps {
@@ -61,24 +63,38 @@ export function ClassesTable({
       {
         accessorKey: "title",
         header: t("table.title"),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
-              <Layers className="size-4" />
+        cell: ({ row }) => {
+          const isDone = isClassDone(row.original)
+          return (
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
+                <Layers className="size-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="block text-sm font-semibold text-foreground">
+                    {row.original.title}
+                  </span>
+                  {isDone && (
+                    <Badge
+                      variant="outline"
+                      className="border-border bg-muted/60 text-[10px] font-normal text-muted-foreground"
+                    >
+                      {t("table.ended")}
+                    </Badge>
+                  )}
+                </div>
+                {row.original.schedule && (
+                  <span className="block text-xs text-muted-foreground">
+                    {row.original.schedule}
+                  </span>
+                )}
+              </div>
             </div>
-            <div>
-              <span className="block text-sm font-semibold text-foreground">
-                {row.original.title}
-              </span>
-              {row.original.schedule && (
-                <span className="block text-xs text-muted-foreground">
-                  {row.original.schedule}
-                </span>
-              )}
-            </div>
-          </div>
-        ),
+          )
+        },
       },
+
       {
         accessorKey: "course",
         header: t("table.course"),
@@ -307,5 +323,15 @@ export function ClassesTable({
     )
   }
 
-  return <DataTable columns={columns} data={classes} />
+  return (
+    <DataTable
+      columns={columns}
+      data={classes}
+      getRowClassName={(row) =>
+        isClassDone(row.original)
+          ? "opacity-60 hover:opacity-80 transition-opacity"
+          : undefined
+      }
+    />
+  )
 }

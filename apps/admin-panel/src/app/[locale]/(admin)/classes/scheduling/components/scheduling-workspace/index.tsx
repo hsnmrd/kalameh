@@ -21,13 +21,16 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
+import { useSearchParams } from "next/navigation"
 import {
   Empty,
+  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
 } from "@workspace/ui/components/empty"
+import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
@@ -41,8 +44,9 @@ import {
 import { useActiveInstitute, useSchedulingRunStore } from "@/lib/stores"
 import { selectDefaultSchedulingTerm } from "../../helper/term-selection"
 import { SchedulingDemandView } from "../scheduling-demand-view"
-import { SchedulingFab } from "../scheduling-fab"
 import { SchedulingFilter } from "../scheduling-filter"
+import { SchedulingStickyBar } from "../scheduling-sticky-bar"
+import { SchedulingStudentScheduleConfirmation } from "../scheduling-student-schedule-confirmation"
 import {
   buildDemandItems,
   buildSuggestionDraft,
@@ -60,18 +64,27 @@ export function SchedulingWorkspace() {
   const nextSuggestionKey = React.useRef(0)
   const [maxStudentsPerClass, setMaxStudentsPerClass] = React.useState(14)
   const [shortfallDialogOpen, setShortfallDialogOpen] = React.useState(false)
+  const searchParams = useSearchParams()
+  const initialBranchParam = searchParams?.get("branchId") ?? ""
   const [branchSelection, setBranchSelection] = React.useState({
     instituteId: activeInstituteId,
-    value: "",
+    value: initialBranchParam,
   })
   const branchId =
     branchSelection.instituteId === activeInstituteId
       ? branchSelection.value
       : ""
   const setBranchId = React.useCallback(
-    (value: string) =>
-      setBranchSelection({ instituteId: activeInstituteId, value }),
-    [activeInstituteId]
+    (value?: string) => {
+      const nextVal = value || ""
+      setBranchSelection({ instituteId: activeInstituteId, value: nextVal })
+      if (nextVal) {
+        router.replace(`/classes/scheduling?branchId=${nextVal}`)
+      } else {
+        router.replace("/classes/scheduling")
+      }
+    },
+    [activeInstituteId, router]
   )
   const [demandResult, setDemandResult] = React.useState<{
     key: string
@@ -98,11 +111,24 @@ export function SchedulingWorkspace() {
     () => (branchesQuery.data ?? []).filter((b) => b.isActive),
     [branchesQuery.data]
   )
-  const effectiveBranchId =
-    (branchSelection.instituteId === activeInstituteId &&
-      branchSelection.value) ||
-    activeBranches[0]?.id ||
-    ""
+  const effectiveBranchId = React.useMemo(() => {
+    if (
+      branchSelection.instituteId === activeInstituteId &&
+      branchSelection.value
+    ) {
+      return branchSelection.value
+    }
+    if (
+      initialBranchParam &&
+      activeBranches.some((b) => b.id === initialBranchParam)
+    ) {
+      return initialBranchParam
+    }
+    if (activeBranches.length === 1) {
+      return activeBranches[0]?.id || ""
+    }
+    return ""
+  }, [branchSelection, activeInstituteId, initialBranchParam, activeBranches])
   const selectedTerm = React.useMemo(
     () => selectDefaultSchedulingTerm(termsQuery.data),
     [termsQuery.data]
@@ -322,6 +348,7 @@ export function SchedulingWorkspace() {
   return (
     <>
       <AdminPageShell
+        className="pb-24 sm:pb-0"
         breadcrumb={
           <AdminBreadcrumb
             backHref="/classes"
@@ -347,20 +374,13 @@ export function SchedulingWorkspace() {
             isGenerating={isActionPending}
           />
         }
-        fab={
-          <SchedulingFab
-            termId={selectedTerm?.id}
-            onGenerateSchedule={handleGenerateSchedule}
-            disabled={!selectedTerm || !demandData || isActionPending}
-          />
-        }
       >
         {termsQuery.isLoading ? (
           <div className="flex min-h-64 items-center justify-center">
             <Spinner className="size-8 text-foreground" />
           </div>
         ) : !termsQuery.data || termsQuery.data.length === 0 ? (
-          <Empty variant="default" className="border border-border bg-card">
+          <Empty variant="default">
             <EmptyMedia variant="icon">
               <Calendar className="size-7 text-foreground" aria-hidden />
             </EmptyMedia>
@@ -372,7 +392,7 @@ export function SchedulingWorkspace() {
             </EmptyHeader>
           </Empty>
         ) : activeBranches.length === 0 ? (
-          <Empty variant="default" className="border border-border bg-card">
+          <Empty variant="default">
             <EmptyMedia variant="icon">
               <Building2 className="size-7 text-foreground" aria-hidden />
             </EmptyMedia>
@@ -384,7 +404,7 @@ export function SchedulingWorkspace() {
             </EmptyHeader>
           </Empty>
         ) : !selectedTerm ? (
-          <Empty variant="default" className="border border-border bg-card">
+          <Empty variant="default">
             <EmptyMedia variant="icon">
               <CalendarClock className="size-7 text-foreground" aria-hidden />
             </EmptyMedia>
@@ -395,19 +415,59 @@ export function SchedulingWorkspace() {
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
+        ) : !effectiveBranchId ? (
+          <Empty variant="default">
+            <EmptyMedia variant="icon">
+              <Building2 className="size-7 text-foreground" aria-hidden />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>{t("demand.selectBranch.title")}</EmptyTitle>
+              <EmptyDescription>
+                {t("demand.selectBranch.description")}
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <div className="w-full max-w-xs">
+                <ResponsiveCombobox
+                  items={activeBranches.map((b) => ({
+                    value: b.id,
+                    label: b.name,
+                  }))}
+                  value={effectiveBranchId}
+                  onValueChange={setBranchId}
+                  placeholder={t("demand.filters.branch")}
+                  drawerTitle={t("demand.filters.branch")}
+                  className="h-14 rounded-2xl"
+                  clearable={false}
+                />
+              </div>
+            </EmptyContent>
+          </Empty>
         ) : (
-          <SchedulingDemandView
-            termId={selectedTerm.id}
-            demandData={demandData}
-            isLoading={calculateMutation.isPending}
-            suggestions={suggestions}
-            totalUncoveredStudents={totalUncoveredStudents}
-            onCapacityChange={handleCapacityChange}
-            onAddClass={handleAddClass}
-            onRemoveClass={handleRemoveClass}
-          />
+          <div className="flex flex-col gap-4">
+            <SchedulingStudentScheduleConfirmation term={selectedTerm} />
+            <SchedulingDemandView
+              termId={selectedTerm.id}
+              demandData={demandData}
+              isLoading={calculateMutation.isPending}
+              suggestions={suggestions}
+              totalUncoveredStudents={totalUncoveredStudents}
+              onCapacityChange={handleCapacityChange}
+              onAddClass={handleAddClass}
+              onRemoveClass={handleRemoveClass}
+            />
+          </div>
         )}
       </AdminPageShell>
+
+      <SchedulingStickyBar
+        termId={selectedTerm?.id}
+        onGenerateSchedule={handleGenerateSchedule}
+        disabled={
+          !selectedTerm || !effectiveBranchId || !demandData || isActionPending
+        }
+        isGenerating={isActionPending}
+      />
 
       <AlertDialog
         open={shortfallDialogOpen}

@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { SlidersHorizontal } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { AvatarBadge } from "@workspace/ui/components/avatar"
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -13,7 +14,7 @@ import {
   ResponsiveDialogFooter,
   ResponsiveDialogCloseButton,
 } from "@workspace/ui/components/dialog"
-import { cn } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { useMobileScrollReveal } from "@/lib/hooks"
 
 export interface AdminFilterBarProps {
@@ -60,6 +61,7 @@ export function AdminFilterBar({
   disabled = false,
 }: AdminFilterBarProps) {
   const t = useTranslations("common.filter")
+  const locale = useLocale()
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const hasDialog = Boolean(filters || children)
   const hasFilters = Boolean(hasDialog || onFilterClick)
@@ -88,8 +90,10 @@ export function AdminFilterBar({
           className
         )}
       >
-        <div className="overflow-hidden">
-          <div className="flex w-full min-w-0 items-center gap-2 pb-0.5 sm:gap-3">
+        <div
+          className={cn(isRevealed ? "overflow-visible" : "overflow-hidden")}
+        >
+          <div className="flex w-full min-w-0 items-center gap-2 pt-1.5 pb-1 sm:gap-3 sm:pt-0 sm:pb-0.5">
             {/* Search slot — stretches with flex-1 */}
             {search && <div className="min-w-0 flex-1">{search}</div>}
 
@@ -108,7 +112,7 @@ export function AdminFilterBar({
                 disabled={disabled}
                 aria-label={resolvedButtonAriaLabel}
                 className={cn(
-                  "size-14 min-w-14 shrink-0 cursor-pointer gap-2 rounded-2xl border-border px-3.5 transition-all hover:bg-muted active:scale-95 sm:w-auto sm:px-4",
+                  "relative size-14 min-w-14 shrink-0 cursor-pointer gap-2 rounded-2xl border-border px-3.5 transition-all hover:bg-muted active:scale-95 sm:w-auto sm:px-4",
                   hasActiveFilters &&
                     "border-primary/50 bg-primary/5 text-primary hover:bg-primary/10"
                 )}
@@ -119,17 +123,22 @@ export function AdminFilterBar({
                     hasActiveFilters ? "text-primary" : "text-muted-foreground"
                   )}
                 />
+                {activeFiltersCount > 0 && (
+                  <>
+                    <AvatarBadge className="-end-1.5 -top-1.5 bottom-auto flex size-5 min-w-5 items-center justify-center px-1 text-[11px] leading-none font-bold sm:hidden">
+                      {formatNumber(activeFiltersCount, locale)}
+                    </AvatarBadge>
+                    <Badge
+                      variant="secondary"
+                      className="hidden h-5 min-w-5 rounded-full px-1.5 text-[11px] font-bold sm:inline-flex"
+                    >
+                      {formatNumber(activeFiltersCount, locale)}
+                    </Badge>
+                  </>
+                )}
                 <span className="hidden text-sm font-semibold sm:inline">
                   {resolvedButtonLabel}
                 </span>
-                {activeFiltersCount > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="h-5 min-w-5 rounded-full px-1.5 text-[11px] font-bold"
-                  >
-                    {activeFiltersCount}
-                  </Badge>
-                )}
               </Button>
             )}
 

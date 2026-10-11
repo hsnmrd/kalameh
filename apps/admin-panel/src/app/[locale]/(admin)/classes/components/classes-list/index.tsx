@@ -36,12 +36,14 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@workspace/ui/components/empty"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { formatNumber, cn } from "@workspace/ui/lib/utils"
 import {
   PERMISSIONS,
   isTermInActivationWindow,
+  isClassDone,
   type ClassDto,
 } from "@workspace/types"
+
 import { PermissionGuard } from "@/components/permission-guard"
 
 export interface ClassesListProps {
@@ -138,6 +140,7 @@ export function ClassesList({
         const isEditDisabled = Boolean(
           cls.term?.startDate && !isTermInActivationWindow(cls.term.startDate)
         )
+        const isDone = isClassDone(cls)
 
         return (
           <ContextMenu key={cls.id}>
@@ -151,13 +154,28 @@ export function ClassesList({
                   }
                 }}
                 isLast={index === classes.length - 1}
+                className={cn(
+                  isDone && "opacity-60 transition-opacity hover:opacity-80"
+                )}
               >
                 <MobileListItemIcon>
                   <Layers className="size-5" />
                 </MobileListItemIcon>
 
                 <MobileListItemContent
-                  primary={cls.title}
+                  primary={
+                    <div className="flex items-center gap-2">
+                      <span className="truncate">{cls.title}</span>
+                      {isDone && (
+                        <Badge
+                          variant="outline"
+                          className="shrink-0 border-border bg-muted/60 text-[10px] font-normal text-muted-foreground"
+                        >
+                          {t("table.ended")}
+                        </Badge>
+                      )}
+                    </div>
+                  }
                   secondary={
                     <div className="flex flex-col gap-0.5">
                       <span>{cls.course?.title || cls.term?.title || "-"}</span>

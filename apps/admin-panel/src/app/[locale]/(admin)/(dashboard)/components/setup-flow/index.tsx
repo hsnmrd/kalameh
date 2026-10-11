@@ -26,9 +26,14 @@ import { SetupCarouselCard } from "./setup-carousel-card"
 export interface SetupFlowProps {
   instituteId: string
   classesCount?: number
+  className?: string
 }
 
-export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
+export function SetupFlow({
+  instituteId,
+  classesCount = 0,
+  className,
+}: SetupFlowProps) {
   const isRtl = useIsRtl()
   const [api, setApi] = React.useState<CarouselApi>()
 
@@ -184,14 +189,18 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
   }, [api])
 
   return (
-    <div className="flex flex-col gap-3">
+    <div
+      className={cn(
+        "flex w-full flex-col gap-2.5 lg:w-1/2 lg:max-w-[50%]",
+        className
+      )}
+    >
       <Carousel
         orientation="vertical"
-        setApi={setApi}
         opts={{
-          align: "center",
-          containScroll: false,
+          align: "start",
           startIndex,
+          containScroll: false,
         }}
         className="w-full"
       >
@@ -200,24 +209,12 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
           totalSteps={steps.length}
         />
 
-        <div className="mt-2 flex items-center gap-3">
-          {/* Main vertical carousel area (Start in RTL = right) */}
-          <div className="relative min-w-0 flex-1 overflow-hidden">
-            <CarouselContent className="h-[210px] sm:h-[220px]">
-              {steps.map((step, index) => {
-                const isSelected = index === selectedIndex
-
+        <div className="mt-1 flex items-center gap-2.5 ltr:flex-row-reverse rtl:flex-row">
+          <div className="h-[185px] min-w-0 flex-1">
+            <CarouselContent wrapperClassName="h-full" className="-mt-2 h-full">
+              {steps.map((step) => {
                 return (
-                  <CarouselItem
-                    key={step.id}
-                    onClick={() => api?.scrollTo(index)}
-                    className={cn(
-                      "basis-[80%] py-1.5 transition-all duration-300",
-                      isSelected
-                        ? "scale-100 opacity-100"
-                        : "scale-[0.98] cursor-pointer opacity-50 hover:opacity-80"
-                    )}
-                  >
+                  <CarouselItem key={step.id} className="basis-auto pt-2">
                     <SetupCarouselCard step={step} />
                   </CarouselItem>
                 )
@@ -225,10 +222,9 @@ export function SetupFlow({ instituteId, classesCount = 0 }: SetupFlowProps) {
             </CarouselContent>
           </div>
 
-          {/* Navigation vertical arrow buttons (End in RTL = left, matching design) */}
-          <div className="flex shrink-0 flex-col gap-1.5">
-            <CarouselPrevious className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-full border border-border/80 bg-background/90 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
-            <CarouselNext className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-full border border-border/80 bg-background/90 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
+          <div className="flex shrink-0 flex-col items-center gap-1.5">
+            <CarouselPrevious className="static size-8 translate-x-0 translate-y-0 scale-100 opacity-100 shadow-xs hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
+            <CarouselNext className="static size-8 translate-x-0 translate-y-0 scale-100 opacity-100 shadow-xs hover:bg-muted disabled:pointer-events-none disabled:opacity-30" />
           </div>
         </div>
       </Carousel>

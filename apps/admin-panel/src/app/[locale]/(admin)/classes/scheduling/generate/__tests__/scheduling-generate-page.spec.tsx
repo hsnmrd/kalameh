@@ -98,6 +98,7 @@ describe("SchedulingGeneratePage", () => {
             Date.now() + 90 * 24 * 60 * 60 * 1000
           ).toISOString(),
           isActive: true,
+          studentSchedulesConfirmedAt: new Date().toISOString(),
           createdAt: "2026-08-01",
           updatedAt: "2026-08-01",
         },

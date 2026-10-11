@@ -18,7 +18,6 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { branchesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
-import { TermSummaryBar } from "../term-summary-bar"
 
 export interface SchedulingFilterProps {
   term?: SchedulingTermSummaryDto | null
@@ -62,18 +61,28 @@ export function SchedulingFilter({
         })),
   })
 
-  const activeFiltersCount = branchId ? 1 : 0
+  const activeFiltersCount = maxStudentsPerClass !== 14 ? 1 : 0
 
   const handleClearFilters = React.useCallback(() => {
-    onBranchChange("")
-  }, [onBranchChange])
+    onMaxStudentsPerClassChange(14)
+  }, [onMaxStudentsPerClassChange])
 
   return (
     <AdminFilterBar
       isPinned={activeFiltersCount > 0}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
-      search={<TermSummaryBar term={term} isLoading={isLoadingTerm} />}
+      search={
+        <ResponsiveCombobox
+          items={branchOptions}
+          value={branchId}
+          onValueChange={(val) => onBranchChange(val || "")}
+          placeholder={t("demand.filters.branch")}
+          drawerTitle={t("demand.filters.branch")}
+          className="h-14 w-full rounded-2xl"
+          clearable={false}
+        />
+      }
       actions={
         onGenerateSchedule ? (
           <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
@@ -94,36 +103,23 @@ export function SchedulingFilter({
         ) : undefined
       }
       filters={
-        <>
-          <Field>
-            <FieldLabel>{t("demand.filters.branch")}</FieldLabel>
-            <ResponsiveCombobox
-              items={branchOptions}
-              value={branchId}
-              onValueChange={(val) => onBranchChange(val || "")}
-              placeholder={t("demand.filters.branch")}
-              drawerTitle={t("demand.filters.branch")}
-              clearable={false}
-            />
-          </Field>
-          <Field>
-            <FieldLabel>{t("demand.filters.maxStudents")}</FieldLabel>
-            <Counter
-              min={1}
-              max={100}
-              value={maxStudentsPerClass}
-              onValueChange={onMaxStudentsPerClassChange}
-              aria-label={t("demand.filters.maxStudents")}
-            />
-            <FieldDescription>
-              {maxAvailableRoomCapacity === null
-                ? t("demand.filters.noRoomCeiling")
-                : t("demand.filters.roomCeiling", {
-                    count: maxAvailableRoomCapacity,
-                  })}
-            </FieldDescription>
-          </Field>
-        </>
+        <Field>
+          <FieldLabel>{t("demand.filters.maxStudents")}</FieldLabel>
+          <Counter
+            min={1}
+            max={100}
+            value={maxStudentsPerClass}
+            onValueChange={onMaxStudentsPerClassChange}
+            aria-label={t("demand.filters.maxStudents")}
+          />
+          <FieldDescription>
+            {maxAvailableRoomCapacity === null
+              ? t("demand.filters.noRoomCeiling")
+              : t("demand.filters.roomCeiling", {
+                  count: maxAvailableRoomCapacity,
+                })}
+          </FieldDescription>
+        </Field>
       }
     />
   )

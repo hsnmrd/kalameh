@@ -15,6 +15,7 @@ describe('TermsService', () => {
   let service: TermsService;
   let prismaService: any;
   let i18nService: any;
+  let auditLogsService: any;
 
   const mockAdmin: JwtPayload = {
     sub: 'admin-id',
@@ -24,6 +25,7 @@ describe('TermsService', () => {
   };
 
   beforeEach(async () => {
+    auditLogsService = { log: jest.fn() };
     prismaService = {
       term: {
         findMany: jest.fn().mockResolvedValue([]),
@@ -59,7 +61,7 @@ describe('TermsService', () => {
         TermsService,
         { provide: PrismaService, useValue: prismaService },
         { provide: I18nService, useValue: i18nService },
-        { provide: AuditLogsService, useValue: { log: jest.fn() } },
+        { provide: AuditLogsService, useValue: auditLogsService },
       ],
     }).compile();
 
@@ -623,6 +625,52 @@ describe('TermsService', () => {
       await expect(
         service.remove('term-with-classes', mockAdmin),
       ).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('confirmStudentSchedules', () => {
+    it('updates confirmation timestamps and user, logging audit event', async () => {
+      const termData = {
+        id: 'term-1',
+        title: 'ترم پاییز',
+        instituteId: 'inst-1',
+        startDate: new Date('2026-10-01'),
+        endDate: new Date('2026-12-30'),
+        isActive: true,
+        studentSchedulesConfirmedAt: null,
+        studentSchedulesConfirmedByUserId: null,
+        _count: { classes: 0 },
+      };
+      prismaService.term.findFirstOrThrow.mockResolvedValue(termData);
+      prismaService.term.update.mockResolvedValue({
+        ...termData,
+        studentSchedulesConfirmedAt: new Date(),
+        studentSchedulesConfirmedByUserId: mockAdmin.sub,
+        studentSchedulesConfirmedByUser: {
+          id: mockAdmin.sub,
+          firstName: 'Admin',
+          lastName: 'User',
+        },
+      });
+
+      const result = await service.confirmStudentSchedules('term-1', mockAdmin);
+
+      expect(prismaService.term.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'term-1' },
+          data: expect.objectContaining({
+            studentSchedulesConfirmedByUserId: mockAdmin.sub,
+          }),
+        }),
+      );
+      expect(auditLogsService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'CONFIRM_STUDENT_SCHEDULES',
+          entityId: 'term-1',
+          userId: mockAdmin.sub,
+        }),
+      );
+      expect(result.studentSchedulesConfirmedByUserId).toBe(mockAdmin.sub);
     });
   });
 });

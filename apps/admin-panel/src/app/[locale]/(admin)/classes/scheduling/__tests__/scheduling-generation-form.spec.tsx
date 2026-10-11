@@ -74,6 +74,7 @@ describe("MVP-034 scheduling generation form", () => {
           startDate: "2026-09-01",
           endDate: "2026-12-01",
           isActive: true,
+          studentSchedulesConfirmedAt: "2026-08-01",
           createdAt: "2026-08-01",
           updatedAt: "2026-08-01",
         },
@@ -99,10 +100,14 @@ describe("MVP-034 scheduling generation form", () => {
 
     render(<SchedulingGenerationForm onCreated={onCreated} />)
 
-    // The active eligible term is automatically selected and displayed in the header
+    // The active eligible term and branch are displayed in the header badges
     expect(await screen.findByText("ترم پاییز")).toBeInTheDocument()
+    expect(await screen.findByText("شعبه ونک")).toBeInTheDocument()
     expect(
       screen.queryByRole("combobox", { name: "انتخاب ترم" })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("combobox", { name: "انتخاب شعبه" })
     ).not.toBeInTheDocument()
     await waitFor(() =>
       expect(requirementsQuerySpy).toHaveBeenCalledWith(
@@ -158,6 +163,7 @@ describe("MVP-034 scheduling generation form", () => {
           startDate: "2026-09-01",
           endDate: "2026-12-01",
           isActive: true,
+          studentSchedulesConfirmedAt: "2026-08-01",
           createdAt: "2026-08-01",
           updatedAt: "2026-08-01",
         },
@@ -197,5 +203,57 @@ describe("MVP-034 scheduling generation form", () => {
         expect.anything()
       )
     )
+  })
+
+  it("disables submit button and prompts confirmation when student schedules are unconfirmed", async () => {
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["terms", "active"],
+      queryFn: async () => [
+        {
+          id: termId,
+          instituteId,
+          title: "ترم پاییز",
+          startDate: "2026-09-01",
+          endDate: "2026-12-01",
+          isActive: true,
+          studentSchedulesConfirmedAt: null,
+          createdAt: "2026-08-01",
+          updatedAt: "2026-08-01",
+        },
+      ],
+    } as never)
+    vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
+      queryKey: ["branches", "active"],
+      queryFn: async () => [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "شعبه ونک",
+          isActive: true,
+        },
+      ],
+    } as never)
+    vi.spyOn(classRequirementsResource.list, "toQuery").mockImplementation(
+      (params) =>
+        ({
+          queryKey: ["class-requirements", params?.termId ?? "none"],
+          queryFn: vi.fn().mockResolvedValue([buildRequirement(requirementId)]),
+        }) as never
+    )
+
+    render(<SchedulingGenerationForm onCreated={vi.fn()} />)
+
+    expect(await screen.findByText("ترم پاییز")).toBeInTheDocument()
+    expect(
+      await screen.findByText("تأیید برنامه زمانی فراگیران")
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "تأیید برنامه زمانی فراگیران" })
+    ).not.toBeInTheDocument()
+
+    const submitButton = screen.getByRole("button", { name: "ساخت پیشنهادها" })
+    expect(submitButton).toBeDisabled()
   })
 })

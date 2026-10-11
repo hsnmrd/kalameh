@@ -17,6 +17,7 @@ import {
   operatingPhasesResource,
   studentsResource,
   branchesResource,
+  termsResource,
   API_BASE_URL,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
@@ -27,6 +28,7 @@ import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
 import { StudentsHeaderActions } from "./components/students-header-actions"
+import { StudentScheduleConfirmationBanner } from "./components/student-schedule-confirmation-banner"
 import { NoOperatingPhaseAlert } from "./components/no-operating-phase-alert"
 import { StudentsFilter } from "./components/students-filter"
 import { StudentsTable } from "./components/students-table"
@@ -77,6 +79,19 @@ export default function StudentsPage() {
     ),
     enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
   })
+
+  // Fetch list of terms to check schedule confirmation status
+  const { data: terms = [] } = useQuery({
+    ...termsResource.list.toQuery(
+      activeInstituteId ? { instituteId: activeInstituteId } : undefined
+    ),
+    enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
+  })
+
+  const unconfirmedTerm = React.useMemo(
+    () => terms.find((term) => !term.studentSchedulesConfirmedAt),
+    [terms]
+  )
 
   // Query students
   const { data: students, isLoading } = useQuery({
@@ -149,6 +164,10 @@ export default function StudentsPage() {
     openModal("addNote", { student })
   const handleResetPassword = (student: StudentDto) =>
     openModal("resetPassword", { student })
+  const handleConfirmStudentSchedules = (targetTermId?: string) =>
+    openModal("confirmStudentSchedules", {
+      defaultTermId: targetTermId ?? unconfirmedTerm?.id,
+    })
 
   return (
     <ModuleGuard module={APP_MODULES.STUDENTS}>
@@ -160,6 +179,11 @@ export default function StudentsPage() {
               onImportClick={handleImport}
               onExportClick={handleExport}
               isExporting={isExporting}
+              onConfirmScheduleClick={
+                terms.length > 0
+                  ? () => handleConfirmStudentSchedules()
+                  : undefined
+              }
             />
           }
           filter={
@@ -188,6 +212,7 @@ export default function StudentsPage() {
                 extraProps={{
                   instituteId: activeInstituteId,
                   operatingPhases,
+                  terms,
                   onAvailability: handleAvailability,
                   onEdit: handleEdit,
                   onAddNote: handleAddNote,
@@ -212,7 +237,16 @@ export default function StudentsPage() {
           ) : hasNoPhases ? (
             <NoOperatingPhaseAlert />
           ) : (
-            <>
+            <div className="flex flex-1 flex-col gap-4">
+              {unconfirmedTerm && (
+                <StudentScheduleConfirmationBanner
+                  term={unconfirmedTerm}
+                  onConfirmClick={() =>
+                    handleConfirmStudentSchedules(unconfirmedTerm.id)
+                  }
+                />
+              )}
+
               {/* Desktop Table View */}
               <div className="hidden lg:block">
                 <StudentsTable
@@ -240,7 +274,7 @@ export default function StudentsPage() {
                   onAdd={handleCreate}
                 />
               </div>
-            </>
+            </div>
           )}
         </AdminPageShell>
       </PermissionGuard>

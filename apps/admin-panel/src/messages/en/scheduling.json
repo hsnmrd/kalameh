@@ -94,6 +94,13 @@
       "viewNames": "View names",
       "hideNames": "Close",
       "needsCall": "Needs Call"
+    },
+    "studentScheduleConfirmation": {
+      "title": "Student Availability Confirmation",
+      "unconfirmedDescription": "Student schedules for this term have not been confirmed yet. Availability must be confirmed by an operator before automated scheduling can run.",
+      "confirmedDescription": "Student schedules were confirmed on {date} by {user}.",
+      "confirmButton": "Confirm Student Schedules",
+      "confirmSuccess": "Student schedules for this term have been successfully confirmed."
     }
   },
   "runStatus": {
@@ -167,7 +174,8 @@
       "NO_CLASSROOM_WITH_REQUIRED_CAPACITY": "No classroom meets the capacity requirement for one of the courses.",
       "INCOMPLETE_STUDENT_SCHEDULE_DATA": "Some student schedules have incomplete availability data.",
       "NO_ELIGIBLE_STUDENTS": "No eligible students found for this course.",
-      "TEACHERS_WITHOUT_COURSE_QUALIFICATION": "Some active teachers have no course qualifications assigned."
+      "TEACHERS_WITHOUT_COURSE_QUALIFICATION": "Some active teachers have no course qualifications assigned.",
+      "STUDENT_SCHEDULES_NOT_CONFIRMED": "Student schedules for this term have not been confirmed by the operator. Please confirm student availability before generating schedules."
     }
   },
   "comparison": {
@@ -808,6 +816,11 @@
       "noPrerequisite": "—",
       "students": "Applicants",
       "studentsDetail": "{continuing} continuing + {new} placement = {total} students",
+      "continuingTooltip": "{count} continuing students",
+      "newPlacementTooltip": "{count} new placement students",
+      "totalTooltip": "Total: {count} applicants",
+      "editClassesTitle": "Edit Classes for {course}",
+      "confirm": "Confirm",
       "classesCountColumn": "Class Count",
       "classesCountSummary": "{count} classes",
       "suggestedClasses": "Suggested Classes",
@@ -825,7 +838,7 @@
       "closeClasses": "Close"
     },
     "summary": {
-      "eligible": "{count} eligible students",
+      "eligible": "{count} students",
       "effectiveLimit": "Maximum {count} per class",
       "uncovered": "{count} students uncovered"
     },
@@ -908,6 +921,10 @@
     "noBranch": {
       "title": "No active branch found",
       "description": "To calculate demand and schedule classes, you must first create at least one active branch in the institute."
+    },
+    "selectBranch": {
+      "title": "Select a Branch",
+      "description": "To check required classes and sessions, please select a branch first."
     },
     "filters": {
       "term": "Term",

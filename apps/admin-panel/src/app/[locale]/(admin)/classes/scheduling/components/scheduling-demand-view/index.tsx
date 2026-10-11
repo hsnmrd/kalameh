@@ -93,8 +93,8 @@ export function SchedulingDemandView({
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="gap-2 px-3 py-1.5">
             <Users className="size-4 text-muted-foreground" aria-hidden />
             {t("demand.summary.eligible", {

@@ -56,4 +56,11 @@ export const modalRegistry: ModalRegistry = {
       ),
     { ssr: false }
   ),
+  confirmStudentSchedules: dynamic(
+    () =>
+      import("./components/confirm-student-schedules-dialog").then(
+        (m) => m.ConfirmStudentSchedulesDialog
+      ),
+    { ssr: false }
+  ),
 }

@@ -175,6 +175,19 @@
     "selectedSlotsCount": "{count} slots selected",
     "noActivePhase": "No active operating phases found for this institute."
   },
+  "confirmStudentSchedules": {
+    "action": "Confirm Student Schedules",
+    "bannerTitle": "Confirm Student Schedules",
+    "bannerDescription": "Student schedules for term {termTitle} have not been confirmed yet. Once attendance availability is finalized, confirm the schedule to enable smart scheduling.",
+    "button": "Confirm Schedules",
+    "dialogTitle": "Confirm Student Schedules",
+    "dialogDescription": "Are you sure you want to confirm student schedules for term {termTitle}? Once confirmed, the supervisor will be able to generate scheduling proposals.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "success": "Student schedules for term {termTitle} have been confirmed successfully.",
+    "selectTerm": "Select Term",
+    "alreadyConfirmed": "Student schedules for this term were already confirmed on {date}."
+  },
   "validation": {
     "firstNameMin": "First name must be at least 2 characters.",
     "lastNameMin": "Last name must be at least 2 characters.",

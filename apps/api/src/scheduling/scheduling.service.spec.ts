@@ -74,6 +74,7 @@ describe('MVP-015 SchedulingService', () => {
       startDate: new Date(),
       endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       isActive: true,
+      studentSchedulesConfirmedAt: generatedAt,
       operatingPhase: {
         id: '00000000-0000-4000-8000-000000000009',
         title: 'Fall',

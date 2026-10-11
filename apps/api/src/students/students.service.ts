@@ -12,11 +12,13 @@ import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentFilterDto } from './dto/student-filter.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import type {
-  JwtPayload,
-  SupportedLocale,
-  StudentLookupResponse,
-  AddStudentNoteInput,
+import {
+  calculatePhaseSlots,
+  type JwtPayload,
+  type SupportedLocale,
+  type StudentLookupResponse,
+  type AddStudentNoteInput,
+  type WeekDay,
 } from '@workspace/types';
 
 @Injectable()
@@ -125,6 +127,54 @@ export class StudentsService {
             createdByUserId: currentUser.sub,
             content: initialNote,
           },
+        });
+      }
+
+      const activePhases =
+        (await tx.instituteOperatingPhase?.findMany({
+          where: { instituteId: targetInstituteId, isActive: true },
+        })) ?? [];
+
+      const defaultSlots: {
+        studentProfileId: string;
+        operatingPhaseId: string;
+        dayOfWeek: string;
+        startTime: string;
+        endTime: string;
+      }[] = [];
+
+      for (const phase of activePhases) {
+        const calculation = calculatePhaseSlots(
+          phase.startTime,
+          phase.endTime,
+          phase.slotDurationMinutes,
+          {
+            hasBreak: phase.hasBreak,
+            breakStartTime: phase.breakStartTime,
+            breakEndTime: phase.breakEndTime,
+          },
+        );
+        const days = (phase.daysOfWeek as WeekDay[]) || [];
+        for (const day of days) {
+          for (const slot of calculation.slots) {
+            defaultSlots.push({
+              studentProfileId: profile.id,
+              operatingPhaseId: phase.id,
+              dayOfWeek: day,
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+            });
+          }
+        }
+      }
+
+      if (defaultSlots.length > 0) {
+        await tx.studentAvailability?.createMany({
+          data: defaultSlots,
+        });
+        await tx.studentProfile?.update({
+          where: { id: profile.id },
+          data: { scheduleStatus: 'COMPLETE' },
         });
       }
 

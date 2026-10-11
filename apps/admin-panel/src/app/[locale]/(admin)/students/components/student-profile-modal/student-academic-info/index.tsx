@@ -44,6 +44,7 @@ export function StudentAcademicInfo({
         <div className="pt-1">
           <StudentScheduleStatusBadge
             scheduleStatus={student.studentProfile?.scheduleStatus}
+            showLabel
           />
         </div>
       </div>

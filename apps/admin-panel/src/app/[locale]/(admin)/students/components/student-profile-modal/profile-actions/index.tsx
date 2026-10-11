@@ -36,6 +36,7 @@ export function ProfileActions(props: ProfileActionsProps) {
   if (!onAvailability && !onAddNote && !onResetPassword && !onEdit) return null
 
   const runAction = (action: (student: StudentDto) => void) => {
+    onClose()
     action(student)
   }
 

@@ -149,10 +149,9 @@ describe("Unified scheduling workspace", () => {
 
     render(<SchedulingPage />)
 
-    expect(
-      (await screen.findAllByText("پاییز ۱۴۰۵")).length
-    ).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText("آماده تولید برنامه")).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText("شعبه مرکزی")).toBeInTheDocument()
+    })
     // Verify no search input exists
     expect(
       screen.queryByPlaceholderText("جست‌وجوی دوره...")
@@ -461,5 +460,70 @@ describe("Unified scheduling workspace", () => {
 
     expect(screen.getByText("دوره‌ها و کلاس‌ها")).toBeInTheDocument()
     expect(screen.queryByText("تقاضای دوره‌ها")).not.toBeInTheDocument()
+  })
+
+  it("prompts the user to select a branch first when multiple active branches exist and none is selected", async () => {
+    const multiBranches = [
+      {
+        id: "branch-1",
+        name: "شعبه مرکزی",
+        isActive: true,
+      },
+      {
+        id: "branch-2",
+        name: "شعبه ونک",
+        isActive: true,
+      },
+    ]
+
+    vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
+      queryKey: ["branches", "list"],
+      queryFn: async () => multiBranches,
+    } as never)
+
+    const mockTerms: SchedulingTermSummaryDto[] = [
+      {
+        id: "term-fall",
+        title: "پاییز ۱۴۰۵",
+        startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: true,
+        classesCount: 0,
+        requirementsCount: 0,
+        totalRequiredClasses: 0,
+        schedulingStatus: "READY_TO_SCHEDULE",
+      },
+    ]
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: "inst-1",
+      activeInstitute: {
+        id: "inst-1",
+        name: "Test Institute",
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "terms", "inst-1"],
+      queryFn: async () => mockTerms,
+    } as never)
+
+    const calculateDemandSpy = vi.fn()
+    vi.spyOn(schedulingResource.calculateDemand, "toMutation").mockReturnValue({
+      mutationFn: calculateDemandSpy,
+    } as never)
+
+    render(<SchedulingPage />)
+
+    expect(
+      await screen.findByRole("heading", { name: "انتخاب شعبه" })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "برای بررسی تعداد کلاس‌ها و جلسات مورد نیاز، ابتدا شعبه مورد نظر را انتخاب کنید."
+      )
+    ).toBeInTheDocument()
+    expect(calculateDemandSpy).not.toHaveBeenCalled()
   })
 })

@@ -48,6 +48,8 @@ export class SchedulingService {
           startDate: true,
           endDate: true,
           isActive: true,
+          studentSchedulesConfirmedAt: true,
+          studentSchedulesConfirmedByUserId: true,
           _count: {
             select: { classes: true },
           },
@@ -336,6 +338,10 @@ export class SchedulingService {
     const capturedAt = new Date();
     const preflightReport = this.preflightService.evaluate({
       checkedAt: capturedAt,
+      term: {
+        id: term.id,
+        studentSchedulesConfirmedAt: term.studentSchedulesConfirmedAt,
+      },
       requirements,
       teachers: scopedTeachers,
       students,

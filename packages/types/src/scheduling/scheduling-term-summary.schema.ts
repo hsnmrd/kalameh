@@ -37,6 +37,7 @@ export const SchedulingTermSummaryDtoSchema = z.object({
     })
     .nullable()
     .optional(),
+  studentSchedulesConfirmedAt: z.string().or(z.date()).nullable().optional(),
 })
 
 export type SchedulingTermSummaryDto = z.infer<

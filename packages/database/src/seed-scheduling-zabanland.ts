@@ -213,6 +213,7 @@ async function main() {
           endDate: autumnEndDate,
           isActive: true,
           operatingPhaseId: targetOperatingPhase.id,
+          studentSchedulesConfirmedAt: new Date(),
         },
       })
     : await prisma.term.upsert({
@@ -223,6 +224,7 @@ async function main() {
           endDate: autumnEndDate,
           isActive: true,
           operatingPhaseId: targetOperatingPhase.id,
+          studentSchedulesConfirmedAt: new Date(),
         },
         create: {
           id: "00000000-0000-0000-0000-000000000078",
@@ -232,6 +234,7 @@ async function main() {
           endDate: autumnEndDate,
           isActive: true,
           operatingPhaseId: targetOperatingPhase.id,
+          studentSchedulesConfirmedAt: new Date(),
         },
       })
   console.log(
@@ -1089,6 +1092,50 @@ async function main() {
   }
   console.log(
     `🎓 Seeded ${seededStudentUsers.length} Students across all 25 courses with scheduleStatus: COMPLETE`
+  )
+
+  // Seed default full availability for all students in target operating phase
+  const targetPhaseSlots = [
+    { startTime: "15:00", endTime: "16:30" },
+    { startTime: "16:30", endTime: "18:00" },
+    { startTime: "18:00", endTime: "19:30" },
+    { startTime: "19:30", endTime: "21:00" },
+  ]
+  const zabanlandAvailabilities: {
+    studentProfileId: string
+    operatingPhaseId: string
+    dayOfWeek: string
+    startTime: string
+    endTime: string
+  }[] = []
+
+  const zabanlandProfiles = await prisma.studentProfile.findMany({
+    where: { userId: { in: seededStudentUsers.map((u) => u.id) } },
+    select: { id: true },
+  })
+
+  for (const prof of zabanlandProfiles) {
+    for (const day of targetOperatingPhase.daysOfWeek as string[]) {
+      for (const slot of targetPhaseSlots) {
+        zabanlandAvailabilities.push({
+          studentProfileId: prof.id,
+          operatingPhaseId: targetOperatingPhase.id,
+          dayOfWeek: day,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        })
+      }
+    }
+  }
+
+  for (let i = 0; i < zabanlandAvailabilities.length; i += 5000) {
+    await prisma.studentAvailability.createMany({
+      data: zabanlandAvailabilities.slice(i, i + 5000),
+      skipDuplicates: true,
+    })
+  }
+  console.log(
+    `⏰ Seeded ${zabanlandAvailabilities.length} availability slots for Zabanland students`
   )
 
   // 6. Preceding Term (تابستان ۱۴۰۵) & Auto-Progression Ladder Enrollments
