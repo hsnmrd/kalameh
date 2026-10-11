@@ -202,9 +202,10 @@ describe("SetupFlow Component", () => {
       </QueryClientProvider>
     )
 
-    // Completed steps (Step 1 and 2) show simple "مشاهده" and "تکمیل شد"
-    const completedBadges = screen.getAllByText("تکمیل شد")
-    expect(completedBadges.length).toBe(2)
+    // Completed steps (Step 1 and 2) show simple "مشاهده" and omit "تکمیل شد" badge
+    const viewButtons = screen.getAllByRole("link", { name: /مشاهده/i })
+    expect(viewButtons.length).toBeGreaterThanOrEqual(2)
+    expect(screen.queryByText("تکمیل شد")).not.toBeInTheDocument()
 
     // The description of completed step 1 should NOT be shown in the compact card
     expect(
@@ -250,8 +251,9 @@ describe("SetupFlow Component", () => {
     )
 
     expect(screen.queryByText(/پیشرفت کلی/i)).not.toBeInTheDocument()
-    const allCompletedBadges = screen.getAllByText("تکمیل شد")
-    expect(allCompletedBadges.length).toBe(5)
+    const allViewButtons = screen.getAllByRole("link", { name: /مشاهده/i })
+    expect(allViewButtons.length).toBe(5)
+    expect(screen.queryByText("تکمیل شد")).not.toBeInTheDocument()
     // No step is current when all are completed
     expect(screen.queryByText("گام فعلی")).not.toBeInTheDocument()
   })

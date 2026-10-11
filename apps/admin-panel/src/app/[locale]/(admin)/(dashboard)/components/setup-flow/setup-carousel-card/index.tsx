@@ -37,12 +37,6 @@ export function SetupCarouselCard({ step }: SetupCarouselCardProps) {
           <span className="truncate text-xs font-medium text-muted-foreground">
             {title}
           </span>
-          <Badge
-            variant="success"
-            className="px-1.5 py-0 text-[9px] font-normal"
-          >
-            {t("status.completed")}
-          </Badge>
         </div>
 
         <Link href={step.primaryHref} className="shrink-0">
