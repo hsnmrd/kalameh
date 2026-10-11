@@ -29,7 +29,7 @@ export function SetupCarouselCard({ step }: SetupCarouselCardProps) {
   // 1. Completed Card: Minimal, tiny height, subdued, low attention
   if (isCompleted) {
     return (
-      <div className="flex items-center justify-between gap-2 rounded-xl border border-border/30 bg-muted/20 px-3 py-1.5 opacity-65 transition-all duration-200 hover:border-border/60 hover:opacity-100">
+      <div className="flex h-full items-center justify-between gap-2 rounded-xl border border-border/30 bg-muted/20 px-3 py-1.5 opacity-65 transition-all duration-200 hover:border-border/60 hover:opacity-100">
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-success/15 text-success">
             <Check className="size-3" />
@@ -57,11 +57,11 @@ export function SetupCarouselCard({ step }: SetupCarouselCardProps) {
   // 2. Current Card: Prominent, high-contrast, primary focus & CTA - NO border
   if (isCurrent) {
     return (
-      <div className="flex flex-col justify-between rounded-2xl bg-card p-4 shadow-sm transition-all duration-200">
-        <div className="flex flex-col gap-2.5">
+      <div className="flex h-full flex-col justify-between rounded-2xl bg-card p-3.5 shadow-sm transition-all duration-200 sm:p-4">
+        <div className="flex flex-col gap-2 sm:gap-2.5">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
-              <Icon className="size-4.5" />
+            <div className="flex size-8.5 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs sm:size-9">
+              <Icon className="size-4 sm:size-4.5" />
             </div>
             <Badge
               variant="default"
@@ -81,7 +81,7 @@ export function SetupCarouselCard({ step }: SetupCarouselCardProps) {
           </div>
         </div>
 
-        <div className="mt-3 pt-1">
+        <div className="mt-auto pt-2">
           <Link href={step.primaryHref} className="block w-full">
             <Button
               size="sm"
@@ -98,7 +98,7 @@ export function SetupCarouselCard({ step }: SetupCarouselCardProps) {
 
   // 3. Pending Card (Not Done Item): Warning color accents, low opacity
   return (
-    <div className="flex flex-col justify-between rounded-2xl border border-warning/20 bg-warning/5 p-3.5 opacity-50 transition-all duration-200 hover:opacity-75">
+    <div className="flex h-full flex-col justify-between rounded-2xl border border-warning/20 bg-warning/5 p-3.5 opacity-50 transition-all duration-200 hover:opacity-75">
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
           <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-warning/15 text-warning">
@@ -118,7 +118,7 @@ export function SetupCarouselCard({ step }: SetupCarouselCardProps) {
         </h3>
       </div>
 
-      <div className="mt-3 flex items-center justify-end pt-1">
+      <div className="mt-auto flex items-center justify-end pt-1">
         <Link href={step.primaryHref}>
           <Button
             type="button"

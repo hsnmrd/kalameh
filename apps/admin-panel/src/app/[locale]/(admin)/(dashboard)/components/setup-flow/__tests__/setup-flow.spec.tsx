@@ -320,5 +320,15 @@ describe("SetupFlow Component", () => {
     expect(
       screen.getByRole("button", { name: /next slide/i })
     ).toBeInTheDocument()
+
+    // 5. Carousel items occupy 80% height to leave 10% peek for prev & next
+    const carouselItems = container.querySelectorAll(
+      "[data-slot='carousel-item']"
+    )
+    expect(carouselItems.length).toBe(5)
+    carouselItems.forEach((item) => {
+      expect(item.className).toContain("basis-[80%]")
+      expect(item.className).toContain("h-[80%]")
+    })
   })
 })

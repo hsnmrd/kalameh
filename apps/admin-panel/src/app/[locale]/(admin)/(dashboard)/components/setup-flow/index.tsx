@@ -196,9 +196,10 @@ export function SetupFlow({
       )}
     >
       <Carousel
+        setApi={setApi}
         orientation="vertical"
         opts={{
-          align: "start",
+          align: "center",
           startIndex,
           containScroll: false,
         }}
@@ -210,11 +211,19 @@ export function SetupFlow({
         />
 
         <div className="mt-1 flex items-center gap-2.5 ltr:flex-row-reverse rtl:flex-row">
-          <div className="h-[185px] min-w-0 flex-1">
+          <div className="h-[220px] min-w-0 flex-1">
             <CarouselContent wrapperClassName="h-full" className="-mt-2 h-full">
-              {steps.map((step) => {
+              {steps.map((step, index) => {
                 return (
-                  <CarouselItem key={step.id} className="basis-auto pt-2">
+                  <CarouselItem
+                    key={step.id}
+                    className="h-[80%] basis-[80%] pt-2"
+                    onClick={() => {
+                      if (api && api.selectedScrollSnap() !== index) {
+                        api.scrollTo(index)
+                      }
+                    }}
+                  >
                     <SetupCarouselCard step={step} />
                   </CarouselItem>
                 )
