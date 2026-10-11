@@ -22,7 +22,6 @@ export function AvailabilitySchedule({
   const availabilities = teacher.teacherProfile?.availabilities || []
 
   const handleManage = () => {
-    onClose()
     onManage?.(teacher)
   }
 

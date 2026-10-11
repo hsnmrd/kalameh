@@ -23,9 +23,9 @@ export interface UseModalReturn<TData = any> {
   activeModals: string[]
   /** Checks if a specific modal key is open */
   isModalOpen: (modalKey: string) => boolean
-  /** Opens a modal by key and optionally sets payload state */
+  /** Opens a modal by key (or multiple keys) and optionally sets payload state */
   openModal: <T = any>(
-    modalKey: string,
+    modalKey: string | string[],
     data?: T,
     options?: OpenModalOptions
   ) => void
@@ -56,6 +56,47 @@ export interface UseModalReturn<TData = any> {
 }
 
 /**
+ * Parses active modal keys from URL search parameters, handling both
+ * comma-delimited strings (?modal=a,b) and repeated query parameters (?modal=a&modal=b).
+ */
+export function parseModalKeys(
+  searchParams:
+    | {
+        getAll?: (key: string) => string[]
+        get?: (key: string) => string | null
+      }
+    | null
+    | undefined,
+  paramKey: string = DEFAULT_MODAL_PARAM_KEY
+): string[] {
+  if (!searchParams) return []
+  const allValues =
+    typeof searchParams.getAll === "function"
+      ? searchParams.getAll(paramKey)
+      : searchParams.get?.(paramKey)
+        ? [searchParams.get(paramKey)!]
+        : []
+
+  if (allValues.length === 0) return []
+  const keys: string[] = []
+  for (const val of allValues) {
+    if (!val) continue
+    for (const part of val.split(",")) {
+      let trimmed = part.trim()
+      try {
+        trimmed = decodeURIComponent(trimmed).trim()
+      } catch {
+        // Keep trimmed as-is if decoding fails
+      }
+      if (trimmed && !keys.includes(trimmed)) {
+        keys.push(trimmed)
+      }
+    }
+  }
+  return keys
+}
+
+/**
  * Hook for managing URL-driven modals and their associated state.
  *
  * Query parameters are the SINGLE SOURCE OF TRUTH for modal visibility.
@@ -78,18 +119,13 @@ export function useModal<TData = any>(
 
   const { isPending, pendingModal, startModalTransition } = useModalTransition()
 
-  const rawModalParam = searchParams?.get(paramKey) ?? null
   const modalDataMap = useModalStore((state) => state.modalData)
   const setStoreModalData = useModalStore((state) => state.setModalData)
   const clearStoreModalData = useModalStore((state) => state.clearModalData)
 
   const activeModals = React.useMemo<string[]>(() => {
-    if (!rawModalParam) return []
-    return rawModalParam
-      .split(",")
-      .map((k) => k.trim())
-      .filter(Boolean)
-  }, [rawModalParam])
+    return parseModalKeys(searchParams, paramKey)
+  }, [searchParams, paramKey])
 
   const isModalOpen = React.useCallback(
     (modalKey: string) => activeModals.includes(modalKey),
@@ -97,31 +133,45 @@ export function useModal<TData = any>(
   )
 
   const openModal = React.useCallback(
-    <T = any>(modalKey: string, data?: T, opt?: OpenModalOptions) => {
+    <T = any>(
+      modalKey: string | string[],
+      data?: T,
+      opt?: OpenModalOptions
+    ) => {
       if (!modalKey) return
 
+      const rawList = Array.isArray(modalKey) ? modalKey : [modalKey]
+      const incomingKeys = rawList.flatMap((k) =>
+        k
+          .split(",")
+          .map((part) => part.trim())
+          .filter(Boolean)
+      )
+      if (incomingKeys.length === 0) return
+
       if (data !== undefined) {
-        setStoreModalData(modalKey, data)
+        incomingKeys.forEach((key) => {
+          setStoreModalData(key, data)
+        })
       }
 
-      const currentKeys = rawModalParam
-        ? rawModalParam
-            .split(",")
-            .map((k) => k.trim())
-            .filter(Boolean)
-        : []
+      const currentKeys = parseModalKeys(searchParams, paramKey)
 
-      if (!currentKeys.includes(modalKey)) {
-        currentKeys.push(modalKey)
-      }
+      // Move incoming keys to the top of the stack while preserving previous modals
+      const nextKeys = currentKeys.filter((k) => !incomingKeys.includes(k))
+      nextKeys.push(...incomingKeys)
 
       const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
-      const nextParamValue = currentKeys.join(",")
-      nextParams.set(paramKey, nextParamValue)
+      nextParams.delete(paramKey)
+      if (nextKeys.length > 0) {
+        nextParams.set(paramKey, nextKeys.join(","))
+      }
 
-      const url = `${pathname}?${nextParams.toString()}`
+      const queryStr = nextParams.toString()
+      const url = queryStr ? `${pathname}?${queryStr}` : pathname
 
-      startModalTransition(modalKey, () => {
+      const topKey = incomingKeys[incomingKeys.length - 1]
+      startModalTransition(topKey ?? null, () => {
         if (opt?.replace) {
           router.replace(url, { scroll: false })
         } else {
@@ -133,7 +183,6 @@ export function useModal<TData = any>(
       pathname,
       router,
       searchParams,
-      rawModalParam,
       paramKey,
       setStoreModalData,
       startModalTransition,
@@ -142,12 +191,7 @@ export function useModal<TData = any>(
 
   const closeModal = React.useCallback(
     (modalKeys?: string | string[], opt?: { replace?: boolean }) => {
-      const currentKeys = rawModalParam
-        ? rawModalParam
-            .split(",")
-            .map((k) => k.trim())
-            .filter(Boolean)
-        : []
+      const currentKeys = parseModalKeys(searchParams, paramKey)
 
       let nextKeys: string[]
       if (!modalKeys) {
@@ -158,7 +202,13 @@ export function useModal<TData = any>(
         }
         nextKeys = currentKeys
       } else {
-        const toRemove = Array.isArray(modalKeys) ? modalKeys : [modalKeys]
+        const rawList = Array.isArray(modalKeys) ? modalKeys : [modalKeys]
+        const toRemove = rawList.flatMap((k) =>
+          k
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        )
         toRemove.forEach((key) => {
           clearStoreModalData(key)
         })
@@ -166,11 +216,9 @@ export function useModal<TData = any>(
       }
 
       const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
+      nextParams.delete(paramKey)
       if (nextKeys.length > 0) {
-        const nextParamValue = nextKeys.join(",")
-        nextParams.set(paramKey, nextParamValue)
-      } else {
-        nextParams.delete(paramKey)
+        nextParams.set(paramKey, nextKeys.join(","))
       }
 
       const queryStr = nextParams.toString()
@@ -188,7 +236,6 @@ export function useModal<TData = any>(
       pathname,
       router,
       searchParams,
-      rawModalParam,
       paramKey,
       clearStoreModalData,
       startModalTransition,
@@ -197,12 +244,7 @@ export function useModal<TData = any>(
 
   const closeAllModals = React.useCallback(
     (opt?: { replace?: boolean }) => {
-      const currentKeys = rawModalParam
-        ? rawModalParam
-            .split(",")
-            .map((k) => k.trim())
-            .filter(Boolean)
-        : []
+      const currentKeys = parseModalKeys(searchParams, paramKey)
 
       currentKeys.forEach((key) => {
         clearStoreModalData(key)
@@ -225,7 +267,6 @@ export function useModal<TData = any>(
       pathname,
       router,
       searchParams,
-      rawModalParam,
       paramKey,
       clearStoreModalData,
       startModalTransition,
