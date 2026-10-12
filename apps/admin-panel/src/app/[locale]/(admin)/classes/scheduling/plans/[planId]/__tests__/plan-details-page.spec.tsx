@@ -205,10 +205,12 @@ describe("SchedulingPlanDetailsPage", () => {
 
     render(<SchedulingPlanDetailsPage />)
 
-    const selectButton = await screen.findByRole("button", {
+    const selectButtons = await screen.findAllByRole("button", {
       name: "انتخاب این برنامه",
     })
-    fireEvent.click(selectButton)
+    expect(selectButtons.length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByTestId("plan-details-sticky-bar")).toBeInTheDocument()
+    fireEvent.click(selectButtons[0]!)
 
     await waitFor(() => expect(select).toHaveBeenCalledTimes(1))
     expect(select).toHaveBeenCalledWith(

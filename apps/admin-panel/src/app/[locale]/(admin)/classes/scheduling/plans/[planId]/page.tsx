@@ -106,6 +106,7 @@ export default function SchedulingPlanDetailsPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_CLASSES} mode="forbidden">
         <AdminPageShell
+          className="pb-24 sm:pb-0"
           backHref="/classes"
           backLabel={tCommon("nav.classes")}
           breadcrumb={breadcrumb}

@@ -148,6 +148,8 @@ export function PlanDetailsHeader({
     </PermissionGuard>
   )
 
+  const hasAction = canPublish || canValidate || plan.status === "DRAFT"
+
   return (
     <>
       <AdminFilterBar
@@ -211,6 +213,17 @@ export function PlanDetailsHeader({
         }
         actions={headerActions}
       />
+
+      {hasAction && (
+        <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
+          <div
+            data-testid="plan-details-sticky-bar"
+            className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shadow-lg backdrop-blur-md sm:hidden"
+          >
+            {headerActions}
+          </div>
+        </PermissionGuard>
+      )}
 
       <SchedulingPlanPublicationDialog
         open={isConfirmationOpen}
