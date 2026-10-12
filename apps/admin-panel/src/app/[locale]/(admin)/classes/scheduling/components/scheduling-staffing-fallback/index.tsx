@@ -129,10 +129,7 @@ export function SchedulingStaffingFallback({
   }
 
   return (
-    <section
-      aria-label={t("staffingFallback.title")}
-      className="rounded-xl border border-border p-3.5"
-    >
+    <section aria-label={t("staffingFallback.title")}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <UserPlus aria-hidden className="size-4 shrink-0 text-foreground" />
