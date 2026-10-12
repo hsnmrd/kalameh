@@ -124,8 +124,11 @@ export class StudentsController {
     @CurrentLocale() locale: SupportedLocale,
     @Query('instituteId') queryInstituteId?: string,
     @Body('instituteId') bodyInstituteId?: string,
+    @Query('defaultBranchId') queryDefaultBranchId?: string,
+    @Body('defaultBranchId') bodyDefaultBranchId?: string,
   ) {
     const instituteId = queryInstituteId || bodyInstituteId;
+    const defaultBranchId = queryDefaultBranchId || bodyDefaultBranchId;
     if (!file || !file.buffer) {
       throw new BadRequestException(
         locale === 'fa'
@@ -138,6 +141,7 @@ export class StudentsController {
       file.buffer,
       locale,
       instituteId,
+      defaultBranchId,
     );
   }
 

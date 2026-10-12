@@ -14,6 +14,7 @@ import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 import type { ExcelImportResult } from "@workspace/types"
+import { DefaultBranchSelector } from "../default-branch-selector"
 
 interface UploadContentProps {
   selectedFile: File | null
@@ -22,6 +23,9 @@ interface UploadContentProps {
   isDownloadingTemplate: boolean
   fileInputRef: RefObject<HTMLInputElement | null>
   onDownloadTemplate: () => void
+  branches?: Array<{ id: string; name: string; isActive?: boolean }>
+  defaultBranchId?: string
+  onDefaultBranchChange?: (value: string) => void
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void
   onDragOver: (event: DragEvent) => void
   onDragLeave: (event: DragEvent) => void
@@ -35,6 +39,9 @@ export function UploadContent(props: UploadContentProps) {
     isDragging,
     isDownloadingTemplate,
     fileInputRef,
+    branches,
+    defaultBranchId,
+    onDefaultBranchChange,
     onDownloadTemplate,
     onFileChange,
     onDragOver,
@@ -45,6 +52,13 @@ export function UploadContent(props: UploadContentProps) {
 
   return (
     <>
+      {branches && branches.length > 0 && onDefaultBranchChange && (
+        <DefaultBranchSelector
+          branches={branches}
+          value={defaultBranchId || ""}
+          onChange={onDefaultBranchChange}
+        />
+      )}
       <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">

@@ -1,6 +1,6 @@
 import { ExcelService } from './excel.service';
 import { I18nService } from '../../i18n/i18n.service';
-import { parseBirthDate } from './student-workbook';
+import { parseBirthDate, resolveBranchId } from './student-workbook';
 
 describe('ExcelService', () => {
   let service: ExcelService;
@@ -181,6 +181,61 @@ describe('ExcelService', () => {
       expect(parseBirthDate(undefined)).toBeUndefined();
       expect(parseBirthDate('invalid-date')).toBeUndefined();
       expect(parseBirthDate('1200/01/01')).toBeUndefined();
+    });
+  });
+
+  describe('resolveBranchId', () => {
+    const branchMap = new Map([
+      ['شعبه مرکزی', 'branch-1'],
+      ['شعبه غرب', 'branch-2'],
+    ]);
+    const validBranchNames = 'شعبه مرکزی، شعبه غرب';
+
+    it('should resolve branchId when branchName exists and matches', () => {
+      const result = resolveBranchId(
+        'شعبه مرکزی',
+        branchMap,
+        undefined,
+        validBranchNames,
+        'fa',
+      );
+      expect(result).toEqual({ branchId: 'branch-1' });
+    });
+
+    it('should return error when branchName does not match any valid branch', () => {
+      const result = resolveBranchId(
+        'شعبه شرق',
+        branchMap,
+        'branch-1',
+        validBranchNames,
+        'fa',
+      );
+      expect(result.branchId).toBeUndefined();
+      expect(result.error).toBe(
+        'شعبه‌ای با نام "شعبه شرق" یافت نشد. شعب مجاز: شعبه مرکزی، شعبه غرب',
+      );
+    });
+
+    it('should use fallbackBranchId when branchName is not provided', () => {
+      const result = resolveBranchId(
+        undefined,
+        branchMap,
+        'branch-fallback',
+        validBranchNames,
+        'fa',
+      );
+      expect(result).toEqual({ branchId: 'branch-fallback' });
+    });
+
+    it('should return undefined when branchName is not provided and no fallback exists', () => {
+      const result = resolveBranchId(
+        '',
+        branchMap,
+        undefined,
+        validBranchNames,
+        'fa',
+      );
+      expect(result).toEqual({ branchId: undefined });
     });
   });
 });

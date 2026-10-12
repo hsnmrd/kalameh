@@ -24,6 +24,8 @@ import {
   parseDayPref,
   parseGender,
   parseBirthDate,
+  resolveBranchId,
+  studentExcelExportSelect,
 } from '../common/excel/student-workbook';
 
 @Injectable()
@@ -73,28 +75,7 @@ export class StudentExcelService {
 
     const students = await this.prisma.user.findMany({
       where,
-      select: {
-        firstName: true,
-        lastName: true,
-        phone: true,
-        nationalCode: true,
-        isActive: true,
-        createdAt: true,
-        branch: { select: { name: true } },
-        currentAllowedCourse: { select: { title: true } },
-        studentProfile: {
-          select: {
-            fatherName: true,
-            gender: true,
-            birthDate: true,
-            emergencyPhone: true,
-            address: true,
-            schoolShift: true,
-            dayPreference: true,
-            scheduleStatus: true,
-          },
-        },
-      },
+      select: studentExcelExportSelect,
       orderBy: { createdAt: 'desc' },
     });
 
@@ -108,6 +89,7 @@ export class StudentExcelService {
     fileBuffer: Buffer,
     locale: SupportedLocale = 'fa',
     instituteId?: string,
+    defaultBranchId?: string,
   ): Promise<ExcelImportResult> {
     const targetInstituteId =
       currentUser.role === ROLES.SUPER_ADMIN && instituteId
@@ -143,7 +125,7 @@ export class StudentExcelService {
           select: { id: true, title: true },
         }),
         this.prisma.branch.findMany({
-          where: { instituteId: targetInstituteId },
+          where: { instituteId: targetInstituteId, isActive: true },
           select: { id: true, name: true },
         }),
       ]);
@@ -155,6 +137,15 @@ export class StudentExcelService {
     const branchMap = new Map(
       instituteBranches.map((b) => [normalizePersianText(b.name), b.id]),
     );
+    const validBranchNames = instituteBranches
+      .map((b) => b.name)
+      .join(locale === 'fa' ? '، ' : ', ');
+    const fallbackBranchId =
+      defaultBranchId && instituteBranches.some((b) => b.id === defaultBranchId)
+        ? defaultBranchId
+        : instituteBranches.length === 1
+          ? instituteBranches[0].id
+          : undefined;
 
     const seenPhonesInBatch = new Set<string>();
     const validRowsToInsert: ValidStudentImportRow[] = [];
@@ -221,9 +212,21 @@ export class StudentExcelService {
         }
       }
 
-      const branchId = row.branchName
-        ? branchMap.get(normalizePersianText(row.branchName))
-        : undefined;
+      const { branchId, error: branchError } = resolveBranchId(
+        row.branchName,
+        branchMap,
+        fallbackBranchId,
+        validBranchNames,
+        locale,
+      );
+      if (branchError) {
+        errors.push({
+          row: rowNumber,
+          phone: row.phone,
+          message: branchError,
+        });
+        continue;
+      }
 
       const parsedBirthDate = parseBirthDate(row.birthDate);
 

@@ -245,4 +245,109 @@ describe('StudentExcelService', () => {
       },
     ]);
   });
+
+  it('should record an error if branch name is specified in Excel but not found in institute', async () => {
+    jest.spyOn(prisma.user, 'findMany').mockResolvedValue([]);
+    jest.spyOn(prisma.course, 'findMany').mockResolvedValue([]);
+    jest.spyOn(prisma.branch, 'findMany').mockResolvedValue([
+      { id: 'b-1', name: 'شعبه مرکزی' },
+      { id: 'b-2', name: 'شعبه غرب' },
+    ]);
+
+    jest.spyOn(excelService, 'parseStudentRows').mockReturnValue([
+      {
+        firstName: 'رضا',
+        lastName: 'کرمی',
+        phone: '09123333333',
+        branchName: 'شعبه شرق',
+      },
+    ]);
+
+    const result = await service.importFromExcel(
+      mockCurrentUser,
+      Buffer.from('dummy'),
+      'fa',
+    );
+
+    expect(result.totalRows).toBe(1);
+    expect(result.importedCount).toBe(0);
+    expect(result.failedCount).toBe(1);
+    expect(result.errors).toEqual([
+      {
+        row: 2,
+        phone: '09123333333',
+        message:
+          'شعبه‌ای با نام "شعبه شرق" یافت نشد. شعب مجاز: شعبه مرکزی، شعبه غرب',
+      },
+    ]);
+  });
+
+  it('should assign to defaultBranchId when row has no branch and defaultBranchId is provided', async () => {
+    jest.spyOn(prisma.user, 'findMany').mockResolvedValue([]);
+    jest.spyOn(prisma.course, 'findMany').mockResolvedValue([]);
+    jest.spyOn(prisma.branch, 'findMany').mockResolvedValue([
+      { id: 'b-1', name: 'شعبه مرکزی' },
+      { id: 'b-2', name: 'شعبه غرب' },
+    ]);
+    jest.spyOn(prisma.user, 'create').mockResolvedValue({ id: 'user-3' });
+
+    jest.spyOn(excelService, 'parseStudentRows').mockReturnValue([
+      {
+        firstName: 'سامان',
+        lastName: 'راد',
+        phone: '09124444444',
+      },
+    ]);
+
+    const result = await service.importFromExcel(
+      mockCurrentUser,
+      Buffer.from('dummy'),
+      'fa',
+      undefined,
+      'b-2',
+    );
+
+    expect(result.importedCount).toBe(1);
+    expect(prisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          phone: '09124444444',
+          branchId: 'b-2',
+        }),
+      }),
+    );
+  });
+
+  it('should automatically assign to single branch if institute only has one branch and row has no branch', async () => {
+    jest.spyOn(prisma.user, 'findMany').mockResolvedValue([]);
+    jest.spyOn(prisma.course, 'findMany').mockResolvedValue([]);
+    jest
+      .spyOn(prisma.branch, 'findMany')
+      .mockResolvedValue([{ id: 'b-single', name: 'شعبه مرکزی' }]);
+    jest.spyOn(prisma.user, 'create').mockResolvedValue({ id: 'user-4' });
+
+    jest.spyOn(excelService, 'parseStudentRows').mockReturnValue([
+      {
+        firstName: 'پویا',
+        lastName: 'امیری',
+        phone: '09125555555',
+      },
+    ]);
+
+    const result = await service.importFromExcel(
+      mockCurrentUser,
+      Buffer.from('dummy'),
+      'fa',
+    );
+
+    expect(result.importedCount).toBe(1);
+    expect(prisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          phone: '09125555555',
+          branchId: 'b-single',
+        }),
+      }),
+    );
+  });
 });

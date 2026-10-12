@@ -231,8 +231,12 @@
     "errorListTitle": "جزئیات خطاهای سطرها:",
     "rowNumber": "سطر {row}",
     "successMessage": "تعداد {count} فراگیر با موفقیت در سامانه ثبت شدند.",
-    "close": "تأیید و بستن",
-    "templateDownloadError": "خطا در دانلود فایل نمونه"
+    "templateDownloadError": "خطا در دانلود فایل نمونه",
+    "defaultBranch": "شعبه پیش‌فرض",
+    "defaultBranchPlaceholder": "انتخاب شعبه پیش‌فرض (اختیاری)",
+    "defaultBranchNone": "بدون شعبه پیش‌فرض",
+    "defaultBranchHint": "سطرهایی از فایل اکسل که ستون شعبه آن‌ها خالی باشد، به این شعبه اختصاص می‌یابند.",
+    "singleBranchNotice": "به دلیل وجود تنها یک شعبه ({branch})، فراگیران بدون شعبه به صورت خودکار به این شعبه متصل می‌شوند."
   },
   "export": {
     "trigger": "خروجی اکسل",

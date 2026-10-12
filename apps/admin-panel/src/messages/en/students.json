@@ -231,8 +231,12 @@
     "errorListTitle": "Row Error Details:",
     "rowNumber": "Row {row}",
     "successMessage": "{count} students were imported successfully.",
-    "close": "Confirm & Close",
-    "templateDownloadError": "The template could not be downloaded."
+    "templateDownloadError": "The template could not be downloaded.",
+    "defaultBranch": "Default Branch",
+    "defaultBranchPlaceholder": "Select default branch (optional)",
+    "defaultBranchNone": "No default branch",
+    "defaultBranchHint": "Rows in Excel without a specified branch will be assigned to this branch.",
+    "singleBranchNotice": "Since this institute has only one branch ({branch}), unassigned rows will automatically connect to it."
   },
   "export": {
     "trigger": "Export to Excel",

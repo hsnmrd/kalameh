@@ -82,11 +82,15 @@ export const studentsResource = api.resource("students", {
   >("/students/bulk-availability"),
   importExcel: api.post<
     ExcelImportResult,
-    { formData: FormData; instituteId?: string } | FormData
+    | { formData: FormData; instituteId?: string; defaultBranchId?: string }
+    | FormData
   >("/students/import-excel", {
     query: (params) => {
       if (params instanceof FormData) return {}
-      return params?.instituteId ? { instituteId: params.instituteId } : {}
+      const q: Record<string, string> = {}
+      if (params?.instituteId) q.instituteId = params.instituteId
+      if (params?.defaultBranchId) q.defaultBranchId = params.defaultBranchId
+      return q
     },
     body: (params) => (params instanceof FormData ? params : params.formData),
   }),

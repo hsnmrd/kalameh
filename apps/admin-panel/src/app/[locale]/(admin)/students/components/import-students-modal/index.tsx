@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import {
   FormDialog,
@@ -15,7 +15,8 @@ import {
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type { ExcelImportResult } from "@workspace/types"
-import { studentsResource, API_BASE_URL } from "@/lib/api"
+import { studentsResource, branchesResource, API_BASE_URL } from "@/lib/api"
+import { useActiveInstitute } from "@/lib/stores"
 import { UploadContent } from "./upload-content"
 
 export interface ImportStudentsModalProps {
@@ -32,13 +33,37 @@ export function ImportStudentsModal({
   const t = useTranslations("students.importModal")
   const locale = useLocale()
   const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
+  const effectiveInstituteId = instituteId || activeInstituteId
+
+  const { data: branches = [] } = useQuery({
+    ...branchesResource.list.toQuery(
+      effectiveInstituteId ? { instituteId: effectiveInstituteId } : undefined
+    ),
+    enabled: open && Boolean(effectiveInstituteId),
+  })
+
+  const activeBranches = React.useMemo(
+    () => branches.filter((b) => b.isActive),
+    [branches]
+  )
+
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+  const [defaultBranchId, setDefaultBranchId] = React.useState<string>("")
   const [isDragging, setIsDragging] = React.useState(false)
   const [importResult, setImportResult] =
     React.useState<ExcelImportResult | null>(null)
   const [isDownloadingTemplate, setIsDownloadingTemplate] =
     React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  // Auto-select if institute has only one branch
+  React.useEffect(() => {
+    const singleBranch = activeBranches[0]
+    if (activeBranches.length === 1 && singleBranch) {
+      setDefaultBranchId(singleBranch.id)
+    }
+  }, [activeBranches])
 
   const handleClose = () => {
     if (importResult?.importedCount)
@@ -47,6 +72,9 @@ export function ImportStudentsModal({
       })
     setSelectedFile(null)
     setImportResult(null)
+    if (activeBranches.length !== 1) {
+      setDefaultBranchId("")
+    }
     if (fileInputRef.current) fileInputRef.current.value = ""
     onClose()
   }
@@ -101,8 +129,14 @@ export function ImportStudentsModal({
     if (!selectedFile) return
     const formData = new FormData()
     formData.append("file", selectedFile)
-    if (instituteId) formData.append("instituteId", instituteId)
-    importMutation.mutate({ formData, instituteId })
+    if (effectiveInstituteId)
+      formData.append("instituteId", effectiveInstituteId)
+    if (defaultBranchId) formData.append("defaultBranchId", defaultBranchId)
+    importMutation.mutate({
+      formData,
+      instituteId: effectiveInstituteId,
+      defaultBranchId: defaultBranchId || undefined,
+    })
   }
 
   return (
@@ -123,6 +157,9 @@ export function ImportStudentsModal({
               isDragging={isDragging}
               isDownloadingTemplate={isDownloadingTemplate}
               fileInputRef={fileInputRef}
+              branches={activeBranches}
+              defaultBranchId={defaultBranchId}
+              onDefaultBranchChange={setDefaultBranchId}
               onDownloadTemplate={handleDownloadTemplate}
               onFileChange={(event) => selectFile(event.target.files?.[0])}
               onDragOver={(event) => {

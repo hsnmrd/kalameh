@@ -182,6 +182,29 @@ export function generateStudentTemplate(
   );
 }
 
+export const studentExcelExportSelect = {
+  firstName: true,
+  lastName: true,
+  phone: true,
+  nationalCode: true,
+  isActive: true,
+  createdAt: true,
+  branch: { select: { name: true } },
+  currentAllowedCourse: { select: { title: true } },
+  studentProfile: {
+    select: {
+      fatherName: true,
+      gender: true,
+      birthDate: true,
+      emergencyPhone: true,
+      address: true,
+      schoolShift: true,
+      dayPreference: true,
+      scheduleStatus: true,
+    },
+  },
+} as const;
+
 export function mapStudentToExcelExport(s: {
   firstName: string;
   lastName: string;
@@ -623,4 +646,26 @@ export function parseBirthDate(val?: string): Date | undefined {
     return fallback;
   }
   return undefined;
+}
+
+export function resolveBranchId(
+  branchName: string | undefined,
+  branchMap: Map<string, string>,
+  fallbackBranchId: string | undefined,
+  validBranchNames: string,
+  locale: SupportedLocale = 'fa',
+): { branchId?: string; error?: string } {
+  if (branchName) {
+    const id = branchMap.get(normalizePersianText(branchName));
+    if (!id) {
+      return {
+        error:
+          locale === 'fa'
+            ? `شعبه‌ای با نام "${branchName}" یافت نشد. شعب مجاز: ${validBranchNames || 'هیچ شعبه‌ای ثبت نشده است'}`
+            : `Branch with name "${branchName}" was not found. Valid branches: ${validBranchNames || 'None'}`,
+      };
+    }
+    return { branchId: id };
+  }
+  return { branchId: fallbackBranchId };
 }
