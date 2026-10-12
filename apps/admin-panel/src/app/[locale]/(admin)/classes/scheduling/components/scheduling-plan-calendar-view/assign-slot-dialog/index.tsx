@@ -10,11 +10,11 @@ import type {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
-  ResponsiveDialog,
-  ResponsiveDialogCloseButton,
-  ResponsiveDialogContent,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
+  FormDialog,
+  FormDialogCloseButton,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
 } from "@workspace/ui/components/dialog"
 import { formatNumber } from "@workspace/ui/lib/utils"
 
@@ -64,19 +64,17 @@ export function AssignSlotDialog({
   const targetSlotKey = `${targetSlot.daysOfWeek.join(",")}|${targetSlot.startTime}|${targetSlot.endTime}`
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className="overflow-hidden p-0 sm:max-w-md">
-        <ResponsiveDialogHeader className="border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
-          <div className="flex items-center justify-between gap-2">
-            <ResponsiveDialogTitle className="flex items-center gap-2 text-base font-bold text-foreground">
-              <CalendarClock aria-hidden className="size-5 text-primary" />
-              <span>{t("calendarView.assignSlotTitle")}</span>
-            </ResponsiveDialogTitle>
-            <ResponsiveDialogCloseButton />
-          </div>
-        </ResponsiveDialogHeader>
+    <FormDialog open={open} onOpenChange={onOpenChange}>
+      <FormDialogContent className="sm:max-w-md">
+        <FormDialogHeader>
+          <FormDialogTitle className="flex items-center gap-2 text-base font-bold text-foreground">
+            <CalendarClock aria-hidden className="size-5 text-foreground" />
+            <span>{t("calendarView.assignSlotTitle")}</span>
+          </FormDialogTitle>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-        <div className="flex flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
           <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 px-3 py-2 text-xs">
             <div className="flex items-center gap-1.5 font-semibold text-foreground">
               <CalendarClock
@@ -101,7 +99,7 @@ export function AssignSlotDialog({
             </div>
           </div>
 
-          <div className="mt-4 flex max-h-80 flex-col gap-2.5 overflow-y-auto pr-1">
+          <div className="mt-4 flex flex-col gap-2.5 overflow-y-auto pr-1 sm:max-h-80">
             {assignments.length === 0 ? (
               <p className="py-4 text-center text-xs text-muted-foreground">
                 {t("calendarView.noMissedClassesToAssign")}
@@ -192,7 +190,7 @@ export function AssignSlotDialog({
             )}
           </div>
         </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

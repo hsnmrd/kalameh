@@ -7,11 +7,11 @@ import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
-  ResponsiveDialog,
-  ResponsiveDialogCloseButton,
-  ResponsiveDialogContent,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
+  FormDialog,
+  FormDialogCloseButton,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
@@ -150,19 +150,19 @@ export function SwitchRoomDialog({
   }
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent
+    <FormDialog open={open} onOpenChange={onOpenChange}>
+      <FormDialogContent
         data-testid="switch-room-dialog"
-        className="max-w-lg overflow-hidden p-0 sm:max-w-lg"
+        className="sm:max-w-lg"
       >
-        <ResponsiveDialogHeader className="flex flex-row items-center justify-between border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
-          <ResponsiveDialogTitle className="text-base font-semibold">
+        <FormDialogHeader>
+          <FormDialogTitle className="text-base font-semibold">
             {t("calendarView.switchRoomTitle")} · {proposal.course.title}
-          </ResponsiveDialogTitle>
-          <ResponsiveDialogCloseButton />
-        </ResponsiveDialogHeader>
+          </FormDialogTitle>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-        <div className="max-h-[70vh] space-y-3 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4 sm:max-h-[70vh] sm:px-6 sm:py-5">
           {/* Current session info banner */}
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 bg-muted/20 px-3.5 py-2.5 text-xs">
             <div className="flex items-center gap-1.5 text-foreground">
@@ -325,7 +325,7 @@ export function SwitchRoomDialog({
             )}
           </div>
         </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

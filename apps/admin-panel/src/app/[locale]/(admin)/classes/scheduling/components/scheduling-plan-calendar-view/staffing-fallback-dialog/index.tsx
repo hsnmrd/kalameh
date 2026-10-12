@@ -11,11 +11,11 @@ import type {
 } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import {
-  ResponsiveDialog,
-  ResponsiveDialogCloseButton,
-  ResponsiveDialogContent,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
+  FormDialog,
+  FormDialogCloseButton,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
 } from "@workspace/ui/components/dialog"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import type { NewTeacherAssignment } from "../../scheduling-new-teacher-assignment-list"
@@ -155,20 +155,20 @@ export function StaffingFallbackDialog({
   const targetEndTime = proposal?.endTime ?? hiringAssignments[0]?.endTime ?? ""
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent
+    <FormDialog open={open} onOpenChange={onOpenChange}>
+      <FormDialogContent
         data-testid="staffing-fallback-dialog"
-        className="max-w-3xl overflow-hidden p-0 sm:max-w-3xl"
+        className="sm:max-w-3xl"
       >
-        <ResponsiveDialogHeader className="flex flex-row items-center justify-between border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
-          <ResponsiveDialogTitle className="text-base font-semibold">
+        <FormDialogHeader>
+          <FormDialogTitle className="text-base font-semibold">
             {effectiveCourseTitle
               ? `${t("staffingFallback.title")} · ${effectiveCourseTitle}`
               : t("staffingFallback.title")}
-          </ResponsiveDialogTitle>
-          <ResponsiveDialogCloseButton />
-        </ResponsiveDialogHeader>
-        <div className="max-h-[80vh] space-y-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+          </FormDialogTitle>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:max-h-[80vh] sm:px-6 sm:py-5">
           {/* Option of choosing from Free Masters in this period with level comparison */}
           {targetDaysOfWeek.length > 0 && targetStartTime && targetEndTime && (
             <FreeMastersSelection
@@ -294,7 +294,7 @@ export function StaffingFallbackDialog({
             />
           )}
         </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }
