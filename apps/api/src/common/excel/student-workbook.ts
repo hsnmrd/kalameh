@@ -3,6 +3,8 @@ import {
   isPersianTextEqual,
   cleanPersianText,
   normalizePersianText,
+  normalizeDigits,
+  jalaliToGregorian,
   type SupportedLocale,
 } from '@workspace/types';
 import { buildXlsxBuffer } from './xlsx-writer';
@@ -300,6 +302,17 @@ export function exportStudents(
       ? dayPrefLabels[s.dayPreference]?.[isFa ? 'fa' : 'en'] || s.dayPreference
       : '—';
 
+    let genderText = '—';
+    if (s.gender) {
+      if (s.gender === 'MALE') {
+        genderText = isFa ? 'پسر' : 'Male';
+      } else if (s.gender === 'FEMALE') {
+        genderText = isFa ? 'دختر' : 'Female';
+      } else {
+        genderText = s.gender;
+      }
+    }
+
     return [
       s.firstName || '',
       s.lastName || '',
@@ -307,7 +320,7 @@ export function exportStudents(
       s.nationalCode || '—',
       s.currentAllowedCourseTitle || '—',
       s.fatherName || '—',
-      s.gender || '—',
+      genderText,
       formattedBirthDate,
       s.emergencyPhone || '—',
       s.address || '—',
@@ -487,4 +500,52 @@ export function parseDayPref(val?: string): 'EVEN_DAYS' | 'ODD_DAYS' | 'ANY' {
   if (norm.includes('زوج') || norm.includes('even')) return 'EVEN_DAYS';
   if (norm.includes('فرد') || norm.includes('odd')) return 'ODD_DAYS';
   return 'ANY';
+}
+
+export function parseGender(val?: string): 'MALE' | 'FEMALE' | undefined {
+  if (!val) return undefined;
+  const norm = normalizePersianText(val);
+  if (
+    norm.includes('پسر') ||
+    norm.includes('مرد') ||
+    norm.includes('اقا') ||
+    norm.includes('male') ||
+    norm === 'm'
+  ) {
+    return 'MALE';
+  }
+  if (
+    norm.includes('دختر') ||
+    norm.includes('زن') ||
+    norm.includes('خانم') ||
+    norm.includes('female') ||
+    norm === 'f'
+  ) {
+    return 'FEMALE';
+  }
+  return undefined;
+}
+
+export function parseBirthDate(val?: string): Date | undefined {
+  if (!val?.trim()) return undefined;
+  const str = normalizeDigits(val.trim());
+
+  // Check if it's Jalali (year between 1300 and 1450)
+  // Supports formats like 1385/04/15, 1385-04-15, 1385.04.15
+  const jalaliMatch = str.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})$/);
+  if (jalaliMatch) {
+    const y = parseInt(jalaliMatch[1], 10);
+    const m = parseInt(jalaliMatch[2], 10);
+    const d = parseInt(jalaliMatch[3], 10);
+    if (y >= 1300 && y <= 1450 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      return jalaliToGregorian(y, m, d);
+    }
+  }
+
+  // Fallback to standard Gregorian date
+  const parsed = new Date(str);
+  if (!isNaN(parsed.getTime())) {
+    return parsed;
+  }
+  return undefined;
 }

@@ -6,22 +6,23 @@ import {
 import * as bcrypt from 'bcryptjs';
 import {
   ROLES,
-  calculatePhaseSlots,
   normalizePersianText,
   type JwtPayload,
   type SupportedLocale,
   type ExcelImportResult,
   type ExcelImportError,
-  type WeekDay,
 } from '@workspace/types';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { ExcelService } from '../common/excel/excel.service';
+import { StudentImportAvailabilityService } from './student-import-availability.service';
 import {
   StudentImportRowSchema,
   ValidStudentImportRow,
   parseShift,
   parseDayPref,
+  parseGender,
+  parseBirthDate,
 } from '../common/excel/student-workbook';
 
 @Injectable()
@@ -30,6 +31,7 @@ export class StudentExcelService {
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
     private readonly excelService: ExcelService,
+    private readonly importAvailabilityService: StudentImportAvailabilityService,
   ) {}
 
   generateTemplate(locale: SupportedLocale = 'fa'): Buffer {
@@ -55,11 +57,8 @@ export class StudentExcelService {
     const where: Record<string, unknown> = {
       instituteId: targetInstituteId,
       role: ROLES.STUDENT,
+      ...(query.isActive !== undefined ? { isActive: query.isActive } : {}),
     };
-
-    if (query.isActive !== undefined) {
-      where.isActive = query.isActive;
-    }
 
     if (query.search?.trim()) {
       const term = query.search.trim();
@@ -137,19 +136,15 @@ export class StudentExcelService {
 
     const rawRows = this.excelService.parseStudentRows(fileBuffer, locale);
     if (rawRows.length === 0) {
+      const message =
+        locale === 'fa'
+          ? 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد'
+          : 'The uploaded Excel file is empty or has an invalid structure';
       return {
         totalRows: 0,
         importedCount: 0,
         failedCount: 0,
-        errors: [
-          {
-            row: 1,
-            message:
-              locale === 'fa'
-                ? 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد'
-                : 'The uploaded Excel file is empty or has an invalid structure',
-          },
-        ],
+        errors: [{ row: 1, message }],
       };
     }
 
@@ -232,11 +227,7 @@ export class StudentExcelService {
         ? branchMap.get(normalizePersianText(row.branchName))
         : undefined;
 
-      let parsedBirthDate: Date | undefined;
-      if (row.birthDate) {
-        const d = new Date(row.birthDate);
-        if (!isNaN(d.getTime())) parsedBirthDate = d;
-      }
+      const parsedBirthDate = parseBirthDate(row.birthDate);
 
       const rawPassword = row.password || row.phone;
       const hashedPassword = await bcrypt.hash(rawPassword, 10);
@@ -250,7 +241,7 @@ export class StudentExcelService {
         currentAllowedCourseId: courseId,
         branchId,
         fatherName: row.fatherName || undefined,
-        gender: row.gender || undefined,
+        gender: parseGender(row.gender),
         birthDate: parsedBirthDate,
         emergencyPhone: row.emergencyPhone || undefined,
         address: row.address || undefined,
@@ -291,70 +282,10 @@ export class StudentExcelService {
         ),
       );
 
-      const activePhases = await this.prisma.instituteOperatingPhase.findMany({
-        where: { instituteId: targetInstituteId, isActive: true },
-      });
-
-      if (activePhases.length > 0) {
-        const createdProfiles = await this.prisma.studentProfile.findMany({
-          where: {
-            user: {
-              instituteId: targetInstituteId,
-              phone: { in: validRowsToInsert.map((r) => r.phone) },
-            },
-          },
-          select: { id: true },
-        });
-
-        const importSlots: {
-          studentProfileId: string;
-          operatingPhaseId: string;
-          dayOfWeek: string;
-          startTime: string;
-          endTime: string;
-        }[] = [];
-
-        for (const phase of activePhases) {
-          const calculation = calculatePhaseSlots(
-            phase.startTime,
-            phase.endTime,
-            phase.slotDurationMinutes,
-            {
-              hasBreak: phase.hasBreak,
-              breakStartTime: phase.breakStartTime,
-              breakEndTime: phase.breakEndTime,
-            },
-          );
-          const days = (phase.daysOfWeek as WeekDay[]) || [];
-          for (const prof of createdProfiles) {
-            for (const day of days) {
-              for (const slot of calculation.slots) {
-                importSlots.push({
-                  studentProfileId: prof.id,
-                  operatingPhaseId: phase.id,
-                  dayOfWeek: day,
-                  startTime: slot.startTime,
-                  endTime: slot.endTime,
-                });
-              }
-            }
-          }
-        }
-
-        if (importSlots.length > 0) {
-          const chunkSize = 5000;
-          for (let i = 0; i < importSlots.length; i += chunkSize) {
-            await this.prisma.studentAvailability.createMany({
-              data: importSlots.slice(i, i + chunkSize),
-              skipDuplicates: true,
-            });
-          }
-          await this.prisma.studentProfile.updateMany({
-            where: { id: { in: createdProfiles.map((p) => p.id) } },
-            data: { scheduleStatus: 'COMPLETE' },
-          });
-        }
-      }
+      await this.importAvailabilityService.seedImportedStudentsAvailability(
+        targetInstituteId,
+        validRowsToInsert.map((r) => r.phone),
+      );
     }
 
     return {

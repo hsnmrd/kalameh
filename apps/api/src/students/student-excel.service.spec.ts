@@ -3,12 +3,14 @@ import { StudentExcelService } from './student-excel.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { ExcelService } from '../common/excel/excel.service';
+import { StudentImportAvailabilityService } from './student-import-availability.service';
 import { ROLES, type JwtPayload } from '@workspace/types';
 
 describe('StudentExcelService', () => {
   let service: StudentExcelService;
   let excelService: any;
   let prisma: any;
+  let importAvailabilityService: any;
 
   const mockCurrentUser: JwtPayload = {
     sub: 'user-1',
@@ -18,6 +20,10 @@ describe('StudentExcelService', () => {
   };
 
   beforeEach(async () => {
+    importAvailabilityService = {
+      seedImportedStudentsAvailability: jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StudentExcelService,
@@ -27,6 +33,12 @@ describe('StudentExcelService', () => {
             user: {
               findMany: jest.fn(),
               create: jest.fn(),
+            },
+            course: {
+              findMany: jest.fn().mockResolvedValue([]),
+            },
+            branch: {
+              findMany: jest.fn().mockResolvedValue([]),
             },
             $transaction: jest
               .fn()
@@ -48,6 +60,10 @@ describe('StudentExcelService', () => {
             exportStudents: jest.fn().mockReturnValue(Buffer.from('export')),
             parseStudentRows: jest.fn(),
           },
+        },
+        {
+          provide: StudentImportAvailabilityService,
+          useValue: importAvailabilityService,
         },
       ],
     }).compile();
@@ -97,5 +113,62 @@ describe('StudentExcelService', () => {
     expect(result.totalRows).toBe(0);
     expect(result.failedCount).toBe(0);
     expect(result.errors.length).toBe(1);
+  });
+
+  it('should import students with Persian dates, gender, and matched course/branch', async () => {
+    jest.spyOn(prisma.user, 'findMany').mockResolvedValue([]);
+    jest
+      .spyOn(prisma.course, 'findMany')
+      .mockResolvedValue([{ id: 'course-1', title: 'انگلیسی مقدماتی A1' }]);
+    jest
+      .spyOn(prisma.branch, 'findMany')
+      .mockResolvedValue([{ id: 'branch-1', name: 'شعبه مرکزی' }]);
+    jest.spyOn(prisma.user, 'create').mockResolvedValue({ id: 'user-created' });
+
+    jest.spyOn(excelService, 'parseStudentRows').mockReturnValue([
+      {
+        firstName: 'پارسا',
+        lastName: 'رستمی',
+        phone: '09121111111',
+        nationalCode: '0012345678',
+        currentAllowedCourseTitle: 'انگليسی مقدماتی A1',
+        branchName: 'شعبه مركزی',
+        gender: 'پسر',
+        birthDate: '1385/04/15',
+        schoolShift: 'صبح',
+        dayPreference: 'روزهای زوج',
+      },
+    ]);
+
+    const result = await service.importFromExcel(
+      mockCurrentUser,
+      Buffer.from('dummy'),
+      'fa',
+    );
+
+    expect(result.totalRows).toBe(1);
+    expect(result.importedCount).toBe(1);
+    expect(result.failedCount).toBe(0);
+    expect(prisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          firstName: 'پارسا',
+          lastName: 'رستمی',
+          phone: '09121111111',
+          branchId: 'branch-1',
+          currentAllowedCourseId: 'course-1',
+          studentProfile: expect.objectContaining({
+            create: expect.objectContaining({
+              gender: 'MALE',
+              schoolShift: 'MORNING',
+              dayPreference: 'EVEN_DAYS',
+            }),
+          }),
+        }),
+      }),
+    );
+    expect(
+      importAvailabilityService.seedImportedStudentsAvailability,
+    ).toHaveBeenCalledWith('inst-1', ['09121111111']);
   });
 });
