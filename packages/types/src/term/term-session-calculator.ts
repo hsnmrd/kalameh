@@ -1,6 +1,10 @@
 import { type WeekDay } from "../class/class.schema.js"
 import { JALALI_MONTHS } from "../operating-phase/operating-phase.schema.js"
 import {
+  orderPhaseMonths,
+  getPhaseMonthTimeline,
+} from "../operating-phase/order-phase-months.js"
+import {
   gregorianToJalali,
   jalaliToGregorian,
   formatJalali,
@@ -669,9 +673,10 @@ export function generatePhaseTerms(
   const proposals: GeneratedTermProposal[] = []
 
   // Build sequential months in order
-  const orderedMonths = [...phase.months]
+  const orderedMonths = orderPhaseMonths(phase.months)
   const firstMonth = orderedMonths[0] ?? 1
   const lastMonth = orderedMonths[orderedMonths.length - 1] ?? 12
+  const timeline = getPhaseMonthTimeline(orderedMonths, jalaliYear)
 
   const activePatterns = resolveClassPatterns(daysOfWeek, classPatterns)
   const validDays =
@@ -728,8 +733,29 @@ export function generatePhaseTerms(
   while (termStartGDate < phaseEndGDate && proposals.length < maxTermsCap) {
     // Check if start date is still within phase months
     const curStartJ = gregorianToJalali(termStartGDate)
-    if (!orderedMonths.includes(curStartJ.month)) {
-      break
+    const isInTimeline = timeline.some(
+      (t) => t.year === curStartJ.year && t.month === curStartJ.month
+    )
+
+    if (!isInTimeline) {
+      const nextTimeline = timeline.find(
+        (t) =>
+          t.year > curStartJ.year ||
+          (t.year === curStartJ.year && t.month > curStartJ.month)
+      )
+      if (!nextTimeline) {
+        break
+      }
+      const jumpDate = jalaliToGregorian(
+        nextTimeline.year,
+        nextTimeline.month,
+        1
+      )
+      termStartGDate = advancePastExistingTerms(jumpDate)
+      if (termStartGDate >= phaseEndGDate) {
+        break
+      }
+      continue
     }
 
     const termCompensatory =
