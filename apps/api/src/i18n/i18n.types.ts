@@ -37,10 +37,16 @@ export interface TranslationDictionary {
     unauthorizedStudentCreation: string;
     phoneAlreadyInUse: string;
     passwordResetSuccess: string;
+    emptyImportFile: string;
+    instituteRequired: string;
   };
   teachers: {
+    teacherAlreadyExists: string;
+    emptyImportFile: string;
     invalidCourses: string;
     instituteRequired: string;
+    availabilityBranchConflict: string;
+    availabilitySlotConflict: string;
   };
   institutes: {
     instituteNotFound: string;

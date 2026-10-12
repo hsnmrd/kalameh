@@ -58,6 +58,9 @@ export const createUpdateStudentSchema = (msg?: {
       .optional(),
     schoolShift: z.enum(STUDENT_SCHOOL_SHIFTS).optional(),
     dayPreference: z.enum(STUDENT_DAY_PREFERENCES).optional(),
+    branchId: z
+      .preprocess(emptyToNull, z.string().uuid().nullable())
+      .optional(),
   })
 
 export const UpdateStudentSchema = createUpdateStudentSchema()

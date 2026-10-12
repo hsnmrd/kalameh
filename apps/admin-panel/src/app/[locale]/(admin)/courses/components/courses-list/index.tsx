@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { BookOpen, Edit2 } from "lucide-react"
+import { BookOpen, Edit2, Plus } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import {
   MobileList,
   MobileListItem,
@@ -24,6 +25,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { PERMISSIONS, type CourseDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -33,9 +35,15 @@ export interface CoursesListProps {
   courses: CourseDto[] | undefined
   isLoading: boolean
   onEdit: (course: CourseDto) => void
+  onAdd?: () => void
 }
 
-export function CoursesList({ courses, isLoading, onEdit }: CoursesListProps) {
+export function CoursesList({
+  courses,
+  isLoading,
+  onEdit,
+  onAdd,
+}: CoursesListProps) {
   const t = useTranslations("courses")
   const locale = useLocale()
 
@@ -57,6 +65,23 @@ export function CoursesList({ courses, isLoading, onEdit }: CoursesListProps) {
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_COURSES}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addCourse")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

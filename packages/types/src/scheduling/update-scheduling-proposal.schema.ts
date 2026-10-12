@@ -9,7 +9,7 @@ export const UpdateSchedulingProposalSchema = z
   .object({
     title: z.string().trim().min(2).optional(),
     teacherId: z.string().uuid().nullable().optional(),
-    branchId: z.string().uuid().nullable().optional(),
+    branchId: z.string().uuid().optional(),
     classroomId: z.string().uuid().nullable().optional(),
     capacity: z.number().int().positive().optional(),
     deliveryMode: z.enum(CLASS_DELIVERY_MODES).optional(),

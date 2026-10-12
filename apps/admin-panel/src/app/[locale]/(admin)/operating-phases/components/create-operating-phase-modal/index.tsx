@@ -30,7 +30,7 @@ export interface CreateOperatingPhaseModalProps {
 
 const DEFAULT_VALUES: CreateOperatingPhaseInput = {
   title: "",
-  months: [7, 8, 9, 10, 11, 12, 1, 2, 3],
+  months: [],
   startTime: "15:00",
   endTime: "21:00",
   slotDurationMinutes: 90,
@@ -45,6 +45,7 @@ const DEFAULT_VALUES: CreateOperatingPhaseInput = {
   hasBreak: false,
   breakStartTime: "18:00",
   breakEndTime: "19:00",
+  isSchoolCalendarAware: true,
   isActive: true,
   order: 0,
 }

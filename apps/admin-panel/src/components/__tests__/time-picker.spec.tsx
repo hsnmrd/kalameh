@@ -61,20 +61,12 @@ describe("TimePicker & WheelPicker Components", () => {
       expect(screen.getByText("14:30")).toBeInTheDocument()
     })
 
-    it("should clear time when clear button is clicked", () => {
-      const handleChange = vi.fn()
-      render(
-        <TimePicker
-          value="14:30"
-          onChange={handleChange}
-          clearable={true}
-          locale="fa"
-        />
-      )
+    it("should not render close or clear icon inside time picker", () => {
+      render(<TimePicker value="14:30" locale="fa" />)
 
-      const clearBtn = screen.getByRole("button", { name: /پاک کردن زمان/i })
-      fireEvent.click(clearBtn)
-      expect(handleChange).toHaveBeenCalledWith(undefined)
+      expect(
+        screen.queryByRole("button", { name: /پاک کردن زمان/i })
+      ).not.toBeInTheDocument()
     })
 
     it("should render inline variant with compact size", () => {

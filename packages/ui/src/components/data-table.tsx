@@ -4,6 +4,7 @@
 import * as React from "react"
 import {
   type ColumnDef,
+  type Row,
   flexRender,
   getCoreRowModel,
   useReactTable,
@@ -27,12 +28,14 @@ export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   emptyMessage?: React.ReactNode
+  getRowClassName?: (row: Row<TData>) => string | undefined
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   emptyMessage = "موردی برای نمایش یافت نشد",
+  getRowClassName,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -67,6 +70,7 @@ export function DataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
+                className={getRowClassName?.(row)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

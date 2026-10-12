@@ -18,7 +18,7 @@ import {
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type { StudentDto, SupportedLocale } from "@workspace/types"
-import { coursesResource, studentsResource } from "@/lib/api"
+import { coursesResource, studentsResource, branchesResource } from "@/lib/api"
 import {
   type UpdateStudentInput,
   useUpdateStudentSchema,
@@ -46,6 +46,12 @@ export function EditStudentModal({
     ),
     enabled: open && !!student?.instituteId,
   })
+  const { data: branches = [] } = useQuery({
+    ...branchesResource.list.toQuery(
+      student?.instituteId ? { instituteId: student.instituteId } : undefined
+    ),
+    enabled: open && !!student?.instituteId,
+  })
 
   const genderOptions: ComboboxOption[] = React.useMemo(
     () => [
@@ -60,6 +66,15 @@ export function EditStudentModal({
       ...courses.map((course) => ({ value: course.id, label: course.title })),
     ],
     [courses, t]
+  )
+  const branchOptions: ComboboxOption[] = React.useMemo(
+    () => [
+      { value: "ROOT", label: t("createModal.selectBranch") },
+      ...branches
+        .filter((b) => b.isActive)
+        .map((b) => ({ value: b.id, label: b.name })),
+    ],
+    [branches, t]
   )
   const statusOptions: ComboboxOption[] = React.useMemo(
     () => [
@@ -92,6 +107,7 @@ export function EditStudentModal({
       emergencyPhone: student.studentProfile?.emergencyPhone || "",
       address: student.studentProfile?.address || "",
       currentAllowedCourseId: student.currentAllowedCourseId || null,
+      branchId: student.branchId || null,
       isActive: student.isActive,
     })
   }, [student, reset])
@@ -146,6 +162,7 @@ export function EditStudentModal({
               genderOptions={genderOptions}
               courseOptions={courseOptions}
               statusOptions={statusOptions}
+              branchOptions={branchOptions}
             />
           </div>
           <FormDialogFooter>

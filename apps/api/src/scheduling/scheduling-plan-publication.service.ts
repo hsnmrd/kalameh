@@ -3,11 +3,12 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { Prisma } from '@workspace/database';
 import {
   ROLES,
   SchedulingPlanPublicationResultSchema,
-  isTermInActivationWindow,
+  isTermEligibleForClassCreation,
   type JwtPayload,
   type SchedulingPlanPublicationResult,
   type SupportedLocale,
@@ -74,7 +75,15 @@ export class SchedulingPlanPublicationService {
               run: {
                 select: {
                   termId: true,
-                  term: { select: { startDate: true } },
+                  term: {
+                    select: {
+                      startDate: true,
+                      endDate: true,
+                      _count: {
+                        select: { classes: true },
+                      },
+                    },
+                  },
                 },
               },
               proposals: {
@@ -103,7 +112,16 @@ export class SchedulingPlanPublicationService {
             },
           });
 
-          if (!isTermInActivationWindow(plan.run.term.startDate, publishedAt)) {
+          if (
+            !isTermEligibleForClassCreation(
+              {
+                startDate: plan.run.term.startDate,
+                endDate: plan.run.term.endDate,
+                classesCount: plan.run.term._count?.classes,
+              },
+              publishedAt,
+            )
+          ) {
             throw new ConflictException({
               code: 'HARD_CONSTRAINT_PUBLISH_BLOCKED',
               message: this.i18n.t(
@@ -135,10 +153,13 @@ export class SchedulingPlanPublicationService {
             );
           }
 
-          const classIds: string[] = [];
-          for (const proposal of plan.proposals) {
-            const createdClass = await transaction.class.create({
-              data: {
+          const classItems = plan.proposals.map((proposal) => {
+            const classId = randomUUID();
+            return {
+              classId,
+              proposalId: proposal.id,
+              classRow: {
+                id: classId,
                 instituteId,
                 termId: plan.run.termId,
                 courseId: proposal.courseId,
@@ -159,24 +180,42 @@ export class SchedulingPlanPublicationService {
                 startTime: proposal.startTime,
                 endTime: proposal.endTime,
               },
-              select: { id: true },
+            };
+          });
+
+          if (transaction.class.createMany) {
+            await transaction.class.createMany({
+              data: classItems.map((item) => item.classRow),
             });
-            const linked = await transaction.schedulingProposal.updateMany({
-              where: {
-                id: proposal.id,
-                planId: plan.id,
-                instituteId,
-                publishedClassId: null,
-              },
-              data: { publishedClassId: createdClass.id },
-            });
-            if (linked.count !== 1) {
-              throw new ConflictException(
-                'scheduling proposal changed during publication',
-              );
+          } else {
+            for (const item of classItems) {
+              await transaction.class.create({
+                data: item.classRow,
+                select: { id: true },
+              });
             }
-            classIds.push(createdClass.id);
           }
+
+          await Promise.all(
+            classItems.map(async ({ classId, proposalId }) => {
+              const linked = await transaction.schedulingProposal.updateMany({
+                where: {
+                  id: proposalId,
+                  planId: plan.id,
+                  instituteId,
+                  publishedClassId: null,
+                },
+                data: { publishedClassId: classId },
+              });
+              if (linked.count !== 1) {
+                throw new ConflictException(
+                  'scheduling proposal changed during publication',
+                );
+              }
+            }),
+          );
+
+          const classIds = classItems.map((item) => item.classId);
 
           await transaction.schedulingPlan.updateMany({
             where: {

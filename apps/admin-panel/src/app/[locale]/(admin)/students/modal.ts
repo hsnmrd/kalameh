@@ -9,6 +9,13 @@ export const modalRegistry: ModalRegistry = {
       ),
     { ssr: false }
   ),
+  importStudents: dynamic(
+    () =>
+      import("./components/import-students-modal").then(
+        (m) => m.ImportStudentsModal
+      ),
+    { ssr: false }
+  ),
   editStudent: dynamic(
     () =>
       import("./components/edit-student-modal").then((m) => m.EditStudentModal),
@@ -46,6 +53,13 @@ export const modalRegistry: ModalRegistry = {
     () =>
       import("./components/add-student-note-modal").then(
         (m) => m.AddStudentNoteModal
+      ),
+    { ssr: false }
+  ),
+  confirmStudentSchedules: dynamic(
+    () =>
+      import("./components/confirm-student-schedules-dialog").then(
+        (m) => m.ConfirmStudentSchedulesDialog
       ),
     { ssr: false }
   ),

@@ -10,6 +10,7 @@ import { TeacherCreateService } from './teacher-create.service';
 import { TeacherLifecycleService } from './teacher-lifecycle.service';
 import { TeacherQueryService } from './teacher-query.service';
 import { TeacherUpdateService } from './teacher-update.service';
+import { TeacherExcelService } from './teacher-excel.service';
 
 @Module({
   imports: [PrismaModule, I18nModule, AuditLogsModule],
@@ -22,7 +23,8 @@ import { TeacherUpdateService } from './teacher-update.service';
     TeacherLifecycleService,
     TeacherQueryService,
     TeacherUpdateService,
+    TeacherExcelService,
   ],
-  exports: [TeachersService],
+  exports: [TeachersService, TeacherExcelService],
 })
 export class TeachersModule {}

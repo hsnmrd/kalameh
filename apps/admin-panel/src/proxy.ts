@@ -8,10 +8,14 @@ const intlMiddleware = createMiddleware(routing)
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Ignore static assets and api proxy routes
+  // Ignore static assets, PWA files, and api proxy routes
   const isPublicStatic =
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
+    pathname.startsWith("/manifest") ||
+    pathname.startsWith("/sw.js") ||
+    pathname.startsWith("/offline.html") ||
+    pathname.startsWith("/icons") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/api-proxy") ||
     pathname.includes(".")
@@ -116,5 +120,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|offline.html|icons).*)",
+  ],
 }

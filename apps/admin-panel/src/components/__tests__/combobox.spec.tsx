@@ -188,4 +188,50 @@ describe("Combobox Component", () => {
       screen.getByRole("heading", { name: "فیلترهای جدول" })
     ).toBeInTheDocument()
   })
+
+  it("does not auto-focus search input when ResponsiveCombobox bottom sheet opens on mobile", async () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query) =>
+        ({
+          matches: true,
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as MediaQueryList
+    )
+
+    const manyOptions = [
+      { value: "1", label: "Option 1" },
+      { value: "2", label: "Option 2" },
+      { value: "3", label: "Option 3" },
+      { value: "4", label: "Option 4" },
+      { value: "5", label: "Option 5" },
+      { value: "6", label: "Option 6" },
+    ]
+
+    render(
+      <ResponsiveCombobox
+        items={manyOptions}
+        value={undefined}
+        placeholder="انتخاب گزینه"
+        drawerTitle="انتخاب گزینه"
+      />
+    )
+
+    const trigger = screen.getByRole("button", { name: "انتخاب گزینه" })
+    fireEvent.click(trigger)
+
+    expect(
+      screen.getByRole("heading", { name: "انتخاب گزینه" })
+    ).toBeInTheDocument()
+
+    const searchInput = screen.getByPlaceholderText("جستجو...")
+    expect(searchInput).toBeInTheDocument()
+    expect(searchInput).not.toHaveAttribute("autofocus")
+    expect(document.activeElement).not.toBe(searchInput)
+  })
 })

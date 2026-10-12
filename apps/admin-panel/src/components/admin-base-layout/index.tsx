@@ -15,6 +15,7 @@ import { SidebarFooter } from "./sidebar-footer"
 import { MobileBottomNavigation } from "./mobile-bottom-navigation"
 import { AdminHeader } from "./admin-header"
 import { HeaderActionsProvider } from "./header-actions-context"
+import { PwaNotifier } from "@/components/pwa-notifier"
 import {
   SUPER_ADMIN_PLATFORM_NAV,
   DASHBOARD_NAV_ITEM,
@@ -139,6 +140,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
 
   return (
     <HeaderActionsProvider>
+      <PwaNotifier />
       <div className="flex min-h-[100dvh] bg-background font-sans text-foreground">
         {/* Desktop Static Sidebar */}
         <aside
@@ -181,7 +183,7 @@ export function AdminBaseLayout({ children, role }: AdminBaseLayoutProps) {
             onLogout={handleLogout}
           />
 
-          <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-6 lg:p-8">
+          <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-6 lg:p-8">
             {children}
           </main>
         </div>

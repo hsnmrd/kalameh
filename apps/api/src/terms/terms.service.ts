@@ -75,6 +75,9 @@ export class TermsService {
       include: {
         _count: { select: { classes: true } },
         operatingPhase: this.operatingPhaseSelect,
+        studentSchedulesConfirmedByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
       },
       orderBy: { startDate: 'desc' },
     });
@@ -112,10 +115,69 @@ export class TermsService {
       include: {
         _count: { select: { classes: true } },
         operatingPhase: this.operatingPhaseSelect,
+        studentSchedulesConfirmedByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
       },
     });
 
     const { _count, ...data } = term;
+    return {
+      ...data,
+      classesCount: _count.classes,
+      lifecycleStatus: calculateTermLifecycleStatus(data),
+    };
+  }
+
+  async confirmStudentSchedules(
+    id: string,
+    currentUser: JwtPayload,
+    locale: SupportedLocale = 'fa',
+  ): Promise<TermDto> {
+    void locale;
+    const instituteId =
+      currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
+
+    const term = await this.prisma.term.findFirstOrThrow({
+      where: {
+        id,
+        ...(instituteId ? { instituteId } : {}),
+      },
+      include: {
+        _count: { select: { classes: true } },
+        operatingPhase: this.operatingPhaseSelect,
+      },
+    });
+
+    const confirmedAt = new Date();
+    const updated = await this.prisma.term.update({
+      where: { id: term.id },
+      data: {
+        studentSchedulesConfirmedAt: confirmedAt,
+        studentSchedulesConfirmedByUserId: currentUser.sub,
+      },
+      include: {
+        _count: { select: { classes: true } },
+        operatingPhase: this.operatingPhaseSelect,
+        studentSchedulesConfirmedByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+      },
+    });
+
+    await this.auditLogsService.log({
+      instituteId: term.instituteId,
+      userId: currentUser.sub,
+      module: 'TERM',
+      entityId: term.id,
+      action: 'CONFIRM_STUDENT_SCHEDULES',
+      metadata: {
+        title: term.title,
+        confirmedAt,
+      },
+    });
+
+    const { _count, ...data } = updated;
     return {
       ...data,
       classesCount: _count.classes,

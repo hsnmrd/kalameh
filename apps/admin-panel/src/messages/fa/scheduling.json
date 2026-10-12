@@ -45,10 +45,9 @@
         "drawerTitle": "انتخاب ترم"
       },
       "branch": {
-        "label": "محدوده شعبه",
-        "placeholder": "همه شعبه‌ها",
-        "all": "همه شعبه‌ها",
-        "description": "اختیاری — پیشنهادها را به یک شعبه محدود کنید.",
+        "label": "شعبه",
+        "placeholder": "انتخاب شعبه",
+        "description": "انتخاب یک شعبه مشخص برای زمان‌بندی کلاس‌ها الزامی است.",
         "drawerTitle": "انتخاب شعبه"
       },
       "alternatives": {
@@ -79,6 +78,7 @@
     },
     "validation": {
       "term": "یک ترم انتخاب کنید.",
+      "branch": "یک شعبه انتخاب کنید.",
       "requirements": "حداقل یک نیاز کلاسی انتخاب کنید."
     },
     "selectionSummary": "{count} نیاز انتخاب شده",
@@ -94,6 +94,13 @@
       "viewNames": "مشاهده اسامی",
       "hideNames": "بستن",
       "needsCall": "نیاز به تماس"
+    },
+    "studentScheduleConfirmation": {
+      "title": "تأیید برنامه زمانی فراگیران",
+      "unconfirmedDescription": "برنامه زمانی فراگیران برای این ترم هنوز تأیید نشده است. پیش از ساخت پیشنهادهای زمان‌بندی، برنامه زمانی فراگیران باید توسط اپراتور تأیید شود.",
+      "confirmedDescription": "برنامه زمانی فراگیران در تاریخ {date} توسط {user} تأیید شده است.",
+      "confirmButton": "تأیید برنامه زمانی فراگیران",
+      "confirmSuccess": "برنامه زمانی فراگیران برای این ترم با موفقیت تأیید شد."
     }
   },
   "runStatus": {
@@ -167,7 +174,8 @@
       "NO_CLASSROOM_WITH_REQUIRED_CAPACITY": "کلاس درس با ظرفیت کافی برای یکی از نیازها تعریف نشده است.",
       "INCOMPLETE_STUDENT_SCHEDULE_DATA": "اطلاعات زمان حضور برخی زبان‌آموزان ناقص است.",
       "NO_ELIGIBLE_STUDENTS": "زبان‌آموز واجد شرایطی برای این دوره یافت نشد.",
-      "TEACHERS_WITHOUT_COURSE_QUALIFICATION": "برخی از اساتید فعال آموزشگاه فاقد صلاحیت تدریس هستند."
+      "TEACHERS_WITHOUT_COURSE_QUALIFICATION": "برخی از اساتید فعال آموزشگاه فاقد صلاحیت تدریس هستند.",
+      "STUDENT_SCHEDULES_NOT_CONFIRMED": "برنامه زمانی فراگیران برای این ترم هنوز توسط اپراتور تأیید نشده است. لطفاً پیش از تولید زمان‌بندی، برنامه فراگیران را بررسی و تأیید نمایید."
     }
   },
   "comparison": {
@@ -323,6 +331,7 @@
       "assignSlotTitle": "تخصیص کلاس به این زمان",
       "assignSlotDescription": "یک کلاس حل‌نشده را برای برگزاری در روزهای {days} ساعت {start} تا {end} انتخاب کنید.",
       "newTeacherBadge": "استاد جدید",
+      "swapSession": "جابجایی جلسه",
       "swapTeacher": "جابجایی استاد",
       "removeTeacher": "حذف استاد",
       "removeTeacherTitle": "حذف استاد از کلاس",
@@ -392,8 +401,28 @@
       "currentRoomBadge": "کلاس فعلی",
       "switchRoomSuccess": "کلاس درس با موفقیت تغییر یافت.",
       "swapRoomSuccess": "کلاس درس‌های دو جلسه با موفقیت جابه‌جا شدند.",
+      "switchTeacherTitle": "تغییر استاد",
+      "currentTeacherBadge": "استاد فعلی",
+      "freeTeacherBadge": "استاد آزاد",
+      "swappableTeacherBadge": "قابل جابه‌جایی",
+      "noTeachersPresent": "هیچ استادی در این بازه زمانی در دسترس نیست.",
+      "swapTeacherWith": "در حال تدریس {title}",
+      "currentTeacherNotQualifiedForOther": "استاد فعلی ({teacher}) صلاحیت تدریس دوره «{course}» را ندارد.",
+      "targetTeacherNotQualifiedForCurrent": "استاد «{teacher}» صلاحیت تدریس این دوره ({course}) را ندارد.",
+      "noCurrentTeacherToSwap": "جلسه فعلی استادی ندارد و امکان جابه‌جایی دوطرفه وجود ندارد.",
+      "selectTeacher": "انتخاب این استاد",
+      "swapWithTeacher": "جابه‌جایی با این استاد",
+      "switchTeacherSuccess": "استاد با موفقیت تغییر یافت.",
+      "swapTeacherSuccess": "اساتید دو جلسه با موفقیت جابه‌جا شدند.",
+      "sessionSwapConfirmTitle": "جابه‌جایی جلسات",
+      "sessionSwapConfirmDescription": "اساتید این دو جلسه برای تعیین دستی توسط سوپروایزر خالی می‌شوند و کلاس‌های درس به‌صورت خودکار تخصیص می‌یابند.",
+      "sessionSwapSuccess": "جلسات با موفقیت جابه‌جا شدند.",
+      "swapInnerReassignmentsTitle": "تغییر خودکار کلاس درس جلسات هم‌زمان برای تأمین ظرفیت",
+      "swapInnerReassignmentItem": "جلسه «{title}» به «{room}» منتقل می‌شود.",
+      "sessionSwapNotice": "اساتید این دو جلسه برای تعیین دستی توسط سوپروایزر خالی می‌شوند. کلاس‌های درس بر اساس ظرفیت به‌صورت خودکار تخصیص یافتند.",
       "swapDialog": {
         "title": "جابجایی کلاس",
+        "description": "فقط جلسات جابه‌جا می‌شوند؛ اساتید و کلاس‌های درس در زمان‌های خود باقی می‌مانند.",
         "sourceCardLabel": "کلاس انتخاب‌شده",
         "targetCardLabel": "کارت هدف",
         "optionsTitle": "گزینه‌های قابل جابجایی",
@@ -488,6 +517,18 @@
     "staffingFallback": {
       "title": "راه‌حل‌های تأمین استاد",
       "description": "سامانه دو مسیر تأمین استاد را بررسی می‌کند: افزایش زمان حضور استادان واجد شرایط یا افزودن استاد جدید برای این سطح.",
+      "freeMastersTitle": "انتخاب از اساتید آزاد در این بازه",
+      "freeMastersDescription": "اساتید زیر در این بازه زمانی کلاس ندارند؛ مقایسه سطح تدریس آن‌ها با این کلاس در زیر مشخص شده است:",
+      "readyToAssignCount": "{count} استاد واجد شرایط",
+      "noFreeMastersTitle": "هیچ استادی در این بازه آزاد نیست",
+      "noFreeMastersDescription": "در این ساعت هیچ استاد آزادی در آموزشگاه یافت نشد.",
+      "assignMaster": "انتخاب استاد",
+      "assigning": "در حال انتصاب...",
+      "directMatchBadge": "واجد شرایط · تطابق مستقیم",
+      "higherLevelBadge": "واجد شرایط · سطح بالاتر ({course})",
+      "lowerLevelBadge": "فاقد صلاحیت · سطح پایین‌تر ({course})",
+      "unrelatedLevelBadge": "فاقد صلاحیت · رده آموزشی متفاوت",
+      "teachableCoursesLabel": "دوره‌های تدریس:",
       "solutionsCount": "{count} زمان پیشنهادی",
       "carouselCounter": "گزینه {current} از {total}",
       "teacherCarouselCounter": "استاد {current} از {total}",
@@ -515,6 +556,9 @@
       "teacherBankDescription": "استادان زیر در بانک آموزشگاه برای این دوره ثبت شده‌اند اما در حال حاضر زمان حضور فعالی در این بازه ندارند؛ جهت هماهنگی می‌توانید با آن‌ها تماس بگیرید.",
       "callTeacherBadge": "نیازمند تماس",
       "neededSlotNotice": "زمان مورد نیاز برای هماهنگی با استاد",
+      "requiredScheduleBadge": "زمان کلاس",
+      "requiredScheduleTitle": "زمان‌های مورد نیاز برای تشکیل کلاس",
+      "requiredScheduleDescription": "برای تشکیل این کلاس، نیاز به هماهنگی یا جذب استادی با زمان حضور در روزها و ساعت‌های زیر است:",
       "addTeacherBadge": "افزودن استاد",
       "addTeacherTitle": "یک استاد واجد شرایط برای {course} اضافه کنید",
       "addTeacherDescriptionWithSchedule": "صلاحیت تدریس این سطح و زمان حضور زیر را برای استاد جدید ثبت کنید. این زمان مستقیماً از برنامه پیشنهادی کلاس‌های تأمین‌نشده گرفته شده است.",
@@ -772,6 +816,11 @@
       "noPrerequisite": "—",
       "students": "متقاضیان",
       "studentsDetail": "{continuing} ارتقا از ترم قبل + {new} تعیین‌سطح = {total} نفر",
+      "continuingTooltip": "{count} نفر ارتقا از ترم قبل",
+      "newPlacementTooltip": "{count} نفر تعیین‌سطح جدید",
+      "totalTooltip": "مجموع: {count} نفر",
+      "editClassesTitle": "ویرایش کلاس‌های {course}",
+      "confirm": "تأیید",
       "classesCountColumn": "تعداد کلاس",
       "classesCountSummary": "{count} کلاس",
       "suggestedClasses": "تعداد کلاس پیشنهادی",
@@ -789,7 +838,7 @@
       "closeClasses": "بستن"
     },
     "summary": {
-      "eligible": "{count} زبان‌آموز واجد شرایط",
+      "eligible": "{count} زبان‌آموز",
       "effectiveLimit": "حداکثر {count} نفر در هر کلاس",
       "uncovered": "{count} نفر بدون ظرفیت"
     },
@@ -868,6 +917,14 @@
       "save": "تأیید",
       "cancel": "انصراف",
       "success": "نیاز کلاسی با موفقیت به‌روزرسانی شد."
+    },
+    "noBranch": {
+      "title": "شعبه فعالی یافت نشد",
+      "description": "برای محاسبه تقاضا و ساخت زمان‌بندی کلاس‌ها، ابتدا باید حداقل یک شعبه فعال در آموزشگاه ثبت کنید."
+    },
+    "selectBranch": {
+      "title": "انتخاب شعبه",
+      "description": "برای بررسی تعداد کلاس‌ها و جلسات مورد نیاز، ابتدا شعبه مورد نظر را انتخاب کنید."
     },
     "filters": {
       "term": "ترم",

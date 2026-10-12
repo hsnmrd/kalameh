@@ -6,9 +6,16 @@ import {
   Param,
   Body,
   Query,
+  Res,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 import { CoursesService } from './courses.service';
+import { CourseExcelService } from './course-excel.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,7 +36,80 @@ import {
 @UseGuards(JwtAuthGuard, PermissionsGuard, ModulesGuard)
 @RequireModules(APP_MODULES.CLASSES_COURSES)
 export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) {}
+  constructor(
+    private readonly coursesService: CoursesService,
+    private readonly courseExcelService: CourseExcelService,
+  ) {}
+
+  @Get('excel-template')
+  @RequirePermissions(PERMISSIONS.MANAGE_COURSES)
+  excelTemplate(
+    @Res() res: Response,
+    @CurrentLocale() locale: SupportedLocale = 'fa',
+  ) {
+    const buffer = this.courseExcelService.generateTemplate(locale);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="courses-import-template.xlsx"',
+    );
+    return res.send(buffer);
+  }
+
+  @Get('export-excel')
+  @RequirePermissions(PERMISSIONS.VIEW_COURSES)
+  async exportExcel(
+    @CurrentUser() currentUser: JwtPayload,
+    @Res() res: Response,
+    @Query('search') search?: string,
+    @Query('prerequisiteId') prerequisiteId?: string,
+    @Query('instituteId') instituteId?: string,
+    @CurrentLocale() locale: SupportedLocale = 'fa',
+  ) {
+    const buffer = await this.courseExcelService.exportToExcel(
+      currentUser,
+      { search, prerequisiteId, instituteId },
+      locale,
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="courses-list.xlsx"',
+    );
+    return res.send(buffer);
+  }
+
+  @Post('import-excel')
+  @UseInterceptors(FileInterceptor('file'))
+  @RequirePermissions(PERMISSIONS.MANAGE_COURSES)
+  async importExcel(
+    @CurrentUser() currentUser: JwtPayload,
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @CurrentLocale() locale: SupportedLocale = 'fa',
+    @Query('instituteId') queryInstituteId?: string,
+    @Body('instituteId') bodyInstituteId?: string,
+  ) {
+    const instituteId = queryInstituteId || bodyInstituteId;
+    if (!file || !file.buffer) {
+      throw new BadRequestException(
+        locale === 'fa'
+          ? 'لطفاً فایل اکسل معتبر را انتخاب کنید'
+          : 'Please select a valid Excel file',
+      );
+    }
+    return this.courseExcelService.importFromExcel(
+      currentUser,
+      file.buffer,
+      locale,
+      instituteId,
+    );
+  }
 
   @Get()
   @RequirePermissions(PERMISSIONS.VIEW_COURSES)

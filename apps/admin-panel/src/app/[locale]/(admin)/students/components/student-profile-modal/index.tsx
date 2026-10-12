@@ -12,14 +12,13 @@ import {
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
-import { Phone, GraduationCap, Clock } from "lucide-react"
+import { Phone, Clock } from "lucide-react"
 import { type StudentDto } from "@workspace/types"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { StudentStatusBadge } from "../student-status-badge"
-import { StudentScheduleStatusBadge } from "../student-schedule-status-badge"
 import { StudentProfileNotes } from "./student-profile-notes"
 import { ProfileActions } from "./profile-actions"
+import { StudentAcademicInfo } from "./student-academic-info"
 
 export interface StudentProfileModalProps {
   student: StudentDto | null
@@ -50,6 +49,7 @@ export function StudentProfileModal({
 
   const formattedBirthDate = student.studentProfile?.birthDate
     ? new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-US", {
+        timeZone: "UTC",
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -185,47 +185,11 @@ export function StudentProfileModal({
             </div>
           )}
 
-          {/* Academic Info */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-xs text-muted-foreground">
-                {t("table.currentLevel")}
-              </span>
-              <div className="pt-1">
-                {student.currentAllowedCourse ? (
-                  <Badge
-                    variant="outline"
-                    className="gap-1 text-xs text-primary"
-                  >
-                    <GraduationCap className="size-3" />
-                    <span>{student.currentAllowedCourse.title}</span>
-                  </Badge>
-                ) : (
-                  <span className="text-xs text-muted-foreground">
-                    {t("table.noLevel")}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div>
-              <span className="text-xs text-muted-foreground">
-                {t("actions.availability")}
-              </span>
-              <div className="pt-1">
-                <StudentScheduleStatusBadge
-                  scheduleStatus={student.studentProfile?.scheduleStatus}
-                />
-              </div>
-            </div>
-            <div>
-              <span className="text-xs text-muted-foreground">
-                {t("table.createdAt")}
-              </span>
-              <p className="font-medium text-foreground">
-                {formattedCreatedDate}
-              </p>
-            </div>
-          </div>
+          {/* Academic & Branch Info */}
+          <StudentAcademicInfo
+            student={student}
+            formattedCreatedDate={formattedCreatedDate}
+          />
         </div>
 
         <FormDialogFooter>
@@ -236,7 +200,6 @@ export function StudentProfileModal({
             <Button
               type="button"
               onClick={() => {
-                onClose()
                 onAvailability(student)
               }}
               className="gap-2"

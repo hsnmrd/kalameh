@@ -1,6 +1,6 @@
 import * as React from "react"
 import { describe, expect, it, vi } from "vitest"
-import { render, screen } from "../../../../test/test-utils"
+import { render, screen, act } from "../../../../test/test-utils"
 import {
   HeaderActionsProvider,
   useHeaderActions,
@@ -112,5 +112,39 @@ describe("AdminHeader", () => {
     const innerContainer = container.querySelector(".max-w-7xl")
     expect(innerContainer).toBeInTheDocument()
     expect(innerContainer).toHaveClass("mx-auto", "w-full", "max-w-7xl")
+  })
+
+  it("applies border and background when scrolled while remaining sticky and visible", () => {
+    const { container } = render(
+      <HeaderActionsProvider>
+        <AdminHeader />
+      </HeaderActionsProvider>
+    )
+
+    const header = container.querySelector("header")
+    expect(header).toBeInTheDocument()
+    expect(header).toHaveClass("sticky")
+    expect(header).toHaveClass("top-0")
+    expect(header).toHaveClass("border-transparent")
+
+    // Simulate scrolling down past top threshold
+    act(() => {
+      Object.defineProperty(window, "scrollY", {
+        writable: true,
+        configurable: true,
+        value: 100,
+      })
+      Object.defineProperty(document.documentElement, "scrollTop", {
+        writable: true,
+        configurable: true,
+        value: 100,
+      })
+      window.dispatchEvent(new Event("scroll"))
+    })
+
+    // Should stay visible with scrolled styling
+    expect(header).toHaveClass("border-border")
+    expect(header).toHaveClass("backdrop-blur-md")
+    expect(header).not.toHaveClass("-translate-y-full")
   })
 })

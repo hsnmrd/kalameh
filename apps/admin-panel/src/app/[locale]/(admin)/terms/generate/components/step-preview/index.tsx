@@ -3,19 +3,17 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { AlertTriangle } from "lucide-react"
-import { formatNumber } from "@workspace/ui/lib/utils"
 import {
   type GeneratedTermProposal,
   type CompensatorySession,
   hasFutureDays,
 } from "@workspace/types"
 import { ProposalsCalendar } from "../../../components/proposals-calendar"
-import { ProposalsTable } from "../proposals-table"
 
 export interface StepPreviewProps {
   proposals: GeneratedTermProposal[]
-  viewMode: "calendar" | "table"
-  onTitleChange: (index: number, newTitle: string) => void
+  viewMode?: "calendar" | "table"
+  onTitleChange?: (index: number, newTitle: string) => void
   onStartDateChange: (index: number, newStartDate: string) => void
   onToggleHoliday?: (dateYmd: string) => void
   onToggleCustomOffDay?: (dateYmd: string) => void
@@ -44,8 +42,6 @@ export interface StepPreviewProps {
 
 export function StepPreview({
   proposals,
-  viewMode,
-  onTitleChange,
   onStartDateChange,
   onToggleHoliday,
   onToggleCustomOffDay,
@@ -66,7 +62,6 @@ export function StepPreview({
     selectedTermIndex >= proposals.length && proposals.length > 0
       ? 0
       : selectedTermIndex
-  const activeTerm = proposals[safeSelectedTermIndex]
 
   const hasPastTerms = React.useMemo(() => {
     return proposals.some((p) => !hasFutureDays(p))
@@ -86,95 +81,25 @@ export function StepPreview({
         </div>
       )}
 
-      {/* Date Conflict Warning Alert */}
-      {dateConflicts && dateConflicts.length > 0 && (
-        <div className="flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
-          <div className="flex flex-col gap-1">
-            <span className="font-bold text-destructive">
-              {t("batchModal.conflictWarning")}
-            </span>
-            <div className="flex flex-col gap-1 text-muted-foreground">
-              {Array.from(
-                new Map(
-                  dateConflicts.map((c) => [
-                    [c.termTitle, c.conflictingTitle].sort().join(":::"),
-                    c,
-                  ])
-                ).values()
-              ).map((c, i) => (
-                <span key={i} className="leading-relaxed text-destructive/90">
-                  {t("batchModal.conflictWarningDesc", {
-                    term: c.termTitle,
-                    conflictingTerm: c.conflictingTitle,
-                  })}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Active Term Session Imbalance Warning Alert */}
-      {activeTerm?.hasSessionImbalance && (
-        <div className="flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
-          <div className="flex flex-col gap-1">
-            <span className="font-bold text-destructive">
-              {t("batchModal.sessionImbalanceWarning")}: {activeTerm.title}
-            </span>
-            <span className="leading-relaxed text-muted-foreground">
-              {(() => {
-                const even =
-                  activeTerm.patternDetails?.find((d) => d.track === "EVEN")
-                    ?.completedSessions ?? 0
-                const odd =
-                  activeTerm.patternDetails?.find((d) => d.track === "ODD")
-                    ?.completedSessions ?? 0
-                return t("batchModal.sessionImbalanceDesc", {
-                  even: formatNumber(even, locale || "fa"),
-                  odd: formatNumber(odd, locale || "fa"),
-                  target: formatNumber(
-                    activeTerm.sessionsCount ?? 15,
-                    locale || "fa"
-                  ),
-                })
-              })()}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Proposals View: Calendar or Table */}
+      {/* Proposals View: Calendar Only */}
       {proposals.length > 0 ? (
-        viewMode === "calendar" ? (
-          <ProposalsCalendar
-            proposals={proposals}
-            selectedTermIndex={safeSelectedTermIndex}
-            onSelectTermIndex={setSelectedTermIndex}
-            onStartDateChange={onStartDateChange}
-            onToggleHoliday={onToggleHoliday}
-            onToggleCustomOffDay={onToggleCustomOffDay}
-            onAddCompensatorySession={onAddCompensatorySession}
-            onRemoveCompensatorySession={onRemoveCompensatorySession}
-            locale={locale}
-            observeOfficialHolidays={observeOfficialHolidays}
-            customOffDays={customOffDays}
-            activeDismissedHolidays={activeDismissedHolidays}
-            compensatorySessions={compensatorySessions}
-            dateConflicts={dateConflicts}
-            existingTerms={existingTerms}
-          />
-        ) : (
-          <ProposalsTable
-            proposals={proposals}
-            onTitleChange={onTitleChange}
-            onStartDateChange={onStartDateChange}
-            locale={locale}
-            dateConflicts={dateConflicts}
-            existingTerms={existingTerms}
-          />
-        )
+        <ProposalsCalendar
+          proposals={proposals}
+          selectedTermIndex={safeSelectedTermIndex}
+          onSelectTermIndex={setSelectedTermIndex}
+          onStartDateChange={onStartDateChange}
+          onToggleHoliday={onToggleHoliday}
+          onToggleCustomOffDay={onToggleCustomOffDay}
+          onAddCompensatorySession={onAddCompensatorySession}
+          onRemoveCompensatorySession={onRemoveCompensatorySession}
+          locale={locale}
+          observeOfficialHolidays={observeOfficialHolidays}
+          customOffDays={customOffDays}
+          activeDismissedHolidays={activeDismissedHolidays}
+          compensatorySessions={compensatorySessions}
+          dateConflicts={dateConflicts}
+          existingTerms={existingTerms}
+        />
       ) : (
         <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
           {t("batchModal.noProposals")}

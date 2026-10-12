@@ -14,6 +14,7 @@ export interface TeachersTableProps {
   onManageAvailability: (teacher: TeacherDto) => void
   onResetPassword: (teacher: TeacherDto) => void
   onDelete: (teacher: TeacherDto) => void
+  onAdd?: () => void
 }
 
 export function TeachersTable({
@@ -24,6 +25,7 @@ export function TeachersTable({
   onManageAvailability,
   onResetPassword,
   onDelete,
+  onAdd,
 }: TeachersTableProps) {
   const columns = useTeachersTableColumns({
     onViewProfile,
@@ -42,7 +44,7 @@ export function TeachersTable({
   }
 
   if (!teachers || teachers.length === 0) {
-    return <TeachersTableEmptyState />
+    return <TeachersTableEmptyState onAdd={onAdd} />
   }
 
   return (

@@ -1,5 +1,6 @@
 import { parseInputDate, toIsoDate } from "./term-session-calculator.js"
 import { jalaliToGregorian } from "../calendar/jalali-holidays.js"
+import { orderPhaseMonths } from "../operating-phase/order-phase-months.js"
 
 export interface TermDateEntity {
   id?: string
@@ -136,7 +137,7 @@ export function isPhaseInPast(
   now: Date = new Date()
 ): boolean {
   if (!months || months.length === 0) return true
-  const orderedMonths = [...months]
+  const orderedMonths = orderPhaseMonths(months)
   const firstMonth = orderedMonths[0] ?? 1
   const lastMonth = orderedMonths[orderedMonths.length - 1] ?? 12
   const endYear = lastMonth < firstMonth ? jalaliYear + 1 : jalaliYear

@@ -3,7 +3,7 @@ import { CLASS_DELIVERY_MODES } from "./scheduling.constants.js"
 
 export const CalculateTermDemandInputSchema = z.object({
   termId: z.string().uuid(),
-  branchId: z.string().uuid().nullable().optional(),
+  branchId: z.string().uuid(),
   instituteId: z.string().uuid().optional(),
   maxStudentsPerClass: z.coerce.number().int().min(1).max(100).optional(),
 })
@@ -87,7 +87,7 @@ export type ApplyTermDemandItem = z.infer<typeof ApplyTermDemandItemSchema>
 
 export const ApplyTermDemandInputSchema = z.object({
   termId: z.string().uuid(),
-  branchId: z.string().uuid().nullable().optional(),
+  branchId: z.string().uuid(),
   instituteId: z.string().uuid().optional(),
   acknowledgeShortfall: z.boolean().default(false),
   items: z.array(ApplyTermDemandItemSchema),

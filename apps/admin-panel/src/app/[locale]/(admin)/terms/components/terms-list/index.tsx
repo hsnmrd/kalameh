@@ -1,6 +1,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Calendar, Edit2, Trash2, Eye } from "lucide-react"
+import { Calendar, Edit2, Trash2, Eye, Plus, Sparkles } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import {
   MobileList,
   MobileListItem,
@@ -21,6 +22,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { PERMISSIONS, isTermDeletable, type TermDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -32,6 +34,8 @@ export interface TermsListProps {
   onView: (term: TermDto) => void
   onEdit: (term: TermDto) => void
   onDelete?: (term: TermDto) => void
+  onAdd?: () => void
+  onBatch?: () => void
 }
 
 export function TermsList({
@@ -40,6 +44,8 @@ export function TermsList({
   onView,
   onEdit,
   onDelete,
+  onAdd,
+  onBatch,
 }: TermsListProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
@@ -78,6 +84,41 @@ export function TermsList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {(onBatch || onAdd) && (
+          <EmptyContent>
+            <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+                {onBatch && (
+                  <Button
+                    type="button"
+                    onClick={onBatch}
+                    className="cursor-pointer gap-2"
+                  >
+                    <Sparkles className="size-5" />
+                    <span>{t("generatePhaseTerms")}</span>
+                  </Button>
+                )}
+                {onAdd && (
+                  <Button
+                    type="button"
+                    variant={onBatch ? "outline" : "default"}
+                    onClick={onAdd}
+                    className={`cursor-pointer gap-2 ${
+                      onBatch ? "size-14 shrink-0 p-0 sm:w-auto sm:px-6" : ""
+                    }`}
+                    aria-label={t("addTerm")}
+                    title={t("addTerm")}
+                  >
+                    <Plus className="size-5" />
+                    <span className={onBatch ? "hidden sm:inline" : ""}>
+                      {t("addTerm")}
+                    </span>
+                  </Button>
+                )}
+              </div>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

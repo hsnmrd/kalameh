@@ -17,14 +17,12 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
-import { useRouter } from "@/i18n/routing"
 import { TermsTable } from "./components/terms-table"
 import { TermsList } from "./components/terms-list"
 import { TermsFilter } from "./components/terms-filter"
 import { TermsFabDrawer } from "./components/terms-fab-drawer"
 
 export default function TermsPage() {
-  const router = useRouter()
   const { openModal } = useModal()
 
   const [search, setSearch] = React.useState("")
@@ -48,7 +46,10 @@ export default function TermsPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const isListEmpty = !isLoading && terms.length === 0
+
   const handleCreate = () => openModal("createTerm")
+  const handleBatch = () => openModal("generatePhaseTerms")
   const handleView = (term: TermDto) => openModal("viewTerm", { term })
   const handleEdit = (term: TermDto) => openModal("editTerm", { term })
   const handleDelete = (term: TermDto) => openModal("deleteTerm", { term })
@@ -63,8 +64,8 @@ export default function TermsPage() {
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
-              onAddClick={handleCreate}
-              onBatchClick={() => router.push("/terms/generate")}
+              onAddClick={isListEmpty ? undefined : handleCreate}
+              onBatchClick={isListEmpty ? undefined : handleBatch}
             />
           }
           modals={
@@ -76,10 +77,12 @@ export default function TermsPage() {
             />
           }
           fab={
-            <TermsFabDrawer
-              onAddClick={handleCreate}
-              onBatchClick={() => router.push("/terms/generate")}
-            />
+            isListEmpty ? null : (
+              <TermsFabDrawer
+                onAddClick={handleCreate}
+                onBatchClick={handleBatch}
+              />
+            )
           }
         >
           {/* Desktop: DataTable */}
@@ -90,17 +93,21 @@ export default function TermsPage() {
               onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdd={handleCreate}
+              onBatch={handleBatch}
             />
           </div>
 
           {/* Mobile: flat divider list */}
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <TermsList
               terms={terms}
               isLoading={isLoading}
               onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdd={handleCreate}
+              onBatch={handleBatch}
             />
           </div>
         </AdminPageShell>

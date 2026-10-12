@@ -34,6 +34,16 @@ export const TermSchema = z.object({
     })
     .nullable()
     .optional(),
+  studentSchedulesConfirmedAt: z.string().or(z.date()).nullable().optional(),
+  studentSchedulesConfirmedByUserId: z.string().uuid().nullable().optional(),
+  studentSchedulesConfirmedByUser: z
+    .object({
+      id: z.string().uuid(),
+      firstName: z.string(),
+      lastName: z.string(),
+    })
+    .nullable()
+    .optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
   classesCount: z.number().optional(),

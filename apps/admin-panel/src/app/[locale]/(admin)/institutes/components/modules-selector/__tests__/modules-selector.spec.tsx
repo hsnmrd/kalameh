@@ -63,4 +63,27 @@ describe("ModulesSelector Component", () => {
       ])
     )
   })
+
+  it("should render 3 standard sized suggest buttons and modules vertically without carousel", () => {
+    render(<ModulesSelector value={[]} onChange={vi.fn()} />)
+
+    const starterBtn = screen.getByRole("button", { name: "پایه" })
+    const proBtn = screen.getByRole("button", { name: "پیشرفته" })
+    const enterpriseBtn = screen.getByRole("button", { name: "سازمانی (کامل)" })
+
+    expect(starterBtn.className).toContain("h-14")
+    expect(proBtn.className).toContain("h-14")
+    expect(enterpriseBtn.className).toContain("h-14")
+
+    expect(
+      document.querySelector('[data-slot="carousel"]')
+    ).not.toBeInTheDocument()
+
+    const moduleButtons = screen
+      .getAllByRole("button")
+      .filter(
+        (btn) => btn !== starterBtn && btn !== proBtn && btn !== enterpriseBtn
+      )
+    expect(moduleButtons.length).toBe(8)
+  })
 })

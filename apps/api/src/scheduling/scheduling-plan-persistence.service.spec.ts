@@ -136,7 +136,16 @@ describe('MVP-025 SchedulingPlanPersistenceService', () => {
     transaction = {
       schedulingPlan: {
         deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
-        create: jest.fn().mockResolvedValue({ id: ids.persistedPlan }),
+        createMany: jest.fn().mockResolvedValue({ count: 1 }),
+      },
+      schedulingProposal: {
+        createMany: jest.fn().mockResolvedValue({ count: 1 }),
+      },
+      schedulingUnresolvedRequirement: {
+        createMany: jest.fn().mockResolvedValue({ count: 1 }),
+      },
+      schedulingProposalSession: {
+        createMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
       schedulingRun: {
         updateMany: jest.fn().mockResolvedValue({ count: 1 }),
@@ -212,7 +221,7 @@ describe('MVP-025 SchedulingPlanPersistenceService', () => {
     expect(result).toEqual({
       runId: ids.run,
       status: 'COMPLETED',
-      planIds: [ids.persistedPlan],
+      planIds: [expect.any(String)],
       proposalCount: 1,
       unresolvedRequirementCount: 0,
       completedAt,
@@ -220,24 +229,25 @@ describe('MVP-025 SchedulingPlanPersistenceService', () => {
     expect(transaction.schedulingPlan.deleteMany).toHaveBeenCalledWith({
       where: { runId: ids.run, instituteId: ids.institute },
     });
-    const planData = transaction.schedulingPlan.create.mock.calls[0][0].data;
+    const planData =
+      transaction.schedulingPlan.createMany.mock.calls[0][0].data[0];
     expect(planData).toMatchObject({
       instituteId: ids.institute,
       runId: ids.run,
       rank: 1,
       isRecommended: true,
       coveragePercent: 100,
-      proposals: {
-        create: [
-          expect.objectContaining({
-            classRequirementId: ids.requirement,
-            courseId: ids.course,
-            teacherId: ids.teacher,
-            title: 'A1',
-            daysOfWeek: ['SUNDAY'],
-          }),
-        ],
-      },
+    });
+    expect(transaction.schedulingProposal.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          classRequirementId: ids.requirement,
+          courseId: ids.course,
+          teacherId: ids.teacher,
+          title: 'A1',
+          daysOfWeek: ['SUNDAY'],
+        }),
+      ],
     });
     expect(transaction.schedulingRun.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -277,15 +287,18 @@ describe('MVP-025 SchedulingPlanPersistenceService', () => {
       completedAt,
     });
 
-    const planData = transaction.schedulingPlan.create.mock.calls[0][0].data;
-    expect(planData.proposals.create).toEqual([]);
-    expect(planData.unresolvedRequirements.create).toEqual([
-      expect.objectContaining({
-        classRequirementId: ids.requirement,
-        reasonCode: 'NO_FEASIBLE_TIME_SLOT',
-        missingClassCount: 1,
-      }),
-    ]);
+    expect(transaction.schedulingProposal.createMany).not.toHaveBeenCalled();
+    expect(
+      transaction.schedulingUnresolvedRequirement.createMany,
+    ).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          classRequirementId: ids.requirement,
+          reasonCode: 'NO_FEASIBLE_TIME_SLOT',
+          missingClassCount: 1,
+        }),
+      ],
+    });
     expect(result).toMatchObject({
       proposalCount: 0,
       unresolvedRequirementCount: 1,

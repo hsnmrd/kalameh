@@ -8,6 +8,20 @@ export const TeacherAvailabilitySchema = z.object({
   id: z.string().uuid().optional(),
   teacherProfileId: z.string().uuid().optional(),
   termId: z.string().uuid().nullable().optional(),
+  branchId: z.string().uuid(),
+  branch: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+    })
+    .optional(),
+  term: z
+    .object({
+      id: z.string(),
+      title: z.string(),
+    })
+    .nullable()
+    .optional(),
   dayOfWeek: z.enum(WEEK_DAYS),
   startTime: z.string().regex(TIME_REGEX, "Invalid start time format (HH:mm)"),
   endTime: z.string().regex(TIME_REGEX, "Invalid end time format (HH:mm)"),
@@ -20,6 +34,7 @@ export type TeacherAvailability = z.infer<typeof TeacherAvailabilitySchema>
 export const TeacherAvailabilityInputSchema = z.object({
   id: z.string().uuid().optional(),
   termId: z.string().uuid().nullable().optional(),
+  branchId: z.string().uuid().optional(),
   dayOfWeek: z.enum(WEEK_DAYS),
   startTime: z.string().regex(TIME_REGEX, "Invalid start time format (HH:mm)"),
   endTime: z.string().regex(TIME_REGEX, "Invalid end time format (HH:mm)"),
@@ -31,6 +46,7 @@ export type TeacherAvailabilityInput = z.infer<
 
 export const ReplaceTeacherAvailabilitiesSchema = z.object({
   termId: z.string().uuid().optional(),
+  branchId: z.string().uuid().optional(),
   availabilities: z.array(TeacherAvailabilityInputSchema),
 })
 
@@ -50,6 +66,28 @@ export function isAvailabilityCoveringSlot(
     return false
   }
   return aStart <= sStart && aEnd >= sEnd
+}
+
+export function doTimeRangesOverlap(
+  rangeA: { startTime: string; endTime: string },
+  rangeB: { startTime: string; endTime: string }
+): boolean {
+  const aStart = parseTimeToMinutes(rangeA.startTime)
+  const aEnd = parseTimeToMinutes(rangeA.endTime)
+  const bStart = parseTimeToMinutes(rangeB.startTime)
+  const bEnd = parseTimeToMinutes(rangeB.endTime)
+  if (aStart === null || aEnd === null || bStart === null || bEnd === null) {
+    return false
+  }
+  return aStart < bEnd && aEnd > bStart
+}
+
+export interface OccupiedSlotInfo {
+  dayOfWeek: string
+  startTime: string
+  endTime: string
+  branchId: string
+  branchName: string
 }
 
 export function subtractSlotFromAvailability(

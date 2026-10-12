@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
   ROLES,
-  isTermInActivationWindow,
+  isTermEligibleForClassCreation,
   type ClassDto,
   type JwtPayload,
   type SupportedLocale,
@@ -46,6 +46,11 @@ export class ClassCreateService {
         id: dto.termId,
         instituteId,
       },
+      include: {
+        _count: {
+          select: { classes: true },
+        },
+      },
     });
 
     if (!term) {
@@ -54,7 +59,13 @@ export class ClassCreateService {
       );
     }
 
-    if (!isTermInActivationWindow(term.startDate)) {
+    if (
+      !isTermEligibleForClassCreation({
+        startDate: term.startDate,
+        endDate: term.endDate,
+        classesCount: term._count?.classes,
+      })
+    ) {
       throw new BadRequestException(
         this.i18n.t('classes.termOutsideActivationWindow', locale),
       );
@@ -74,11 +85,11 @@ export class ClassCreateService {
       );
     }
 
-    // Verify Branch exists and belongs to institute if provided
-    if (dto.branchId) {
+    let resolvedBranchId = dto.branchId || null;
+    if (resolvedBranchId) {
       const branch = await this.prisma.branch.findFirst({
         where: {
-          id: dto.branchId,
+          id: resolvedBranchId,
           instituteId,
         },
       });
@@ -102,6 +113,22 @@ export class ClassCreateService {
           this.i18n.t('classrooms.classroomNotFound', locale),
         );
       }
+      if (!resolvedBranchId && classroom.branchId) {
+        resolvedBranchId = classroom.branchId;
+      }
+    }
+
+    if (!resolvedBranchId) {
+      const defaultBranch = await this.prisma.branch.findFirst({
+        where: { instituteId, isActive: true },
+        select: { id: true },
+      });
+      if (!defaultBranch) {
+        throw new BadRequestException(
+          this.i18n.t('branches.branchNotFound', locale),
+        );
+      }
+      resolvedBranchId = defaultBranch.id;
     }
 
     let resolvedTeacherName = dto.teacherName || null;
@@ -134,7 +161,7 @@ export class ClassCreateService {
         instituteId,
         termId: dto.termId,
         courseId: dto.courseId,
-        branchId: dto.branchId || null,
+        branchId: resolvedBranchId,
         classroomId: dto.classroomId || null,
         title: dto.title,
         capacity: dto.capacity,

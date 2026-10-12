@@ -10,6 +10,7 @@ import { CreateInstituteDto } from './dto/create-institute.dto';
 import { UpdateInstituteDto } from './dto/update-institute.dto';
 import { CreateInstituteCustomOffDayDto } from './dto/create-institute-custom-off-day.dto';
 import { JwtPayload, SupportedLocale } from '@workspace/types';
+import { createDefaultOperatingPhases } from './default-operating-phases';
 
 @Injectable()
 export class InstitutesService {
@@ -157,6 +158,9 @@ export class InstitutesService {
         isActive: true,
       },
     });
+
+    // Automatically create default operating phases (Academic Year & Summer)
+    await createDefaultOperatingPhases(this.prisma, institute.id, locale);
 
     return {
       ...institute,

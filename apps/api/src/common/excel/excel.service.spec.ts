@@ -1,5 +1,6 @@
 import { ExcelService } from './excel.service';
 import { I18nService } from '../../i18n/i18n.service';
+import { parseBirthDate, resolveBranchId } from './student-workbook';
 
 describe('ExcelService', () => {
   let service: ExcelService;
@@ -84,5 +85,157 @@ describe('ExcelService', () => {
     expect(parsed[0].firstName).toBe('مهدی');
     expect(parsed[0].lastName).toBe('کرمی');
     expect(parsed[0].phone).toBe('09124445566');
+  });
+
+  it('should normalize Arabic characters and clean spaces in teacher rows', () => {
+    // Header with Arabic kaf and yeh: "نام خانوادگى", "شماره موبايل", "دوره های قابل تدريس"
+    const csvContent =
+      'نام,نام خانوادگى,شماره موبايل,كد ملى,دوره های قابل تدريس,شعبه\nعلى,رضائى,۰۹۱۲۳۴۵۶۷۸۹,۰۰۱۲۳۴۵۶۷۸,انگليسى مقدماتى A1,شعبه مركزى';
+    const buffer = Buffer.from(csvContent, 'utf-8');
+    const rows = service.parseTeacherRows(buffer, 'fa');
+
+    expect(rows.length).toBe(1);
+    expect(rows[0].firstName).toBe('علی');
+    expect(rows[0].lastName).toBe('رضائی');
+    expect(rows[0].phone).toBe('09123456789');
+    expect(rows[0].nationalCode).toBe('0012345678');
+    expect(rows[0].teachableCourses).toEqual(['انگلیسی مقدماتی A1']);
+    expect(rows[0].branchName).toBe('شعبه مرکزی');
+  });
+
+  it('should normalize Arabic characters and shift/day preferences in student rows', () => {
+    const csvContent =
+      'نام,نام خانوادگى,شماره موبايل,سطح / دوره مجاز,شيفت مدرسه,ترجيح روز,شعبه\nپارسا,رستمى,۰۹۱۲۱۱۱۱۱۱۱,انگليسى A1,صبح,روزهای زوج,شعبه مركزى';
+    const buffer = Buffer.from(csvContent, 'utf-8');
+    const rows = service.parseStudentRows(buffer, 'fa');
+
+    expect(rows.length).toBe(1);
+    expect(rows[0].firstName).toBe('پارسا');
+    expect(rows[0].lastName).toBe('رستمی');
+    expect(rows[0].currentAllowedCourseTitle).toBe('انگلیسی A1');
+    expect(rows[0].schoolShift).toBe('صبح');
+    expect(rows[0].dayPreference).toBe('روزهای زوج');
+    expect(rows[0].branchName).toBe('شعبه مرکزی');
+  });
+
+  it('should normalize Arabic characters in course rows', () => {
+    const csvContent =
+      'عنوان دوره,شهریه پایه (تومان),پيش‌نياز\nانگليسى مقدماتى A2,"۱,۶۵۰,۰۰۰",انگليسى مقدماتى A1';
+    const buffer = Buffer.from(csvContent, 'utf-8');
+    const rows = service.parseCourseRows(buffer, 'fa');
+
+    expect(rows.length).toBe(1);
+    expect(rows[0].title).toBe('انگلیسی مقدماتی A2');
+    expect(rows[0].baseFee).toBe(1650000);
+    expect(rows[0].prerequisiteTitle).toBe('انگلیسی مقدماتی A1');
+  });
+
+  describe('parseBirthDate', () => {
+    it('should parse Persian/Arabic digits Jalali date into standard UTC Date', () => {
+      const date = parseBirthDate('۱۳۸۸/۰۴/۱۵');
+      expect(date).toBeDefined();
+      expect(date?.toISOString()).toBe('2009-07-06T00:00:00.000Z');
+    });
+
+    it('should parse Latin digits Jalali date into standard UTC Date', () => {
+      const date = parseBirthDate('1388/04/15');
+      expect(date).toBeDefined();
+      expect(date?.toISOString()).toBe('2009-07-06T00:00:00.000Z');
+    });
+
+    it('should support alternative delimiters (hyphen and dot) in Jalali dates', () => {
+      const hyphenDate = parseBirthDate('1386-11-20');
+      expect(hyphenDate).toBeDefined();
+      expect(hyphenDate?.toISOString()).toBe('2008-02-09T00:00:00.000Z');
+
+      const dotDate = parseBirthDate('1370.01.01');
+      expect(dotDate).toBeDefined();
+      expect(dotDate?.toISOString()).toBe('1991-03-21T00:00:00.000Z');
+    });
+
+    it('should parse single digit month and day in Jalali dates', () => {
+      const date = parseBirthDate('1370/1/1');
+      expect(date).toBeDefined();
+      expect(date?.toISOString()).toBe('1991-03-21T00:00:00.000Z');
+    });
+
+    it('should parse Gregorian dates with year > 1700 into standard UTC Date', () => {
+      const dateDash = parseBirthDate('2009-07-06');
+      expect(dateDash).toBeDefined();
+      expect(dateDash?.toISOString()).toBe('2009-07-06T00:00:00.000Z');
+
+      const dateSlash = parseBirthDate('2009/07/06');
+      expect(dateSlash).toBeDefined();
+      expect(dateSlash?.toISOString()).toBe('2009-07-06T00:00:00.000Z');
+    });
+
+    it('should parse full ISO timestamp strings', () => {
+      const isoDate = parseBirthDate('2009-07-06T00:00:00.000Z');
+      expect(isoDate).toBeDefined();
+      expect(isoDate?.toISOString()).toBe('2009-07-06T00:00:00.000Z');
+    });
+
+    it('should return undefined for empty, whitespace, or invalid dates', () => {
+      expect(parseBirthDate('')).toBeUndefined();
+      expect(parseBirthDate('   ')).toBeUndefined();
+      expect(parseBirthDate(undefined)).toBeUndefined();
+      expect(parseBirthDate('invalid-date')).toBeUndefined();
+      expect(parseBirthDate('1200/01/01')).toBeUndefined();
+    });
+  });
+
+  describe('resolveBranchId', () => {
+    const branchMap = new Map([
+      ['شعبه مرکزی', 'branch-1'],
+      ['شعبه غرب', 'branch-2'],
+    ]);
+    const validBranchNames = 'شعبه مرکزی، شعبه غرب';
+
+    it('should resolve branchId when branchName exists and matches', () => {
+      const result = resolveBranchId(
+        'شعبه مرکزی',
+        branchMap,
+        undefined,
+        validBranchNames,
+        'fa',
+      );
+      expect(result).toEqual({ branchId: 'branch-1' });
+    });
+
+    it('should return error when branchName does not match any valid branch', () => {
+      const result = resolveBranchId(
+        'شعبه شرق',
+        branchMap,
+        'branch-1',
+        validBranchNames,
+        'fa',
+      );
+      expect(result.branchId).toBeUndefined();
+      expect(result.error).toBe(
+        'شعبه‌ای با نام "شعبه شرق" یافت نشد. شعب مجاز: شعبه مرکزی، شعبه غرب',
+      );
+    });
+
+    it('should use fallbackBranchId when branchName is not provided', () => {
+      const result = resolveBranchId(
+        undefined,
+        branchMap,
+        'branch-fallback',
+        validBranchNames,
+        'fa',
+      );
+      expect(result).toEqual({ branchId: 'branch-fallback' });
+    });
+
+    it('should return undefined when branchName is not provided and no fallback exists', () => {
+      const result = resolveBranchId(
+        '',
+        branchMap,
+        undefined,
+        validBranchNames,
+        'fa',
+      );
+      expect(result).toEqual({ branchId: undefined });
+    });
   });
 });

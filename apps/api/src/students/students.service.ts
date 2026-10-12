@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   ConflictException,
   ForbiddenException,
@@ -11,12 +12,15 @@ import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentFilterDto } from './dto/student-filter.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import type {
-  JwtPayload,
-  SupportedLocale,
-  StudentLookupResponse,
-  AddStudentNoteInput,
+import {
+  calculatePhaseSlots,
+  type JwtPayload,
+  type SupportedLocale,
+  type StudentLookupResponse,
+  type AddStudentNoteInput,
+  type WeekDay,
 } from '@workspace/types';
+import { parseBirthDate } from '../common/excel/student-workbook';
 
 @Injectable()
 export class StudentsService {
@@ -64,15 +68,29 @@ export class StudentsService {
       );
     }
 
+    if (dto.branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: { id: dto.branchId, instituteId: targetInstituteId },
+      });
+      if (!branch) {
+        throw new BadRequestException(
+          this.i18n.t('branches.branchNotFound', locale),
+        );
+      }
+    }
+
     const rawPassword = dto.password || dto.phone;
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
-    const parsedBirthDate = dto.birthDate ? new Date(dto.birthDate) : null;
+    const parsedBirthDate = dto.birthDate
+      ? (parseBirthDate(dto.birthDate) ?? new Date(dto.birthDate))
+      : null;
     const initialNote = dto.notes?.trim();
 
     const student = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
           instituteId: targetInstituteId,
+          branchId: dto.branchId ?? null,
           firstName: dto.firstName,
           lastName: dto.lastName,
           phone: dto.phone,
@@ -81,6 +99,14 @@ export class StudentsService {
           nationalCode: dto.nationalCode,
           ...(avatarUrl !== undefined ? { avatarUrl } : {}),
           currentAllowedCourseId: dto.currentAllowedCourseId,
+        },
+        include: {
+          branch: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       });
 
@@ -104,6 +130,54 @@ export class StudentsService {
             createdByUserId: currentUser.sub,
             content: initialNote,
           },
+        });
+      }
+
+      const activePhases =
+        (await tx.instituteOperatingPhase?.findMany({
+          where: { instituteId: targetInstituteId, isActive: true },
+        })) ?? [];
+
+      const defaultSlots: {
+        studentProfileId: string;
+        operatingPhaseId: string;
+        dayOfWeek: string;
+        startTime: string;
+        endTime: string;
+      }[] = [];
+
+      for (const phase of activePhases) {
+        const calculation = calculatePhaseSlots(
+          phase.startTime,
+          phase.endTime,
+          phase.slotDurationMinutes,
+          {
+            hasBreak: phase.hasBreak,
+            breakStartTime: phase.breakStartTime,
+            breakEndTime: phase.breakEndTime,
+          },
+        );
+        const days = (phase.daysOfWeek as WeekDay[]) || [];
+        for (const day of days) {
+          for (const slot of calculation.slots) {
+            defaultSlots.push({
+              studentProfileId: profile.id,
+              operatingPhaseId: phase.id,
+              dayOfWeek: day,
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+            });
+          }
+        }
+      }
+
+      if (defaultSlots.length > 0) {
+        await tx.studentAvailability?.createMany({
+          data: defaultSlots,
+        });
+        await tx.studentProfile?.update({
+          where: { id: profile.id },
+          data: { scheduleStatus: 'COMPLETE' },
         });
       }
 
@@ -154,6 +228,8 @@ export class StudentsService {
     return {
       id: student.id,
       instituteId: student.instituteId,
+      branchId: student.branchId,
+      branch: student.branch,
       role: student.role,
       firstName: student.firstName,
       lastName: student.lastName,
@@ -191,6 +267,7 @@ export class StudentsService {
         ...(filter?.courseId
           ? { currentAllowedCourseId: filter.courseId }
           : {}),
+        ...(filter?.branchId ? { branchId: filter.branchId } : {}),
         ...(typeof filter?.isActive === 'boolean'
           ? { isActive: filter.isActive }
           : {}),
@@ -211,6 +288,12 @@ export class StudentsService {
           : {}),
       },
       include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         studentProfile: {
           include: {
             notes: {
@@ -268,6 +351,12 @@ export class StudentsService {
         ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
       },
       include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         studentProfile: {
           include: {
             availabilities: {
@@ -357,11 +446,21 @@ export class StudentsService {
         );
       }
     }
+    if (dto.branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: { id: dto.branchId, instituteId: existing.instituteId },
+      });
+      if (!branch) {
+        throw new BadRequestException(
+          this.i18n.t('branches.branchNotFound', locale),
+        );
+      }
+    }
 
     const parsedBirthDate =
       dto.birthDate !== undefined
         ? dto.birthDate
-          ? new Date(dto.birthDate)
+          ? (parseBirthDate(dto.birthDate) ?? new Date(dto.birthDate))
           : null
         : undefined;
 
@@ -379,6 +478,17 @@ export class StudentsService {
           ...(avatarUrl !== undefined ? { avatarUrl } : {}),
           isActive: dto.isActive,
           currentAllowedCourseId: dto.currentAllowedCourseId,
+          ...(dto.branchId !== undefined
+            ? { branchId: dto.branchId || null }
+            : {}),
+        },
+        include: {
+          branch: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       });
 
@@ -464,6 +574,8 @@ export class StudentsService {
     return {
       id: updated.id,
       instituteId: updated.instituteId,
+      branchId: updated.branchId,
+      branch: updated.branch,
       role: updated.role,
       firstName: updated.firstName,
       lastName: updated.lastName,
@@ -618,6 +730,7 @@ export class StudentsService {
         emergencyPhone: profile?.emergencyPhone ?? null,
         address: profile?.address ?? null,
         currentAllowedCourseId: matchedUser.currentAllowedCourseId,
+        branchId: matchedUser.branchId,
       },
     };
   }

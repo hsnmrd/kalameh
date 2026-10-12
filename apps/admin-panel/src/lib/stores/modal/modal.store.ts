@@ -2,11 +2,7 @@ import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 
 export interface ModalStoreState {
-  activeModals: string[]
   modalData: Record<string, any>
-  setActiveModals: (modals: string[]) => void
-  openModalInStore: (modalKey: string) => void
-  closeModalInStore: (modalKeys?: string | string[]) => void
   setModalData: <T = any>(modalKey: string, data: T) => void
   getModalData: <T = any>(modalKey: string) => T | undefined
   clearModalData: (modalKey: string) => void
@@ -16,26 +12,7 @@ export interface ModalStoreState {
 export const useModalStore = create<ModalStoreState>()(
   persist(
     (set, get) => ({
-      activeModals: [],
       modalData: {},
-      setActiveModals: (modals) => set({ activeModals: modals }),
-      openModalInStore: (modalKey) =>
-        set((state) => {
-          if (state.activeModals.includes(modalKey)) return state
-          return { activeModals: [...state.activeModals, modalKey] }
-        }),
-      closeModalInStore: (modalKeys) =>
-        set((state) => {
-          if (!modalKeys) {
-            return { activeModals: state.activeModals.slice(0, -1) }
-          }
-          const keysToClose = Array.isArray(modalKeys) ? modalKeys : [modalKeys]
-          return {
-            activeModals: state.activeModals.filter(
-              (key) => !keysToClose.includes(key)
-            ),
-          }
-        }),
       setModalData: (modalKey, data) =>
         set((state) => ({
           modalData: {
@@ -51,7 +28,7 @@ export const useModalStore = create<ModalStoreState>()(
           delete next[modalKey]
           return { modalData: next }
         }),
-      clearAllModalData: () => set({ activeModals: [], modalData: {} }),
+      clearAllModalData: () => set({ modalData: {} }),
     }),
     {
       name: "kalameh_modal_state",

@@ -14,4 +14,11 @@ export const modalRegistry: ModalRegistry = {
       import("./components/edit-course-modal").then((m) => m.EditCourseModal),
     { ssr: false }
   ),
+  importCourses: dynamic(
+    () =>
+      import("./components/import-courses-modal").then(
+        (m) => m.ImportCoursesModal
+      ),
+    { ssr: false }
+  ),
 }

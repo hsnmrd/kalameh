@@ -150,4 +150,14 @@ export class TermsController {
   ) {
     return this.termsService.remove(id, currentUser, locale);
   }
+
+  @Post(':id/confirm-student-schedules')
+  @RequirePermissions(PERMISSIONS.APPROVE_STUDENTS_TIME)
+  async confirmStudentSchedules(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.termsService.confirmStudentSchedules(id, currentUser, locale);
+  }
 }

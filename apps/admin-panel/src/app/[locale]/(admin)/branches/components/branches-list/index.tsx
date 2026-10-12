@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Building2, MapPin } from "lucide-react"
-import { Edit2 } from "lucide-react"
+import { Building2, MapPin, Edit2, Plus } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import {
   MobileList,
   MobileListItem,
@@ -24,6 +24,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { PERMISSIONS, type BranchWithStats } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -33,12 +34,14 @@ export interface BranchesListProps {
   branches: BranchWithStats[] | undefined
   isLoading: boolean
   onEdit: (branch: BranchWithStats) => void
+  onAdd?: () => void
 }
 
 export function BranchesList({
   branches,
   isLoading,
   onEdit,
+  onAdd,
 }: BranchesListProps) {
   const t = useTranslations("branches")
 
@@ -60,6 +63,23 @@ export function BranchesList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_BRANCHES}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addBranch")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

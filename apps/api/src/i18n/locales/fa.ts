@@ -48,11 +48,20 @@ export const fa: TranslationDictionary = {
     phoneAlreadyInUse:
       'این شماره تماس به کاربر دیگری در این آموزشگاه اختصاص یافته است',
     passwordResetSuccess: 'رمز عبور فراگیر با موفقیت بازنشانی شد',
+    emptyImportFile: 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد',
+    instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
   },
   teachers: {
+    teacherAlreadyExists:
+      'استادی با این شماره تماس در این آموزشگاه قبلاً ثبت شده است',
+    emptyImportFile: 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد',
     invalidCourses:
       'یک یا چند سطح انتخاب‌شده برای این استاد در آموزشگاه معتبر نیست',
     instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
+    availabilityBranchConflict:
+      'استاد نمی‌تواند در دو شعبه در یک بازه زمانی مشترک حضور داشته باشد. این زمان قبلاً در «{branch}» ثبت شده است',
+    availabilitySlotConflict:
+      'تداخل زمانی بین بازه‌های انتخابی برای استاد وجود دارد',
   },
   institutes: {
     instituteNotFound: 'آموزشگاه مورد نظر یافت نشد',

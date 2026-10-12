@@ -45,10 +45,9 @@
         "drawerTitle": "Select term"
       },
       "branch": {
-        "label": "Branch scope",
-        "placeholder": "All branches",
-        "all": "All branches",
-        "description": "Optional — narrow the suggestions to one branch.",
+        "label": "Branch",
+        "placeholder": "Select branch",
+        "description": "Selecting a specific branch is required for class scheduling.",
         "drawerTitle": "Select branch"
       },
       "alternatives": {
@@ -79,6 +78,7 @@
     },
     "validation": {
       "term": "Select a term.",
+      "branch": "Select a branch.",
       "requirements": "Select at least one class requirement."
     },
     "selectionSummary": "{count} requirements selected",
@@ -94,6 +94,13 @@
       "viewNames": "View names",
       "hideNames": "Close",
       "needsCall": "Needs Call"
+    },
+    "studentScheduleConfirmation": {
+      "title": "Student Availability Confirmation",
+      "unconfirmedDescription": "Student schedules for this term have not been confirmed yet. Availability must be confirmed by an operator before automated scheduling can run.",
+      "confirmedDescription": "Student schedules were confirmed on {date} by {user}.",
+      "confirmButton": "Confirm Student Schedules",
+      "confirmSuccess": "Student schedules for this term have been successfully confirmed."
     }
   },
   "runStatus": {
@@ -167,7 +174,8 @@
       "NO_CLASSROOM_WITH_REQUIRED_CAPACITY": "No classroom meets the capacity requirement for one of the courses.",
       "INCOMPLETE_STUDENT_SCHEDULE_DATA": "Some student schedules have incomplete availability data.",
       "NO_ELIGIBLE_STUDENTS": "No eligible students found for this course.",
-      "TEACHERS_WITHOUT_COURSE_QUALIFICATION": "Some active teachers have no course qualifications assigned."
+      "TEACHERS_WITHOUT_COURSE_QUALIFICATION": "Some active teachers have no course qualifications assigned.",
+      "STUDENT_SCHEDULES_NOT_CONFIRMED": "Student schedules for this term have not been confirmed by the operator. Please confirm student availability before generating schedules."
     }
   },
   "comparison": {
@@ -323,6 +331,7 @@
       "assignSlotTitle": "Assign Class to this Time",
       "assignSlotDescription": "Select an unscheduled class to hold on {days} from {start} to {end}.",
       "newTeacherBadge": "New Teacher",
+      "swapSession": "Swap session",
       "swapTeacher": "Swap teacher",
       "removeTeacher": "Remove teacher",
       "removeTeacherTitle": "Remove Teacher from Class",
@@ -392,8 +401,28 @@
       "currentRoomBadge": "Current Room",
       "switchRoomSuccess": "Classroom updated successfully.",
       "swapRoomSuccess": "Classrooms swapped successfully between sessions.",
+      "switchTeacherTitle": "Switch Teacher",
+      "currentTeacherBadge": "Current Teacher",
+      "freeTeacherBadge": "Free Teacher",
+      "swappableTeacherBadge": "Swappable",
+      "noTeachersPresent": "No teachers are present in this time slot.",
+      "swapTeacherWith": "Teaching {title}",
+      "currentTeacherNotQualifiedForOther": "Current teacher ({teacher}) is not qualified to teach \"{course}\".",
+      "targetTeacherNotQualifiedForCurrent": "Teacher \"{teacher}\" is not qualified to teach this course ({course}).",
+      "noCurrentTeacherToSwap": "Current session has no teacher to swap with.",
+      "selectTeacher": "Select this teacher",
+      "swapWithTeacher": "Swap with this teacher",
+      "switchTeacherSuccess": "Teacher updated successfully.",
+      "swapTeacherSuccess": "Teachers swapped successfully between sessions.",
+      "sessionSwapConfirmTitle": "Swap Sessions",
+      "sessionSwapConfirmDescription": "Teachers for these two sessions are left unassigned for manual supervisor selection, and classrooms are allocated automatically.",
+      "sessionSwapSuccess": "Sessions swapped successfully.",
+      "swapInnerReassignmentsTitle": "Automatic classroom rebalancing to provide sufficient capacity",
+      "swapInnerReassignmentItem": "Session \"{title}\" moves to \"{room}\".",
+      "sessionSwapNotice": "Teachers for these two sessions are left unassigned for manual supervisor selection. Classrooms have been allocated automatically based on capacity.",
       "swapDialog": {
         "title": "Swap Class",
+        "description": "Only sessions will be swapped; teachers and classrooms will remain in their respective time slots.",
         "sourceCardLabel": "Selected Class",
         "targetCardLabel": "Target Card",
         "optionsTitle": "Available Swap Options",
@@ -488,6 +517,18 @@
     "staffingFallback": {
       "title": "Teacher staffing options",
       "description": "The system evaluates two staffing paths: expanding a qualified teacher’s availability or adding a new teacher for this level.",
+      "freeMastersTitle": "Choose from Free Masters in this Period",
+      "freeMastersDescription": "The following masters have no class in this time slot; their course level comparison with this class is shown below:",
+      "readyToAssignCount": "{count} qualified masters",
+      "noFreeMastersTitle": "No masters are free in this time slot",
+      "noFreeMastersDescription": "No free masters were found in the institute during this time slot.",
+      "assignMaster": "Select Master",
+      "assigning": "Assigning...",
+      "directMatchBadge": "Qualified · Direct Match",
+      "higherLevelBadge": "Qualified · Higher Level ({course})",
+      "lowerLevelBadge": "Not Qualified · Lower Level ({course})",
+      "unrelatedLevelBadge": "Not Qualified · Different Category",
+      "teachableCoursesLabel": "Teachable Courses:",
       "solutionsCount": "{count} suggested options",
       "carouselCounter": "Option {current} of {total}",
       "teacherCarouselCounter": "Teacher {current} of {total}",
@@ -515,6 +556,9 @@
       "teacherBankDescription": "The following teachers are registered in the institute's bank for this course but currently have no active availability in this window. You may contact them to arrange this class.",
       "callTeacherBadge": "Needs Call",
       "neededSlotNotice": "Required schedule for teacher coordination",
+      "requiredScheduleBadge": "Class Schedule",
+      "requiredScheduleTitle": "Required class time slots",
+      "requiredScheduleDescription": "To schedule this class, a teacher is needed during the following days and hours:",
       "addTeacherBadge": "Add a teacher",
       "addTeacherTitle": "Add a teacher qualified for {course}",
       "addTeacherDescriptionWithSchedule": "Record this teaching qualification and the availability below for the new teacher. The time comes directly from the suggested schedule for unscheduled classes.",
@@ -772,6 +816,11 @@
       "noPrerequisite": "—",
       "students": "Applicants",
       "studentsDetail": "{continuing} continuing + {new} placement = {total} students",
+      "continuingTooltip": "{count} continuing students",
+      "newPlacementTooltip": "{count} new placement students",
+      "totalTooltip": "Total: {count} applicants",
+      "editClassesTitle": "Edit Classes for {course}",
+      "confirm": "Confirm",
       "classesCountColumn": "Class Count",
       "classesCountSummary": "{count} classes",
       "suggestedClasses": "Suggested Classes",
@@ -789,7 +838,7 @@
       "closeClasses": "Close"
     },
     "summary": {
-      "eligible": "{count} eligible students",
+      "eligible": "{count} students",
       "effectiveLimit": "Maximum {count} per class",
       "uncovered": "{count} students uncovered"
     },
@@ -868,6 +917,14 @@
       "save": "Confirm",
       "cancel": "Cancel",
       "success": "Class requirement updated successfully."
+    },
+    "noBranch": {
+      "title": "No active branch found",
+      "description": "To calculate demand and schedule classes, you must first create at least one active branch in the institute."
+    },
+    "selectBranch": {
+      "title": "Select a Branch",
+      "description": "To check required classes and sessions, please select a branch first."
     },
     "filters": {
       "term": "Term",

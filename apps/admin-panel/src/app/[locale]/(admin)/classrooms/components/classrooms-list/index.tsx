@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Building2, DoorOpen, Edit2, Trash2, Users } from "lucide-react"
+import { Building2, DoorOpen, Edit2, Trash2, Users, Plus } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -16,6 +17,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import {
   MobileList,
@@ -35,6 +37,7 @@ export interface ClassroomsListProps {
   isLoading: boolean
   onEdit: (classroom: ClassroomDto) => void
   onDelete: (classroom: ClassroomDto) => void
+  onAdd?: () => void
 }
 
 export function ClassroomsList({
@@ -42,6 +45,7 @@ export function ClassroomsList({
   isLoading,
   onEdit,
   onDelete,
+  onAdd,
 }: ClassroomsListProps) {
   const t = useTranslations("classrooms")
   const locale = useLocale()
@@ -64,6 +68,23 @@ export function ClassroomsList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSROOMS}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addClassroom")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

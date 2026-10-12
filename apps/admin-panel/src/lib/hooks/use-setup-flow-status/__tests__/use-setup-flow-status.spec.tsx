@@ -3,6 +3,7 @@ import { renderHook } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import * as React from "react"
 import { useSetupFlowStatus } from "../index"
+import { useOperatingPhasesReviewStore } from "@/lib/stores"
 import {
   operatingPhasesResource,
   termsResource,
@@ -16,6 +17,7 @@ describe("useSetupFlowStatus", () => {
   const mockInstituteId = "inst-test-123"
 
   beforeEach(() => {
+    useOperatingPhasesReviewStore.setState({ reviewedInstituteIds: {} })
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -77,7 +79,49 @@ describe("useSetupFlowStatus", () => {
     expect(result.current.completedCount).toBe(0)
   })
 
-  it("focuses Step 2 (terms) when Step 1 is done but terms is empty", () => {
+  it("focuses Step 1 (operatingPhases) when autofilled phases exist but have not been reviewed yet", () => {
+    queryClient.setQueryData(
+      operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [
+        { id: "op-1", name: "Academic Year Phase" },
+        { id: "op-2", name: "Summer Phase" },
+      ]
+    )
+    queryClient.setQueryData(
+      termsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      studentsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      schedulingResource.terms.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      classesResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+
+    const { result } = renderHook(
+      () => useSetupFlowStatus({ instituteId: mockInstituteId }),
+      { wrapper }
+    )
+
+    // Since phases are autofilled but NOT reviewed, Step 1 is incomplete so ripple stays on operatingPhases
+    expect(result.current.isStep1Done).toBe(false)
+    expect(result.current.firstIncompleteIndex).toBe(0)
+    expect(result.current.focusedKey).toBe("operatingPhases")
+    expect(result.current.currentStepId).toBe("phases")
+    expect(result.current.completedCount).toBe(0)
+  })
+
+  it("focuses Step 2 (terms) when Step 1 is done (reviewed) but terms is empty", () => {
+    useOperatingPhasesReviewStore.getState().markAsReviewed(mockInstituteId)
+
     queryClient.setQueryData(
       operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
         .queryKey,
@@ -222,5 +266,110 @@ describe("useSetupFlowStatus", () => {
     expect(result.current.focusedKey).toBeNull()
     expect(result.current.currentStepId).toBeNull()
     expect(result.current.completedCount).toBe(5)
+  })
+
+  it("focuses 'classes' when an active term has 0 classes, even if old classes exist from past terms", () => {
+    const pastTerm = {
+      id: "term-past",
+      title: "Past Term",
+      startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      isActive: true,
+      classesCount: 3,
+    }
+
+    const currentActiveTerm = {
+      id: "term-active",
+      title: "Active Term",
+      startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      isActive: true,
+      classesCount: 0,
+    }
+
+    queryClient.setQueryData(
+      operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ id: "op-1" }]
+    )
+    queryClient.setQueryData(
+      termsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [pastTerm, currentActiveTerm]
+    )
+    queryClient.setQueryData(
+      studentsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [{ id: "student-1" }]
+    )
+    queryClient.setQueryData(
+      schedulingResource.terms.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ termId: "term-past", schedulingStatus: "PUBLISHED" }]
+    )
+    queryClient.setQueryData(
+      classesResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [
+        { id: "class-old-1", termId: "term-past" },
+        { id: "class-old-2", termId: "term-past" },
+        { id: "class-old-3", termId: "term-past" },
+      ]
+    )
+
+    const { result } = renderHook(
+      () => useSetupFlowStatus({ instituteId: mockInstituteId }),
+      { wrapper }
+    )
+
+    expect(result.current.isStep1Done).toBe(true)
+    expect(result.current.isStep2Done).toBe(true)
+    expect(result.current.isStep3Done).toBe(true)
+    expect(result.current.isStep4Done).toBe(true)
+    expect(result.current.isStep5Done).toBe(false)
+    expect(result.current.firstIncompleteIndex).toBe(4)
+    expect(result.current.focusedKey).toBe("classes")
+    expect(result.current.currentStepId).toBe("classes")
+    expect(result.current.isAllCompleted).toBe(false)
+  })
+
+  it("removes 'classes' focus once the active term has at least one class", () => {
+    const currentActiveTerm = {
+      id: "term-active",
+      title: "Active Term",
+      startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      isActive: true,
+      classesCount: 1,
+    }
+
+    queryClient.setQueryData(
+      operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ id: "op-1" }]
+    )
+    queryClient.setQueryData(
+      termsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [currentActiveTerm]
+    )
+    queryClient.setQueryData(
+      studentsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [{ id: "student-1" }]
+    )
+    queryClient.setQueryData(
+      schedulingResource.terms.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ termId: "term-active", schedulingStatus: "PUBLISHED" }]
+    )
+    queryClient.setQueryData(
+      classesResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [{ id: "class-1", termId: "term-active" }]
+    )
+
+    const { result } = renderHook(
+      () => useSetupFlowStatus({ instituteId: mockInstituteId }),
+      { wrapper }
+    )
+
+    expect(result.current.isStep5Done).toBe(true)
+    expect(result.current.focusedKey).toBeNull()
+    expect(result.current.isAllCompleted).toBe(true)
   })
 })

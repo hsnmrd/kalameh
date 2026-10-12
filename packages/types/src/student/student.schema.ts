@@ -20,6 +20,14 @@ export const StudentDtoSchema = z.object({
     })
     .nullable()
     .optional(),
+  branchId: z.string().uuid().nullable().optional(),
+  branch: z
+    .object({
+      id: z.string().uuid(),
+      name: z.string(),
+    })
+    .nullable()
+    .optional(),
   studentProfile: StudentProfileSchema.nullable().optional(),
   enrollmentsCount: z.number().optional(),
   createdAt: z.date().or(z.string()),
@@ -44,6 +52,7 @@ export const StudentLookupResponseSchema = z.object({
       emergencyPhone: z.string().nullable().optional(),
       address: z.string().nullable().optional(),
       currentAllowedCourseId: z.string().nullable().optional(),
+      branchId: z.string().uuid().nullable().optional(),
     })
     .nullable()
     .optional(),

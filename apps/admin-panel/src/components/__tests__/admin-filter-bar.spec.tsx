@@ -112,6 +112,24 @@ describe("Admin Filter System Components", () => {
       expect(screen.getByTestId("dialog-filter-content")).toBeInTheDocument()
     })
 
+    it("should call onFilterClick when filter button is clicked and onFilterClick is provided", () => {
+      const handleFilterClick = vi.fn()
+      render(
+        <AdminFilterBar
+          onFilterClick={handleFilterClick}
+          filterButtonLabel="ویرایش تنظیمات"
+        />
+      )
+
+      const filterBtn = screen.getByRole("button", {
+        name: /ویرایش تنظیمات/i,
+      })
+      expect(filterBtn).toBeInTheDocument()
+
+      fireEvent.click(filterBtn)
+      expect(handleFilterClick).toHaveBeenCalledTimes(1)
+    })
+
     it("should render actions slot when provided", () => {
       render(
         <AdminFilterBar
@@ -121,6 +139,49 @@ describe("Admin Filter System Components", () => {
       )
 
       expect(screen.getByTestId("action-btn")).toBeInTheDocument()
+    })
+
+    it("should render AvatarBadge for mobile view and Badge next to icon on desktop when activeFiltersCount > 0", () => {
+      const { container } = render(
+        <AdminFilterBar
+          filters={<div>Filter options</div>}
+          activeFiltersCount={3}
+        />
+      )
+
+      // Mobile AvatarBadge
+      const avatarBadge = container.querySelector('[data-slot="avatar-badge"]')
+      expect(avatarBadge).toBeInTheDocument()
+      expect(avatarBadge?.className).toContain("sm:hidden")
+      expect(avatarBadge?.textContent).toMatch(/3|۳/)
+
+      // Desktop inline Badge
+      const desktopBadge = container.querySelector(".hidden.sm\\:inline-flex")
+      expect(desktopBadge).toBeInTheDocument()
+      expect(desktopBadge?.textContent).toMatch(/3|۳/)
+
+      // Check DOM ordering: Sliders icon comes before desktop badge, which comes before label
+      const button = screen.getByRole("button", { name: /فیلتر|filter/i })
+      const svg = button.querySelector("svg")
+      expect(svg).toBeInTheDocument()
+      // Badge should be immediately after the mobile avatar badge / adjacent to icon
+      expect(button.contains(desktopBadge)).toBe(true)
+    })
+
+    it("should not render any count badges when activeFiltersCount is 0", () => {
+      const { container } = render(
+        <AdminFilterBar
+          filters={<div>Filter options</div>}
+          activeFiltersCount={0}
+        />
+      )
+
+      expect(
+        container.querySelector('[data-slot="avatar-badge"]')
+      ).not.toBeInTheDocument()
+      expect(
+        container.querySelector(".hidden.sm\\:inline-flex")
+      ).not.toBeInTheDocument()
     })
   })
 })

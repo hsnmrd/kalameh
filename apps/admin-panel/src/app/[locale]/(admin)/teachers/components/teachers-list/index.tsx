@@ -3,7 +3,16 @@
 import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
-import { UserCheck, Eye, Edit, KeyRound, Trash2, Clock } from "lucide-react"
+import {
+  UserCheck,
+  Eye,
+  Edit,
+  KeyRound,
+  Trash2,
+  Clock,
+  Plus,
+} from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import {
   MobileList,
   MobileListItem,
@@ -25,6 +34,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type TeacherDto } from "@workspace/types"
@@ -38,6 +48,7 @@ export interface TeachersListProps {
   onManageAvailability: (teacher: TeacherDto) => void
   onResetPassword: (teacher: TeacherDto) => void
   onDelete: (teacher: TeacherDto) => void
+  onAdd?: () => void
 }
 
 export function TeachersList({
@@ -48,6 +59,7 @@ export function TeachersList({
   onManageAvailability,
   onResetPassword,
   onDelete,
+  onAdd,
 }: TeachersListProps) {
   const t = useTranslations("teachers")
 

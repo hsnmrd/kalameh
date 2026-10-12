@@ -37,6 +37,9 @@ describe('InstitutesService', () => {
       branch: {
         create: jest.fn(),
       },
+      instituteOperatingPhase: {
+        createMany: jest.fn(),
+      },
       instituteCustomOffDay: {
         findMany: jest.fn(),
         findUnique: jest.fn(),
@@ -166,6 +169,9 @@ describe('InstitutesService', () => {
 
       expect(result.id).toBe('inst-new');
       expect(result.subdomain).toBe('shiraz');
+      expect(
+        prismaService.instituteOperatingPhase.createMany,
+      ).toHaveBeenCalled();
     });
 
     it('should save logoUrl with uploaded file filename when creating institute', async () => {

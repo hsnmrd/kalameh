@@ -43,7 +43,7 @@ export class ClassRequirementsService {
         instituteId,
         ...(filter.termId ? { termId: filter.termId } : {}),
         ...(filter.courseId ? { courseId: filter.courseId } : {}),
-        ...(filter.branchId !== undefined ? { branchId: filter.branchId } : {}),
+        ...(filter.branchId ? { branchId: filter.branchId } : {}),
         ...(filter.deliveryMode ? { deliveryMode: filter.deliveryMode } : {}),
         ...(filter.isActive !== undefined ? { isActive: filter.isActive } : {}),
       },
@@ -113,7 +113,7 @@ export class ClassRequirementsService {
         instituteId,
         termId: input.termId,
         courseId: input.courseId,
-        branchId: input.branchId ?? null,
+        branchId: input.branchId,
         requiredClassCount: input.requiredClassCount,
         capacity: input.capacity,
         sessionDurationMinutes: input.sessionDurationMinutes,
@@ -145,8 +145,7 @@ export class ClassRequirementsService {
     const merged = {
       termId: input.termId ?? existing.termId,
       courseId: input.courseId ?? existing.courseId,
-      branchId:
-        input.branchId !== undefined ? input.branchId : existing.branchId,
+      branchId: input.branchId ?? existing.branchId,
       requiredClassCount:
         input.requiredClassCount ?? existing.requiredClassCount,
       capacity: input.capacity ?? existing.capacity,

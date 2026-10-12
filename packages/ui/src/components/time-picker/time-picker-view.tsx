@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Clock, X } from "lucide-react"
+import { Clock } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { Button } from "@workspace/ui/components/button"
 import { ResponsivePopover } from "@workspace/ui/components/popover"
@@ -277,20 +277,6 @@ export function TimePicker({
       >
         {popoverContent}
       </ResponsivePopover>
-
-      {clearable && value && !disabled && (
-        <Button
-          type="button"
-          tabIndex={-1}
-          variant="ghost"
-          size="icon"
-          onClick={handleClear}
-          className="size-7 rounded-lg p-0 text-muted-foreground hover:text-foreground"
-          aria-label={isFa ? "پاک کردن زمان" : "Clear time"}
-        >
-          <X className="size-4" />
-        </Button>
-      )}
     </div>
   )
 }

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Pencil, Plus, X } from "lucide-react"
+import { Pencil } from "lucide-react"
 import {
   calculateUncoveredStudents,
   type CourseDemandSummaryDto,
@@ -11,13 +11,6 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@workspace/ui/components/carousel"
-import {
   Table,
   TableBody,
   TableCell,
@@ -25,9 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import { DemandBreakdownCard } from "./demand-breakdown-card"
-import { SuggestedClassControl } from "./suggested-class-control"
+import { DemandClassesEditDialog } from "./demand-classes-edit-dialog"
+import { StudentDemandBar } from "./student-demand-bar"
 
 export interface DemandBreakdownDrawerProps {
   courses: CourseDemandSummaryDto[]
@@ -52,21 +46,23 @@ export function DemandBreakdownDrawer({
 }: DemandBreakdownDrawerProps) {
   const t = useTranslations("scheduling.demand.breakdown")
   const locale = useLocale()
-  const [expandedCourseIds, setExpandedCourseIds] = React.useState<
-    Record<string, boolean>
-  >({})
+  const [editingCourseId, setEditingCourseId] = React.useState<string | null>(
+    null
+  )
 
-  const toggleCourseExpand = React.useCallback((courseId: string) => {
-    setExpandedCourseIds((prev) => ({
-      ...prev,
-      [courseId]: !prev[courseId],
-    }))
-  }, [])
+  const activeCourse = React.useMemo(
+    () =>
+      courses.find((course) => course.courseId === editingCourseId) ??
+      courses[0] ??
+      null,
+    [courses, editingCourseId]
+  )
 
   if (courses.length === 0) return null
 
   return (
     <div className="w-full">
+      {/* Desktop Table View */}
       <div className="hidden w-full overflow-hidden rounded-2xl border border-border bg-card lg:block">
         <Table className="table-fixed">
           <TableHeader>
@@ -94,163 +90,71 @@ export function DemandBreakdownDrawer({
                 course.eligibleStudentsCount,
                 classes.map((item) => item.capacity)
               )
-              const isExpanded = Boolean(expandedCourseIds[course.courseId])
-              const toggleActionLabel = isExpanded
-                ? t("closeClasses")
-                : t("editClasses")
 
               return (
-                <React.Fragment key={course.courseId}>
-                  <TableRow
-                    className={cn(
-                      isExpanded && "border-b-0 bg-muted/20 hover:bg-muted/20"
-                    )}
-                  >
-                    <TableCell className="align-middle">
-                      <span className="font-semibold text-foreground">
-                        {course.courseTitle}
-                      </span>
-                    </TableCell>
-                    <TableCell className="align-middle">
-                      <span className="text-sm text-muted-foreground">
-                        {course.prerequisiteTitle ?? t("noPrerequisite")}
-                      </span>
-                    </TableCell>
-                    <TableCell className="align-middle">
-                      <span className="text-sm text-muted-foreground">
-                        {t("studentsDetail", {
-                          continuing: formatNumber(
-                            course.continuingStudentsCount,
-                            locale
-                          ),
-                          new: formatNumber(course.newPlacementCount, locale),
-                          total: formatNumber(
-                            course.eligibleStudentsCount,
-                            locale
-                          ),
-                        })}
-                      </span>
-                    </TableCell>
-                    <TableCell className="align-middle">
-                      <Badge variant="outline">
-                        {t("classesCountSummary", {
-                          count: formatNumber(classes.length, locale),
+                <TableRow key={course.courseId}>
+                  <TableCell className="align-middle">
+                    <span className="font-semibold text-foreground">
+                      {course.courseTitle}
+                    </span>
+                  </TableCell>
+                  <TableCell className="align-middle">
+                    <span className="text-sm text-muted-foreground">
+                      {course.prerequisiteTitle ?? t("noPrerequisite")}
+                    </span>
+                  </TableCell>
+                  <TableCell className="align-middle">
+                    <StudentDemandBar
+                      continuing={course.continuingStudentsCount}
+                      newStudents={course.newPlacementCount}
+                      total={course.eligibleStudentsCount}
+                    />
+                  </TableCell>
+                  <TableCell className="align-middle">
+                    <Badge variant="outline">
+                      {t("classesCountSummary", {
+                        count: formatNumber(classes.length, locale),
+                      })}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="align-middle">
+                    <span className="text-sm font-semibold text-foreground">
+                      {t("plannedSeats", {
+                        count: formatNumber(planned, locale),
+                      })}
+                    </span>
+                  </TableCell>
+                  <TableCell className="align-middle">
+                    {uncovered > 0 ? (
+                      <Badge variant="destructive">
+                        {t("uncovered", {
+                          count: formatNumber(uncovered, locale),
                         })}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="align-middle">
-                      <span className="text-sm font-semibold text-foreground">
-                        {t("plannedSeats", {
-                          count: formatNumber(planned, locale),
-                        })}
-                      </span>
-                    </TableCell>
-                    <TableCell className="align-middle">
-                      {uncovered > 0 ? (
-                        <Badge variant="destructive">
-                          {t("uncovered", {
-                            count: formatNumber(uncovered, locale),
-                          })}
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">{t("covered")}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-end align-middle">
-                      <Button
-                        type="button"
-                        variant={isExpanded ? "secondary" : "ghost"}
-                        size="icon-sm"
-                        aria-expanded={isExpanded}
-                        aria-label={`${toggleActionLabel} - ${course.courseTitle}`}
-                        onClick={() => toggleCourseExpand(course.courseId)}
-                      >
-                        {isExpanded ? (
-                          <X aria-hidden />
-                        ) : (
-                          <Pencil aria-hidden />
-                        )}
-                        <span className="sr-only">{toggleActionLabel}</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  {isExpanded && (
-                    <TableRow className="border-t-0 bg-muted/20 hover:bg-muted/20">
-                      <TableCell
-                        colSpan={7}
-                        className="w-full max-w-0 pt-0 pb-4"
-                      >
-                        <Carousel
-                          opts={{
-                            align: "start",
-                            containScroll: "trimSnaps",
-                            dragFree: true,
-                            direction: locale === "fa" ? "rtl" : "ltr",
-                          }}
-                          className="w-full"
-                        >
-                          <CarouselContent className="items-center">
-                            {classes.map((suggestedClass, index) => (
-                              <CarouselItem
-                                key={suggestedClass.key}
-                                className="basis-auto"
-                              >
-                                <SuggestedClassControl
-                                  item={suggestedClass}
-                                  index={index}
-                                  courseTitle={course.courseTitle}
-                                  capacityLimit={capacityLimit}
-                                  compact
-                                  onCapacityChange={(capacity) =>
-                                    onCapacityChange(
-                                      course.courseId,
-                                      suggestedClass.key,
-                                      capacity
-                                    )
-                                  }
-                                  onRemove={() =>
-                                    onRemoveClass(
-                                      course.courseId,
-                                      suggestedClass.key
-                                    )
-                                  }
-                                />
-                              </CarouselItem>
-                            ))}
-                            <CarouselItem className="basis-auto">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="w-fit"
-                                onClick={() => onAddClass(course.courseId)}
-                              >
-                                <Plus aria-hidden />
-                                {t("addClass")}
-                              </Button>
-                            </CarouselItem>
-                          </CarouselContent>
-                          <div className="mt-2.5 flex items-center justify-end gap-1.5">
-                            <CarouselPrevious
-                              type="button"
-                              className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-                            />
-                            <CarouselNext
-                              type="button"
-                              className="static size-8 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-                            />
-                          </div>
-                        </Carousel>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </React.Fragment>
+                    ) : (
+                      <Badge variant="success">{t("covered")}</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-end align-middle">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={`${t("editClasses")} - ${course.courseTitle}`}
+                      onClick={() => setEditingCourseId(course.courseId)}
+                    >
+                      <Pencil className="size-4" aria-hidden />
+                      <span className="sr-only">{t("editClasses")}</span>
+                    </Button>
+                  </TableCell>
+                </TableRow>
               )
             })}
           </TableBody>
         </Table>
       </div>
 
+      {/* Mobile Card List View */}
       <div className="flex flex-col gap-3 lg:hidden">
         {courses.map((course) => (
           <DemandBreakdownCard
@@ -259,15 +163,29 @@ export function DemandBreakdownDrawer({
             suggestions={
               suggestions[course.courseId] ?? course.suggestedClasses
             }
-            capacityLimit={capacityLimit}
-            isExpanded={Boolean(expandedCourseIds[course.courseId])}
-            onToggleExpand={() => toggleCourseExpand(course.courseId)}
-            onCapacityChange={onCapacityChange}
-            onAddClass={onAddClass}
-            onRemoveClass={onRemoveClass}
+            onEdit={() => setEditingCourseId(course.courseId)}
           />
         ))}
       </div>
+
+      {/* Edit Classes Dialog (Bottom Sheet on mobile, Popup Dialog on desktop) */}
+      <DemandClassesEditDialog
+        open={editingCourseId !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingCourseId(null)
+        }}
+        course={activeCourse}
+        suggestions={
+          activeCourse
+            ? (suggestions[activeCourse.courseId] ??
+              activeCourse.suggestedClasses)
+            : []
+        }
+        capacityLimit={capacityLimit}
+        onCapacityChange={onCapacityChange}
+        onAddClass={onAddClass}
+        onRemoveClass={onRemoveClass}
+      />
     </div>
   )
 }

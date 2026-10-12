@@ -17,7 +17,7 @@ export const SchedulingProposalSchema = z
     planId: z.string().uuid(),
     classRequirementId: z.string().uuid().nullable().optional(),
     courseId: z.string().uuid(),
-    branchId: z.string().uuid().nullable().optional(),
+    branchId: z.string().uuid(),
     teacherId: z.string().uuid().nullable().optional(),
     classroomId: z.string().uuid().nullable().optional(),
     teacherQualificationId: z.string().uuid().nullable().optional(),

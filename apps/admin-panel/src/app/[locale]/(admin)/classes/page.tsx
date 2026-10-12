@@ -12,12 +12,14 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
+import { useRouter } from "@/i18n/routing"
 import { ClassesFilter } from "./components/classes-filter"
 import { ClassesTable } from "./components/classes-table"
 import { ClassesList } from "./components/classes-list"
 import { ClassesFabDrawer } from "./components/classes-fab-drawer"
 
 export default function ClassesPage() {
+  const router = useRouter()
   const { openModal } = useModal()
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -41,7 +43,10 @@ export default function ClassesPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const isListEmpty = !isLoading && (!classes || classes.length === 0)
+
   const handleCreate = () => openModal("createClass")
+  const handleScheduling = () => router.push("/classes/scheduling")
   const handleEdit = (cls: ClassDto) => openModal("editClass", { cls })
   const handleViewDetails = (cls: ClassDto) =>
     openModal("classDetails", { cls })
@@ -59,7 +64,7 @@ export default function ClassesPage() {
               onCourseChange={setCourseId}
               search={search}
               onSearchChange={setSearch}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
           modals={
@@ -71,7 +76,9 @@ export default function ClassesPage() {
               }}
             />
           }
-          fab={<ClassesFabDrawer onAddClick={handleCreate} />}
+          fab={
+            isListEmpty ? null : <ClassesFabDrawer onAddClick={handleCreate} />
+          }
         >
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
@@ -81,17 +88,21 @@ export default function ClassesPage() {
               onEdit={handleEdit}
               onViewDetails={handleViewDetails}
               onDelete={handleDelete}
+              onAdd={handleCreate}
+              onScheduling={handleScheduling}
             />
           </div>
 
           {/* Mobile: flat divider list */}
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <ClassesList
               classes={classes}
               isLoading={isLoading}
               onEdit={handleEdit}
               onViewDetails={handleViewDetails}
               onDelete={handleDelete}
+              onAdd={handleCreate}
+              onScheduling={handleScheduling}
             />
           </div>
         </AdminPageShell>

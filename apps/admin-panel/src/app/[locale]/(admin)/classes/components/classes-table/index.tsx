@@ -3,7 +3,15 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Layers, Edit2, GraduationCap, Eye, Trash2 } from "lucide-react"
+import {
+  Layers,
+  Edit2,
+  GraduationCap,
+  Eye,
+  Trash2,
+  Plus,
+  CalendarClock,
+} from "lucide-react"
 import { Link } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -15,14 +23,17 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { Price } from "@workspace/ui/components/price"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import {
   PERMISSIONS,
   isTermInActivationWindow,
+  isClassDone,
   type ClassDto,
 } from "@workspace/types"
+
 import { PermissionGuard } from "@/components/permission-guard"
 
 export interface ClassesTableProps {
@@ -31,6 +42,8 @@ export interface ClassesTableProps {
   onEdit: (cls: ClassDto) => void
   onViewDetails?: (cls: ClassDto) => void
   onDelete?: (cls: ClassDto) => void
+  onAdd?: () => void
+  onScheduling?: () => void
 }
 
 export function ClassesTable({
@@ -39,6 +52,8 @@ export function ClassesTable({
   onEdit,
   onViewDetails,
   onDelete,
+  onAdd,
+  onScheduling,
 }: ClassesTableProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -48,24 +63,38 @@ export function ClassesTable({
       {
         accessorKey: "title",
         header: t("table.title"),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
-              <Layers className="size-4" />
+        cell: ({ row }) => {
+          const isDone = isClassDone(row.original)
+          return (
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
+                <Layers className="size-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="block text-sm font-semibold text-foreground">
+                    {row.original.title}
+                  </span>
+                  {isDone && (
+                    <Badge
+                      variant="outline"
+                      className="border-border bg-muted/60 text-[10px] font-normal text-muted-foreground"
+                    >
+                      {t("table.ended")}
+                    </Badge>
+                  )}
+                </div>
+                {row.original.schedule && (
+                  <span className="block text-xs text-muted-foreground">
+                    {row.original.schedule}
+                  </span>
+                )}
+              </div>
             </div>
-            <div>
-              <span className="block text-sm font-semibold text-foreground">
-                {row.original.title}
-              </span>
-              {row.original.schedule && (
-                <span className="block text-xs text-muted-foreground">
-                  {row.original.schedule}
-                </span>
-              )}
-            </div>
-          </div>
-        ),
+          )
+        },
       },
+
       {
         accessorKey: "course",
         header: t("table.course"),
@@ -250,9 +279,59 @@ export function ClassesTable({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {(onScheduling || onAdd) && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSES}
+              mode="hide"
+            >
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+                {onScheduling && (
+                  <Button
+                    type="button"
+                    onClick={onScheduling}
+                    className="cursor-pointer gap-2"
+                  >
+                    <CalendarClock className="size-5" />
+                    <span>{t("scheduling")}</span>
+                  </Button>
+                )}
+                {onAdd && (
+                  <Button
+                    type="button"
+                    variant={onScheduling ? "outline" : "default"}
+                    onClick={onAdd}
+                    className={`cursor-pointer gap-2 ${
+                      onScheduling
+                        ? "size-14 shrink-0 p-0 sm:w-auto sm:px-6"
+                        : ""
+                    }`}
+                    aria-label={t("addClass")}
+                    title={t("addClass")}
+                  >
+                    <Plus className="size-5" />
+                    <span className={onScheduling ? "hidden sm:inline" : ""}>
+                      {t("addClass")}
+                    </span>
+                  </Button>
+                )}
+              </div>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }
 
-  return <DataTable columns={columns} data={classes} />
+  return (
+    <DataTable
+      columns={columns}
+      data={classes}
+      getRowClassName={(row) =>
+        isClassDone(row.original)
+          ? "opacity-60 hover:opacity-80 transition-opacity"
+          : undefined
+      }
+    />
+  )
 }

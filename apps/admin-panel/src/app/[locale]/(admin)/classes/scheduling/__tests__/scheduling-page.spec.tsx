@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { QueryClient } from "@tanstack/react-query"
 import type { AnchorHTMLAttributes, ReactNode } from "react"
 import { fireEvent, render, screen, waitFor } from "@/test/test-utils"
@@ -7,13 +7,25 @@ import commonMessagesEn from "@/messages/en/common.json"
 import schedulingMessagesEn from "@/messages/en/scheduling.json"
 import * as hooks from "@/lib/hooks"
 import * as stores from "@/lib/stores"
-import { classRequirementsResource, schedulingResource } from "@/lib/api"
+import {
+  branchesResource,
+  classRequirementsResource,
+  schedulingResource,
+} from "@/lib/api"
 import {
   APP_MODULES,
   ROLES,
   type SchedulingTermSummaryDto,
 } from "@workspace/types"
 import SchedulingPage from "../page"
+
+const mockBranches = [
+  {
+    id: "11111111-2222-3333-4444-555555555555",
+    name: "شعبه مرکزی",
+    isActive: true,
+  },
+]
 
 const { mockPush, mockReplace } = vi.hoisted(() => ({
   mockPush: vi.fn(),
@@ -46,6 +58,13 @@ vi.mock("@/i18n/routing", () => ({
 }))
 
 describe("Unified scheduling workspace", () => {
+  beforeEach(() => {
+    vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
+      queryKey: ["branches", "list"],
+      queryFn: async () => mockBranches,
+    } as never)
+  })
+
   afterEach(() => vi.restoreAllMocks())
 
   it("does not expose scheduling as a standalone navbar item in institute navigation", () => {
@@ -130,10 +149,9 @@ describe("Unified scheduling workspace", () => {
 
     render(<SchedulingPage />)
 
-    expect(
-      (await screen.findAllByText("پاییز ۱۴۰۵")).length
-    ).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText("آماده تولید برنامه")).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText("شعبه مرکزی")).toBeInTheDocument()
+    })
     // Verify no search input exists
     expect(
       screen.queryByPlaceholderText("جست‌وجوی دوره...")
@@ -250,6 +268,7 @@ describe("Unified scheduling workspace", () => {
       expect(applyMutationSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           termId: "term-fall",
+          branchId: "11111111-2222-3333-4444-555555555555",
           items: expect.arrayContaining([
             expect.objectContaining({
               courseId: "11111111-1111-1111-1111-111111111111",
@@ -266,7 +285,7 @@ describe("Unified scheduling workspace", () => {
         queryKey: classRequirementsResource.list.baseKey(),
       })
       expect(mockPush).toHaveBeenCalledWith(
-        "/classes/scheduling/generate?termId=term-fall"
+        "/classes/scheduling/generate?termId=term-fall&branchId=11111111-2222-3333-4444-555555555555"
       )
     })
   })
@@ -361,7 +380,11 @@ describe("Unified scheduling workspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "ادامه" }))
     await waitFor(() =>
       expect(applyMutationSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ acknowledgeShortfall: true }),
+        expect.objectContaining({
+          termId: "term-fall",
+          branchId: "11111111-2222-3333-4444-555555555555",
+          acknowledgeShortfall: true,
+        }),
         expect.anything()
       )
     )
@@ -437,5 +460,152 @@ describe("Unified scheduling workspace", () => {
 
     expect(screen.getByText("دوره‌ها و کلاس‌ها")).toBeInTheDocument()
     expect(screen.queryByText("تقاضای دوره‌ها")).not.toBeInTheDocument()
+  })
+
+  it("prompts the user to select a branch first when multiple active branches exist and none is selected", async () => {
+    const multiBranches = [
+      {
+        id: "branch-1",
+        name: "شعبه مرکزی",
+        isActive: true,
+      },
+      {
+        id: "branch-2",
+        name: "شعبه ونک",
+        isActive: true,
+      },
+    ]
+
+    vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
+      queryKey: ["branches", "list"],
+      queryFn: async () => multiBranches,
+    } as never)
+
+    const mockTerms: SchedulingTermSummaryDto[] = [
+      {
+        id: "term-fall",
+        title: "پاییز ۱۴۰۵",
+        startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: true,
+        classesCount: 0,
+        requirementsCount: 0,
+        totalRequiredClasses: 0,
+        schedulingStatus: "READY_TO_SCHEDULE",
+      },
+    ]
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: "inst-1",
+      activeInstitute: {
+        id: "inst-1",
+        name: "Test Institute",
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "terms", "inst-1"],
+      queryFn: async () => mockTerms,
+    } as never)
+
+    const calculateDemandSpy = vi.fn()
+    vi.spyOn(schedulingResource.calculateDemand, "toMutation").mockReturnValue({
+      mutationFn: calculateDemandSpy,
+    } as never)
+
+    render(<SchedulingPage />)
+
+    expect(
+      await screen.findByRole("heading", { name: "انتخاب شعبه" })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "برای بررسی تعداد کلاس‌ها و جلسات مورد نیاز، ابتدا شعبه مورد نظر را انتخاب کنید."
+      )
+    ).toBeInTheDocument()
+    expect(calculateDemandSpy).not.toHaveBeenCalled()
+  })
+
+  it("disables submit button when no classes are available in demand calculations", async () => {
+    const mockTerms: SchedulingTermSummaryDto[] = [
+      {
+        id: "term-fall",
+        title: "پاییز ۱۴۰۵",
+        startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: true,
+        classesCount: 0,
+        requirementsCount: 0,
+        totalRequiredClasses: 0,
+        schedulingStatus: "READY_TO_SCHEDULE",
+      },
+    ]
+
+    const mockDemandReportWithoutClasses = {
+      termId: "term-fall",
+      termTitle: "پاییز ۱۴۰۵",
+      maxStudentsPerClass: 14,
+      maxAvailableRoomCapacity: 20,
+      effectiveCapacityLimit: 14,
+      warnings: [],
+      totalEligibleStudents: 0,
+      totalContinuingStudents: 0,
+      totalNewPlacements: 0,
+      totalSuggestedClasses: 0,
+      totalPlannedCapacity: 0,
+      totalUncoveredStudents: 0,
+      courses: [
+        {
+          courseId: "11111111-1111-1111-1111-111111111111",
+          courseTitle: "انگلیسی کودکان ۱",
+          baseFee: 1500000,
+          eligibleStudentsCount: 0,
+          passedPrerequisiteCount: 0,
+          continuingStudentsCount: 0,
+          newPlacementCount: 0,
+          morningShiftCount: 0,
+          afternoonShiftCount: 0,
+          flexibleShiftCount: 0,
+          evenDaysPreferenceCount: 0,
+          oddDaysPreferenceCount: 0,
+          anyDayPreferenceCount: 0,
+          suggestedClassCount: 0,
+          suggestedClasses: [],
+          plannedCapacity: 0,
+          uncoveredStudentCount: 0,
+          sessionsPerWeek: 2,
+        },
+      ],
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: "inst-1",
+      activeInstitute: {
+        id: "inst-1",
+        name: "Test Institute",
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "terms", "inst-1"],
+      queryFn: async () => mockTerms,
+    } as never)
+
+    vi.spyOn(schedulingResource.calculateDemand, "toMutation").mockReturnValue({
+      mutationFn: vi.fn().mockResolvedValue(mockDemandReportWithoutClasses),
+    } as never)
+
+    render(<SchedulingPage />)
+
+    expect(
+      (await screen.findAllByText("انگلیسی کودکان ۱")).length
+    ).toBeGreaterThanOrEqual(1)
+
+    const buttons = screen.getAllByRole("button", { name: "ثبت و ادامه" })
+    for (const btn of buttons) {
+      expect(btn).toBeDisabled()
+    }
   })
 })

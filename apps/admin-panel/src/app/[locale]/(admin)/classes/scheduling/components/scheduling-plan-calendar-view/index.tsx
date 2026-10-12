@@ -62,6 +62,7 @@ import {
 import { SchedulingPlanCalendarMissedClassCard } from "../scheduling-plan-calendar-missed-class-card"
 import { StaffingFallbackDialog } from "./staffing-fallback-dialog"
 import { SwitchRoomDialog } from "./switch-room-dialog"
+import { SwitchTeacherDialog } from "./switch-teacher-dialog"
 import {
   SchedulingPlanCalendarGroupTeachersCarousel,
   type GroupTeacherAccessibilityItem,
@@ -81,7 +82,10 @@ import {
   type SwapTarget,
 } from "./helper/swap-eligibility.helper"
 import { buildProposalColorMap } from "./helper/course-color-group.helper"
-import { SwapClassDialog } from "./swap-class-dialog"
+import {
+  planSessionSwap,
+  type ClassroomOption,
+} from "./helper/period-classroom-resolver.helper"
 import { classroomsResource, schedulingResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 
@@ -245,11 +249,9 @@ export function SchedulingPlanCalendarView({
     }),
     enabled: Boolean(activeInstituteId),
   })
-  const [swapDialogState, setSwapDialogState] = React.useState<{
-    sourceProposal: Proposal
-    target: SwapTarget
-    evaluation: SwapEvaluationResult
-  } | null>(null)
+  const [isSwappingInProgress, setIsSwappingInProgress] = React.useState(false)
+  const [swappingTargetProposalId, setSwappingTargetProposalId] =
+    React.useState<string | null>(null)
   const [staffingDialogSession, setStaffingDialogSession] = React.useState<{
     courseTitle: string
     unresolvedRequirementId?: string
@@ -257,9 +259,12 @@ export function SchedulingPlanCalendarView({
     hiringAssignments: SchedulingNewTeacherHiringAssignment[]
     requirement?:
       SchedulingPlanDetailsDto["unresolvedRequirements"][number] | null
+    proposal?: Proposal | null
   } | null>(null)
   const [highlightRelated, setHighlightRelated] = React.useState(true)
   const [switchRoomProposal, setSwitchRoomProposal] =
+    React.useState<Proposal | null>(null)
+  const [switchTeacherProposal, setSwitchTeacherProposal] =
     React.useState<Proposal | null>(null)
   const [mobileTrack, setMobileTrack] = React.useState<DayTrack>("EVEN")
   const mobileTrackRef = React.useRef<DayTrack>(mobileTrack)
@@ -410,17 +415,14 @@ export function SchedulingPlanCalendarView({
     [canPlaceMissedClassOnDay]
   )
 
-  const allSwappableProposals = React.useMemo(
-    () => proposals.filter((p) => Boolean(p.teacherId || p.teacher)),
-    [proposals]
-  )
+  const allSwappableProposals = React.useMemo(() => proposals, [proposals])
 
   const activeProposal = React.useMemo(
     () =>
       activeClassId
-        ? (allSwappableProposals.find((p) => p.id === activeClassId) ?? null)
+        ? (proposals.find((p) => p.id === activeClassId) ?? null)
         : null,
-    [activeClassId, allSwappableProposals]
+    [activeClassId, proposals]
   )
 
   const swappingProposal = React.useMemo(
@@ -523,6 +525,214 @@ export function SchedulingPlanCalendarView({
     occupiedClassroomSlots,
   ])
 
+  const handleSwapSuccess = React.useCallback(
+    (updatedProposals: Proposal[]) => {
+      const realProposals = updatedProposals.filter(
+        (p) => !p.id.startsWith("missed:")
+      )
+      const missedProposals = updatedProposals.filter((p) =>
+        p.id.startsWith("missed:")
+      )
+
+      if (realProposals.length > 0) {
+        setProposalOverrides((prev) => {
+          const nextById = { ...prev.byId }
+          for (const p of realProposals) {
+            nextById[p.id] = p
+          }
+          return { byId: nextById }
+        })
+      }
+
+      if (missedProposals.length > 0) {
+        const missedUpdates: Record<string, CurrentAssignmentState> = {}
+        for (const p of missedProposals) {
+          const assignmentKey = p.id.slice("missed:".length)
+          missedUpdates[assignmentKey] = {
+            daysOfWeek: [...p.daysOfWeek],
+            startTime: p.startTime,
+            endTime: p.endTime,
+            classroomId: p.classroom?.id ?? p.classroomId ?? null,
+            classroomName: p.classroom?.name ?? null,
+            isAssigned: true,
+          }
+        }
+        setMissedAssignmentOverrides((prev) => ({
+          byKey: {
+            ...prev.byKey,
+            ...missedUpdates,
+          },
+        }))
+        onUpdateMissedClassesAssignments?.(missedUpdates)
+      }
+
+      setSelectedClassId(null)
+      setSwappingProposalId(null)
+      setSwappingTargetProposalId(null)
+    },
+    [onUpdateMissedClassesAssignments]
+  )
+
+  const handleDirectSessionSwap = React.useCallback(
+    async (sourceProposal: Proposal, targetProposal: Proposal) => {
+      if (isSwappingInProgress) return
+      setIsSwappingInProgress(true)
+      setSwappingTargetProposalId(targetProposal.id)
+
+      const targetInstituteId =
+        activeInstituteId || sourceProposal.instituteId || planId
+      const targetPlanId = planId || sourceProposal.planId
+
+      const classroomsMap = new Map<string, ClassroomOption>()
+      for (const p of allSwappableProposals) {
+        if (p.classroom) {
+          const existing = classroomsMap.get(p.classroom.id)
+          if (!existing || p.classroom.capacity > existing.capacity) {
+            classroomsMap.set(p.classroom.id, p.classroom)
+          }
+        }
+      }
+      const classrooms =
+        instituteClassrooms && instituteClassrooms.length > 0
+          ? instituteClassrooms
+          : Array.from(classroomsMap.values())
+
+      const plan = planSessionSwap(
+        sourceProposal,
+        targetProposal,
+        allSwappableProposals,
+        classrooms,
+        occupiedClassroomSlots
+      )
+
+      const isSourceMissed = sourceProposal.id.startsWith("missed:")
+      const isTargetMissed = targetProposal.id.startsWith("missed:")
+
+      try {
+        if (!isSourceMissed) {
+          await updateProposalMutation.mutateAsync({
+            planId: targetPlanId,
+            proposalId: sourceProposal.id,
+            instituteId: targetInstituteId,
+            body: {
+              teacherId: null,
+              classroomId: plan.sourceNewClassroom?.id ?? null,
+              daysOfWeek: plan.sourceNewDays,
+              startTime: plan.sourceNewStartTime,
+              endTime: plan.sourceNewEndTime,
+            },
+          })
+        }
+
+        if (!isTargetMissed) {
+          await updateProposalMutation.mutateAsync({
+            planId: targetProposal.planId || targetPlanId,
+            proposalId: targetProposal.id,
+            instituteId: targetInstituteId,
+            body: {
+              teacherId: null,
+              classroomId: plan.targetNewClassroom?.id ?? null,
+              daysOfWeek: plan.targetNewDays,
+              startTime: plan.targetNewStartTime,
+              endTime: plan.targetNewEndTime,
+            },
+          })
+        }
+
+        for (const reassignment of plan.innerReassignments) {
+          if (!reassignment.proposal.id.startsWith("missed:")) {
+            await updateProposalMutation.mutateAsync({
+              planId: reassignment.proposal.planId || targetPlanId,
+              proposalId: reassignment.proposal.id,
+              instituteId: targetInstituteId,
+              body: {
+                classroomId: reassignment.toClassroom.id,
+              },
+            })
+          }
+        }
+
+        const updatedProposals: Proposal[] = [
+          {
+            ...sourceProposal,
+            teacherId: undefined,
+            teacher: null,
+            classroomId: plan.sourceNewClassroom?.id ?? null,
+            classroom: plan.sourceNewClassroom
+              ? {
+                  id: plan.sourceNewClassroom.id,
+                  name: plan.sourceNewClassroom.name,
+                  capacity: plan.sourceNewClassroom.capacity,
+                }
+              : null,
+            daysOfWeek: plan.sourceNewDays,
+            startTime: plan.sourceNewStartTime,
+            endTime: plan.sourceNewEndTime,
+            isManuallyEdited: true,
+          },
+          {
+            ...targetProposal,
+            teacherId: undefined,
+            teacher: null,
+            classroomId: plan.targetNewClassroom?.id ?? null,
+            classroom: plan.targetNewClassroom
+              ? {
+                  id: plan.targetNewClassroom.id,
+                  name: plan.targetNewClassroom.name,
+                  capacity: plan.targetNewClassroom.capacity,
+                }
+              : null,
+            daysOfWeek: plan.targetNewDays,
+            startTime: plan.targetNewStartTime,
+            endTime: plan.targetNewEndTime,
+            isManuallyEdited: true,
+          },
+        ]
+
+        for (const reassignment of plan.innerReassignments) {
+          updatedProposals.push({
+            ...reassignment.proposal,
+            classroomId: reassignment.toClassroom.id,
+            classroom: {
+              id: reassignment.toClassroom.id,
+              name: reassignment.toClassroom.name,
+              capacity: reassignment.toClassroom.capacity,
+            },
+            isManuallyEdited: true,
+          })
+        }
+
+        handleSwapSuccess(updatedProposals)
+
+        await queryClient.invalidateQueries({
+          queryKey: schedulingResource.planDetail.key({
+            planId: targetPlanId,
+            instituteId: targetInstituteId,
+          }),
+        })
+
+        toast.success(t("calendarView.sessionSwapSuccess"))
+      } catch {
+        toast.error(t("calendarView.swapDialog.invalidCombination"))
+      } finally {
+        setIsSwappingInProgress(false)
+        setSwappingTargetProposalId(null)
+      }
+    },
+    [
+      isSwappingInProgress,
+      activeInstituteId,
+      planId,
+      allSwappableProposals,
+      instituteClassrooms,
+      occupiedClassroomSlots,
+      updateProposalMutation,
+      handleSwapSuccess,
+      queryClient,
+      t,
+    ]
+  )
+
   const handleMissedCardClick = React.useCallback(
     (assignment: SchedulingNewTeacherHiringAssignment) => {
       const matchedReq = unresolvedRequirements?.find(
@@ -583,6 +793,19 @@ export function SchedulingPlanCalendarView({
 
   const handleCardClick = React.useCallback(
     (id: string) => {
+      // If already in swapping mode (initiated via swap button)
+      if (swappingProposal && id !== swappingProposal.id) {
+        if (isSwappingInProgress) return
+        const swapEvaluation = swappableByProposalId.get(id)
+        const swappableTarget = allSwappableProposals.find((p) => p.id === id)
+        if (swapEvaluation && swappableTarget) {
+          handleDirectSessionSwap(swappingProposal, swappableTarget)
+          return
+        }
+        // If clicking on an unswappable card, exit swap mode and select the clicked card
+        setSwappingProposalId(null)
+      }
+
       const targetProposal = proposals.find((p) => p.id === id)
       if (
         targetProposal &&
@@ -610,6 +833,7 @@ export function SchedulingPlanCalendarView({
           unresolvedRequirementId: matchedReq?.id,
           fallback,
           requirement: matchedReq ?? null,
+          proposal: targetProposal,
           hiringAssignments: [
             {
               key: `prop-${targetProposal.id}`,
@@ -630,22 +854,6 @@ export function SchedulingPlanCalendarView({
         return
       }
 
-      // If already in swapping mode (initiated via swap button)
-      if (swappingProposal && id !== swappingProposal.id) {
-        const swapEvaluation = swappableByProposalId.get(id)
-        const swappableTarget = allSwappableProposals.find((p) => p.id === id)
-        if (swapEvaluation && swappableTarget) {
-          setSwapDialogState({
-            sourceProposal: swappingProposal,
-            target: { kind: "PROPOSAL", proposal: swappableTarget },
-            evaluation: swapEvaluation,
-          })
-          return
-        }
-        // If clicking on an unswappable card, exit swap mode and select the clicked card
-        setSwappingProposalId(null)
-      }
-
       if (swappingProposalId === id) {
         setSwappingProposalId(null)
       }
@@ -659,6 +867,8 @@ export function SchedulingPlanCalendarView({
       proposals,
       swappableByProposalId,
       unresolvedRequirements,
+      handleDirectSessionSwap,
+      isSwappingInProgress,
     ]
   )
 
@@ -674,14 +884,11 @@ export function SchedulingPlanCalendarView({
       }
 
       if (swappingProposal && id !== swappingProposal.id) {
+        if (isSwappingInProgress) return
         const swapEvaluation = swappableByProposalId.get(id)
         const swappableTarget = allSwappableProposals.find((p) => p.id === id)
         if (swapEvaluation && swappableTarget) {
-          setSwapDialogState({
-            sourceProposal: swappingProposal,
-            target: { kind: "PROPOSAL", proposal: swappableTarget },
-            evaluation: swapEvaluation,
-          })
+          handleDirectSessionSwap(swappingProposal, swappableTarget)
           return
         }
       }
@@ -695,6 +902,8 @@ export function SchedulingPlanCalendarView({
       swappingProposal,
       swappableByProposalId,
       allSwappableProposals,
+      handleDirectSessionSwap,
+      isSwappingInProgress,
     ]
   )
 
@@ -870,60 +1079,14 @@ export function SchedulingPlanCalendarView({
     ]
   )
 
-  const handleSwapSuccess = React.useCallback(
-    (updatedProposals: Proposal[]) => {
-      const realProposals = updatedProposals.filter(
-        (p) => !p.id.startsWith("missed:")
-      )
-      const missedProposals = updatedProposals.filter((p) =>
-        p.id.startsWith("missed:")
-      )
-
-      if (realProposals.length > 0) {
-        setProposalOverrides((prev) => {
-          const nextById = { ...prev.byId }
-          for (const p of realProposals) {
-            nextById[p.id] = p
-          }
-          return { byId: nextById }
-        })
-      }
-
-      if (missedProposals.length > 0) {
-        const missedUpdates: Record<string, CurrentAssignmentState> = {}
-        for (const p of missedProposals) {
-          const assignmentKey = p.id.slice("missed:".length)
-          missedUpdates[assignmentKey] = {
-            daysOfWeek: [...p.daysOfWeek],
-            startTime: p.startTime,
-            endTime: p.endTime,
-            classroomId: p.classroom?.id ?? p.classroomId ?? null,
-            classroomName: p.classroom?.name ?? null,
-            isAssigned: true,
-          }
-        }
-        setMissedAssignmentOverrides((prev) => ({
-          byKey: {
-            ...prev.byKey,
-            ...missedUpdates,
-          },
-        }))
-        onUpdateMissedClassesAssignments?.(missedUpdates)
-      }
-
-      setSwapDialogState(null)
-      setSelectedClassId(null)
-      setSwappingProposalId(null)
-    },
-    [onUpdateMissedClassesAssignments]
-  )
-
   // Clear selected class and swap mode on Escape key when no modal dialog is open
   React.useEffect(() => {
     if (
       (!selectedClassId && !swappingProposalId) ||
-      swapDialogState ||
-      assignSlotTarget
+      isSwappingInProgress ||
+      assignSlotTarget ||
+      switchRoomProposal ||
+      switchTeacherProposal
     )
       return
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -934,7 +1097,14 @@ export function SchedulingPlanCalendarView({
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [selectedClassId, swappingProposalId, swapDialogState, assignSlotTarget])
+  }, [
+    selectedClassId,
+    swappingProposalId,
+    isSwappingInProgress,
+    assignSlotTarget,
+    switchRoomProposal,
+    switchTeacherProposal,
+  ])
 
   const timeSlots = React.useMemo<TimeSlot[]>(() => {
     const slotsMap = new Map<string, TimeSlot>()
@@ -1418,6 +1588,121 @@ export function SchedulingPlanCalendarView({
     ]
   )
 
+  const handleSwitchTeacher = React.useCallback(
+    async (
+      targetProposal: Proposal,
+      newTeacherId: string,
+      swapProposal?: Proposal
+    ) => {
+      const targetPlanId = planId ?? targetProposal.planId
+      const targetInstituteId = activeInstituteId ?? targetProposal.instituteId
+      if (!targetPlanId) return
+
+      const calendarTeacher = teacherCalendars?.find(
+        (c) => c.teacher.id === newTeacherId
+      )?.teacher
+      const currentTeacher = targetProposal.teacher ?? null
+
+      try {
+        if (swapProposal) {
+          const currentTeacherId =
+            targetProposal.teacherId ?? targetProposal.teacher?.id ?? null
+
+          await Promise.all([
+            updateProposalMutation.mutateAsync({
+              planId: targetPlanId,
+              proposalId: targetProposal.id,
+              instituteId: targetInstituteId,
+              body: {
+                teacherId: newTeacherId,
+              },
+            }),
+            updateProposalMutation.mutateAsync({
+              planId: targetPlanId,
+              proposalId: swapProposal.id,
+              instituteId: targetInstituteId,
+              body: {
+                teacherId: currentTeacherId,
+              },
+            }),
+          ])
+
+          setProposalOverrides((prev) => {
+            const nextById = { ...prev.byId }
+            nextById[targetProposal.id] = {
+              ...targetProposal,
+              teacherId: newTeacherId,
+              teacher: calendarTeacher
+                ? {
+                    id: calendarTeacher.id,
+                    firstName: calendarTeacher.firstName,
+                    lastName: calendarTeacher.lastName,
+                    avatarUrl: calendarTeacher.avatarUrl ?? null,
+                  }
+                : (swapProposal.teacher ?? null),
+              isManuallyEdited: true,
+            }
+            nextById[swapProposal.id] = {
+              ...swapProposal,
+              teacherId: currentTeacherId,
+              teacher: currentTeacher,
+              isManuallyEdited: true,
+            }
+            return { byId: nextById }
+          })
+
+          toast.success(t("calendarView.swapTeacherSuccess"))
+        } else {
+          await updateProposalMutation.mutateAsync({
+            planId: targetPlanId,
+            proposalId: targetProposal.id,
+            instituteId: targetInstituteId,
+            body: {
+              teacherId: newTeacherId,
+            },
+          })
+
+          setProposalOverrides((prev) => {
+            const nextById = { ...prev.byId }
+            nextById[targetProposal.id] = {
+              ...targetProposal,
+              teacherId: newTeacherId,
+              teacher: calendarTeacher
+                ? {
+                    id: calendarTeacher.id,
+                    firstName: calendarTeacher.firstName,
+                    lastName: calendarTeacher.lastName,
+                    avatarUrl: calendarTeacher.avatarUrl ?? null,
+                  }
+                : null,
+              isManuallyEdited: true,
+            }
+            return { byId: nextById }
+          })
+
+          toast.success(t("calendarView.switchTeacherSuccess"))
+        }
+
+        await queryClient.invalidateQueries({
+          queryKey: schedulingResource.planDetail.key({
+            planId: targetPlanId,
+            instituteId: targetInstituteId,
+          }),
+        })
+      } catch {
+        // Handled by global toast
+      }
+    },
+    [
+      planId,
+      activeInstituteId,
+      teacherCalendars,
+      updateProposalMutation,
+      queryClient,
+      t,
+    ]
+  )
+
   const expandedSlots = React.useMemo(() => {
     if (userExpandedSlots !== null) return userExpandedSlots
     if (!defaultCollapsed) {
@@ -1794,7 +2079,7 @@ export function SchedulingPlanCalendarView({
       <div
         className="flex flex-col gap-4"
         onClick={(e) => {
-          if (swapDialogState || assignSlotTarget) return
+          if (isSwappingInProgress || assignSlotTarget) return
           if (!e.currentTarget.contains(e.target as Node)) return
           if (selectedClassId || swappingProposalId) {
             setSelectedClassId(null)
@@ -2334,12 +2619,14 @@ export function SchedulingPlanCalendarView({
                                                   hasSameTeacher ||
                                                   hasSameCourse
                                                 ))
-                                          const hasTeacher = Boolean(
-                                            proposal.teacherId ||
-                                            proposal.teacher
-                                          )
                                           const isProposalSwappable =
-                                            hasTeacher && isSwappable
+                                            !isSwappingInProgress && isSwappable
+                                          const isCardLoading =
+                                            isSwappingInProgress &&
+                                            (proposal.id ===
+                                              swappingTargetProposalId ||
+                                              proposal.id ===
+                                                swappingProposalId)
 
                                           return (
                                             <SchedulingPlanCalendarClassCard
@@ -2351,6 +2638,7 @@ export function SchedulingPlanCalendarView({
                                                 swappingProposalId ===
                                                 proposal.id
                                               }
+                                              isLoading={isCardLoading}
                                               colorIndex={proposalColorMap.get(
                                                 proposal.id
                                               )}
@@ -2375,6 +2663,14 @@ export function SchedulingPlanCalendarView({
                                                 canEdit
                                                   ? (p) =>
                                                       setSwitchRoomProposal(p)
+                                                  : undefined
+                                              }
+                                              onTeacherClick={
+                                                canEdit
+                                                  ? (p) =>
+                                                      setSwitchTeacherProposal(
+                                                        p
+                                                      )
                                                   : undefined
                                               }
                                               onSwapClick={
@@ -2572,15 +2868,6 @@ export function SchedulingPlanCalendarView({
                                         : teacherId
                                     )
                                   }}
-                                  onSwapWithTeacher={(target, evaluation) => {
-                                    if (swappingProposal) {
-                                      setSwapDialogState({
-                                        sourceProposal: swappingProposal,
-                                        target,
-                                        evaluation,
-                                      })
-                                    }
-                                  }}
                                 />
                               </div>
                             </CarouselItem>
@@ -2613,18 +2900,6 @@ export function SchedulingPlanCalendarView({
         }}
       />
 
-      {/* Swap Class Dialog */}
-      <SwapClassDialog
-        open={Boolean(swapDialogState)}
-        onOpenChange={(open) => {
-          if (!open) setSwapDialogState(null)
-        }}
-        sourceProposal={swapDialogState?.sourceProposal ?? null}
-        target={swapDialogState?.target ?? null}
-        evaluation={swapDialogState?.evaluation ?? null}
-        onSwapSuccess={handleSwapSuccess}
-      />
-
       {/* Staffing Fallback Dialog */}
       <StaffingFallbackDialog
         open={Boolean(staffingDialogSession)}
@@ -2638,6 +2913,11 @@ export function SchedulingPlanCalendarView({
         planStatus={planStatus}
         unresolvedRequirementId={staffingDialogSession?.unresolvedRequirementId}
         requirement={staffingDialogSession?.requirement}
+        proposal={staffingDialogSession?.proposal}
+        teacherCalendars={teacherCalendars}
+        allProposals={allSwappableProposals}
+        onAssignTeacher={handleSwitchTeacher}
+        isAssignPending={updateProposalMutation.isPending}
       />
 
       {/* Switch / Swap Room Dialog */}
@@ -2650,6 +2930,19 @@ export function SchedulingPlanCalendarView({
         classrooms={instituteClassrooms}
         proposals={allSwappableProposals}
         onSwitchRoom={handleSwitchRoom}
+        isPending={updateProposalMutation.isPending}
+      />
+
+      {/* Switch / Swap Teacher Dialog */}
+      <SwitchTeacherDialog
+        open={Boolean(switchTeacherProposal)}
+        onOpenChange={(open) => {
+          if (!open) setSwitchTeacherProposal(null)
+        }}
+        proposal={switchTeacherProposal}
+        teacherCalendars={teacherCalendars}
+        proposals={allSwappableProposals}
+        onSwitchTeacher={handleSwitchTeacher}
         isPending={updateProposalMutation.isPending}
       />
 

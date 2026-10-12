@@ -3,13 +3,14 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { CalendarOff, Trash2 } from "lucide-react"
+import { CalendarOff, Plus, Trash2 } from "lucide-react"
 import type { InstituteCustomOffDay } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
 import {
   Empty,
+  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
@@ -20,12 +21,14 @@ export interface CustomOffDaysTableProps {
   customOffDays: InstituteCustomOffDay[] | undefined
   isLoading: boolean
   onDelete: (offDay: InstituteCustomOffDay) => void
+  onAdd?: () => void
 }
 
 export function CustomOffDaysTable({
   customOffDays,
   isLoading,
   onDelete,
+  onAdd,
 }: CustomOffDaysTableProps) {
   const t = useTranslations("setting.offDays")
   const locale = useLocale()
@@ -98,6 +101,14 @@ export function CustomOffDaysTable({
           </EmptyMedia>
           <EmptyDescription>{t("noCustomOffDays")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <Button onClick={onAdd}>
+              <Plus className="size-4" />
+              <span>{t("addOffDay")}</span>
+            </Button>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

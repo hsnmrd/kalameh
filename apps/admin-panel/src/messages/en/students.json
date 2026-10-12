@@ -5,8 +5,10 @@
   "searchPlaceholder": "Search",
   "filter": {
     "course": "Course & Level",
+    "branch": "Branch",
     "status": "Account Status",
     "allCourses": "All Courses & Levels",
+    "allBranches": "All Branches",
     "allStatus": "All Statuses",
     "active": "Active Only",
     "inactive": "Suspended/Inactive Only"
@@ -23,6 +25,7 @@
     "currentLevel": "Allowed Course Level",
     "noLevel": "Not Assigned (Root Level)",
     "scheduleStatus": "Availability Schedule",
+    "branch": "Branch",
     "status": "Status",
     "enrollmentsCount": "Enrollments",
     "createdAt": "Registered At",
@@ -63,6 +66,8 @@
     "currentAllowedCourseId": "Initial Course Level",
     "currentLevel": "Initial Course Level",
     "selectCourse": "Select Course Level (Default: Root Course)",
+    "branch": "Branch",
+    "selectBranch": "Select branch",
     "password": "Initial Password",
     "passwordPlaceholder": "Enter password",
     "passwordHint": "If left empty, phone number will be used as default password.",
@@ -76,6 +81,8 @@
   "editModal": {
     "title": "Edit Student Profile",
     "description": "Update identity, guardian, and placement details.",
+    "branch": "Branch",
+    "selectBranch": "Select branch",
     "firstName": "First Name",
     "firstNamePlaceholder": "First name",
     "lastName": "Last Name",
@@ -114,6 +121,7 @@
     "contactInfo": "Contact & Residential Information",
     "guardianInfo": "Guardian & Emergency Contact",
     "academicInfo": "Academic Status",
+    "branch": "Branch",
     "addNote": "Add Note",
     "addNotePlaceholder": "Write a note and save",
     "addNoteButton": "Save Note",
@@ -167,6 +175,19 @@
     "selectedSlotsCount": "{count} slots selected",
     "noActivePhase": "No active operating phases found for this institute."
   },
+  "confirmStudentSchedules": {
+    "action": "Confirm Student Schedules",
+    "bannerTitle": "Confirm Student Schedules",
+    "bannerDescription": "Student schedules for term {termTitle} have not been confirmed yet. Once attendance availability is finalized, confirm the schedule to enable smart scheduling.",
+    "button": "Confirm Schedules",
+    "dialogTitle": "Confirm Student Schedules",
+    "dialogDescription": "Are you sure you want to confirm student schedules for term {termTitle}? Once confirmed, the supervisor will be able to generate scheduling proposals.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "success": "Student schedules for term {termTitle} have been confirmed successfully.",
+    "selectTerm": "Select Term",
+    "alreadyConfirmed": "Student schedules for this term were already confirmed on {date}."
+  },
   "validation": {
     "firstNameMin": "First name must be at least 2 characters.",
     "lastNameMin": "Last name must be at least 2 characters.",
@@ -191,5 +212,35 @@
     "applying": "Applying...",
     "success": "Bulk availability successfully applied for {count} students.",
     "error": "Failed to set bulk availability for students."
+  },
+  "importModal": {
+    "trigger": "Import from Excel",
+    "title": "Bulk Import Students from Excel",
+    "description": "Import students in bulk using an Excel or CSV spreadsheet.",
+    "downloadTemplate": "Download Template (.xlsx)",
+    "dragDropText": "Drag and drop your spreadsheet (.xlsx or .csv) here or click to browse",
+    "uploadHint": "Supported formats: XLSX and CSV",
+    "selectedFile": "Selected file:",
+    "submit": "Start Import",
+    "uploading": "Importing...",
+    "cancel": "Cancel",
+    "resultTitle": "Excel Import Results",
+    "totalRows": "Total Rows: {count}",
+    "importedRows": "Successfully Imported: {count}",
+    "failedRows": "Errors: {count}",
+    "errorListTitle": "Row Error Details:",
+    "rowNumber": "Row {row}",
+    "successMessage": "{count} students were imported successfully.",
+    "templateDownloadError": "The template could not be downloaded.",
+    "defaultBranch": "Default Branch",
+    "defaultBranchPlaceholder": "Select default branch (optional)",
+    "defaultBranchNone": "No default branch",
+    "defaultBranchHint": "Rows in Excel without a specified branch will be assigned to this branch.",
+    "singleBranchNotice": "Since this institute has only one branch ({branch}), unassigned rows will automatically connect to it."
+  },
+  "export": {
+    "trigger": "Export to Excel",
+    "exporting": "Generating Excel export...",
+    "error": "Failed to export Excel file"
   }
 }

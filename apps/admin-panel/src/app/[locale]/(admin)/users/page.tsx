@@ -50,6 +50,7 @@ export default function UsersPage() {
   })
 
   const totalCount = users?.length ?? 0
+  const isListEmpty = !isLoading && totalCount === 0
 
   const handleExport = async () => {
     try {
@@ -117,7 +118,7 @@ export default function UsersPage() {
               onSearchChange={setSearchValue}
               selectedRole={selectedRole}
               onRoleChange={setSelectedRole}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
           modals={
@@ -132,9 +133,14 @@ export default function UsersPage() {
             />
           }
           fab={
-            <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="hide">
-              <FABSingle onClick={handleCreate} aria-label={t("addUser")} />
-            </PermissionGuard>
+            isListEmpty ? null : (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_USERS}
+                mode="hide"
+              >
+                <FABSingle onClick={handleCreate} aria-label={t("addUser")} />
+              </PermissionGuard>
+            )
           }
         >
           {/* Desktop Table View */}
@@ -146,11 +152,12 @@ export default function UsersPage() {
               onEdit={handleEdit}
               onResetPassword={handleResetPassword}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
 
           {/* Mobile Flat List View */}
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <UsersList
               users={users}
               isLoading={isLoading}
@@ -158,6 +165,7 @@ export default function UsersPage() {
               onEdit={handleEdit}
               onResetPassword={handleResetPassword}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
         </AdminPageShell>

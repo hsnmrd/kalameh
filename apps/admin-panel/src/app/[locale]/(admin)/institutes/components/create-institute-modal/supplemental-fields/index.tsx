@@ -68,31 +68,31 @@ export function SupplementalFields({
               variant="outline"
               size="sm"
               onClick={onAddPhone}
-              className="h-7 cursor-pointer rounded-lg px-2.5 text-xs text-foreground"
+              className="h-8 cursor-pointer rounded-lg px-3 text-xs text-foreground"
             >
-              <Plus className="me-1 size-3" />
+              <Plus className="me-1.5 size-3.5" />
               {t("createModal.addPhone")}
             </Button>
           </div>
-          <div className="mt-2 flex flex-col gap-2">
+          <div className="mt-2 flex flex-col gap-2.5">
             {phones.map((_, index) => (
               <div key={index} className="flex items-center gap-2">
                 <Input
                   {...register(`phones.${index}` as const)}
                   placeholder={t("createModal.phonePlaceholder")}
-                  className="h-10 flex-1 rounded-xl font-mono text-sm placeholder:font-sans"
+                  className="flex-1 font-mono text-base placeholder:font-sans"
                   dir="ltr"
                 />
                 {phones.length > 1 && (
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => onRemovePhone(index)}
-                    className="size-9 shrink-0 cursor-pointer rounded-lg p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    className="size-14 shrink-0 cursor-pointer rounded-2xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     aria-label={t("createModal.removePhone")}
                   >
-                    <Trash2 className="size-4" />
+                    <Trash2 className="size-5" />
                   </Button>
                 )}
               </div>
@@ -127,7 +127,7 @@ export function SupplementalFields({
           <Input
             {...register("bankCardNumber")}
             placeholder={t("createModal.bankCardNumberPlaceholder")}
-            className="font-mono"
+            className="font-mono text-base"
             dir="ltr"
           />
           <FieldError>{errors.bankCardNumber?.message}</FieldError>
@@ -137,7 +137,7 @@ export function SupplementalFields({
           <Input
             {...register("bankShaba")}
             placeholder={t("createModal.bankShabaPlaceholder")}
-            className="font-mono"
+            className="font-mono text-base"
             dir="ltr"
           />
           <FieldError>{errors.bankShaba?.message}</FieldError>

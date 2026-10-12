@@ -22,7 +22,7 @@ import { isTermEligibleForScheduling } from "../helper/term-selection"
 
 const defaultValues: GenerateSchedulingPlanInput = {
   termId: "",
-  branchId: null,
+  branchId: "",
   requirementIds: [],
   alternativePlanCount: 3,
   sourceRunId: null,

@@ -64,7 +64,7 @@ export function CreateClassroomModal({
     defaultValues: {
       name: "",
       capacity: 20,
-      branchId: null,
+      branchId: branches[0]?.id || "",
       description: "",
       isActive: true,
     },
@@ -75,7 +75,7 @@ export function CreateClassroomModal({
       reset({
         name: "",
         capacity: 20,
-        branchId: branches.length === 1 ? branches[0]?.id : null,
+        branchId: branches[0]?.id || "",
         description: "",
         isActive: true,
       })
@@ -83,14 +83,11 @@ export function CreateClassroomModal({
   }, [open, branches, reset])
 
   const branchOptions: ComboboxOption[] = React.useMemo(() => {
-    return [
-      { value: "NONE", label: t("createModal.noBranch") },
-      ...branches.map((b) => ({
-        value: b.id,
-        label: b.name,
-      })),
-    ]
-  }, [branches, t])
+    return branches.map((b) => ({
+      value: b.id,
+      label: b.name,
+    }))
+  }, [branches])
 
   const createMutation = useMutation({
     ...classroomsResource.create.toMutation(),
@@ -106,7 +103,6 @@ export function CreateClassroomModal({
   const onSubmit = (data: CreateClassroomInput) => {
     createMutation.mutate({
       ...data,
-      branchId: data.branchId === "NONE" ? null : data.branchId || null,
       instituteId: activeInstituteId || undefined,
     })
   }

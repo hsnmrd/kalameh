@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
 import { SchedulingProposalActions } from "../scheduling-proposal-actions"
@@ -216,6 +217,7 @@ export interface SchedulingPlanCalendarClassCardProps {
   canEdit: boolean
   canSwap?: boolean
   isSwapping?: boolean
+  isLoading?: boolean
   colorIndex?: number
   isActive?: boolean
   isSwappable?: boolean
@@ -232,6 +234,7 @@ export interface SchedulingPlanCalendarClassCardProps {
   onChangeDeliveryMode?: (proposal: Proposal) => Promise<boolean | void> | void
   isDeliveryModePending?: boolean
   onRoomClick?: (proposal: Proposal) => void
+  onTeacherClick?: (proposal: Proposal) => void
 }
 
 export function SchedulingPlanCalendarClassCard({
@@ -239,6 +242,7 @@ export function SchedulingPlanCalendarClassCard({
   canEdit,
   canSwap = true,
   isSwapping = false,
+  isLoading = false,
   colorIndex,
   isActive = false,
   isSwappable = false,
@@ -255,6 +259,7 @@ export function SchedulingPlanCalendarClassCard({
   onChangeDeliveryMode,
   isDeliveryModePending = false,
   onRoomClick,
+  onTeacherClick,
 }: SchedulingPlanCalendarClassCardProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -276,6 +281,7 @@ export function SchedulingPlanCalendarClassCard({
 
   const maxCapacity = proposal.classroom?.capacity ?? proposal.capacity
 
+  const isShaking = Boolean(isSwappable && !isSwapping && !isLoading)
   const hasHighlightTag = hasSameTeacher || hasSameCourse
   const isGrayscale = isDimmed && !isActive && !isSwappable && !hasHighlightTag
   const hasWarnings = proposal.warnings.length > 0
@@ -305,15 +311,19 @@ export function SchedulingPlanCalendarClassCard({
       data-same-teacher-count={sameTeacherCount}
       data-same-course-count={sameCourseCount}
       data-has-warnings={hasWarnings ? "true" : undefined}
+      data-loading={isLoading ? "true" : undefined}
+      aria-busy={isLoading ? "true" : undefined}
       title={warningTitle}
-      onMouseEnter={() => onHover?.(proposal.id)}
-      onMouseLeave={() => onHover?.(null)}
+      onMouseEnter={() => !isLoading && onHover?.(proposal.id)}
+      onMouseLeave={() => !isLoading && onHover?.(null)}
       onClick={(e) => {
         e.stopPropagation()
+        if (isLoading) return
         onClick?.(proposal.id)
       }}
-      tabIndex={0}
+      tabIndex={isLoading ? -1 : 0}
       onKeyDown={(e) => {
+        if (isLoading) return
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault()
           onClick?.(proposal.id)
@@ -340,13 +350,24 @@ export function SchedulingPlanCalendarClassCard({
               isActive &&
                 "z-10 scale-[1.01] opacity-100 shadow-md ring-2 ring-primary"
             ),
-        isSwappable &&
+        isShaking &&
           "animate-calendar-card-shake z-10 opacity-100 ring-2 ring-primary/60 hover:animate-none",
         isDimmed && "opacity-25 hover:opacity-60",
-        isGrayscale && "grayscale hover:grayscale-0"
+        isGrayscale && "grayscale hover:grayscale-0",
+        isLoading && "pointer-events-none cursor-wait"
       )}
       aria-label={proposal.course.title}
     >
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div
+          data-testid={`calendar-class-card-loading-${proposal.id}`}
+          className="absolute inset-0 z-30 flex items-center justify-center rounded-xl bg-card/75 backdrop-blur-[1px] transition-opacity duration-200"
+          aria-hidden="true"
+        >
+          <Spinner className="size-5 text-primary" />
+        </div>
+      )}
       {/* Row 1: Course Title & Level, Mode, Location, Status & Actions */}
       <div className="flex min-w-0 items-center justify-between gap-2 pb-2.5">
         {/* Start (Right in RTL): Dot, Course Title, Badges */}
@@ -389,57 +410,66 @@ export function SchedulingPlanCalendarClassCard({
         {/* End (Left in RTL): Location, Status Icons & Actions */}
         <div className="flex min-w-0 shrink items-center gap-1.5">
           {/* Location (Classroom / Room) */}
-          <div
-            data-testid={`calendar-class-room-badge-${proposal.id}`}
-            onClick={
-              onRoomClick && !isOnline
-                ? (e) => {
-                    e.stopPropagation()
-                    onRoomClick(proposal)
-                  }
-                : undefined
-            }
-            role={onRoomClick && !isOnline ? "button" : undefined}
-            tabIndex={onRoomClick && !isOnline ? 0 : undefined}
-            className={cn(
-              "flex max-w-[85px] min-w-0 shrink items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition-colors sm:max-w-[105px]",
-              hasNoTeacher
-                ? "bg-warning/20 text-warning-foreground"
-                : "bg-muted/40 text-muted-foreground",
-              onRoomClick &&
-                !isOnline &&
-                (hasNoTeacher
-                  ? "cursor-pointer hover:bg-warning/30 hover:text-warning-foreground active:scale-95"
-                  : "cursor-pointer hover:bg-muted hover:text-foreground active:scale-95")
-            )}
-            title={locationName}
-          >
-            {isOnline ? (
-              <Globe
-                aria-hidden
-                className={cn(
-                  "size-3.5 shrink-0",
-                  hasNoTeacher ? "text-inherit" : "text-muted-foreground"
-                )}
-              />
-            ) : (
-              <DoorOpen
-                aria-hidden
-                className={cn(
-                  "size-3.5 shrink-0",
-                  hasNoTeacher ? "text-inherit" : "text-muted-foreground"
-                )}
-              />
-            )}
+          {isOnline ? (
             <span
+              data-testid={`calendar-class-room-badge-${proposal.id}`}
+              title={locationName}
               className={cn(
-                "truncate font-medium",
-                hasNoTeacher ? "text-inherit" : "text-foreground/90"
+                "flex size-6 shrink-0 items-center justify-center rounded-md",
+                hasNoTeacher
+                  ? "bg-warning/20 text-warning-foreground"
+                  : "bg-muted/40 text-muted-foreground"
               )}
             >
-              {locationName}
+              <Globe aria-hidden className="size-3.5 shrink-0 text-inherit" />
             </span>
-          </div>
+          ) : onRoomClick ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              data-testid={`calendar-class-room-badge-${proposal.id}`}
+              onClick={(e) => {
+                if (isShaking) return
+                e.stopPropagation()
+                onRoomClick(proposal)
+              }}
+              title={locationName}
+              aria-label={
+                proposal.classroom?.name
+                  ? `${t("calendarView.switchRoomTitle")}: ${proposal.classroom.name}`
+                  : t("calendarView.switchRoomTitle")
+              }
+              className={cn(
+                "size-6 rounded-md",
+                hasNoTeacher
+                  ? "bg-warning/20 text-warning-foreground hover:bg-warning/30 hover:text-warning-foreground"
+                  : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
+                isShaking && "pointer-events-none"
+              )}
+            >
+              <DoorOpen
+                aria-hidden
+                className="size-3.5 shrink-0 text-inherit"
+              />
+            </Button>
+          ) : (
+            <span
+              data-testid={`calendar-class-room-badge-${proposal.id}`}
+              title={locationName}
+              className={cn(
+                "flex size-6 shrink-0 items-center justify-center rounded-md",
+                hasNoTeacher
+                  ? "bg-warning/20 text-warning-foreground"
+                  : "bg-muted/40 text-muted-foreground"
+              )}
+            >
+              <DoorOpen
+                aria-hidden
+                className="size-3.5 shrink-0 text-inherit"
+              />
+            </span>
+          )}
 
           {proposal.isLocked && (
             <span
@@ -459,8 +489,14 @@ export function SchedulingPlanCalendarClassCard({
           )}
           {canEdit && !proposal.publishedClassId && (
             <div
-              className="flex shrink-0 items-center gap-0.5"
-              onClick={(e) => e.stopPropagation()}
+              className={cn(
+                "flex shrink-0 items-center gap-0.5",
+                isShaking && "pointer-events-none"
+              )}
+              onClick={(e) => {
+                if (isShaking) return
+                e.stopPropagation()
+              }}
             >
               <PermissionGuard
                 permission={PERMISSIONS.MANAGE_CLASSES}
@@ -472,9 +508,10 @@ export function SchedulingPlanCalendarClassCard({
                     variant="ghost"
                     size="icon-xs"
                     data-testid={`swap-teacher-btn-${proposal.id}`}
-                    title={t("calendarView.swapTeacher")}
-                    aria-label={t("calendarView.swapTeacher")}
+                    title={t("calendarView.swapSession")}
+                    aria-label={t("calendarView.swapSession")}
                     onClick={(e) => {
+                      if (isShaking) return
                       e.stopPropagation()
                       onSwapClick?.(proposal.id)
                     }}
@@ -484,7 +521,8 @@ export function SchedulingPlanCalendarClassCard({
                         ? "text-muted-foreground hover:bg-warning/20 hover:text-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       isSwapping &&
-                        "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary"
+                        "bg-primary/25 text-primary ring-1 ring-primary/40 hover:bg-primary/30 hover:text-primary",
+                      isShaking && "pointer-events-none"
                     )}
                   >
                     <ArrowLeftRight aria-hidden className="size-3.5" />
@@ -518,7 +556,81 @@ export function SchedulingPlanCalendarClassCard({
         )}
       >
         {/* Start (Right in RTL): Teacher Avatar & Name */}
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        <div
+          data-testid={`calendar-class-teacher-info-${proposal.id}`}
+          onClick={(e) => {
+            if (isShaking) return
+            if (
+              onTeacherClick &&
+              canEdit &&
+              !proposal.isLocked &&
+              !proposal.publishedClassId
+            ) {
+              e.stopPropagation()
+              onTeacherClick(proposal)
+            }
+          }}
+          role={
+            !isShaking &&
+            onTeacherClick &&
+            canEdit &&
+            !proposal.isLocked &&
+            !proposal.publishedClassId
+              ? "button"
+              : undefined
+          }
+          tabIndex={
+            !isShaking &&
+            onTeacherClick &&
+            canEdit &&
+            !proposal.isLocked &&
+            !proposal.publishedClassId
+              ? 0
+              : undefined
+          }
+          onKeyDown={(e) => {
+            if (isShaking) return
+            if (
+              onTeacherClick &&
+              canEdit &&
+              !proposal.isLocked &&
+              !proposal.publishedClassId &&
+              (e.key === "Enter" || e.key === " ")
+            ) {
+              e.preventDefault()
+              e.stopPropagation()
+              onTeacherClick(proposal)
+            }
+          }}
+          title={
+            !isShaking &&
+            onTeacherClick &&
+            canEdit &&
+            !proposal.isLocked &&
+            !proposal.publishedClassId
+              ? t("calendarView.switchTeacherTitle")
+              : undefined
+          }
+          aria-label={
+            !isShaking &&
+            onTeacherClick &&
+            canEdit &&
+            !proposal.isLocked &&
+            !proposal.publishedClassId
+              ? `${t("calendarView.switchTeacherTitle")}: ${teacherName}`
+              : undefined
+          }
+          className={cn(
+            "flex min-w-0 flex-1 items-center gap-2.5 rounded-lg transition-opacity",
+            !isShaking &&
+              onTeacherClick &&
+              canEdit &&
+              !proposal.isLocked &&
+              !proposal.publishedClassId &&
+              "cursor-pointer hover:opacity-80 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden active:opacity-70",
+            isShaking && "pointer-events-none"
+          )}
+        >
           <div
             className={cn(
               "relative flex size-7.5 shrink-0 items-center justify-center overflow-hidden rounded-full ring-1",

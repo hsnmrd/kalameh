@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ROLES, type JwtPayload, type SupportedLocale } from '@workspace/types';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ReplaceTeacherAvailabilitiesDto } from './dto/replace-teacher-availabilities.dto';
 
@@ -9,20 +10,25 @@ export class TeacherAvailabilityService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditLogsService: AuditLogsService,
+    private readonly i18n: I18nService,
   ) {}
 
   async getAvailabilities(
     currentUser: JwtPayload,
     teacherId: string,
     termId?: string,
+    branchId?: string,
   ) {
+    const targetInstituteId =
+      currentUser.role === ROLES.SUPER_ADMIN
+        ? undefined
+        : currentUser.instituteId;
+
     const teacher = await this.prisma.user.findFirstOrThrow({
       where: {
         id: teacherId,
         role: ROLES.TEACHER,
-        ...(currentUser.role === ROLES.SUPER_ADMIN
-          ? {}
-          : { instituteId: currentUser.instituteId }),
+        ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
       },
       include: {
         teacherProfile: true,
@@ -33,13 +39,26 @@ export class TeacherAvailabilityService {
       return [];
     }
 
+    const branchFilter = branchId
+      ? { branchId }
+      : targetInstituteId
+        ? { branch: { instituteId: targetInstituteId } }
+        : {};
+
+    const includeRelations = {
+      branch: { select: { id: true, name: true } },
+      term: { select: { id: true, title: true } },
+    };
+
     if (termId) {
       const termAvailabilities = await this.prisma.teacherAvailability.findMany(
         {
           where: {
             teacherProfileId: teacher.teacherProfile.id,
             termId,
+            ...branchFilter,
           },
+          include: includeRelations,
           orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
         },
       );
@@ -52,13 +71,19 @@ export class TeacherAvailabilityService {
         where: {
           teacherProfileId: teacher.teacherProfile.id,
           termId: null,
+          ...branchFilter,
         },
+        include: includeRelations,
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });
     }
 
     return this.prisma.teacherAvailability.findMany({
-      where: { teacherProfileId: teacher.teacherProfile.id },
+      where: {
+        teacherProfileId: teacher.teacherProfile.id,
+        ...branchFilter,
+      },
+      include: includeRelations,
       orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
     });
   }
@@ -90,23 +115,119 @@ export class TeacherAvailabilityService {
         },
       }));
 
+    const locale = _locale || 'fa';
+
+    // 1. Intra-payload overlap check
+    for (let i = 0; i < dto.availabilities.length; i++) {
+      const a = dto.availabilities[i];
+      if (a.startTime >= a.endTime) {
+        throw new BadRequestException(
+          this.i18n.t('teachers.availabilitySlotConflict', locale),
+        );
+      }
+      for (let j = i + 1; j < dto.availabilities.length; j++) {
+        const b = dto.availabilities[j];
+        if (a.dayOfWeek === b.dayOfWeek) {
+          if (a.startTime < b.endTime && a.endTime > b.startTime) {
+            throw new BadRequestException(
+              this.i18n.t('teachers.availabilitySlotConflict', locale),
+            );
+          }
+        }
+      }
+    }
+
+    let targetBranchId =
+      dto.branchId ?? dto.availabilities[0]?.branchId ?? teacher.branchId;
+
+    if (!targetBranchId && dto.availabilities.length > 0) {
+      const defaultBranch = await this.prisma.branch.findFirst({
+        where: { instituteId: teacher.instituteId, isActive: true },
+        select: { id: true },
+      });
+      targetBranchId = defaultBranch?.id ?? null;
+    }
+
+    const replacedBranchIds = new Set<string>();
+    if (dto.branchId) {
+      replacedBranchIds.add(dto.branchId);
+    } else {
+      for (const slot of dto.availabilities) {
+        if (slot.branchId) {
+          replacedBranchIds.add(slot.branchId);
+        }
+      }
+    }
+    if (targetBranchId) {
+      replacedBranchIds.add(targetBranchId);
+    }
+
+    // 2. Cross-branch overlap check with existing availabilities
+    if (replacedBranchIds.size > 0 && dto.availabilities.length > 0) {
+      const otherBranchSlots = await this.prisma.teacherAvailability.findMany({
+        where: {
+          teacherProfileId: profile.id,
+          branchId: { notIn: Array.from(replacedBranchIds) },
+          ...(dto.termId !== undefined
+            ? { OR: [{ termId: dto.termId }, { termId: null }] }
+            : {}),
+        },
+        include: {
+          branch: { select: { id: true, name: true } },
+        },
+      });
+
+      for (const newSlot of dto.availabilities) {
+        for (const existingSlot of otherBranchSlots) {
+          if (
+            newSlot.dayOfWeek === existingSlot.dayOfWeek &&
+            newSlot.startTime < existingSlot.endTime &&
+            newSlot.endTime > existingSlot.startTime
+          ) {
+            throw new BadRequestException(
+              this.i18n.t('teachers.availabilityBranchConflict', locale, {
+                branch: existingSlot.branch?.name || existingSlot.branchId,
+              }),
+            );
+          }
+        }
+      }
+    }
+
+    const branchFilter =
+      replacedBranchIds.size === 1
+        ? { branchId: Array.from(replacedBranchIds)[0] }
+        : replacedBranchIds.size > 1
+          ? { branchId: { in: Array.from(replacedBranchIds) } }
+          : {};
+
     const availabilities = await this.prisma.$transaction(async (tx) => {
       await tx.teacherAvailability.deleteMany({
         where: {
           teacherProfileId: profile.id,
           ...(dto.termId !== undefined ? { termId: dto.termId } : {}),
+          ...branchFilter,
         },
       });
 
       if (dto.availabilities.length > 0) {
         await tx.teacherAvailability.createMany({
-          data: dto.availabilities.map((slot) => ({
-            teacherProfileId: profile.id,
-            termId: slot.termId ?? dto.termId ?? null,
-            dayOfWeek: slot.dayOfWeek,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-          })),
+          data: dto.availabilities.map((slot) => {
+            const slotBranchId = slot.branchId ?? targetBranchId;
+            if (!slotBranchId) {
+              throw new Error(
+                'branchId is required for teacher availability slot',
+              );
+            }
+            return {
+              teacherProfileId: profile.id,
+              termId: slot.termId ?? dto.termId ?? null,
+              branchId: slotBranchId,
+              dayOfWeek: slot.dayOfWeek,
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+            };
+          }),
         });
       }
 
@@ -114,6 +235,11 @@ export class TeacherAvailabilityService {
         where: {
           teacherProfileId: profile.id,
           ...(dto.termId !== undefined ? { termId: dto.termId } : {}),
+          ...branchFilter,
+        },
+        include: {
+          branch: { select: { id: true, name: true } },
+          term: { select: { id: true, title: true } },
         },
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });

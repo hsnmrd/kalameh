@@ -85,29 +85,16 @@ export default function SchedulingPlanDetailsPage() {
   const breadcrumb = React.useMemo(
     () => (
       <AdminBreadcrumb
-        backHref={
-          plan?.runId
-            ? `/classes/scheduling/runs/${plan.runId}`
-            : "/classes/scheduling"
-        }
-        backLabel={plan?.run?.term?.title ?? t("title")}
+        backHref="/classes"
+        backLabel={tCommon("nav.classes")}
         items={[
           { label: tCommon("nav.classes"), href: "/classes" },
-          { label: t("title"), href: "/classes/scheduling" },
-          ...(plan?.runId
-            ? [
-                {
-                  label: plan.run?.term?.title ?? t("runStatus.pageTitle"),
-                  href: `/classes/scheduling/runs/${plan.runId}`,
-                },
-              ]
-            : []),
           {
             label: plan
               ? t("planDetails.title", {
                   rank: formatNumber(plan.rank, locale),
                 })
-              : t("planDetails.title", { rank: "" }),
+              : t("title"),
           },
         ]}
       />
@@ -118,7 +105,11 @@ export default function SchedulingPlanDetailsPage() {
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_CLASSES} mode="forbidden">
-        <AdminPageShell breadcrumb={breadcrumb}>
+        <AdminPageShell
+          backHref="/classes"
+          backLabel={tCommon("nav.classes")}
+          breadcrumb={breadcrumb}
+        >
           {planQuery.isLoading ? (
             <div className="flex min-h-64 items-center justify-center">
               <Spinner className="size-8 text-foreground" />
@@ -180,10 +171,7 @@ export default function SchedulingPlanDetailsPage() {
                     )}
                     {t("planDetails.notFound.retry")}
                   </Button>
-                  <Button
-                    type="button"
-                    onClick={() => router.push("/classes/scheduling")}
-                  >
+                  <Button type="button" onClick={() => router.push("/classes")}>
                     <ArrowRight data-icon="inline-start" className="size-4" />
                     {t("planDetails.notFound.back")}
                   </Button>

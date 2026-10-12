@@ -599,6 +599,7 @@ export const createCreateOperatingPhaseSchema = (msg?: {
         .nullable(),
       isActive: z.boolean().default(true),
       order: z.number().int().default(0),
+      isSchoolCalendarAware: z.boolean().default(true).optional(),
       instituteId: z.string().uuid().optional(),
     })
     .refine(
@@ -738,6 +739,7 @@ export const createUpdateOperatingPhaseSchema = (msg?: {
         .nullable(),
       isActive: z.boolean().optional(),
       order: z.number().int().optional(),
+      isSchoolCalendarAware: z.boolean().optional(),
     })
     .refine(
       (data) => {
@@ -799,6 +801,7 @@ export const OperatingPhaseSchema = z.object({
   hasBreak: z.boolean().default(false),
   breakStartTime: z.string().nullable().optional(),
   breakEndTime: z.string().nullable().optional(),
+  isSchoolCalendarAware: z.boolean().default(true),
   isActive: z.boolean(),
   order: z.number().int(),
   createdAt: z.date().or(z.string()),

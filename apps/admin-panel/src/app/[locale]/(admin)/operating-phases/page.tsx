@@ -13,7 +13,7 @@ import {
 } from "@workspace/types"
 import { FABSingle } from "@workspace/ui/components/fab"
 import { operatingPhasesResource } from "@/lib/api"
-import { useActiveInstitute } from "@/lib/stores"
+import { useActiveInstitute, useOperatingPhasesReviewStore } from "@/lib/stores"
 import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -35,6 +35,13 @@ export default function OperatingPhasesPage() {
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
+  const markAsReviewed = useOperatingPhasesReviewStore((s) => s.markAsReviewed)
+
+  React.useEffect(() => {
+    if (activeInstituteId) {
+      markAsReviewed(activeInstituteId)
+    }
+  }, [activeInstituteId, markAsReviewed])
 
   const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
   const hasModule =
@@ -66,6 +73,8 @@ export default function OperatingPhasesPage() {
     })
   }, [phases, search, selectedStatus, currentJalaliMonth])
 
+  const isListEmpty = !isLoading && filteredPhases.length === 0
+
   const handleCreate = () => openModal("createPhase")
   const handleEdit = (phase: OperatingPhaseWithSlots) =>
     openModal("editPhase", { phase })
@@ -85,17 +94,19 @@ export default function OperatingPhasesPage() {
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
-              onAddClick={handleCreate}
+              onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
           modals={<ModalGateway registry={modalRegistry} />}
           fab={
-            <PermissionGuard
-              permission={PERMISSIONS.MANAGE_OPERATING_PHASES}
-              mode="hide"
-            >
-              <FABSingle onClick={handleCreate} aria-label={t("addPhase")} />
-            </PermissionGuard>
+            isListEmpty ? null : (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_OPERATING_PHASES}
+                mode="hide"
+              >
+                <FABSingle onClick={handleCreate} aria-label={t("addPhase")} />
+              </PermissionGuard>
+            )
           }
         >
           {/* Desktop: DataTable */}
@@ -105,16 +116,18 @@ export default function OperatingPhasesPage() {
               isLoading={isLoading}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
 
           {/* Mobile: Flat Divider List */}
-          <div className="lg:hidden">
+          <div className="flex flex-1 flex-col lg:hidden">
             <OperatingPhasesList
               phases={filteredPhases}
               isLoading={isLoading}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdd={handleCreate}
             />
           </div>
         </AdminPageShell>

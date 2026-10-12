@@ -85,8 +85,14 @@ export class TeachersService {
     currentUser: JwtPayload,
     teacherId: string,
     termId?: string,
+    branchId?: string,
   ) {
-    return this.availability.getAvailabilities(currentUser, teacherId, termId);
+    return this.availability.getAvailabilities(
+      currentUser,
+      teacherId,
+      termId,
+      branchId,
+    );
   }
   replaceAvailabilities(
     currentUser: JwtPayload,

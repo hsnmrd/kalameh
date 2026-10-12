@@ -39,11 +39,20 @@ export default function SchedulingGeneratePage() {
         <AdminPageShell
           breadcrumb={
             <AdminBreadcrumb
-              backHref="/classes/scheduling"
+              backHref={
+                defaultBranchId
+                  ? `/classes/scheduling?branchId=${defaultBranchId}`
+                  : "/classes/scheduling"
+              }
               backLabel={t("title")}
               items={[
                 { label: tCommon("nav.classes"), href: "/classes" },
-                { label: t("title"), href: "/classes/scheduling" },
+                {
+                  label: t("title"),
+                  href: defaultBranchId
+                    ? `/classes/scheduling?branchId=${defaultBranchId}`
+                    : "/classes/scheduling",
+                },
                 { label: t("generation.title") },
               ]}
             />
@@ -53,7 +62,13 @@ export default function SchedulingGeneratePage() {
             defaultTermId={defaultTermId}
             defaultBranchId={defaultBranchId}
             onCreated={handleCreated}
-            onNavigateToDemand={() => router.push("/classes/scheduling")}
+            onNavigateToDemand={() =>
+              router.push(
+                defaultBranchId
+                  ? `/classes/scheduling?branchId=${defaultBranchId}`
+                  : "/classes/scheduling"
+              )
+            }
           />
         </AdminPageShell>
       </PermissionGuard>

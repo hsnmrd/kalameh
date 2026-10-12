@@ -10,7 +10,12 @@ import {
   GraduationCap,
   FileText,
   Clock,
+  Check,
+  Plus,
 } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
+import { Badge } from "@workspace/ui/components/badge"
+import { AvatarBadge } from "@workspace/ui/components/avatar"
 import {
   MobileList,
   MobileListItem,
@@ -31,12 +36,11 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
-import { StudentStatusBadge } from "../student-status-badge"
-import { StudentScheduleStatusBadge } from "../student-schedule-status-badge"
 
 export interface StudentsListProps {
   students: StudentDto[] | undefined
@@ -46,6 +50,7 @@ export interface StudentsListProps {
   onEdit: (student: StudentDto) => void
   onResetPassword: (student: StudentDto) => void
   onAvailability?: (student: StudentDto) => void
+  onAdd?: () => void
 }
 
 export function StudentsList({
@@ -56,6 +61,7 @@ export function StudentsList({
   onEdit,
   onResetPassword,
   onAvailability,
+  onAdd,
 }: StudentsListProps) {
   const t = useTranslations("students")
 
@@ -77,6 +83,23 @@ export function StudentsList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_STUDENTS}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addStudent")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }
@@ -94,33 +117,70 @@ export function StudentsList({
                 onClick={() => onViewProfile(student)}
                 isLast={index === students.length - 1}
               >
-                <MobileListItemIcon>
-                  {student.avatarUrl ? (
-                    <Image
-                      src={getAssetUrl(student.avatarUrl)}
-                      alt={fullName}
-                      width={44}
-                      height={44}
-                      className="size-11 rounded-full object-cover"
-                      unoptimized
+                <div className="relative shrink-0">
+                  <MobileListItemIcon>
+                    {student.avatarUrl ? (
+                      <Image
+                        src={getAssetUrl(student.avatarUrl)}
+                        alt={fullName}
+                        width={44}
+                        height={44}
+                        className="size-11 rounded-full object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="text-xs font-semibold text-foreground">
+                        {initials}
+                      </span>
+                    )}
+                  </MobileListItemIcon>
+                  {!student.isActive && (
+                    <AvatarBadge
+                      className="size-3.5 bg-muted-foreground"
+                      aria-label={t("status.inactive")}
+                      title={t("status.inactive")}
                     />
-                  ) : (
-                    <span className="text-xs font-semibold text-foreground">
-                      {initials}
-                    </span>
                   )}
-                </MobileListItemIcon>
+                </div>
 
                 <MobileListItemContent
-                  primary={fullName}
+                  primary={
+                    <div className="flex items-center gap-1">
+                      <span className="truncate">{fullName}</span>
+                      {student.studentProfile?.scheduleStatus ===
+                        "COMPLETE" && (
+                        <span
+                          title={t("scheduleStatus.complete")}
+                          className="inline-flex shrink-0 items-center text-success"
+                        >
+                          <Check
+                            className="size-3.5 text-inherit"
+                            aria-label={t("scheduleStatus.complete")}
+                          />
+                        </span>
+                      )}
+                      {student.studentProfile?.scheduleStatus ===
+                        "INCOMPLETE" && (
+                        <span
+                          title={t("scheduleStatus.incomplete")}
+                          className="inline-flex shrink-0 items-center text-muted-foreground"
+                        >
+                          <Clock
+                            className="size-3.5 text-inherit"
+                            aria-label={t("scheduleStatus.incomplete")}
+                          />
+                        </span>
+                      )}
+                    </div>
+                  }
                   secondary={
                     <div className="flex items-center gap-1.5 font-mono text-xs">
                       <span>{student.phone}</span>
-                      {student.currentAllowedCourse && (
+                      {student.branch && (
                         <>
                           <span>•</span>
                           <span className="font-sans">
-                            {student.currentAllowedCourse.title}
+                            {student.branch.name}
                           </span>
                         </>
                       )}
@@ -129,10 +189,26 @@ export function StudentsList({
                 />
 
                 <MobileListItemTrailing>
-                  <StudentScheduleStatusBadge
-                    scheduleStatus={student.studentProfile?.scheduleStatus}
-                  />
-                  <StudentStatusBadge isActive={student.isActive} />
+                  {student.currentAllowedCourse ? (
+                    <Badge
+                      variant="outline"
+                      className="gap-1 border-primary/30 bg-primary/10 text-[11px] text-primary"
+                    >
+                      <GraduationCap className="size-3 text-inherit" />
+                      <span className="max-w-[120px] truncate sm:max-w-none">
+                        {student.currentAllowedCourse.title}
+                      </span>
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="border-muted-foreground/30 bg-muted/40 text-[11px] text-muted-foreground"
+                    >
+                      <span className="max-w-[120px] truncate sm:max-w-none">
+                        {t("table.noLevel")}
+                      </span>
+                    </Badge>
+                  )}
                 </MobileListItemTrailing>
               </MobileListItem>
             </ContextMenuTrigger>

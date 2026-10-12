@@ -105,9 +105,9 @@ describe("StudentsTable & StudentsFilter Components", () => {
         screen.getByText(/برنامه حضور|Availability Schedule/i)
       ).toBeInTheDocument()
       expect(
-        screen.getByText(/برنامه مشخص شده|Schedule Set/i)
+        screen.getByTitle(/برنامه مشخص شده|Schedule Set/i)
       ).toBeInTheDocument()
-      expect(screen.getByText(/نیاز به تماس|Needs Call/i)).toBeInTheDocument()
+      expect(screen.getByTitle(/نیاز به تماس|Needs Call/i)).toBeInTheDocument()
     })
 
     it("should trigger onViewProfile, onAddNote and onEdit callbacks when buttons are clicked", () => {

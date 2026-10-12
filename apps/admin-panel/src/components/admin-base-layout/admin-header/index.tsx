@@ -54,11 +54,8 @@ function getPageTitle(
   if (pathname.startsWith("/branches")) {
     return t("nav.branches")
   }
-  if (pathname.startsWith("/terms/generate/preview")) {
-    return t("nav.reviewPhaseTerms")
-  }
   if (pathname.startsWith("/terms/generate")) {
-    return t("nav.generatePhaseTerms")
+    return t("nav.reviewPhaseTerms")
   }
   if (pathname.startsWith("/terms")) {
     return t("nav.terms")
@@ -126,7 +123,9 @@ export function AdminHeader({
 
   React.useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
+      const currentScrollY =
+        window.scrollY || document.documentElement.scrollTop
+      setIsScrolled(currentScrollY > 10)
     }
 
     handleScroll()
@@ -139,7 +138,7 @@ export function AdminHeader({
       className={cn(
         "sticky top-0 z-30 w-full transition-all duration-200",
         isScrolled
-          ? "border-b border-border bg-card/10 backdrop-blur-md"
+          ? "border-b border-border bg-card/90 shadow-2xs backdrop-blur-md"
           : "border-b border-transparent bg-transparent",
         className
       )}

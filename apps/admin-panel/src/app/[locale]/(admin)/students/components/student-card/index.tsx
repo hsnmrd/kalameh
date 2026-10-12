@@ -10,13 +10,15 @@ import {
   Phone,
   GraduationCap,
   FileText,
+  Check,
+  Clock,
 } from "lucide-react"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { AvatarBadge } from "@workspace/ui/components/avatar"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
-import { StudentStatusBadge } from "../student-status-badge"
 
 export interface StudentCardProps {
   student: StudentDto
@@ -41,7 +43,7 @@ export function StudentCard({
     <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-xs">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+          <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
             {student.avatarUrl ? (
               <Image
                 src={getAssetUrl(student.avatarUrl)}
@@ -54,9 +56,40 @@ export function StudentCard({
             ) : (
               <span>{initial}</span>
             )}
+            {!student.isActive && (
+              <AvatarBadge
+                className="size-3 bg-muted-foreground"
+                aria-label={t("status.inactive")}
+                title={t("status.inactive")}
+              />
+            )}
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">{fullName}</h3>
+            <div className="flex items-center gap-1">
+              <h3 className="font-semibold text-foreground">{fullName}</h3>
+              {student.studentProfile?.scheduleStatus === "COMPLETE" && (
+                <span
+                  title={t("scheduleStatus.complete")}
+                  className="inline-flex shrink-0 items-center text-success"
+                >
+                  <Check
+                    className="size-3.5 text-inherit"
+                    aria-label={t("scheduleStatus.complete")}
+                  />
+                </span>
+              )}
+              {student.studentProfile?.scheduleStatus === "INCOMPLETE" && (
+                <span
+                  title={t("scheduleStatus.incomplete")}
+                  className="inline-flex shrink-0 items-center text-muted-foreground"
+                >
+                  <Clock
+                    className="size-3.5 text-inherit"
+                    aria-label={t("scheduleStatus.incomplete")}
+                  />
+                </span>
+              )}
+            </div>
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
               <Phone className="size-3" />
               <span>{student.phone}</span>
@@ -64,7 +97,22 @@ export function StudentCard({
           </div>
         </div>
 
-        <StudentStatusBadge isActive={student.isActive} />
+        {student.currentAllowedCourse ? (
+          <Badge
+            variant="outline"
+            className="gap-1 border-primary/30 bg-primary/10 text-xs text-primary"
+          >
+            <GraduationCap className="size-3 text-inherit" />
+            <span>{student.currentAllowedCourse.title}</span>
+          </Badge>
+        ) : (
+          <Badge
+            variant="outline"
+            className="border-muted-foreground/30 bg-muted/40 text-xs text-muted-foreground"
+          >
+            <span>{t("table.noLevel")}</span>
+          </Badge>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-2 border-t border-border/60 pt-3 text-xs text-muted-foreground">
@@ -80,18 +128,19 @@ export function StudentCard({
           </span>
           <span>{student.nationalCode || "-"}</span>
         </div>
-        <div className="col-span-2 flex items-center gap-1 pt-1">
+        <div>
           <span className="font-medium text-foreground">
-            {t("table.currentLevel")}:{" "}
+            {t("table.branch")}:{" "}
           </span>
-          {student.currentAllowedCourse ? (
-            <Badge variant="outline" className="gap-1 text-xs">
-              <GraduationCap className="size-3" />
-              <span>{student.currentAllowedCourse.title}</span>
-            </Badge>
-          ) : (
-            <span>{t("table.noLevel")}</span>
-          )}
+          <span>{student.branch?.name || "-"}</span>
+        </div>
+        <div>
+          <span className="font-medium text-foreground">
+            {t("createModal.emergencyPhone")}:{" "}
+          </span>
+          <span className="font-mono">
+            {student.studentProfile?.emergencyPhone || "-"}
+          </span>
         </div>
       </div>
 

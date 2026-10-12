@@ -4,11 +4,13 @@ import { useTranslations } from "next-intl"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { RotateCcw } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { Counter } from "@workspace/ui/components/counter"
 import { Input } from "@workspace/ui/components/input"
 import { TimePicker } from "@workspace/ui/components/time-picker"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { FormDialogFooter } from "@workspace/ui/components/dialog"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { Switch } from "@workspace/ui/components/switch"
 import type {
   calculatePhaseSlots,
   suggestPhaseBreakWindow,
@@ -110,7 +112,7 @@ export function FormStep({
           />
         </Field>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {(["startTime", "endTime"] as const).map((name) => (
             <Field key={name} data-invalid={Boolean(errors[name])}>
               <FieldLabel htmlFor={`edit-phase-${name}`}>
@@ -132,24 +134,33 @@ export function FormStep({
               {errors[name] && <FieldError>{errors[name]?.message}</FieldError>}
             </Field>
           ))}
-          <Field>
-            <FieldLabel htmlFor="edit-phase-duration">
-              {t("form.durationLabel")}
-            </FieldLabel>
-            <Input
-              id="edit-phase-duration"
-              type="number"
-              min={15}
-              max={240}
-              {...register("slotDurationMinutes", { valueAsNumber: true })}
-              disabled={isPending}
-              className="text-center"
-            />
-            {errors.slotDurationMinutes && (
-              <FieldError>{errors.slotDurationMinutes.message}</FieldError>
-            )}
-          </Field>
         </div>
+
+        <Field data-invalid={Boolean(errors.slotDurationMinutes)}>
+          <FieldLabel htmlFor="edit-phase-duration">
+            {t("form.durationLabel")}
+          </FieldLabel>
+          <Controller
+            control={form.control}
+            name="slotDurationMinutes"
+            render={({ field }) => (
+              <Counter
+                id="edit-phase-duration"
+                min={15}
+                max={240}
+                step={5}
+                value={field.value}
+                onValueChange={(val) => field.onChange(val ?? 90)}
+                aria-label={t("form.durationLabel")}
+                disabled={isPending}
+                className="w-full"
+              />
+            )}
+          />
+          {errors.slotDurationMinutes && (
+            <FieldError>{errors.slotDurationMinutes.message}</FieldError>
+          )}
+        </Field>
 
         <PhaseBreakSection
           idPrefix="edit-phase"
@@ -169,6 +180,33 @@ export function FormStep({
           errors={errors}
           disabled={isPending}
         />
+
+        <div className="flex items-start justify-between gap-3 rounded-2xl border border-border/80 bg-muted/20 p-4">
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="edit-phase-school-calendar"
+              className="cursor-pointer text-sm font-semibold text-foreground"
+            >
+              {t("form.schoolCalendarLabel")}
+            </label>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              {t("form.schoolCalendarDescription")}
+            </p>
+          </div>
+          <Controller
+            control={form.control}
+            name="isSchoolCalendarAware"
+            render={({ field }) => (
+              <Switch
+                id="edit-phase-school-calendar"
+                checked={field.value ?? true}
+                onCheckedChange={field.onChange}
+                disabled={isPending}
+              />
+            )}
+          />
+        </div>
+
         <PhaseRemainderWarning
           calculation={calculation}
           slotDurationMinutes={Number(duration) || 90}

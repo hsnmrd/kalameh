@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from "vitest"
-import { fireEvent, render, screen, waitFor, within } from "@/test/test-utils"
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@/test/test-utils"
 import type {
   SchedulingPlanDetailsDto,
   SchedulingTeacherCalendar,
@@ -134,8 +141,8 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     expect(screen.getAllByText("علی محمدی").length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText("مریم رضایی").length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText("کلاس ۱۰۱").length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText("کلاس ۱۰۲").length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByTitle("کلاس ۱۰۱").length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByTitle("کلاس ۱۰۲").length).toBeGreaterThanOrEqual(1)
 
     // The class card itself should not render inline clock/timeRange since time is in the Time column
     const card = screen.getAllByRole("article")[0]
@@ -144,7 +151,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(card).not.toHaveTextContent("09:00 تا 10:30")
   })
 
-  it("does not render delivery mode icon and renders room name with ellipsis truncation to prioritize session title", () => {
+  it("does not render delivery mode icon and renders only room icon without room name text", () => {
     render(
       <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
     )
@@ -160,9 +167,9 @@ describe("SchedulingPlanCalendarView Component", () => {
       within(card).getByText("American English File 1")
     ).toBeInTheDocument()
 
-    // Room name is inside a truncating container
-    const roomSpan = within(card).getByText("کلاس ۱۰۱")
-    expect(roomSpan).toHaveClass("truncate")
+    // Room icon is rendered without room name text, room name available via title
+    expect(within(card).queryByText("کلاس ۱۰۱")).not.toBeInTheDocument()
+    expect(within(card).getByTitle("کلاس ۱۰۱")).toBeInTheDocument()
   })
 
   it("uses warning border instead of warning icon when session has warnings", () => {
@@ -1191,7 +1198,15 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(carousel).toHaveTextContent("نیلوفر صادقی")
   })
 
-  it("shakes compatible class cards when swap button is clicked and opens the swap dialog on click", () => {
+  it("shakes compatible class cards when swap button is clicked and executes session swap directly on click", async () => {
+    const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+    const toMutationSpy = vi
+      .spyOn(schedulingResource.updateProposal, "toMutation")
+      .mockReturnValue({
+        mutationKey: ["scheduling", "updateProposal"],
+        mutationFn: updateProposalMutationFn,
+      })
+
     const swappableProposals: Proposal[] = [
       ...mockProposals, // prop-1 (unlocked, 09:00-10:30, A1, cr1 cap 15) & prop-2 (locked)
       {
@@ -1251,17 +1266,82 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(swapTargetCard).toHaveClass("animate-calendar-card-shake")
     expect(swapTargetCard).not.toHaveAttribute("data-dimmed")
 
-    // Clicking on the shaking swapTargetCard opens the SwapClassDialog with checkbox options
+    // Clicking on the shaking swapTargetCard executes swap directly without showing modal
     fireEvent.click(swapTargetCard)
 
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
-    expect(screen.getByTestId("swap-option-teacher")).toBeInTheDocument()
-    expect(screen.getByTestId("swap-option-classroom")).toBeInTheDocument()
-    expect(screen.getByTestId("swap-option-date")).toBeInTheDocument()
-    expect(screen.getByTestId("swap-confirm-btn")).not.toBeDisabled()
+    expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+    })
+
+    toMutationSpy.mockRestore()
   })
 
-  it("keeps the swap dialog open when clicking checkboxes, option cards, or summary cards, and applies swap changes on submit", async () => {
+  it("prevents inner icon buttons on shaking cards from opening room/teacher modals and directly triggers session swap", async () => {
+    const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+    const toMutationSpy = vi
+      .spyOn(schedulingResource.updateProposal, "toMutation")
+      .mockReturnValue({
+        mutationKey: ["scheduling", "updateProposal"],
+        mutationFn: updateProposalMutationFn,
+      })
+
+    const swappableProposals: Proposal[] = [
+      ...mockProposals,
+      {
+        id: "prop-swap-target",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "کلاس صبح موازی A1",
+        course: { id: "c1", title: "American English File 1" },
+        teacher: { id: "t-swap", firstName: "رضا", lastName: "نوری" },
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr3", name: "کلاس ۱۰۳", capacity: 18 },
+        capacity: 14,
+        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+        startTime: "11:00",
+        endTime: "12:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      },
+    ]
+
+    render(
+      <SchedulingPlanCalendarView
+        proposals={swappableProposals}
+        canEdit={true}
+      />
+    )
+
+    // Enter swap mode from prop-1
+    fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-1"))
+
+    const swapTargetCard = screen.getAllByTestId(
+      "calendar-class-card-prop-swap-target"
+    )[0]!
+    expect(swapTargetCard).toHaveClass("animate-calendar-card-shake")
+
+    // 1. Clicking room badge on the shaking card does NOT open SwitchRoomDialog and directly triggers swap
+    const roomBadge = screen.getAllByTestId(
+      "calendar-class-room-badge-prop-swap-target"
+    )[0]!
+    expect(roomBadge).toHaveClass("pointer-events-none")
+    fireEvent.click(roomBadge)
+
+    expect(screen.queryByText("تعویض کلاس / اتاق")).not.toBeInTheDocument()
+    expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+    })
+
+    toMutationSpy.mockRestore()
+  })
+
+  it("directly swaps sessions on target card click without showing options modal", async () => {
     const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
     const toMutationSpy = vi
       .spyOn(schedulingResource.updateProposal, "toMutation")
@@ -1301,106 +1381,57 @@ describe("SchedulingPlanCalendarView Component", () => {
       />
     )
 
-    // 1. Click swap button on prop-1 and click prop-swap-target to open SwapClassDialog
+    // Click swap button on prop-1 and click prop-swap-target
     fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-1"))
     fireEvent.click(
       screen.getAllByTestId("calendar-class-card-prop-swap-target")[0]!
     )
 
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    // No modal is displayed
+    expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
 
-    const sourceCard = screen.getByTestId("swap-source-card")
-    const targetCard = screen.getByTestId("swap-target-card")
-    const teacherCheckbox = screen.getByTestId("swap-option-teacher")
-    const classroomCheckbox = screen.getByTestId("swap-option-classroom")
-    const classroomOptionCard = screen.getByTestId(
-      "swap-option-classroom-label"
-    )
-    const dateOptionCard = screen.getByTestId("swap-option-date-label")
-
-    // Default selection is changeTeacher = true
-    expect(teacherCheckbox).toHaveAttribute("aria-checked", "true")
-    expect(classroomCheckbox).toHaveAttribute("aria-checked", "false")
-    expect(sourceCard).toHaveTextContent("رضا نوری")
-    expect(targetCard).toHaveTextContent("علی محمدی")
-
-    // 2. Clicking on the summary cards inside the dialog must NOT close the dialog
-    fireEvent.click(sourceCard)
-    fireEvent.click(targetCard)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
-
-    // 3. Clicking on the classroom option card switches to { changeTeacher: false, changeClassroom: true, changeDate: true } without closing the dialog
-    fireEvent.click(classroomOptionCard)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
-    expect(classroomCheckbox).toHaveAttribute("aria-checked", "true")
-    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
-      "aria-checked",
-      "true"
-    )
-    expect(teacherCheckbox).toHaveAttribute("aria-checked", "false")
-    expect(sourceCard).toHaveTextContent("کلاس ۱۰۳")
-    expect(targetCard).toHaveTextContent("کلاس ۱۰۱")
-
-    // 4. Clicking directly on the classroom checkbox unchecks both paired options (changeClassroom & changeDate) without closing the dialog
-    fireEvent.click(classroomCheckbox)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
-    expect(classroomCheckbox).toHaveAttribute("aria-checked", "false")
-    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
-      "aria-checked",
-      "false"
-    )
-
-    // Clicking date option card checks both changeDate and changeClassroom so physical classrooms swap together with periods
-    fireEvent.click(dateOptionCard)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
-    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
-      "aria-checked",
-      "true"
-    )
-    expect(classroomCheckbox).toHaveAttribute("aria-checked", "true")
-    expect(teacherCheckbox).toHaveAttribute("aria-checked", "false")
-
-    // 5. Clicking the submit button calls updateProposal with both classroomId and schedule fields for both classes
-    const confirmBtn = screen.getByTestId("swap-confirm-btn")
-    expect(confirmBtn).not.toBeDisabled()
-    fireEvent.click(confirmBtn)
-
+    // Direct API mutation executed
     await waitFor(() => {
       expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
     })
 
-    expect(updateProposalMutationFn.mock.calls[0]?.[0]).toEqual({
-      planId: "plan-1",
-      proposalId: "prop-1",
-      instituteId: "inst-1",
-      body: {
-        classroomId: "cr3",
-        daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
-        startTime: "11:00",
-        endTime: "12:30",
-      },
-    })
-    expect(updateProposalMutationFn.mock.calls[1]?.[0]).toEqual({
-      planId: "plan-1",
-      proposalId: "prop-swap-target",
-      instituteId: "inst-1",
-      body: {
-        classroomId: "cr1",
-        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
-        startTime: "09:00",
-        endTime: "10:30",
-      },
-    })
+    expect(updateProposalMutationFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        proposalId: "prop-1",
+        body: expect.objectContaining({
+          teacherId: null,
+          classroomId: "cr3",
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "11:00",
+          endTime: "12:30",
+        }),
+      }),
+      expect.anything()
+    )
 
-    // Dialog closes and calendar reflects the swapped classroom and period
+    expect(updateProposalMutationFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        proposalId: "prop-swap-target",
+        body: expect.objectContaining({
+          teacherId: null,
+          classroomId: "cr1",
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+        }),
+      }),
+      expect.anything()
+    )
+
+    // Calendar reflects the swapped classroom and period
     await waitFor(() => {
-      expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
+      const updatedProp1Card = screen.getAllByTestId(
+        "calendar-class-card-prop-1"
+      )[0]!
+      expect(
+        within(updatedProp1Card).getByTitle("کلاس ۱۰۳")
+      ).toBeInTheDocument()
     })
-
-    const updatedProp1Card = screen.getAllByTestId(
-      "calendar-class-card-prop-1"
-    )[0]!
-    expect(updatedProp1Card).toHaveTextContent("کلاس ۱۰۳")
 
     toMutationSpy.mockRestore()
   })
@@ -1754,7 +1785,14 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(maryamOddCard).not.toHaveAttribute("data-swappable")
   })
 
-  it("swaps physical classrooms together when changing periods and prevents moving into a period where the physical classroom is already occupied", () => {
+  it("swaps physical classrooms together when changing periods and prevents moving into a period where the physical classroom is already occupied", async () => {
+    const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+    const toMutationSpy = vi
+      .spyOn(schedulingResource.updateProposal, "toMutation")
+      .mockReturnValue({
+        mutationKey: ["scheduling", "updateProposal"],
+        mutationFn: updateProposalMutationFn,
+      })
     const periodRoomProposals: Proposal[] = [
       {
         id: "prop-p1-room101",
@@ -1930,21 +1968,23 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(p2Room102Card).toHaveAttribute("data-swappable", "true")
 
     fireEvent.click(p2Room102Card)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
 
-    // changeDate is checked by default; changeClassroom option is hidden because Room 101 is occupied at 17:00-18:30
-    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
-      "aria-checked",
-      "true"
-    )
-    expect(
-      screen.queryByTestId("swap-option-classroom")
-    ).not.toBeInTheDocument()
-    expect(screen.getByTestId("swap-source-card")).toHaveTextContent("کلاس ۱۰۲")
-    expect(screen.getByTestId("swap-target-card")).toHaveTextContent("کلاس ۱۰۱")
+    await waitFor(() => {
+      expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+    })
+
+    toMutationSpy.mockRestore()
   })
 
-  it("does not show change room option in modal when swapping classes across periods where the target physical room is already occupied during the source period", () => {
+  it("swaps classes across periods and directly assigns compatible classrooms without modal", async () => {
+    const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+    const toMutationSpy = vi
+      .spyOn(schedulingResource.updateProposal, "toMutation")
+      .mockReturnValue({
+        mutationKey: ["scheduling", "updateProposal"],
+        mutationFn: updateProposalMutationFn,
+      })
     const proposals: Proposal[] = [
       {
         id: "prop-ame-1-3",
@@ -2053,27 +2093,15 @@ describe("SchedulingPlanCalendarView Component", () => {
     fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-ame-1-3"))
     expect(ame12Card).toHaveAttribute("data-swappable", "true")
 
-    // 2. Click AME 1-2 to open the swap modal
+    // 2. Click AME 1-2 to trigger direct swap without modal
     fireEvent.click(ame12Card)
-    expect(screen.getByText("جابجایی کلاس")).toBeInTheDocument()
+    expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
 
-    // 3. Changing room option MUST NOT be shown in the modal because Class B is occupied on Saturday by AME 2-3
-    expect(
-      screen.queryByTestId("swap-option-classroom")
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByTestId("swap-option-classroom-label")
-    ).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+    })
 
-    // 4. Changing date and time IS shown and checked by default
-    expect(screen.getByTestId("swap-option-date")).toHaveAttribute(
-      "aria-checked",
-      "true"
-    )
-
-    // 5. Summary preview correctly reflects destination slots
-    expect(screen.getByTestId("swap-source-card")).toHaveTextContent("کلاس B")
-    expect(screen.getByTestId("swap-target-card")).toHaveTextContent("کلاس D")
+    toMutationSpy.mockRestore()
   })
 
   it("does not allow swapping with an unknown master missed class and opens staffing fallback dialog on click", async () => {
@@ -2507,7 +2535,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(knownCard).toBeInTheDocument()
     expect(missedCard).toBeInTheDocument()
     expect(missedCard).toHaveTextContent("کلاس ۱۰۲")
-    expect(knownCard).toHaveTextContent("کلاس ۱۰۱")
+    expect(within(knownCard).getByTitle("کلاس ۱۰۱")).toBeInTheDocument()
 
     // Click known teacher card to enter swap mode
     fireEvent.click(knownCard)
@@ -3847,6 +3875,1024 @@ describe("SchedulingPlanCalendarView Component", () => {
           screen.getByTestId("teacher-status-badge-t1-EVEN-09:00-10:30")
         ).toHaveTextContent("در دسترس")
       })
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("allows swapping sessions between Even and Odd days for different courses without being blocked by teacher availability or room capacity", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const crossDayProposals: Proposal[] = [
+        {
+          id: "prop-even-ame-2-3",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-3",
+          course: { id: "c-ame-2-3", title: "American English File 2-3" },
+          teacher: { id: "t-nastaran", firstName: "نسترن", lastName: "عزیزی" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-101", name: "کلاس ۱۰۱", capacity: 20 },
+          capacity: 18,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-odd-ame-2-1",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-1",
+          course: { id: "c-ame-2-1", title: "American English File 2-1" },
+          teacher: { id: "t-odd", firstName: "محمد", lastName: "کریمی" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-105", name: "کلاس ۱۰۵", capacity: 15 }, // Capacity 15 is less than AME 2-3's 18 students
+          capacity: 14,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      // Nastaran is ONLY available on Even days (no availability on Odd days).
+      // Mohammad is ONLY available on Odd days (no availability on Even days).
+      const calendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: { id: "t-nastaran", firstName: "نسترن", lastName: "عزیزی" },
+          teachableCourses: [
+            { id: "c-ame-2-3", title: "American English File 2-3" },
+          ],
+          slots: [
+            {
+              dayOfWeek: "SATURDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-3",
+              source: "PLAN",
+            },
+            {
+              dayOfWeek: "MONDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-3",
+              source: "PLAN",
+            },
+            {
+              dayOfWeek: "WEDNESDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-3",
+              source: "PLAN",
+            },
+          ],
+        },
+        {
+          teacher: { id: "t-odd", firstName: "محمد", lastName: "کریمی" },
+          teachableCourses: [
+            { id: "c-ame-2-1", title: "American English File 2-1" },
+          ],
+          slots: [
+            {
+              dayOfWeek: "SUNDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-1",
+              source: "PLAN",
+            },
+            {
+              dayOfWeek: "TUESDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-1",
+              source: "PLAN",
+            },
+            {
+              dayOfWeek: "THURSDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-1",
+              source: "PLAN",
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={crossDayProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+          teacherCalendars={calendars}
+        />
+      )
+
+      const evenCard = screen.getAllByTestId(
+        "calendar-class-card-prop-even-ame-2-3"
+      )[0]!
+      const oddCard = screen.getAllByTestId(
+        "calendar-class-card-prop-odd-ame-2-1"
+      )[0]!
+
+      // 1. Click swap button on AME 2-3 (Even days)
+      const swapBtn = screen.getByTestId("swap-teacher-btn-prop-even-ame-2-3")
+      fireEvent.click(swapBtn)
+
+      // 2. The Odd-day session MUST NOT be dimmed and MUST be swappable!
+      expect(oddCard).not.toHaveAttribute("data-dimmed")
+      expect(oddCard).toHaveAttribute("data-swappable", "true")
+
+      // 3. Clicking the Odd-day card directly executes the session swap without opening any dialog
+      fireEvent.click(oddCard)
+      expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+      })
+
+      // Verify AME 2-3 moves to Odd days with unassigned master (teacherId: null) and automatic classroom (cr-101 has capacity 20 >= 18)
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-even-ame-2-3",
+          body: expect.objectContaining({
+            teacherId: null,
+            classroomId: "cr-101",
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      // Verify AME 2-1 moves to Even days with unassigned master (teacherId: null) and automatic classroom
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-odd-ame-2-1",
+          body: expect.objectContaining({
+            teacherId: null,
+            classroomId: "cr-101",
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("directly swaps sessions across Even and Odd days without showing modal and resets teacherId to null", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const crossDayProposals: Proposal[] = [
+        {
+          id: "prop-even-ame-2-3",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-3",
+          course: { id: "c-ame-2-3", title: "American English File 2-3" },
+          teacher: { id: "t-nastaran", firstName: "نسترن", lastName: "عزیزی" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-101", name: "کلاس ۱۰۱", capacity: 20 },
+          capacity: 18,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-odd-ame-2-1",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-1",
+          course: { id: "c-ame-2-1", title: "American English File 2-1" },
+          teacher: { id: "t-kamran", firstName: "کامران", lastName: "میرزایی" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-105", name: "کلاس ۱۰۵", capacity: 20 },
+          capacity: 14,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      // Nastaran is only available Even days, Kamran only Odd days
+      const calendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: { id: "t-nastaran", firstName: "نسترن", lastName: "عزیزی" },
+          teachableCourses: [
+            { id: "c-ame-2-3", title: "American English File 2-3" },
+          ],
+          slots: [
+            {
+              dayOfWeek: "SATURDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-3",
+              source: "PLAN",
+            },
+          ],
+        },
+        {
+          teacher: { id: "t-kamran", firstName: "کامران", lastName: "میرزایی" },
+          teachableCourses: [
+            { id: "c-ame-2-1", title: "American English File 2-1" },
+          ],
+          slots: [
+            {
+              dayOfWeek: "SUNDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "BUSY",
+              title: "AME 2-1",
+              source: "PLAN",
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={crossDayProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+          teacherCalendars={calendars}
+        />
+      )
+
+      const oddCard = screen.getAllByTestId(
+        "calendar-class-card-prop-odd-ame-2-1"
+      )[0]!
+
+      // 1. Click swap on AME 2-3 and select Odd-day AME 2-1
+      fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-even-ame-2-3"))
+      fireEvent.click(oddCard)
+
+      // 2. No modal dialog is shown
+      expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+      })
+
+      // Verify AME 2-3 moves to Odd days with unassigned master (teacherId: null)
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-even-ame-2-3",
+          body: expect.objectContaining({
+            teacherId: null,
+            classroomId: "cr-105",
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      // Verify AME 2-1 moves to Even days with unassigned master (teacherId: null)
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-odd-ame-2-1",
+          body: expect.objectContaining({
+            teacherId: null,
+            classroomId: "cr-101",
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("automatically rebalances classrooms with an existing concurrent session when the destination free room does not have enough capacity", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const rebalanceProposals: Proposal[] = [
+        {
+          id: "prop-even-12",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-3",
+          course: { id: "c-ame-2-3", title: "American English File 2-3" },
+          teacher: { id: "t-even", firstName: "استاد", lastName: "زوج" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-even", name: "Room Even", capacity: 15 },
+          capacity: 12,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-odd-target",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "Touchstone 2",
+          course: { id: "c-ts-2", title: "Touchstone 2" },
+          teacher: { id: "t-odd-1", firstName: "استاد", lastName: "فرد یک" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-8", name: "Room 8", capacity: 8 },
+          capacity: 6,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-odd-concurrent",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "Touchstone 1",
+          course: { id: "c-ts-1", title: "Touchstone 1" },
+          teacher: { id: "t-odd-2", firstName: "استاد", lastName: "فرد دو" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-18", name: "Room 18", capacity: 18 },
+          capacity: 7,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-odd-in-even-room",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "English 1",
+          course: { id: "c-eng-1", title: "English 1" },
+          teacher: { id: "t-odd-3", firstName: "استاد", lastName: "فرد سه" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-even", name: "Room Even", capacity: 15 },
+          capacity: 10,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={rebalanceProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      // 1. Click swap on prop-even-12 and select prop-odd-target
+      fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-even-12"))
+      const oddTargetCard = screen.getAllByTestId(
+        "calendar-class-card-prop-odd-target"
+      )[0]!
+      fireEvent.click(oddTargetCard)
+
+      // 2. Direct execution: no modal dialog is opened
+      expect(screen.queryByText("جابجایی کلاس")).not.toBeInTheDocument()
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(3)
+      })
+
+      // Verify prop-even-12 moves to Odd days in Room 18 with teacherId: null
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-even-12",
+          body: expect.objectContaining({
+            teacherId: null,
+            classroomId: "cr-18",
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      // Verify prop-odd-target moves to Even days in Room Even with teacherId: null
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-odd-target",
+          body: expect.objectContaining({
+            teacherId: null,
+            classroomId: "cr-even",
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      // Verify prop-odd-concurrent is rebalanced to Room 8
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-odd-concurrent",
+          body: {
+            classroomId: "cr-8",
+          },
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("opens SwitchTeacherDialog when clicking teacher info and switches to a free teacher", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "prop-1",
+        teacherId: "t-free",
+        warnings: [],
+      } as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const testProposals: Proposal[] = [
+        {
+          ...mockProposals[0]!,
+          id: "prop-switch-teacher-test",
+          teacherId: "t1",
+          teacher: { id: "t1", firstName: "علی", lastName: "محمدی" },
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+        },
+      ]
+
+      const calendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: { id: "t1", firstName: "علی", lastName: "محمدی" },
+          teachableCourses: [{ id: "c1", title: "American English File 1" }],
+          slots: [],
+        },
+        {
+          teacher: { id: "t-free", firstName: "زهرا", lastName: "حسینی" },
+          teachableCourses: [{ id: "c1", title: "American English File 1" }],
+          slots: [
+            {
+              dayOfWeek: "SATURDAY",
+              startTime: "09:00",
+              endTime: "10:30",
+              status: "FREE",
+              title: null,
+              source: "AVAILABILITY",
+            },
+            {
+              dayOfWeek: "MONDAY",
+              startTime: "09:00",
+              endTime: "10:30",
+              status: "FREE",
+              title: null,
+              source: "AVAILABILITY",
+            },
+            {
+              dayOfWeek: "WEDNESDAY",
+              startTime: "09:00",
+              endTime: "10:30",
+              status: "FREE",
+              title: null,
+              source: "AVAILABILITY",
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={testProposals}
+          canEdit={true}
+          teacherCalendars={calendars}
+          defaultCollapsed={false}
+        />
+      )
+
+      // Click on teacher info of prop-switch-teacher-test
+      const teacherInfo = screen.getByTestId(
+        "calendar-class-teacher-info-prop-switch-teacher-test"
+      )
+      fireEvent.click(teacherInfo)
+
+      // SwitchTeacherDialog opens
+      expect(screen.getByTestId("switch-teacher-dialog")).toBeInTheDocument()
+      expect(screen.getByTestId("teacher-item-t1")).toBeInTheDocument()
+      expect(screen.getByTestId("teacher-item-t-free")).toBeInTheDocument()
+
+      // Select free teacher
+      const selectTeacherBtn = screen.getByTestId("switch-teacher-btn-t-free")
+      fireEvent.click(selectTeacherBtn)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            proposalId: "prop-switch-teacher-test",
+            body: expect.objectContaining({
+              teacherId: "t-free",
+            }),
+          }),
+          expect.anything()
+        )
+      })
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("opens SwitchTeacherDialog and swaps teachers between two sessions in the same period", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({} as never)
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const twoProposalsInSlot: Proposal[] = [
+        {
+          ...mockProposals[0]!,
+          id: "prop-slot-1",
+          course: { id: "c1", title: "Course 1" },
+          teacherId: "t-teacher-1",
+          teacher: { id: "t-teacher-1", firstName: "مدرس", lastName: "یک" },
+          classroom: { id: "cr1", name: "کلاس ۱۰۱", capacity: 20 },
+          classroomId: "cr1",
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+        },
+        {
+          ...mockProposals[0]!,
+          id: "prop-slot-2",
+          course: { id: "c1", title: "Course 1" },
+          teacherId: "t-teacher-2",
+          teacher: { id: "t-teacher-2", firstName: "مدرس", lastName: "دو" },
+          classroom: { id: "cr2", name: "کلاس ۱۰۲", capacity: 20 },
+          classroomId: "cr2",
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "09:00",
+          endTime: "10:30",
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={twoProposalsInSlot}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      // Click teacher info of prop-slot-1
+      const teacherInfo = screen.getByTestId(
+        "calendar-class-teacher-info-prop-slot-1"
+      )
+      fireEvent.click(teacherInfo)
+
+      expect(screen.getByTestId("switch-teacher-dialog")).toBeInTheDocument()
+
+      // Teacher 2 is shown as swappable
+      const swapTeacherBtn = screen.getByTestId(
+        "switch-teacher-btn-t-teacher-2"
+      )
+      expect(swapTeacherBtn).toBeInTheDocument()
+      fireEvent.click(swapTeacherBtn)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+      })
+
+      // prop-slot-1 gets t-teacher-2
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-slot-1",
+          body: { teacherId: "t-teacher-2" },
+        }),
+        expect.anything()
+      )
+
+      // prop-slot-2 gets t-teacher-1
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-slot-2",
+          body: { teacherId: "t-teacher-1" },
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("shows loading overlay on target and source session cards while swap request is sending", async () => {
+      let resolveFirst: (() => void) | undefined
+      const updateProposalMutationFn = vi.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            if (!resolveFirst) {
+              resolveFirst = () => resolve({} as never)
+            } else {
+              resolve({} as never)
+            }
+          })
+      )
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationKey: ["scheduling", "updateProposal"],
+          mutationFn: updateProposalMutationFn,
+        })
+
+      const proposals: Proposal[] = [
+        {
+          id: "prop-load-even",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-3",
+          course: { id: "c-ame-2-3", title: "American English File 2-3" },
+          teacher: { id: "t-1", firstName: "استاد", lastName: "یک" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-1", name: "Classroom 1", capacity: 20 },
+          capacity: 15,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-load-odd",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-1",
+          course: { id: "c-ame-2-1", title: "American English File 2-1" },
+          teacher: { id: "t-2", firstName: "استاد", lastName: "دو" },
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-2", name: "Classroom 2", capacity: 20 },
+          capacity: 15,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={proposals}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      const evenCard = screen.getAllByTestId(
+        "calendar-class-card-prop-load-even"
+      )[0]!
+      const oddCard = screen.getAllByTestId(
+        "calendar-class-card-prop-load-odd"
+      )[0]!
+
+      // 1. Initiate swap on Even card
+      fireEvent.click(screen.getByTestId("swap-teacher-btn-prop-load-even"))
+      expect(oddCard).toHaveAttribute("data-swappable", "true")
+
+      // 2. Click target Odd card
+      fireEvent.click(oddCard)
+
+      // 3. Target card MUST show loading overlay while mutation is pending!
+      expect(oddCard).toHaveAttribute("data-loading", "true")
+      expect(
+        screen.getByTestId("calendar-class-card-loading-prop-load-odd")
+      ).toBeInTheDocument()
+      expect(evenCard).toHaveAttribute("data-loading", "true")
+
+      // Neither card should shake while loading
+      expect(oddCard).not.toHaveClass("animate-calendar-card-shake")
+
+      // 4. Wait for mutation call to register, then resolve in-flight mutation
+      await waitFor(() => {
+        expect(resolveFirst).toBeDefined()
+      })
+
+      await act(async () => {
+        resolveFirst!()
+      })
+
+      // 5. After mutation completes, loading is cleaned up
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+      })
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId("calendar-class-card-loading-prop-load-odd")
+        ).not.toBeInTheDocument()
+      })
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("allows swapping and shakes cards for sessions without a master, including restoring previously swapped sessions", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "mock-id",
+        warnings: [],
+      })
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationFn: updateProposalMutationFn,
+        } as unknown as ReturnType<
+          typeof schedulingResource.updateProposal.toMutation
+        >)
+
+      const masterlessProposals: Proposal[] = [
+        {
+          id: "prop-no-teacher-even",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-3 (No Master)",
+          course: { id: "c-ame-2-3", title: "American English File 2-3" },
+          teacher: null,
+          teacherId: null,
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-1", name: "Classroom 1", capacity: 20 },
+          capacity: 15,
+          daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+        {
+          id: "prop-no-teacher-odd",
+          planId: "plan-1",
+          instituteId: "inst-1",
+          title: "AME 2-1 (No Master)",
+          course: { id: "c-ame-2-1", title: "American English File 2-1" },
+          teacher: null,
+          teacherId: null,
+          branch: { id: "b1", name: "شعبه مرکزی" },
+          classroom: { id: "cr-2", name: "Classroom 2", capacity: 20 },
+          capacity: 15,
+          daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+          startTime: "15:00",
+          endTime: "16:30",
+          deliveryMode: "IN_PERSON",
+          isLocked: false,
+          isManuallyEdited: false,
+          warnings: [],
+          scoreBreakdown: [],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={masterlessProposals}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      const evenCard = screen.getAllByTestId(
+        "calendar-class-card-prop-no-teacher-even"
+      )[0]!
+      const oddCard = screen.getAllByTestId(
+        "calendar-class-card-prop-no-teacher-odd"
+      )[0]!
+
+      expect(evenCard).toHaveAttribute("data-has-no-teacher", "true")
+      expect(oddCard).toHaveAttribute("data-has-no-teacher", "true")
+
+      // 1. Swap button is present and clickable on session without a master
+      const swapBtnEven = screen.getByTestId(
+        "swap-teacher-btn-prop-no-teacher-even"
+      )
+      expect(swapBtnEven).toBeInTheDocument()
+      fireEvent.click(swapBtnEven)
+
+      // 2. The other session (also without a master) MUST shake and be marked swappable
+      expect(oddCard).toHaveAttribute("data-swappable", "true")
+      expect(oddCard).toHaveClass("animate-calendar-card-shake")
+
+      // 3. Clicking on the target session without a master executes direct session swap
+      // (MUST NOT open StaffingFallbackDialog or cancel swap mode)
+      fireEvent.click(oddCard)
+
+      await waitFor(() => {
+        expect(updateProposalMutationFn).toHaveBeenCalledTimes(2)
+      })
+
+      // Verify payloads: teacherId remains null, slots and classrooms swapped
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-no-teacher-even",
+          body: expect.objectContaining({
+            teacherId: null,
+            daysOfWeek: ["SUNDAY", "TUESDAY", "THURSDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-no-teacher-odd",
+          body: expect.objectContaining({
+            teacherId: null,
+            daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+            startTime: "15:00",
+            endTime: "16:30",
+          }),
+        }),
+        expect.anything()
+      )
+
+      toMutationSpy.mockRestore()
+    })
+
+    it("renders free masters selection with level comparison inside StaffingFallbackDialog and assigns chosen master", async () => {
+      const updateProposalMutationFn = vi.fn().mockResolvedValue({
+        id: "mock-id",
+        warnings: [],
+      })
+      const toMutationSpy = vi
+        .spyOn(schedulingResource.updateProposal, "toMutation")
+        .mockReturnValue({
+          mutationFn: updateProposalMutationFn,
+        } as unknown as ReturnType<
+          typeof schedulingResource.updateProposal.toMutation
+        >)
+
+      const masterlessProposal: Proposal = {
+        id: "prop-ame-1-1",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-1",
+        course: { id: "c-ame-1-1", title: "AME 1-1" },
+        teacher: null,
+        teacherId: null,
+        branch: { id: "b1", name: "شعبه مرکزی" },
+        classroom: { id: "cr-1", name: "Classroom 1", capacity: 20 },
+        capacity: 12,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:00",
+        endTime: "16:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      }
+
+      const teacherCalendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: {
+            id: "t-melika",
+            firstName: "ملیکا",
+            lastName: "سعیدی",
+            avatarUrl: null,
+          },
+          teachableCourses: [
+            { id: "c-ame-1-2", title: "AME 1-2" },
+            { id: "c-ame-2-3", title: "AME 2-3" },
+          ],
+          slots: [
+            {
+              id: "s1",
+              dayOfWeek: "SATURDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "FREE",
+            },
+            {
+              id: "s2",
+              dayOfWeek: "MONDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "FREE",
+            },
+            {
+              id: "s3",
+              dayOfWeek: "WEDNESDAY",
+              startTime: "15:00",
+              endTime: "16:30",
+              status: "FREE",
+            },
+          ],
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={[masterlessProposal]}
+          teacherCalendars={teacherCalendars}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      // 1. Click on masterless card to open StaffingFallbackDialog
+      const card = screen.getAllByTestId("calendar-class-card-prop-ame-1-1")[0]!
+      fireEvent.click(card)
+
+      // 2. StaffingFallbackDialog is open and FreeMastersSelection is rendered
+      expect(screen.getByTestId("staffing-fallback-dialog")).toBeInTheDocument()
+      expect(screen.getByTestId("free-masters-selection")).toBeInTheDocument()
+
+      // 3. Melika Saeedi is detected as higher level and qualified
+      const melikaItem = screen.getByTestId("free-master-item-t-melika")
+      expect(melikaItem).toHaveAttribute("data-qualified", "true")
+      expect(melikaItem).toHaveAttribute("data-level-status", "HIGHER_LEVEL")
+
+      // 4. Click assign button for Melika Saeedi
+      const assignBtn = screen.getByTestId("assign-free-master-btn-t-melika")
+      await act(async () => {
+        fireEvent.click(assignBtn)
+      })
+
+      // 5. updateProposal mutation is called with teacherId: "t-melika"
+      expect(updateProposalMutationFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          proposalId: "prop-ame-1-1",
+          body: {
+            teacherId: "t-melika",
+          },
+        }),
+        expect.anything()
+      )
 
       toMutationSpy.mockRestore()
     })

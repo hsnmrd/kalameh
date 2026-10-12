@@ -4,8 +4,10 @@ import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import { Lightbulb, SearchCheck } from "lucide-react"
 import type {
+  CourseLevelNode,
   SchedulingPlanDetailsDto,
   SchedulingStaffingFallback as StaffingFallbackDto,
+  SchedulingTeacherCalendar,
 } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import {
@@ -20,9 +22,11 @@ import type { NewTeacherAssignment } from "../../scheduling-new-teacher-assignme
 import { SchedulingRecoveryOption } from "../../scheduling-recovery-option"
 import { SchedulingStaffingFallback } from "../../scheduling-staffing-fallback"
 import { SchedulingTeacherReassignmentAnalysis } from "../../scheduling-teacher-reassignment-analysis"
+import { FreeMastersSelection } from "./free-masters-selection"
 
 type UnresolvedRequirement =
   SchedulingPlanDetailsDto["unresolvedRequirements"][number]
+type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
 export interface StaffingFallbackDialogProps {
   open: boolean
@@ -34,6 +38,14 @@ export interface StaffingFallbackDialogProps {
   planStatus?: string
   unresolvedRequirementId?: string
   requirement?: UnresolvedRequirement | null
+  proposal?: Proposal | null
+  teacherCalendars?: SchedulingTeacherCalendar[]
+  allProposals?: Proposal[]
+  onAssignTeacher?: (
+    proposal: Proposal,
+    teacherId: string
+  ) => Promise<void> | void
+  isAssignPending?: boolean
 }
 
 export function StaffingFallbackDialog({
@@ -46,6 +58,11 @@ export function StaffingFallbackDialog({
   planStatus,
   unresolvedRequirementId,
   requirement,
+  proposal,
+  teacherCalendars,
+  allProposals,
+  onAssignTeacher,
+  isAssignPending = false,
 }: StaffingFallbackDialogProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -102,6 +119,35 @@ export function StaffingFallbackDialog({
     return Array.from(map.values())
   }, [recovery.teacherCalendars, recovery.busyTeachers, outreachTeacherIds])
 
+  const targetCourse: CourseLevelNode = React.useMemo(() => {
+    if (proposal?.course) return proposal.course
+    const assignmentCourse = hiringAssignments[0]?.course
+    if (assignmentCourse) return assignmentCourse
+    if (requirement?.classRequirement?.course)
+      return requirement.classRequirement.course
+    return {
+      id: "unknown-course",
+      title: targetCourseTitle || t("unknownCourse"),
+    }
+  }, [
+    proposal?.course,
+    hiringAssignments,
+    requirement?.classRequirement?.course,
+    targetCourseTitle,
+    t,
+  ])
+
+  const targetDaysOfWeek = React.useMemo(() => {
+    if (proposal?.daysOfWeek?.length) return proposal.daysOfWeek
+    if (hiringAssignments[0]?.daysOfWeek?.length)
+      return hiringAssignments[0].daysOfWeek
+    return []
+  }, [proposal?.daysOfWeek, hiringAssignments])
+
+  const targetStartTime =
+    proposal?.startTime ?? hiringAssignments[0]?.startTime ?? ""
+  const targetEndTime = proposal?.endTime ?? hiringAssignments[0]?.endTime ?? ""
+
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent
@@ -117,6 +163,24 @@ export function StaffingFallbackDialog({
           <ResponsiveDialogCloseButton />
         </ResponsiveDialogHeader>
         <div className="max-h-[80vh] space-y-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+          {/* Option of choosing from Free Masters in this period with level comparison */}
+          {targetDaysOfWeek.length > 0 && targetStartTime && targetEndTime && (
+            <FreeMastersSelection
+              proposal={proposal ?? null}
+              targetCourse={targetCourse}
+              daysOfWeek={targetDaysOfWeek}
+              startTime={targetStartTime}
+              endTime={targetEndTime}
+              teacherCalendars={teacherCalendars}
+              allProposals={allProposals}
+              onAssignTeacher={async (prop, teacherId) => {
+                await onAssignTeacher?.(prop, teacherId)
+                onOpenChange(false)
+              }}
+              isPending={isAssignPending}
+            />
+          )}
+
           {/* Recovery Options OR Busy Teachers / No Free Teacher Callout */}
           {visibleOptions.length > 0 ? (
             <div className="rounded-xl bg-muted/40 p-3.5">

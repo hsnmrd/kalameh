@@ -43,6 +43,38 @@ describe("TermsTable Component", () => {
     expect(screen.getByText(/هیچ ترم/i)).toBeInTheDocument()
   })
 
+  it("should render both primary smart generation and outline manual add buttons in empty state", () => {
+    const handleAdd = vi.fn()
+    const handleBatch = vi.fn()
+
+    render(
+      <TermsTable
+        terms={[]}
+        isLoading={false}
+        onView={vi.fn()}
+        onEdit={vi.fn()}
+        onAdd={handleAdd}
+        onBatch={handleBatch}
+      />
+    )
+
+    const batchBtn = screen.getByRole("button", {
+      name: /ساخت خودکار ترم‌ها|generatePhaseTerms/i,
+    })
+    const addBtn = screen.getByRole("button", {
+      name: /افزودن ترم جدید|addTerm/i,
+    })
+
+    expect(batchBtn).toBeInTheDocument()
+    expect(addBtn).toBeInTheDocument()
+
+    fireEvent.click(batchBtn)
+    expect(handleBatch).toHaveBeenCalledTimes(1)
+
+    fireEvent.click(addBtn)
+    expect(handleAdd).toHaveBeenCalledTimes(1)
+  })
+
   it("should render term row with title and class count", () => {
     render(
       <TermsTable

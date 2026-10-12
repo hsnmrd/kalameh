@@ -38,9 +38,9 @@ describe("SchedulingPlanCalendarClassCard Component", () => {
     expect(card).not.toHaveAttribute("data-has-no-teacher")
     expect(card).toHaveClass("border-s-4")
     expect(card).toHaveTextContent("علی محمدی")
-    expect(
-      screen.getByTestId("calendar-class-room-badge-prop-1")
-    ).toHaveTextContent("کلاس ۱۰۱")
+    const roomBadge = screen.getByTestId("calendar-class-room-badge-prop-1")
+    expect(roomBadge).not.toHaveTextContent("کلاس ۱۰۱")
+    expect(roomBadge).toHaveAttribute("title", "کلاس ۱۰۱")
   })
 
   it("renders with orange theme and dashed border when session has no master", () => {
@@ -118,5 +118,118 @@ describe("SchedulingPlanCalendarClassCard Component", () => {
     const roomBadge = screen.getByTestId("calendar-class-room-badge-prop-1")
     fireEvent.click(roomBadge)
     expect(handleRoomClick).toHaveBeenCalledWith(unassignedProposal)
+  })
+
+  it("allows clicking teacher info to trigger onTeacherClick", () => {
+    const handleTeacherClick = vi.fn()
+
+    render(
+      <SchedulingPlanCalendarClassCard
+        proposal={baseProposal}
+        canEdit={true}
+        onTeacherClick={handleTeacherClick}
+      />
+    )
+
+    const teacherInfo = screen.getByTestId("calendar-class-teacher-info-prop-1")
+    fireEvent.click(teacherInfo)
+    expect(handleTeacherClick).toHaveBeenCalledWith(baseProposal)
+  })
+
+  it("disables inner buttons and forwards clicks to card when card is shaking (isSwappable=true, isSwapping=false)", () => {
+    const handleCardClick = vi.fn()
+    const handleSwapClick = vi.fn()
+    const handleRoomClick = vi.fn()
+    const handleTeacherClick = vi.fn()
+
+    render(
+      <SchedulingPlanCalendarClassCard
+        proposal={baseProposal}
+        canEdit={true}
+        canSwap={true}
+        isSwappable={true}
+        isSwapping={false}
+        onClick={handleCardClick}
+        onSwapClick={handleSwapClick}
+        onRoomClick={handleRoomClick}
+        onTeacherClick={handleTeacherClick}
+      />
+    )
+
+    const card = screen.getByTestId("calendar-class-card-prop-1")
+    expect(card).toHaveClass("animate-calendar-card-shake")
+
+    // Room badge
+    const roomBadge = screen.getByTestId("calendar-class-room-badge-prop-1")
+    expect(roomBadge).toHaveClass("pointer-events-none")
+    fireEvent.click(roomBadge)
+    expect(handleRoomClick).not.toHaveBeenCalled()
+    expect(handleCardClick).toHaveBeenCalledWith("prop-1")
+
+    handleCardClick.mockClear()
+
+    // Teacher info
+    const teacherInfo = screen.getByTestId("calendar-class-teacher-info-prop-1")
+    expect(teacherInfo).toHaveClass("pointer-events-none")
+    fireEvent.click(teacherInfo)
+    expect(handleTeacherClick).not.toHaveBeenCalled()
+    expect(handleCardClick).toHaveBeenCalledWith("prop-1")
+
+    handleCardClick.mockClear()
+
+    // Swap button
+    const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+    expect(swapBtn).toHaveClass("pointer-events-none")
+    fireEvent.click(swapBtn)
+    expect(handleSwapClick).not.toHaveBeenCalled()
+    expect(handleCardClick).toHaveBeenCalledWith("prop-1")
+  })
+
+  it("keeps swap button clickable on source swapping card (isSwapping=true)", () => {
+    const handleSwapClick = vi.fn()
+
+    render(
+      <SchedulingPlanCalendarClassCard
+        proposal={baseProposal}
+        canEdit={true}
+        canSwap={true}
+        isSwapping={true}
+        isSwappable={false}
+        onSwapClick={handleSwapClick}
+      />
+    )
+
+    const swapBtn = screen.getByTestId("swap-teacher-btn-prop-1")
+    expect(swapBtn).not.toHaveClass("pointer-events-none")
+    fireEvent.click(swapBtn)
+    expect(handleSwapClick).toHaveBeenCalledWith("prop-1")
+  })
+
+  it("renders loading overlay with spinner, prevents clicks and stops shaking when isLoading=true", () => {
+    const handleCardClick = vi.fn()
+
+    render(
+      <SchedulingPlanCalendarClassCard
+        proposal={baseProposal}
+        canEdit={true}
+        canSwap={true}
+        isSwappable={true}
+        isLoading={true}
+        onClick={handleCardClick}
+      />
+    )
+
+    const card = screen.getByTestId("calendar-class-card-prop-1")
+    expect(card).toHaveAttribute("data-loading", "true")
+    expect(card).toHaveAttribute("aria-busy", "true")
+    expect(card).not.toHaveClass("animate-calendar-card-shake")
+
+    const loadingOverlay = screen.getByTestId(
+      "calendar-class-card-loading-prop-1"
+    )
+    expect(loadingOverlay).toBeInTheDocument()
+
+    fireEvent.click(card)
+    expect(handleCardClick).not.toHaveBeenCalled()
   })
 })

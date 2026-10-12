@@ -7,6 +7,7 @@ import { cn, formatDate } from "@workspace/ui/lib/utils"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   isTermInActivationWindow,
+  isTermEligibleForClassCreation,
   getTermActivationDate,
   type TermDto,
 } from "@workspace/types"
@@ -28,10 +29,17 @@ export function TermDetailsPreview({
   }
 
   const inActivationWindow = isTermInActivationWindow(term.startDate)
+  const isEligible = isTermEligibleForClassCreation({
+    startDate: term.startDate,
+    endDate: term.endDate,
+    classesCount: term.classesCount,
+  })
   const isBeforeActivation =
     new Date().getTime() < getTermActivationDate(term.startDate).getTime()
+  const isAfterEnd =
+    new Date().getTime() > new Date(term.endDate).setHours(23, 59, 59, 999)
 
-  if (!inActivationWindow) {
+  if (!isEligible) {
     return (
       <div
         className={cn(
@@ -43,7 +51,11 @@ export function TermDetailsPreview({
           <AlertCircle className="size-4 shrink-0 text-destructive" />
           <span>
             {t(
-              isBeforeActivation ? "termNotActivated" : "termActivationPassed"
+              isBeforeActivation
+                ? "termNotActivated"
+                : isAfterEnd
+                  ? "termEnded"
+                  : "termActivationPassed"
             )}
           </span>
         </div>
@@ -85,7 +97,9 @@ export function TermDetailsPreview({
           variant="outline"
           className="h-5 border-success/30 bg-success/15 px-2 text-[10px] font-medium text-success"
         >
-          {t("inActivationWindow")}
+          {inActivationWindow
+            ? t("inActivationWindow")
+            : t("initialClassCreationWindow")}
         </Badge>
         {term.isActive && (
           <Badge

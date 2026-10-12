@@ -111,6 +111,9 @@ export class SchedulingTermsService {
               plansCount: latestRun.plans.length,
             }
           : null,
+        studentSchedulesConfirmedAt: term.studentSchedulesConfirmedAt
+          ? term.studentSchedulesConfirmedAt.toISOString()
+          : null,
       });
     });
   }

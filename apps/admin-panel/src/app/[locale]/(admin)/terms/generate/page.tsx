@@ -1,5 +1,5 @@
-import { GeneratePhaseTermsContent } from "./components/generate-phase-terms-content"
+import { GeneratePhaseTermsPreviewContent } from "./components/generate-phase-terms-preview-content"
 
 export default function GeneratePhaseTermsPage() {
-  return <GeneratePhaseTermsContent />
+  return <GeneratePhaseTermsPreviewContent />
 }

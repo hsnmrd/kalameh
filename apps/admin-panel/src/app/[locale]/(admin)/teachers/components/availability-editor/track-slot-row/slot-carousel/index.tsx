@@ -16,6 +16,9 @@ export interface SlotCarouselProps {
   slots: PhaseGeneratedSlot[]
   days: WeekDay[]
   isSlotSelected: (slot: PhaseGeneratedSlot) => boolean
+  getOccupiedBranchName?: (
+    slot: PhaseGeneratedSlot
+  ) => string | null | undefined
   onToggleSlot: (days: WeekDay[], slot: PhaseGeneratedSlot) => void
   disabled?: boolean
 }
@@ -25,6 +28,7 @@ export function SlotCarousel({
   slots,
   days,
   isSlotSelected,
+  getOccupiedBranchName,
   onToggleSlot,
   disabled = false,
 }: SlotCarouselProps) {
@@ -55,6 +59,7 @@ export function SlotCarousel({
                   startTime={slot.startTime}
                   endTime={slot.endTime}
                   isSelected={isSlotSelected(slot)}
+                  occupiedBranchName={getOccupiedBranchName?.(slot)}
                   onToggle={() => onToggleSlot(days, slot)}
                   disabled={disabled}
                 />

@@ -43,6 +43,7 @@ const EMPTY_VALUES: UpdateOperatingPhaseInput = {
   hasBreak: false,
   breakStartTime: "18:00",
   breakEndTime: "19:00",
+  isSchoolCalendarAware: true,
   isActive: true,
   order: 0,
 }
@@ -69,6 +70,7 @@ export function EditOperatingPhaseModal({
             hasBreak: phase.hasBreak ?? false,
             breakStartTime: phase.breakStartTime || "18:00",
             breakEndTime: phase.breakEndTime || "19:00",
+            isSchoolCalendarAware: phase.isSchoolCalendarAware ?? true,
             isActive: phase.isActive,
             order: phase.order,
           }

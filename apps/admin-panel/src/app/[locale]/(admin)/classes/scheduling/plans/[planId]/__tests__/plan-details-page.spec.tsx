@@ -4,6 +4,8 @@ import { fireEvent, render, screen, waitFor, within } from "@/test/test-utils"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"
+import { HeaderActionsProvider } from "@/components/admin-base-layout/header-actions-context"
+import { AdminHeader } from "@/components/admin-base-layout/admin-header"
 import SchedulingPlanDetailsPage from "../page"
 
 const instituteId = "11111111-1111-4111-8111-111111111111"
@@ -160,14 +162,27 @@ describe("SchedulingPlanDetailsPage", () => {
       queryFn: async () => createPlan(planId, 1),
     } as never)
 
-    render(<SchedulingPlanDetailsPage />)
+    render(
+      <HeaderActionsProvider>
+        <AdminHeader />
+        <SchedulingPlanDetailsPage />
+      </HeaderActionsProvider>
+    )
 
     expect(await screen.findByText("جزئیات برنامه ۱")).toBeInTheDocument()
     expect(screen.getAllByText("پاییز ۱۴۰۳").length).toBeGreaterThan(0)
     expect(screen.getAllByText("مرکزی").length).toBeGreaterThan(0)
     expect(screen.getByText("وضعیت")).toBeInTheDocument()
-    expect(screen.getAllByText("کلاس ۱").length).toBeGreaterThan(0)
+    expect(document.querySelector('[title="کلاس ۱"]')).toBeInTheDocument()
     expect(screen.queryByText("هشدارهای برنامه")).not.toBeInTheDocument()
+
+    // Header back button and breadcrumb link should point to /classes
+    const backBtn = screen.getByTestId("admin-header-back-btn")
+    expect(backBtn).toHaveAttribute("href", "/classes")
+    const breadcrumbClassesLink = screen.getByRole("link", {
+      name: "مدیریت کلاس‌ها",
+    })
+    expect(breadcrumbClassesLink).toHaveAttribute("href", "/classes")
   })
 
   it("selects a draft plan directly from the details page", async () => {
@@ -258,9 +273,12 @@ describe("SchedulingPlanDetailsPage", () => {
     expect(
       screen.getByRole("button", { name: "تلاش مجدد" })
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "بازگشت به تقویم آموزشی" })
-    ).toBeInTheDocument()
+    const backButton = screen.getByRole("button", {
+      name: "بازگشت به تقویم آموزشی",
+    })
+    expect(backButton).toBeInTheDocument()
+    fireEvent.click(backButton)
+    expect(mockPush).toHaveBeenCalledWith("/classes")
   })
 
   it("supports supervisor teacher outreach for unassigned classes with staffing fallback options", async () => {

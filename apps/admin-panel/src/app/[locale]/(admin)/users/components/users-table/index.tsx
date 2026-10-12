@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Users, Edit2, KeyRound, Trash2, Eye } from "lucide-react"
+import { Users, Edit2, KeyRound, Trash2, Eye, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
@@ -13,6 +13,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import Image from "next/image"
 import { getAssetUrl } from "@workspace/ui/lib/utils"
@@ -28,6 +29,7 @@ export interface UsersTableProps {
   onEdit: (user: AuthUser) => void
   onResetPassword: (user: AuthUser) => void
   onDelete: (user: AuthUser) => void
+  onAdd?: () => void
 }
 
 export function UsersTable({
@@ -37,6 +39,7 @@ export function UsersTable({
   onEdit,
   onResetPassword,
   onDelete,
+  onAdd,
 }: UsersTableProps) {
   const t = useTranslations("users")
   const locale = useLocale()
@@ -207,6 +210,16 @@ export function UsersTable({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard permission={PERMISSIONS.MANAGE_USERS} mode="hide">
+              <Button onClick={onAdd} className="cursor-pointer gap-2">
+                <Plus className="size-4" />
+                <span>{t("addUser")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

@@ -10,7 +10,6 @@ interface FormFooterProps {
   activeTab: InstituteFormTab
   isPending: boolean
   onBack: () => void
-  onClose: () => void
   onNext: () => void
 }
 
@@ -18,7 +17,6 @@ export function FormFooter({
   activeTab,
   isPending,
   onBack,
-  onClose,
   onNext,
 }: FormFooterProps) {
   const t = useTranslations("institutes")
@@ -37,24 +35,21 @@ export function FormFooter({
         )}
       </div>
       <div className="flex flex-1 items-center justify-end gap-3 sm:flex-initial [&>button]:w-full [&>button]:min-w-0 [&>button]:flex-1 [&>button]:px-3 sm:[&>button]:w-auto sm:[&>button]:flex-initial sm:[&>button]:px-6">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-          className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
-        >
-          {t("createModal.cancel")}
-        </Button>
         {activeTab !== "banking" ? (
           <Button
+            key="next-step-button"
             type="button"
-            onClick={onNext}
+            onClick={(e) => {
+              e.preventDefault()
+              onNext()
+            }}
             className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
           >
             {t("createModal.next")}
           </Button>
         ) : (
           <Button
+            key="submit-step-button"
             type="submit"
             disabled={isPending}
             className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"

@@ -1,9 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { I18nService } from '../../i18n/i18n.service';
-import type { SupportedLocale, Role } from '@workspace/types';
+import {
+  normalizeDigits,
+  normalizePersianText,
+  cleanPersianText,
+  isPersianTextEqual,
+  type SupportedLocale,
+  type Role,
+} from '@workspace/types';
 import { parseXlsxBuffer } from './xlsx-parser';
 import { buildXlsxBuffer } from './xlsx-writer';
 import { exportUsers, generateUserTemplate } from './user-workbook';
+import {
+  exportTeachers,
+  generateTeacherTemplate,
+  parseTeacherRows,
+  type TeacherTemplateRow,
+} from './teacher-workbook';
+import {
+  exportStudents,
+  generateStudentTemplate,
+  parseStudentRows,
+  type StudentTemplateRow,
+} from './student-workbook';
+import {
+  exportCourses,
+  generateCourseTemplate,
+  parseCourseRows,
+  type CourseTemplateRow,
+} from './course-workbook';
+
+export type { TeacherTemplateRow, StudentTemplateRow, CourseTemplateRow };
 
 export interface UserTemplateRow {
   firstName: string;
@@ -36,12 +63,29 @@ export class ExcelService {
   /**
    * Normalize Persian & Arabic numerals to standard Latin digits.
    */
-  normalizeDigits(str: string): string {
-    if (!str) return '';
-    return str
-      .replace(/[۰-۹]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1728))
-      .replace(/[٠-٩]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1584))
-      .trim();
+  normalizeDigits(str?: string | null): string {
+    return normalizeDigits(str);
+  }
+
+  /**
+   * Normalize Persian & Arabic text for comparisons, key lookups, and mapping.
+   */
+  normalizePersianText(str?: string | null): string {
+    return normalizePersianText(str);
+  }
+
+  /**
+   * Clean Persian text for storage.
+   */
+  cleanPersianText(str?: string | null): string {
+    return cleanPersianText(str);
+  }
+
+  /**
+   * Checks if two Persian strings are equal regardless of half-spaces, diacritics, or Kaf/Yeh variations.
+   */
+  isPersianTextEqual(a?: string | null, b?: string | null): boolean {
+    return isPersianTextEqual(a, b);
   }
 
   /**
@@ -49,11 +93,13 @@ export class ExcelService {
    */
   mapRole(rawRole: string | undefined): Role {
     if (!rawRole) return 'TEACHER';
-    const trimmed = rawRole.trim();
-    if (ROLE_PERSIAN_MAP[trimmed]) {
-      return ROLE_PERSIAN_MAP[trimmed];
+    const normalized = normalizePersianText(rawRole);
+    for (const [pKey, role] of Object.entries(ROLE_PERSIAN_MAP)) {
+      if (normalizePersianText(pKey) === normalized) {
+        return role;
+      }
     }
-    const upper = trimmed.toUpperCase();
+    const upper = rawRole.trim().toUpperCase();
     const validRoles: Role[] = [
       'ADMIN',
       'SUPERVISOR',
@@ -134,13 +180,9 @@ export class ExcelService {
   }
 
   /**
-   * Parse an uploaded binary buffer (XLSX or CSV).
+   * Parse an uploaded binary buffer into raw string records (XLSX or CSV).
    */
-  parseUserRows(
-    fileBuffer: Buffer,
-    locale: SupportedLocale = 'fa',
-  ): UserTemplateRow[] {
-    void locale;
+  parseRawRecords(fileBuffer: Buffer): Record<string, string>[] {
     const isZip =
       fileBuffer.length > 4 &&
       fileBuffer[0] === 0x50 &&
@@ -148,26 +190,29 @@ export class ExcelService {
       fileBuffer[2] === 0x03 &&
       fileBuffer[3] === 0x04;
 
-    let rawRecords: Record<string, string>[] = [];
-
     if (isZip) {
-      // XLSX file - extract worksheet and sharedStrings
-      rawRecords = parseXlsxBuffer(fileBuffer);
-    } else {
-      // CSV or plain text format
-      const text = fileBuffer.toString('utf-8');
-      rawRecords = this.parseCsv(text);
+      return parseXlsxBuffer(fileBuffer);
     }
+    const text = fileBuffer.toString('utf-8');
+    return this.parseCsv(text);
+  }
+
+  /**
+   * Parse an uploaded binary buffer (XLSX or CSV).
+   */
+  parseUserRows(
+    fileBuffer: Buffer,
+    locale: SupportedLocale = 'fa',
+  ): UserTemplateRow[] {
+    void locale;
+    const rawRecords = this.parseRawRecords(fileBuffer);
 
     return rawRecords.map((record) => {
-      // Intelligently map headers regardless of case or Persian/English labels
+      // Intelligently map headers using Persian text equality
       const getField = (...keys: string[]): string => {
         for (const key of keys) {
           for (const [rKey, rVal] of Object.entries(record)) {
-            if (
-              rKey.trim().toLowerCase() === key.toLowerCase() ||
-              rKey.trim() === key
-            ) {
+            if (isPersianTextEqual(rKey, key)) {
               return rVal?.trim() || '';
             }
           }
@@ -212,20 +257,16 @@ export class ExcelService {
       const role = this.mapRole(rawRole);
 
       return {
-        firstName,
-        lastName,
+        firstName: cleanPersianText(firstName),
+        lastName: cleanPersianText(lastName),
         phone,
         nationalCode: nationalCode || undefined,
         role,
-        branchName: branchName || undefined,
+        branchName: cleanPersianText(branchName) || undefined,
         password: password || undefined,
       };
     });
   }
-
-  /**
-   * Parse XLSX buffer by extracting sharedStrings and sheet1 XML from ZIP.
-   */
 
   generateUserTemplate(locale: SupportedLocale = 'fa'): Buffer {
     return generateUserTemplate(locale);
@@ -236,6 +277,66 @@ export class ExcelService {
     locale: SupportedLocale = 'fa',
   ): Buffer {
     return exportUsers(users, locale);
+  }
+
+  generateTeacherTemplate(locale: SupportedLocale = 'fa'): Buffer {
+    return generateTeacherTemplate(locale);
+  }
+
+  exportTeachers(
+    teachers: Parameters<typeof exportTeachers>[0],
+    locale: SupportedLocale = 'fa',
+  ): Buffer {
+    return exportTeachers(teachers, locale);
+  }
+
+  parseTeacherRows(
+    fileBuffer: Buffer,
+    locale: SupportedLocale = 'fa',
+  ): TeacherTemplateRow[] {
+    void locale;
+    const rawRecords = this.parseRawRecords(fileBuffer);
+    return parseTeacherRows(rawRecords, (s) => this.normalizeDigits(s));
+  }
+
+  generateStudentTemplate(locale: SupportedLocale = 'fa'): Buffer {
+    return generateStudentTemplate(locale);
+  }
+
+  exportStudents(
+    students: Parameters<typeof exportStudents>[0],
+    locale: SupportedLocale = 'fa',
+  ): Buffer {
+    return exportStudents(students, locale);
+  }
+
+  parseStudentRows(
+    fileBuffer: Buffer,
+    locale: SupportedLocale = 'fa',
+  ): StudentTemplateRow[] {
+    void locale;
+    const rawRecords = this.parseRawRecords(fileBuffer);
+    return parseStudentRows(rawRecords, (s) => this.normalizeDigits(s));
+  }
+
+  generateCourseTemplate(locale: SupportedLocale = 'fa'): Buffer {
+    return generateCourseTemplate(locale);
+  }
+
+  exportCourses(
+    courses: Parameters<typeof exportCourses>[0],
+    locale: SupportedLocale = 'fa',
+  ): Buffer {
+    return exportCourses(courses, locale);
+  }
+
+  parseCourseRows(
+    fileBuffer: Buffer,
+    locale: SupportedLocale = 'fa',
+  ): CourseTemplateRow[] {
+    void locale;
+    const rawRecords = this.parseRawRecords(fileBuffer);
+    return parseCourseRows(rawRecords, (s) => this.normalizeDigits(s));
   }
 
   buildXlsxBuffer(

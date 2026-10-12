@@ -7,6 +7,7 @@ import type {
   StudentAvailabilitySlotInput,
   SetAllStudentsAvailableInput,
   SetAllStudentsAvailableResponse,
+  ExcelImportResult,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -16,6 +17,7 @@ export const studentsResource = api.resource("students", {
     | {
         search?: string
         courseId?: string
+        branchId?: string
         isActive?: boolean
         instituteId?: string
       }
@@ -78,4 +80,18 @@ export const studentsResource = api.resource("students", {
     SetAllStudentsAvailableResponse,
     SetAllStudentsAvailableInput
   >("/students/bulk-availability"),
+  importExcel: api.post<
+    ExcelImportResult,
+    | { formData: FormData; instituteId?: string; defaultBranchId?: string }
+    | FormData
+  >("/students/import-excel", {
+    query: (params) => {
+      if (params instanceof FormData) return {}
+      const q: Record<string, string> = {}
+      if (params?.instituteId) q.instituteId = params.instituteId
+      if (params?.defaultBranchId) q.defaultBranchId = params.defaultBranchId
+      return q
+    },
+    body: (params) => (params instanceof FormData ? params : params.formData),
+  }),
 })

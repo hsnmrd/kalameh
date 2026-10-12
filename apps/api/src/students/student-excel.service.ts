@@ -1,0 +1,299 @@
+import {
+  Injectable,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
+import {
+  ROLES,
+  normalizePersianText,
+  type JwtPayload,
+  type SupportedLocale,
+  type ExcelImportResult,
+  type ExcelImportError,
+} from '@workspace/types';
+import { PrismaService } from '../prisma/prisma.service';
+import { I18nService } from '../i18n/i18n.service';
+import { ExcelService } from '../common/excel/excel.service';
+import { StudentImportAvailabilityService } from './student-import-availability.service';
+import {
+  StudentImportRowSchema,
+  ValidStudentImportRow,
+  mapStudentToExcelExport,
+  parseShift,
+  parseDayPref,
+  parseGender,
+  parseBirthDate,
+  resolveBranchId,
+  studentExcelExportSelect,
+} from '../common/excel/student-workbook';
+
+@Injectable()
+export class StudentExcelService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly i18n: I18nService,
+    private readonly excelService: ExcelService,
+    private readonly importAvailabilityService: StudentImportAvailabilityService,
+  ) {}
+
+  generateTemplate(locale: SupportedLocale = 'fa'): Buffer {
+    return this.excelService.generateStudentTemplate(locale);
+  }
+
+  async exportToExcel(
+    currentUser: JwtPayload,
+    query: { search?: string; isActive?: boolean; instituteId?: string },
+    locale: SupportedLocale = 'fa',
+  ): Promise<Buffer> {
+    const targetInstituteId =
+      currentUser.role === ROLES.SUPER_ADMIN && query.instituteId
+        ? query.instituteId
+        : currentUser.instituteId;
+
+    if (!targetInstituteId) {
+      throw new BadRequestException(
+        this.i18n.t('students.instituteRequired', locale),
+      );
+    }
+
+    const where: Record<string, unknown> = {
+      instituteId: targetInstituteId,
+      role: ROLES.STUDENT,
+      ...(query.isActive !== undefined ? { isActive: query.isActive } : {}),
+    };
+
+    if (query.search?.trim()) {
+      const term = query.search.trim();
+      where.OR = [
+        { firstName: { contains: term, mode: 'insensitive' } },
+        { lastName: { contains: term, mode: 'insensitive' } },
+        { phone: { contains: term } },
+        { nationalCode: { contains: term } },
+      ];
+    }
+
+    const students = await this.prisma.user.findMany({
+      where,
+      select: studentExcelExportSelect,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const mapped = students.map(mapStudentToExcelExport);
+
+    return this.excelService.exportStudents(mapped, locale);
+  }
+
+  async importFromExcel(
+    currentUser: JwtPayload,
+    fileBuffer: Buffer,
+    locale: SupportedLocale = 'fa',
+    instituteId?: string,
+    defaultBranchId?: string,
+  ): Promise<ExcelImportResult> {
+    const targetInstituteId =
+      currentUser.role === ROLES.SUPER_ADMIN && instituteId
+        ? instituteId
+        : currentUser.instituteId;
+
+    if (!targetInstituteId) {
+      throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
+    }
+
+    const rawRows = this.excelService.parseStudentRows(fileBuffer, locale);
+    if (rawRows.length === 0) {
+      const message =
+        locale === 'fa'
+          ? 'فایل اکسل ارسالی خالی است یا ساختار نامعتبر دارد'
+          : 'The uploaded Excel file is empty or has an invalid structure';
+      return {
+        totalRows: 0,
+        importedCount: 0,
+        failedCount: 0,
+        errors: [{ row: 1, message }],
+      };
+    }
+
+    const [existingUsers, instituteCourses, instituteBranches] =
+      await Promise.all([
+        this.prisma.user.findMany({
+          where: { instituteId: targetInstituteId },
+          select: { phone: true },
+        }),
+        this.prisma.course.findMany({
+          where: { instituteId: targetInstituteId },
+          select: { id: true, title: true },
+        }),
+        this.prisma.branch.findMany({
+          where: { instituteId: targetInstituteId, isActive: true },
+          select: { id: true, name: true },
+        }),
+      ]);
+
+    const existingPhones = new Set(existingUsers.map((u) => u.phone));
+    const courseMap = new Map(
+      instituteCourses.map((c) => [normalizePersianText(c.title), c.id]),
+    );
+    const branchMap = new Map(
+      instituteBranches.map((b) => [normalizePersianText(b.name), b.id]),
+    );
+    const validBranchNames = instituteBranches
+      .map((b) => b.name)
+      .join(locale === 'fa' ? '، ' : ', ');
+    const fallbackBranchId =
+      defaultBranchId && instituteBranches.some((b) => b.id === defaultBranchId)
+        ? defaultBranchId
+        : instituteBranches.length === 1
+          ? instituteBranches[0].id
+          : undefined;
+
+    const seenPhonesInBatch = new Set<string>();
+    const validRowsToInsert: ValidStudentImportRow[] = [];
+
+    const errors: ExcelImportError[] = [];
+
+    for (let i = 0; i < rawRows.length; i++) {
+      const rowNumber = i + 2;
+      const raw = rawRows[i];
+
+      const parseResult = StudentImportRowSchema.safeParse(raw);
+      if (!parseResult.success) {
+        errors.push({
+          row: rowNumber,
+          phone: raw.phone || undefined,
+          message: parseResult.error.errors.map((e) => e.message).join('، '),
+        });
+        continue;
+      }
+
+      const row = parseResult.data;
+
+      if (seenPhonesInBatch.has(row.phone)) {
+        errors.push({
+          row: rowNumber,
+          phone: row.phone,
+          message:
+            locale === 'fa'
+              ? `شماره موبایل ${row.phone} در این فایل تکراری است`
+              : `Phone number ${row.phone} is duplicated in this file`,
+        });
+        continue;
+      }
+
+      if (existingPhones.has(row.phone)) {
+        errors.push({
+          row: rowNumber,
+          phone: row.phone,
+          message:
+            locale === 'fa'
+              ? 'فراگیری با این شماره تماس در این آموزشگاه قبلاً ثبت شده است'
+              : 'A student with this phone number already exists in this institute',
+        });
+        continue;
+      }
+
+      seenPhonesInBatch.add(row.phone);
+
+      let courseId: string | undefined = undefined;
+      if (row.currentAllowedCourseTitle) {
+        courseId = courseMap.get(
+          normalizePersianText(row.currentAllowedCourseTitle),
+        );
+        if (!courseId) {
+          errors.push({
+            row: rowNumber,
+            phone: row.phone,
+            message:
+              locale === 'fa'
+                ? `دوره‌ای با عنوان "${row.currentAllowedCourseTitle}" در این آموزشگاه یافت نشد`
+                : `A course with title "${row.currentAllowedCourseTitle}" was not found in this institute`,
+          });
+          continue;
+        }
+      }
+
+      const { branchId, error: branchError } = resolveBranchId(
+        row.branchName,
+        branchMap,
+        fallbackBranchId,
+        validBranchNames,
+        locale,
+      );
+      if (branchError) {
+        errors.push({
+          row: rowNumber,
+          phone: row.phone,
+          message: branchError,
+        });
+        continue;
+      }
+
+      const parsedBirthDate = parseBirthDate(row.birthDate);
+
+      const rawPassword = row.password || row.phone;
+      const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+      validRowsToInsert.push({
+        instituteId: targetInstituteId,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        phone: row.phone,
+        nationalCode: row.nationalCode || undefined,
+        currentAllowedCourseId: courseId,
+        branchId,
+        fatherName: row.fatherName || undefined,
+        gender: parseGender(row.gender),
+        birthDate: parsedBirthDate,
+        emergencyPhone: row.emergencyPhone || undefined,
+        address: row.address || undefined,
+        schoolShift: parseShift(row.schoolShift),
+        dayPreference: parseDayPref(row.dayPreference),
+        password: hashedPassword,
+      });
+    }
+
+    if (validRowsToInsert.length > 0) {
+      await this.prisma.$transaction(
+        validRowsToInsert.map((item) =>
+          this.prisma.user.create({
+            data: {
+              instituteId: item.instituteId,
+              branchId: item.branchId,
+              currentAllowedCourseId: item.currentAllowedCourseId,
+              firstName: item.firstName,
+              lastName: item.lastName,
+              phone: item.phone,
+              nationalCode: item.nationalCode,
+              password: item.password,
+              role: ROLES.STUDENT,
+              isActive: true,
+              studentProfile: {
+                create: {
+                  fatherName: item.fatherName,
+                  gender: item.gender,
+                  birthDate: item.birthDate,
+                  emergencyPhone: item.emergencyPhone,
+                  address: item.address,
+                  schoolShift: item.schoolShift,
+                  dayPreference: item.dayPreference,
+                },
+              },
+            },
+          }),
+        ),
+      );
+
+      await this.importAvailabilityService.seedImportedStudentsAvailability(
+        targetInstituteId,
+        validRowsToInsert.map((r) => r.phone),
+      );
+    }
+
+    return {
+      totalRows: rawRows.length,
+      importedCount: validRowsToInsert.length,
+      failedCount: errors.length,
+      errors,
+    };
+  }
+}

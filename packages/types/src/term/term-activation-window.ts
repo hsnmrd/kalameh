@@ -115,6 +115,39 @@ export function isTermPostActivationPassed(
   return nowMs > postActivationMs
 }
 
+export interface TermClassCreationEligibilityInput {
+  startDate: Date | string
+  endDate: Date | string
+  classesCount?: number | null
+}
+
+/**
+ * Checks whether a term is eligible for class creation:
+ * 1. Current time is within the standard activation window:
+ *    [startDate - 7 days, startDate + 7 days].
+ * 2. OR current time is after activation (now >= startDate - 7 days),
+ *    the term has no classes (classesCount === 0), and current time
+ *    is on or before the end of the term (now <= endDate at 23:59:59.999).
+ *
+ * This allows institutes that onboard mid-term to create classes
+ * for a term that has already commenced but contains no classes yet.
+ */
+export function isTermEligibleForClassCreation(
+  term: TermClassCreationEligibilityInput,
+  now: Date = new Date()
+): boolean {
+  if (isTermInActivationWindow(term.startDate, now)) {
+    return true
+  }
+
+  const hasNoClasses = (term.classesCount ?? 0) === 0
+  const isBeforeOrOnEndDate =
+    now.getTime() <= toEndOfDay(term.endDate).getTime()
+  const isActivated = isTermActivated(term.startDate, now)
+
+  return hasNoClasses && isActivated && isBeforeOrOnEndDate
+}
+
 // Aliases for "Opening" terminology
 export type TermOpeningWindow = TermActivationWindow
 export const getTermOpeningDate = getTermActivationDate
@@ -122,3 +155,4 @@ export const getTermPostOpeningDate = getTermPostActivationDate
 export const getTermOpeningWindow = getTermActivationWindow
 export const isTermOpened = isTermActivated
 export const isTermInOpeningWindow = isTermInActivationWindow
+export const isTermEligibleForClassOpening = isTermEligibleForClassCreation

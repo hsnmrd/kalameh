@@ -167,6 +167,114 @@ html[lang^="fa"],
   animation: calendar-card-shake 0.38s ease-in-out infinite;
 }
 
+/* Toast Progress Animation */
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Toast Progress Track */
+[data-sonner-toast]:not([data-type="loading"]) [data-content]::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background-color: var(--toast-progress-track, var(--muted-foreground));
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Toast Progress Bar (Tiny Linear Countdown) */
+[data-sonner-toast]:not([data-type="loading"]) [data-content]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background-color: var(--toast-progress-bar, var(--primary));
+  opacity: 0.95;
+  transform-origin: left;
+  animation: toast-progress var(--toast-duration, 4000ms) linear forwards;
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* In RTL (Persian), countdown depletes towards the right */
+[dir="rtl"]
+  [data-sonner-toast]:not([data-type="loading"])
+  [data-content]::after,
+[data-sonner-toaster][dir="rtl"]
+  [data-sonner-toast]:not([data-type="loading"])
+  [data-content]::after,
+html[dir="rtl"]
+  [data-sonner-toast]:not([data-type="loading"])
+  [data-content]::after {
+  transform-origin: right;
+}
+
+/* Pause progress bar countdown when hovering the toast or toaster */
+[data-sonner-toast]:hover [data-content]::after,
+[data-sonner-toaster]:hover [data-sonner-toast] [data-content]::after {
+  animation-play-state: paused;
+}
+
+/* Status-specific progress bar colors */
+[data-sonner-toast][data-type="success"] {
+  --toast-progress-bar: var(--success);
+  --toast-progress-track: var(--success);
+}
+
+[data-sonner-toast][data-type="error"] {
+  --toast-progress-bar: var(--destructive);
+  --toast-progress-track: var(--destructive);
+}
+
+[data-sonner-toast][data-type="warning"] {
+  --toast-progress-bar: var(--warning);
+  --toast-progress-track: var(--warning);
+}
+
+[data-sonner-toast][data-type="info"] {
+  --toast-progress-bar: var(--primary);
+  --toast-progress-track: var(--primary);
+}
+
+[data-sonner-toast][data-type="default"],
+[data-sonner-toast][data-type="normal"] {
+  --toast-progress-bar: var(--primary);
+  --toast-progress-track: var(--muted-foreground);
+}
+
+/* Hide progress bar for loading or infinite duration toasts */
+[data-sonner-toast][data-type="loading"] [data-content]::before,
+[data-sonner-toast][data-type="loading"] [data-content]::after,
+[data-sonner-toast][data-duration="Infinity"] [data-content]::before,
+[data-sonner-toast][data-duration="Infinity"] [data-content]::after,
+[data-sonner-toast][style*="--toast-duration: 0ms"] [data-content]::before,
+[data-sonner-toast][style*="--toast-duration: 0ms"] [data-content]::after {
+  display: none !important;
+}
+
+/* Accessibility: reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toast] [data-content]::after {
+    animation: none;
+    transform: none;
+    opacity: 0.5;
+  }
+}
+
+/* Ensure data-content stays static so pseudo-elements span the full toast bottom */
+[data-sonner-toast] [data-content] {
+  position: static;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

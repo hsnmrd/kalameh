@@ -70,7 +70,7 @@ describe("ClassDetailsModal Component", () => {
     expect(screen.getByText(/#۲/i)).toBeInTheDocument()
   })
 
-  it("should call onEdit and onClose when edit button is clicked", () => {
+  it("should call onEdit without closing details modal when edit button is clicked", () => {
     const handleEdit = vi.fn()
     const handleClose = vi.fn()
 
@@ -90,11 +90,11 @@ describe("ClassDetailsModal Component", () => {
     const editBtn = screen.getByText(/ویرایش کلاس/i)
     fireEvent.click(editBtn)
 
-    expect(handleClose).toHaveBeenCalled()
+    expect(handleClose).not.toHaveBeenCalled()
     expect(handleEdit).toHaveBeenCalledWith(mockClass)
   })
 
-  it("should call onDelete and onClose when delete button is clicked", () => {
+  it("should call onDelete without closing details modal when delete button is clicked", () => {
     const handleDelete = vi.fn()
     const handleClose = vi.fn()
 
@@ -114,7 +114,7 @@ describe("ClassDetailsModal Component", () => {
     const deleteBtn = screen.getByText(/حذف کلاس|delete class/i)
     fireEvent.click(deleteBtn)
 
-    expect(handleClose).toHaveBeenCalled()
+    expect(handleClose).not.toHaveBeenCalled()
     expect(handleDelete).toHaveBeenCalledWith(mockClass)
   })
 })

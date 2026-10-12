@@ -73,13 +73,13 @@ describe('MVP-021 SchedulingUnresolvedRequirementService', () => {
     });
   });
 
-  it('maps a blocking preflight issue to a stable root reason', () => {
+  it('maps a preflight warning to a stable root reason', () => {
     const result = service.evaluate({
       ...baseInput,
       preflightIssues: [
         {
           code: 'COURSE_WITHOUT_QUALIFIED_TEACHER',
-          severity: 'BLOCKING',
+          severity: 'WARNING',
           scope: 'COURSE',
           entityId: ids.course,
           context: {},

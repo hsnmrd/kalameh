@@ -120,7 +120,7 @@ describe("SetupFlow Component", () => {
     )
 
     expect(screen.getByRole("link", { name: /تعیین سطح/i })).toBeInTheDocument()
-    expect(screen.getByText("پیشرفت کلی: ۴۰٪ (۲ از ۵ گام)")).toBeInTheDocument()
+    expect(screen.queryByText(/پیشرفت کلی/i)).not.toBeInTheDocument()
     // Exactly ONE step is current
     expect(screen.getAllByText("گام فعلی").length).toBe(1)
   })
@@ -202,9 +202,10 @@ describe("SetupFlow Component", () => {
       </QueryClientProvider>
     )
 
-    // Completed steps (Step 1 and 2) show simple "مشاهده" and "تکمیل شد"
-    const completedBadges = screen.getAllByText("تکمیل شد")
-    expect(completedBadges.length).toBe(2)
+    // Completed steps (Step 1 and 2) show simple "مشاهده" and omit "تکمیل شد" badge
+    const viewButtons = screen.getAllByRole("link", { name: /مشاهده/i })
+    expect(viewButtons.length).toBeGreaterThanOrEqual(2)
+    expect(screen.queryByText("تکمیل شد")).not.toBeInTheDocument()
 
     // The description of completed step 1 should NOT be shown in the compact card
     expect(
@@ -249,12 +250,85 @@ describe("SetupFlow Component", () => {
       </QueryClientProvider>
     )
 
-    expect(
-      screen.getByText("پیشرفت کلی: ۱۰۰٪ (۵ از ۵ گام)")
-    ).toBeInTheDocument()
-    const allCompletedBadges = screen.getAllByText("تکمیل شد")
-    expect(allCompletedBadges.length).toBe(5)
+    expect(screen.queryByText(/پیشرفت کلی/i)).not.toBeInTheDocument()
+    const allViewButtons = screen.getAllByRole("link", { name: /مشاهده/i })
+    expect(allViewButtons.length).toBe(5)
+    expect(screen.queryByText("تکمیل شد")).not.toBeInTheDocument()
     // No step is current when all are completed
     expect(screen.queryByText("گام فعلی")).not.toBeInTheDocument()
+  })
+
+  it("applies desktop half width, borderless active card, and warning pending cards", () => {
+    // Step 1 done, Step 2 current, Step 3 pending
+    queryClient.setQueryData(
+      operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ id: "p-1" }]
+    )
+    queryClient.setQueryData(
+      termsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      studentsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      schedulingResource.terms.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      classesResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+
+    const { container } = render(
+      <QueryClientProvider client={queryClient}>
+        <SetupFlow instituteId={mockInstituteId} classesCount={0} />
+      </QueryClientProvider>
+    )
+
+    // 1. Container restricts width on desktop (lg:w-1/2)
+    const rootElement = container.firstElementChild as HTMLElement
+    expect(rootElement.className).toContain("lg:w-1/2")
+
+    // 2. Active card has NO border-2 or ring-4
+    const currentBadge = screen.getByText("گام فعلی")
+    const activeCard = currentBadge.closest(
+      "div[class*='bg-card']"
+    ) as HTMLElement
+    expect(activeCard).toBeInTheDocument()
+    expect(activeCard.className).not.toContain("border-2")
+    expect(activeCard.className).not.toContain("ring-4")
+
+    // 3. Pending items have warning accents and low opacity
+    const pendingBadges = screen.getAllByText("در انتظار")
+    expect(pendingBadges.length).toBeGreaterThan(0)
+    const pendingCard = pendingBadges[0].closest(
+      "div.rounded-2xl"
+    ) as HTMLElement
+    expect(pendingCard).toBeInTheDocument()
+    expect(pendingCard.className).toContain("opacity-50")
+    expect(pendingCard.className).toContain("bg-warning/5")
+    expect(pendingCard.className).toContain("border-warning/20")
+
+    // 4. Vertical carousel arrows (Previous/Next) exist
+    expect(
+      screen.getByRole("button", { name: /previous slide/i })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: /next slide/i })
+    ).toBeInTheDocument()
+
+    // 5. Carousel items occupy 80% height to leave 10% peek for prev & next
+    const carouselItems = container.querySelectorAll(
+      "[data-slot='carousel-item']"
+    )
+    expect(carouselItems.length).toBe(5)
+    carouselItems.forEach((item) => {
+      expect(item.className).toContain("basis-[80%]")
+      expect(item.className).toContain("h-[80%]")
+    })
   })
 })

@@ -52,6 +52,7 @@ describe('Scheduling demand', () => {
 
     const result = await service.calculateDemand(currentUser, {
       termId: 'term-1',
+      branchId: 'branch-1',
       maxStudentsPerClass: 20,
     });
 
@@ -94,7 +95,7 @@ describe('Scheduling demand', () => {
     expect(prisma.classroom.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          OR: [{ branchId: 'branch-1' }, { branchId: null }],
+          branchId: 'branch-1',
         }),
       }),
     );
@@ -114,6 +115,7 @@ describe('Scheduling demand', () => {
 
     const result = await service.calculateDemand(currentUser, {
       termId: 'term-1',
+      branchId: 'branch-1',
       maxStudentsPerClass: 14,
     });
 
@@ -140,6 +142,7 @@ describe('Scheduling demand', () => {
 
       const result = await service.calculateDemand(currentUser, {
         termId: 'term-1',
+        branchId: 'branch-1',
       });
 
       expect(result.totalEligibleStudents).toBe(0);
@@ -166,7 +169,10 @@ describe('Scheduling demand', () => {
     const service = new SchedulingDemandCalculationService(prisma as never);
 
     await expect(
-      service.calculateDemand(currentUser, { termId: 'term-2' }),
+      service.calculateDemand(currentUser, {
+        termId: 'term-2',
+        branchId: 'branch-1',
+      }),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
@@ -226,6 +232,7 @@ describe('Scheduling demand', () => {
 
       const result = await service.applyDemand(currentUser, {
         termId: 'term-1',
+        branchId: 'branch-1',
         acknowledgeShortfall: false,
         items: [
           {
@@ -247,7 +254,7 @@ describe('Scheduling demand', () => {
         where: {
           instituteId: 'institute-1',
           termId: 'term-1',
-          OR: [{ branchId: 'branch-1' }, { branchId: null }],
+          branchId: 'branch-1',
           isActive: true,
         },
         data: { isActive: false },
@@ -276,6 +283,7 @@ describe('Scheduling demand', () => {
       await expect(
         service.applyDemand(currentUser, {
           termId: 'term-1',
+          branchId: 'branch-1',
           acknowledgeShortfall: false,
           items: [
             {
@@ -300,6 +308,7 @@ describe('Scheduling demand', () => {
       await expect(
         service.applyDemand(currentUser, {
           termId: 'term-1',
+          branchId: 'branch-1',
           acknowledgeShortfall: true,
           items: [
             {

@@ -248,10 +248,7 @@ export class SchedulingPlanReviewService {
     ]);
     if (
       (classroom && classroom.capacity < merged.capacity) ||
-      (classroom &&
-        merged.branchId !== null &&
-        classroom.branchId !== null &&
-        classroom.branchId !== merged.branchId)
+      (classroom && classroom.branchId !== merged.branchId)
     ) {
       throw new ConflictException('proposal classroom is incompatible');
     }

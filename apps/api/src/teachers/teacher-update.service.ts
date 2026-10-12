@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { ROLES, type JwtPayload, type SupportedLocale } from '@workspace/types';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -88,6 +92,66 @@ export class TeacherUpdateService {
       dto.availabilities !== undefined ||
       courseIds !== undefined;
 
+    let defaultBranchId: string | null = existing.branchId;
+    if (dto.availabilities && dto.availabilities.length > 0) {
+      const explicitBranchIds = Array.from(
+        new Set(
+          dto.availabilities
+            .map((s) => s.branchId)
+            .filter((b): b is string => !!b),
+        ),
+      );
+      if (explicitBranchIds.length > 0) {
+        const foundBranches = await this.prisma.branch.findMany({
+          where: {
+            id: { in: explicitBranchIds },
+            instituteId: existing.instituteId,
+          },
+          select: { id: true },
+        });
+        if (foundBranches.length !== explicitBranchIds.length) {
+          throw new BadRequestException(
+            this.i18n.t('branches.branchNotFound', locale),
+          );
+        }
+      }
+
+      const hasMissingBranch = dto.availabilities.some((s) => !s.branchId);
+      if (hasMissingBranch && !defaultBranchId) {
+        const firstBranch = await this.prisma.branch.findFirst({
+          where: { instituteId: existing.instituteId, isActive: true },
+          select: { id: true },
+        });
+        if (!firstBranch) {
+          throw new BadRequestException(
+            this.i18n.t('branches.branchNotFound', locale),
+          );
+        }
+        defaultBranchId = firstBranch.id;
+      }
+    }
+
+    if (dto.availabilities && dto.availabilities.length > 0) {
+      for (let i = 0; i < dto.availabilities.length; i++) {
+        const a = dto.availabilities[i];
+        if (a.startTime >= a.endTime) {
+          throw new BadRequestException(
+            this.i18n.t('teachers.availabilitySlotConflict', locale),
+          );
+        }
+        for (let j = i + 1; j < dto.availabilities.length; j++) {
+          const b = dto.availabilities[j];
+          if (a.dayOfWeek === b.dayOfWeek) {
+            if (a.startTime < b.endTime && a.endTime > b.startTime) {
+              throw new BadRequestException(
+                this.i18n.t('teachers.availabilitySlotConflict', locale),
+              );
+            }
+          }
+        }
+      }
+    }
+
     const updated = await this.prisma.$transaction(async (tx) => {
       if (hasProfileUpdate) {
         const profile = await tx.teacherProfile.upsert({
@@ -115,6 +179,7 @@ export class TeacherUpdateService {
             await tx.teacherAvailability.createMany({
               data: dto.availabilities.map((slot) => ({
                 teacherProfileId: profile.id,
+                branchId: slot.branchId || defaultBranchId!,
                 dayOfWeek: slot.dayOfWeek,
                 startTime: slot.startTime,
                 endTime: slot.endTime,

@@ -76,6 +76,8 @@
     "title": "برنامه زمان‌های آزاد هفتگی",
     "modalTitle": "برنامه زمان‌های آزاد هفتگی",
     "modalDescription": "تعریف پارت‌های زمانی آزاد برای {name} در روزهای زوج و فرد جهت چینش کلاس‌ها",
+    "branch": "شعبه",
+    "selectBranch": "انتخاب شعبه",
     "save": "ذخیره",
     "updateSuccess": "برنامه زمان‌های آزاد استاد با موفقیت به‌روزرسانی شد",
     "updateError": "خطا در به‌روزرسانی زمان‌های آزاد استاد",
@@ -111,7 +113,9 @@
     "trackCollapsedCount": "{count} کلاس آزاد",
     "trackCollapsedEmpty": "بدون کلاس آزاد",
     "collapseTrack": "بستن بخش",
-    "expandTrack": "باز کردن بخش"
+    "expandTrack": "باز کردن بخش",
+    "occupiedInOtherBranch": "رزرو در {branch}",
+    "occupiedInOtherBranchTooltip": "استاد در این زمان در {branch} دارای زمان آزاد است و نمی‌تواند همزمان در دو شعبه حضور داشته باشد."
   },
   "qualifications": {
     "title": "سطح‌های قابل تدریس",
@@ -162,5 +166,31 @@
     "cancel": "انصراف",
     "success": "استاد با موفقیت حذف یا غیرفعال شد",
     "error": "خطا در حذف استاد"
+  },
+  "importModal": {
+    "trigger": "ورود از اکسل",
+    "title": "ورود گروهی اساتید از اکسل",
+    "description": "با استفاده از فایل اکسل، اطلاعات اساتید را به صورت دسته‌ای وارد کنید.",
+    "downloadTemplate": "دانلود فایل نمونه اکسل",
+    "dragDropText": "فایل اکسل (.xlsx یا .csv) را انتخاب کنید یا اینجا بکشید",
+    "uploadHint": "فرمت‌های پشتیبانی شده: XLSX و CSV",
+    "selectedFile": "فایل انتخاب شده:",
+    "submit": "شروع ثبت",
+    "uploading": "در حال ثبت...",
+    "cancel": "انصراف",
+    "resultTitle": "نتیجه پردازش فایل اکسل",
+    "totalRows": "کل سطرها: {count}",
+    "importedRows": "وارد شده با موفقیت: {count}",
+    "failedRows": "خطادار: {count}",
+    "errorListTitle": "جزئیات خطاهای سطرها:",
+    "rowNumber": "سطر {row}",
+    "successMessage": "تعداد {count} استاد با موفقیت در سامانه ثبت شدند.",
+    "close": "تأیید و بستن",
+    "templateDownloadError": "خطا در دانلود فایل نمونه"
+  },
+  "export": {
+    "trigger": "خروجی اکسل",
+    "exporting": "در حال آماده‌سازی فایل اکسل...",
+    "error": "خطا در دریافت خروجی اکسل"
   }
 }

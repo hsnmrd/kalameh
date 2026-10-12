@@ -1,5 +1,5 @@
 import {
-  isTermInActivationWindow,
+  isTermEligibleForClassCreation,
   type SchedulingTermSummaryDto,
 } from "@workspace/types"
 
@@ -18,18 +18,27 @@ export function toEndOfDayMs(date: Date | string): number {
 /**
  * Determines whether a term is eligible for scheduling:
  * 1. Must be active (term.isActive !== false).
- * 2. Must be within the term activation window ([startDate - 7 days, startDate + 7 days]).
- * Terms starting > 7 days in the future or terms whose activation window has passed (> startDate + 7 days) are NOT eligible.
+ * 2. Must be within the term activation window ([startDate - 7 days, startDate + 7 days])
+ *    OR have 0 classes and current date is on/before term endDate.
  */
 export function isTermEligibleForScheduling(
-  term: Pick<SchedulingTermSummaryDto, "startDate" | "endDate" | "isActive">,
+  term: Pick<SchedulingTermSummaryDto, "startDate" | "endDate" | "isActive"> & {
+    classesCount?: number | null
+  },
   now: Date = new Date()
 ): boolean {
   if (term.isActive === false) {
     return false
   }
 
-  return isTermInActivationWindow(term.startDate, now)
+  return isTermEligibleForClassCreation(
+    {
+      startDate: term.startDate,
+      endDate: term.endDate,
+      classesCount: term.classesCount,
+    },
+    now
+  )
 }
 
 /**

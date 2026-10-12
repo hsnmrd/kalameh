@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Clock, Edit2, Trash2, AlertTriangle } from "lucide-react"
+import { Clock, Edit2, Trash2, AlertTriangle, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -14,6 +14,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
 import {
   PERMISSIONS,
@@ -29,6 +30,7 @@ export interface OperatingPhasesTableProps {
   isLoading: boolean
   onEdit: (phase: OperatingPhaseWithSlots) => void
   onDelete: (phase: OperatingPhaseWithSlots) => void
+  onAdd?: () => void
 }
 
 export function OperatingPhasesTable({
@@ -36,6 +38,7 @@ export function OperatingPhasesTable({
   isLoading,
   onEdit,
   onDelete,
+  onAdd,
 }: OperatingPhasesTableProps) {
   const t = useTranslations("operating-phases")
 
@@ -225,6 +228,23 @@ export function OperatingPhasesTable({
           <EmptyTitle>{t("noPhases")}</EmptyTitle>
           <EmptyDescription>{t("noPhasesDescription")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_OPERATING_PHASES}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addPhase")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }

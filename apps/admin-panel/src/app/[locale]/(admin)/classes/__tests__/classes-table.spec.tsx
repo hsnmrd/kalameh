@@ -77,4 +77,69 @@ describe("ClassesTable Component", () => {
     fireEvent.click(deleteBtn)
     expect(handleDelete).toHaveBeenCalledWith(mockClasses[0])
   })
+
+  it("should render both primary smart scheduling and outline addClass buttons in empty state", () => {
+    const handleAdd = vi.fn()
+    const handleScheduling = vi.fn()
+
+    render(
+      <ClassesTable
+        classes={[]}
+        isLoading={false}
+        onEdit={vi.fn()}
+        onAdd={handleAdd}
+        onScheduling={handleScheduling}
+      />
+    )
+
+    const schedulingBtn = screen.getByRole("button", {
+      name: /تقویم آموزشی هوشمند|smart academic calendar|زمان‌بندی هوشمند|scheduling/i,
+    })
+    const addBtn = screen.getByRole("button", {
+      name: /تعریف کلاس جدید|افزودن کلاس|addClass/i,
+    })
+
+    expect(schedulingBtn).toBeInTheDocument()
+    expect(addBtn).toBeInTheDocument()
+
+    fireEvent.click(schedulingBtn)
+    expect(handleScheduling).toHaveBeenCalledTimes(1)
+
+    fireEvent.click(addBtn)
+    expect(handleAdd).toHaveBeenCalledTimes(1)
+  })
+
+  it("should apply low opacity and ended badge to classes whose duration is finished", () => {
+    const finishedClass: ClassDto = {
+      ...mockClasses[0]!,
+      id: "class-finished",
+      title: "گروه B",
+      sessionDates: ["2026-01-01", "2026-01-10"],
+
+      term: {
+        id: "term-past",
+        title: "ترم گذشته",
+        isActive: true,
+        endDate: "2026-01-15",
+      },
+    }
+
+    const { container } = render(
+      <ClassesTable
+        classes={[mockClasses[0]!, finishedClass]}
+        isLoading={false}
+        onEdit={vi.fn()}
+      />
+    )
+
+    const rows = container.querySelectorAll("tbody tr")
+    expect(rows).toHaveLength(2)
+
+    // First class is active (not finished) -> no opacity-60
+    expect(rows[0]?.className).not.toContain("opacity-60")
+
+    // Second class is finished -> has opacity-60
+    expect(rows[1]?.className).toContain("opacity-60")
+    expect(screen.getByText(/پایان‌یافته|finished/i)).toBeInTheDocument()
+  })
 })

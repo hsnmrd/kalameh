@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl"
 import { CalendarCheck, CalendarX, ChevronDown, Coffee } from "lucide-react"
 import {
   isAvailabilityCoveringSlot,
+  type OccupiedSlotInfo,
   type PhaseBreakInfo,
   type PhaseGeneratedSlot,
   type TeacherAvailabilityInput,
@@ -23,6 +24,7 @@ export interface TrackSlotRowProps {
   slots: PhaseGeneratedSlot[]
   breakInfo?: PhaseBreakInfo
   value: TeacherAvailabilityInput[]
+  occupiedSlots?: OccupiedSlotInfo[]
   onToggleSlot: (days: WeekDay[], slot: PhaseGeneratedSlot) => void
   onSelectAllTrack: (days: WeekDay[], slots: PhaseGeneratedSlot[]) => void
   onClearTrack: (days: WeekDay[]) => void
@@ -37,6 +39,7 @@ export function TrackSlotRow({
   slots,
   breakInfo,
   value,
+  occupiedSlots = [],
   onToggleSlot,
   onSelectAllTrack,
   onClearTrack,
@@ -58,8 +61,28 @@ export function TrackSlotRow({
     [days, value]
   )
 
+  const getOccupiedBranchName = React.useCallback(
+    (slot: PhaseGeneratedSlot) => {
+      if (!occupiedSlots || occupiedSlots.length === 0 || days.length === 0) {
+        return null
+      }
+      const match = occupiedSlots.find(
+        (occ) =>
+          days.includes(occ.dayOfWeek as WeekDay) &&
+          isAvailabilityCoveringSlot(occ, slot)
+      )
+      return match?.branchName ?? null
+    },
+    [occupiedSlots, days]
+  )
+
+  const selectableSlots = React.useMemo(() => {
+    return slots.filter((slot) => !getOccupiedBranchName(slot))
+  }, [slots, getOccupiedBranchName])
+
   const isAllSelected =
-    slots.length > 0 && slots.every((slot) => isSlotSelected(slot))
+    selectableSlots.length > 0 &&
+    selectableSlots.every((slot) => isSlotSelected(slot))
 
   const hasAnySelected = slots.some((slot) =>
     days.some((day) =>
@@ -161,7 +184,7 @@ export function TrackSlotRow({
                   disabled={disabled}
                   onClick={(e) => {
                     e.stopPropagation()
-                    onSelectAllTrack(days, slots)
+                    onSelectAllTrack(days, selectableSlots)
                   }}
                   className="h-7 px-2.5 text-xs text-muted-foreground hover:text-primary"
                 >
@@ -203,6 +226,7 @@ export function TrackSlotRow({
                 slots={shift1Slots}
                 days={days}
                 isSlotSelected={isSlotSelected}
+                getOccupiedBranchName={getOccupiedBranchName}
                 onToggleSlot={onToggleSlot}
                 disabled={disabled}
               />
@@ -226,6 +250,7 @@ export function TrackSlotRow({
                 slots={shift2Slots}
                 days={days}
                 isSlotSelected={isSlotSelected}
+                getOccupiedBranchName={getOccupiedBranchName}
                 onToggleSlot={onToggleSlot}
                 disabled={disabled}
               />
@@ -236,6 +261,7 @@ export function TrackSlotRow({
               slots={slots}
               days={days}
               isSlotSelected={isSlotSelected}
+              getOccupiedBranchName={getOccupiedBranchName}
               onToggleSlot={onToggleSlot}
               disabled={disabled}
             />

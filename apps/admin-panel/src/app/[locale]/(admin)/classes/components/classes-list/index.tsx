@@ -2,8 +2,17 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Layers, Edit2, GraduationCap, Eye, Trash2 } from "lucide-react"
+import {
+  Layers,
+  Edit2,
+  GraduationCap,
+  Eye,
+  Trash2,
+  Plus,
+  CalendarClock,
+} from "lucide-react"
 import { useRouter } from "@/i18n/routing"
+import { Button } from "@workspace/ui/components/button"
 import {
   MobileList,
   MobileListItem,
@@ -25,13 +34,16 @@ import {
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  EmptyContent,
 } from "@workspace/ui/components/empty"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { formatNumber, cn } from "@workspace/ui/lib/utils"
 import {
   PERMISSIONS,
   isTermInActivationWindow,
+  isClassDone,
   type ClassDto,
 } from "@workspace/types"
+
 import { PermissionGuard } from "@/components/permission-guard"
 
 export interface ClassesListProps {
@@ -40,6 +52,8 @@ export interface ClassesListProps {
   onEdit: (cls: ClassDto) => void
   onViewDetails?: (cls: ClassDto) => void
   onDelete?: (cls: ClassDto) => void
+  onAdd?: () => void
+  onScheduling?: () => void
 }
 
 export function ClassesList({
@@ -48,6 +62,8 @@ export function ClassesList({
   onEdit,
   onViewDetails,
   onDelete,
+  onAdd,
+  onScheduling,
 }: ClassesListProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -71,6 +87,46 @@ export function ClassesList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {(onScheduling || onAdd) && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSES}
+              mode="hide"
+            >
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+                {onScheduling && (
+                  <Button
+                    type="button"
+                    onClick={onScheduling}
+                    className="cursor-pointer gap-2"
+                  >
+                    <CalendarClock className="size-5" />
+                    <span>{t("scheduling")}</span>
+                  </Button>
+                )}
+                {onAdd && (
+                  <Button
+                    type="button"
+                    variant={onScheduling ? "outline" : "default"}
+                    onClick={onAdd}
+                    className={`cursor-pointer gap-2 ${
+                      onScheduling
+                        ? "size-14 shrink-0 p-0 sm:w-auto sm:px-6"
+                        : ""
+                    }`}
+                    aria-label={t("addClass")}
+                    title={t("addClass")}
+                  >
+                    <Plus className="size-5" />
+                    <span className={onScheduling ? "hidden sm:inline" : ""}>
+                      {t("addClass")}
+                    </span>
+                  </Button>
+                )}
+              </div>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }
@@ -84,6 +140,7 @@ export function ClassesList({
         const isEditDisabled = Boolean(
           cls.term?.startDate && !isTermInActivationWindow(cls.term.startDate)
         )
+        const isDone = isClassDone(cls)
 
         return (
           <ContextMenu key={cls.id}>
@@ -97,13 +154,28 @@ export function ClassesList({
                   }
                 }}
                 isLast={index === classes.length - 1}
+                className={cn(
+                  isDone && "opacity-60 transition-opacity hover:opacity-80"
+                )}
               >
                 <MobileListItemIcon>
                   <Layers className="size-5" />
                 </MobileListItemIcon>
 
                 <MobileListItemContent
-                  primary={cls.title}
+                  primary={
+                    <div className="flex items-center gap-2">
+                      <span className="truncate">{cls.title}</span>
+                      {isDone && (
+                        <Badge
+                          variant="outline"
+                          className="shrink-0 border-border bg-muted/60 text-[10px] font-normal text-muted-foreground"
+                        >
+                          {t("table.ended")}
+                        </Badge>
+                      )}
+                    </div>
+                  }
                   secondary={
                     <div className="flex flex-col gap-0.5">
                       <span>{cls.course?.title || cls.term?.title || "-"}</span>

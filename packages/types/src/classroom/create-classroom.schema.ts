@@ -15,7 +15,7 @@ export const createCreateClassroomSchema = (msg?: {
       })
       .int()
       .min(1, msg?.capacityMin ? { message: msg.capacityMin } : undefined),
-    branchId: z.string().uuid().optional().nullable(),
+    branchId: z.string().uuid(),
     description: z.string().trim().optional().nullable(),
     instituteId: z.string().uuid().optional(),
     isActive: z.boolean().default(true).optional(),

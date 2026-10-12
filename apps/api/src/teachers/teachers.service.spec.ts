@@ -78,6 +78,9 @@ describe('TeachersService', () => {
       course: {
         findMany: jest.fn(),
       },
+      branch: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'branch-1' }),
+      },
       $transaction: jest.fn((callback) => callback(prisma)),
     };
 
@@ -434,22 +437,24 @@ describe('TeachersService', () => {
       prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);
       prisma.teacherAvailability.deleteMany.mockResolvedValue({ count: 1 });
       prisma.teacherAvailability.createMany.mockResolvedValue({ count: 2 });
-      prisma.teacherAvailability.findMany.mockResolvedValue([
-        {
-          id: 'avail-1',
-          teacherProfileId: 'profile-1',
-          dayOfWeek: 'SATURDAY',
-          startTime: '08:00',
-          endTime: '10:00',
-        },
-        {
-          id: 'avail-2',
-          teacherProfileId: 'profile-1',
-          dayOfWeek: 'MONDAY',
-          startTime: '08:00',
-          endTime: '10:00',
-        },
-      ]);
+      prisma.teacherAvailability.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            id: 'avail-1',
+            teacherProfileId: 'profile-1',
+            dayOfWeek: 'SATURDAY',
+            startTime: '08:00',
+            endTime: '10:00',
+          },
+          {
+            id: 'avail-2',
+            teacherProfileId: 'profile-1',
+            dayOfWeek: 'MONDAY',
+            startTime: '08:00',
+            endTime: '10:00',
+          },
+        ]);
 
       const result = await service.replaceAvailabilities(
         mockAdmin,
@@ -463,13 +468,14 @@ describe('TeachersService', () => {
       );
 
       expect(prisma.teacherAvailability.deleteMany).toHaveBeenCalledWith({
-        where: { teacherProfileId: 'profile-1' },
+        where: { teacherProfileId: 'profile-1', branchId: 'branch-1' },
       });
       expect(prisma.teacherAvailability.createMany).toHaveBeenCalledWith({
         data: [
           {
             teacherProfileId: 'profile-1',
             termId: null,
+            branchId: 'branch-1',
             dayOfWeek: 'SATURDAY',
             startTime: '08:00',
             endTime: '10:00',
@@ -477,6 +483,7 @@ describe('TeachersService', () => {
           {
             teacherProfileId: 'profile-1',
             termId: null,
+            branchId: 'branch-1',
             dayOfWeek: 'MONDAY',
             startTime: '08:00',
             endTime: '10:00',
@@ -496,24 +503,33 @@ describe('TeachersService', () => {
       prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);
       prisma.teacherAvailability.deleteMany.mockResolvedValue({ count: 1 });
       prisma.teacherAvailability.createMany.mockResolvedValue({ count: 1 });
-      prisma.teacherAvailability.findMany.mockResolvedValue([
-        {
-          id: 'avail-1',
-          teacherProfileId: 'profile-1',
-          termId: 'term-1',
-          dayOfWeek: 'SATURDAY',
-          startTime: '08:00',
-          endTime: '10:00',
-        },
-      ]);
+      prisma.teacherAvailability.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            id: 'avail-1',
+            teacherProfileId: 'profile-1',
+            termId: 'term-1',
+            dayOfWeek: 'SATURDAY',
+            startTime: '08:00',
+            endTime: '10:00',
+          },
+        ]);
 
+      const branchId = '22222222-2222-4222-8222-222222222222';
       const result = await service.replaceAvailabilities(
         mockAdmin,
         'teacher-1',
         {
           termId: '11111111-1111-4111-8111-111111111111',
+          branchId,
           availabilities: [
-            { dayOfWeek: 'SATURDAY', startTime: '08:00', endTime: '10:00' },
+            {
+              dayOfWeek: 'SATURDAY',
+              startTime: '08:00',
+              endTime: '10:00',
+              branchId,
+            },
           ],
         },
       );
@@ -522,6 +538,7 @@ describe('TeachersService', () => {
         where: {
           teacherProfileId: 'profile-1',
           termId: '11111111-1111-4111-8111-111111111111',
+          branchId,
         },
       });
       expect(prisma.teacherAvailability.createMany).toHaveBeenCalledWith({
@@ -529,6 +546,7 @@ describe('TeachersService', () => {
           {
             teacherProfileId: 'profile-1',
             termId: '11111111-1111-4111-8111-111111111111',
+            branchId,
             dayOfWeek: 'SATURDAY',
             startTime: '08:00',
             endTime: '10:00',
@@ -536,6 +554,59 @@ describe('TeachersService', () => {
         ],
       });
       expect(result).toHaveLength(1);
+    });
+
+    it('should reject availability slots that conflict with existing availability in another branch', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);
+      prisma.teacherAvailability.findMany.mockResolvedValueOnce([
+        {
+          id: 'avail-west',
+          teacherProfileId: 'profile-1',
+          branchId: 'branch-west',
+          dayOfWeek: 'SATURDAY',
+          startTime: '08:00',
+          endTime: '11:00',
+          branch: { id: 'branch-west', name: 'شعبه غرب' },
+        },
+      ]);
+
+      await expect(
+        service.replaceAvailabilities(mockAdmin, 'teacher-1', {
+          branchId: 'branch-central',
+          availabilities: [
+            {
+              dayOfWeek: 'SATURDAY',
+              startTime: '10:00',
+              endTime: '12:00',
+              branchId: 'branch-central',
+            },
+          ],
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should reject availability slots that overlap with each other in the payload', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);
+
+      await expect(
+        service.replaceAvailabilities(mockAdmin, 'teacher-1', {
+          branchId: 'branch-central',
+          availabilities: [
+            {
+              dayOfWeek: 'SATURDAY',
+              startTime: '08:00',
+              endTime: '10:00',
+              branchId: 'branch-central',
+            },
+            {
+              dayOfWeek: 'SATURDAY',
+              startTime: '09:00',
+              endTime: '11:00',
+              branchId: 'branch-central',
+            },
+          ],
+        }),
+      ).rejects.toThrow();
     });
   });
 
@@ -564,7 +635,15 @@ describe('TeachersService', () => {
 
       expect(result).toHaveLength(1);
       expect(prisma.teacherAvailability.findMany).toHaveBeenCalledWith({
-        where: { teacherProfileId: 'profile-1', termId: 'term-1' },
+        where: {
+          teacherProfileId: 'profile-1',
+          termId: 'term-1',
+          branch: { instituteId: 'inst-1' },
+        },
+        include: {
+          branch: { select: { id: true, name: true } },
+          term: { select: { id: true, title: true } },
+        },
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });
     });
@@ -595,7 +674,15 @@ describe('TeachersService', () => {
 
       expect(result).toHaveLength(1);
       expect(prisma.teacherAvailability.findMany).toHaveBeenLastCalledWith({
-        where: { teacherProfileId: 'profile-1', termId: null },
+        where: {
+          teacherProfileId: 'profile-1',
+          termId: null,
+          branch: { instituteId: 'inst-1' },
+        },
+        include: {
+          branch: { select: { id: true, name: true } },
+          term: { select: { id: true, title: true } },
+        },
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });
     });

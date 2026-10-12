@@ -4,37 +4,66 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Check, Clock } from "lucide-react"
 import type { StudentScheduleStatus } from "@workspace/types"
-import { Badge } from "@workspace/ui/components/badge"
+import { cn } from "@workspace/ui/lib/utils"
 
 export interface StudentScheduleStatusBadgeProps {
   scheduleStatus?: StudentScheduleStatus | null
+  showLabel?: boolean
+  className?: string
 }
 
 export function StudentScheduleStatusBadge({
   scheduleStatus,
+  showLabel = false,
+  className,
 }: StudentScheduleStatusBadgeProps) {
   const t = useTranslations("students")
+
+  if (!scheduleStatus) {
+    return (
+      <span className={cn("text-sm text-muted-foreground", className)}>—</span>
+    )
+  }
+
   const isComplete = scheduleStatus === "COMPLETE"
+  const label = isComplete
+    ? t("scheduleStatus.complete")
+    : t("scheduleStatus.incomplete")
+
+  const icon = isComplete ? (
+    <Check className="size-4 shrink-0 text-inherit" />
+  ) : (
+    <Clock className="size-4 shrink-0 text-inherit" />
+  )
+
+  if (showLabel) {
+    return (
+      <div
+        title={label}
+        aria-label={label}
+        className={cn(
+          "inline-flex items-center gap-1.5 text-xs font-medium",
+          isComplete ? "text-success" : "text-muted-foreground",
+          className
+        )}
+      >
+        {icon}
+        <span>{label}</span>
+      </div>
+    )
+  }
 
   return (
-    <Badge
-      variant="outline"
-      className={
-        isComplete
-          ? "gap-1 border-success/30 bg-success/15 text-success hover:bg-success/25"
-          : "gap-1 border-muted-foreground/30 bg-muted/40 text-muted-foreground hover:bg-muted/60"
-      }
-    >
-      {isComplete ? (
-        <Check className="size-3 text-inherit" />
-      ) : (
-        <Clock className="size-3 text-inherit" />
+    <span
+      title={label}
+      aria-label={label}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center",
+        isComplete ? "text-success" : "text-muted-foreground",
+        className
       )}
-      <span className="text-[11px] font-medium">
-        {isComplete
-          ? t("scheduleStatus.complete")
-          : t("scheduleStatus.incomplete")}
-      </span>
-    </Badge>
+    >
+      {icon}
+    </span>
   )
 }

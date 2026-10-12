@@ -3,7 +3,7 @@ import { z } from "zod"
 export const ClassroomSchema = z.object({
   id: z.string().uuid(),
   instituteId: z.string().uuid(),
-  branchId: z.string().uuid().nullable().optional(),
+  branchId: z.string().uuid(),
   name: z.string(),
   capacity: z.number(),
   description: z.string().nullable().optional(),

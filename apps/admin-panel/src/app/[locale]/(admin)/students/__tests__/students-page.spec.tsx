@@ -7,6 +7,7 @@ import {
   operatingPhasesResource,
   coursesResource,
   studentsResource,
+  termsResource,
 } from "@/lib/api"
 
 vi.mock("@/lib/stores", () => ({
@@ -39,6 +40,12 @@ vi.mock("@/lib/api", async (importOriginal) => {
     },
     studentsResource: {
       ...actual.studentsResource,
+      list: {
+        toQuery: vi.fn(),
+      },
+    },
+    termsResource: {
+      ...actual.termsResource,
       list: {
         toQuery: vi.fn(),
       },
@@ -86,6 +93,11 @@ describe("StudentsPage Operating Phase Requirement", () => {
 
     vi.mocked(studentsResource.list.toQuery).mockReturnValue({
       queryKey: ["students", "list"],
+      queryFn: async () => [],
+    } as any)
+
+    vi.mocked(termsResource.list.toQuery).mockReturnValue({
+      queryKey: ["terms", "list"],
       queryFn: async () => [],
     } as any)
   })
@@ -163,5 +175,132 @@ describe("StudentsPage Operating Phase Requirement", () => {
     expect(
       screen.queryByText("فاز زمانی تعریف نشده است")
     ).not.toBeInTheDocument()
+  })
+
+  it("should NOT show StudentScheduleConfirmationBanner when student list is empty even if unconfirmed term exists", async () => {
+    vi.mocked(operatingPhasesResource.list.toQuery).mockReturnValue({
+      queryKey: ["operating-phases", "list", "active"],
+      queryFn: async () => [
+        {
+          id: "phase-1",
+          instituteId: "inst-1",
+          title: "پاییز",
+          months: [7, 8, 9],
+          startTime: "15:00",
+          endTime: "21:00",
+          slotDurationMinutes: 90,
+          daysOfWeek: ["SATURDAY", "SUNDAY"],
+          hasBreak: false,
+          isActive: true,
+          order: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    } as any)
+
+    vi.mocked(termsResource.list.toQuery).mockReturnValue({
+      queryKey: ["terms", "list", "unconfirmed"],
+      queryFn: async () => [
+        {
+          id: "term-1",
+          instituteId: "inst-1",
+          title: "ترم پاییز",
+          operatingPhaseId: "phase-1",
+          startDate: "2026-10-01",
+          endDate: "2026-12-30",
+          isActive: true,
+          studentSchedulesConfirmedAt: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    } as any)
+
+    // Empty students list
+    vi.mocked(studentsResource.list.toQuery).mockReturnValue({
+      queryKey: ["students", "list", "empty"],
+      queryFn: async () => [],
+    } as any)
+
+    render(<StudentsPage />)
+
+    // Wait for page to render
+    await screen.findByPlaceholderText(/جستجو/i)
+
+    // The confirmation banner MUST NOT be in the document when list is empty
+    expect(
+      screen.queryByText("تأیید برنامه زمانی فراگیران")
+    ).not.toBeInTheDocument()
+  })
+
+  it("should show StudentScheduleConfirmationBanner when students exist in list and term is unconfirmed", async () => {
+    vi.mocked(operatingPhasesResource.list.toQuery).mockReturnValue({
+      queryKey: ["operating-phases", "list", "active"],
+      queryFn: async () => [
+        {
+          id: "phase-1",
+          instituteId: "inst-1",
+          title: "پاییز",
+          months: [7, 8, 9],
+          startTime: "15:00",
+          endTime: "21:00",
+          slotDurationMinutes: 90,
+          daysOfWeek: ["SATURDAY", "SUNDAY"],
+          hasBreak: false,
+          isActive: true,
+          order: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    } as any)
+
+    vi.mocked(termsResource.list.toQuery).mockReturnValue({
+      queryKey: ["terms", "list", "unconfirmed"],
+      queryFn: async () => [
+        {
+          id: "term-1",
+          instituteId: "inst-1",
+          title: "ترم پاییز",
+          operatingPhaseId: "phase-1",
+          startDate: "2026-10-01",
+          endDate: "2026-12-30",
+          isActive: true,
+          studentSchedulesConfirmedAt: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    } as any)
+
+    // Students list with data
+    vi.mocked(studentsResource.list.toQuery).mockReturnValue({
+      queryKey: ["students", "list", "with-data"],
+      queryFn: async () => [
+        {
+          id: "student-1",
+          firstName: "Ali",
+          lastName: "Rezaei",
+          phone: "09120000000",
+          isActive: true,
+          gender: "MALE",
+          instituteId: "inst-1",
+          nationalCode: "1234567890",
+          schedules: [],
+          courseAssessments: [],
+          notes: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    } as any)
+
+    render(<StudentsPage />)
+
+    // The confirmation banner SHOULD be displayed
+    expect(
+      await screen.findByText("تأیید برنامه زمانی فراگیران")
+    ).toBeInTheDocument()
   })
 })

@@ -57,9 +57,19 @@ export class TeacherQueryService {
         teacherProfile: {
           include: {
             availabilities: {
+              where: targetInstituteId
+                ? { branch: { instituteId: targetInstituteId } }
+                : undefined,
+              include: {
+                branch: { select: { id: true, name: true } },
+                term: { select: { id: true, title: true } },
+              },
               orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
             },
             teachableCourses: {
+              where: targetInstituteId
+                ? { instituteId: targetInstituteId }
+                : undefined,
               include: { course: { select: { id: true, title: true } } },
               orderBy: { course: { title: 'asc' } },
             },
@@ -67,7 +77,9 @@ export class TeacherQueryService {
         },
         _count: {
           select: {
-            teachingClasses: true,
+            teachingClasses: targetInstituteId
+              ? { where: { instituteId: targetInstituteId } }
+              : true,
           },
         },
       },
@@ -88,13 +100,16 @@ export class TeacherQueryService {
     id: string,
     _locale: SupportedLocale = 'fa',
   ) {
+    const targetInstituteId =
+      currentUser.role === ROLES.SUPER_ADMIN
+        ? undefined
+        : currentUser.instituteId;
+
     const teacher = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
         role: ROLES.TEACHER,
-        ...(currentUser.role === ROLES.SUPER_ADMIN
-          ? {}
-          : { instituteId: currentUser.instituteId }),
+        ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
       },
       select: {
         id: true,
@@ -111,15 +126,28 @@ export class TeacherQueryService {
         teacherProfile: {
           include: {
             availabilities: {
+              where: targetInstituteId
+                ? { branch: { instituteId: targetInstituteId } }
+                : undefined,
+              include: {
+                branch: { select: { id: true, name: true } },
+                term: { select: { id: true, title: true } },
+              },
               orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
             },
             teachableCourses: {
+              where: targetInstituteId
+                ? { instituteId: targetInstituteId }
+                : undefined,
               include: { course: { select: { id: true, title: true } } },
               orderBy: { course: { title: 'asc' } },
             },
           },
         },
         teachingClasses: {
+          where: targetInstituteId
+            ? { instituteId: targetInstituteId }
+            : undefined,
           select: {
             id: true,
             title: true,
@@ -136,7 +164,9 @@ export class TeacherQueryService {
         },
         _count: {
           select: {
-            teachingClasses: true,
+            teachingClasses: targetInstituteId
+              ? { where: { instituteId: targetInstituteId } }
+              : true,
           },
         },
       },
