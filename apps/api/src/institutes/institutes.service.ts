@@ -11,6 +11,7 @@ import { UpdateInstituteDto } from './dto/update-institute.dto';
 import { CreateInstituteCustomOffDayDto } from './dto/create-institute-custom-off-day.dto';
 import { JwtPayload, SupportedLocale } from '@workspace/types';
 import { createDefaultOperatingPhases } from './default-operating-phases';
+import { resolveUploadedFileUrl } from '../common/upload/multer.util';
 
 @Injectable()
 export class InstitutesService {
@@ -127,7 +128,7 @@ export class InstitutesService {
 
     let logoUrl = dto.logoUrl || null;
     if (file?.filename) {
-      logoUrl = `/uploads/institutes/${file.filename}`;
+      logoUrl = resolveUploadedFileUrl(file, 'institutes');
     }
 
     const institute = await this.prisma.institute.create({
@@ -204,7 +205,7 @@ export class InstitutesService {
 
     let logoUrl = dto.logoUrl;
     if (file?.filename) {
-      logoUrl = `/uploads/institutes/${file.filename}`;
+      logoUrl = resolveUploadedFileUrl(file, 'institutes');
     }
 
     const { _count, ...updated } = await this.prisma.institute.update({

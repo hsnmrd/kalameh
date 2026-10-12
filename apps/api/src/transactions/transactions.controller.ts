@@ -24,7 +24,10 @@ import { RequireModules } from '../auth/decorators/modules.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CurrentLocale } from '../i18n';
 import { I18nService } from '../i18n/i18n.service';
-import { imageUploadOptions } from '../common/upload/multer.util';
+import {
+  imageUploadOptions,
+  resolveUploadedFileUrl,
+} from '../common/upload/multer.util';
 import {
   APP_MODULES,
   PERMISSIONS,
@@ -76,7 +79,7 @@ export class TransactionsController {
     return this.transactionsService.create(
       currentUser,
       dto,
-      `/uploads/transactions/${file.filename}`,
+      resolveUploadedFileUrl(file, 'transactions'),
       locale,
     );
   }

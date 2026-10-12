@@ -21,6 +21,7 @@ import {
   type WeekDay,
 } from '@workspace/types';
 import { parseBirthDate } from '../common/excel/student-workbook';
+import { resolveUploadedFileUrl } from '../common/upload/multer.util';
 
 @Injectable()
 export class StudentsService {
@@ -39,7 +40,7 @@ export class StudentsService {
     file?: Express.Multer.File,
   ) {
     const avatarUrl = file
-      ? `/uploads/avatars/${file.filename}`
+      ? resolveUploadedFileUrl(file, 'avatars')
       : dto.avatarUrl;
 
     const targetInstituteId =
@@ -415,7 +416,7 @@ export class StudentsService {
     file?: Express.Multer.File,
   ) {
     const avatarUrl = file
-      ? `/uploads/avatars/${file.filename}`
+      ? resolveUploadedFileUrl(file, 'avatars')
       : dto.avatarUrl;
 
     const targetInstituteId =

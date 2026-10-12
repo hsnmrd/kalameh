@@ -70,13 +70,34 @@ describe('TransactionsController (e2e)', () => {
           if (where.id === student.id) return student;
           return null;
         }),
-        findFirstOrThrow: jest.fn(),
+        findFirstOrThrow: jest.fn().mockResolvedValue(student),
+      },
+      class: {
+        findFirstOrThrow: jest.fn().mockResolvedValue({
+          id: '511da3c2-598b-4d04-a099-66d96600ef45',
+          instituteId: institute.id,
+          title: 'AME 5-5',
+          fee: 1_900_000,
+        }),
+      },
+      enrollment: {
+        findMany: jest.fn().mockResolvedValue([]),
+        upsert: jest.fn().mockResolvedValue({}),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+      },
+      schedulingGenerationRun: {
+        findMany: jest.fn().mockResolvedValue([]),
+        findFirst: jest.fn().mockResolvedValue(null),
+        updateMany: jest.fn().mockResolvedValue({ count: 0 }),
       },
       transaction: {
         findMany: jest.fn(),
         findFirstOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
+        groupBy: jest.fn().mockResolvedValue([]),
+        count: jest.fn().mockResolvedValue(1),
       },
       auditLog: { create: jest.fn() },
     };
@@ -112,6 +133,7 @@ describe('TransactionsController (e2e)', () => {
   });
 
   afterEach(async () => {
+    delete process.env.VERCEL;
     await app.close();
   });
 
@@ -154,6 +176,35 @@ describe('TransactionsController (e2e)', () => {
       .field('amount', '1500000')
       .field('trackingCode', 'TRACK-100')
       .expect(400);
+  });
+
+  it('allows a student to submit a receipt image with classId in serverless/read-only mode', async () => {
+    process.env.VERCEL = '1';
+    const classId = '511da3c2-598b-4d04-a099-66d96600ef45';
+    prisma.transaction.create.mockImplementation(({ data }) => ({
+      ...transaction,
+      amount: data.amount,
+      trackingCode: data.trackingCode,
+      classId: data.classId,
+      receiptImageUrl: data.receiptImageUrl,
+    }));
+
+    const response = await request(app.getHttpAdapter().getInstance())
+      .post('/transactions')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .attach('receipt', Buffer.from('fake-jpeg-image'), {
+        filename: 'photo_2025-11-15_07-03-00.jpg',
+        contentType: 'image/jpeg',
+      })
+      .field('amount', '1900000')
+      .field('trackingCode', '34234234')
+      .field('classId', classId)
+      .expect(201);
+
+    expect(response.body.amount).toBe(1_900_000);
+    expect(response.body.trackingCode).toBe('34234234');
+    expect(response.body.receiptImageUrl).toMatch(/^data:image\/jpeg;base64,/);
+    expect(prisma.enrollment.upsert).toHaveBeenCalled();
   });
 
   it('rejects unauthenticated transaction access', async () => {

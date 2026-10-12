@@ -154,6 +154,23 @@ export class EnrollmentsService {
       await this.redis.acquireClassLock(dto.classId, currentUser.sub, 1800);
     }
 
+    await this.prisma.enrollment.upsert({
+      where: {
+        studentId_classId: {
+          studentId: currentUser.sub,
+          classId: dto.classId,
+        },
+      },
+      create: {
+        studentId: currentUser.sub,
+        classId: dto.classId,
+        status: ENROLLMENT_STATUSES.PENDING_PAYMENT,
+      },
+      update: {
+        status: ENROLLMENT_STATUSES.PENDING_PAYMENT,
+      },
+    });
+
     const ttl = await this.redis.getClassLockRemainingTtl(
       dto.classId,
       currentUser.sub,
@@ -255,13 +272,25 @@ export class EnrollmentsService {
       currentUser.sub,
     );
 
-    const list: EnrollmentDto[] = enrollments.map((e) => ({
-      ...e,
-      remainingReservationSeconds:
-        e.classId === reservation?.classId
-          ? reservation.remainingSeconds
-          : undefined,
-    }));
+    const list: EnrollmentDto[] = enrollments.map((e) => {
+      let remainingReservationSeconds: number | undefined;
+      if (e.classId === reservation?.classId) {
+        remainingReservationSeconds = reservation.remainingSeconds;
+      } else if (e.status === ENROLLMENT_STATUSES.PENDING_PAYMENT) {
+        const updatedAtMs = new Date(e.updatedAt).getTime();
+        const expiresAtMs = updatedAtMs + 1800 * 1000;
+        const remaining = Math.max(
+          0,
+          Math.floor((expiresAtMs - Date.now()) / 1000),
+        );
+        remainingReservationSeconds = remaining > 0 ? remaining : 1800;
+      }
+
+      return {
+        ...e,
+        remainingReservationSeconds,
+      };
+    });
 
     // If student has an active reservation lock that is not yet in DB, synthesize it
     if (
@@ -269,7 +298,8 @@ export class EnrollmentsService {
       !list.some(
         (e) =>
           e.classId === reservation.classId &&
-          (e.status === ENROLLMENT_STATUSES.PENDING_APPROVAL ||
+          (e.status === ENROLLMENT_STATUSES.PENDING_PAYMENT ||
+            e.status === ENROLLMENT_STATUSES.PENDING_APPROVAL ||
             e.status === ENROLLMENT_STATUSES.ENROLLED),
       )
     ) {

@@ -26,9 +26,9 @@ async function handleProxy(
   }
 
   if (request.method !== "GET" && request.method !== "HEAD") {
-    const blob = await request.blob()
-    if (blob.size > 0) {
-      reqInit.body = blob
+    const buffer = await request.arrayBuffer()
+    if (buffer.byteLength > 0) {
+      reqInit.body = buffer
     }
   }
 

@@ -10,6 +10,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { TeacherQualificationsService } from './teacher-qualifications.service';
+import { resolveUploadedFileUrl } from '../common/upload/multer.util';
 
 @Injectable()
 export class TeacherCreateService {
@@ -37,7 +38,7 @@ export class TeacherCreateService {
     }
 
     const avatarUrl = file
-      ? `/uploads/avatars/${file.filename}`
+      ? resolveUploadedFileUrl(file, 'avatars')
       : dto.avatarUrl;
 
     const existing = await this.prisma.user.findUnique({

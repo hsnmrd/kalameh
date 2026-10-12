@@ -9,6 +9,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { TeacherQualificationsService } from './teacher-qualifications.service';
+import { resolveUploadedFileUrl } from '../common/upload/multer.util';
 
 @Injectable()
 export class TeacherUpdateService {
@@ -60,7 +61,7 @@ export class TeacherUpdateService {
     }
 
     const avatarUrl = file
-      ? `/uploads/avatars/${file.filename}`
+      ? resolveUploadedFileUrl(file, 'avatars')
       : dto.avatarUrl !== undefined
         ? dto.avatarUrl
         : existing.avatarUrl;

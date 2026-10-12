@@ -26,6 +26,8 @@ import {
   type UserLookupResponse,
 } from '@workspace/types';
 
+import { resolveUploadedFileUrl } from '../common/upload/multer.util';
+
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -44,7 +46,7 @@ export class UsersService {
     file?: Express.Multer.File,
   ) {
     const avatarUrl = file
-      ? `/uploads/avatars/${file.filename}`
+      ? resolveUploadedFileUrl(file, 'avatars')
       : dto.avatarUrl;
 
     const targetInstituteId =
@@ -280,7 +282,7 @@ export class UsersService {
     file?: Express.Multer.File,
   ) {
     const avatarUrl = file
-      ? `/uploads/avatars/${file.filename}`
+      ? resolveUploadedFileUrl(file, 'avatars')
       : dto.avatarUrl;
 
     const targetUser = await this.findOne(currentUser, id, locale);
