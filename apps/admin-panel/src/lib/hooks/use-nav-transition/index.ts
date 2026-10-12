@@ -9,8 +9,9 @@ export function useNavTransition(pathname: string) {
   const [pendingHref, setPendingHref] = React.useState<string | null>(null)
 
   // Derived state: pending is only active while transition is ongoing and destination not reached
+  const pendingPathname = pendingHref?.split("?")[0] ?? null
   const activePendingHref =
-    isPending && pathname !== pendingHref ? pendingHref : null
+    isPending && pathname !== pendingPathname ? pendingHref : null
 
   const navigate = React.useCallback(
     (
