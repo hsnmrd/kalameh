@@ -2,6 +2,7 @@ import type {
   CourseDto,
   CreateCourseInput,
   UpdateCourseInput,
+  ExcelImportResult,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -20,4 +21,14 @@ export const coursesResource = api.resource("courses", {
       body: ({ body }) => body,
     }
   ),
+  importExcel: api.post<
+    ExcelImportResult,
+    { formData: FormData; instituteId?: string } | FormData
+  >("/courses/import-excel", {
+    query: (params) => {
+      if (params instanceof FormData) return {}
+      return params?.instituteId ? { instituteId: params.instituteId } : {}
+    },
+    body: (params) => (params instanceof FormData ? params : params.formData),
+  }),
 })

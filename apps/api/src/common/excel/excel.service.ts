@@ -16,8 +16,14 @@ import {
   parseStudentRows,
   type StudentTemplateRow,
 } from './student-workbook';
+import {
+  exportCourses,
+  generateCourseTemplate,
+  parseCourseRows,
+  type CourseTemplateRow,
+} from './course-workbook';
 
-export type { TeacherTemplateRow, StudentTemplateRow };
+export type { TeacherTemplateRow, StudentTemplateRow, CourseTemplateRow };
 
 export interface UserTemplateRow {
   firstName: string;
@@ -288,6 +294,26 @@ export class ExcelService {
     void locale;
     const rawRecords = this.parseRawRecords(fileBuffer);
     return parseStudentRows(rawRecords, (s) => this.normalizeDigits(s));
+  }
+
+  generateCourseTemplate(locale: SupportedLocale = 'fa'): Buffer {
+    return generateCourseTemplate(locale);
+  }
+
+  exportCourses(
+    courses: Parameters<typeof exportCourses>[0],
+    locale: SupportedLocale = 'fa',
+  ): Buffer {
+    return exportCourses(courses, locale);
+  }
+
+  parseCourseRows(
+    fileBuffer: Buffer,
+    locale: SupportedLocale = 'fa',
+  ): CourseTemplateRow[] {
+    void locale;
+    const rawRecords = this.parseRawRecords(fileBuffer);
+    return parseCourseRows(rawRecords, (s) => this.normalizeDigits(s));
   }
 
   buildXlsxBuffer(

@@ -44,5 +44,31 @@
     "submit": "ذخیره تغییرات",
     "cancel": "انصراف",
     "success": "سطح آموزشی با موفقیت به‌روزرسانی شد."
+  },
+  "importModal": {
+    "trigger": "ورود از اکسل",
+    "title": "ورود گروهی دوره‌ها از اکسل",
+    "description": "با استفاده از فایل اکسل، سطوح و دوره‌های آموزشی را به صورت دسته‌ای وارد کنید.",
+    "downloadTemplate": "دانلود فایل نمونه اکسل",
+    "dragDropText": "فایل اکسل (.xlsx یا .csv) را انتخاب کنید یا اینجا بکشید",
+    "uploadHint": "فرمت‌های پشتیبانی شده: XLSX و CSV",
+    "selectedFile": "فایل انتخاب شده:",
+    "submit": "شروع ثبت",
+    "uploading": "در حال ثبت...",
+    "cancel": "انصراف",
+    "resultTitle": "نتیجه پردازش فایل اکسل",
+    "totalRows": "کل سطرها: {count}",
+    "importedRows": "وارد شده با موفقیت: {count}",
+    "failedRows": "خطادار: {count}",
+    "errorListTitle": "جزئیات خطاهای سطرها:",
+    "rowNumber": "سطر {row}",
+    "successMessage": "تعداد {count} دوره با موفقیت در سامانه ثبت شدند.",
+    "close": "تأیید و بستن",
+    "templateDownloadError": "خطا در دانلود فایل نمونه"
+  },
+  "export": {
+    "trigger": "خروجی اکسل",
+    "exporting": "در حال آماده‌سازی فایل اکسل...",
+    "error": "خطا در دریافت خروجی اکسل"
   }
 }
