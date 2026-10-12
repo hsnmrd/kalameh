@@ -143,10 +143,7 @@ export function SchedulingTeacherReassignmentAnalysis({
   }
 
   return (
-    <section
-      aria-label={t("reassignment.title")}
-      className="rounded-xl border border-border p-3.5"
-    >
+    <section aria-label={t("reassignment.title")}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-2">
           <ArrowRightLeft
