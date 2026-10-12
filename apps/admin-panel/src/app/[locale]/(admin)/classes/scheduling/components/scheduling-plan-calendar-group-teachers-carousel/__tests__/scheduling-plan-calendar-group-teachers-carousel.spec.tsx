@@ -4,6 +4,12 @@ import { NextIntlClientProvider } from "next-intl"
 import commonMessagesFa from "@/messages/fa/common.json"
 import schedulingMessagesFa from "@/messages/fa/scheduling.json"
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@workspace/ui/components/carousel"
+import {
   SchedulingPlanCalendarGroupTeachersCarousel,
   type GroupTeacherAccessibilityItem,
 } from "../index"
@@ -139,5 +145,71 @@ describe("SchedulingPlanCalendarGroupTeachersCarousel", () => {
     const t1Card = screen.getByTestId("group-teacher-card-t1-EVEN-09:00-10:30")
     expect(t1Card).toHaveAttribute("data-selected", "true")
     expect(t1Card).toHaveClass("border-primary", "bg-primary/10")
+  })
+
+  it("prevents outer carousel from dragging when swiping inside nested inner carousel", () => {
+    const originalOffsetParent = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "offsetParent"
+    )
+    Object.defineProperty(HTMLElement.prototype, "offsetParent", {
+      configurable: true,
+      get() {
+        return this.parentElement
+      },
+    })
+
+    try {
+      let outerApi: CarouselApi | undefined
+      renderWithIntl(
+        <Carousel
+          setApi={(api) => (outerApi = api)}
+          data-testid="outer-carousel"
+        >
+          <CarouselContent>
+            <CarouselItem data-testid="outer-slide-even">
+              <div data-testid="outer-card-body">Outer Track Content</div>
+              <SchedulingPlanCalendarGroupTeachersCarousel
+                track="EVEN"
+                slotKey="09:00-10:30"
+                teachers={mockTeachers}
+                defaultExpanded={true}
+              />
+            </CarouselItem>
+            <CarouselItem data-testid="outer-slide-odd">
+              <div>Odd Track Content</div>
+            </CarouselItem>
+          </CarouselContent>
+        </Carousel>
+      )
+
+      const innerCard = screen.getByTestId(
+        "group-teacher-card-t1-EVEN-09:00-10:30"
+      )
+      const outerCardBody = screen.getByTestId("outer-card-body")
+
+      const pointerDownOnOuter = vi.fn()
+      outerApi?.on("pointerDown", pointerDownOnOuter)
+
+      // Touching/swiping inside the nested inner carousel must NOT trigger pointerDown on the outer carousel
+      fireEvent.mouseDown(innerCard, { button: 0, clientX: 200, clientY: 100 })
+      expect(pointerDownOnOuter).not.toHaveBeenCalled()
+
+      // Touching/swiping directly on the outer slide body SHOULD trigger pointerDown on the outer carousel
+      fireEvent.mouseDown(outerCardBody, {
+        button: 0,
+        clientX: 200,
+        clientY: 100,
+      })
+      expect(pointerDownOnOuter).toHaveBeenCalledTimes(1)
+    } finally {
+      if (originalOffsetParent) {
+        Object.defineProperty(
+          HTMLElement.prototype,
+          "offsetParent",
+          originalOffsetParent
+        )
+      }
+    }
   })
 })
