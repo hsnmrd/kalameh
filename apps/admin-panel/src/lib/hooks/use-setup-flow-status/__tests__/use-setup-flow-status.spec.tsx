@@ -3,6 +3,7 @@ import { renderHook } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import * as React from "react"
 import { useSetupFlowStatus } from "../index"
+import { useOperatingPhasesReviewStore } from "@/lib/stores"
 import {
   operatingPhasesResource,
   termsResource,
@@ -16,6 +17,7 @@ describe("useSetupFlowStatus", () => {
   const mockInstituteId = "inst-test-123"
 
   beforeEach(() => {
+    useOperatingPhasesReviewStore.setState({ reviewedInstituteIds: {} })
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -77,7 +79,49 @@ describe("useSetupFlowStatus", () => {
     expect(result.current.completedCount).toBe(0)
   })
 
-  it("focuses Step 2 (terms) when Step 1 is done but terms is empty", () => {
+  it("focuses Step 1 (operatingPhases) when autofilled phases exist but have not been reviewed yet", () => {
+    queryClient.setQueryData(
+      operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [
+        { id: "op-1", name: "Academic Year Phase" },
+        { id: "op-2", name: "Summer Phase" },
+      ]
+    )
+    queryClient.setQueryData(
+      termsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      studentsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      schedulingResource.terms.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      classesResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+
+    const { result } = renderHook(
+      () => useSetupFlowStatus({ instituteId: mockInstituteId }),
+      { wrapper }
+    )
+
+    // Since phases are autofilled but NOT reviewed, Step 1 is incomplete so ripple stays on operatingPhases
+    expect(result.current.isStep1Done).toBe(false)
+    expect(result.current.firstIncompleteIndex).toBe(0)
+    expect(result.current.focusedKey).toBe("operatingPhases")
+    expect(result.current.currentStepId).toBe("phases")
+    expect(result.current.completedCount).toBe(0)
+  })
+
+  it("focuses Step 2 (terms) when Step 1 is done (reviewed) but terms is empty", () => {
+    useOperatingPhasesReviewStore.getState().markAsReviewed(mockInstituteId)
+
     queryClient.setQueryData(
       operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
         .queryKey,

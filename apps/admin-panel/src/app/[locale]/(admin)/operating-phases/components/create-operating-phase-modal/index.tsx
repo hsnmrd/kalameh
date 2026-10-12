@@ -45,6 +45,7 @@ const DEFAULT_VALUES: CreateOperatingPhaseInput = {
   hasBreak: false,
   breakStartTime: "18:00",
   breakEndTime: "19:00",
+  isSchoolCalendarAware: true,
   isActive: true,
   order: 0,
 }

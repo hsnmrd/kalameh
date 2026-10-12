@@ -34,6 +34,8 @@
     "applySuggestedBreak": "Apply suggested break",
     "maxBreakNotice": "Maximum suggested break is 1 hour",
     "statusLabel": "Phase Status",
+    "schoolCalendarLabel": "Apply School Shifts",
+    "schoolCalendarDescription": "Filter student availability based on their school shifts (morning/afternoon). Recommended for academic year phases; disable for summer phases.",
     "active": "Active",
     "inactive": "Inactive",
     "orderLabel": "Display Order",

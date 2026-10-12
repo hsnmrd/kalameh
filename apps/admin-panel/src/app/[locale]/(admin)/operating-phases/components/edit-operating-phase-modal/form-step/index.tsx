@@ -10,6 +10,7 @@ import { TimePicker } from "@workspace/ui/components/time-picker"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { FormDialogFooter } from "@workspace/ui/components/dialog"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { Switch } from "@workspace/ui/components/switch"
 import type {
   calculatePhaseSlots,
   suggestPhaseBreakWindow,
@@ -179,6 +180,33 @@ export function FormStep({
           errors={errors}
           disabled={isPending}
         />
+
+        <div className="flex items-start justify-between gap-3 rounded-2xl border border-border/80 bg-muted/20 p-4">
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="edit-phase-school-calendar"
+              className="cursor-pointer text-sm font-semibold text-foreground"
+            >
+              {t("form.schoolCalendarLabel")}
+            </label>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              {t("form.schoolCalendarDescription")}
+            </p>
+          </div>
+          <Controller
+            control={form.control}
+            name="isSchoolCalendarAware"
+            render={({ field }) => (
+              <Switch
+                id="edit-phase-school-calendar"
+                checked={field.value ?? true}
+                onCheckedChange={field.onChange}
+                disabled={isPending}
+              />
+            )}
+          />
+        </div>
+
         <PhaseRemainderWarning
           calculation={calculation}
           slotDurationMinutes={Number(duration) || 90}

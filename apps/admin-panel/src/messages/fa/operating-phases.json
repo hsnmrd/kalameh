@@ -34,6 +34,8 @@
     "applySuggestedBreak": "اعمال بازه پیشنهادی",
     "maxBreakNotice": "حداکثر مدت زمان پیشنهادی ۱ ساعت است",
     "statusLabel": "وضعیت فاز",
+    "schoolCalendarLabel": "وابستگی به شیفت مدارس",
+    "schoolCalendarDescription": "اعمال فیلتر شیفت مدرسه دانش‌آموزان بر این فاز (مناسب فازهای سال تحصیلی؛ برای فاز تابستان غیرفعال کنید)",
     "active": "فعال",
     "inactive": "غیرفعال",
     "orderLabel": "ترتیب نمایش",

@@ -13,7 +13,7 @@ import {
 } from "@workspace/types"
 import { FABSingle } from "@workspace/ui/components/fab"
 import { operatingPhasesResource } from "@/lib/api"
-import { useActiveInstitute } from "@/lib/stores"
+import { useActiveInstitute, useOperatingPhasesReviewStore } from "@/lib/stores"
 import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -35,6 +35,13 @@ export default function OperatingPhasesPage() {
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
+  const markAsReviewed = useOperatingPhasesReviewStore((s) => s.markAsReviewed)
+
+  React.useEffect(() => {
+    if (activeInstituteId) {
+      markAsReviewed(activeInstituteId)
+    }
+  }, [activeInstituteId, markAsReviewed])
 
   const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
   const hasModule =

@@ -48,6 +48,7 @@ export class OperatingPhasesService {
     hasBreak: boolean;
     breakStartTime: string | null;
     breakEndTime: string | null;
+    isSchoolCalendarAware: boolean;
     isActive: boolean;
     order: number;
     createdAt: Date;
@@ -122,6 +123,7 @@ export class OperatingPhasesService {
         hasBreak: dto.hasBreak ?? false,
         breakStartTime: dto.hasBreak ? (dto.breakStartTime ?? null) : null,
         breakEndTime: dto.hasBreak ? (dto.breakEndTime ?? null) : null,
+        isSchoolCalendarAware: dto.isSchoolCalendarAware ?? true,
         isActive: dto.isActive ?? true,
         order: dto.order ?? 0,
       },
@@ -184,6 +186,9 @@ export class OperatingPhasesService {
           : {}),
         ...(dto.breakEndTime !== undefined
           ? { breakEndTime: dto.breakEndTime }
+          : {}),
+        ...(dto.isSchoolCalendarAware !== undefined
+          ? { isSchoolCalendarAware: dto.isSchoolCalendarAware }
           : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         ...(dto.order !== undefined ? { order: dto.order } : {}),

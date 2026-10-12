@@ -10,6 +10,7 @@ import {
   classesResource,
 } from "@/lib/api"
 import type { NavItemKey } from "@/components/admin-base-layout/nav-list"
+import { useOperatingPhasesReviewStore } from "@/lib/stores"
 import { areActiveTermsHavingClasses } from "./utils"
 
 export interface UseSetupFlowStatusOptions {
@@ -66,8 +67,14 @@ export function useSetupFlowStatus({
     enabled: isEnabled,
   })
 
+  const isPhasesReviewed = useOperatingPhasesReviewStore((s) =>
+    instituteId ? Boolean(s.reviewedInstituteIds[instituteId]) : false
+  )
+
   // Evaluate step completion
-  const isStep1Done = operatingPhases.length > 0
+  const isStep1Done =
+    operatingPhases.length > 0 &&
+    (isPhasesReviewed || terms.length > 0 || classes.length > 0)
   const isStep2Done = terms.length > 0
   const isStep3Done = students.length > 0
 
