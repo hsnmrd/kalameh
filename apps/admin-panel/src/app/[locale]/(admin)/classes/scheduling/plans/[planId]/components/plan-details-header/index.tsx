@@ -14,7 +14,6 @@ import {
   type SchedulingPlanDetailsDto,
   type SchedulingPlanValidation,
 } from "@workspace/types"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
@@ -29,7 +28,7 @@ import { SchedulingPlanPublicationDialog } from "../../../../components/scheduli
 
 export interface PlanDetailsHeaderProps {
   plan: SchedulingPlanDetailsDto
-  isSelected: boolean
+  isSelected?: boolean
   isSelectionPending: boolean
   isSelecting: boolean
   isValidationPending: boolean
@@ -44,7 +43,6 @@ export interface PlanDetailsHeaderProps {
 
 export function PlanDetailsHeader({
   plan,
-  isSelected,
   isSelectionPending,
   isSelecting,
   isValidationPending,
@@ -175,7 +173,7 @@ export function PlanDetailsHeader({
           </Field>
         }
         search={
-          <dl className="grid min-h-14 w-full min-w-0 grid-cols-2 items-center gap-3 rounded-2xl border border-border bg-card px-4 py-2 text-sm sm:grid-cols-3">
+          <dl className="grid h-14 w-full min-w-0 grid-cols-2 items-center gap-3 rounded-2xl border border-border bg-card px-4 text-sm">
             <div className="min-w-0">
               <dt className="text-xs text-muted-foreground">{t("term")}</dt>
               <dd className="flex items-center gap-2 truncate font-semibold text-foreground">
@@ -190,23 +188,6 @@ export function PlanDetailsHeader({
                 <span className="truncate">
                   {plan.run.branch?.name ?? t("allBranches")}
                 </span>
-              </dd>
-            </div>
-            <div className="min-w-0">
-              <dt className="text-xs text-muted-foreground">{t("status")}</dt>
-              <dd className="flex items-center gap-2 font-semibold text-foreground">
-                {isSelected && <Badge>{t("selected")}</Badge>}
-                {plan.status === "PUBLISHED" && (
-                  <Badge variant="success">{t("published")}</Badge>
-                )}
-                {plan.status === "REJECTED" && (
-                  <Badge variant="secondary">{t("rejected")}</Badge>
-                )}
-                {!isSelected &&
-                  plan.status !== "PUBLISHED" &&
-                  plan.status !== "REJECTED" && (
-                    <span className="text-muted-foreground">—</span>
-                  )}
               </dd>
             </div>
           </dl>
