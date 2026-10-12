@@ -20,6 +20,7 @@ import {
   type AddStudentNoteInput,
   type WeekDay,
 } from '@workspace/types';
+import { parseBirthDate } from '../common/excel/student-workbook';
 
 @Injectable()
 export class StudentsService {
@@ -80,7 +81,9 @@ export class StudentsService {
 
     const rawPassword = dto.password || dto.phone;
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
-    const parsedBirthDate = dto.birthDate ? new Date(dto.birthDate) : null;
+    const parsedBirthDate = dto.birthDate
+      ? (parseBirthDate(dto.birthDate) ?? new Date(dto.birthDate))
+      : null;
     const initialNote = dto.notes?.trim();
 
     const student = await this.prisma.$transaction(async (tx) => {
@@ -457,7 +460,7 @@ export class StudentsService {
     const parsedBirthDate =
       dto.birthDate !== undefined
         ? dto.birthDate
-          ? new Date(dto.birthDate)
+          ? (parseBirthDate(dto.birthDate) ?? new Date(dto.birthDate))
           : null
         : undefined;
 

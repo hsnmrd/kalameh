@@ -4,9 +4,17 @@ import {
   cleanPersianText,
   normalizePersianText,
   normalizeDigits,
-  jalaliToGregorian,
   type SupportedLocale,
 } from '@workspace/types';
+import {
+  parse as parseJalali,
+  isValid as isValidJalali,
+} from 'date-fns-jalali';
+import {
+  format as formatGregorian,
+  parseISO,
+  isValid as isValidDate,
+} from 'date-fns';
 import { buildXlsxBuffer } from './xlsx-writer';
 
 export const StudentImportRowSchema = z.object({
@@ -324,6 +332,7 @@ export function exportStudents(
         const bd = new Date(s.birthDate);
         formattedBirthDate = isFa
           ? new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+              timeZone: 'UTC',
               year: 'numeric',
               month: '2-digit',
               day: '2-digit',
@@ -567,25 +576,51 @@ export function parseGender(val?: string): 'MALE' | 'FEMALE' | undefined {
 }
 
 export function parseBirthDate(val?: string): Date | undefined {
-  if (!val?.trim()) return undefined;
-  const str = normalizeDigits(val.trim());
+  if (!val || typeof val !== 'string' || !val.trim()) return undefined;
+  // Step 1: normalize Persian and Arabic digits to ASCII (e.g. ۱۳۸۸/۰۴/۱۵ -> 1388/04/15)
+  const norm = normalizeDigits(val.trim());
 
-  // Check if it's Jalali (year between 1300 and 1450)
-  // Supports formats like 1385/04/15, 1385-04-15, 1385.04.15
-  const jalaliMatch = str.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})$/);
-  if (jalaliMatch) {
-    const y = parseInt(jalaliMatch[1], 10);
-    const m = parseInt(jalaliMatch[2], 10);
-    const d = parseInt(jalaliMatch[3], 10);
-    if (y >= 1300 && y <= 1450 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
-      return jalaliToGregorian(y, m, d);
+  // ISO timestamp string check with T (e.g. 2009-07-06T00:00:00.000Z)
+  if (norm.includes('T')) {
+    const d = parseISO(norm);
+    if (isValidDate(d) && d.getFullYear() >= 1700) return d;
+  }
+
+  // Handle delimiter variations: /, -, .
+  const clean = norm.replace(/[.-]/g, '/');
+  const parts = clean.split('/');
+
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+
+    // If year is between 1300 and 1450: identify as Solar Hijri (Jalali)
+    if (y >= 1300 && y <= 1450) {
+      const formatPattern =
+        parts[1].length === 2 && parts[2].length === 2
+          ? 'yyyy/MM/dd'
+          : 'yyyy/M/d';
+      const jalaliObj = parseJalali(clean, formatPattern, new Date());
+      if (isValidJalali(jalaliObj)) {
+        // Format to standard Gregorian YYYY-MM-DD and store as standard UTC timestamp
+        const isoDateStr = formatGregorian(jalaliObj, 'yyyy-MM-dd');
+        return new Date(`${isoDateStr}T00:00:00.000Z`);
+      }
+    } else if (y >= 1700) {
+      // If year is greater than 1700: parse as Gregorian
+      if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+        const iso = `${y.toString().padStart(4, '0')}-${m.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+        const dateObj = new Date(`${iso}T00:00:00.000Z`);
+        if (!isNaN(dateObj.getTime())) return dateObj;
+      }
     }
   }
 
-  // Fallback to standard Gregorian date
-  const parsed = new Date(str);
-  if (!isNaN(parsed.getTime())) {
-    return parsed;
+  // Fallback for standard Gregorian date strings
+  const fallback = new Date(val.trim());
+  if (!isNaN(fallback.getTime()) && fallback.getFullYear() >= 1700) {
+    return fallback;
   }
   return undefined;
 }

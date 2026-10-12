@@ -32,6 +32,8 @@
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
+    "date-fns": "^4.1.0",
+    "date-fns-jalali": "4.4.0-0",
     "dotenv": "^16.4.7",
     "express": "^5.0.0",
     "ioredis": "^5.4.2",

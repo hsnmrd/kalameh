@@ -55,6 +55,7 @@ export function UserProfileModal({
 
   const formattedBirthDate = user.studentProfile?.birthDate
     ? new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-US", {
+        timeZone: "UTC",
         year: "numeric",
         month: "long",
         day: "numeric",

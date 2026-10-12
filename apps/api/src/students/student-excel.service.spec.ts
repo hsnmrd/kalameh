@@ -160,6 +160,7 @@ describe('StudentExcelService', () => {
           studentProfile: expect.objectContaining({
             create: expect.objectContaining({
               gender: 'MALE',
+              birthDate: new Date('2006-07-06T00:00:00.000Z'),
               schoolShift: 'MORNING',
               dayPreference: 'EVEN_DAYS',
             }),
@@ -170,6 +171,44 @@ describe('StudentExcelService', () => {
     expect(
       importAvailabilityService.seedImportedStudentsAvailability,
     ).toHaveBeenCalledWith('inst-1', ['09121111111']);
+  });
+
+  it('should import students with Persian digits birthDate converted to standard UTC Date', async () => {
+    jest.spyOn(prisma.user, 'findMany').mockResolvedValue([]);
+    jest.spyOn(prisma.course, 'findMany').mockResolvedValue([]);
+    jest.spyOn(prisma.branch, 'findMany').mockResolvedValue([]);
+    jest
+      .spyOn(prisma.user, 'create')
+      .mockResolvedValue({ id: 'user-created-2' });
+
+    jest.spyOn(excelService, 'parseStudentRows').mockReturnValue([
+      {
+        firstName: 'نگین',
+        lastName: 'صادقی',
+        phone: '09122222222',
+        birthDate: '۱۳۸۸/۰۴/۱۵',
+      },
+    ]);
+
+    const result = await service.importFromExcel(
+      mockCurrentUser,
+      Buffer.from('dummy'),
+      'fa',
+    );
+
+    expect(result.totalRows).toBe(1);
+    expect(result.importedCount).toBe(1);
+    expect(prisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          studentProfile: expect.objectContaining({
+            create: expect.objectContaining({
+              birthDate: new Date('2009-07-06T00:00:00.000Z'),
+            }),
+          }),
+        }),
+      }),
+    );
   });
 
   it('should record an error if course is specified but not found in the institute', async () => {

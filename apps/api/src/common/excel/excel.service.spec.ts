@@ -1,5 +1,6 @@
 import { ExcelService } from './excel.service';
 import { I18nService } from '../../i18n/i18n.service';
+import { parseBirthDate } from './student-workbook';
 
 describe('ExcelService', () => {
   let service: ExcelService;
@@ -127,5 +128,59 @@ describe('ExcelService', () => {
     expect(rows[0].title).toBe('انگلیسی مقدماتی A2');
     expect(rows[0].baseFee).toBe(1650000);
     expect(rows[0].prerequisiteTitle).toBe('انگلیسی مقدماتی A1');
+  });
+
+  describe('parseBirthDate', () => {
+    it('should parse Persian/Arabic digits Jalali date into standard UTC Date', () => {
+      const date = parseBirthDate('۱۳۸۸/۰۴/۱۵');
+      expect(date).toBeDefined();
+      expect(date?.toISOString()).toBe('2009-07-06T00:00:00.000Z');
+    });
+
+    it('should parse Latin digits Jalali date into standard UTC Date', () => {
+      const date = parseBirthDate('1388/04/15');
+      expect(date).toBeDefined();
+      expect(date?.toISOString()).toBe('2009-07-06T00:00:00.000Z');
+    });
+
+    it('should support alternative delimiters (hyphen and dot) in Jalali dates', () => {
+      const hyphenDate = parseBirthDate('1386-11-20');
+      expect(hyphenDate).toBeDefined();
+      expect(hyphenDate?.toISOString()).toBe('2008-02-09T00:00:00.000Z');
+
+      const dotDate = parseBirthDate('1370.01.01');
+      expect(dotDate).toBeDefined();
+      expect(dotDate?.toISOString()).toBe('1991-03-21T00:00:00.000Z');
+    });
+
+    it('should parse single digit month and day in Jalali dates', () => {
+      const date = parseBirthDate('1370/1/1');
+      expect(date).toBeDefined();
+      expect(date?.toISOString()).toBe('1991-03-21T00:00:00.000Z');
+    });
+
+    it('should parse Gregorian dates with year > 1700 into standard UTC Date', () => {
+      const dateDash = parseBirthDate('2009-07-06');
+      expect(dateDash).toBeDefined();
+      expect(dateDash?.toISOString()).toBe('2009-07-06T00:00:00.000Z');
+
+      const dateSlash = parseBirthDate('2009/07/06');
+      expect(dateSlash).toBeDefined();
+      expect(dateSlash?.toISOString()).toBe('2009-07-06T00:00:00.000Z');
+    });
+
+    it('should parse full ISO timestamp strings', () => {
+      const isoDate = parseBirthDate('2009-07-06T00:00:00.000Z');
+      expect(isoDate).toBeDefined();
+      expect(isoDate?.toISOString()).toBe('2009-07-06T00:00:00.000Z');
+    });
+
+    it('should return undefined for empty, whitespace, or invalid dates', () => {
+      expect(parseBirthDate('')).toBeUndefined();
+      expect(parseBirthDate('   ')).toBeUndefined();
+      expect(parseBirthDate(undefined)).toBeUndefined();
+      expect(parseBirthDate('invalid-date')).toBeUndefined();
+      expect(parseBirthDate('1200/01/01')).toBeUndefined();
+    });
   });
 });
