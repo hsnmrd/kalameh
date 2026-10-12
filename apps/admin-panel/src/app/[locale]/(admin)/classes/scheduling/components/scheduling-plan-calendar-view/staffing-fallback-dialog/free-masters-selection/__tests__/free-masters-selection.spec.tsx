@@ -171,8 +171,9 @@ describe("FreeMastersSelection Component", () => {
       />
     )
 
-    // 1. Shows free masters section
+    // 1. Shows free masters section and horizontal carousel slides
     expect(screen.getByTestId("free-masters-selection")).toBeInTheDocument()
+    expect(screen.getAllByTestId("free-master-slide")).toHaveLength(3)
 
     // 2. Direct match teacher (Sara Mohammadi) is present, qualified, and direct match
     const saraItem = screen.getByTestId("free-master-item-t-direct")
