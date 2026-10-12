@@ -19,6 +19,7 @@ import { StudentImportAvailabilityService } from './student-import-availability.
 import {
   StudentImportRowSchema,
   ValidStudentImportRow,
+  mapStudentToExcelExport,
   parseShift,
   parseDayPref,
   parseGender,
@@ -97,24 +98,7 @@ export class StudentExcelService {
       orderBy: { createdAt: 'desc' },
     });
 
-    const mapped = students.map((s) => ({
-      firstName: s.firstName,
-      lastName: s.lastName,
-      phone: s.phone,
-      nationalCode: s.nationalCode,
-      currentAllowedCourseTitle: s.currentAllowedCourse?.title ?? null,
-      fatherName: s.studentProfile?.fatherName ?? null,
-      gender: s.studentProfile?.gender ?? null,
-      birthDate: s.studentProfile?.birthDate ?? null,
-      emergencyPhone: s.studentProfile?.emergencyPhone ?? null,
-      address: s.studentProfile?.address ?? null,
-      schoolShift: s.studentProfile?.schoolShift ?? null,
-      dayPreference: s.studentProfile?.dayPreference ?? null,
-      branchName: s.branch?.name ?? null,
-      scheduleStatus: s.studentProfile?.scheduleStatus ?? null,
-      isActive: s.isActive,
-      createdAt: s.createdAt,
-    }));
+    const mapped = students.map(mapStudentToExcelExport);
 
     return this.excelService.exportStudents(mapped, locale);
   }
@@ -219,9 +203,23 @@ export class StudentExcelService {
 
       seenPhonesInBatch.add(row.phone);
 
-      const courseId = row.currentAllowedCourseTitle
-        ? courseMap.get(normalizePersianText(row.currentAllowedCourseTitle))
-        : undefined;
+      let courseId: string | undefined = undefined;
+      if (row.currentAllowedCourseTitle) {
+        courseId = courseMap.get(
+          normalizePersianText(row.currentAllowedCourseTitle),
+        );
+        if (!courseId) {
+          errors.push({
+            row: rowNumber,
+            phone: row.phone,
+            message:
+              locale === 'fa'
+                ? `دوره‌ای با عنوان "${row.currentAllowedCourseTitle}" در این آموزشگاه یافت نشد`
+                : `A course with title "${row.currentAllowedCourseTitle}" was not found in this institute`,
+          });
+          continue;
+        }
+      }
 
       const branchId = row.branchName
         ? branchMap.get(normalizePersianText(row.branchName))

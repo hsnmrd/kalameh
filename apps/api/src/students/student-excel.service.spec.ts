@@ -171,4 +171,39 @@ describe('StudentExcelService', () => {
       importAvailabilityService.seedImportedStudentsAvailability,
     ).toHaveBeenCalledWith('inst-1', ['09121111111']);
   });
+
+  it('should record an error if course is specified but not found in the institute', async () => {
+    jest.spyOn(prisma.user, 'findMany').mockResolvedValue([]);
+    jest
+      .spyOn(prisma.course, 'findMany')
+      .mockResolvedValue([{ id: 'course-1', title: 'انگلیسی مقدماتی A1' }]);
+    jest.spyOn(prisma.branch, 'findMany').mockResolvedValue([]);
+
+    jest.spyOn(excelService, 'parseStudentRows').mockReturnValue([
+      {
+        firstName: 'سارا',
+        lastName: 'نوری',
+        phone: '09122222222',
+        currentAllowedCourseTitle: 'دوره ناشناخته فرانسه',
+      },
+    ]);
+
+    const result = await service.importFromExcel(
+      mockCurrentUser,
+      Buffer.from('dummy'),
+      'fa',
+    );
+
+    expect(result.totalRows).toBe(1);
+    expect(result.importedCount).toBe(0);
+    expect(result.failedCount).toBe(1);
+    expect(result.errors).toEqual([
+      {
+        row: 2,
+        phone: '09122222222',
+        message:
+          'دوره‌ای با عنوان "دوره ناشناخته فرانسه" در این آموزشگاه یافت نشد',
+      },
+    ]);
+  });
 });

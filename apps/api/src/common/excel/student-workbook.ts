@@ -174,6 +174,46 @@ export function generateStudentTemplate(
   );
 }
 
+export function mapStudentToExcelExport(s: {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  nationalCode?: string | null;
+  isActive: boolean;
+  createdAt: Date | string;
+  branch?: { name: string } | null;
+  currentAllowedCourse?: { title: string } | null;
+  studentProfile?: {
+    fatherName?: string | null;
+    gender?: string | null;
+    birthDate?: Date | string | null;
+    emergencyPhone?: string | null;
+    address?: string | null;
+    schoolShift?: string | null;
+    dayPreference?: string | null;
+    scheduleStatus?: string | null;
+  } | null;
+}) {
+  return {
+    firstName: s.firstName,
+    lastName: s.lastName,
+    phone: s.phone,
+    nationalCode: s.nationalCode,
+    currentAllowedCourseTitle: s.currentAllowedCourse?.title ?? null,
+    fatherName: s.studentProfile?.fatherName ?? null,
+    gender: s.studentProfile?.gender ?? null,
+    birthDate: s.studentProfile?.birthDate ?? null,
+    emergencyPhone: s.studentProfile?.emergencyPhone ?? null,
+    address: s.studentProfile?.address ?? null,
+    schoolShift: s.studentProfile?.schoolShift ?? null,
+    dayPreference: s.studentProfile?.dayPreference ?? null,
+    branchName: s.branch?.name ?? null,
+    scheduleStatus: s.studentProfile?.scheduleStatus ?? null,
+    isActive: s.isActive,
+    createdAt: s.createdAt,
+  };
+}
+
 export function exportStudents(
   students: Array<{
     firstName: string;
