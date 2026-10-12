@@ -239,6 +239,9 @@ export function SchedulingPlanCalendarView({
   const updateProposalMutation = useMutation({
     ...schedulingResource.updateProposal.toMutation(),
   })
+  const commitHiringPlanMutation = useMutation({
+    ...schedulingResource.commitHiringPlan.toMutation(),
+  })
   const [movingProposalId, setMovingProposalId] = React.useState<string | null>(
     null
   )
@@ -261,6 +264,33 @@ export function SchedulingPlanCalendarView({
       SchedulingPlanDetailsDto["unresolvedRequirements"][number] | null
     proposal?: Proposal | null
   } | null>(null)
+  const activeStaffingRequirement = React.useMemo(() => {
+    if (!staffingDialogSession) return null
+    const liveReq = unresolvedRequirements?.find(
+      (req) =>
+        (staffingDialogSession.unresolvedRequirementId &&
+          (req.id === staffingDialogSession.unresolvedRequirementId ||
+            req.classRequirement?.id ===
+              staffingDialogSession.unresolvedRequirementId)) ||
+        (staffingDialogSession.requirement?.id &&
+          req.id === staffingDialogSession.requirement.id)
+    )
+    return liveReq ?? staffingDialogSession.requirement ?? null
+  }, [staffingDialogSession, unresolvedRequirements])
+  const activeStaffingFallback = React.useMemo(() => {
+    if (!staffingDialogSession) return undefined
+    return (
+      activeStaffingRequirement?.recovery?.staffingFallback ??
+      staffingDialogSession.fallback
+    )
+  }, [staffingDialogSession, activeStaffingRequirement])
+  const activeStaffingProposal = React.useMemo(() => {
+    if (!staffingDialogSession?.proposal) return null
+    return (
+      proposals.find((p) => p.id === staffingDialogSession.proposal?.id) ??
+      staffingDialogSession.proposal
+    )
+  }, [staffingDialogSession, proposals])
   const [highlightRelated, setHighlightRelated] = React.useState(true)
   const [switchRoomProposal, setSwitchRoomProposal] =
     React.useState<Proposal | null>(null)
@@ -1703,6 +1733,56 @@ export function SchedulingPlanCalendarView({
     ]
   )
 
+  const handleAssignMissedClassTeacher = React.useCallback(
+    async (
+      assignment: SchedulingNewTeacherHiringAssignment,
+      newTeacherId: string
+    ) => {
+      if (!planId) return
+      try {
+        const updatedPlan = await commitHiringPlanMutation.mutateAsync({
+          planId,
+          ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
+          body: {
+            assignments: [
+              {
+                key: assignment.key,
+                classNumber: assignment.classNumber,
+                requirementId: assignment.requirementId,
+                courseId: assignment.course.id,
+                deliveryMode: assignment.deliveryMode,
+                daysOfWeek: assignment.daysOfWeek as WeekDay[],
+                startTime: assignment.startTime,
+                endTime: assignment.endTime,
+                classroomId:
+                  assignment.deliveryMode === "ONLINE"
+                    ? null
+                    : (assignment.classroom?.id ?? null),
+                teacherId: newTeacherId,
+              },
+            ],
+          },
+        })
+
+        queryClient.setQueryData(
+          schedulingResource.planDetail.key({
+            planId: updatedPlan.id,
+            ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
+          }),
+          updatedPlan
+        )
+        await queryClient.invalidateQueries({
+          queryKey: schedulingResource.planDetail.baseKey(),
+        })
+
+        toast.success(t("calendarView.switchTeacherSuccess"))
+      } catch {
+        // Handled by global toast
+      }
+    },
+    [planId, activeInstituteId, commitHiringPlanMutation, queryClient, t]
+  )
+
   const expandedSlots = React.useMemo(() => {
     if (userExpandedSlots !== null) return userExpandedSlots
     if (!defaultCollapsed) {
@@ -2906,18 +2986,24 @@ export function SchedulingPlanCalendarView({
         onOpenChange={(open) => {
           if (!open) setStaffingDialogSession(null)
         }}
-        fallback={staffingDialogSession?.fallback}
+        fallback={activeStaffingFallback}
         targetCourseTitle={staffingDialogSession?.courseTitle ?? ""}
         hiringAssignments={staffingDialogSession?.hiringAssignments ?? []}
         planId={planId}
         planStatus={planStatus}
-        unresolvedRequirementId={staffingDialogSession?.unresolvedRequirementId}
-        requirement={staffingDialogSession?.requirement}
-        proposal={staffingDialogSession?.proposal}
+        unresolvedRequirementId={
+          activeStaffingRequirement?.id ??
+          staffingDialogSession?.unresolvedRequirementId
+        }
+        requirement={activeStaffingRequirement}
+        proposal={activeStaffingProposal}
         teacherCalendars={teacherCalendars}
         allProposals={allSwappableProposals}
         onAssignTeacher={handleSwitchTeacher}
-        isAssignPending={updateProposalMutation.isPending}
+        onAssignMissedClassTeacher={handleAssignMissedClassTeacher}
+        isAssignPending={
+          updateProposalMutation.isPending || commitHiringPlanMutation.isPending
+        }
       />
 
       {/* Switch / Swap Room Dialog */}

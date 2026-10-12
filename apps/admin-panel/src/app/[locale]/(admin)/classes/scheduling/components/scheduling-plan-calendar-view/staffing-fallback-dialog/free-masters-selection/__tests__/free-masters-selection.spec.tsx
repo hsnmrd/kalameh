@@ -220,4 +220,45 @@ describe("FreeMastersSelection Component", () => {
       screen.getByText("staffingFallback.noFreeMastersDescription")
     ).toBeInTheDocument()
   })
+
+  it("enables assign button and calls onAssignMissedClassTeacher when opened for a missed class (no proposal)", async () => {
+    const onAssignMissedClassTeacher = vi.fn().mockResolvedValue(undefined)
+    const mockHiringAssignment = {
+      key: "missed-1",
+      requirementId: "req-1",
+      course: { id: targetCourse.id, title: targetCourse.title },
+      classNumber: 1,
+      deliveryMode: "IN_PERSON" as const,
+      daysOfWeek,
+      startTime,
+      endTime,
+      classroom: { id: "cr-1", name: "Room 104", capacity: 20 },
+    }
+
+    render(
+      <FreeMastersSelection
+        proposal={null}
+        hiringAssignment={mockHiringAssignment}
+        targetCourse={targetCourse}
+        daysOfWeek={daysOfWeek}
+        startTime={startTime}
+        endTime={endTime}
+        teacherCalendars={teacherCalendars}
+        allProposals={[]}
+        onAssignMissedClassTeacher={onAssignMissedClassTeacher}
+      />
+    )
+
+    const saraBtn = screen.getByTestId("assign-free-master-btn-t-direct")
+    expect(saraBtn).not.toBeDisabled()
+
+    await act(async () => {
+      fireEvent.click(saraBtn)
+    })
+
+    expect(onAssignMissedClassTeacher).toHaveBeenCalledWith(
+      mockHiringAssignment,
+      "t-direct"
+    )
+  })
 })

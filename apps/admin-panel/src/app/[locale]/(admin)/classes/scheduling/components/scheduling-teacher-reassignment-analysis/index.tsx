@@ -1,23 +1,95 @@
+"use client"
+
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { ArrowRightLeft, ChevronDown, ShieldCheck } from "lucide-react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { ArrowRightLeft, Check, ChevronDown, ShieldCheck } from "lucide-react"
 import type { SchedulingTeacherReassignmentChain } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { toast } from "@workspace/ui/components/sonner"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
+import { useActiveInstitute } from "@/lib/stores"
 
 interface SchedulingTeacherReassignmentAnalysisProps {
   chains: SchedulingTeacherReassignmentChain[]
   targetCourseTitle: string
+  planId?: string
+  planStatus?: string
+  unresolvedRequirementId?: string
+  onApplyChainSuccess?: () => void
 }
 
 export function SchedulingTeacherReassignmentAnalysis({
   chains,
   targetCourseTitle,
+  planId,
+  planStatus,
+  unresolvedRequirementId,
+  onApplyChainSuccess,
 }: SchedulingTeacherReassignmentAnalysisProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
+  const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
   const [isExpanded, setIsExpanded] = React.useState(false)
+  const [applyingChainKey, setApplyingChainKey] = React.useState<string | null>(
+    null
+  )
+
+  const canApply =
+    Boolean(planId) &&
+    (!planStatus || ["DRAFT", "SELECTED"].includes(planStatus))
+
+  const applyChainMutation = useMutation({
+    ...schedulingResource.applyReassignmentChain.toMutation(),
+    onSuccess: (updatedPlan, variables) => {
+      toast.success(t("reassignment.applyChainSuccess"))
+      queryClient.setQueryData(
+        schedulingResource.planDetail.key({
+          planId: updatedPlan.id,
+          ...(variables.instituteId
+            ? { instituteId: variables.instituteId }
+            : {}),
+        }),
+        updatedPlan
+      )
+      queryClient.invalidateQueries({
+        queryKey: schedulingResource.planDetail.baseKey(),
+      })
+      onApplyChainSuccess?.()
+    },
+    onSettled: () => {
+      setApplyingChainKey(null)
+    },
+  })
+
+  const handleApplyChain = (chain: SchedulingTeacherReassignmentChain) => {
+    if (!planId || applyChainMutation.isPending) return
+    setApplyingChainKey(chain.key)
+    applyChainMutation.mutate({
+      planId,
+      ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
+      body: {
+        chainKey: chain.key,
+        ...(unresolvedRequirementId ? { unresolvedRequirementId } : {}),
+        reassignments: chain.reassignments.map((r) => ({
+          proposalId: r.proposalId,
+          toTeacherId: r.toTeacher.id,
+        })),
+        targetAssignment: {
+          teacherId: chain.targetAssignment.teacher.id,
+          classroomId: chain.targetAssignment.classroom?.id ?? null,
+          deliveryMode: chain.targetAssignment.deliveryMode,
+          daysOfWeek: chain.targetAssignment.daysOfWeek,
+          startTime: chain.targetAssignment.startTime,
+          endTime: chain.targetAssignment.endTime,
+        },
+      },
+    })
+  }
 
   if (chains.length === 0) {
     return (
@@ -108,14 +180,35 @@ export function SchedulingTeacherReassignmentAnalysis({
           return (
             <li key={chain.key} className="rounded-xl bg-muted/40 p-3.5">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-foreground">
-                  {t("reassignment.validatedChain")}
-                </p>
-                <Badge variant="secondary">
-                  {t("reassignment.changeCount", {
-                    count: formatNumber(chain.reassignments.length, locale),
-                  })}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-semibold text-foreground">
+                    {t("reassignment.validatedChain")}
+                  </p>
+                  <Badge variant="secondary">
+                    {t("reassignment.changeCount", {
+                      count: formatNumber(chain.reassignments.length, locale),
+                    })}
+                  </Badge>
+                </div>
+                {canApply && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    data-testid={`apply-reassignment-chain-btn-${chain.key}`}
+                    disabled={applyChainMutation.isPending}
+                    onClick={() => handleApplyChain(chain)}
+                    className="gap-1.5 font-medium"
+                  >
+                    {applyingChainKey === chain.key ? (
+                      <Spinner className="size-3.5" />
+                    ) : (
+                      <>
+                        <Check aria-hidden className="size-3.5" />
+                        <span>{t("reassignment.applyChainButton")}</span>
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
 
               <ol className="mt-3 flex flex-col gap-2">

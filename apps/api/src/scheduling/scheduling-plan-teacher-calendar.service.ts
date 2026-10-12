@@ -44,6 +44,7 @@ export class SchedulingPlanTeacherCalendarService {
           id: true,
           firstName: true,
           lastName: true,
+          phone: true,
           avatarUrl: true,
           teacherProfile: {
             select: {
@@ -78,8 +79,9 @@ export class SchedulingPlanTeacherCalendarService {
     return this.teacherCalendarService.build({
       courseId: null,
       qualifications: [],
-      teachers: teachers.map(({ teacherProfile, ...teacher }) => ({
+      teachers: teachers.map(({ teacherProfile, phone, ...teacher }) => ({
         ...teacher,
+        phoneNumber: phone,
         availabilities: teacherProfile?.availabilities ?? [],
         teachableCourses:
           teacherProfile?.teachableCourses.map(({ course }) => course) ?? [],

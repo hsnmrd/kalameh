@@ -13,6 +13,7 @@ export interface TeacherBankOutreachProps {
     id: string
     firstName: string
     lastName: string
+    phoneNumber?: string | null
     avatarUrl?: string | null
   }>
   hiringAssignments?: NewTeacherAssignment[]
@@ -76,6 +77,19 @@ export function TeacherBankOutreach({
                   <span className="text-xs font-semibold text-foreground">
                     {teacherName}
                   </span>
+                  {teacher.phoneNumber && (
+                    <a
+                      href={`tel:${teacher.phoneNumber}`}
+                      dir="ltr"
+                      className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/50 px-1.5 py-0.5 text-[11px] font-medium text-foreground transition-colors hover:bg-muted"
+                    >
+                      <PhoneCall
+                        aria-hidden
+                        className="size-3 shrink-0 text-foreground"
+                      />
+                      <span>{teacher.phoneNumber}</span>
+                    </a>
+                  )}
                   <Badge
                     variant="outline"
                     className="text-[10px] font-normal text-muted-foreground"

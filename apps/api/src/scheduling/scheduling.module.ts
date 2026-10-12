@@ -19,6 +19,7 @@ import { SchedulingNewTeacherPreferenceService } from './scheduling-new-teacher-
 import { SchedulingScheduleWindowService } from './scheduling-schedule-window.service';
 import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
 import { SchedulingPlanHiringCommitService } from './scheduling-plan-hiring-commit.service';
+import { SchedulingPlanReassignmentApplyService } from './scheduling-plan-reassignment-apply.service';
 import { SchedulingPlanValidationService } from './scheduling-plan-validation.service';
 import { SchedulingTeacherOutreachToggleService } from './scheduling-teacher-outreach-toggle.service';
 import { SchedulingStudentCoverageService } from './scheduling-student-coverage.service';
@@ -75,6 +76,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingScheduleWindowService,
     SchedulingPlanReviewService,
     SchedulingPlanHiringCommitService,
+    SchedulingPlanReassignmentApplyService,
     SchedulingPlanValidationService,
     SchedulingTeacherOutreachToggleService,
     SchedulingStudentCoverageService,
@@ -109,6 +111,7 @@ import { SchedulingService } from './scheduling.service';
     SchedulingScheduleWindowService,
     SchedulingPlanReviewService,
     SchedulingPlanHiringCommitService,
+    SchedulingPlanReassignmentApplyService,
     SchedulingPlanValidationService,
     SchedulingTeacherOutreachToggleService,
     SchedulingStudentCoverageService,

@@ -83,6 +83,7 @@ export class SchedulingRecoverySuggestionService {
             id: true,
             firstName: true,
             lastName: true,
+            phone: true,
             avatarUrl: true,
           },
         }),
@@ -146,7 +147,16 @@ export class SchedulingRecoverySuggestionService {
       existingClasses: [...snapshot.existingClasses, ...planClasses],
     });
     const teacherById = new Map(
-      teachers.map((teacher) => [teacher.id, teacher]),
+      teachers.map((teacher) => [
+        teacher.id,
+        {
+          id: teacher.id,
+          firstName: teacher.firstName,
+          lastName: teacher.lastName,
+          phoneNumber: teacher.phone,
+          avatarUrl: teacher.avatarUrl,
+        },
+      ]),
     );
     const classroomById = new Map(classrooms.map((room) => [room.id, room]));
     const existingClassTitles = new Map(

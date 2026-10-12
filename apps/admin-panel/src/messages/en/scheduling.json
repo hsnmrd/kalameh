@@ -507,6 +507,8 @@
       "noChainDescription": "No safe combination was found within three reassignments. Locked classes remain unchanged, and qualifications, availability, conflicts, and the physical room are validated together.",
       "showDetails": "Show details",
       "hideDetails": "Hide details",
+      "applyChainButton": "Apply Swap",
+      "applyChainSuccess": "Teacher reassignment chain applied successfully.",
       "validation": {
         "qualification": "Qualifications verified",
         "availability": "Replacement teacher is free at this time",

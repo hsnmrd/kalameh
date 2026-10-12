@@ -45,6 +45,10 @@ export interface StaffingFallbackDialogProps {
     proposal: Proposal,
     teacherId: string
   ) => Promise<void> | void
+  onAssignMissedClassTeacher?: (
+    assignment: NewTeacherAssignment,
+    teacherId: string
+  ) => Promise<void> | void
   isAssignPending?: boolean
 }
 
@@ -62,6 +66,7 @@ export function StaffingFallbackDialog({
   teacherCalendars,
   allProposals,
   onAssignTeacher,
+  onAssignMissedClassTeacher,
   isAssignPending = false,
 }: StaffingFallbackDialogProps) {
   const t = useTranslations("scheduling.planDetails")
@@ -103,6 +108,7 @@ export function StaffingFallbackDialog({
         id: string
         firstName: string
         lastName: string
+        phoneNumber?: string | null
         avatarUrl?: string | null
       }
     >()
@@ -167,16 +173,29 @@ export function StaffingFallbackDialog({
           {targetDaysOfWeek.length > 0 && targetStartTime && targetEndTime && (
             <FreeMastersSelection
               proposal={proposal ?? null}
+              hiringAssignment={hiringAssignments[0] ?? null}
               targetCourse={targetCourse}
               daysOfWeek={targetDaysOfWeek}
               startTime={targetStartTime}
               endTime={targetEndTime}
               teacherCalendars={teacherCalendars}
               allProposals={allProposals}
-              onAssignTeacher={async (prop, teacherId) => {
-                await onAssignTeacher?.(prop, teacherId)
-                onOpenChange(false)
-              }}
+              onAssignTeacher={
+                onAssignTeacher
+                  ? async (prop, teacherId) => {
+                      await onAssignTeacher(prop, teacherId)
+                      onOpenChange(false)
+                    }
+                  : undefined
+              }
+              onAssignMissedClassTeacher={
+                onAssignMissedClassTeacher
+                  ? async (assignment, teacherId) => {
+                      await onAssignMissedClassTeacher(assignment, teacherId)
+                      onOpenChange(false)
+                    }
+                  : undefined
+              }
               isPending={isAssignPending}
             />
           )}
@@ -255,6 +274,10 @@ export function StaffingFallbackDialog({
             <SchedulingTeacherReassignmentAnalysis
               chains={recovery.reassignmentChains}
               targetCourseTitle={effectiveCourseTitle}
+              planId={planId}
+              planStatus={planStatus}
+              unresolvedRequirementId={effectiveUnresolvedRequirementId}
+              onApplyChainSuccess={() => onOpenChange(false)}
             />
           )}
 

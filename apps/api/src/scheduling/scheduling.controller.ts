@@ -21,6 +21,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ModulesGuard } from '../auth/guards/modules.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { CurrentLocale } from '../i18n';
+import { ApplyTeacherReassignmentChainDto } from './dto/apply-reassignment-chain.dto';
 import { CommitHiringPlanDto } from './dto/commit-hiring-plan.dto';
 import { GenerateSchedulingPlanDto } from './dto/generate-scheduling-plan.dto';
 import { SetSchedulingProposalLockDto } from './dto/set-scheduling-proposal-lock.dto';
@@ -31,6 +32,7 @@ import { SchedulingPlanQueryService } from './scheduling-plan-query.service';
 import { SchedulingPlanPublicationService } from './scheduling-plan-publication.service';
 import { SchedulingPlanReviewService } from './scheduling-plan-review.service';
 import { SchedulingPlanHiringCommitService } from './scheduling-plan-hiring-commit.service';
+import { SchedulingPlanReassignmentApplyService } from './scheduling-plan-reassignment-apply.service';
 import { SchedulingPlanValidationService } from './scheduling-plan-validation.service';
 import { SchedulingTeacherOutreachToggleService } from './scheduling-teacher-outreach-toggle.service';
 import { SchedulingService } from './scheduling.service';
@@ -45,6 +47,7 @@ export class SchedulingController {
     private readonly schedulingPlanPublicationService: SchedulingPlanPublicationService,
     private readonly schedulingPlanReviewService: SchedulingPlanReviewService,
     private readonly schedulingPlanHiringCommitService: SchedulingPlanHiringCommitService,
+    private readonly schedulingPlanReassignmentApplyService: SchedulingPlanReassignmentApplyService,
     private readonly schedulingPlanValidationService: SchedulingPlanValidationService,
     private readonly schedulingTeacherOutreachToggleService: SchedulingTeacherOutreachToggleService,
   ) {}
@@ -141,6 +144,24 @@ export class SchedulingController {
     @CurrentLocale() locale: SupportedLocale,
   ) {
     return this.schedulingTeacherOutreachToggleService.toggle(
+      currentUser,
+      planId,
+      dto,
+      query.instituteId,
+      locale,
+    );
+  }
+
+  @Post(':planId/reassignment-chains/apply')
+  @RequirePermissions(PERMISSIONS.MANAGE_CLASSES)
+  applyReassignmentChain(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param('planId') planId: string,
+    @Body() dto: ApplyTeacherReassignmentChainDto,
+    @Query() query: SchedulingRunQueryDto,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.schedulingPlanReassignmentApplyService.apply(
       currentUser,
       planId,
       dto,

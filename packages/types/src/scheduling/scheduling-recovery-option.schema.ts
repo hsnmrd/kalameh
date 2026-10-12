@@ -9,6 +9,7 @@ const SchedulingRecoveryTeacherSchema = z.object({
   id: z.string().uuid(),
   firstName: z.string(),
   lastName: z.string(),
+  phoneNumber: z.string().nullable().optional(),
   avatarUrl: z.string().nullable().optional(),
 })
 
@@ -140,4 +141,31 @@ export type SchedulingTeacherOutreachOption = z.infer<
 >
 export type SchedulingStaffingFallback = z.infer<
   typeof SchedulingStaffingFallbackSchema
+>
+
+export const ApplyTeacherReassignmentChainInputSchema = z.object({
+  chainKey: z.string().trim().min(1),
+  unresolvedRequirementId: z.string().uuid().optional(),
+  reassignments: z
+    .array(
+      z.object({
+        proposalId: z.string().uuid(),
+        toTeacherId: z.string().uuid(),
+      })
+    )
+    .min(1),
+  targetAssignment: z
+    .object({
+      teacherId: z.string().uuid(),
+      classroomId: z.string().uuid().nullable().optional(),
+      deliveryMode: z.enum(CLASS_DELIVERY_MODES).optional(),
+      daysOfWeek: z.array(z.enum(WEEK_DAYS)).optional(),
+      startTime: z.string().regex(SCHEDULING_TIME_REGEX).optional(),
+      endTime: z.string().regex(SCHEDULING_TIME_REGEX).optional(),
+    })
+    .optional(),
+})
+
+export type ApplyTeacherReassignmentChainInput = z.infer<
+  typeof ApplyTeacherReassignmentChainInputSchema
 >

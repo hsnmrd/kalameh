@@ -88,6 +88,7 @@ describe("SchedulingStaffingFallback", () => {
         id: "teacher-1",
         firstName: "علی",
         lastName: "احمدی",
+        phoneNumber: "09123456789",
         avatarUrl: null,
       },
     ]
@@ -107,6 +108,11 @@ describe("SchedulingStaffingFallback", () => {
       screen.getByText("استادان نیازمند تماس (عدم حضور در این بازه)")
     ).toBeInTheDocument()
     expect(screen.getByText("علی احمدی")).toBeInTheDocument()
+    expect(screen.getByText("09123456789")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "09123456789" })).toHaveAttribute(
+      "href",
+      "tel:09123456789"
+    )
     expect(screen.getByText("نیازمند تماس")).toBeInTheDocument()
 
     // Should NOT show the standalone RequiredScheduleCard header

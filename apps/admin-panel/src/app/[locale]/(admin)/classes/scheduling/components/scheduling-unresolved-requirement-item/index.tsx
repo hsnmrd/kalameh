@@ -178,6 +178,9 @@ export function SchedulingUnresolvedRequirementItem({
         targetCourseTitle={
           requirement.classRequirement?.course.title ?? t("unknownCourse")
         }
+        planId={planId}
+        planStatus={planStatus}
+        unresolvedRequirementId={requirement.id}
       />
 
       <SchedulingStaffingFallback

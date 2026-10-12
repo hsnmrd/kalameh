@@ -21,6 +21,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
+import type { NewTeacherAssignment } from "../../scheduling-new-teacher-assignment-list"
 import {
   findFreeMastersForSlot,
   type FreeMasterItem,
@@ -30,6 +31,7 @@ type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
 export interface FreeMastersSelectionProps {
   proposal: Proposal | null
+  hiringAssignment?: NewTeacherAssignment | null
   targetCourse: CourseLevelNode
   daysOfWeek: WeekDay[]
   startTime: string
@@ -40,11 +42,16 @@ export interface FreeMastersSelectionProps {
     proposal: Proposal,
     teacherId: string
   ) => Promise<void> | void
+  onAssignMissedClassTeacher?: (
+    assignment: NewTeacherAssignment,
+    teacherId: string
+  ) => Promise<void> | void
   isPending?: boolean
 }
 
 export function FreeMastersSelection({
   proposal,
+  hiringAssignment,
   targetCourse,
   daysOfWeek,
   startTime,
@@ -52,6 +59,7 @@ export function FreeMastersSelection({
   teacherCalendars = [],
   allProposals = [],
   onAssignTeacher,
+  onAssignMissedClassTeacher,
   isPending = false,
 }: FreeMastersSelectionProps) {
   const t = useTranslations("scheduling.planDetails")
@@ -86,11 +94,20 @@ export function FreeMastersSelection({
     [freeMasters]
   )
 
+  const canAssign = Boolean(
+    (proposal && onAssignTeacher) ||
+    (hiringAssignment && onAssignMissedClassTeacher)
+  )
+
   const handleAssign = async (teacherId: string) => {
-    if (!proposal || !onAssignTeacher || isPending) return
+    if (!canAssign || isPending) return
     setAssigningTeacherId(teacherId)
     try {
-      await onAssignTeacher(proposal, teacherId)
+      if (proposal && onAssignTeacher) {
+        await onAssignTeacher(proposal, teacherId)
+      } else if (hiringAssignment && onAssignMissedClassTeacher) {
+        await onAssignMissedClassTeacher(hiringAssignment, teacherId)
+      }
     } finally {
       setAssigningTeacherId(null)
     }
@@ -141,7 +158,7 @@ export function FreeMastersSelection({
             <FreeMasterCard
               key={item.teacher.id}
               item={item}
-              proposal={proposal}
+              canAssign={canAssign}
               isPending={isPending}
               isAssigning={assigningTeacherId === item.teacher.id}
               onAssign={handleAssign}
@@ -155,7 +172,7 @@ export function FreeMastersSelection({
 
 interface FreeMasterCardProps {
   item: FreeMasterItem
-  proposal: Proposal | null
+  canAssign: boolean
   isPending: boolean
   isAssigning: boolean
   onAssign: (teacherId: string) => void
@@ -163,7 +180,7 @@ interface FreeMasterCardProps {
 
 function FreeMasterCard({
   item,
-  proposal,
+  canAssign,
   isPending,
   isAssigning,
   onAssign,
@@ -274,7 +291,7 @@ function FreeMasterCard({
           type="button"
           size="sm"
           data-testid={`assign-free-master-btn-${item.teacher.id}`}
-          disabled={!isQualified || !proposal || isPending}
+          disabled={!isQualified || !canAssign || isPending}
           onClick={() => onAssign(item.teacher.id)}
           className="shrink-0 gap-1.5 font-medium"
         >

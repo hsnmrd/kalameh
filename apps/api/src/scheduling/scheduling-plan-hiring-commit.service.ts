@@ -149,6 +149,18 @@ export class SchedulingPlanHiringCommitService {
       for (const assignment of input.assignments) {
         const requirement = requirementMap.get(assignment.requirementId)!;
 
+        let teacherQualificationId: string | null = null;
+        if (assignment.teacherId) {
+          const qual = await transaction.teacherCourseQualification.findFirst({
+            where: {
+              courseId: assignment.courseId,
+              teacherProfile: { userId: assignment.teacherId },
+            },
+            select: { id: true },
+          });
+          teacherQualificationId = qual?.id ?? null;
+        }
+
         const createdProposal = await transaction.schedulingProposal.create({
           data: {
             instituteId,
@@ -156,10 +168,10 @@ export class SchedulingPlanHiringCommitService {
             classRequirementId: assignment.requirementId,
             courseId: assignment.courseId,
             branchId: requirement.branchId,
-            teacherId: null,
+            teacherId: assignment.teacherId ?? null,
             classroomId: assignment.classroomId ?? null,
-            teacherQualificationId: null,
-            qualificationCheckedAt: null,
+            teacherQualificationId,
+            qualificationCheckedAt: teacherQualificationId ? committedAt : null,
             title: requirement.course.title,
             capacity: requirement.capacity,
             deliveryMode: assignment.deliveryMode,
