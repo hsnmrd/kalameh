@@ -11,7 +11,9 @@
   },
   "table": {
     "student": "Student",
+    "class": "Class",
     "trackingCode": "Tracking code",
+    "duplicateWarning": "Duplicate tracking code",
     "amount": "Amount",
     "paymentDate": "Payment date",
     "status": "Status",
@@ -33,14 +35,18 @@
     "receiptError": "The receipt could not be loaded. Decisions are unavailable until it is visible.",
     "receiptRetry": "Try again",
     "student": "Student",
+    "class": "Class",
+    "term": "Term",
     "phone": "Phone",
     "trackingCode": "Tracking code",
     "amount": "Amount",
     "paymentDate": "Payment date",
+    "duplicateWarningTitle": "Smart Warning: Duplicate Tracking Code",
+    "duplicateWarningDesc": "This tracking code has been recorded in {count} transactions in this institute. Please check whether this payment is for family members (siblings).",
     "approve": "Approve payment",
     "reject": "Reject payment",
     "close": "Close",
-    "approveSuccess": "The transaction was approved.",
-    "rejectSuccess": "The transaction was rejected."
+    "approveSuccess": "The transaction was approved and enrollment confirmed.",
+    "rejectSuccess": "The transaction was rejected and capacity released."
   }
 }

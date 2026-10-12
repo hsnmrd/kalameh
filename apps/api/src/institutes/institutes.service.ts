@@ -444,4 +444,15 @@ export class InstitutesService {
       where: { id: offDayId },
     });
   }
+
+  async getBankInfo(instituteId: string) {
+    return this.prisma.institute.findFirstOrThrow({
+      where: { id: instituteId },
+      select: {
+        bankCardNumber: true,
+        bankAccountName: true,
+        bankShaba: true,
+      },
+    });
+  }
 }

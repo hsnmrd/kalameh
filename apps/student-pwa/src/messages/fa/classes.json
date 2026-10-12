@@ -11,5 +11,8 @@
   "toman": "تومان",
   "capacity": "ظرفیت: {enrolled} از {capacity} نفر",
   "full": "تکمیل ظرفیت",
-  "enrollButton": "انتخاب و ثبت‌نام در کلاس"
+  "enrollButton": "انتخاب و ثبت‌نام در کلاس",
+  "waitlistButton": "ثبت‌نام در لیست انتظار",
+  "waitlistSuccess": "درخواست شما با موفقیت در لیست انتظار ثبت شد.",
+  "reserveSuccess": "ظرفیت کلاس به مدت ۳۰ دقیقه برای شما رزرو شد."
 }

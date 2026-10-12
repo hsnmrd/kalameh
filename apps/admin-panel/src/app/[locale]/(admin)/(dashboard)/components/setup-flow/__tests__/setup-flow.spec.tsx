@@ -10,6 +10,7 @@ import {
   schedulingResource,
   classesResource,
 } from "@/lib/api"
+import { useOperatingPhasesReviewStore } from "@/lib/stores"
 
 vi.mock("@/i18n/routing", () => ({
   Link: ({
@@ -33,6 +34,7 @@ describe("SetupFlow Component", () => {
   const mockInstituteId = "inst-test-123"
 
   beforeEach(() => {
+    useOperatingPhasesReviewStore.setState({ reviewedInstituteIds: {} })
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -127,6 +129,7 @@ describe("SetupFlow Component", () => {
 
   it("shows strictly ONE current step when later steps have data (prevents multiple current steps)", () => {
     // Step 1 done
+    useOperatingPhasesReviewStore.getState().markAsReviewed(mockInstituteId)
     queryClient.setQueryData(
       operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
         .queryKey,

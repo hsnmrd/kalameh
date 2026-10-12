@@ -23,11 +23,14 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { ClassRequirementsModule } from './class-requirements/class-requirements.module';
 import { SchedulingModule } from './scheduling/scheduling.module';
 import { OperatingPhasesModule } from './operating-phases/operating-phases.module';
+import { RedisModule } from './common/redis/redis.module';
+import { EnrollmentsModule } from './enrollments/enrollments.module';
 
 @Module({
   imports: [
     I18nModule,
     PrismaModule,
+    RedisModule,
     ExcelModule,
     AuthModule,
     UsersModule,
@@ -42,6 +45,7 @@ import { OperatingPhasesModule } from './operating-phases/operating-phases.modul
     GradesModule,
     RolePermissionsModule,
     AuditLogsModule,
+    EnrollmentsModule,
     TransactionsModule,
     ClassRequirementsModule,
     SchedulingModule,

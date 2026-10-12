@@ -47,12 +47,22 @@ describe("Student Classes Components", () => {
       ).toBeInTheDocument()
     })
 
-    it("should disable enroll button when class is full", () => {
+    it("should show waitlist button when class is full", () => {
       const fullClass = { ...mockClass, enrolledCount: 15, capacity: 15 }
-      render(<StudentClassCard cls={fullClass} onEnroll={vi.fn()} />)
+      const onWaitlist = vi.fn()
+      render(
+        <StudentClassCard
+          cls={fullClass}
+          onEnroll={vi.fn()}
+          onWaitlist={onWaitlist}
+        />
+      )
 
-      const enrollBtn = screen.getByRole("button", { name: /ثبت‌نام|enroll/i })
-      expect(enrollBtn).toBeDisabled()
+      const waitlistBtn = screen.getByRole("button", {
+        name: /لیست انتظار|waitlist/i,
+      })
+      expect(waitlistBtn).toBeInTheDocument()
+      expect(waitlistBtn).not.toBeDisabled()
     })
   })
 })

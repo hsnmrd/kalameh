@@ -1,7 +1,7 @@
 "use client"
 
 import { useLocale, useTranslations } from "next-intl"
-import { ReceiptText } from "lucide-react"
+import { AlertTriangle, ReceiptText } from "lucide-react"
 import type { TransactionDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -74,8 +74,33 @@ export function TransactionsList({
               <ReceiptText />
             </MobileListItemIcon>
             <MobileListItemContent
-              primary={`${transaction.student.firstName} ${transaction.student.lastName}`}
-              secondary={<Price amount={transaction.amount} locale={locale} />}
+              primary={
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-semibold text-foreground">
+                    {transaction.student.firstName}{" "}
+                    {transaction.student.lastName}
+                  </span>
+                  {transaction.class?.title && (
+                    <span className="text-xs text-muted-foreground">
+                      {transaction.class.title}
+                    </span>
+                  )}
+                </div>
+              }
+              secondary={
+                <div className="flex items-center gap-2 pt-0.5">
+                  <Price amount={transaction.amount} locale={locale} />
+                  {transaction.isDuplicateTrackingCode && (
+                    <span
+                      className="inline-flex items-center gap-1 rounded bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning"
+                      title={t("table.duplicateWarning")}
+                    >
+                      <AlertTriangle className="size-3" />
+                      <span>{t("table.duplicateWarning")}</span>
+                    </span>
+                  )}
+                </div>
+              }
             />
             <MobileListItemTrailing>
               <TransactionStatusBadge status={transaction.status} />

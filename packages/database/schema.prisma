@@ -549,6 +549,7 @@ model Class {
   classroom                Classroom?          @relation(fields: [classroomId], references: [id], onDelete: SetNull)
   teacher                  User?               @relation("TeacherClasses", fields: [teacherId], references: [id], onDelete: SetNull)
   enrollments              Enrollment[]
+  transactions             Transaction[]
   sourceSchedulingProposal SchedulingProposal?
 
   createdAt DateTime @default(now())
@@ -600,6 +601,9 @@ model Enrollment {
   finalScore Int?
   isPassed   Boolean?
 
+  transactionId String?      @unique
+  transaction   Transaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -617,9 +621,10 @@ enum TransactionStatus {
 }
 
 model Transaction {
-  id          String @id @default(uuid())
+  id          String  @id @default(uuid())
   instituteId String
   studentId   String
+  classId     String?
 
   amount          Int
   trackingCode    String
@@ -631,11 +636,15 @@ model Transaction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  institute Institute @relation(fields: [instituteId], references: [id])
-  student   User      @relation(fields: [studentId], references: [id])
+  institute  Institute   @relation(fields: [instituteId], references: [id])
+  student    User        @relation(fields: [studentId], references: [id])
+  class      Class?      @relation(fields: [classId], references: [id], onDelete: SetNull)
+  enrollment Enrollment?
 
   @@index([instituteId])
   @@index([studentId])
+  @@index([classId])
+  @@index([instituteId, trackingCode])
 }
 
 model RolePermission {

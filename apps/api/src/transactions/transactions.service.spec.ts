@@ -5,6 +5,7 @@ import { TransactionsService } from './transactions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { I18nService } from '../i18n/i18n.service';
+import { RedisService } from '../common/redis/redis.service';
 import { ROLES, TRANSACTION_STATUSES, type JwtPayload } from '@workspace/types';
 
 describe('TransactionsService', () => {
@@ -51,6 +52,12 @@ describe('TransactionsService', () => {
         findFirstOrThrow: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
+        groupBy: jest.fn().mockResolvedValue([]),
+        count: jest.fn().mockResolvedValue(1),
+      },
+      enrollment: {
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        upsert: jest.fn(),
       },
       user: { findFirstOrThrow: jest.fn() },
     };
@@ -60,6 +67,16 @@ describe('TransactionsService', () => {
       providers: [
         TransactionsService,
         { provide: PrismaService, useValue: prisma },
+        {
+          provide: RedisService,
+          useValue: {
+            acquireClassLock: jest.fn().mockResolvedValue(true),
+            getClassLockRemainingTtl: jest.fn().mockResolvedValue(1800),
+            hasClassLock: jest.fn().mockResolvedValue(false),
+            releaseClassLock: jest.fn().mockResolvedValue(undefined),
+            countClassLocks: jest.fn().mockResolvedValue(0),
+          },
+        },
         { provide: AuditLogsService, useValue: auditLogsService },
         {
           provide: I18nService,
@@ -101,7 +118,11 @@ describe('TransactionsService', () => {
       'en',
     );
 
-    expect(result).toEqual(transaction);
+    expect(result).toEqual({
+      ...transaction,
+      duplicateCount: 1,
+      isDuplicateTrackingCode: false,
+    });
     expect(prisma.transaction.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({

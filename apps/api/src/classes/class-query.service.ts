@@ -5,10 +5,14 @@ import {
   type SupportedLocale,
 } from '@workspace/types';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../common/redis/redis.service';
 import { ClassFilterDto } from './dto/class-filter.dto';
 @Injectable()
 export class ClassQueryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+  ) {}
   async findAll(
     currentUser: JwtPayload,
     filter?: ClassFilterDto,
@@ -80,10 +84,15 @@ export class ClassQueryService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return classes.map(({ _count, ...cls }) => ({
-      ...cls,
-      enrolledCount: _count.enrollments,
-    }));
+    return Promise.all(
+      classes.map(async ({ _count, ...cls }) => {
+        const lockCount = await this.redis.countClassLocks(cls.id);
+        return {
+          ...cls,
+          enrolledCount: _count.enrollments + lockCount,
+        };
+      }),
+    );
   }
 
   async findAvailableForStudent(
@@ -172,12 +181,19 @@ export class ClassQueryService {
       orderBy: { title: 'asc' },
     });
 
+    const classesWithLocks = await Promise.all(
+      classes.map(async ({ _count, ...cls }) => {
+        const lockCount = await this.redis.countClassLocks(cls.id);
+        return {
+          ...cls,
+          enrolledCount: _count.enrollments + lockCount,
+        };
+      }),
+    );
+
     return {
       allowedCourseTitle: course?.title,
-      classes: classes.map(({ _count, ...cls }) => ({
-        ...cls,
-        enrolledCount: _count.enrollments,
-      })),
+      classes: classesWithLocks,
     };
   }
 

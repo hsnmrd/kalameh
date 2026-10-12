@@ -1,17 +1,64 @@
 "use client"
 
 import * as React from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { Layers } from "lucide-react"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { classesResource } from "@/lib/api"
+import { toast } from "@workspace/ui/components/sonner"
+import type { ClassDto } from "@workspace/types"
+import { classesResource, enrollmentsResource } from "@/lib/api"
 import { StudentLevelHeader } from "./components/student-level-header"
 import { StudentClassCard } from "./components/student-class-card"
 
 export default function StudentClassesPage() {
   const t = useTranslations("classes")
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const [activeClassId, setActiveClassId] = React.useState<string | null>(null)
+
   const { data, isLoading } = useQuery(classesResource.available.toQuery())
+
+  const reserveMutation = useMutation({
+    ...enrollmentsResource.reserve.toMutation(),
+    onSuccess: (res) => {
+      toast.success(t("reserveSuccess"))
+      void queryClient.invalidateQueries({
+        queryKey: classesResource.available.baseKey(),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: enrollmentsResource.my.baseKey(),
+      })
+      router.push(`/enrollments?classId=${res.classId}`)
+    },
+    onSettled: () => setActiveClassId(null),
+  })
+
+  const waitlistMutation = useMutation({
+    ...enrollmentsResource.waitlist.toMutation(),
+    onSuccess: () => {
+      toast.success(t("waitlistSuccess"))
+      void queryClient.invalidateQueries({
+        queryKey: classesResource.available.baseKey(),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: enrollmentsResource.my.baseKey(),
+      })
+      router.push("/enrollments")
+    },
+    onSettled: () => setActiveClassId(null),
+  })
+
+  const handleEnroll = (cls: ClassDto) => {
+    setActiveClassId(cls.id)
+    reserveMutation.mutate({ classId: cls.id })
+  }
+
+  const handleWaitlist = (cls: ClassDto) => {
+    setActiveClassId(cls.id)
+    waitlistMutation.mutate({ classId: cls.id })
+  }
 
   return (
     <div className="flex flex-col gap-5 pb-8">
@@ -33,7 +80,16 @@ export default function StudentClassesPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {data.classes.map((cls) => (
-            <StudentClassCard key={cls.id} cls={cls} />
+            <StudentClassCard
+              key={cls.id}
+              cls={cls}
+              onEnroll={handleEnroll}
+              onWaitlist={handleWaitlist}
+              isPending={
+                activeClassId === cls.id &&
+                (reserveMutation.isPending || waitlistMutation.isPending)
+              }
+            />
           ))}
         </div>
       )}

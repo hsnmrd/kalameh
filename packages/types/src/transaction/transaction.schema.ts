@@ -22,10 +22,24 @@ export const TransactionStudentSchema = z.object({
   avatarUrl: z.string().nullable().optional(),
 })
 
+export const TransactionClassSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  fee: z.number().int().nonnegative(),
+  term: z
+    .object({
+      id: z.string().uuid(),
+      title: z.string(),
+    })
+    .nullable()
+    .optional(),
+})
+
 export const TransactionSchema = z.object({
   id: z.string().uuid(),
   instituteId: z.string().uuid(),
   studentId: z.string().uuid(),
+  classId: z.string().uuid().nullable().optional(),
   amount: z.number().int().positive(),
   trackingCode: z.string(),
   receiptImageUrl: z.string(),
@@ -34,6 +48,9 @@ export const TransactionSchema = z.object({
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
   student: TransactionStudentSchema,
+  class: TransactionClassSchema.nullable().optional(),
+  isDuplicateTrackingCode: z.boolean().optional(),
+  duplicateCount: z.number().optional(),
 })
 
 export type TransactionDto = z.infer<typeof TransactionSchema>

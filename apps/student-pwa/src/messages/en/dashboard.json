@@ -8,5 +8,11 @@
   "term": "Fall 2026",
   "className": "Starter 101 - Class A",
   "receiptStatusDesc": "Your payment receipt has been submitted and is awaiting administrator verification.",
-  "viewReceiptDetails": "View payment receipt details"
+  "viewReceiptDetails": "View payment receipt details",
+  "noEnrollmentTitle": "No Active Enrollment",
+  "noEnrollmentDesc": "To begin your learning journey, explore allowed classes and enroll in a course.",
+  "selectClass": "Browse Allowed Classes",
+  "statusEnrolled": "Enrolled",
+  "statusWaitlisted": "Waitlisted",
+  "statusRejected": "Rejected"
 }

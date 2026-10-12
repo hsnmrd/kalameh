@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Eye, ReceiptText } from "lucide-react"
+import { AlertTriangle, Eye, ReceiptText } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { TransactionDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
@@ -48,12 +48,39 @@ export function TransactionsTable({
         ),
       },
       {
+        id: "class",
+        header: t("table.class"),
+        cell: ({ row }) => (
+          <div className="flex flex-col gap-0.5">
+            <span className="font-semibold text-foreground">
+              {row.original.class?.title ?? "—"}
+            </span>
+            {row.original.class?.term?.title && (
+              <span className="text-xs text-muted-foreground">
+                {row.original.class.term.title}
+              </span>
+            )}
+          </div>
+        ),
+      },
+      {
         accessorKey: "trackingCode",
         header: t("table.trackingCode"),
         cell: ({ row }) => (
-          <span className="font-mono text-sm text-foreground">
-            {row.original.trackingCode}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-sm text-foreground">
+              {row.original.trackingCode}
+            </span>
+            {row.original.isDuplicateTrackingCode && (
+              <span
+                className="inline-flex items-center gap-1 rounded-md border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-xs font-semibold text-warning"
+                title={t("table.duplicateWarning")}
+              >
+                <AlertTriangle className="size-3.5 shrink-0" />
+                <span>{t("table.duplicateWarning")}</span>
+              </span>
+            )}
+          </div>
         ),
       },
       {

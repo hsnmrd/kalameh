@@ -10,6 +10,7 @@ import { ClassCreateService } from './class-create.service';
 import { ClassLifecycleService } from './class-lifecycle.service';
 import { ClassQueryService } from './class-query.service';
 import { ClassUpdateService } from './class-update.service';
+import { RedisService } from '../common/redis/redis.service';
 import { JwtPayload } from '@workspace/types';
 
 describe('ClassesService', () => {
@@ -85,6 +86,17 @@ describe('ClassesService', () => {
         { provide: PrismaService, useValue: prismaService },
         { provide: I18nService, useValue: i18nService },
         { provide: AuditLogsService, useValue: { log: jest.fn() } },
+        {
+          provide: RedisService,
+          useValue: {
+            acquireClassLock: jest.fn().mockResolvedValue(true),
+            getClassLockRemainingTtl: jest.fn().mockResolvedValue(1800),
+            hasClassLock: jest.fn().mockResolvedValue(false),
+            releaseClassLock: jest.fn().mockResolvedValue(undefined),
+            countClassLocks: jest.fn().mockResolvedValue(0),
+            getStudentActiveReservation: jest.fn().mockResolvedValue(null),
+          },
+        },
       ],
     }).compile();
 
