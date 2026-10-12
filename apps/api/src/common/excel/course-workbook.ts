@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import type { SupportedLocale } from '@workspace/types';
+import {
+  isPersianTextEqual,
+  cleanPersianText,
+  type SupportedLocale,
+} from '@workspace/types';
 import { buildXlsxBuffer } from './xlsx-writer';
 
 export const CourseImportRowSchema = z.object({
@@ -114,10 +118,7 @@ export function parseCourseRows(
   ): string => {
     for (const key of keys) {
       for (const [rKey, rVal] of Object.entries(record)) {
-        if (
-          rKey.trim().toLowerCase() === key.toLowerCase() ||
-          rKey.trim() === key
-        ) {
+        if (isPersianTextEqual(rKey, key)) {
           return rVal?.trim() || '';
         }
       }
@@ -158,9 +159,9 @@ export function parseCourseRows(
     const baseFee = Number(cleanFee) || 0;
 
     return {
-      title,
+      title: cleanPersianText(title),
       baseFee,
-      prerequisiteTitle: prerequisite || undefined,
+      prerequisiteTitle: cleanPersianText(prerequisite) || undefined,
     };
   });
 }

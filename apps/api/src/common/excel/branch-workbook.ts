@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import type { SupportedLocale } from '@workspace/types';
+import {
+  isPersianTextEqual,
+  cleanPersianText,
+  type SupportedLocale,
+} from '@workspace/types';
 import { buildXlsxBuffer } from './xlsx-writer';
 
 export const BranchImportRowSchema = z.object({
@@ -124,10 +128,7 @@ export function parseBranchRows(
   ): string => {
     for (const key of keys) {
       for (const [rKey, rVal] of Object.entries(record)) {
-        if (
-          rKey.trim().toLowerCase() === key.toLowerCase() ||
-          rKey.trim() === key
-        ) {
+        if (isPersianTextEqual(rKey, key)) {
           return rVal?.trim() || '';
         }
       }
@@ -163,8 +164,8 @@ export function parseBranchRows(
       : [];
 
     return {
-      name,
-      address: address || undefined,
+      name: cleanPersianText(name),
+      address: cleanPersianText(address) || undefined,
       phones,
     };
   });

@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import type { SupportedLocale } from '@workspace/types';
+import {
+  isPersianTextEqual,
+  cleanPersianText,
+  type SupportedLocale,
+} from '@workspace/types';
 import { buildXlsxBuffer } from './xlsx-writer';
 
 export const TeacherImportRowSchema = z.object({
@@ -229,10 +233,7 @@ export function parseTeacherRows(
   ): string => {
     for (const key of keys) {
       for (const [rKey, rVal] of Object.entries(record)) {
-        if (
-          rKey.trim().toLowerCase() === key.toLowerCase() ||
-          rKey.trim() === key
-        ) {
+        if (isPersianTextEqual(rKey, key)) {
           return rVal?.trim() || '';
         }
       }
@@ -336,15 +337,15 @@ export function parseTeacherRows(
     );
 
     return {
-      firstName,
-      lastName,
+      firstName: cleanPersianText(firstName),
+      lastName: cleanPersianText(lastName),
       phone: normalizeDigits(rawPhone),
       nationalCode: normalizeDigits(rawNationalCode) || undefined,
-      degree: degree || undefined,
-      teachableCourses: splitList(rawTeachable),
-      specialties: splitList(rawSpecialties),
-      branchName: branchName || undefined,
-      bio: bio || undefined,
+      degree: cleanPersianText(degree) || undefined,
+      teachableCourses: splitList(rawTeachable).map((c) => cleanPersianText(c)),
+      specialties: splitList(rawSpecialties).map((s) => cleanPersianText(s)),
+      branchName: cleanPersianText(branchName) || undefined,
+      bio: cleanPersianText(bio) || undefined,
       password: password || undefined,
     };
   });

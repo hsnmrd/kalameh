@@ -35,3 +35,5 @@ export interface ExcelImportResult {
   failedCount: number
   errors: ExcelImportError[]
 }
+
+export * from "./persian-text-normalizer.js"

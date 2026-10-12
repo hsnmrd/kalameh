@@ -20,6 +20,7 @@ import {
   JwtPayload,
   SupportedLocale,
   UserImportRowSchema,
+  normalizePersianText,
   type ExcelImportResult,
   type ExcelImportError,
   type UserLookupResponse,
@@ -551,7 +552,7 @@ export class UsersService {
     });
 
     const branchMap = new Map<string, string>();
-    branches.forEach((b) => branchMap.set(b.name.trim().toLowerCase(), b.id));
+    branches.forEach((b) => branchMap.set(normalizePersianText(b.name), b.id));
 
     // Preload existing phone numbers for this institute
     const existingUsers = await this.prisma.user.findMany({
@@ -628,7 +629,7 @@ export class UsersService {
       // Resolve branch if provided
       let branchId: string | undefined = undefined;
       if (row.branchName) {
-        const matchedId = branchMap.get(row.branchName.trim().toLowerCase());
+        const matchedId = branchMap.get(normalizePersianText(row.branchName));
         if (matchedId) {
           branchId = matchedId;
         }

@@ -7,6 +7,7 @@ import * as bcrypt from 'bcryptjs';
 import {
   ROLES,
   calculatePhaseSlots,
+  normalizePersianText,
   type JwtPayload,
   type SupportedLocale,
   type ExcelImportResult,
@@ -170,10 +171,10 @@ export class StudentExcelService {
 
     const existingPhones = new Set(existingUsers.map((u) => u.phone));
     const courseMap = new Map(
-      instituteCourses.map((c) => [c.title.trim().toLowerCase(), c.id]),
+      instituteCourses.map((c) => [normalizePersianText(c.title), c.id]),
     );
     const branchMap = new Map(
-      instituteBranches.map((b) => [b.name.trim().toLowerCase(), b.id]),
+      instituteBranches.map((b) => [normalizePersianText(b.name), b.id]),
     );
 
     const seenPhonesInBatch = new Set<string>();
@@ -224,11 +225,11 @@ export class StudentExcelService {
       seenPhonesInBatch.add(row.phone);
 
       const courseId = row.currentAllowedCourseTitle
-        ? courseMap.get(row.currentAllowedCourseTitle.toLowerCase())
+        ? courseMap.get(normalizePersianText(row.currentAllowedCourseTitle))
         : undefined;
 
       const branchId = row.branchName
-        ? branchMap.get(row.branchName.toLowerCase())
+        ? branchMap.get(normalizePersianText(row.branchName))
         : undefined;
 
       let parsedBirthDate: Date | undefined;

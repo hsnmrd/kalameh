@@ -33,6 +33,7 @@ export function ProfileActions({
   if (!onResetPassword && !onEdit && !onDelete) return null
 
   const runAction = (action: (user: AuthUser) => void) => {
+    onClose()
     action(user)
   }
 

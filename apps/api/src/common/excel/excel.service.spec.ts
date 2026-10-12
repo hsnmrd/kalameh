@@ -85,4 +85,47 @@ describe('ExcelService', () => {
     expect(parsed[0].lastName).toBe('کرمی');
     expect(parsed[0].phone).toBe('09124445566');
   });
+
+  it('should normalize Arabic characters and clean spaces in teacher rows', () => {
+    // Header with Arabic kaf and yeh: "نام خانوادگى", "شماره موبايل", "دوره های قابل تدريس"
+    const csvContent =
+      'نام,نام خانوادگى,شماره موبايل,كد ملى,دوره های قابل تدريس,شعبه\nعلى,رضائى,۰۹۱۲۳۴۵۶۷۸۹,۰۰۱۲۳۴۵۶۷۸,انگليسى مقدماتى A1,شعبه مركزى';
+    const buffer = Buffer.from(csvContent, 'utf-8');
+    const rows = service.parseTeacherRows(buffer, 'fa');
+
+    expect(rows.length).toBe(1);
+    expect(rows[0].firstName).toBe('علی');
+    expect(rows[0].lastName).toBe('رضائی');
+    expect(rows[0].phone).toBe('09123456789');
+    expect(rows[0].nationalCode).toBe('0012345678');
+    expect(rows[0].teachableCourses).toEqual(['انگلیسی مقدماتی A1']);
+    expect(rows[0].branchName).toBe('شعبه مرکزی');
+  });
+
+  it('should normalize Arabic characters and shift/day preferences in student rows', () => {
+    const csvContent =
+      'نام,نام خانوادگى,شماره موبايل,سطح / دوره مجاز,شيفت مدرسه,ترجيح روز,شعبه\nپارسا,رستمى,۰۹۱۲۱۱۱۱۱۱۱,انگليسى A1,صبح,روزهای زوج,شعبه مركزى';
+    const buffer = Buffer.from(csvContent, 'utf-8');
+    const rows = service.parseStudentRows(buffer, 'fa');
+
+    expect(rows.length).toBe(1);
+    expect(rows[0].firstName).toBe('پارسا');
+    expect(rows[0].lastName).toBe('رستمی');
+    expect(rows[0].currentAllowedCourseTitle).toBe('انگلیسی A1');
+    expect(rows[0].schoolShift).toBe('صبح');
+    expect(rows[0].dayPreference).toBe('روزهای زوج');
+    expect(rows[0].branchName).toBe('شعبه مرکزی');
+  });
+
+  it('should normalize Arabic characters in course rows', () => {
+    const csvContent =
+      'عنوان دوره,شهریه پایه (تومان),پيش‌نياز\nانگليسى مقدماتى A2,"۱,۶۵۰,۰۰۰",انگليسى مقدماتى A1';
+    const buffer = Buffer.from(csvContent, 'utf-8');
+    const rows = service.parseCourseRows(buffer, 'fa');
+
+    expect(rows.length).toBe(1);
+    expect(rows[0].title).toBe('انگلیسی مقدماتی A2');
+    expect(rows[0].baseFee).toBe(1650000);
+    expect(rows[0].prerequisiteTitle).toBe('انگلیسی مقدماتی A1');
+  });
 });

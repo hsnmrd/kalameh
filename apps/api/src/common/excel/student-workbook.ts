@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import type { SupportedLocale } from '@workspace/types';
+import {
+  isPersianTextEqual,
+  cleanPersianText,
+  normalizePersianText,
+  type SupportedLocale,
+} from '@workspace/types';
 import { buildXlsxBuffer } from './xlsx-writer';
 
 export const StudentImportRowSchema = z.object({
@@ -333,10 +338,7 @@ export function parseStudentRows(
   ): string => {
     for (const key of keys) {
       for (const [rKey, rVal] of Object.entries(record)) {
-        if (
-          rKey.trim().toLowerCase() === key.toLowerCase() ||
-          rKey.trim() === key
-        ) {
+        if (isPersianTextEqual(rKey, key)) {
           return rVal?.trim() || '';
         }
       }
@@ -448,19 +450,19 @@ export function parseStudentRows(
     );
 
     return {
-      firstName,
-      lastName,
+      firstName: cleanPersianText(firstName),
+      lastName: cleanPersianText(lastName),
       phone: normalizeDigits(rawPhone),
       nationalCode: normalizeDigits(rawNationalCode) || undefined,
-      currentAllowedCourseTitle: courseTitle || undefined,
-      fatherName: fatherName || undefined,
-      gender: gender || undefined,
-      birthDate: birthDate || undefined,
+      currentAllowedCourseTitle: cleanPersianText(courseTitle) || undefined,
+      fatherName: cleanPersianText(fatherName) || undefined,
+      gender: cleanPersianText(gender) || undefined,
+      birthDate: normalizeDigits(birthDate) || undefined,
       emergencyPhone: normalizeDigits(rawEmergency) || undefined,
-      address: address || undefined,
-      schoolShift: schoolShift || undefined,
-      dayPreference: dayPreference || undefined,
-      branchName: branchName || undefined,
+      address: cleanPersianText(address) || undefined,
+      schoolShift: cleanPersianText(schoolShift) || undefined,
+      dayPreference: cleanPersianText(dayPreference) || undefined,
+      branchName: cleanPersianText(branchName) || undefined,
       password: password || undefined,
     };
   });
@@ -468,15 +470,20 @@ export function parseStudentRows(
 
 export function parseShift(val?: string): 'MORNING' | 'AFTERNOON' | 'FLEXIBLE' {
   if (!val) return 'FLEXIBLE';
-  const norm = val.toLowerCase();
+  const norm = normalizePersianText(val);
   if (norm.includes('صبح') || norm.includes('morning')) return 'MORNING';
-  if (norm.includes('عصر') || norm.includes('afternoon')) return 'AFTERNOON';
+  if (
+    norm.includes('عصر') ||
+    norm.includes('بعد از ظهر') ||
+    norm.includes('afternoon')
+  )
+    return 'AFTERNOON';
   return 'FLEXIBLE';
 }
 
 export function parseDayPref(val?: string): 'EVEN_DAYS' | 'ODD_DAYS' | 'ANY' {
   if (!val) return 'ANY';
-  const norm = val.toLowerCase();
+  const norm = normalizePersianText(val);
   if (norm.includes('زوج') || norm.includes('even')) return 'EVEN_DAYS';
   if (norm.includes('فرد') || norm.includes('odd')) return 'ODD_DAYS';
   return 'ANY';

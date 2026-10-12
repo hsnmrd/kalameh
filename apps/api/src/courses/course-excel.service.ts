@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import {
   ROLES,
+  normalizePersianText,
   type JwtPayload,
   type SupportedLocale,
   type ExcelImportResult,
@@ -14,16 +15,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { ExcelService } from '../common/excel/excel.service';
 import { CourseImportRowSchema } from '../common/excel/course-workbook';
-
-function normalizeCourseTitle(title: string): string {
-  return title
-    .trim()
-    .toLowerCase()
-    .replace(/\u200c/g, '') // remove zero-width non-joiner
-    .replace(/ي/g, 'ی')
-    .replace(/ك/g, 'ک')
-    .replace(/\s+/g, ' ');
-}
 
 @Injectable()
 export class CourseExcelService {
@@ -147,7 +138,7 @@ export class CourseExcelService {
     // Map normalized course titles to course ID
     const titleToIdMap = new Map<string, string>();
     for (const ec of existingCourses) {
-      titleToIdMap.set(normalizeCourseTitle(ec.title), ec.id);
+      titleToIdMap.set(normalizePersianText(ec.title), ec.id);
     }
 
     const seenTitlesInBatch = new Set<string>();
@@ -173,7 +164,7 @@ export class CourseExcelService {
       }
 
       const row = parseResult.data;
-      const normalizedTitle = normalizeCourseTitle(row.title);
+      const normalizedTitle = normalizePersianText(row.title);
 
       if (seenTitlesInBatch.has(normalizedTitle)) {
         errors.push({
@@ -224,7 +215,7 @@ export class CourseExcelService {
 
       // Register newly created courses in the title map
       for (const created of createdCourses) {
-        titleToIdMap.set(normalizeCourseTitle(created.title), created.id);
+        titleToIdMap.set(normalizePersianText(created.title), created.id);
       }
 
       // Pass 2: Connect prerequisite relations
@@ -234,7 +225,7 @@ export class CourseExcelService {
         const createdCourse = createdCourses[idx];
 
         if (item.prerequisiteTitle?.trim()) {
-          const normalizedPrereqTitle = normalizeCourseTitle(
+          const normalizedPrereqTitle = normalizePersianText(
             item.prerequisiteTitle,
           );
           const prerequisiteId = titleToIdMap.get(normalizedPrereqTitle);

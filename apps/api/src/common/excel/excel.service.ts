@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { I18nService } from '../../i18n/i18n.service';
-import type { SupportedLocale, Role } from '@workspace/types';
+import {
+  normalizeDigits,
+  normalizePersianText,
+  cleanPersianText,
+  isPersianTextEqual,
+  type SupportedLocale,
+  type Role,
+} from '@workspace/types';
 import { parseXlsxBuffer } from './xlsx-parser';
 import { buildXlsxBuffer } from './xlsx-writer';
 import { exportUsers, generateUserTemplate } from './user-workbook';
@@ -56,12 +63,29 @@ export class ExcelService {
   /**
    * Normalize Persian & Arabic numerals to standard Latin digits.
    */
-  normalizeDigits(str: string): string {
-    if (!str) return '';
-    return str
-      .replace(/[۰-۹]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1728))
-      .replace(/[٠-٩]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1584))
-      .trim();
+  normalizeDigits(str?: string | null): string {
+    return normalizeDigits(str);
+  }
+
+  /**
+   * Normalize Persian & Arabic text for comparisons, key lookups, and mapping.
+   */
+  normalizePersianText(str?: string | null): string {
+    return normalizePersianText(str);
+  }
+
+  /**
+   * Clean Persian text for storage.
+   */
+  cleanPersianText(str?: string | null): string {
+    return cleanPersianText(str);
+  }
+
+  /**
+   * Checks if two Persian strings are equal regardless of half-spaces, diacritics, or Kaf/Yeh variations.
+   */
+  isPersianTextEqual(a?: string | null, b?: string | null): boolean {
+    return isPersianTextEqual(a, b);
   }
 
   /**
@@ -69,11 +93,13 @@ export class ExcelService {
    */
   mapRole(rawRole: string | undefined): Role {
     if (!rawRole) return 'TEACHER';
-    const trimmed = rawRole.trim();
-    if (ROLE_PERSIAN_MAP[trimmed]) {
-      return ROLE_PERSIAN_MAP[trimmed];
+    const normalized = normalizePersianText(rawRole);
+    for (const [pKey, role] of Object.entries(ROLE_PERSIAN_MAP)) {
+      if (normalizePersianText(pKey) === normalized) {
+        return role;
+      }
     }
-    const upper = trimmed.toUpperCase();
+    const upper = rawRole.trim().toUpperCase();
     const validRoles: Role[] = [
       'ADMIN',
       'SUPERVISOR',
@@ -182,14 +208,11 @@ export class ExcelService {
     const rawRecords = this.parseRawRecords(fileBuffer);
 
     return rawRecords.map((record) => {
-      // Intelligently map headers regardless of case or Persian/English labels
+      // Intelligently map headers using Persian text equality
       const getField = (...keys: string[]): string => {
         for (const key of keys) {
           for (const [rKey, rVal] of Object.entries(record)) {
-            if (
-              rKey.trim().toLowerCase() === key.toLowerCase() ||
-              rKey.trim() === key
-            ) {
+            if (isPersianTextEqual(rKey, key)) {
               return rVal?.trim() || '';
             }
           }
@@ -234,12 +257,12 @@ export class ExcelService {
       const role = this.mapRole(rawRole);
 
       return {
-        firstName,
-        lastName,
+        firstName: cleanPersianText(firstName),
+        lastName: cleanPersianText(lastName),
         phone,
         nationalCode: nationalCode || undefined,
         role,
-        branchName: branchName || undefined,
+        branchName: cleanPersianText(branchName) || undefined,
         password: password || undefined,
       };
     });

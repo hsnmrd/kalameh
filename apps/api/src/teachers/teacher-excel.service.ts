@@ -6,6 +6,7 @@ import {
 import * as bcrypt from 'bcryptjs';
 import {
   ROLES,
+  normalizePersianText,
   type JwtPayload,
   type SupportedLocale,
   type ExcelImportResult,
@@ -158,10 +159,10 @@ export class TeacherExcelService {
 
     const existingPhones = new Set(existingUsers.map((u) => u.phone));
     const courseMap = new Map(
-      instituteCourses.map((c) => [c.title.trim().toLowerCase(), c.id]),
+      instituteCourses.map((c) => [normalizePersianText(c.title), c.id]),
     );
     const branchMap = new Map(
-      instituteBranches.map((b) => [b.name.trim().toLowerCase(), b.id]),
+      instituteBranches.map((b) => [normalizePersianText(b.name), b.id]),
     );
 
     const seenPhonesInBatch = new Set<string>();
@@ -226,13 +227,13 @@ export class TeacherExcelService {
       const matchedCourseIds: string[] = [];
       if (row.teachableCourses?.length) {
         for (const tc of row.teachableCourses) {
-          const id = courseMap.get(tc.toLowerCase());
+          const id = courseMap.get(normalizePersianText(tc));
           if (id) matchedCourseIds.push(id);
         }
       }
 
       const branchId = row.branchName
-        ? branchMap.get(row.branchName.toLowerCase())
+        ? branchMap.get(normalizePersianText(row.branchName))
         : undefined;
 
       const rawPassword = row.password || row.phone;
