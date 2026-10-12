@@ -3,15 +3,23 @@
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { ArrowRightLeft, Check, ChevronDown, ShieldCheck } from "lucide-react"
+import { ArrowRightLeft, ChevronDown } from "lucide-react"
 import type { SchedulingTeacherReassignmentChain } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@workspace/ui/components/carousel"
 import { toast } from "@workspace/ui/components/sonner"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
 import { useActiveInstitute } from "@/lib/stores"
+import { ReassignmentChainCard } from "./reassignment-chain-card"
 
 interface SchedulingTeacherReassignmentAnalysisProps {
   chains: SchedulingTeacherReassignmentChain[]
@@ -38,6 +46,23 @@ export function SchedulingTeacherReassignmentAnalysis({
   const [applyingChainKey, setApplyingChainKey] = React.useState<string | null>(
     null
   )
+  const [api, setApi] = React.useState<CarouselApi>()
+  const [current, setCurrent] = React.useState(1)
+
+  React.useEffect(() => {
+    if (!api) return
+
+    setCurrent(api.selectedScrollSnap() + 1)
+
+    const onSelect = () => {
+      setCurrent(api.selectedScrollSnap() + 1)
+    }
+
+    api.on("select", onSelect)
+    return () => {
+      api.off("select", onSelect)
+    }
+  }, [api])
 
   const canApply =
     Boolean(planId) &&
@@ -142,6 +167,8 @@ export function SchedulingTeacherReassignmentAnalysis({
     )
   }
 
+  const hasMultiple = chains.length > 1
+
   return (
     <section aria-label={t("reassignment.title")}>
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -166,127 +193,60 @@ export function SchedulingTeacherReassignmentAnalysis({
         </Badge>
       </div>
 
-      <ul className="mt-3 flex flex-col gap-3">
-        {chains.map((chain) => {
-          const target = chain.targetAssignment
-          const targetTeacher = `${target.teacher.firstName} ${target.teacher.lastName}`
-          const targetDays = target.daysOfWeek
-            .map((day) => t(`weekDays.${day}`))
-            .join(t("daySeparator"))
-
-          return (
-            <li key={chain.key} className="rounded-xl bg-muted/40 p-3.5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <p className="text-xs font-semibold text-foreground">
-                    {t("reassignment.validatedChain")}
-                  </p>
-                  <Badge variant="secondary">
-                    {t("reassignment.changeCount", {
-                      count: formatNumber(chain.reassignments.length, locale),
-                    })}
-                  </Badge>
-                </div>
-                {canApply && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    data-testid={`apply-reassignment-chain-btn-${chain.key}`}
-                    disabled={applyChainMutation.isPending}
-                    onClick={() => handleApplyChain(chain)}
-                    className="gap-1.5 font-medium"
-                  >
-                    {applyingChainKey === chain.key ? (
-                      <Spinner className="size-3.5" />
-                    ) : (
-                      <>
-                        <Check aria-hidden className="size-3.5" />
-                        <span>{t("reassignment.applyChainButton")}</span>
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-
-              <ol className="mt-3 flex flex-col gap-2">
-                {chain.reassignments.map((step, index) => {
-                  const fromTeacher = `${step.fromTeacher.firstName} ${step.fromTeacher.lastName}`
-                  const toTeacher = `${step.toTeacher.firstName} ${step.toTeacher.lastName}`
-                  const days = step.daysOfWeek
-                    .map((day) => t(`weekDays.${day}`))
-                    .join(t("daySeparator"))
-
-                  return (
-                    <li
-                      key={step.proposalId}
-                      className="grid grid-cols-[auto_1fr] items-start gap-2.5 rounded-lg bg-background px-3 py-2.5"
-                    >
-                      <Badge variant="outline">
-                        {formatNumber(index + 1, locale)}
-                      </Badge>
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-foreground">
-                          {t("reassignment.moveTeacher", {
-                            classTitle: step.classTitle,
-                            fromTeacher,
-                            toTeacher,
-                          })}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {days} · {step.startTime}–{step.endTime}
-                        </p>
-                      </div>
-                    </li>
-                  )
+      <div className="mt-3 w-full">
+        <Carousel
+          setApi={setApi}
+          opts={{
+            align: "start",
+            containScroll: "trimSnaps",
+            direction: locale === "fa" ? "rtl" : "ltr",
+          }}
+          className="w-full"
+        >
+          {hasMultiple && (
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground">
+                {t("staffingFallback.teacherCarouselCounter", {
+                  current: formatNumber(current, locale),
+                  total: formatNumber(chains.length, locale),
                 })}
-                <li className="grid grid-cols-[auto_1fr] items-start gap-2.5 rounded-lg bg-background px-3 py-2.5">
-                  <Badge variant="success">
-                    {formatNumber(chain.reassignments.length + 1, locale)}
-                  </Badge>
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-foreground">
-                      {t("reassignment.assignTarget", {
-                        course: targetCourseTitle,
-                        teacher: targetTeacher,
-                      })}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {targetDays} · {target.startTime}–{target.endTime}
-                      {" · "}
-                      {target.deliveryMode === "ONLINE"
-                        ? t("reassignment.online")
-                        : t("reassignment.room", {
-                            room:
-                              target.classroom?.name ??
-                              t("recovery.unknownPhysicalRoom"),
-                          })}
-                    </p>
-                  </div>
-                </li>
-              </ol>
-
-              <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                <ShieldCheck
-                  aria-hidden
-                  className="size-4 text-muted-foreground"
+              </span>
+              <div className="flex items-center gap-1.5">
+                <CarouselPrevious
+                  type="button"
+                  className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
                 />
-                <Badge variant="outline">
-                  {t("reassignment.validation.qualification")}
-                </Badge>
-                <Badge variant="outline">
-                  {t("reassignment.validation.availability")}
-                </Badge>
-                <Badge variant="outline">
-                  {t("reassignment.validation.teacherConflicts")}
-                </Badge>
-                <Badge variant="outline">
-                  {t("reassignment.validation.room")}
-                </Badge>
+                <CarouselNext
+                  type="button"
+                  className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
+                />
               </div>
-            </li>
-          )
-        })}
-      </ul>
+            </div>
+          )}
+
+          <CarouselContent className="-ms-3">
+            {chains.map((chain) => (
+              <CarouselItem
+                key={chain.key}
+                data-testid="reassignment-chain-slide"
+                className={cn(
+                  "ps-3",
+                  hasMultiple ? "basis-[90%] sm:basis-[85%]" : "basis-full"
+                )}
+              >
+                <ReassignmentChainCard
+                  chain={chain}
+                  targetCourseTitle={targetCourseTitle}
+                  canApply={canApply}
+                  isPending={applyChainMutation.isPending}
+                  isApplying={applyingChainKey === chain.key}
+                  onApply={handleApplyChain}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      </div>
     </section>
   )
 }
