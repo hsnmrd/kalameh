@@ -25,17 +25,12 @@ export function SchedulingStudentScheduleConfirmation({
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-2xl border border-warning/30 bg-warning/5 p-4 text-foreground",
+        "flex items-center gap-3 rounded-2xl border border-warning/30 bg-warning/5 p-4 text-foreground",
         className
       )}
     >
-      <AlertTriangle className="mt-0.5 size-5 shrink-0 text-warning" />
-      <div className="space-y-0.5">
-        <p className="text-sm font-semibold text-foreground">{t("title")}</p>
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          {t("unconfirmedDescription")}
-        </p>
-      </div>
+      <AlertTriangle className="size-5 shrink-0 text-warning" />
+      <p className="text-sm font-semibold text-foreground">{t("title")}</p>
     </div>
   )
 }

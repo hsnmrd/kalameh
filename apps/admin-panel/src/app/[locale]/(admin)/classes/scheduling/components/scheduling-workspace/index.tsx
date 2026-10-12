@@ -300,6 +300,17 @@ export function SchedulingWorkspace() {
     [demandData?.courses, suggestions]
   )
 
+  const totalClassesCount = React.useMemo(
+    () =>
+      (demandData?.courses ?? []).reduce(
+        (total, course) =>
+          total +
+          (suggestions[course.courseId] ?? course.suggestedClasses).length,
+        0
+      ),
+    [demandData?.courses, suggestions]
+  )
+
   const applyMutation = useMutation({
     ...schedulingResource.applyDemand.toMutation(),
     onSuccess: async (data) => {
@@ -315,7 +326,13 @@ export function SchedulingWorkspace() {
 
   const applyReviewedDemand = React.useCallback(
     (acknowledgeShortfall: boolean) => {
-      if (!selectedTerm || !demandData || !effectiveBranchId) return
+      if (
+        !selectedTerm ||
+        !demandData ||
+        !effectiveBranchId ||
+        totalClassesCount === 0
+      )
+        return
       applyMutation.mutate({
         termId: selectedTerm.id,
         branchId: effectiveBranchId,
@@ -331,17 +348,24 @@ export function SchedulingWorkspace() {
       effectiveBranchId,
       activeInstituteId,
       suggestions,
+      totalClassesCount,
     ]
   )
 
   const handleGenerateSchedule = React.useCallback(() => {
-    if (!selectedTerm || !demandData) return
+    if (!selectedTerm || !demandData || totalClassesCount === 0) return
     if (totalUncoveredStudents > 0) {
       setShortfallDialogOpen(true)
       return
     }
     applyReviewedDemand(false)
-  }, [selectedTerm, demandData, totalUncoveredStudents, applyReviewedDemand])
+  }, [
+    selectedTerm,
+    demandData,
+    totalClassesCount,
+    totalUncoveredStudents,
+    applyReviewedDemand,
+  ])
 
   const isActionPending = calculateMutation.isPending || applyMutation.isPending
 
@@ -372,6 +396,7 @@ export function SchedulingWorkspace() {
             }
             onGenerateSchedule={handleGenerateSchedule}
             isGenerating={isActionPending}
+            hasClasses={totalClassesCount > 0}
           />
         }
       >
@@ -464,7 +489,11 @@ export function SchedulingWorkspace() {
         termId={selectedTerm?.id}
         onGenerateSchedule={handleGenerateSchedule}
         disabled={
-          !selectedTerm || !effectiveBranchId || !demandData || isActionPending
+          !selectedTerm ||
+          !effectiveBranchId ||
+          !demandData ||
+          isActionPending ||
+          totalClassesCount === 0
         }
         isGenerating={isActionPending}
       />

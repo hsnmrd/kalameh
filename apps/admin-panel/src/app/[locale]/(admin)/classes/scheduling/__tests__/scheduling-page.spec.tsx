@@ -526,4 +526,86 @@ describe("Unified scheduling workspace", () => {
     ).toBeInTheDocument()
     expect(calculateDemandSpy).not.toHaveBeenCalled()
   })
+
+  it("disables submit button when no classes are available in demand calculations", async () => {
+    const mockTerms: SchedulingTermSummaryDto[] = [
+      {
+        id: "term-fall",
+        title: "پاییز ۱۴۰۵",
+        startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: true,
+        classesCount: 0,
+        requirementsCount: 0,
+        totalRequiredClasses: 0,
+        schedulingStatus: "READY_TO_SCHEDULE",
+      },
+    ]
+
+    const mockDemandReportWithoutClasses = {
+      termId: "term-fall",
+      termTitle: "پاییز ۱۴۰۵",
+      maxStudentsPerClass: 14,
+      maxAvailableRoomCapacity: 20,
+      effectiveCapacityLimit: 14,
+      warnings: [],
+      totalEligibleStudents: 0,
+      totalContinuingStudents: 0,
+      totalNewPlacements: 0,
+      totalSuggestedClasses: 0,
+      totalPlannedCapacity: 0,
+      totalUncoveredStudents: 0,
+      courses: [
+        {
+          courseId: "11111111-1111-1111-1111-111111111111",
+          courseTitle: "انگلیسی کودکان ۱",
+          baseFee: 1500000,
+          eligibleStudentsCount: 0,
+          passedPrerequisiteCount: 0,
+          continuingStudentsCount: 0,
+          newPlacementCount: 0,
+          morningShiftCount: 0,
+          afternoonShiftCount: 0,
+          flexibleShiftCount: 0,
+          evenDaysPreferenceCount: 0,
+          oddDaysPreferenceCount: 0,
+          anyDayPreferenceCount: 0,
+          suggestedClassCount: 0,
+          suggestedClasses: [],
+          plannedCapacity: 0,
+          uncoveredStudentCount: 0,
+          sessionsPerWeek: 2,
+        },
+      ],
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: "inst-1",
+      activeInstitute: {
+        id: "inst-1",
+        name: "Test Institute",
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "terms", "inst-1"],
+      queryFn: async () => mockTerms,
+    } as never)
+
+    vi.spyOn(schedulingResource.calculateDemand, "toMutation").mockReturnValue({
+      mutationFn: vi.fn().mockResolvedValue(mockDemandReportWithoutClasses),
+    } as never)
+
+    render(<SchedulingPage />)
+
+    expect(
+      (await screen.findAllByText("انگلیسی کودکان ۱")).length
+    ).toBeGreaterThanOrEqual(1)
+
+    const buttons = screen.getAllByRole("button", { name: "ثبت و ادامه" })
+    for (const btn of buttons) {
+      expect(btn).toBeDisabled()
+    }
+  })
 })

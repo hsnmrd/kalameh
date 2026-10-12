@@ -99,6 +99,9 @@
   "export": {
     "trigger": "Export to Excel"
   },
+  "confirmStudentSchedules": {
+    "trigger": "Confirm Student Schedules"
+  },
   "en": "English",
   "fa": "فارسی",
   "footer": "Kalameh Language Platform • Admin Panel v1.0",

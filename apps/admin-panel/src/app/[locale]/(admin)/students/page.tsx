@@ -88,10 +88,19 @@ export default function StudentsPage() {
     enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
   })
 
-  const unconfirmedTerm = React.useMemo(
-    () => terms.find((term) => !term.studentSchedulesConfirmedAt),
-    [terms]
-  )
+  const unconfirmedTerm = React.useMemo(() => {
+    return terms.find((term) => {
+      if (Boolean(term.studentSchedulesConfirmedAt)) return false
+      if (term.isActive === false) return false
+      if (
+        term.lifecycleStatus === "COMPLETED" ||
+        term.lifecycleStatus === "INACTIVE"
+      ) {
+        return false
+      }
+      return true
+    })
+  }, [terms])
 
   // Query students
   const { data: students, isLoading } = useQuery({
@@ -179,6 +188,7 @@ export default function StudentsPage() {
               onImportClick={handleImport}
               onExportClick={handleExport}
               isExporting={isExporting}
+              confirmScheduleLabel={t("confirmStudentSchedules.action")}
               onConfirmScheduleClick={
                 terms.length > 0
                   ? () => handleConfirmStudentSchedules()
@@ -238,9 +248,11 @@ export default function StudentsPage() {
             <NoOperatingPhaseAlert />
           ) : (
             <div className="flex flex-1 flex-col gap-4">
-              {unconfirmedTerm && (
+              {!isListEmpty && totalCount > 0 && unconfirmedTerm && (
                 <StudentScheduleConfirmationBanner
                   term={unconfirmedTerm}
+                  studentsCount={totalCount}
+                  hasStudents={totalCount > 0}
                   onConfirmClick={() =>
                     handleConfirmStudentSchedules(unconfirmedTerm.id)
                   }

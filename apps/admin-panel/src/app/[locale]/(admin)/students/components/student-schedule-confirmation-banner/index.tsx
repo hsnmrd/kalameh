@@ -12,16 +12,28 @@ export interface StudentScheduleConfirmationBannerProps {
   term: TermDto
   onConfirmClick: () => void
   className?: string
+  hasStudents?: boolean
+  studentsCount?: number
 }
 
 export function StudentScheduleConfirmationBanner({
   term,
   onConfirmClick,
   className,
+  hasStudents,
+  studentsCount,
 }: StudentScheduleConfirmationBannerProps) {
   const t = useTranslations("students.confirmStudentSchedules")
 
   if (Boolean(term.studentSchedulesConfirmedAt)) return null
+  if (hasStudents === false || studentsCount === 0) return null
+  if (term.isActive === false) return null
+  if (
+    term.lifecycleStatus === "COMPLETED" ||
+    term.lifecycleStatus === "INACTIVE"
+  ) {
+    return null
+  }
 
   return (
     <div
@@ -30,16 +42,11 @@ export function StudentScheduleConfirmationBanner({
         className
       )}
     >
-      <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-0.5 size-5 shrink-0 text-warning" />
-        <div className="space-y-0.5">
-          <p className="text-sm font-semibold text-foreground">
-            {t("bannerTitle")}
-          </p>
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            {t("bannerDescription", { termTitle: term.title })}
-          </p>
-        </div>
+      <div className="flex items-center gap-3">
+        <AlertTriangle className="size-5 shrink-0 text-warning" />
+        <p className="text-sm font-semibold text-foreground">
+          {t("bannerTitle")}
+        </p>
       </div>
 
       <PermissionGuard

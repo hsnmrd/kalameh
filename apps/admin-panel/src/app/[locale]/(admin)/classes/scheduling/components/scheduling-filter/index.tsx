@@ -29,6 +29,7 @@ export interface SchedulingFilterProps {
   maxAvailableRoomCapacity: number | null
   onGenerateSchedule?: () => void
   isGenerating?: boolean
+  hasClasses?: boolean
 }
 
 export function SchedulingFilter({
@@ -41,6 +42,7 @@ export function SchedulingFilter({
   maxAvailableRoomCapacity,
   onGenerateSchedule,
   isGenerating,
+  hasClasses = true,
 }: SchedulingFilterProps) {
   const t = useTranslations("scheduling")
   const { activeInstituteId } = useActiveInstitute()
@@ -89,7 +91,7 @@ export function SchedulingFilter({
             <Button
               type="button"
               onClick={onGenerateSchedule}
-              disabled={!term || !branchId || isGenerating}
+              disabled={!term || !branchId || isGenerating || !hasClasses}
               className="shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs"
             >
               {isGenerating ? (

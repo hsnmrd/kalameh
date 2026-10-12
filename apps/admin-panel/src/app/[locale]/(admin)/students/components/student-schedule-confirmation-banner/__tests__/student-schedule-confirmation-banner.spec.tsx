@@ -36,11 +36,6 @@ describe("StudentScheduleConfirmationBanner", () => {
     )
 
     expect(screen.getByText("تأیید برنامه زمانی فراگیران")).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        /برنامه زمانی فراگیران برای ترم ترم تابستان ۱۴۰۴ هنوز تأیید نشده است/
-      )
-    ).toBeInTheDocument()
 
     const confirmBtn = screen.getByRole("button", {
       name: /تأیید برنامه زمانی/i,
@@ -93,12 +88,53 @@ describe("StudentScheduleConfirmationBanner", () => {
 
     expect(screen.getByText("تأیید برنامه زمانی فراگیران")).toBeInTheDocument()
     expect(
-      screen.getByText(
-        /برنامه زمانی فراگیران برای ترم ترم تابستان ۱۴۰۴ هنوز تأیید نشده است/
-      )
-    ).toBeInTheDocument()
-    expect(
       screen.queryByRole("button", { name: /تأیید برنامه زمانی/i })
     ).not.toBeInTheDocument()
+  })
+
+  it("does not render when hasStudents is false or studentsCount is 0", () => {
+    const { container: c1 } = render(
+      <StudentScheduleConfirmationBanner
+        term={mockUnconfirmedTerm}
+        hasStudents={false}
+        onConfirmClick={vi.fn()}
+      />
+    )
+    expect(c1).toBeEmptyDOMElement()
+
+    const { container: c2 } = render(
+      <StudentScheduleConfirmationBanner
+        term={mockUnconfirmedTerm}
+        studentsCount={0}
+        onConfirmClick={vi.fn()}
+      />
+    )
+    expect(c2).toBeEmptyDOMElement()
+  })
+
+  it("does not render when term is inactive or completed", () => {
+    const inactiveTerm: TermDto = {
+      ...mockUnconfirmedTerm,
+      isActive: false,
+    }
+    const { container: c1 } = render(
+      <StudentScheduleConfirmationBanner
+        term={inactiveTerm}
+        onConfirmClick={vi.fn()}
+      />
+    )
+    expect(c1).toBeEmptyDOMElement()
+
+    const completedTerm: TermDto = {
+      ...mockUnconfirmedTerm,
+      lifecycleStatus: "COMPLETED",
+    }
+    const { container: c2 } = render(
+      <StudentScheduleConfirmationBanner
+        term={completedTerm}
+        onConfirmClick={vi.fn()}
+      />
+    )
+    expect(c2).toBeEmptyDOMElement()
   })
 })

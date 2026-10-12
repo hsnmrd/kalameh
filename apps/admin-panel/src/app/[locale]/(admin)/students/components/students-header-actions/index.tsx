@@ -19,6 +19,7 @@ export interface StudentsHeaderActionsProps {
   onExportClick?: () => void
   isExporting?: boolean
   onConfirmScheduleClick?: () => void
+  confirmScheduleLabel?: string
 }
 
 export function StudentsHeaderActions({
@@ -27,9 +28,9 @@ export function StudentsHeaderActions({
   onExportClick,
   isExporting,
   onConfirmScheduleClick,
+  confirmScheduleLabel,
 }: StudentsHeaderActionsProps) {
   const t = useTranslations("common")
-  const tStudents = useTranslations("students")
   const hasExtraActions = Boolean(
     onImportClick || onExportClick || onConfirmScheduleClick
   )
@@ -88,7 +89,9 @@ export function StudentsHeaderActions({
               className="flex cursor-pointer items-center gap-2 text-foreground"
             >
               <Clock className="size-4 text-foreground" />
-              <span>{tStudents("confirmStudentSchedules.action")}</span>
+              <span>
+                {confirmScheduleLabel ?? t("confirmStudentSchedules.trigger")}
+              </span>
             </DropdownMenuItem>
           </PermissionGuard>
         )}

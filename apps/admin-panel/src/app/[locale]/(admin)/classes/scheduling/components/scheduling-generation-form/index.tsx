@@ -232,6 +232,7 @@ export function SchedulingGenerationForm({
                     isPending ||
                     !termId ||
                     requirements.length === 0 ||
+                    requirementIds.length === 0 ||
                     !activeTerm?.studentSchedulesConfirmedAt
                   }
                   className="w-full px-6 sm:w-auto"

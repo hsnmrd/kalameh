@@ -99,6 +99,9 @@
   "export": {
     "trigger": "خروجی اکسل"
   },
+  "confirmStudentSchedules": {
+    "trigger": "تأیید برنامه زمانی فراگیران"
+  },
   "en": "English",
   "fa": "فارسی",
   "footer": "سامانه آموزش زبان کلمه • نگارش ۱.۰",

@@ -24,11 +24,6 @@ describe("SchedulingStudentScheduleConfirmation", () => {
 
     expect(screen.getByText("تأیید برنامه زمانی فراگیران")).toBeInTheDocument()
     expect(
-      screen.getByText(
-        "برنامه زمانی فراگیران برای این ترم هنوز تأیید نشده است. پیش از ساخت پیشنهادهای زمان‌بندی، برنامه زمانی فراگیران باید توسط اپراتور تأیید شود."
-      )
-    ).toBeInTheDocument()
-    expect(
       screen.queryByRole("button", { name: "تأیید برنامه زمانی فراگیران" })
     ).not.toBeInTheDocument()
   })
