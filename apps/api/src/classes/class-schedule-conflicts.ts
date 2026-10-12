@@ -246,15 +246,6 @@ export class ClassScheduleConflicts {
         teacher.teacherProfile.availabilities.length > 0
       ) {
         const availabilities = teacher.teacherProfile.availabilities;
-        const JS_DAY_TO_WEEKDAY: Record<number, string> = {
-          0: 'SUNDAY',
-          1: 'MONDAY',
-          2: 'TUESDAY',
-          3: 'WEDNESDAY',
-          4: 'THURSDAY',
-          5: 'FRIDAY',
-          6: 'SATURDAY',
-        };
 
         const violatingDays: string[] = [];
         for (const day of dto.daysOfWeek ?? []) {
@@ -271,10 +262,10 @@ export class ClassScheduleConflicts {
         }
 
         const violatingDates: string[] = [];
-        for (const dateStr of dto.sessionDates ?? []) {
-          const d = new Date(dateStr);
-          if (isNaN(d.getTime())) continue;
-          const dayOfWeek = JS_DAY_TO_WEEKDAY[d.getDay()];
+        for (const rawDate of dto.sessionDates ?? []) {
+          const dateStr = rawDate.slice(0, 10);
+          const dayOfWeek = this.parseDateKeyToWeekday(dateStr);
+          if (!dayOfWeek) continue;
           const matchingSlots = availabilities.filter(
             (a) => a.dayOfWeek === dayOfWeek,
           );
@@ -317,18 +308,7 @@ export class ClassScheduleConflicts {
     };
   }
 
-  private getCollidingDates(
-    daysA: string[] = [],
-    sessionsA: string[] = [],
-    daysB: string[] = [],
-    sessionsB: string[] = [],
-  ): string[] {
-    // If both have specific calendar session dates
-    if (sessionsA.length > 0 && sessionsB.length > 0) {
-      const setB = new Set(sessionsB);
-      return sessionsA.filter((date) => setB.has(date));
-    }
-
+  private parseDateKeyToWeekday(dateStr: string): string | null {
     const JS_DAY_TO_WEEKDAY: Record<number, string> = {
       0: 'SUNDAY',
       1: 'MONDAY',
@@ -338,14 +318,43 @@ export class ClassScheduleConflicts {
       5: 'FRIDAY',
       6: 'SATURDAY',
     };
+    const normalized = dateStr.slice(0, 10);
+    const parts = normalized.split('-');
+    const y = Number(parts[0]);
+    const m = Number(parts[1]);
+    const d = Number(parts[2]);
+    if (y && m && d) {
+      const localDate = new Date(y, m - 1, d);
+      if (!isNaN(localDate.getTime())) {
+        return JS_DAY_TO_WEEKDAY[localDate.getDay()] ?? null;
+      }
+    }
+    const parsed = new Date(dateStr);
+    if (isNaN(parsed.getTime())) return null;
+    return JS_DAY_TO_WEEKDAY[parsed.getDay()] ?? null;
+  }
+
+  private getCollidingDates(
+    daysA: string[] = [],
+    rawSessionsA: string[] = [],
+    daysB: string[] = [],
+    rawSessionsB: string[] = [],
+  ): string[] {
+    const sessionsA = rawSessionsA.map((d) => d.slice(0, 10));
+    const sessionsB = rawSessionsB.map((d) => d.slice(0, 10));
+
+    // If both have specific calendar session dates
+    if (sessionsA.length > 0 && sessionsB.length > 0) {
+      const setB = new Set(sessionsB);
+      return sessionsA.filter((date) => setB.has(date));
+    }
 
     // If A has sessionDates and B has daysOfWeek
     if (sessionsA.length > 0 && daysB.length > 0) {
       const setB = new Set(daysB);
       return sessionsA.filter((dateStr) => {
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return false;
-        return setB.has(JS_DAY_TO_WEEKDAY[d.getDay()]);
+        const weekday = this.parseDateKeyToWeekday(dateStr);
+        return Boolean(weekday && setB.has(weekday));
       });
     }
 
@@ -353,9 +362,8 @@ export class ClassScheduleConflicts {
     if (daysA.length > 0 && sessionsB.length > 0) {
       const setA = new Set(daysA);
       return sessionsB.filter((dateStr) => {
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return false;
-        return setA.has(JS_DAY_TO_WEEKDAY[d.getDay()]);
+        const weekday = this.parseDateKeyToWeekday(dateStr);
+        return Boolean(weekday && setA.has(weekday));
       });
     }
 
@@ -547,15 +555,6 @@ export class ClassScheduleConflicts {
         teacher.teacherProfile.availabilities.length > 0
       ) {
         const availabilities = teacher.teacherProfile.availabilities;
-        const JS_DAY_TO_WEEKDAY: Record<number, string> = {
-          0: 'SUNDAY',
-          1: 'MONDAY',
-          2: 'TUESDAY',
-          3: 'WEDNESDAY',
-          4: 'THURSDAY',
-          5: 'FRIDAY',
-          6: 'SATURDAY',
-        };
 
         const hasInvalidDay = (scheduleInfo.daysOfWeek ?? []).some((day) => {
           const matchingSlots = availabilities.filter(
@@ -570,9 +569,8 @@ export class ClassScheduleConflicts {
 
         const hasInvalidDate = (scheduleInfo.sessionDates ?? []).some(
           (dateStr) => {
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) return false;
-            const dayOfWeek = JS_DAY_TO_WEEKDAY[d.getDay()];
+            const dayOfWeek = this.parseDateKeyToWeekday(dateStr);
+            if (!dayOfWeek) return false;
             const matchingSlots = availabilities.filter(
               (a) => a.dayOfWeek === dayOfWeek,
             );

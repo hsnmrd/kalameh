@@ -235,4 +235,59 @@ describe("ClassScheduleWizard conflicts", () => {
       expect(screen.queryByText(/تداخل برنامه استاد/i)).not.toBeInTheDocument()
     })
   })
+
+  it("should immediately detect conflicts from termClasses and block confirming without needing server round-trip", async () => {
+    const handleConfirm = vi.fn()
+    const handleClose = vi.fn()
+
+    render(
+      <ClassScheduleWizard
+        open={true}
+        onClose={handleClose}
+        term={mockTerm}
+        termClasses={[
+          {
+            id: "other-class-1",
+            instituteId: "inst-1",
+            termId: "term-1",
+            courseId: "course-1",
+            branchId: null,
+            classroomId: "room-1",
+            title: "کلاس تداخلی دیگر",
+            capacity: 15,
+            enrolledCount: 0,
+            fee: 1500000,
+            teacherId: "teacher-1",
+            teacherName: "خانم مرادنژاد",
+            schedule: null,
+            daysOfWeek: ["SATURDAY"],
+            sessionDates: ["2026-09-26"],
+            startTime: "17:00",
+            endTime: "18:30",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ]}
+        classroomId="room-1"
+        teacherId="teacher-1"
+        teacherName="خانم مرادنژاد"
+        excludeClassId="editing-class-id"
+        initialDaysOfWeek={["SATURDAY"]}
+        initialSessionDates={["2026-09-26"]}
+        initialStartTime="17:00"
+        initialEndTime="18:30"
+        onConfirm={handleConfirm}
+      />
+    )
+
+    expect(screen.getByText("کلاس تداخلی دیگر")).toBeInTheDocument()
+
+    const confirmBtn = screen.getByRole("button", {
+      name: /اعمال برنامه/i,
+    })
+    fireEvent.click(confirmBtn)
+
+    expect(handleConfirm).not.toHaveBeenCalled()
+    expect(handleClose).not.toHaveBeenCalled()
+  })
 })

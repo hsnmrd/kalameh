@@ -1,4 +1,4 @@
-import type { TeacherDto, TermDto } from "@workspace/types"
+import type { ClassDto, TeacherDto, TermDto } from "@workspace/types"
 
 export interface ClassScheduleValue {
   daysOfWeek: string[]
@@ -12,6 +12,7 @@ export interface ClassScheduleWizardProps {
   open: boolean
   onClose: () => void
   term?: TermDto | null
+  termClasses?: ClassDto[]
   teacher?: TeacherDto | null
   instituteId?: string | null
   classroomId?: string | null

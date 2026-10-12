@@ -21,6 +21,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useEditClassForm } from "../../hooks/use-edit-class-form"
 import { TermDetailsPreview } from "../term-details-preview"
 import { ClassScheduleWizard } from "../class-schedule-wizard"
+import { ScheduleConflictBanner } from "../class-schedule-wizard/schedule-conflict-banner"
 import { ScheduleDetailsPreview } from "../schedule-details-preview"
 import { ClassFormFooter } from "../class-form-footer"
 import { EditGeneralFields } from "./edit-general-fields"
@@ -34,7 +35,6 @@ export interface EditClassModalProps {
 
 export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
   const t = useTranslations("classes")
-
   const {
     form,
     activeInstituteId,
@@ -44,6 +44,8 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
     teacherOptions,
     teachers,
     classroomOptions,
+    termClasses,
+    activeConflictResult,
     selectedTerm,
     selectedTeacher,
     selectedClassroom,
@@ -140,14 +142,10 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
                       onValueChange={(val) => {
                         field.onChange(val || null)
                         const found = teachers.find((tch) => tch.id === val)
-                        if (found) {
-                          setValue(
-                            "teacherName",
-                            `${found.firstName} ${found.lastName}`
-                          )
-                        } else if (!val) {
-                          setValue("teacherName", "")
-                        }
+                        setValue(
+                          "teacherName",
+                          found ? `${found.firstName} ${found.lastName}` : ""
+                        )
                       }}
                       placeholder={t("editModal.teacherNamePlaceholder")}
                       drawerTitle={t("editModal.teacherName")}
@@ -197,6 +195,11 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
               </Field>
             </div>
 
+            <ScheduleConflictBanner
+              conflictResult={activeConflictResult}
+              conflictMessage={null}
+            />
+
             <ScheduleDetailsPreview
               daysOfWeek={watch("daysOfWeek")}
               sessionDates={watch("sessionDates")}
@@ -210,6 +213,7 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
             open={isScheduleWizardOpen}
             onClose={() => setIsScheduleWizardOpen(false)}
             term={selectedTerm}
+            termClasses={termClasses}
             teacher={selectedTeacher}
             instituteId={
               activeInstituteId || selectedTerm?.instituteId || cls?.instituteId
@@ -237,7 +241,9 @@ export function EditClassModal({ cls, open, onClose }: EditClassModalProps) {
             mode="edit"
             isPending={updateMutation.isPending}
             disabled={Boolean(
-              selectedTerm && !isTermInActivationWindow(selectedTerm.startDate)
+              (selectedTerm &&
+                !isTermInActivationWindow(selectedTerm.startDate)) ||
+              activeConflictResult?.hasConflict
             )}
             onClose={onClose}
           />
