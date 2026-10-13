@@ -41,6 +41,10 @@ describe("ClassesActionButton Component", () => {
     })
     expect(schedulingButton).toBeInTheDocument()
     expect(schedulingButton).toHaveAttribute("href", "/classes/scheduling")
+
+    const group = screen.getByRole("group")
+    expect(group).toHaveClass("hidden")
+    expect(group).toHaveClass("lg:inline-flex")
   })
 
   it("should render dropdown trigger and reveal options", async () => {

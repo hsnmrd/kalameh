@@ -103,13 +103,13 @@ All entity management and list pages (e.g. `courses/`, `classes/`, `terms/`, `br
 
 ### 3. Desktop Add Button Location (Inside Filter Bar Actions)
 
-- The primary "Add / Create" button on desktop (`sm:` and above) must **ALWAYS** be rendered inside the `actions` prop of `<AdminFilterBar>`, wrapped in `<PermissionGuard mode="hide">`.
+- The primary "Add / Create" button on desktop must **ALWAYS** be rendered inside the `actions` prop of `<AdminFilterBar>`, wrapped in `<PermissionGuard mode="hide">`, and hidden below `lg` (`hidden lg:inline-flex` / `hidden lg:flex`).
 - Use the standard button style:
   ```tsx
   <Button
     type="button"
     onClick={onAddClick}
-    className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
+    className="hidden h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs lg:inline-flex"
   >
     <Plus className="size-5" />
     <span>{t("addItem")}</span>
@@ -117,10 +117,10 @@ All entity management and list pages (e.g. `courses/`, `classes/`, `terms/`, `br
   ```
 - **NEVER** place this creation button in an in-page header or in the root header `actions` slot for list pages.
 
-### 4. Mobile Floating Action Button (FAB)
+### 4. Mobile & Tablet Floating Action Button (FAB)
 
-- `<AdminFilterBar>` automatically hides the desktop `actions` slot on screens `< sm`.
-- On mobile, creation is exclusively triggered via `<FABSingle>` (or `<FABMenuTrigger>`) passed to the `fab` prop of `<AdminPageShell>`, wrapped in `<PermissionGuard mode="hide">`.
+- On screens < `lg` (0px to 1023px, including mobile < 640px and tablet 640px to 1023px), creation is exclusively triggered via `<FABSingle>` (or `<FABMenuTrigger>`) passed to the `fab` prop of `<AdminPageShell>`, wrapped in `<PermissionGuard mode="hide">`.
+- Primary creation actions in `<AdminFilterBar>` must strictly use `hidden lg:inline-flex` (or `hidden lg:flex`) so they are never duplicated alongside the FAB on tablet screens (640px to 1023px). Non-primary secondary actions (e.g. navigation links like `teachersCalendar`) may remain visible on tablet (`sm:`).
 
 ### 5. FormDialog Internal Padding Standard
 

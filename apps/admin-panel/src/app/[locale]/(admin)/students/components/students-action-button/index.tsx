@@ -32,7 +32,7 @@ export function StudentsActionButton({
 
   return (
     <PermissionGuard permission={PERMISSIONS.MANAGE_STUDENTS} mode="hide">
-      <ButtonGroup className="shadow-xs">
+      <ButtonGroup className="hidden shadow-xs lg:inline-flex">
         {/* Primary Action: Add Student (Direct Click) */}
         {onAddClick && (
           <Button

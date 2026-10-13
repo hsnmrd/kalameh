@@ -16,6 +16,10 @@ describe("TermsActionButton Component", () => {
     })
     expect(batchButton).toBeInTheDocument()
 
+    const group = screen.getByRole("group")
+    expect(group).toHaveClass("hidden")
+    expect(group).toHaveClass("lg:inline-flex")
+
     fireEvent.click(batchButton)
     expect(onBatchClick).toHaveBeenCalledTimes(1)
     expect(onAddClick).not.toHaveBeenCalled()

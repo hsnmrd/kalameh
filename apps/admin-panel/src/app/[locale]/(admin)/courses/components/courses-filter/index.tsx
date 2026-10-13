@@ -58,7 +58,7 @@ export function CoursesFilter({
         <Button
           type="button"
           onClick={onAddClick}
-          className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs"
+          className="hidden h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs lg:inline-flex"
         >
           <Plus className="size-5" />
           <span>{t("addCourse")}</span>

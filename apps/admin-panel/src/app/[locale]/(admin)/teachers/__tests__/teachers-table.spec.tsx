@@ -173,5 +173,32 @@ describe("TeachersTable & TeachersFilter Components", () => {
       fireEvent.change(searchInput, { target: { value: "Moradi" } })
       expect(onSearchChangeMock).toHaveBeenCalledWith("Moradi")
     })
+
+    it("should render addTeacher button with hidden lg:inline-flex to avoid duplicating FAB on tablet", () => {
+      const onAddClickMock = vi.fn()
+
+      render(
+        <TeachersFilter
+          searchValue=""
+          onSearchChange={vi.fn()}
+          selectedStatus="ALL"
+          onStatusChange={vi.fn()}
+          onAddClick={onAddClickMock}
+        />
+      )
+
+      const addButton = screen.getByRole("button", {
+        name: /افزودن استاد|add teacher/i,
+      })
+      expect(addButton).toBeInTheDocument()
+      expect(addButton).toHaveClass("hidden")
+      expect(addButton).toHaveClass("lg:inline-flex")
+
+      const calendarLink = screen.getByRole("link", {
+        name: /تقویم همه استادان|teachers calendar/i,
+      })
+      expect(calendarLink).toBeInTheDocument()
+      expect(calendarLink).not.toHaveClass("hidden")
+    })
   })
 })

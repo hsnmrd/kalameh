@@ -28,7 +28,7 @@ export function ClassesActionButton({ onAddClick }: ClassesActionButtonProps) {
 
   return (
     <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
-      <ButtonGroup className="shadow-xs">
+      <ButtonGroup className="hidden shadow-xs lg:inline-flex">
         {/* Primary Action: Smart Scheduling (Direct Click) */}
         <Button
           render={<Link href="/classes/scheduling" />}
