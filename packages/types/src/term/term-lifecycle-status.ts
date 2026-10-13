@@ -160,3 +160,76 @@ export function isTermDeletable(
   // Must be in the future (nowMs < startMs) and active
   return term.isActive !== false
 }
+
+/**
+ * Finds the currently active term for an institute from a list of terms:
+ * 1. An ongoing term (lifecycleStatus "ACTIVE" or startDate <= now <= endDate, isActive !== false).
+ *    If multiple, returns the earliest starting ongoing term.
+ * 2. An immediate registering term (lifecycleStatus "REGISTERING" or within activation window).
+ * 3. The nearest upcoming term (startDate > now, isActive !== false).
+ * 4. If all terms are completed/inactive, returns null.
+ */
+export function findCurrentActiveTerm<T extends TermLifecycleSubject>(
+  terms: T[] | undefined | null,
+  now: Date = new Date()
+): T | null {
+  if (!terms || terms.length === 0) {
+    return null
+  }
+
+  const enabledTerms = terms.filter((t) => t.isActive !== false)
+  if (enabledTerms.length === 0) {
+    return null
+  }
+
+  // 1. Look for a currently ongoing term ("ACTIVE")
+  const activeTerms = enabledTerms.filter((term) => {
+    const status =
+      term.lifecycleStatus ??
+      calculateTermLifecycleStatus(term, enabledTerms, now)
+    return status === "ACTIVE"
+  })
+
+  if (activeTerms.length > 0) {
+    return (
+      [...activeTerms].sort(
+        (a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate)
+      )[0] ?? null
+    )
+  }
+
+  // 2. Look for an immediate registering term ("REGISTERING")
+  const registeringTerms = enabledTerms.filter((term) => {
+    const status =
+      term.lifecycleStatus ??
+      calculateTermLifecycleStatus(term, enabledTerms, now)
+    return status === "REGISTERING"
+  })
+
+  if (registeringTerms.length > 0) {
+    return (
+      [...registeringTerms].sort(
+        (a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate)
+      )[0] ?? null
+    )
+  }
+
+  // 3. Look for the nearest upcoming term ("UPCOMING")
+  const upcomingTerms = enabledTerms.filter((term) => {
+    const status =
+      term.lifecycleStatus ??
+      calculateTermLifecycleStatus(term, enabledTerms, now)
+    return status === "UPCOMING"
+  })
+
+  if (upcomingTerms.length > 0) {
+    return (
+      [...upcomingTerms].sort(
+        (a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate)
+      )[0] ?? null
+    )
+  }
+
+  // 4. All terms are completed or inactive
+  return null
+}

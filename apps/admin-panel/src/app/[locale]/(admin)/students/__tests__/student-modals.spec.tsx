@@ -160,7 +160,7 @@ describe("Student Modals", () => {
       // Drawer overlay should be mounted and have blur & dimming backdrop
       const overlay = document.querySelector('[data-slot="drawer-overlay"]')
       expect(overlay).toBeInTheDocument()
-      expect(overlay).toHaveClass("backdrop-blur-sm", "bg-black/65")
+      expect(overlay).toHaveClass("backdrop-blur-xs", "bg-black/40")
 
       // Drawer content should be rendered
       expect(screen.getByText(/ویرایش مشخصات|Edit/i)).toBeInTheDocument()

@@ -223,7 +223,19 @@ function ResponsiveDialogFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   const { isMobile } = React.useContext(ResponsiveDialogContext)
   if (isMobile) {
-    return <DrawerFooter className={className} {...props} />
+    const hasCustomSafeArea =
+      typeof className === "string" &&
+      className.includes("safe-area-inset-bottom")
+    return (
+      <DrawerFooter
+        className={cn(
+          className,
+          !hasCustomSafeArea &&
+            "pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
+        )}
+        {...props}
+      />
+    )
   }
   return <DialogFooter className={className} {...props} />
 }

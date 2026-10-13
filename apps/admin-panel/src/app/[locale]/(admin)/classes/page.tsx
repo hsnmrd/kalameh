@@ -3,8 +3,13 @@
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { ClassDto } from "@workspace/types"
-import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
-import { classesResource } from "@/lib/api"
+import {
+  PERMISSIONS,
+  APP_MODULES,
+  ROLES,
+  findCurrentActiveTerm,
+} from "@workspace/types"
+import { classesResource, termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions, useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
@@ -13,6 +18,7 @@ import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
 import { useRouter } from "@/i18n/routing"
+import { useSearchParams } from "next/navigation"
 import { ClassesFilter } from "./components/classes-filter"
 import { ClassesTable } from "./components/classes-table"
 import { ClassesList } from "./components/classes-list"
@@ -20,6 +26,8 @@ import { ClassesFabDrawer } from "./components/classes-fab-drawer"
 
 export default function ClassesPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialTermParam = searchParams?.get("termId")
   const { openModal } = useModal()
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -29,20 +37,61 @@ export default function ClassesPage() {
     isSuperAdmin ||
     activeInstitute?.enabledModules?.includes(APP_MODULES.CLASSES_COURSES)
 
-  const [termId, setTermId] = React.useState("")
+  // Track explicit user selection. If null, automatically falls back to current active term.
+  const [userSelectedTermId, setUserSelectedTermId] = React.useState<
+    string | null
+  >(
+    initialTermParam !== null && initialTermParam !== undefined
+      ? initialTermParam
+      : null
+  )
   const [courseId, setCourseId] = React.useState("")
   const [search, setSearch] = React.useState("")
 
-  const { data: classes, isLoading } = useQuery({
-    ...classesResource.list.toQuery({
-      instituteId: activeInstituteId,
-      termId: termId || undefined,
-      courseId: courseId || undefined,
-      search: search || undefined,
-    }),
+  // Reset user selection when active institute changes so the new institute's active term is used
+  const prevInstituteIdRef = React.useRef(activeInstituteId)
+  React.useEffect(() => {
+    if (prevInstituteIdRef.current !== activeInstituteId) {
+      prevInstituteIdRef.current = activeInstituteId
+      setUserSelectedTermId(null)
+    }
+  }, [activeInstituteId])
+
+  const { data: terms, isLoading: isLoadingTerms } = useQuery({
+    ...termsResource.list.toQuery(
+      activeInstituteId ? { instituteId: activeInstituteId } : undefined
+    ),
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const currentActiveTerm = React.useMemo(() => {
+    return findCurrentActiveTerm(terms)
+  }, [terms])
+
+  const effectiveTermId = React.useMemo(() => {
+    if (userSelectedTermId !== null) {
+      return userSelectedTermId === "all" ? "" : userSelectedTermId
+    }
+    return currentActiveTerm?.id ?? ""
+  }, [userSelectedTermId, currentActiveTerm])
+
+  // When no explicit term filter is set yet, wait for terms query to discover the active term
+  // to avoid a wasteful initial request that fetches all classes across all terms.
+  const isWaitingForDefaultTerm = userSelectedTermId === null && isLoadingTerms
+
+  const { data: classes, isLoading: isLoadingClasses } = useQuery({
+    ...classesResource.list.toQuery({
+      instituteId: activeInstituteId,
+      termId: effectiveTermId || undefined,
+      courseId: courseId || undefined,
+      search: search || undefined,
+    }),
+    enabled: Boolean(
+      activeInstituteId && hasModule && !isWaitingForDefaultTerm
+    ),
+  })
+
+  const isLoading = isWaitingForDefaultTerm || isLoadingClasses
   const isListEmpty = !isLoading && (!classes || classes.length === 0)
 
   const handleCreate = () => openModal("createClass")
@@ -58,8 +107,8 @@ export default function ClassesPage() {
         <AdminPageShell
           filter={
             <ClassesFilter
-              termId={termId}
-              onTermChange={setTermId}
+              termId={effectiveTermId}
+              onTermChange={setUserSelectedTermId}
               courseId={courseId}
               onCourseChange={setCourseId}
               search={search}

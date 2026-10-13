@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import { classesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { findCurrentActiveTerm } from "@workspace/types"
 import {
   useCreateClassSchema,
   type CreateClassInput,
@@ -102,7 +103,7 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
     }
   }, [selectedCourseId, courses, setValue])
 
-  // Auto-set first term
+  // Auto-set active term or first term
   const hasSetDefaultTermRef = React.useRef(false)
   React.useEffect(() => {
     if (
@@ -111,7 +112,8 @@ export function useCreateClassForm(open: boolean, onClose: () => void) {
       !selectedTermId &&
       !hasSetDefaultTermRef.current
     ) {
-      setValue("termId", terms[0]?.id || "")
+      const activeTerm = findCurrentActiveTerm(terms)
+      setValue("termId", activeTerm?.id || terms[0]?.id || "")
       hasSetDefaultTermRef.current = true
     }
   }, [open, terms, selectedTermId, setValue])

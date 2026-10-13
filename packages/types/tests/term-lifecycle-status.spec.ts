@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest"
 import {
   calculateTermLifecycleStatus,
+  findCurrentActiveTerm,
   isTermDeletable,
   type TermLifecycleSubject,
 } from "../src/term/term-lifecycle-status"
@@ -257,6 +258,104 @@ describe("Term Lifecycle Status and Deletability", () => {
       expect(isTermDeletable(term, undefined, new Date("2026-03-01"))).toBe(
         false
       )
+    })
+  })
+
+  describe("findCurrentActiveTerm", () => {
+    it("returns null when terms array is null, undefined, or empty", () => {
+      expect(findCurrentActiveTerm(null)).toBeNull()
+      expect(findCurrentActiveTerm(undefined)).toBeNull()
+      expect(findCurrentActiveTerm([])).toBeNull()
+    })
+
+    it("returns null when all terms have isActive false", () => {
+      const terms: TermLifecycleSubject[] = [
+        {
+          id: "t1",
+          startDate: "2026-10-01",
+          endDate: "2026-11-30",
+          isActive: false,
+        },
+      ]
+      expect(findCurrentActiveTerm(terms, new Date("2026-10-15"))).toBeNull()
+    })
+
+    it("returns the ongoing active term (ACTIVE) when current date is within term range", () => {
+      const pastTerm: TermLifecycleSubject = {
+        id: "t-past",
+        startDate: "2026-06-01",
+        endDate: "2026-08-31",
+        isActive: false,
+      }
+      const activeTerm: TermLifecycleSubject = {
+        id: "t-active",
+        startDate: "2026-10-01",
+        endDate: "2026-11-30",
+        isActive: true,
+      }
+      const futureTerm: TermLifecycleSubject = {
+        id: "t-future",
+        startDate: "2026-12-01",
+        endDate: "2027-01-31",
+        isActive: true,
+      }
+      const result = findCurrentActiveTerm(
+        [pastTerm, activeTerm, futureTerm],
+        new Date("2026-10-15")
+      )
+      expect(result?.id).toBe("t-active")
+    })
+
+    it("returns the registering term (REGISTERING) when in registration gap or within 7 days before start", () => {
+      const upcomingTerm: TermLifecycleSubject = {
+        id: "t-reg",
+        startDate: "2026-10-10",
+        endDate: "2026-11-30",
+        isActive: true,
+      }
+      const futureTerm: TermLifecycleSubject = {
+        id: "t-later",
+        startDate: "2026-12-15",
+        endDate: "2027-02-15",
+        isActive: true,
+      }
+      // 5 days before start date (October 5th)
+      const result = findCurrentActiveTerm(
+        [upcomingTerm, futureTerm],
+        new Date("2026-10-05")
+      )
+      expect(result?.id).toBe("t-reg")
+    })
+
+    it("returns the earliest upcoming term when terms are in the future", () => {
+      const term1: TermLifecycleSubject = {
+        id: "t-soon",
+        startDate: "2026-11-01",
+        endDate: "2026-12-31",
+        isActive: true,
+      }
+      const term2: TermLifecycleSubject = {
+        id: "t-later",
+        startDate: "2027-01-01",
+        endDate: "2027-02-28",
+        isActive: true,
+      }
+      const result = findCurrentActiveTerm(
+        [term2, term1],
+        new Date("2026-09-01")
+      )
+      expect(result?.id).toBe("t-soon")
+    })
+
+    it("returns null when all active terms have completed", () => {
+      const term1: TermLifecycleSubject = {
+        id: "t-completed",
+        startDate: "2026-01-01",
+        endDate: "2026-03-31",
+        isActive: true,
+      }
+      const result = findCurrentActiveTerm([term1], new Date("2026-05-01"))
+      expect(result).toBeNull()
     })
   })
 })

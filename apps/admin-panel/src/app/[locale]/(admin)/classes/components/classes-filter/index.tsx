@@ -1,13 +1,11 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { CalendarDays } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
-import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
-import { Link } from "@/i18n/routing"
 import { termsResource, coursesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { findCurrentActiveTerm } from "@workspace/types"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { AdminSearchInput } from "@/components/admin-search-input"
 import { ClassesActionButton } from "../classes-action-button"
@@ -40,15 +38,27 @@ export function ClassesFilter({
     ? { instituteId: activeInstituteId }
     : undefined
 
-  const { data: termOptions = [{ value: "all", label: t("allTerms") }] } =
-    useQuery({
-      ...termsResource.list.toQuery(queryParams),
-      enabled: !!activeInstituteId,
-      select: (terms) => [
-        { value: "all", label: t("allTerms") },
-        ...terms.map((term) => ({ value: term.id, label: term.title })),
-      ],
-    })
+  const { data: terms = [] } = useQuery({
+    ...termsResource.list.toQuery(queryParams),
+    enabled: !!activeInstituteId,
+  })
+
+  const currentActiveTerm = React.useMemo(() => {
+    return findCurrentActiveTerm(terms)
+  }, [terms])
+
+  const termOptions = React.useMemo(() => {
+    return [
+      { value: "all", label: t("allTerms") },
+      ...terms.map((term) => ({
+        value: term.id,
+        label:
+          term.id === currentActiveTerm?.id
+            ? `${term.title} (${t("activeTermBadge")})`
+            : term.title,
+      })),
+    ]
+  }, [terms, currentActiveTerm, t])
 
   const { data: courseOptions = [{ value: "all", label: t("allCourses") }] } =
     useQuery({
@@ -67,23 +77,13 @@ export function ClassesFilter({
   const hasActiveFilter = Boolean(search.trim() || activeFiltersCount > 0)
 
   const handleClearFilters = React.useCallback(() => {
-    onTermChange("")
+    onTermChange("all")
     onCourseChange("")
   }, [onTermChange, onCourseChange])
 
-  const desktopActions = actions ?? (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        render={<Link href="/teachers/calendar" />}
-        className="h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-4 text-sm font-semibold shadow-xs"
-      >
-        <CalendarDays className="size-5" />
-        <span>{t("teachersCalendar")}</span>
-      </Button>
-      {onAddClick && <ClassesActionButton onAddClick={onAddClick} />}
-    </div>
-  )
+  const desktopActions =
+    actions ??
+    (onAddClick ? <ClassesActionButton onAddClick={onAddClick} /> : undefined)
 
   return (
     <AdminFilterBar
@@ -106,7 +106,7 @@ export function ClassesFilter({
               items={termOptions}
               value={termId || "all"}
               onValueChange={(val) =>
-                onTermChange(val === "all" || !val ? "" : val)
+                onTermChange(val === "all" || !val ? "all" : val)
               }
               placeholder={t("termFilter")}
               drawerTitle={t("termFilter")}
