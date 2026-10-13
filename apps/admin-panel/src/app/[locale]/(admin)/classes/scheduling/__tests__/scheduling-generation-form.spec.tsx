@@ -116,7 +116,9 @@ describe("MVP-034 scheduling generation form", () => {
     )
     await waitFor(() => expect(requirementsQueryFn).toHaveBeenCalled())
     expect(await screen.findByLabelText("English A1")).toBeChecked()
-    fireEvent.click(screen.getByRole("button", { name: "ساخت پیشنهادها" }))
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "ساخت پیشنهادها" })[0]!
+    )
 
     await waitFor(() => {
       expect(mutationFn.mock.calls[0]?.[0]).toEqual(
@@ -125,7 +127,7 @@ describe("MVP-034 scheduling generation form", () => {
           termId,
           branchId,
           requirementIds: [requirementId],
-          alternativePlanCount: 3,
+          alternativePlanCount: 1,
         })
       )
       expect(onCreated).toHaveBeenCalledOnce()
@@ -193,7 +195,9 @@ describe("MVP-034 scheduling generation form", () => {
     render(<SchedulingGenerationForm onCreated={vi.fn()} />)
 
     expect(await screen.findByLabelText("English A1")).toBeChecked()
-    fireEvent.click(screen.getByRole("button", { name: "ساخت پیشنهادها" }))
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "ساخت پیشنهادها" })[0]!
+    )
 
     await waitFor(() =>
       expect(mutationFn).toHaveBeenCalledWith(
@@ -253,7 +257,9 @@ describe("MVP-034 scheduling generation form", () => {
       screen.queryByRole("button", { name: "تأیید برنامه زمانی فراگیران" })
     ).not.toBeInTheDocument()
 
-    const submitButton = screen.getByRole("button", { name: "ساخت پیشنهادها" })
+    const submitButton = screen.getAllByRole("button", {
+      name: "ساخت پیشنهادها",
+    })[0]!
     expect(submitButton).toBeDisabled()
   })
 
@@ -300,11 +306,13 @@ describe("MVP-034 scheduling generation form", () => {
     const checkbox = await screen.findByLabelText("English A1")
     expect(checkbox).toBeChecked()
 
-    const submitButton = screen.getByRole("button", { name: "ساخت پیشنهادها" })
-    expect(submitButton).toBeEnabled()
+    const submitButtons = screen.getAllByRole("button", {
+      name: "ساخت پیشنهادها",
+    })
+    expect(submitButtons[0]).toBeEnabled()
 
     fireEvent.click(checkbox)
     expect(checkbox).not.toBeChecked()
-    expect(submitButton).toBeDisabled()
+    expect(submitButtons[0]).toBeDisabled()
   })
 })

@@ -78,7 +78,7 @@ export function SchedulingRequirementPicker({
         )}
       </div>
 
-      <div className="max-h-72 overflow-y-auto rounded-2xl border border-border bg-background p-2">
+      <div className="rounded-2xl border border-border bg-background p-2 sm:p-3">
         {isLoading ? (
           <div className="flex min-h-32 items-center justify-center">
             <Spinner className="size-6 text-primary" />

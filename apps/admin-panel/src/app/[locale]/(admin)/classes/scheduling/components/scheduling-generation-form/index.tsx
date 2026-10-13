@@ -1,25 +1,14 @@
 "use client"
 
 import * as React from "react"
-import { Controller } from "react-hook-form"
 import { useLocale, useTranslations } from "next-intl"
 import { Building2, Calendar, CalendarClock, Sparkles } from "lucide-react"
 import { PERMISSIONS, type SchedulingRunDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import {
-  ResponsiveCombobox,
-  type ComboboxOption,
-} from "@workspace/ui/components/combobox"
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { formatNumber } from "@workspace/ui/lib/utils"
+import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { PermissionGuard } from "@/components/permission-guard"
 import { useSchedulingGenerationForm } from "../../hooks/use-scheduling-generation-form"
 import { SchedulingRequirementPicker } from "../scheduling-requirement-picker"
@@ -92,52 +81,78 @@ export function SchedulingGenerationForm({
     }
   }, [defaultBranchId, branches, form])
 
-  const alternativeOptions: ComboboxOption[] = [1, 2, 3].map((count) => ({
-    value: String(count),
-    label: t("fields.alternatives.option", {
-      count: formatNumber(count, locale),
-    }),
-  }))
   const errors = form.formState.errors
+
+  const isSubmitDisabled =
+    isPending ||
+    !termId ||
+    requirements.length === 0 ||
+    requirementIds.length === 0 ||
+    !activeTerm?.studentSchedulesConfirmedAt
 
   return (
     <div className="flex w-full flex-col">
-      <div className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Sparkles aria-hidden className="size-5" />
-          </span>
-          <div>
-            <h2 className="font-bold text-foreground">{t("title")}</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              {t("description")}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {activeTerm && (
-            <Badge
-              variant="outline"
-              className="gap-2 border-border bg-muted/30 px-3.5 py-1.5 text-xs font-semibold text-foreground sm:text-sm"
-            >
-              <Calendar className="size-4 text-foreground" />
-              <span>{activeTerm.title}</span>
-            </Badge>
-          )}
-          {activeBranch && (
-            <Badge
-              variant="outline"
-              className="gap-2 border-border bg-muted/30 px-3.5 py-1.5 text-xs font-semibold text-foreground sm:text-sm"
-            >
-              <Building2 className="size-4 text-foreground" />
-              <span>{activeBranch.name}</span>
-            </Badge>
-          )}
-        </div>
-      </div>
-
       <form onSubmit={submit} className="w-full">
+        {/* Desktop Sticky Filter Section / Header */}
+        <AdminFilterBar
+          autoHideOnMobile={false}
+          search={
+            <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Sparkles aria-hidden className="size-5" />
+                </span>
+                <h2 className="text-base font-bold text-foreground sm:text-lg">
+                  {t("title")}
+                </h2>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {activeTerm && (
+                  <Badge
+                    variant="outline"
+                    className="gap-2 border-border bg-muted/40 px-3.5 py-1.5 text-xs font-semibold text-foreground sm:text-sm"
+                  >
+                    <Calendar className="size-4 text-foreground" />
+                    <span>{activeTerm.title}</span>
+                  </Badge>
+                )}
+                {activeBranch && (
+                  <Badge
+                    variant="outline"
+                    className="gap-2 border-border bg-muted/40 px-3.5 py-1.5 text-xs font-semibold text-foreground sm:text-sm"
+                  >
+                    <Building2 className="size-4 text-foreground" />
+                    <span>{activeBranch.name}</span>
+                  </Badge>
+                )}
+              </div>
+            </div>
+          }
+          actions={
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_CLASSES}
+              mode="hide"
+            >
+              <Button
+                type="submit"
+                disabled={isSubmitDisabled}
+                className="gap-2"
+              >
+                {isPending ? (
+                  <Spinner className="size-4 text-primary-foreground" />
+                ) : (
+                  <Sparkles
+                    className="size-4 text-primary-foreground"
+                    aria-hidden
+                  />
+                )}
+                <span>{isPending ? t("submitting") : t("submit")}</span>
+              </Button>
+            </PermissionGuard>
+          }
+        />
+
         {!hasInstitute ? (
           <div className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-5 text-center">
             <CalendarClock
@@ -165,32 +180,7 @@ export function SchedulingGenerationForm({
             </p>
           </div>
         ) : (
-          <FieldGroup>
-            <Field
-              data-invalid={Boolean(errors.alternativePlanCount)}
-              className="max-w-xs"
-            >
-              <FieldLabel>{t("fields.alternatives.label")}</FieldLabel>
-              <Controller
-                control={form.control}
-                name="alternativePlanCount"
-                render={({ field }) => (
-                  <ResponsiveCombobox
-                    items={alternativeOptions}
-                    value={String(field.value)}
-                    onValueChange={(value) =>
-                      field.onChange(Number(value ?? 3))
-                    }
-                    placeholder={t("fields.alternatives.placeholder")}
-                    drawerTitle={t("fields.alternatives.drawerTitle")}
-                    locale={locale}
-                    clearable={false}
-                    searchable={false}
-                  />
-                )}
-              />
-            </Field>
-
+          <div className="flex flex-col gap-6">
             <SchedulingRequirementPicker
               items={requirements}
               selectedIds={requirementIds}
@@ -215,39 +205,36 @@ export function SchedulingGenerationForm({
               selectedRequirementIds={requirementIds}
             />
 
-            <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center justify-between border-t border-border pt-4">
               <p className="text-sm text-muted-foreground">
                 {t("selectionSummary", {
                   count: formatNumber(requirementIds.length, locale),
                 })}
               </p>
-              <PermissionGuard
-                permission={PERMISSIONS.MANAGE_CLASSES}
-                mode="disable"
-                className="w-full sm:w-auto"
-              >
-                <Button
-                  type="submit"
-                  disabled={
-                    isPending ||
-                    !termId ||
-                    requirements.length === 0 ||
-                    requirementIds.length === 0 ||
-                    !activeTerm?.studentSchedulesConfirmedAt
-                  }
-                  className="w-full px-6 sm:w-auto"
-                >
-                  {isPending ? (
-                    <Spinner className="size-5 text-primary-foreground" />
-                  ) : (
-                    <Sparkles aria-hidden data-icon="inline-start" />
-                  )}
-                  {isPending ? t("submitting") : t("submit")}
-                </Button>
-              </PermissionGuard>
             </div>
-          </FieldGroup>
+          </div>
         )}
+
+        {/* Mobile Bottom Sticky Button */}
+        <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shadow-lg backdrop-blur-md sm:hidden">
+            <Button
+              type="submit"
+              disabled={isSubmitDisabled}
+              className="h-14 w-full cursor-pointer gap-2 rounded-2xl text-base font-semibold shadow-xs"
+            >
+              {isPending ? (
+                <Spinner className="size-5 text-primary-foreground" />
+              ) : (
+                <Sparkles
+                  className="size-5 text-primary-foreground"
+                  aria-hidden
+                />
+              )}
+              <span>{isPending ? t("submitting") : t("submit")}</span>
+            </Button>
+          </div>
+        </PermissionGuard>
       </form>
     </div>
   )

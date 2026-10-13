@@ -166,9 +166,9 @@ describe("SchedulingGeneratePage", () => {
     expect(await screen.findByLabelText("دوره زبان")).toBeChecked()
 
     // Click submit button "ساخت پیشنهادها"
-    const submitButton = screen.getByRole("button", {
+    const submitButton = screen.getAllByRole("button", {
       name: "ساخت پیشنهادها",
-    })
+    })[0]!
     fireEvent.click(submitButton)
 
     await waitFor(() => {

@@ -85,8 +85,8 @@ export function AdminFilterBar({
           isRevealed
             ? "mb-4 grid-rows-[1fr] opacity-100"
             : "pointer-events-none mb-0 grid-rows-[0fr] opacity-0",
-          // Desktop resets: always 1fr with mb-6
-          "lg:pointer-events-auto lg:mb-6 lg:grid-rows-[1fr] lg:overflow-visible lg:opacity-100",
+          // Desktop resets: sticky under header (top-16), always 1fr with mb-6
+          "lg:pointer-events-auto lg:sticky lg:top-16 lg:z-20 lg:mb-6 lg:grid-rows-[1fr] lg:overflow-visible lg:bg-background/95 lg:py-2.5 lg:opacity-100 lg:backdrop-blur-md",
           className
         )}
       >
