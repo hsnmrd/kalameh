@@ -6,11 +6,7 @@ import type { ClassRequirementDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
-import {
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@workspace/ui/components/field"
+import { FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { formatNumber } from "@workspace/ui/lib/utils"
 
@@ -46,38 +42,6 @@ export function SchedulingRequirementPicker({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-sm leading-none font-medium text-foreground">
-            {t("label")}
-          </p>
-          <FieldDescription>{t("description")}</FieldDescription>
-        </div>
-        {items.length > 0 && (
-          <div className="flex gap-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="min-h-11"
-              onClick={() => onChange(items.map((item) => item.id))}
-            >
-              {t("selectAll")}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="min-h-11"
-              disabled={selectedIds.length === 0}
-              onClick={() => onChange([])}
-            >
-              {t("clear")}
-            </Button>
-          </div>
-        )}
-      </div>
-
       <div className="rounded-2xl border border-border bg-background p-2 sm:p-3">
         {isLoading ? (
           <div className="flex min-h-32 items-center justify-center">
