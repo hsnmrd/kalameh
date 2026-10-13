@@ -4896,5 +4896,195 @@ describe("SchedulingPlanCalendarView Component", () => {
 
       toMutationSpy.mockRestore()
     })
+
+    it("excludes other branch masters from bottom carousel and suggests them in OtherBranchesMastersSection inside StaffingFallbackDialog", async () => {
+      const branchCentralId = "branch-central-id"
+      const branchWestId = "branch-west-id"
+
+      const centralProposal: Proposal = {
+        id: "prop-central-1",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-1",
+        course: { id: "c-ame-1-1", title: "AME 1-1" },
+        teacher: null,
+        teacherId: null,
+        branch: { id: branchCentralId, name: "شعبه مرکزی" },
+        classroom: { id: "cr-1", name: "Room 101", capacity: 20 },
+        capacity: 15,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:00",
+        endTime: "16:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      }
+
+      const branchCalendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: {
+            id: "t-local-teacher",
+            firstName: "محلی",
+            lastName: "امیری",
+            avatarUrl: null,
+            branchId: branchCentralId,
+            branch: { id: branchCentralId, name: "شعبه مرکزی" },
+          },
+          teachableCourses: [{ id: "c-ame-1-1", title: "AME 1-1" }],
+          slots: [
+            {
+              id: "s1",
+              dayOfWeek: "SATURDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchCentralId,
+              branchName: "شعبه مرکزی",
+            },
+            {
+              id: "s2",
+              dayOfWeek: "MONDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchCentralId,
+              branchName: "شعبه مرکزی",
+            },
+            {
+              id: "s3",
+              dayOfWeek: "WEDNESDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchCentralId,
+              branchName: "شعبه مرکزی",
+            },
+          ],
+        },
+        {
+          teacher: {
+            id: "t-west-teacher",
+            firstName: "الهام",
+            lastName: "جلالی",
+            avatarUrl: null,
+            branchId: branchWestId,
+            branch: { id: branchWestId, name: "شعبه غرب (سعادت‌آباد)" },
+          },
+          teachableCourses: [{ id: "c-ame-1-1", title: "AME 1-1" }],
+          slots: [
+            {
+              id: "s4",
+              dayOfWeek: "SATURDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchWestId,
+              branchName: "شعبه غرب (سعادت‌آباد)",
+            },
+            {
+              id: "s5",
+              dayOfWeek: "MONDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchWestId,
+              branchName: "شعبه غرب (سعادت‌آباد)",
+            },
+            {
+              id: "s6",
+              dayOfWeek: "WEDNESDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchWestId,
+              branchName: "شعبه غرب (سعادت‌آباد)",
+            },
+          ],
+        },
+      ]
+
+      const branchStatuses = [
+        {
+          branchId: branchWestId,
+          branchName: "شعبه غرب (سعادت‌آباد)",
+          hasDefinedSchedule: true,
+          status: "SCHEDULED" as const,
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={[centralProposal]}
+          teacherCalendars={branchCalendars}
+          branchId={branchCentralId}
+          branchScheduleStatuses={branchStatuses}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      // 1. In bottom carousel: Local teacher is present and other branch teacher is NOT included
+      const carouselEven = screen.getByTestId(
+        "group-teachers-carousel-EVEN-15:00-16:30"
+      )
+      expect(carouselEven).toBeInTheDocument()
+      const toggleBtn = within(carouselEven).getByRole("button", {
+        name: /نمایش اساتید|دسترسی اساتید/,
+      })
+      fireEvent.click(toggleBtn)
+
+      expect(screen.getByText("محلی امیری")).toBeInTheDocument()
+      expect(screen.queryByText("الهام جلالی")).not.toBeInTheDocument()
+
+      // 2. Click on the masterless proposal to open StaffingFallbackDialog
+      const card = screen.getAllByTestId(
+        "calendar-class-card-prop-central-1"
+      )[0]!
+      fireEvent.click(card)
+
+      expect(screen.getByTestId("staffing-fallback-dialog")).toBeInTheDocument()
+
+      // 3. In FreeMastersSelection: local teacher is present, other branch teacher is NOT present
+      const freeMastersSection = screen.getByTestId("free-masters-selection")
+      expect(
+        within(freeMastersSection).getByTestId(
+          "free-master-item-t-local-teacher"
+        )
+      ).toBeInTheDocument()
+      expect(
+        within(freeMastersSection).queryByTestId(
+          "free-master-item-t-west-teacher"
+        )
+      ).not.toBeInTheDocument()
+
+      // 4. In OtherBranchesMastersSection: other branch teacher IS present and grouped by branch
+      const otherBranchesSection = screen.getByTestId(
+        "other-branches-masters-section"
+      )
+      expect(otherBranchesSection).toBeInTheDocument()
+      expect(
+        within(otherBranchesSection).getByTestId(
+          `other-branch-group-${branchWestId}`
+        )
+      ).toBeInTheDocument()
+      expect(
+        within(otherBranchesSection).getByTestId(
+          "free-master-item-t-west-teacher"
+        )
+      ).toBeInTheDocument()
+      expect(
+        within(otherBranchesSection).queryByTestId(
+          "free-master-item-t-local-teacher"
+        )
+      ).not.toBeInTheDocument()
+      expect(
+        within(otherBranchesSection).getByText("شعبه غرب (سعادت‌آباد)")
+      ).toBeInTheDocument()
+      expect(
+        within(otherBranchesSection).getByText("برنامه‌ریزی انجام شده")
+      ).toBeInTheDocument()
+    })
   })
 })

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl"
 import { Lightbulb, SearchCheck } from "lucide-react"
 import type {
   CourseLevelNode,
+  SchedulingBranchScheduleStatus,
   SchedulingPlanDetailsDto,
   SchedulingStaffingFallback as StaffingFallbackDto,
   SchedulingTeacherCalendar,
@@ -23,6 +24,7 @@ import { SchedulingRecoveryOption } from "../../scheduling-recovery-option"
 import { SchedulingStaffingFallback } from "../../scheduling-staffing-fallback"
 import { SchedulingTeacherReassignmentAnalysis } from "../../scheduling-teacher-reassignment-analysis"
 import { FreeMastersSelection } from "./free-masters-selection"
+import { OtherBranchesMastersSection } from "./other-branches-masters-section"
 
 type UnresolvedRequirement =
   SchedulingPlanDetailsDto["unresolvedRequirements"][number]
@@ -41,6 +43,8 @@ export interface StaffingFallbackDialogProps {
   proposal?: Proposal | null
   teacherCalendars?: SchedulingTeacherCalendar[]
   allProposals?: Proposal[]
+  branchId?: string | null
+  branchScheduleStatuses?: SchedulingBranchScheduleStatus[]
   onAssignTeacher?: (
     proposal: Proposal,
     teacherId: string
@@ -65,6 +69,8 @@ export function StaffingFallbackDialog({
   proposal,
   teacherCalendars,
   allProposals,
+  branchId,
+  branchScheduleStatuses = [],
   onAssignTeacher,
   onAssignMissedClassTeacher,
   isAssignPending = false,
@@ -154,6 +160,12 @@ export function StaffingFallbackDialog({
     proposal?.startTime ?? hiringAssignments[0]?.startTime ?? ""
   const targetEndTime = proposal?.endTime ?? hiringAssignments[0]?.endTime ?? ""
 
+  const effectiveBranchId =
+    branchId ??
+    proposal?.branch?.id ??
+    (proposal as { branchId?: string | null } | undefined)?.branchId ??
+    null
+
   return (
     <FormDialog open={open} onOpenChange={onOpenChange}>
       <FormDialogContent
@@ -180,6 +192,40 @@ export function StaffingFallbackDialog({
               endTime={targetEndTime}
               teacherCalendars={teacherCalendars}
               allProposals={allProposals}
+              targetBranchId={effectiveBranchId}
+              onAssignTeacher={
+                onAssignTeacher
+                  ? async (prop, teacherId) => {
+                      await onAssignTeacher(prop, teacherId)
+                      onOpenChange(false)
+                    }
+                  : undefined
+              }
+              onAssignMissedClassTeacher={
+                onAssignMissedClassTeacher
+                  ? async (assignment, teacherId) => {
+                      await onAssignMissedClassTeacher(assignment, teacherId)
+                      onOpenChange(false)
+                    }
+                  : undefined
+              }
+              isPending={isAssignPending}
+            />
+          )}
+
+          {/* Option of choosing from Free Masters in other branches grouped with schedule status */}
+          {targetDaysOfWeek.length > 0 && targetStartTime && targetEndTime && (
+            <OtherBranchesMastersSection
+              proposal={proposal ?? null}
+              hiringAssignment={hiringAssignments[0] ?? null}
+              targetCourse={targetCourse}
+              daysOfWeek={targetDaysOfWeek}
+              startTime={targetStartTime}
+              endTime={targetEndTime}
+              teacherCalendars={teacherCalendars}
+              allProposals={allProposals}
+              targetBranchId={effectiveBranchId}
+              branchScheduleStatuses={branchScheduleStatuses}
               onAssignTeacher={
                 onAssignTeacher
                   ? async (prop, teacherId) => {

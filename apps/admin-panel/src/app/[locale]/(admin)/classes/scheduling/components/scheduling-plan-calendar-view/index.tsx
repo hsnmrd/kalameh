@@ -16,6 +16,7 @@ import {
 import {
   findHigherLevelCourse,
   summarizeCourseLevelRange,
+  type SchedulingBranchScheduleStatus,
   type SchedulingNewTeacherHiringAssignment,
   type SchedulingNewTeacherHiringPlan,
   type SchedulingNewTeacherHiringSlotOption,
@@ -145,6 +146,8 @@ export interface SchedulingPlanCalendarViewProps {
   ) => void
   teacherCalendars?: SchedulingTeacherCalendar[]
   unresolvedRequirements?: SchedulingPlanDetailsDto["unresolvedRequirements"]
+  branchId?: string | null
+  branchScheduleStatuses?: SchedulingBranchScheduleStatus[]
   planId?: string
   planStatus?: string
   defaultCollapsed?: boolean
@@ -165,6 +168,8 @@ export function SchedulingPlanCalendarView({
   onUpdateMissedClassesAssignments,
   teacherCalendars,
   unresolvedRequirements,
+  branchId,
+  branchScheduleStatuses,
   planId,
   planStatus,
   defaultCollapsed = false,
@@ -175,6 +180,17 @@ export function SchedulingPlanCalendarView({
 }: SchedulingPlanCalendarViewProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
+
+  const currentBranchId = React.useMemo(() => {
+    return (
+      branchId ??
+      incomingProposals[0]?.branch?.id ??
+      (incomingProposals[0] as { branchId?: string | null } | undefined)
+        ?.branchId ??
+      hiringPlan?.assignments[0]?.branchId ??
+      null
+    )
+  }, [branchId, incomingProposals, hiringPlan])
 
   const [internalTeacherId, setInternalTeacherId] = React.useState<
     string | null
@@ -1944,6 +1960,23 @@ export function SchedulingPlanCalendarView({
                 s.endTime >= slot.endTime
             )
 
+            if (currentBranchId) {
+              const teacherProfileBranchId =
+                calendar.teacher.branchId ?? calendar.teacher.branch?.id ?? null
+              const isTeacherOtherBranch = Boolean(
+                teacherProfileBranchId &&
+                teacherProfileBranchId !== currentBranchId
+              )
+              const isSlotOtherBranch =
+                matchingSlots.length > 0 &&
+                matchingSlots.every(
+                  (s) => s.branchId && s.branchId !== currentBranchId
+                )
+              if (isTeacherOtherBranch || isSlotOtherBranch) {
+                continue
+              }
+            }
+
             const hasExistingClass = matchingSlots.some(
               (s) => s.status === "BUSY" && s.source === "EXISTING_CLASS"
             )
@@ -2999,6 +3032,8 @@ export function SchedulingPlanCalendarView({
         proposal={activeStaffingProposal}
         teacherCalendars={teacherCalendars}
         allProposals={allSwappableProposals}
+        branchId={currentBranchId}
+        branchScheduleStatuses={branchScheduleStatuses}
         onAssignTeacher={handleSwitchTeacher}
         onAssignMissedClassTeacher={handleAssignMissedClassTeacher}
         isAssignPending={

@@ -34,6 +34,7 @@ export interface FreeMastersSelectionProps {
   endTime: string
   teacherCalendars?: SchedulingTeacherCalendar[]
   allProposals?: Proposal[]
+  targetBranchId?: string | null
   onAssignTeacher?: (
     proposal: Proposal,
     teacherId: string
@@ -54,6 +55,7 @@ export function FreeMastersSelection({
   endTime,
   teacherCalendars = [],
   allProposals = [],
+  targetBranchId,
   onAssignTeacher,
   onAssignMissedClassTeacher,
   isPending = false,
@@ -66,9 +68,16 @@ export function FreeMastersSelection({
   const [api, setApi] = React.useState<CarouselApi>()
   const [current, setCurrent] = React.useState(1)
 
+  const effectiveBranchId =
+    targetBranchId ??
+    proposal?.branch?.id ??
+    (proposal as { branchId?: string | null } | undefined)?.branchId ??
+    hiringAssignment?.branchId ??
+    null
+
   const freeMasters = React.useMemo(() => {
     if (!daysOfWeek.length || !startTime || !endTime) return []
-    return findFreeMastersForSlot({
+    const all = findFreeMastersForSlot({
       targetCourse,
       daysOfWeek,
       startTime,
@@ -76,7 +85,9 @@ export function FreeMastersSelection({
       ignoredProposalId: proposal?.id,
       teacherCalendars,
       allProposals,
+      targetBranchId: effectiveBranchId,
     })
+    return all.filter((m) => !m.isOtherBranch)
   }, [
     targetCourse,
     daysOfWeek,
@@ -85,6 +96,7 @@ export function FreeMastersSelection({
     proposal?.id,
     teacherCalendars,
     allProposals,
+    effectiveBranchId,
   ])
 
   React.useEffect(() => {

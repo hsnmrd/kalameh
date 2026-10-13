@@ -44,6 +44,8 @@ export interface FreeMasterItem {
   teachableCourses: CourseLevelNode[]
   courseRangeSummary: string | null
   comparison: TeacherLevelComparison
+  branch?: { id: string; name: string } | null
+  isOtherBranch?: boolean
 }
 
 /**
@@ -120,6 +122,7 @@ export function findFreeMastersForSlot({
   ignoredProposalId,
   teacherCalendars = [],
   allProposals = [],
+  targetBranchId,
 }: {
   targetCourse: CourseLevelNode
   daysOfWeek: WeekDay[]
@@ -128,6 +131,7 @@ export function findFreeMastersForSlot({
   ignoredProposalId?: string
   teacherCalendars?: SchedulingTeacherCalendar[]
   allProposals?: Proposal[]
+  targetBranchId?: string | null
 }): FreeMasterItem[] {
   const allCourses = collectKnownCourses(allProposals, teacherCalendars)
   const results: FreeMasterItem[] = []
@@ -147,7 +151,57 @@ export function findFreeMastersForSlot({
     )
     if (!isFree) continue
 
-    // 2. Collect all courses known for this teacher
+    // 2. Check branch affiliation for targetBranchId
+    const matchingFreeSlots = calendar.slots.filter(
+      (s) =>
+        s.status === "FREE" &&
+        daysOfWeek.includes(s.dayOfWeek) &&
+        s.startTime <= startTime &&
+        s.endTime >= endTime
+    )
+
+    const teacherProfileBranchId =
+      teacher.branchId ?? teacher.branch?.id ?? null
+    const isTeacherProfileOtherBranch = Boolean(
+      targetBranchId &&
+      teacherProfileBranchId &&
+      teacherProfileBranchId !== targetBranchId
+    )
+
+    const slotOtherBranch = targetBranchId
+      ? matchingFreeSlots.find(
+          (s) => s.branchId && s.branchId !== targetBranchId
+        )
+      : null
+
+    const isSlotOtherBranch = Boolean(slotOtherBranch)
+
+    const isOtherBranch = Boolean(
+      targetBranchId && (isTeacherProfileOtherBranch || isSlotOtherBranch)
+    )
+
+    const resolvedBranchId =
+      (isSlotOtherBranch ? slotOtherBranch?.branchId : null) ??
+      (isTeacherProfileOtherBranch ? teacherProfileBranchId : null) ??
+      teacher.branch?.id ??
+      teacher.branchId ??
+      matchingFreeSlots.find((s) => s.branchId)?.branchId ??
+      null
+
+    const resolvedBranchName =
+      (isSlotOtherBranch ? slotOtherBranch?.branchName : null) ??
+      teacher.branch?.name ??
+      matchingFreeSlots.find((s) => s.branchName)?.branchName ??
+      null
+
+    const branch = resolvedBranchId
+      ? {
+          id: resolvedBranchId,
+          name: resolvedBranchName || "",
+        }
+      : null
+
+    // 3. Collect all courses known for this teacher
     const proposalCourses = allProposals
       .filter((p) => (p.teacherId ?? p.teacher?.id) === teacher.id)
       .map((p) => p.course)
@@ -160,7 +214,7 @@ export function findFreeMastersForSlot({
     }
     const teacherCourses = Array.from(teacherCoursesMap.values())
 
-    // 3. Evaluate course level comparison
+    // 4. Evaluate course level comparison
     const comparison = evaluateTeacherCourseLevel(
       targetCourse,
       teacherCourses,
@@ -177,6 +231,8 @@ export function findFreeMastersForSlot({
       teachableCourses: teacherCourses,
       courseRangeSummary,
       comparison,
+      branch,
+      isOtherBranch,
     })
   }
 
