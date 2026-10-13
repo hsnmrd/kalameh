@@ -11,17 +11,17 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
   type CarouselApi,
 } from "@workspace/ui/components/carousel"
 import { toast } from "@workspace/ui/components/sonner"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
 import { useActiveInstitute } from "@/lib/stores"
+import { SchedulingStaffingSectionHeader } from "../scheduling-staffing-section-header"
 import { ReassignmentChainCard } from "./reassignment-chain-card"
 
 interface SchedulingTeacherReassignmentAnalysisProps {
+  branchNumber?: number
   chains: SchedulingTeacherReassignmentChain[]
   targetCourseTitle: string
   planId?: string
@@ -31,6 +31,7 @@ interface SchedulingTeacherReassignmentAnalysisProps {
 }
 
 export function SchedulingTeacherReassignmentAnalysis({
+  branchNumber,
   chains,
   targetCourseTitle,
   planId,
@@ -170,83 +171,56 @@ export function SchedulingTeacherReassignmentAnalysis({
   const hasMultiple = chains.length > 1
 
   return (
-    <section aria-label={t("reassignment.title")}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-2">
-          <ArrowRightLeft
-            aria-hidden
-            className="mt-0.5 size-4 shrink-0 text-foreground"
-          />
-          <div>
-            <h5 className="text-xs font-semibold text-foreground">
-              {t("reassignment.title")}
-            </h5>
-            <p className="mt-1 max-w-3xl text-xs leading-5 text-muted-foreground">
-              {t("reassignment.description")}
-            </p>
-          </div>
-        </div>
-        <Badge variant="success">
-          {t("reassignment.chainCount", {
+    <section
+      aria-label={t("reassignment.title")}
+      className="rounded-2xl border border-border/70 bg-card p-4 shadow-2xs transition-colors sm:p-5"
+    >
+      <Carousel
+        setApi={setApi}
+        opts={{
+          align: "start",
+          containScroll: "trimSnaps",
+          direction: locale === "fa" ? "rtl" : "ltr",
+        }}
+        className="w-full"
+      >
+        <SchedulingStaffingSectionHeader
+          branchNumber={branchNumber}
+          icon={ArrowRightLeft}
+          title={t("reassignment.title")}
+          badgeLabel={t("reassignment.chainCount", {
             count: formatNumber(chains.length, locale),
           })}
-        </Badge>
-      </div>
+          badgeVariant="success"
+          total={chains.length}
+          counterText={t("staffingFallback.teacherCarouselCounter", {
+            current: formatNumber(current, locale),
+            total: formatNumber(chains.length, locale),
+          })}
+        />
 
-      <div className="mt-3 w-full">
-        <Carousel
-          setApi={setApi}
-          opts={{
-            align: "start",
-            containScroll: "trimSnaps",
-            direction: locale === "fa" ? "rtl" : "ltr",
-          }}
-          className="w-full"
-        >
-          {hasMultiple && (
-            <div className="mb-2.5 flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted-foreground">
-                {t("staffingFallback.teacherCarouselCounter", {
-                  current: formatNumber(current, locale),
-                  total: formatNumber(chains.length, locale),
-                })}
-              </span>
-              <div className="flex items-center gap-1.5">
-                <CarouselPrevious
-                  type="button"
-                  className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-                />
-                <CarouselNext
-                  type="button"
-                  className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-                />
-              </div>
-            </div>
-          )}
-
-          <CarouselContent className="-ms-3">
-            {chains.map((chain) => (
-              <CarouselItem
-                key={chain.key}
-                data-testid="reassignment-chain-slide"
-                className={cn(
-                  "ps-3",
-                  hasMultiple ? "basis-[90%] sm:basis-[85%]" : "basis-full"
-                )}
-              >
-                <ReassignmentChainCard
-                  chain={chain}
-                  targetCourseTitle={targetCourseTitle}
-                  canApply={canApply}
-                  isPending={applyChainMutation.isPending}
-                  isApplying={applyingChainKey === chain.key}
-                  onApply={handleApplyChain}
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
-      </div>
+        <CarouselContent className="-ms-3 mt-3">
+          {chains.map((chain) => (
+            <CarouselItem
+              key={chain.key}
+              data-testid="reassignment-chain-slide"
+              className={cn(
+                "ps-3",
+                hasMultiple ? "basis-[90%] sm:basis-[85%]" : "basis-full"
+              )}
+            >
+              <ReassignmentChainCard
+                chain={chain}
+                targetCourseTitle={targetCourseTitle}
+                canApply={canApply}
+                isPending={applyChainMutation.isPending}
+                isApplying={applyingChainKey === chain.key}
+                onApply={handleApplyChain}
+              />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
     </section>
   )
 }

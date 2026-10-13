@@ -2,22 +2,23 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
+import { UserPlus } from "lucide-react"
 import type { SchedulingTeacherOutreachOption, WeekDay } from "@workspace/types"
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
   type CarouselApi,
 } from "@workspace/ui/components/carousel"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { SchedulingStaffingSectionHeader } from "../../scheduling-staffing-section-header"
 import {
   OutreachOptionItem,
   type TeacherOutreachGroup,
 } from "../outreach-option-item"
 
 export interface OutreachCarouselProps {
+  branchNumber?: number
   options: SchedulingTeacherOutreachOption[]
   canToggle: boolean
   isPending: (key: string) => boolean
@@ -34,6 +35,7 @@ export interface OutreachCarouselProps {
 }
 
 export function OutreachCarousel({
+  branchNumber,
   options,
   canToggle,
   isPending,
@@ -98,28 +100,22 @@ export function OutreachCarousel({
         }}
         className="w-full"
       >
-        {hasMultiple && (
-          <div className="mb-2.5 flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground">
-              {t("staffingFallback.teacherCarouselCounter", {
-                current: formatNumber(current, locale),
-                total: formatNumber(teacherGroups.length, locale),
-              })}
-            </span>
-            <div className="flex items-center gap-1.5">
-              <CarouselPrevious
-                type="button"
-                className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-              />
-              <CarouselNext
-                type="button"
-                className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-              />
-            </div>
-          </div>
-        )}
+        <SchedulingStaffingSectionHeader
+          branchNumber={branchNumber}
+          icon={UserPlus}
+          title={t("staffingFallback.title")}
+          badgeLabel={t("staffingFallback.solutionsCount", {
+            count: formatNumber(teacherGroups.length, locale),
+          })}
+          badgeVariant="secondary"
+          total={teacherGroups.length}
+          counterText={t("staffingFallback.teacherCarouselCounter", {
+            current: formatNumber(current, locale),
+            total: formatNumber(teacherGroups.length, locale),
+          })}
+        />
 
-        <CarouselContent className="-ms-3">
+        <CarouselContent className="-ms-3 mt-3">
           {teacherGroups.map((group, index) => (
             <CarouselItem
               key={group.teacher.id}

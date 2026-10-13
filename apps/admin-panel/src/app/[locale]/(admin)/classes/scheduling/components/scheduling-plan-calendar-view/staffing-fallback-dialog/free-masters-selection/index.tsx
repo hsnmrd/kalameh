@@ -9,23 +9,22 @@ import type {
   SchedulingTeacherCalendar,
   WeekDay,
 } from "@workspace/types"
-import { Badge } from "@workspace/ui/components/badge"
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
   type CarouselApi,
 } from "@workspace/ui/components/carousel"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import type { NewTeacherAssignment } from "../../../scheduling-new-teacher-assignment-list"
+import { SchedulingStaffingSectionHeader } from "../../../scheduling-staffing-section-header"
 import { FreeMasterCard } from "./free-master-card"
 import { findFreeMastersForSlot } from "./helper/teacher-level-comparison.helper"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
 export interface FreeMastersSelectionProps {
+  branchNumber?: number
   proposal: Proposal | null
   hiringAssignment?: NewTeacherAssignment | null
   targetCourse: CourseLevelNode
@@ -47,6 +46,7 @@ export interface FreeMastersSelectionProps {
 }
 
 export function FreeMastersSelection({
+  branchNumber,
   proposal,
   hiringAssignment,
   targetCourse,
@@ -145,81 +145,60 @@ export function FreeMastersSelection({
   const hasMultiple = freeMasters.length > 1
 
   return (
-    <section data-testid="free-masters-selection" className="space-y-3">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <UserCheck aria-hidden className="size-4 shrink-0 text-primary" />
-          <h4 className="text-sm font-bold text-foreground">
-            {t("staffingFallback.freeMastersTitle")}
-          </h4>
-        </div>
-        {qualifiedCount > 0 && (
-          <Badge
-            variant="outline"
-            className="border-primary/40 bg-primary/10 text-xs font-semibold text-primary"
-          >
-            {t("staffingFallback.readyToAssignCount", {
-              count: formatNumber(qualifiedCount, locale),
-            })}
-          </Badge>
-        )}
-      </div>
+    <section
+      data-testid="free-masters-selection"
+      className="rounded-2xl border border-border/70 bg-card p-4 shadow-2xs transition-colors sm:p-5"
+    >
+      <Carousel
+        setApi={setApi}
+        opts={{
+          align: "start",
+          containScroll: "trimSnaps",
+          direction: locale === "fa" ? "rtl" : "ltr",
+        }}
+        className="w-full"
+      >
+        <SchedulingStaffingSectionHeader
+          branchNumber={branchNumber}
+          icon={UserCheck}
+          title={t("staffingFallback.freeMastersTitle")}
+          badgeLabel={
+            qualifiedCount > 0
+              ? t("staffingFallback.readyToAssignCount", {
+                  count: formatNumber(qualifiedCount, locale),
+                })
+              : null
+          }
+          badgeVariant="outline"
+          badgeClassName="border-primary/40 bg-primary/10 text-primary"
+          total={freeMasters.length}
+          counterText={t("staffingFallback.teacherCarouselCounter", {
+            current: formatNumber(current, locale),
+            total: formatNumber(freeMasters.length, locale),
+          })}
+        />
 
-      {/* Content */}
-      <div className="w-full">
-        <Carousel
-          setApi={setApi}
-          opts={{
-            align: "start",
-            containScroll: "trimSnaps",
-            direction: locale === "fa" ? "rtl" : "ltr",
-          }}
-          className="w-full"
-        >
-          {hasMultiple && (
-            <div className="mb-2.5 flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted-foreground">
-                {t("staffingFallback.teacherCarouselCounter", {
-                  current: formatNumber(current, locale),
-                  total: formatNumber(freeMasters.length, locale),
-                })}
-              </span>
-              <div className="flex items-center gap-1.5">
-                <CarouselPrevious
-                  type="button"
-                  className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-                />
-                <CarouselNext
-                  type="button"
-                  className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-                />
-              </div>
-            </div>
-          )}
-
-          <CarouselContent className="-ms-3">
-            {freeMasters.map((item) => (
-              <CarouselItem
-                key={item.teacher.id}
-                data-testid="free-master-slide"
-                className={cn(
-                  "ps-3",
-                  hasMultiple ? "basis-[90%] sm:basis-[85%]" : "basis-full"
-                )}
-              >
-                <FreeMasterCard
-                  item={item}
-                  canAssign={canAssign}
-                  isPending={isPending}
-                  isAssigning={assigningTeacherId === item.teacher.id}
-                  onAssign={handleAssign}
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
-      </div>
+        <CarouselContent className="-ms-3 mt-3">
+          {freeMasters.map((item) => (
+            <CarouselItem
+              key={item.teacher.id}
+              data-testid="free-master-slide"
+              className={cn(
+                "ps-3",
+                hasMultiple ? "basis-[90%] sm:basis-[85%]" : "basis-full"
+              )}
+            >
+              <FreeMasterCard
+                item={item}
+                canAssign={canAssign}
+                isPending={isPending}
+                isAssigning={assigningTeacherId === item.teacher.id}
+                onAssign={handleAssign}
+              />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
     </section>
   )
 }

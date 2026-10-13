@@ -520,6 +520,8 @@
     "staffingFallback": {
       "title": "Teacher Staffing Solutions by Increasing Teacher Availability",
       "description": "The system evaluates two staffing paths: expanding a qualified teacher’s availability or adding a new teacher for this level.",
+      "branchPrefix": "Option {number}",
+      "orDivider": "OR",
       "freeMastersTitle": "Choose from Free Masters in this Period",
       "freeMastersDescription": "The following masters have no class in this time slot; their course level comparison with this class is shown below:",
       "readyToAssignCount": "{count} qualified masters",

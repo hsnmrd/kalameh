@@ -22,8 +22,10 @@ import { formatNumber } from "@workspace/ui/lib/utils"
 import type { NewTeacherAssignment } from "../../scheduling-new-teacher-assignment-list"
 import { SchedulingRecoveryOption } from "../../scheduling-recovery-option"
 import { SchedulingStaffingFallback } from "../../scheduling-staffing-fallback"
+import { SchedulingStaffingOrDivider } from "../../scheduling-staffing-or-divider"
 import { SchedulingTeacherReassignmentAnalysis } from "../../scheduling-teacher-reassignment-analysis"
 import { FreeMastersSelection } from "./free-masters-selection"
+import { findFreeMastersForSlot } from "./free-masters-selection/helper/teacher-level-comparison.helper"
 import { OtherBranchesMastersSection } from "./other-branches-masters-section"
 
 type UnresolvedRequirement =
@@ -166,6 +168,44 @@ export function StaffingFallbackDialog({
     (proposal as { branchId?: string | null } | undefined)?.branchId ??
     null
 
+  const hasFreeMasters = React.useMemo(() => {
+    if (!targetDaysOfWeek.length || !targetStartTime || !targetEndTime) {
+      return false
+    }
+    const all = findFreeMastersForSlot({
+      targetCourse,
+      daysOfWeek: targetDaysOfWeek,
+      startTime: targetStartTime,
+      endTime: targetEndTime,
+      ignoredProposalId: proposal?.id,
+      teacherCalendars,
+      allProposals,
+      targetBranchId: effectiveBranchId,
+    })
+    return all.some((m) => !m.isOtherBranch)
+  }, [
+    targetDaysOfWeek,
+    targetStartTime,
+    targetEndTime,
+    targetCourse,
+    proposal?.id,
+    teacherCalendars,
+    allProposals,
+    effectiveBranchId,
+  ])
+
+  const hasReassignment = recovery.reassignmentChains.length > 0
+  const hasStaffingFallback = Boolean(
+    effectiveFallback &&
+    (effectiveFallback.availabilityOptions.length > 0 ||
+      unavailableTeachers.length > 0)
+  )
+
+  let branchCounter = 0
+  const branch1Number = hasFreeMasters ? ++branchCounter : undefined
+  const branch2Number = hasReassignment ? ++branchCounter : undefined
+  const branch3Number = hasStaffingFallback ? ++branchCounter : undefined
+
   return (
     <FormDialog open={open} onOpenChange={onOpenChange}>
       <FormDialogContent
@@ -184,6 +224,7 @@ export function StaffingFallbackDialog({
           {/* Option of choosing from Free Masters in this period with level comparison */}
           {targetDaysOfWeek.length > 0 && targetStartTime && targetEndTime && (
             <FreeMastersSelection
+              branchNumber={branch1Number}
               proposal={proposal ?? null}
               hiringAssignment={hiringAssignments[0] ?? null}
               targetCourse={targetCourse}
@@ -279,9 +320,13 @@ export function StaffingFallbackDialog({
             </div>
           )}
 
+          {/* Divider between alternative options */}
+          {hasFreeMasters && hasReassignment && <SchedulingStaffingOrDivider />}
+
           {/* Teacher Reassignment Analysis */}
           {(recovery.reassignmentChains.length > 0 || Boolean(requirement)) && (
             <SchedulingTeacherReassignmentAnalysis
+              branchNumber={branch2Number}
               chains={recovery.reassignmentChains}
               targetCourseTitle={effectiveCourseTitle}
               planId={planId}
@@ -291,9 +336,15 @@ export function StaffingFallbackDialog({
             />
           )}
 
+          {/* Divider between alternative options */}
+          {(hasFreeMasters || hasReassignment) && hasStaffingFallback && (
+            <SchedulingStaffingOrDivider />
+          )}
+
           {/* Staffing Fallback Solutions */}
           {effectiveFallback && (
             <SchedulingStaffingFallback
+              branchNumber={branch3Number}
               fallback={effectiveFallback}
               targetCourseTitle={effectiveCourseTitle}
               hiringAssignments={hiringAssignments}
