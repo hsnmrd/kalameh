@@ -32,7 +32,7 @@ export function StudentBottomNav({ pathname }: StudentBottomNavProps) {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 w-full border-t border-border/80 bg-card/95 px-4 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom,0px))] backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 z-30 w-full border-t border-border/80 bg-card/95 px-4 py-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md"
       aria-label={t("appName")}
     >
       <div className="mx-auto grid max-w-md grid-cols-5 items-center">

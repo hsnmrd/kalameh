@@ -381,7 +381,7 @@ function FormDialogFooter({
   return (
     <div
       className={cn(
-        "flex w-full shrink-0 items-center gap-3 border-t border-border/60 bg-muted/20 px-4 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end sm:px-6 sm:py-4 [&>button]:h-14 [&>button]:min-w-0 [&>button]:flex-1 [&>button]:rounded-2xl [&>button]:px-3 [&>button]:text-base [&>button]:font-medium sm:[&>button]:h-14 sm:[&>button]:w-auto sm:[&>button]:flex-initial sm:[&>button]:px-6",
+        "flex w-full shrink-0 items-center gap-3 border-t border-border/60 bg-muted/20 px-4 py-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:justify-end sm:px-6 sm:py-4 [&>button]:h-14 [&>button]:min-w-0 [&>button]:flex-1 [&>button]:rounded-2xl [&>button]:px-3 [&>button]:text-base [&>button]:font-medium sm:[&>button]:h-14 sm:[&>button]:w-auto sm:[&>button]:flex-initial sm:[&>button]:px-6",
         className
       )}
       {...props}

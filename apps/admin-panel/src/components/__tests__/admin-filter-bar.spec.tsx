@@ -183,5 +183,20 @@ describe("Admin Filter System Components", () => {
         container.querySelector(".hidden.sm\\:inline-flex")
       ).not.toBeInTheDocument()
     })
+
+    it("should render filter sheet footer with safe-area padding", () => {
+      render(
+        <AdminFilterBar filters={<div>Filter options</div>} hasDialog={true} />
+      )
+
+      const filterBtn = screen.getByRole("button", { name: /فیلتر|filter/i })
+      fireEvent.click(filterBtn)
+
+      const showBtn = screen.getByRole("button", { name: /نمایش|show/i })
+      const footer = showBtn.parentElement
+      expect(footer).toHaveClass(
+        "pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
+      )
+    })
   })
 })

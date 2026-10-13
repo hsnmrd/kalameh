@@ -168,7 +168,7 @@ export function AdminFilterBar({
               {children}
             </div>
 
-            <ResponsiveDialogFooter className="flex-row items-center gap-3 border-t border-border/60 bg-muted/20 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:justify-end sm:px-6 sm:py-4">
+            <ResponsiveDialogFooter className="flex-row items-center gap-3 border-t border-border/60 bg-muted/20 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:justify-end sm:px-6 sm:py-4">
               {onClearFilters && (
                 <Button
                   type="button"
