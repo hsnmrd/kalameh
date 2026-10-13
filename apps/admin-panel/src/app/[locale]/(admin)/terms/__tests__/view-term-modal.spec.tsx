@@ -189,4 +189,62 @@ describe("ViewTermModal Component", () => {
       expect(slide.className).toContain("shrink-0")
     })
   })
+
+  it("renders 2 months in desktop mode even on screens wider than 1500px", () => {
+    const originalMatchMedia = window.matchMedia
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: query === "(min-width: 1500px)",
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }))
+
+    try {
+      render(
+        <ViewTermModal
+          term={mockTerm}
+          open={true}
+          onClose={vi.fn()}
+          allTerms={[mockTerm]}
+        />
+      )
+      const grids = screen.getAllByRole("grid")
+      expect(grids).toHaveLength(2)
+    } finally {
+      window.matchMedia = originalMatchMedia
+    }
+  })
+
+  it("renders 1 month in mobile mode", () => {
+    const originalMatchMedia = window.matchMedia
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: query === "(max-width: 1023px)",
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }))
+
+    try {
+      render(
+        <ViewTermModal
+          term={mockTerm}
+          open={true}
+          onClose={vi.fn()}
+          allTerms={[mockTerm]}
+        />
+      )
+      const grids = screen.getAllByRole("grid")
+      expect(grids).toHaveLength(1)
+    } finally {
+      window.matchMedia = originalMatchMedia
+    }
+  })
 })

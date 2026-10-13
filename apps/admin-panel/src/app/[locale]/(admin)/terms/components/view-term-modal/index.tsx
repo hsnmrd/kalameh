@@ -11,6 +11,7 @@ import {
   FormDialogHeader,
   FormDialogTitle,
 } from "@workspace/ui/components/dialog"
+import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
 import type { SupportedLocale, TermDto } from "@workspace/types"
 import { ProposalsCalendar } from "../proposals-calendar"
 import { useViewTermCalendar } from "./hooks/use-view-term-calendar"
@@ -31,6 +32,7 @@ export function ViewTermModal({
 }: ViewTermModalProps) {
   const t = useTranslations("terms")
   const locale = useLocale() as SupportedLocale
+  const isMobile = useIsMobile()
   const calendar = useViewTermCalendar(term, allTerms, open)
 
   return (
@@ -67,6 +69,7 @@ export function ViewTermModal({
                   activeDismissedHolidays={calendar.dismissedHolidays}
                   readOnly
                   showLegend={false}
+                  numberOfMonths={isMobile ? 1 : 2}
                 />
               </div>
             )}
