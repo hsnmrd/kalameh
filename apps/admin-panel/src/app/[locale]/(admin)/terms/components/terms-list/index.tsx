@@ -125,58 +125,88 @@ export function TermsList({
 
   return (
     <MobileList>
-      {terms.map((term, index) => (
-        <ContextMenu key={term.id}>
-          <ContextMenuTrigger>
-            <MobileListItem
-              onClick={() => onView(term)}
-              isLast={index === terms.length - 1}
-            >
-              <MobileListItemIcon>
-                <Calendar className="size-5" />
-              </MobileListItemIcon>
+      {terms.map((term, index) => {
+        const canDelete = isTermDeletable(term, terms)
 
-              <MobileListItemContent
-                primary={term.title}
-                secondary={`${formatDate(term.startDate)} - ${formatDate(term.endDate)}`}
-              />
+        return (
+          <ContextMenu key={term.id}>
+            <ContextMenuTrigger>
+              <MobileListItem
+                onClick={() => onView(term)}
+                isLast={index === terms.length - 1}
+              >
+                <MobileListItemIcon>
+                  <Calendar className="size-5" />
+                </MobileListItemIcon>
 
-              <MobileListItemTrailing>
-                <TermStatusBadge term={term} allTerms={terms} />
-              </MobileListItemTrailing>
-            </MobileListItem>
-          </ContextMenuTrigger>
+                <MobileListItemContent
+                  primary={term.title}
+                  secondary={`${formatDate(term.startDate)} - ${formatDate(term.endDate)}`}
+                />
 
-          <ContextMenuContent>
-            <ContextMenuItem onClick={() => onView(term)}>
-              <Eye className="me-2 size-4 text-muted-foreground" />
-              {t("table.view")}
-            </ContextMenuItem>
+                <MobileListItemTrailing>
+                  <div className="flex items-center gap-1.5">
+                    <TermStatusBadge term={term} allTerms={terms} />
+                    {onDelete && canDelete && (
+                      <PermissionGuard
+                        permission={PERMISSIONS.MANAGE_TERMS}
+                        mode="hide"
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onDelete(term)
+                          }}
+                          className="size-8 cursor-pointer p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                          aria-label={t("deleteModal.deleteAction")}
+                          title={t("deleteModal.deleteAction")}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </PermissionGuard>
+                    )}
+                  </div>
+                </MobileListItemTrailing>
+              </MobileListItem>
+            </ContextMenuTrigger>
 
-            <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
-              <ContextMenuItem onClick={() => onEdit(term)}>
-                <Edit2 className="me-2 size-4 text-muted-foreground" />
-                {t("table.actions")}
+            <ContextMenuContent>
+              <ContextMenuItem onClick={() => onView(term)}>
+                <Eye className="me-2 size-4 text-muted-foreground" />
+                {t("table.view")}
               </ContextMenuItem>
-            </PermissionGuard>
 
-            {onDelete && isTermDeletable(term, terms) && (
               <PermissionGuard
                 permission={PERMISSIONS.MANAGE_TERMS}
                 mode="hide"
               >
-                <ContextMenuItem
-                  onClick={() => onDelete(term)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="me-2 size-4 text-destructive" />
-                  {t("deleteModal.deleteAction")}
+                <ContextMenuItem onClick={() => onEdit(term)}>
+                  <Edit2 className="me-2 size-4 text-muted-foreground" />
+                  {t("table.actions")}
                 </ContextMenuItem>
               </PermissionGuard>
-            )}
-          </ContextMenuContent>
-        </ContextMenu>
-      ))}
+
+              {onDelete && canDelete && (
+                <PermissionGuard
+                  permission={PERMISSIONS.MANAGE_TERMS}
+                  mode="hide"
+                >
+                  <ContextMenuItem
+                    onClick={() => onDelete(term)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="me-2 size-4 text-destructive" />
+                    {t("deleteModal.deleteAction")}
+                  </ContextMenuItem>
+                </PermissionGuard>
+              )}
+            </ContextMenuContent>
+          </ContextMenu>
+        )
+      })}
     </MobileList>
   )
 }

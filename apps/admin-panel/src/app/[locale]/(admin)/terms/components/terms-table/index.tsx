@@ -156,6 +156,7 @@ export function TermsTable({
                     onClick={() => onDelete(row.original)}
                     className="size-8 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     aria-label={t("deleteModal.deleteAction")}
+                    title={t("deleteModal.deleteAction")}
                   >
                     <Trash2 className="size-4" />
                   </Button>
