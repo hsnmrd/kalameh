@@ -19,7 +19,7 @@ import {
   type CarouselApi,
 } from "@workspace/ui/components/carousel"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
-import type { NewTeacherAssignment } from "../../scheduling-new-teacher-assignment-list"
+import type { NewTeacherAssignment } from "../../../scheduling-new-teacher-assignment-list"
 import { FreeMasterCard } from "./free-master-card"
 import { findFreeMastersForSlot } from "./helper/teacher-level-comparison.helper"
 

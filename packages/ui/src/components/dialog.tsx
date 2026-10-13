@@ -253,7 +253,7 @@ function ResponsiveDialogDescription({
 function ResponsiveDialogCloseButton({
   className,
   ...props
-}: React.HTMLAttributes<HTMLButtonElement>) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const { isMobile } = React.useContext(ResponsiveDialogContext)
   if (isMobile) {
     return <DrawerCloseButton className={className} {...(props as object)} />
