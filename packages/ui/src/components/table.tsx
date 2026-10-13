@@ -1,11 +1,15 @@
 import * as React from "react"
 import { cn } from "@workspace/ui/lib/utils"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+export interface TableProps extends React.ComponentProps<"table"> {
+  containerClassName?: string
+}
+
+function Table({ className, containerClassName, ...props }: TableProps) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className={cn("relative w-full overflow-x-auto", containerClassName)}
     >
       <table
         data-slot="table"
@@ -70,7 +74,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-11 px-4 text-start align-middle text-xs font-semibold tracking-wider text-muted-foreground uppercase [&:has([role=checkbox])]:pe-0",
+        "h-11 px-4 text-start align-middle text-xs font-semibold tracking-wider whitespace-nowrap text-muted-foreground uppercase [&:has([role=checkbox])]:pe-0",
         className
       )}
       {...props}
@@ -83,7 +87,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "px-4 py-3.5 align-middle text-foreground [&:has([role=checkbox])]:pe-0",
+        "px-4 py-3.5 align-middle whitespace-nowrap text-foreground [&:has([role=checkbox])]:pe-0",
         className
       )}
       {...props}

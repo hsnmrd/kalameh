@@ -10,6 +10,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
+import { cn } from "@workspace/ui/lib/utils"
 import {
   Empty,
   EmptyHeader,
@@ -29,6 +30,9 @@ export interface DataTableProps<TData, TValue> {
   data: TData[]
   emptyMessage?: React.ReactNode
   getRowClassName?: (row: Row<TData>) => string | undefined
+  className?: string
+  containerClassName?: string
+  tableClassName?: string
 }
 
 export function DataTable<TData, TValue>({
@@ -36,6 +40,9 @@ export function DataTable<TData, TValue>({
   data,
   emptyMessage = "موردی برای نمایش یافت نشد",
   getRowClassName,
+  className,
+  containerClassName,
+  tableClassName,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -44,8 +51,13 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xs">
-      <Table>
+    <div
+      className={cn(
+        "overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xs",
+        className
+      )}
+    >
+      <Table className={tableClassName} containerClassName={containerClassName}>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>

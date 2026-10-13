@@ -158,4 +158,41 @@ describe("DemandBreakdownDrawer", () => {
     const segments = container.querySelectorAll(".rounded-full")
     expect(segments.length).toBeGreaterThan(0)
   })
+
+  it("StudentDemandBar renders a neutral gray line between tiny indicators when both counts are zero", () => {
+    const { container } = render(
+      <StudentDemandBar continuing={0} newStudents={0} total={0} />
+    )
+
+    const grayLine = container.querySelector(".bg-muted-foreground\\/25")
+    expect(grayLine).toBeInTheDocument()
+    expect(grayLine).toHaveClass("flex-1")
+  })
+
+  it("decreases opacity for rows that do not need any classes", () => {
+    const zeroDemandCourses = [
+      {
+        courseId: "course-zero",
+        courseTitle: "دوره بدون تقاضا",
+        continuingStudentsCount: 0,
+        newPlacementCount: 0,
+        eligibleStudentsCount: 0,
+        suggestedClasses: [],
+      },
+    ]
+
+    const { container } = render(
+      <DemandBreakdownDrawer
+        courses={zeroDemandCourses}
+        suggestions={{ "course-zero": [] }}
+        capacityLimit={20}
+        onCapacityChange={vi.fn()}
+        onAddClass={vi.fn()}
+        onRemoveClass={vi.fn()}
+      />
+    )
+
+    const tableRow = container.querySelector("tbody tr")
+    expect(tableRow).toHaveClass("opacity-45")
+  })
 })
