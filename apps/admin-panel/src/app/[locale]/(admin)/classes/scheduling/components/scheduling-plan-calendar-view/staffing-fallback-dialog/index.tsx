@@ -337,6 +337,15 @@ export function StaffingFallbackDialog({
               planStatus={planStatus}
               unresolvedRequirementId={effectiveUnresolvedRequirementId}
               unavailableTeachers={unavailableTeachers}
+              currentSchedule={
+                targetDaysOfWeek.length > 0 && targetStartTime && targetEndTime
+                  ? {
+                      daysOfWeek: targetDaysOfWeek,
+                      startTime: targetStartTime,
+                      endTime: targetEndTime,
+                    }
+                  : null
+              }
             />
           )}
         </div>

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import type { SchedulingTeacherOutreachOption } from "@workspace/types"
+import type { SchedulingTeacherOutreachOption, WeekDay } from "@workspace/types"
 import {
   Carousel,
   CarouselContent,
@@ -22,6 +22,11 @@ export interface OutreachCarouselProps {
   canToggle: boolean
   isPending: (key: string) => boolean
   pendingAction?: "ACCEPT" | "REJECT" | null
+  currentSchedule?: {
+    daysOfWeek: WeekDay[]
+    startTime: string
+    endTime: string
+  } | null
   onToggle: (
     option: SchedulingTeacherOutreachOption,
     action: "ACCEPT" | "REJECT"
@@ -33,6 +38,7 @@ export function OutreachCarousel({
   canToggle,
   isPending,
   pendingAction,
+  currentSchedule,
   onToggle,
 }: OutreachCarouselProps) {
   const t = useTranslations("scheduling.planDetails")
@@ -54,6 +60,7 @@ export function OutreachCarousel({
         groupsMap.set(teacherId, {
           teacher: option.teacher,
           higherLevelCourseTitle: option.higherLevelCourseTitle ?? null,
+          isBankTeacher: option.key.startsWith("bank-"),
           options: [option],
         })
       }
@@ -125,6 +132,7 @@ export function OutreachCarousel({
                 canToggle={canToggle}
                 isPending={isPending}
                 pendingAction={pendingAction}
+                currentSchedule={currentSchedule}
                 onToggle={onToggle}
               />
             </CarouselItem>

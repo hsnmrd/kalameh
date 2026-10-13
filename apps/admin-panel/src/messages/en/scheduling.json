@@ -518,7 +518,7 @@
       }
     },
     "staffingFallback": {
-      "title": "Teacher staffing options",
+      "title": "Teacher Staffing Solutions by Increasing Teacher Availability",
       "description": "The system evaluates two staffing paths: expanding a qualified teacher’s availability or adding a new teacher for this level.",
       "freeMastersTitle": "Choose from Free Masters in this Period",
       "freeMastersDescription": "The following masters have no class in this time slot; their course level comparison with this class is shown below:",
@@ -540,8 +540,11 @@
       "higherLevelBadge": "Qualified · Higher Level ({course})",
       "lowerLevelBadge": "Not Qualified · Lower Level ({course})",
       "unrelatedLevelBadge": "Not Qualified · Different Category",
+      "timeUnchangedBadge": "Without changing class time",
+      "timeChangedBadge": "With changing class time",
+      "bankTeacherNotice": "Coordinate with teacher to attend at this class time",
       "teachableCoursesLabel": "Teachable Courses:",
-      "solutionsCount": "{count} suggested options",
+      "solutionsCount": "{count} suggested teachers",
       "carouselCounter": "Option {current} of {total}",
       "teacherCarouselCounter": "Teacher {current} of {total}",
       "teacherPeriodsCount": "{count} suggested periods",

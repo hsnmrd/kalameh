@@ -1,8 +1,17 @@
 "use client"
 
+import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { CalendarClock, Check, CheckCircle2, X, XCircle } from "lucide-react"
-import type { SchedulingTeacherOutreachOption } from "@workspace/types"
+import {
+  ArrowRight,
+  CalendarClock,
+  Check,
+  CheckCircle2,
+  PhoneCall,
+  X,
+  XCircle,
+} from "lucide-react"
+import type { SchedulingTeacherOutreachOption, WeekDay } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -15,6 +24,11 @@ export interface OutreachPeriodItemProps {
   canToggle: boolean
   isPending: boolean
   pendingAction?: "ACCEPT" | "REJECT" | null
+  currentSchedule?: {
+    daysOfWeek: WeekDay[]
+    startTime: string
+    endTime: string
+  } | null
   onToggle: (
     option: SchedulingTeacherOutreachOption,
     action: "ACCEPT" | "REJECT"
@@ -27,6 +41,7 @@ export function OutreachPeriodItem({
   canToggle,
   isPending,
   pendingAction,
+  currentSchedule,
   onToggle,
 }: OutreachPeriodItemProps) {
   const t = useTranslations("scheduling.planDetails")
@@ -46,6 +61,36 @@ export function OutreachPeriodItem({
   const canClickAccept = canToggle && (!needsRoom || isAccepted)
   const canClickReject = canToggle
 
+  const isBankOption = option.key.startsWith("bank-")
+
+  const isTimeChanged = React.useMemo(() => {
+    if (isBankOption) return false
+    if (!currentSchedule?.daysOfWeek?.length || !currentSchedule.startTime) {
+      return false
+    }
+    const isSameDays =
+      currentSchedule.daysOfWeek.length === option.daysOfWeek.length &&
+      currentSchedule.daysOfWeek.every((d) => option.daysOfWeek.includes(d))
+    const isSameTime =
+      currentSchedule.startTime === option.startTime &&
+      currentSchedule.endTime === option.endTime
+    return !(isSameDays && isSameTime)
+  }, [isBankOption, currentSchedule, option])
+
+  const currentScheduleText = React.useMemo(() => {
+    if (
+      !currentSchedule?.daysOfWeek?.length ||
+      !currentSchedule.startTime ||
+      !currentSchedule.endTime
+    ) {
+      return null
+    }
+    const curDays = currentSchedule.daysOfWeek
+      .map((day) => t(`weekDays.${day}`))
+      .join(t("daySeparator"))
+    return `${curDays} · ${currentSchedule.startTime}–${currentSchedule.endTime}`
+  }, [currentSchedule, t])
+
   return (
     <div
       data-testid={`outreach-period-item-${option.key}`}
@@ -58,31 +103,68 @@ export function OutreachPeriodItem({
             : "border-border/60 bg-muted/20 hover:border-border hover:bg-muted/30"
       )}
     >
-      {/* Top Row: Schedule Chip and Rank/Status Badges */}
+      {/* Top Row: Schedule Chip and Status Badges */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-lg border border-border/50 bg-background/80 px-2.5 py-1 text-xs font-semibold text-foreground">
           <CalendarClock
             aria-hidden
             className="size-3.5 shrink-0 text-muted-foreground"
           />
-          <span>{days}</span>
-          <span className="text-muted-foreground/60">·</span>
-          <span className="tabular-nums">
-            {option.startTime}–{option.endTime}
-          </span>
+          {isTimeChanged && currentScheduleText ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-muted-foreground line-through decoration-muted-foreground/60">
+                {currentScheduleText}
+              </span>
+              <ArrowRight
+                aria-hidden
+                className="size-3.5 shrink-0 text-muted-foreground rtl:rotate-180"
+              />
+              <span className="text-foreground">
+                {days} · {option.startTime}–{option.endTime}
+              </span>
+            </div>
+          ) : (
+            <>
+              <span>{days}</span>
+              <span className="text-muted-foreground/60">·</span>
+              <span className="tabular-nums">
+                {option.startTime}–{option.endTime}
+              </span>
+            </>
+          )}
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {/* Badge: بدون تغییر ساعت کلاس OR با تغییر ساعت کلاس */}
           <Badge
-            variant={index === 0 ? "success" : "outline"}
-            className="text-[11px] font-medium"
+            variant="outline"
+            className={cn(
+              "text-[11px] font-semibold",
+              isTimeChanged
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-success/40 bg-success/10 text-success"
+            )}
           >
-            {index === 0
-              ? t("staffingFallback.bestTimeBadge")
-              : t("staffingFallback.alternativeTimeBadge", {
-                  rank: formatNumber(index + 1, locale),
-                })}
+            {isTimeChanged
+              ? t("staffingFallback.timeChangedBadge")
+              : t("staffingFallback.timeUnchangedBadge")}
           </Badge>
+
+          {index === 0 && !isBankOption && (
+            <Badge
+              variant={isTimeChanged ? "outline" : "success"}
+              className="text-[11px] font-medium"
+            >
+              {t("staffingFallback.bestTimeBadge")}
+            </Badge>
+          )}
+          {index > 0 && !isBankOption && (
+            <Badge variant="outline" className="text-[11px] font-medium">
+              {t("staffingFallback.alternativeTimeBadge", {
+                rank: formatNumber(index + 1, locale),
+              })}
+            </Badge>
+          )}
           {isAccepted && (
             <Badge variant="success" className="text-[11px] font-medium">
               {t("staffingFallback.acceptedBadge")}
@@ -97,7 +179,15 @@ export function OutreachPeriodItem({
       </div>
 
       {/* Availability Status Callout */}
-      {option.availabilityChangeDays.length > 0 ? (
+      {isBankOption ? (
+        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-2.5 py-1.5 text-xs font-medium text-foreground">
+          <PhoneCall
+            aria-hidden
+            className="size-3.5 shrink-0 text-muted-foreground"
+          />
+          <span>{t("staffingFallback.bankTeacherNotice")}</span>
+        </div>
+      ) : option.availabilityChangeDays.length > 0 ? (
         <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1.5 text-xs font-medium text-warning">
           <CalendarClock
             aria-hidden

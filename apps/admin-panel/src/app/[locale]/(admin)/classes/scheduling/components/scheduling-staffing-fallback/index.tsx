@@ -7,6 +7,7 @@ import { CalendarX2, UserPlus } from "lucide-react"
 import type {
   SchedulingStaffingFallback as StaffingFallbackDto,
   SchedulingTeacherOutreachOption,
+  WeekDay,
 } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { toast } from "@workspace/ui/components/sonner"
@@ -15,7 +16,6 @@ import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
 import { useActiveInstitute } from "@/lib/stores"
 import type { NewTeacherAssignment } from "../scheduling-new-teacher-assignment-list"
 import { OutreachCarousel } from "./outreach-carousel"
-import { TeacherBankOutreach } from "./teacher-bank-outreach"
 import { RequiredScheduleCard } from "./required-schedule-card"
 
 interface SchedulingStaffingFallbackProps {
@@ -32,6 +32,11 @@ interface SchedulingStaffingFallbackProps {
     phoneNumber?: string | null
     avatarUrl?: string | null
   }>
+  currentSchedule?: {
+    daysOfWeek: WeekDay[]
+    startTime: string
+    endTime: string
+  } | null
 }
 
 export function SchedulingStaffingFallback({
@@ -42,6 +47,7 @@ export function SchedulingStaffingFallback({
   planStatus,
   unresolvedRequirementId,
   unavailableTeachers,
+  currentSchedule,
 }: SchedulingStaffingFallbackProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -52,6 +58,77 @@ export function SchedulingStaffingFallback({
     action: "ACCEPT" | "REJECT"
   } | null>(null)
 
+  const effectiveCurrentSchedule = React.useMemo(() => {
+    if (
+      currentSchedule?.daysOfWeek?.length &&
+      currentSchedule.startTime &&
+      currentSchedule.endTime
+    ) {
+      return currentSchedule
+    }
+    const firstAssignment = hiringAssignments[0]
+    if (
+      firstAssignment?.daysOfWeek?.length &&
+      firstAssignment.startTime &&
+      firstAssignment.endTime
+    ) {
+      return {
+        daysOfWeek: firstAssignment.daysOfWeek,
+        startTime: firstAssignment.startTime,
+        endTime: firstAssignment.endTime,
+      }
+    }
+    return null
+  }, [currentSchedule, hiringAssignments])
+
+  const mergedOptions = React.useMemo<SchedulingTeacherOutreachOption[]>(() => {
+    const existing = [...fallback.availabilityOptions]
+    const existingTeacherIds = new Set(existing.map((opt) => opt.teacher.id))
+
+    if (!unavailableTeachers || unavailableTeachers.length === 0) {
+      return existing
+    }
+
+    const defaultSchedule = effectiveCurrentSchedule ?? {
+      daysOfWeek: [],
+      startTime: "",
+      endTime: "",
+    }
+
+    const bankOptions: SchedulingTeacherOutreachOption[] = []
+    for (const bt of unavailableTeachers) {
+      if (existingTeacherIds.has(bt.id)) continue
+
+      bankOptions.push({
+        key: `bank-${bt.id}`,
+        teacher: {
+          id: bt.id,
+          firstName: bt.firstName,
+          lastName: bt.lastName,
+          phoneNumber: bt.phoneNumber ?? null,
+          avatarUrl: bt.avatarUrl ?? null,
+        },
+        deliveryMode: hiringAssignments[0]?.deliveryMode ?? "IN_PERSON",
+        daysOfWeek: defaultSchedule.daysOfWeek,
+        startTime: defaultSchedule.startTime,
+        endTime: defaultSchedule.endTime,
+        availabilityChangeDays: defaultSchedule.daysOfWeek,
+        availableClassrooms: hiringAssignments[0]?.classroom
+          ? [hiringAssignments[0].classroom]
+          : [],
+        isAccepted: false,
+        isRejected: false,
+      })
+    }
+
+    return [...existing, ...bankOptions]
+  }, [
+    fallback.availabilityOptions,
+    unavailableTeachers,
+    effectiveCurrentSchedule,
+    hiringAssignments,
+  ])
+
   const canToggle =
     Boolean(planId) &&
     Boolean(unresolvedRequirementId) &&
@@ -60,7 +137,7 @@ export function SchedulingStaffingFallback({
   const toggleMutation = useMutation({
     ...schedulingResource.toggleTeacherOutreach.toMutation(),
     onSuccess: (updatedPlan, variables) => {
-      const targetOption = fallback.availabilityOptions.find(
+      const targetOption = mergedOptions.find(
         (opt) => opt.key === variables.body.optionKey
       )
       const action = variables.body.action ?? "ACCEPT"
@@ -137,24 +214,25 @@ export function SchedulingStaffingFallback({
             {t("staffingFallback.title")}
           </h5>
         </div>
-        {fallback.availabilityOptions.length > 0 && (
+        {mergedOptions.length > 0 && (
           <Badge variant="secondary" className="text-xs font-medium">
             {t("staffingFallback.solutionsCount", {
-              count: formatNumber(fallback.availabilityOptions.length, locale),
+              count: formatNumber(mergedOptions.length, locale),
             })}
           </Badge>
         )}
       </div>
 
-      {fallback.availabilityOptions.length > 0 ? (
+      {mergedOptions.length > 0 ? (
         <div className="mt-3">
           <OutreachCarousel
-            options={fallback.availabilityOptions}
+            options={mergedOptions}
             canToggle={canToggle}
             isPending={(key) =>
               toggleMutation.isPending && pendingOption?.key === key
             }
             pendingAction={pendingOption?.action ?? null}
+            currentSchedule={effectiveCurrentSchedule}
             onToggle={handleToggleOption}
           />
         </div>
@@ -175,12 +253,7 @@ export function SchedulingStaffingFallback({
         </div>
       )}
 
-      {unavailableTeachers && unavailableTeachers.length > 0 ? (
-        <TeacherBankOutreach
-          teachers={unavailableTeachers}
-          hiringAssignments={hiringAssignments}
-        />
-      ) : (
+      {mergedOptions.length === 0 && (
         <RequiredScheduleCard assignments={hiringAssignments} />
       )}
     </section>

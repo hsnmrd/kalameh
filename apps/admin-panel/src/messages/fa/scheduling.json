@@ -518,7 +518,7 @@
       }
     },
     "staffingFallback": {
-      "title": "راه‌حل‌های تأمین استاد",
+      "title": "راه‌حل‌های تأمین استاد با افزایش زمان حضور استاد",
       "description": "سامانه دو مسیر تأمین استاد را بررسی می‌کند: افزایش زمان حضور استادان واجد شرایط یا افزودن استاد جدید برای این سطح.",
       "freeMastersTitle": "انتخاب از اساتید آزاد در این بازه",
       "freeMastersDescription": "اساتید زیر در این بازه زمانی کلاس ندارند؛ مقایسه سطح تدریس آن‌ها با این کلاس در زیر مشخص شده است:",
@@ -540,8 +540,11 @@
       "higherLevelBadge": "واجد شرایط · سطح بالاتر ({course})",
       "lowerLevelBadge": "فاقد صلاحیت · سطح پایین‌تر ({course})",
       "unrelatedLevelBadge": "فاقد صلاحیت · رده آموزشی متفاوت",
+      "timeUnchangedBadge": "بدون تغییر ساعت کلاس",
+      "timeChangedBadge": "با تغییر ساعت کلاس",
+      "bankTeacherNotice": "هماهنگی با استاد جهت حضور در همین ساعت کلاس",
       "teachableCoursesLabel": "دوره‌های تدریس:",
-      "solutionsCount": "{count} زمان پیشنهادی",
+      "solutionsCount": "{count} استاد پیشنهادی",
       "carouselCounter": "گزینه {current} از {total}",
       "teacherCarouselCounter": "استاد {current} از {total}",
       "teacherPeriodsCount": "{count} بازه پیشنهادی",
