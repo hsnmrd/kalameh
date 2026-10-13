@@ -186,4 +186,40 @@ describe("GeneratePhaseTermsModal", () => {
       expect(continueBtn.closest("button")).toBeDisabled()
     })
   })
+
+  it("does not retry preview request when it fails with a 409 conflict error", async () => {
+    const { termsResource } = await import("@/lib/api")
+    const { MicroApiError } = await import("micro-rq")
+
+    const queryFnMock = vi.fn().mockRejectedValue(
+      new MicroApiError(
+        new Response(null, { status: 409, statusText: "Conflict" }),
+        {
+          message:
+            "ترمهای این فاز برای سال تحصیلی انتخابشده قبلاً ایجاد شدهاند",
+        }
+      )
+    )
+
+    vi.spyOn(termsResource.previewPhase, "toQuery").mockReturnValue({
+      queryKey: ["terms", "preview-phase", "conflict-test"],
+      queryFn: queryFnMock,
+    } as any)
+
+    render(<GeneratePhaseTermsModal open={true} onClose={mockOnClose} />)
+
+    const continueBtn = screen.getByText("ادامه")
+    await waitFor(() => {
+      expect(continueBtn.closest("button")).not.toBeDisabled()
+    })
+
+    await act(async () => {
+      continueBtn.click()
+    })
+
+    await waitFor(() => {
+      expect(queryFnMock).toHaveBeenCalledTimes(1)
+      expect(mockPush).not.toHaveBeenCalled()
+    })
+  })
 })

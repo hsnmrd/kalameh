@@ -15,13 +15,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
           queries: {
             staleTime: 60 * 1000,
             retry: (failureCount, error) => {
-              // Never retry client errors (401, 403, 404)
-              if (
-                error instanceof MicroApiError &&
-                (error.status === 401 ||
-                  error.status === 403 ||
-                  error.status === 404)
-              ) {
+              // Never retry client errors (4xx)
+              const status =
+                error instanceof MicroApiError
+                  ? error.status
+                  : typeof (error as { status?: unknown })?.status === "number"
+                    ? (error as { status: number }).status
+                    : undefined
+              if (typeof status === "number" && status >= 400 && status < 500) {
                 return false
               }
               // Only retry once for transient server (5xx) or network errors
