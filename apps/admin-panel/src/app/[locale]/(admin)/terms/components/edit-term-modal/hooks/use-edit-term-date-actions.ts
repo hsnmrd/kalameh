@@ -33,6 +33,12 @@ interface EditTermDateActionsOptions {
   setLocalCustomOffDays: (days: string[]) => void
   compensatorySessions: Record<number, CompensatorySession[]>
   setValue: UseFormSetValue<UpdateTermInput>
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 export function useEditTermDateActions(options: EditTermDateActionsOptions) {
@@ -70,6 +76,7 @@ export function useEditTermDateActions(options: EditTermDateActionsOptions) {
       dismissedHolidays,
       compensatorySessions: options.compensatorySessions,
       getBoundaryError,
+      existingTerms: options.existingTerms,
     })
   const syncDates = (
     updated: GeneratedTermProposal[],

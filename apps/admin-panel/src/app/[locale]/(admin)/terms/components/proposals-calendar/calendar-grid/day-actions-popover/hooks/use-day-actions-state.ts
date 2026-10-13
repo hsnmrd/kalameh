@@ -171,6 +171,12 @@ export function useDayActionsState(props: DayActionsPopoverProps) {
       normalizeDateToYmd(activeProposal.endDate) === ymd
     ),
     isStartDate,
+    isOccupiedByExisting,
+    conflictingExistingTerm: (props.existingTerms ?? []).find((et) => {
+      const s = normalizeDateToYmd(et.startDate)
+      const e = normalizeDateToYmd(et.endDate)
+      return ymd >= s && ymd <= e
+    }),
     canSetStart,
     excessPattern,
     isExcessSessionDay,

@@ -18,6 +18,7 @@ import type {
   GeneratedTermProposal,
   SupportedLocale,
 } from "@workspace/types"
+import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
 import type { UpdateTermInput } from "../../../hooks/use-term-schemas"
 import { ProposalsCalendar } from "../../proposals-calendar"
 
@@ -34,6 +35,12 @@ interface EditTermFormContentProps {
   customOffDays: string[]
   activeDismissedHolidays: string[]
   compensatorySessions: Record<number, CompensatorySession[]>
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
   onStartDateChange: (index: number, date: string) => void
   onToggleHoliday: (date: string) => void
   onToggleCustomOffDay: (date: string) => void
@@ -59,6 +66,7 @@ export function EditTermFormContent({
   customOffDays,
   activeDismissedHolidays,
   compensatorySessions,
+  existingTerms,
   onStartDateChange,
   onToggleHoliday,
   onToggleCustomOffDay,
@@ -69,6 +77,7 @@ export function EditTermFormContent({
 }: EditTermFormContentProps) {
   const t = useTranslations("terms")
   const locale = useLocale() as SupportedLocale
+  const isMobile = useIsMobile()
   const {
     register,
     control,
@@ -177,6 +186,8 @@ export function EditTermFormContent({
               customOffDays={customOffDays}
               activeDismissedHolidays={activeDismissedHolidays}
               compensatorySessions={compensatorySessions}
+              existingTerms={existingTerms}
+              numberOfMonths={isMobile ? 1 : 2}
               showLegend={false}
             />
           </div>

@@ -1,4 +1,5 @@
 import {
+  hasTermDateConflict,
   recalculatePhaseTerms,
   resolveClassPatterns,
   type CompensatorySession,
@@ -21,6 +22,12 @@ interface RecalculateEditedTermOptions {
   compensatorySessions: Record<number, CompensatorySession[]>
   validateBoundary?: boolean
   getBoundaryError: (title: string) => string
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
 }
 
 export function recalculateEditedTerm({
@@ -38,6 +45,7 @@ export function recalculateEditedTerm({
   compensatorySessions,
   validateBoundary = true,
   getBoundaryError,
+  existingTerms,
 }: RecalculateEditedTermOptions) {
   const recalculated = recalculatePhaseTerms({
     proposals,
@@ -61,6 +69,16 @@ export function recalculateEditedTerm({
     const nextStart = new Date(`${nextSibling.startDate}T12:00:00`)
     if (activeEnd >= nextStart) {
       throw new Error(getBoundaryError(nextSibling.title))
+    }
+  }
+  if (validateBoundary && active && existingTerms && existingTerms.length > 0) {
+    const conflicting = existingTerms.find((et) =>
+      hasTermDateConflict(active, et)
+    )
+    if (conflicting) {
+      throw new Error(
+        `تاریخ ترم (${active.title}) با ترم «${conflicting.title}» تداخل زمانی دارد.`
+      )
     }
   }
   return recalculated.map((entry, index) =>
