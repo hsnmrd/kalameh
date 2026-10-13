@@ -422,6 +422,7 @@
       "selectTeacher": "Select this teacher",
       "swapWithTeacher": "Swap with this teacher",
       "switchTeacherSuccess": "Teacher updated successfully.",
+      "rescheduleSuccess": "Class rescheduled and assigned to master successfully.",
       "swapTeacherSuccess": "Teachers swapped successfully between sessions.",
       "sessionSwapConfirmTitle": "Swap Sessions",
       "sessionSwapConfirmDescription": "Teachers for these two sessions are left unassigned for manual supervisor selection, and classrooms are allocated automatically.",
@@ -482,6 +483,10 @@
     },
     "recovery": {
       "title": "Ways to place this class",
+      "rescheduleTitle": "Reschedule Class for Free Master",
+      "suggestionsCount": "{count} Suggested Periods",
+      "carouselCounter": "Option {current} of {total}",
+      "applyAction": "Select this Time",
       "optionCount": "Showing {shown} of {total} options",
       "statuses": {
         "AVAILABLE_NOW": "Available now",

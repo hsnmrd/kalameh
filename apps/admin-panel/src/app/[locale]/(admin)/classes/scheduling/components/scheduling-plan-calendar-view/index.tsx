@@ -21,6 +21,7 @@ import {
   type SchedulingNewTeacherHiringPlan,
   type SchedulingNewTeacherHiringSlotOption,
   type SchedulingPlanDetailsDto,
+  type SchedulingRecoveryOption,
   type SchedulingStaffingFallback as StaffingFallbackDto,
   type SchedulingTeacherCalendar,
   type UpdateSchedulingProposalInput,
@@ -1799,6 +1800,118 @@ export function SchedulingPlanCalendarView({
     [planId, activeInstituteId, commitHiringPlanMutation, queryClient, t]
   )
 
+  const handleApplyRecoveryOption = React.useCallback(
+    async (option: SchedulingRecoveryOption) => {
+      const targetProposal = activeStaffingProposal
+      const matchedAssignment = staffingDialogSession?.hiringAssignments?.[0]
+      const targetRoomId =
+        option.deliveryMode === "ONLINE"
+          ? null
+          : (option.availableClassrooms[0]?.id ?? null)
+
+      if (targetProposal && !targetProposal.id.startsWith("missed:")) {
+        const targetPlanId = planId ?? targetProposal.planId
+        const targetInstituteId =
+          activeInstituteId ?? targetProposal.instituteId
+        if (!targetPlanId) return
+
+        await updateProposalMutation.mutateAsync({
+          planId: targetPlanId,
+          proposalId: targetProposal.id,
+          instituteId: targetInstituteId,
+          body: {
+            teacherId: option.teacher.id,
+            classroomId: targetRoomId,
+            daysOfWeek: option.daysOfWeek,
+            startTime: option.startTime,
+            endTime: option.endTime,
+          },
+        })
+
+        const updatedProposal: Proposal = {
+          ...targetProposal,
+          teacherId: option.teacher.id,
+          teacher: {
+            id: option.teacher.id,
+            firstName: option.teacher.firstName,
+            lastName: option.teacher.lastName,
+          },
+          classroomId: targetRoomId,
+          classroom: option.availableClassrooms[0]
+            ? {
+                id: option.availableClassrooms[0].id,
+                name: option.availableClassrooms[0].name,
+                capacity: option.availableClassrooms[0].capacity,
+              }
+            : null,
+          daysOfWeek: option.daysOfWeek,
+          startTime: option.startTime,
+          endTime: option.endTime,
+          isManuallyEdited: true,
+        }
+
+        setProposalOverrides((prev) => {
+          const nextById = { ...prev.byId }
+          nextById[targetProposal.id] = updatedProposal
+          return { byId: nextById }
+        })
+
+        await queryClient.invalidateQueries({
+          queryKey: schedulingResource.planDetail.key({
+            planId: targetPlanId,
+            instituteId: targetInstituteId,
+          }),
+        })
+
+        toast.success(t("calendarView.rescheduleSuccess"))
+      } else if (matchedAssignment && planId) {
+        const updatedPlan = await commitHiringPlanMutation.mutateAsync({
+          planId,
+          ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
+          body: {
+            assignments: [
+              {
+                key: matchedAssignment.key,
+                classNumber: matchedAssignment.classNumber,
+                requirementId: matchedAssignment.requirementId,
+                courseId: matchedAssignment.course.id,
+                deliveryMode: option.deliveryMode,
+                daysOfWeek: option.daysOfWeek,
+                startTime: option.startTime,
+                endTime: option.endTime,
+                classroomId: targetRoomId,
+                teacherId: option.teacher.id,
+              },
+            ],
+          },
+        })
+
+        queryClient.setQueryData(
+          schedulingResource.planDetail.key({
+            planId: updatedPlan.id,
+            ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
+          }),
+          updatedPlan
+        )
+        await queryClient.invalidateQueries({
+          queryKey: schedulingResource.planDetail.baseKey(),
+        })
+
+        toast.success(t("calendarView.rescheduleSuccess"))
+      }
+    },
+    [
+      activeStaffingProposal,
+      staffingDialogSession,
+      planId,
+      activeInstituteId,
+      updateProposalMutation,
+      commitHiringPlanMutation,
+      queryClient,
+      t,
+    ]
+  )
+
   const expandedSlots = React.useMemo(() => {
     if (userExpandedSlots !== null) return userExpandedSlots
     if (!defaultCollapsed) {
@@ -3036,6 +3149,7 @@ export function SchedulingPlanCalendarView({
         branchScheduleStatuses={branchScheduleStatuses}
         onAssignTeacher={handleSwitchTeacher}
         onAssignMissedClassTeacher={handleAssignMissedClassTeacher}
+        onApplyRecoveryOption={handleApplyRecoveryOption}
         isAssignPending={
           updateProposalMutation.isPending || commitHiringPlanMutation.isPending
         }

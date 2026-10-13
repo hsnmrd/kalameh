@@ -7,6 +7,7 @@ import type {
   CourseLevelNode,
   SchedulingBranchScheduleStatus,
   SchedulingPlanDetailsDto,
+  SchedulingRecoveryOption,
   SchedulingStaffingFallback as StaffingFallbackDto,
   SchedulingTeacherCalendar,
 } from "@workspace/types"
@@ -20,7 +21,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import type { NewTeacherAssignment } from "../../scheduling-new-teacher-assignment-list"
-import { SchedulingRecoveryOption } from "../../scheduling-recovery-option"
+import { RecoveryOptionsSelection } from "./recovery-options-selection"
 import { SchedulingStaffingFallback } from "../../scheduling-staffing-fallback"
 import { SchedulingStaffingOrDivider } from "../../scheduling-staffing-or-divider"
 import { SchedulingTeacherReassignmentAnalysis } from "../../scheduling-teacher-reassignment-analysis"
@@ -55,6 +56,9 @@ export interface StaffingFallbackDialogProps {
     assignment: NewTeacherAssignment,
     teacherId: string
   ) => Promise<void> | void
+  onApplyRecoveryOption?: (
+    option: SchedulingRecoveryOption
+  ) => Promise<void> | void
   isAssignPending?: boolean
 }
 
@@ -75,6 +79,7 @@ export function StaffingFallbackDialog({
   branchScheduleStatuses = [],
   onAssignTeacher,
   onAssignMissedClassTeacher,
+  onApplyRecoveryOption,
   isAssignPending = false,
 }: StaffingFallbackDialogProps) {
   const t = useTranslations("scheduling.planDetails")
@@ -194,6 +199,7 @@ export function StaffingFallbackDialog({
     effectiveBranchId,
   ])
 
+  const hasRecoveryOptions = visibleOptions.length > 0
   const hasReassignment = recovery.reassignmentChains.length > 0
   const hasStaffingFallback = Boolean(
     effectiveFallback &&
@@ -203,6 +209,7 @@ export function StaffingFallbackDialog({
 
   let branchCounter = 0
   const branch1Number = hasFreeMasters ? ++branchCounter : undefined
+  const branchRecoveryNumber = hasRecoveryOptions ? ++branchCounter : undefined
   const branch2Number = hasReassignment ? ++branchCounter : undefined
   const branch3Number = hasStaffingFallback ? ++branchCounter : undefined
 
@@ -287,41 +294,31 @@ export function StaffingFallbackDialog({
             />
           )}
 
-          {/* Recovery Options */}
-          {visibleOptions.length > 0 && (
-            <div className="rounded-xl bg-muted/40 p-3.5">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="flex items-start gap-2">
-                  <SearchCheck
-                    aria-hidden
-                    className="mt-0.5 size-4 shrink-0 text-foreground"
-                  />
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground">
-                      {t("recovery.title")}
-                    </p>
-                  </div>
-                </div>
-                {recovery.totalOptionCount > 0 && (
-                  <Badge variant="secondary">
-                    {t("recovery.optionCount", {
-                      total: formatNumber(recovery.totalOptionCount, locale),
-                      shown: formatNumber(visibleOptions.length, locale),
-                    })}
-                  </Badge>
-                )}
-              </div>
-
-              <ul className="mt-3 space-y-2.5">
-                {visibleOptions.map((option) => (
-                  <SchedulingRecoveryOption key={option.key} option={option} />
-                ))}
-              </ul>
-            </div>
+          {/* Divider between free masters and recovery options */}
+          {hasFreeMasters && hasRecoveryOptions && (
+            <SchedulingStaffingOrDivider />
           )}
 
-          {/* Divider between alternative options */}
-          {hasFreeMasters && hasReassignment && <SchedulingStaffingOrDivider />}
+          {/* Solution 2: Reschedule Class for Free Master */}
+          {hasRecoveryOptions && (
+            <RecoveryOptionsSelection
+              branchNumber={branchRecoveryNumber}
+              options={visibleOptions}
+              canApply={Boolean(onApplyRecoveryOption)}
+              isPending={isAssignPending}
+              onApply={async (option) => {
+                if (onApplyRecoveryOption) {
+                  await onApplyRecoveryOption(option)
+                  onOpenChange(false)
+                }
+              }}
+            />
+          )}
+
+          {/* Divider between recovery options and reassignment */}
+          {(hasFreeMasters || hasRecoveryOptions) && hasReassignment && (
+            <SchedulingStaffingOrDivider />
+          )}
 
           {/* Teacher Reassignment Analysis */}
           {(recovery.reassignmentChains.length > 0 || Boolean(requirement)) && (
@@ -337,9 +334,8 @@ export function StaffingFallbackDialog({
           )}
 
           {/* Divider between alternative options */}
-          {(hasFreeMasters || hasReassignment) && hasStaffingFallback && (
-            <SchedulingStaffingOrDivider />
-          )}
+          {(hasFreeMasters || hasRecoveryOptions || hasReassignment) &&
+            hasStaffingFallback && <SchedulingStaffingOrDivider />}
 
           {/* Staffing Fallback Solutions */}
           {effectiveFallback && (

@@ -422,6 +422,7 @@
       "selectTeacher": "انتخاب این استاد",
       "swapWithTeacher": "جابه‌جایی با این استاد",
       "switchTeacherSuccess": "استاد با موفقیت تغییر یافت.",
+      "rescheduleSuccess": "زمان کلاس با موفقیت تغییر کرد و به استاد تخصیص داده شد.",
       "swapTeacherSuccess": "اساتید دو جلسه با موفقیت جابه‌جا شدند.",
       "sessionSwapConfirmTitle": "جابه‌جایی جلسات",
       "sessionSwapConfirmDescription": "اساتید این دو جلسه برای تعیین دستی توسط سوپروایزر خالی می‌شوند و کلاس‌های درس به‌صورت خودکار تخصیص می‌یابند.",
@@ -482,6 +483,10 @@
     },
     "recovery": {
       "title": "راه‌های جای‌دادن این کلاس در برنامه",
+      "rescheduleTitle": "تغییر زمان کلاس برای استاد آزاد",
+      "suggestionsCount": "{count} بازه پیشنهادی",
+      "carouselCounter": "گزینه {current} از {total}",
+      "applyAction": "انتخاب این زمان",
       "optionCount": "نمایش {shown} از {total} گزینه",
       "statuses": {
         "AVAILABLE_NOW": "همین حالا قابل اجرا",
