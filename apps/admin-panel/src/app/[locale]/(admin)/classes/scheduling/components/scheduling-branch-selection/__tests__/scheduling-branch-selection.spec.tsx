@@ -119,7 +119,7 @@ describe("SchedulingBranchSelection Component", () => {
     })
   })
 
-  it("shows no classes badge for branch without classes in current active term", async () => {
+  it("does not show badge for branch without classes in current active term", async () => {
     render(
       <SchedulingBranchSelection
         branches={mockBranches}
@@ -129,7 +129,7 @@ describe("SchedulingBranchSelection Component", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText(/بدون کلاس در این ترم/)).toBeInTheDocument()
+      expect(screen.queryByText(/بدون کلاس در این ترم/)).not.toBeInTheDocument()
     })
   })
 

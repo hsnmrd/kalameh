@@ -57,7 +57,7 @@ export function SchedulingRunStatusPanel({
             aria-busy={isActive || statusQuery.isFetching}
             className="flex min-h-14 w-full min-w-0 items-center justify-between gap-2 rounded-2xl border border-border bg-card px-3 py-2 sm:gap-4 sm:px-4"
           >
-            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                 {isActive ? (
                   <Spinner className="size-4.5" />
@@ -73,22 +73,16 @@ export function SchedulingRunStatusPanel({
                 )}
               </span>
 
-              <div className="flex min-w-0 flex-col justify-center">
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  <h2 className="truncate text-xs font-bold text-foreground sm:text-sm">
-                    {t(`statuses.${status}.title`)}
-                  </h2>
-                  <Badge
-                    variant={statusVariants[status]}
-                    className="h-5 shrink-0 px-2 text-[11px]"
-                  >
-                    {isActive && <Spinner data-icon="inline-start" size="sm" />}
-                    {t(`statuses.${status}.badge`)}
-                  </Badge>
-                </div>
-                <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
-                  {t(`statuses.${status}.description`)}
-                </p>
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                <h2 className="min-w-0 truncate text-xs font-bold text-foreground sm:text-sm">
+                  {t(`statuses.${status}.title`)}
+                </h2>
+                <Badge
+                  variant={statusVariants[status]}
+                  className="h-5 shrink-0 px-2 text-[11px]"
+                >
+                  {t(`statuses.${status}.badge`)}
+                </Badge>
               </div>
             </div>
           </section>

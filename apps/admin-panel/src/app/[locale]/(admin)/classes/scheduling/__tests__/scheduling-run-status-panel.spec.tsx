@@ -77,11 +77,6 @@ describe("MVP-035 scheduling run status panel", () => {
     ).toBeInTheDocument()
     expect(screen.getByText("تکمیل‌شده")).toBeInTheDocument()
     expect(
-      screen.getByText(
-        "تولید با موفقیت تمام شد و برنامه‌ها برای بررسی سوپروایزر آماده هستند."
-      )
-    ).toBeInTheDocument()
-    expect(
       screen.queryByText("۱ پیشنهاد زمان‌بندی ساخته شد")
     ).not.toBeInTheDocument()
     expect(screen.queryByText(/شناسه اجرا/)).not.toBeInTheDocument()

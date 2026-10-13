@@ -3,14 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import {
-  Building2,
-  MapPin,
-  Phone,
-  ChevronLeft,
-  CheckCircle2,
-  Clock,
-} from "lucide-react"
+import { Building2, ChevronLeft, CheckCircle2 } from "lucide-react"
 import type { BranchDto, SchedulingTermSummaryDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -79,7 +72,7 @@ export function SchedulingBranchSelection({
               }}
               className="group relative flex cursor-pointer flex-col justify-between gap-4 rounded-2xl border border-border bg-card p-5 text-start transition-all duration-200 hover:border-primary/50 hover:bg-muted/30 hover:shadow-xs focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
             >
-              {/* Header: Icon, Name, and Arrow */}
+              {/* Header: Icon, Name, Address with ellipsis, and Arrow */}
               <div className="flex items-start gap-3">
                 <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                   <Building2 className="size-5" aria-hidden />
@@ -88,78 +81,54 @@ export function SchedulingBranchSelection({
                   <h3 className="truncate text-base font-semibold text-foreground transition-colors group-hover:text-primary">
                     {branch.name}
                   </h3>
-                  {branch.classesCount > 0 && (
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {t("demand.selectBranch.classesCountLabel", {
-                        count: formatNumber(branch.classesCount, locale),
-                      })}
+                  {branch.address ? (
+                    <p
+                      className="mt-0.5 truncate text-xs text-muted-foreground"
+                      title={branch.address}
+                    >
+                      {branch.address}
                     </p>
-                  )}
+                  ) : null}
                 </div>
                 <ChevronLeft className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:text-foreground ltr:group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
               </div>
 
-              {/* Middle: Address and Phone */}
-              <div className="flex min-h-6 flex-col gap-1.5 text-xs text-muted-foreground">
-                {branch.address ? (
-                  <div className="flex items-start gap-1.5">
-                    <MapPin
-                      className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
-                      aria-hidden
-                    />
-                    <span className="line-clamp-2">{branch.address}</span>
-                  </div>
-                ) : null}
-                {branch.phones && branch.phones.length > 0 ? (
-                  <div className="flex items-center gap-1.5">
-                    <Phone
-                      className="size-3.5 shrink-0 text-muted-foreground"
-                      aria-hidden
-                    />
-                    <span dir="ltr">{branch.phones[0]}</span>
-                  </div>
-                ) : null}
-              </div>
+              {/* Footer: Term Status Badge & Action */}
+              {isLoadingClasses || hasClassesInTerm ? (
+                <div className="flex items-center justify-between gap-2 border-t border-border/60 pt-3">
+                  {isLoadingClasses ? (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Spinner className="size-3.5 text-muted-foreground" />
+                      <span>...</span>
+                    </div>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="gap-1.5 border-success/30 bg-success/15 px-2.5 py-1 text-xs font-medium text-success"
+                    >
+                      <CheckCircle2
+                        className="size-3.5 text-success"
+                        aria-hidden
+                      />
+                      <span>
+                        {t("demand.selectBranch.hasClasses", {
+                          count: formatNumber(branchClassesCount, locale),
+                        })}
+                      </span>
+                    </Badge>
+                  )}
 
-              {/* Footer: Term Status Badge */}
-              <div className="flex items-center justify-between gap-2 border-t border-border/60 pt-3">
-                {isLoadingClasses ? (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Spinner className="size-3.5 text-muted-foreground" />
-                    <span>...</span>
-                  </div>
-                ) : hasClassesInTerm ? (
-                  <Badge
-                    variant="outline"
-                    className="gap-1.5 border-success/30 bg-success/15 px-2.5 py-1 text-xs font-medium text-success"
-                  >
-                    <CheckCircle2
-                      className="size-3.5 text-success"
-                      aria-hidden
-                    />
-                    <span>
-                      {t("demand.selectBranch.hasClasses", {
-                        count: formatNumber(branchClassesCount, locale),
-                      })}
-                    </span>
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="outline"
-                    className="gap-1.5 border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-muted-foreground"
-                  >
-                    <Clock
-                      className="size-3.5 text-muted-foreground"
-                      aria-hidden
-                    />
-                    <span>{t("demand.selectBranch.noClasses")}</span>
-                  </Badge>
-                )}
-
-                <span className="text-xs font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                  {t("demand.selectBranch.selectBranchAction")}
-                </span>
-              </div>
+                  <span className="hidden text-xs font-semibold text-primary transition-opacity group-hover:opacity-100 sm:inline sm:opacity-0">
+                    {t("demand.selectBranch.selectBranchAction")}
+                  </span>
+                </div>
+              ) : (
+                <div className="hidden items-center justify-end gap-2 border-t border-transparent pt-3 sm:flex">
+                  <span className="text-xs font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                    {t("demand.selectBranch.selectBranchAction")}
+                  </span>
+                </div>
+              )}
             </div>
           )
         })}

@@ -121,7 +121,7 @@ function DrawerOverlay({
     <DrawerPrimitive.Backdrop
       data-slot="drawer-overlay"
       className={cn(
-        "fixed inset-0 z-[60] h-full min-h-dvh w-full bg-black/20 backdrop-blur-xs transition-opacity duration-300 select-none data-ending-style:pointer-events-none data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 data-[ending-style]:pointer-events-none data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 data-[swiping]:duration-0",
+        "fixed inset-0 z-[60] h-full min-h-dvh w-full bg-black/40 backdrop-blur-xs transition-opacity duration-300 select-none data-ending-style:pointer-events-none data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 data-[ending-style]:pointer-events-none data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 data-[swiping]:duration-0",
         className
       )}
       {...props}
