@@ -172,6 +172,16 @@ describe("MobileBottomNavigation", () => {
 
     expect(container).toBeEmptyDOMElement()
   })
+
+  it("positions floating nav bar above safe area using safe-area-inset-bottom", () => {
+    render(<MobileBottomNavigation {...defaultProps} />)
+    const navigation = screen.getByRole("navigation", {
+      name: "ناوبری موبایل",
+    })
+    expect(navigation).toHaveClass(
+      "bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
+    )
+  })
 })
 
 describe("isInnerPage", () => {
