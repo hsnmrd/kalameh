@@ -26,7 +26,13 @@ export function ActiveInstituteCard({
   onCloseInstitute,
 }: ActiveInstituteCardProps) {
   const t = useTranslations("common")
-  const initial = name ? name.slice(0, 2) : "IN"
+  const [failedImageSrc, setFailedImageSrc] = React.useState<string | null>(
+    null
+  )
+  const initial = name ? Array.from(name.trim())[0] || "I" : "I"
+
+  const imageSrc = logoUrl ? getAssetUrl(logoUrl) : null
+  const showImage = Boolean(imageSrc && failedImageSrc !== imageSrc)
 
   return (
     <div className="flex flex-col gap-2.5 rounded-xl border border-border/80 bg-muted/40 p-3">
@@ -42,13 +48,14 @@ export function ActiveInstituteCard({
               : undefined
           }
         >
-          {logoUrl ? (
+          {showImage ? (
             <Image
-              src={getAssetUrl(logoUrl)}
+              src={imageSrc!}
               alt={name}
               fill
               unoptimized
               className="size-full object-cover"
+              onError={() => setFailedImageSrc(imageSrc)}
             />
           ) : (
             <span>{initial}</span>

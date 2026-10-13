@@ -29,19 +29,25 @@ export function UserProfileDetails({
   isActive = true,
 }: UserProfileDetailsProps) {
   const t = useTranslations("common")
+  const [failedImageSrc, setFailedImageSrc] = React.useState<string | null>(
+    null
+  )
+  const imageSrc = avatarUrl ? getAssetUrl(avatarUrl) : null
+  const showImage = Boolean(imageSrc && failedImageSrc !== imageSrc)
 
   return (
     <div className="flex flex-col gap-3">
       {/* Header Info */}
       <div className="flex items-center gap-3 border-b border-border pb-3">
         <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm">
-          {avatarUrl ? (
+          {showImage ? (
             <Image
-              src={getAssetUrl(avatarUrl)}
+              src={imageSrc!}
               alt={fullName}
               fill
               unoptimized
               className="object-cover"
+              onError={() => setFailedImageSrc(imageSrc)}
             />
           ) : (
             <span>{initial}</span>
