@@ -941,7 +941,14 @@
     },
     "selectBranch": {
       "title": "Select a Branch",
-      "description": "To check required classes and sessions, please select a branch first."
+      "description": "To check required classes and sessions, please select a branch first.",
+      "headerTitle": "Select Branch for Scheduling",
+      "subtitle": "To review the required number of classes and sessions, please select a branch first. The class registration status for the active term is indicated for each branch.",
+      "hasClasses": "{count} classes registered for this term",
+      "noClasses": "No classes for this term (Ready to schedule)",
+      "selectBranchAction": "Select this branch",
+      "classesCountLabel": "{count} total classes",
+      "noAddress": "No registered address"
     },
     "filters": {
       "term": "Term",

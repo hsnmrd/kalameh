@@ -43,6 +43,7 @@ import {
 } from "@/lib/api"
 import { useActiveInstitute, useSchedulingRunStore } from "@/lib/stores"
 import { selectDefaultSchedulingTerm } from "../../helper/term-selection"
+import { SchedulingBranchSelection } from "../scheduling-branch-selection"
 import { SchedulingDemandView } from "../scheduling-demand-view"
 import { SchedulingFilter } from "../scheduling-filter"
 import { SchedulingStickyBar } from "../scheduling-sticky-bar"
@@ -441,33 +442,11 @@ export function SchedulingWorkspace() {
             </EmptyHeader>
           </Empty>
         ) : !effectiveBranchId ? (
-          <Empty variant="default">
-            <EmptyMedia variant="icon">
-              <Building2 className="size-7 text-foreground" aria-hidden />
-            </EmptyMedia>
-            <EmptyHeader>
-              <EmptyTitle>{t("demand.selectBranch.title")}</EmptyTitle>
-              <EmptyDescription>
-                {t("demand.selectBranch.description")}
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <div className="w-full max-w-xs">
-                <ResponsiveCombobox
-                  items={activeBranches.map((b) => ({
-                    value: b.id,
-                    label: b.name,
-                  }))}
-                  value={effectiveBranchId}
-                  onValueChange={setBranchId}
-                  placeholder={t("demand.filters.branch")}
-                  drawerTitle={t("demand.filters.branch")}
-                  className="h-14 rounded-2xl"
-                  clearable={false}
-                />
-              </div>
-            </EmptyContent>
-          </Empty>
+          <SchedulingBranchSelection
+            branches={activeBranches}
+            selectedTerm={selectedTerm}
+            onSelectBranch={setBranchId}
+          />
         ) : (
           <div className="flex flex-col gap-4">
             <SchedulingStudentScheduleConfirmation term={selectedTerm} />
@@ -485,18 +464,19 @@ export function SchedulingWorkspace() {
         )}
       </AdminPageShell>
 
-      <SchedulingStickyBar
-        termId={selectedTerm?.id}
-        onGenerateSchedule={handleGenerateSchedule}
-        disabled={
-          !selectedTerm ||
-          !effectiveBranchId ||
-          !demandData ||
-          isActionPending ||
-          totalClassesCount === 0
-        }
-        isGenerating={isActionPending}
-      />
+      {effectiveBranchId && (
+        <SchedulingStickyBar
+          termId={selectedTerm?.id}
+          onGenerateSchedule={handleGenerateSchedule}
+          disabled={
+            !selectedTerm ||
+            !demandData ||
+            isActionPending ||
+            totalClassesCount === 0
+          }
+          isGenerating={isActionPending}
+        />
+      )}
 
       <AlertDialog
         open={shortfallDialogOpen}

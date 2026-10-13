@@ -2,10 +2,11 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { CalendarPlus } from "lucide-react"
+import { CalendarPlus, Building2 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { PERMISSIONS, type SchedulingTermSummaryDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
+import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Counter } from "@workspace/ui/components/counter"
 import {
@@ -75,23 +76,45 @@ export function SchedulingFilter({
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
       search={
-        <ResponsiveCombobox
-          items={branchOptions}
-          value={branchId}
-          onValueChange={(val) => onBranchChange(val || "")}
-          placeholder={t("demand.filters.branch")}
-          drawerTitle={t("demand.filters.branch")}
-          className="h-14 w-full rounded-2xl"
-          clearable={false}
-        />
+        branchId ? (
+          <ResponsiveCombobox
+            items={branchOptions}
+            value={branchId}
+            onValueChange={(val) => onBranchChange(val || "")}
+            placeholder={t("demand.filters.branch")}
+            drawerTitle={t("demand.filters.branch")}
+            className="h-14 w-full rounded-2xl"
+            clearable={false}
+          />
+        ) : (
+          <div className="flex h-14 w-full min-w-0 items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-2xs">
+            <div className="flex items-center gap-2.5 truncate">
+              <Building2
+                className="size-5 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
+              <span className="truncate">
+                {t("demand.selectBranch.headerTitle")}
+              </span>
+            </div>
+            {term && (
+              <Badge
+                variant="outline"
+                className="shrink-0 border-primary/30 bg-primary/10 text-xs font-medium text-primary"
+              >
+                {term.title}
+              </Badge>
+            )}
+          </div>
+        )
       }
       actions={
-        onGenerateSchedule ? (
+        branchId && onGenerateSchedule ? (
           <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
             <Button
               type="button"
               onClick={onGenerateSchedule}
-              disabled={!term || !branchId || isGenerating || !hasClasses}
+              disabled={!term || isGenerating || !hasClasses}
               className="shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs"
             >
               {isGenerating ? (
@@ -105,23 +128,25 @@ export function SchedulingFilter({
         ) : undefined
       }
       filters={
-        <Field>
-          <FieldLabel>{t("demand.filters.maxStudents")}</FieldLabel>
-          <Counter
-            min={1}
-            max={100}
-            value={maxStudentsPerClass}
-            onValueChange={onMaxStudentsPerClassChange}
-            aria-label={t("demand.filters.maxStudents")}
-          />
-          <FieldDescription>
-            {maxAvailableRoomCapacity === null
-              ? t("demand.filters.noRoomCeiling")
-              : t("demand.filters.roomCeiling", {
-                  count: maxAvailableRoomCapacity,
-                })}
-          </FieldDescription>
-        </Field>
+        branchId ? (
+          <Field>
+            <FieldLabel>{t("demand.filters.maxStudents")}</FieldLabel>
+            <Counter
+              min={1}
+              max={100}
+              value={maxStudentsPerClass}
+              onValueChange={onMaxStudentsPerClassChange}
+              aria-label={t("demand.filters.maxStudents")}
+            />
+            <FieldDescription>
+              {maxAvailableRoomCapacity === null
+                ? t("demand.filters.noRoomCeiling")
+                : t("demand.filters.roomCeiling", {
+                    count: maxAvailableRoomCapacity,
+                  })}
+            </FieldDescription>
+          </Field>
+        ) : undefined
       }
     />
   )
