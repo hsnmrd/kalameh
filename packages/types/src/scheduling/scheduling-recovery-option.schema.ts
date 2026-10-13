@@ -5,12 +5,20 @@ import {
   SCHEDULING_TIME_REGEX,
 } from "./scheduling.constants.js"
 
-const SchedulingRecoveryTeacherSchema = z.object({
+export const SchedulingRecoveryTeacherSchema = z.object({
   id: z.string().uuid(),
   firstName: z.string(),
   lastName: z.string(),
   phoneNumber: z.string().nullable().optional(),
   avatarUrl: z.string().nullable().optional(),
+  branchId: z.string().uuid().nullable().optional(),
+  branch: z
+    .object({
+      id: z.string().uuid(),
+      name: z.string(),
+    })
+    .nullable()
+    .optional(),
 })
 
 const SchedulingRecoveryClassroomSchema = z.object({
@@ -26,6 +34,17 @@ const SchedulingRecoveryBlockingClassSchema = z.object({
   classroom: SchedulingRecoveryClassroomSchema.nullable(),
 })
 
+export const SchedulingBranchScheduleStatusSchema = z.object({
+  branchId: z.string().uuid(),
+  branchName: z.string(),
+  hasDefinedSchedule: z.boolean(),
+  status: z.enum(["NOT_SCHEDULED", "SCHEDULED", "PUBLISHED"]),
+})
+
+export type SchedulingBranchScheduleStatus = z.infer<
+  typeof SchedulingBranchScheduleStatusSchema
+>
+
 const SchedulingTeacherCalendarSlotSchema = z.object({
   dayOfWeek: z.enum(WEEK_DAYS),
   startTime: z.string().regex(SCHEDULING_TIME_REGEX),
@@ -33,6 +52,8 @@ const SchedulingTeacherCalendarSlotSchema = z.object({
   status: z.enum(["FREE", "BUSY"]),
   title: z.string().nullable(),
   source: z.enum(["AVAILABILITY", "PLAN", "EXISTING_CLASS"]),
+  branchId: z.string().uuid().nullable().optional(),
+  branchName: z.string().nullable().optional(),
 })
 
 export const SchedulingTeacherCalendarSchema = z.object({

@@ -3,6 +3,7 @@ import { SchedulingPlanSchema } from "./scheduling-plan.schema.js"
 import { SchedulingProposalSchema } from "./scheduling-proposal.schema.js"
 import { SchedulingUnresolvedRequirementSchema } from "./scheduling-unresolved-requirement.schema.js"
 import {
+  SchedulingBranchScheduleStatusSchema,
   SchedulingRecoveryAnalysisSchema,
   SchedulingTeacherCalendarSchema,
 } from "./scheduling-recovery-option.schema.js"
@@ -67,6 +68,9 @@ export const SchedulingPlanDetailsSchema = SchedulingPlanSchema.extend({
   newTeacherHiringPlan:
     SchedulingNewTeacherHiringPlanSchema.nullable().default(null),
   unresolvedRequirements: z.array(SchedulingUnresolvedRequirementDetailsSchema),
+  branchScheduleStatuses: z
+    .array(SchedulingBranchScheduleStatusSchema)
+    .default([]),
   run: z.object({
     id: z.string().uuid(),
     status: z.enum(SCHEDULING_RUN_STATUSES),

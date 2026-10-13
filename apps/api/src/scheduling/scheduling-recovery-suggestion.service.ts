@@ -85,6 +85,8 @@ export class SchedulingRecoverySuggestionService {
             lastName: true,
             phone: true,
             avatarUrl: true,
+            branchId: true,
+            branch: { select: { id: true, name: true } },
           },
         }),
         this.prisma.classroom.findMany({
@@ -155,6 +157,10 @@ export class SchedulingRecoverySuggestionService {
           lastName: teacher.lastName,
           phoneNumber: teacher.phone,
           avatarUrl: teacher.avatarUrl,
+          ...(teacher.branchId !== undefined
+            ? { branchId: teacher.branchId }
+            : {}),
+          ...(teacher.branch !== undefined ? { branch: teacher.branch } : {}),
         },
       ]),
     );

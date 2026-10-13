@@ -165,6 +165,15 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
           createdAt: now,
           updatedAt: now,
         }),
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+      branch: {
+        findMany: jest
+          .fn()
+          .mockResolvedValue([{ id: ids.branch, name: 'Main' }]),
+      },
+      class: {
+        findMany: jest.fn().mockResolvedValue([]),
       },
     };
     i18n = { t: jest.fn((key: string) => key) };

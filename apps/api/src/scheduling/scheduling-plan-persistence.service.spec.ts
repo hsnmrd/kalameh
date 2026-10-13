@@ -259,7 +259,7 @@ describe('MVP-025 SchedulingPlanPersistenceService', () => {
       }),
     );
     expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
-      maxWait: 10_000,
+      maxWait: 20_000,
       timeout: 60_000,
     });
     expect(prisma.class).toBeUndefined();

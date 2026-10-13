@@ -30,10 +30,7 @@ const emptyRecovery = {
   busyTeachers: [],
   teacherCalendars: [],
   reassignmentChains: [],
-  staffingFallback: {
-    addTeacherSuggested: true,
-    availabilityOptions: [],
-  },
+  staffingFallback: { addTeacherSuggested: true, availabilityOptions: [] },
 } as const;
 
 @Injectable()
@@ -194,35 +191,93 @@ export class SchedulingPlanQueryService {
             unresolvedRequirementIds,
             unresolvedRequirements: plan.unresolvedRequirements,
           });
-    const [recoveryByRequirementId, teacherCalendars, newTeacherHiringPlan] =
-      await Promise.all([
-        recoveryPromise,
-        this.planTeacherCalendarService.build({
+    const [
+      recoveryByRequirementId,
+      teacherCalendars,
+      newTeacherHiringPlan,
+      branches,
+      plansForTerm,
+      classesForTerm,
+    ] = await Promise.all([
+      recoveryPromise,
+      this.planTeacherCalendarService.build({
+        instituteId,
+        inputSnapshot: plan.run.inputSnapshot,
+        proposals: plan.proposals,
+      }),
+      unresolvedRequirementIds.length === 0
+        ? Promise.resolve(null)
+        : this.newTeacherHiringPlanService.build({
+            instituteId,
+            inputSnapshot: plan.run.inputSnapshot,
+            settingsSnapshot: plan.run.settingsSnapshot,
+            proposals: plan.proposals,
+            unresolvedRequirements: plan.unresolvedRequirements,
+          }),
+      this.prisma.branch.findMany({
+        where: { instituteId },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.schedulingPlan.findMany({
+        where: {
           instituteId,
-          inputSnapshot: plan.run.inputSnapshot,
-          proposals: plan.proposals,
-        }),
-        unresolvedRequirementIds.length === 0
-          ? Promise.resolve(null)
-          : this.newTeacherHiringPlanService.build({
-              instituteId,
-              inputSnapshot: plan.run.inputSnapshot,
-              settingsSnapshot: plan.run.settingsSnapshot,
-              proposals: plan.proposals,
-              unresolvedRequirements: plan.unresolvedRequirements,
-            }),
-      ]);
+          run: { termId: plan.run.termId, status: 'COMPLETED' },
+          status: { in: ['PUBLISHED', 'SELECTED', 'DRAFT'] },
+        },
+        select: {
+          status: true,
+          run: { select: { branchId: true } },
+        },
+      }),
+      this.prisma.class.findMany({
+        where: { instituteId, termId: plan.run.termId },
+        select: { branchId: true },
+      }),
+    ]);
     const {
       inputSnapshot: _inputSnapshot,
       settingsSnapshot: _settingsSnapshot,
       ...run
     } = plan.run;
 
+    const publishedBranches = new Set<string>([
+      ...classesForTerm.map((c) => c.branchId),
+      ...plansForTerm
+        .filter((p) => p.status === 'PUBLISHED' && p.run.branchId !== null)
+        .map((p) => p.run.branchId!),
+    ]);
+    const scheduledBranches = new Set<string>(
+      plansForTerm
+        .filter(
+          (p) =>
+            (p.status === 'SELECTED' || p.status === 'DRAFT') &&
+            p.run.branchId !== null,
+        )
+        .map((p) => p.run.branchId!),
+    );
+
+    const branchScheduleStatuses = branches.map((branch) => {
+      const isPublished = publishedBranches.has(branch.id);
+      const isScheduled = scheduledBranches.has(branch.id);
+      return {
+        branchId: branch.id,
+        branchName: branch.name,
+        hasDefinedSchedule: isPublished || isScheduled,
+        status: isPublished
+          ? ('PUBLISHED' as const)
+          : isScheduled
+            ? ('SCHEDULED' as const)
+            : ('NOT_SCHEDULED' as const),
+      };
+    });
+
     return SchedulingPlanDetailsSchema.parse({
       ...plan,
       run,
       teacherCalendars,
       newTeacherHiringPlan,
+      branchScheduleStatuses,
       unresolvedRequirements: plan.unresolvedRequirements.map(
         (requirement) => ({
           ...requirement,
