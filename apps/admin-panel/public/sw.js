@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = "kalameh-admin-v2"
+const CACHE_NAME = "kalameh-admin-v3"
 const OFFLINE_FALLBACK_URL = "/offline.html"
 
 const PRECACHE_ASSETS = [

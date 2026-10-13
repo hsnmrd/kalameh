@@ -1,3 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
-  <path fill="#000000" d="M0,200 V600 H200 V400 Z M200,200 L400,0 H600 V200 L500,300 L600,400 V600 H400 L200,400 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#000000" />
+  <g transform="translate(76, 76) scale(0.6)">
+    <path fill="#ffffff" d="M0,200 V600 H200 V400 Z M200,200 L400,0 H600 V200 L500,300 L600,400 V600 H400 L200,400 Z" />
+  </g>
 </svg>
