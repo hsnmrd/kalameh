@@ -2373,8 +2373,8 @@ export function SchedulingPlanCalendarView({
                     isCollapsed
                       ? "rounded-2xl border border-border/60 bg-muted/40 px-3.5 py-2 hover:border-primary/40 hover:bg-muted/70"
                       : cn(
-                          "sticky z-20 rounded-none bg-background px-3.5 py-2.5 hover:bg-muted/20 sm:py-3 lg:py-3.5",
-                          stickyTop === "page" ? "top-16" : "top-0"
+                          "sticky z-10 rounded-none bg-background px-3.5 py-2.5 hover:bg-muted/20 sm:py-3 lg:py-3.5",
+                          stickyTop === "page" ? "top-16 lg:top-36" : "top-0"
                         )
                   )}
                   aria-expanded={!isCollapsed}
