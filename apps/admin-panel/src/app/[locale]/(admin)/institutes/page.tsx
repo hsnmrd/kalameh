@@ -22,7 +22,7 @@ import { useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
-import { InstituteCard } from "./components/institute-card"
+import { InstitutesTable } from "./components/institutes-table"
 import { InstitutesList } from "./components/institutes-list"
 import { InstitutesFilter } from "./components/institutes-filter"
 
@@ -91,16 +91,15 @@ export default function InstitutesPage() {
         </Empty>
       ) : (
         <>
-          {/* Desktop: Card Grid */}
-          <div className="hidden gap-6 lg:grid lg:grid-cols-2 xl:grid-cols-3">
-            {institutes.map((institute) => (
-              <InstituteCard
-                key={institute.id}
-                institute={institute}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
+          {/* Desktop: Data Table */}
+          <div className="hidden lg:block">
+            <InstitutesTable
+              institutes={institutes}
+              isLoading={isLoading}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onAdd={handleCreate}
+            />
           </div>
 
           {/* Mobile: Flat Divider List */}
