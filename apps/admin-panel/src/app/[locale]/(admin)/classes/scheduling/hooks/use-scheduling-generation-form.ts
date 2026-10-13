@@ -31,8 +31,7 @@ const defaultValues: GenerateSchedulingPlanInput = {
 
 export function useSchedulingGenerationForm(
   onCreated: (run: SchedulingRunDto) => void,
-  successMessage: string,
-  initialValues?: { termId?: string; branchId?: string }
+  successMessage: string
 ) {
   const { activeInstituteId } = useActiveInstitute()
   const scope = activeInstituteId
@@ -40,11 +39,7 @@ export function useSchedulingGenerationForm(
     : undefined
   const form = useForm<GenerateSchedulingPlanInput>({
     resolver: zodResolver(GenerateSchedulingPlanSchema),
-    defaultValues: {
-      ...defaultValues,
-      termId: initialValues?.termId ?? "",
-      branchId: initialValues?.branchId ?? "",
-    },
+    defaultValues,
   })
   const termId = useWatch({ control: form.control, name: "termId" })
   const branchId = useWatch({ control: form.control, name: "branchId" })
@@ -98,7 +93,6 @@ export function useSchedulingGenerationForm(
     if (
       !requirementsQuery.isLoading &&
       termId &&
-      requirements.length > 0 &&
       autoSelectedScopeRef.current !== scopeKey
     ) {
       autoSelectedScopeRef.current = scopeKey

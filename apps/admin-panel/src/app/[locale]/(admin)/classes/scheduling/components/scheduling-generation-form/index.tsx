@@ -43,10 +43,7 @@ export function SchedulingGenerationForm({
     isPending,
     hasInstitute,
     submit,
-  } = useSchedulingGenerationForm(onCreated, t("success"), {
-    termId: defaultTermId,
-    branchId: defaultBranchId,
-  })
+  } = useSchedulingGenerationForm(onCreated, t("success"))
 
   const activeTerm = React.useMemo(() => {
     if (defaultTermId) {
