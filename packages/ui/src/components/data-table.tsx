@@ -5,6 +5,7 @@ import * as React from "react"
 import {
   type ColumnDef,
   type Row,
+  type TableMeta,
   flexRender,
   getCoreRowModel,
   useReactTable,
@@ -33,6 +34,8 @@ export interface DataTableProps<TData, TValue> {
   className?: string
   containerClassName?: string
   tableClassName?: string
+  meta?: TableMeta<TData>
+  getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string
 }
 
 export function DataTable<TData, TValue>({
@@ -43,11 +46,15 @@ export function DataTable<TData, TValue>({
   className,
   containerClassName,
   tableClassName,
+  meta,
+  getRowId,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    meta,
+    getRowId,
   })
 
   return (

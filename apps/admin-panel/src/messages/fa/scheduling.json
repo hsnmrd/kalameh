@@ -74,6 +74,14 @@
         "IN_PERSON": "حضوری",
         "ONLINE": "آنلاین"
       },
+      "columns": {
+        "select": "انتخاب",
+        "course": "دوره آموزشی",
+        "branch": "شعبه",
+        "deliveryMode": "شیوه برگزاری",
+        "requiredClassCount": "تعداد کلاس",
+        "capacity": "ظرفیت کلاس"
+      },
       "allBranches": "همه شعبه‌ها"
     },
     "validation": {

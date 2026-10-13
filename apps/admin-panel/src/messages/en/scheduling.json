@@ -74,6 +74,14 @@
         "IN_PERSON": "In-Person",
         "ONLINE": "Online"
       },
+      "columns": {
+        "select": "Select",
+        "course": "Course",
+        "branch": "Branch",
+        "deliveryMode": "Delivery Mode",
+        "requiredClassCount": "Classes",
+        "capacity": "Class Capacity"
+      },
       "allBranches": "All Branches"
     },
     "validation": {
