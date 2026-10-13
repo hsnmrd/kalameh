@@ -28,7 +28,16 @@ export default function SchedulingGeneratePage() {
   const handleCreated = React.useCallback(
     (run: SchedulingRunDto) => {
       setActiveRun(run)
-      router.push(`/classes/scheduling/runs/${run.id}`)
+      const targetPlanId =
+        run.plans?.[0]?.id ??
+        (run as { result?: { planIds?: string[]; recommendedPlanId?: string } })
+          ?.result?.recommendedPlanId ??
+        (run as { result?: { planIds?: string[] } })?.result?.planIds?.[0]
+      if (run.status === "COMPLETED" && targetPlanId) {
+        router.push(`/classes/scheduling/plans/${targetPlanId}`)
+      } else {
+        router.push(`/classes/scheduling/runs/${run.id}`)
+      }
     },
     [setActiveRun, router]
   )

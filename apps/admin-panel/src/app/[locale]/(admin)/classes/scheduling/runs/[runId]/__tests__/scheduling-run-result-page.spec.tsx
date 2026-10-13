@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { render, screen } from "@/test/test-utils"
+import { render, screen, waitFor } from "@/test/test-utils"
 import type { SchedulingRunStatusDto } from "@workspace/types"
 import { schedulingResource } from "@/lib/api"
 import * as stores from "@/lib/stores"
@@ -10,15 +10,16 @@ const runId = "22222222-2222-4222-8222-222222222222"
 const timestamp = "2026-09-09T10:00:00.000Z"
 
 const mockPush = vi.fn()
+const mockReplace = vi.fn()
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ runId }),
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
   usePathname: () => `/classes/scheduling/runs/${runId}`,
 }))
 
 vi.mock("@/i18n/routing", () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
   usePathname: () => `/classes/scheduling/runs/${runId}`,
   useIsRtl: () => true,
   Link: ({ href, children, ...props }: any) => (
@@ -100,5 +101,44 @@ describe("SchedulingRunResultPage", () => {
     expect(
       screen.getByRole("button", { name: "بازگشت به تقویم آموزشی" })
     ).toBeInTheDocument()
+  })
+
+  it("immediately replaces router with plan details page when run is completed", async () => {
+    const planId = "33333333-3333-4333-8333-333333333333"
+    const completedStatus: SchedulingRunStatusDto = {
+      runId,
+      status: "COMPLETED",
+      isTerminal: true,
+      result: { planIds: [planId], recommendedPlanId: planId },
+      preflightReport: null,
+      failureCode: null,
+      failureMessage: null,
+      startedAt: timestamp,
+      completedAt: timestamp,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    }
+
+    vi.spyOn(stores, "useSchedulingRunStore").mockReturnValue({
+      activeRun: null,
+      setActiveRun: vi.fn(),
+      clearActiveRun: vi.fn(),
+    })
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "completed"],
+      queryFn: async () => completedStatus,
+    } as never)
+
+    render(<SchedulingRunResultPage />)
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith(
+        `/classes/scheduling/plans/${planId}`
+      )
+    })
+    expect(screen.queryByText("پیشنهادها آماده‌اند")).not.toBeInTheDocument()
   })
 })

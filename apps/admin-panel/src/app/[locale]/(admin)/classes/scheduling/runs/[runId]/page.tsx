@@ -68,6 +68,28 @@ export default function SchedulingRunResultPage() {
     )
   }, [resolvedRun, statusQuery.data])
 
+  const completedPlanId = React.useMemo(() => {
+    const status = statusQuery.data?.status ?? resolvedRun?.status
+    if (status !== "COMPLETED") return null
+    return (
+      statusQuery.data?.result?.recommendedPlanId ??
+      statusQuery.data?.result?.planIds?.[0] ??
+      resolvedRun?.plans?.[0]?.id ??
+      null
+    )
+  }, [statusQuery.data, resolvedRun])
+
+  React.useEffect(() => {
+    if (completedPlanId) {
+      router.replace(`/classes/scheduling/plans/${completedPlanId}`)
+    }
+  }, [completedPlanId, router])
+
+  const isCompleted = React.useMemo(() => {
+    const status = statusQuery.data?.status ?? resolvedRun?.status
+    return status === "COMPLETED"
+  }, [resolvedRun, statusQuery.data])
+
   const isFailed = React.useMemo(() => {
     if (!resolvedRun) return false
     const status = statusQuery.data?.status ?? resolvedRun.status
@@ -99,7 +121,7 @@ export default function SchedulingRunResultPage() {
             />
           }
           fab={
-            isTerminal ? (
+            isTerminal && !isCompleted ? (
               <FABSingle
                 onClick={isFailed ? handleRetry : handleReset}
                 aria-label={
@@ -111,7 +133,11 @@ export default function SchedulingRunResultPage() {
             ) : undefined
           }
         >
-          {resolvedRun ? (
+          {isCompleted || completedPlanId ? (
+            <div className="flex min-h-64 items-center justify-center">
+              <Spinner className="size-8 text-foreground" />
+            </div>
+          ) : resolvedRun ? (
             <SchedulingRunStatusPanel
               run={resolvedRun}
               onReset={handleReset}
