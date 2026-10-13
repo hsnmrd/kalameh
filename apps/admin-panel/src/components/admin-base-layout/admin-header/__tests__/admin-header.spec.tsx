@@ -154,4 +154,19 @@ describe("AdminHeader", () => {
     expect(header).toHaveClass("backdrop-blur-md")
     expect(header).not.toHaveClass("-translate-y-full")
   })
+
+  it("renders theme switcher next to profile avatar component", () => {
+    render(
+      <HeaderActionsProvider>
+        <AdminHeader />
+      </HeaderActionsProvider>
+    )
+
+    const themeToggle = screen.getByTestId("admin-header-theme-toggle")
+    expect(themeToggle).toBeInTheDocument()
+
+    const avatarBtn = screen.getByRole("button", { name: "اطلاعات کاربری" })
+    expect(avatarBtn).toBeInTheDocument()
+    expect(themeToggle.nextElementSibling).toBe(avatarBtn)
+  })
 })

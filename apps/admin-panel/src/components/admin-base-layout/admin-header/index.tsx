@@ -10,6 +10,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { Link, useIsRtl, usePathname } from "@/i18n/routing"
 import { useNavTransition } from "@/lib/hooks"
 import { useHeaderActions } from "../header-actions-context"
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { UserBadge } from "./user-badge"
 
 export interface AdminHeaderProps {
@@ -186,6 +187,14 @@ export function AdminHeader({
 
         {/* Right / End Section */}
         <div className="flex items-center gap-2.5">
+          <ThemeToggle
+            data-testid="admin-header-theme-toggle"
+            labels={{
+              light: t("theme.light"),
+              dark: t("theme.dark"),
+              system: t("theme.system"),
+            }}
+          />
           {/* User Card Info with Avatar Trigger & Popup */}
           <UserBadge user={user} role={role} onLogout={onLogout} />
         </div>
