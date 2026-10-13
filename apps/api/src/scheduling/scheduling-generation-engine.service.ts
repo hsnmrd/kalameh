@@ -165,8 +165,15 @@ export class SchedulingGenerationEngineService {
         },
       });
     } catch (error) {
-      const failureMessage =
+      let failureMessage =
         error instanceof Error ? error.message.slice(0, 500) : 'Unknown error';
+      if (
+        /transaction|prisma|timeout|timed out|connection|econnrefused/i.test(
+          failureMessage,
+        )
+      ) {
+        failureMessage = 'SYSTEM_TEMPORARY_ERROR';
+      }
       await this.prisma.schedulingRun.updateMany({
         where: { id: runId, instituteId, status: 'GENERATING' },
         data: {

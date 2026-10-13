@@ -142,6 +142,7 @@
     },
     "retry": "Retry",
     "retryGeneration": "Retry Generation",
+    "technicalError": "A temporary system error occurred while processing this request. Please try again.",
     "exactError": "Technical details: {error}",
     "notFound": {
       "title": "Scheduling Run Not Found",

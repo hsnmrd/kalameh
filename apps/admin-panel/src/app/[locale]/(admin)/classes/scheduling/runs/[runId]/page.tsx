@@ -68,6 +68,21 @@ export default function SchedulingRunResultPage() {
     )
   }, [resolvedRun, statusQuery.data])
 
+  const isFailed = React.useMemo(() => {
+    if (!resolvedRun) return false
+    const status = statusQuery.data?.status ?? resolvedRun.status
+    return status === "FAILED" || status === "PREFLIGHT_FAILED"
+  }, [resolvedRun, statusQuery.data])
+
+  const handleRetry = React.useCallback(() => {
+    clearActiveRun()
+    if (resolvedRun?.termId) {
+      router.push(`/classes/scheduling/generate?termId=${resolvedRun.termId}`)
+    } else {
+      router.push("/classes/scheduling")
+    }
+  }, [clearActiveRun, resolvedRun?.termId, router])
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_CLASSES} mode="forbidden">
@@ -86,8 +101,10 @@ export default function SchedulingRunResultPage() {
           fab={
             isTerminal ? (
               <FABSingle
-                onClick={handleReset}
-                aria-label={t("runStatus.another")}
+                onClick={isFailed ? handleRetry : handleReset}
+                aria-label={
+                  isFailed ? t("runStatus.retry") : t("runStatus.another")
+                }
               >
                 <RotateCcw className="size-6" aria-hidden />
               </FABSingle>
@@ -95,7 +112,11 @@ export default function SchedulingRunResultPage() {
           }
         >
           {resolvedRun ? (
-            <SchedulingRunStatusPanel run={resolvedRun} onReset={handleReset} />
+            <SchedulingRunStatusPanel
+              run={resolvedRun}
+              onReset={handleReset}
+              onRetry={handleRetry}
+            />
           ) : statusQuery.isLoading ? (
             <div className="flex min-h-64 items-center justify-center">
               <Spinner className="size-8 text-foreground" />

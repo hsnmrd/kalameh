@@ -16,6 +16,7 @@ import { FailureDetails } from "./failure-details"
 interface SchedulingRunStatusPanelProps {
   run: SchedulingRunDto
   onReset: () => void
+  onRetry?: () => void
 }
 
 const ACTIVE_STATUSES = new Set<SchedulingRunStatus>(["QUEUED", "GENERATING"])
@@ -35,6 +36,7 @@ const statusVariants: Record<
 export function SchedulingRunStatusPanel({
   run,
   onReset,
+  onRetry,
 }: SchedulingRunStatusPanelProps) {
   const t = useTranslations("scheduling.runStatus")
   const statusQuery = useSchedulingRunStatus(run.id)
@@ -43,6 +45,7 @@ export function SchedulingRunStatusPanel({
   const isActive = ACTIVE_STATUSES.has(status)
   const isTerminal = result?.isTerminal ?? !isActive
   const isFailed = status === "FAILED" || status === "PREFLIGHT_FAILED"
+  const handleAction = isFailed ? (onRetry ?? onReset) : onReset
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -94,11 +97,11 @@ export function SchedulingRunStatusPanel({
           isTerminal ? (
             <Button
               type="button"
-              onClick={onReset}
+              onClick={handleAction}
               className="shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs"
             >
               <RotateCcw aria-hidden className="size-5" />
-              <span>{t("another")}</span>
+              <span>{isFailed ? t("retry") : t("another")}</span>
             </Button>
           ) : undefined
         }

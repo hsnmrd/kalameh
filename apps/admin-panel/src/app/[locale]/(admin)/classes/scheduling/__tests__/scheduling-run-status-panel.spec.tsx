@@ -212,7 +212,7 @@ describe("MVP-035 scheduling run status panel", () => {
     ).toBeInTheDocument()
   })
 
-  it("renders retry generation button when run fails", async () => {
+  it("renders unified retry button and does not show duplicate another button when run fails", async () => {
     const failedStatus: SchedulingRunStatusDto = {
       ...completedStatus,
       status: "FAILED",
@@ -230,13 +230,54 @@ describe("MVP-035 scheduling run status panel", () => {
       queryFn: async () => failedStatus,
     } as never)
 
-    render(<SchedulingRunStatusPanel run={queuedRun} onReset={vi.fn()} />)
+    const onRetry = vi.fn()
+    render(
+      <SchedulingRunStatusPanel
+        run={queuedRun}
+        onReset={vi.fn()}
+        onRetry={onRetry}
+      />
+    )
 
+    const retryButton = await screen.findByRole("button", { name: "تلاش مجدد" })
+    expect(retryButton).toBeInTheDocument()
     expect(
-      await screen.findByRole("button", { name: "تلاش مجدد برای ساخت برنامه" })
-    ).toBeInTheDocument()
+      screen.queryByRole("button", { name: "ساخت اجرای دیگر" })
+    ).not.toBeInTheDocument()
     expect(
       screen.getByText("موتور به دلیل تداخل زمانی متوقف شد.")
     ).toBeInTheDocument()
+
+    fireEvent.click(retryButton)
+    expect(onRetry).toHaveBeenCalledOnce()
+  })
+
+  it("sanitizes raw technical database or transaction error messages", async () => {
+    const rawErrorStatus: SchedulingRunStatusDto = {
+      ...completedStatus,
+      status: "FAILED",
+      isTerminal: true,
+      result: null,
+      failureCode: "GENERATION_ENGINE_FAILED",
+      failureMessage:
+        "Transaction API error: Unable to start a transaction in the given time",
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "raw-error"],
+      queryFn: async () => rawErrorStatus,
+    } as never)
+
+    render(<SchedulingRunStatusPanel run={queuedRun} onReset={vi.fn()} />)
+
+    expect(
+      await screen.findByText(
+        "سامانه هنگام پردازش یا ثبت اطلاعات با خطای موقت مواجه شد. لطفاً دوباره تلاش کنید."
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Transaction API error/i)).not.toBeInTheDocument()
   })
 })
