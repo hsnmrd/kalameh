@@ -26,6 +26,7 @@ export const SchedulingNewTeacherHiringAssignmentSchema = z.object({
   startTime: z.string().regex(SCHEDULING_TIME_REGEX),
   endTime: z.string().regex(SCHEDULING_TIME_REGEX),
   classroom: HiringPlanClassroomSchema.nullable(),
+  branchId: z.string().uuid().nullable().optional(),
 })
 
 export const SchedulingNewTeacherHiringSlotOptionSchema = z.object({
