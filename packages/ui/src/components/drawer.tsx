@@ -121,7 +121,7 @@ function DrawerOverlay({
     <DrawerPrimitive.Backdrop
       data-slot="drawer-overlay"
       className={cn(
-        "fixed inset-0 z-[60] h-full min-h-dvh w-full bg-black/40 backdrop-blur-xs transition-opacity duration-300 select-none data-ending-style:pointer-events-none data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 data-[ending-style]:pointer-events-none data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 data-[swiping]:duration-0",
+        "fixed inset-0 z-[60] h-full min-h-dvh w-full bg-black/20 backdrop-blur-xs transition-opacity duration-300 select-none data-ending-style:pointer-events-none data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 data-[ending-style]:pointer-events-none data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 data-[swiping]:duration-0",
         className
       )}
       {...props}
@@ -190,7 +190,7 @@ function DrawerContent({
             // Axis: x.
             "data-[swipe-axis=x]:inset-y-0 data-[swipe-axis=x]:flex-row",
             // Direction: down (flush bottom sheet, sharp bottom corners, curved top).
-            "data-[swipe-direction=down]:bottom-0 data-[swipe-direction=down]:origin-bottom data-[swipe-direction=down]:rounded-t-3xl data-[swipe-direction=down]:rounded-b-none data-[swipe-direction=down]:border-x-0 data-[swipe-direction=down]:border-t data-[swipe-direction=down]:border-b-0 data-[swipe-direction=down]:border-border data-[swipe-direction=down]:pb-[env(safe-area-inset-bottom,0px)] data-[swipe-direction=down]:[--closed-transform:translate3d(0,calc(100%+var(--drawer-inset,0px)+2px),0)] data-[swipe-direction=down]:[--translate-y:calc(var(--drawer-snap-point-offset,0px)+var(--drawer-swipe-movement-y)-var(--stack-peek-offset)-(var(--stack-shrink)*var(--stack-height))] data-[swipe-direction=down]:has-[[data-slot=drawer-footer]]:pb-0",
+            "data-[swipe-direction=down]:bottom-0 data-[swipe-direction=down]:origin-bottom data-[swipe-direction=down]:rounded-t-3xl data-[swipe-direction=down]:rounded-b-none data-[swipe-direction=down]:border-x-0 data-[swipe-direction=down]:border-t data-[swipe-direction=down]:border-b-0 data-[swipe-direction=down]:border-border data-[swipe-direction=down]:pb-[calc(1rem+env(safe-area-inset-bottom,0px))] data-[swipe-direction=down]:[--closed-transform:translate3d(0,calc(100%+var(--drawer-inset,0px)+2px),0)] data-[swipe-direction=down]:[--translate-y:calc(var(--drawer-snap-point-offset,0px)+var(--drawer-swipe-movement-y)-var(--stack-peek-offset)-(var(--stack-shrink)*var(--stack-height))] data-[swipe-direction=down]:has-[[data-slot=drawer-footer]]:pb-0",
             // Direction: up.
             "data-[swipe-direction=up]:top-0 data-[swipe-direction=up]:origin-top data-[swipe-direction=up]:rounded-t-none data-[swipe-direction=up]:rounded-b-3xl data-[swipe-direction=up]:border-x-0 data-[swipe-direction=up]:border-t-0 data-[swipe-direction=up]:border-b data-[swipe-direction=up]:border-border data-[swipe-direction=up]:[--closed-transform:translate3d(0,calc(-100%-var(--drawer-inset,0px)-2px),0)] data-[swipe-direction=up]:[--translate-y:calc(var(--drawer-snap-point-offset,0px)+var(--drawer-swipe-movement-y)+var(--stack-peek-offset)+(var(--stack-shrink)*var(--stack-height)))]",
             // Direction: left.
