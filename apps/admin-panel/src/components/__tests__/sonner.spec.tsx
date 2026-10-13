@@ -137,4 +137,64 @@ describe("shared Toaster", () => {
     expect(toastItem).toHaveAttribute("data-type", "loading")
     expect(toastItem.style.getPropertyValue("--toast-duration")).toBe("0ms")
   })
+
+  it("configures safe-area-inset aware offsets by default", async () => {
+    render(<Toaster />)
+
+    act(() => {
+      toast("Safe area notification")
+    })
+
+    const notification = await screen.findByText("Safe area notification")
+    const toaster = notification.closest("[data-sonner-toaster]") as HTMLElement
+
+    expect(toaster.style.getPropertyValue("--offset-bottom")).toBe(
+      "calc(2rem + env(safe-area-inset-bottom, 0px))"
+    )
+    expect(toaster.style.getPropertyValue("--mobile-offset-bottom")).toBe(
+      "calc(1rem + env(safe-area-inset-bottom, 0px))"
+    )
+    expect(toaster.style.getPropertyValue("--offset-top")).toBe(
+      "calc(2rem + env(safe-area-inset-top, 0px))"
+    )
+    expect(toaster.style.getPropertyValue("--mobile-offset-top")).toBe(
+      "calc(1rem + env(safe-area-inset-top, 0px))"
+    )
+    expect(toaster.style.getPropertyValue("--offset-left")).toBe(
+      "calc(2rem + env(safe-area-inset-left, 0px))"
+    )
+    expect(toaster.style.getPropertyValue("--mobile-offset-left")).toBe(
+      "calc(1rem + env(safe-area-inset-left, 0px))"
+    )
+    expect(toaster.style.getPropertyValue("--offset-right")).toBe(
+      "calc(2rem + env(safe-area-inset-right, 0px))"
+    )
+    expect(toaster.style.getPropertyValue("--mobile-offset-right")).toBe(
+      "calc(1rem + env(safe-area-inset-right, 0px))"
+    )
+  })
+
+  it("allows custom offset overrides while preserving safe defaults", async () => {
+    render(
+      <Toaster
+        mobileOffset={{
+          bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))",
+        }}
+      />
+    )
+
+    act(() => {
+      toast("Custom offset notification")
+    })
+
+    const notification = await screen.findByText("Custom offset notification")
+    const toaster = notification.closest("[data-sonner-toaster]") as HTMLElement
+
+    expect(toaster.style.getPropertyValue("--mobile-offset-bottom")).toBe(
+      "calc(5.5rem + env(safe-area-inset-bottom, 0px))"
+    )
+    expect(toaster.style.getPropertyValue("--mobile-offset-top")).toBe(
+      "calc(1rem + env(safe-area-inset-top, 0px))"
+    )
+  })
 })

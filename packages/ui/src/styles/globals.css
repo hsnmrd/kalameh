@@ -275,6 +275,18 @@ html[dir="rtl"]
   position: static;
 }
 
+/* Ensure Sonner toaster honors safe-area insets across viewports */
+[data-sonner-toaster] {
+  --offset-top: calc(2rem + env(safe-area-inset-top, 0px));
+  --offset-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  --offset-left: calc(2rem + env(safe-area-inset-left, 0px));
+  --offset-right: calc(2rem + env(safe-area-inset-right, 0px));
+  --mobile-offset-top: calc(1rem + env(safe-area-inset-top, 0px));
+  --mobile-offset-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  --mobile-offset-left: calc(1rem + env(safe-area-inset-left, 0px));
+  --mobile-offset-right: calc(1rem + env(safe-area-inset-right, 0px));
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
