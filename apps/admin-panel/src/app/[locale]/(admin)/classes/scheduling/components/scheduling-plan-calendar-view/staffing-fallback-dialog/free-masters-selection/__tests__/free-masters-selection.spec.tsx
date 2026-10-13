@@ -204,8 +204,8 @@ describe("FreeMastersSelection Component", () => {
     expect(onAssignTeacher).toHaveBeenCalledWith(mockProposal, "t-melika")
   })
 
-  it("shows empty state when no teachers are free in the slot", () => {
-    render(
+  it("renders null when no teachers are free in the slot", () => {
+    const { container } = render(
       <FreeMastersSelection
         proposal={mockProposal}
         targetCourse={targetCourse}
@@ -217,9 +217,7 @@ describe("FreeMastersSelection Component", () => {
       />
     )
 
-    expect(
-      screen.getByText("staffingFallback.noFreeMastersDescription")
-    ).toBeInTheDocument()
+    expect(container).toBeEmptyDOMElement()
   })
 
   it("enables assign button and calls onAssignMissedClassTeacher when opened for a missed class (no proposal)", async () => {

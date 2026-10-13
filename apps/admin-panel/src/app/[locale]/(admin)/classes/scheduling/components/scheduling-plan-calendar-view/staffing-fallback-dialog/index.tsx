@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Lightbulb, SearchCheck } from "lucide-react"
+import { SearchCheck } from "lucide-react"
 import type {
   CourseLevelNode,
   SchedulingBranchScheduleStatus,
@@ -246,8 +246,8 @@ export function StaffingFallbackDialog({
             />
           )}
 
-          {/* Recovery Options OR Busy Teachers / No Free Teacher Callout */}
-          {visibleOptions.length > 0 ? (
+          {/* Recovery Options */}
+          {visibleOptions.length > 0 && (
             <div className="rounded-xl bg-muted/40 p-3.5">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="flex items-start gap-2">
@@ -277,42 +277,6 @@ export function StaffingFallbackDialog({
                 ))}
               </ul>
             </div>
-          ) : (
-            (recovery.busyTeachers.length > 0 || Boolean(requirement)) && (
-              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-muted/20 px-3.5 py-2.5 text-xs">
-                <div className="flex items-center gap-1.5 font-semibold text-foreground">
-                  <Lightbulb
-                    aria-hidden
-                    className="size-3.5 shrink-0 text-muted-foreground"
-                  />
-                  <span>
-                    {t(
-                      recovery.busyTeachers.length > 0
-                        ? "recovery.teacherConflictTitle"
-                        : "recovery.noOptionTitle"
-                    )}
-                  </span>
-                </div>
-                {recovery.busyTeachers.length > 0 && (
-                  <>
-                    <span className="text-muted-foreground">
-                      ({t("recovery.qualifiedTeachersConflictShort")}):
-                    </span>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {recovery.busyTeachers.map((teacher) => (
-                        <Badge
-                          key={teacher.id}
-                          variant="outline"
-                          className="text-xs font-normal"
-                        >
-                          {teacher.firstName} {teacher.lastName}
-                        </Badge>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )
           )}
 
           {/* Teacher Reassignment Analysis */}

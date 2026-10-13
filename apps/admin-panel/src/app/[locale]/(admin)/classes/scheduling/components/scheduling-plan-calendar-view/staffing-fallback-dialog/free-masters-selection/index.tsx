@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { UserCheck, UserX } from "lucide-react"
+import { UserCheck } from "lucide-react"
 import type {
   CourseLevelNode,
   SchedulingPlanDetailsDto,
@@ -138,25 +138,21 @@ export function FreeMastersSelection({
     }
   }
 
+  if (freeMasters.length === 0) {
+    return null
+  }
+
   const hasMultiple = freeMasters.length > 1
 
   return (
-    <section
-      data-testid="free-masters-selection"
-      className="rounded-xl border border-border/80 bg-card p-4 shadow-2xs"
-    >
+    <section data-testid="free-masters-selection" className="space-y-3">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <UserCheck aria-hidden className="size-4 shrink-0 text-primary" />
-          <div>
-            <h4 className="text-sm font-bold text-foreground">
-              {t("staffingFallback.freeMastersTitle")}
-            </h4>
-            <p className="text-xs text-muted-foreground">
-              {t("staffingFallback.freeMastersDescription")}
-            </p>
-          </div>
+          <h4 className="text-sm font-bold text-foreground">
+            {t("staffingFallback.freeMastersTitle")}
+          </h4>
         </div>
         {qualifiedCount > 0 && (
           <Badge
@@ -171,69 +167,59 @@ export function FreeMastersSelection({
       </div>
 
       {/* Content */}
-      {freeMasters.length === 0 ? (
-        <div className="flex items-center gap-2 py-3 text-xs text-muted-foreground">
-          <UserX
-            aria-hidden
-            className="size-4 shrink-0 text-muted-foreground"
-          />
-          <span>{t("staffingFallback.noFreeMastersDescription")}</span>
-        </div>
-      ) : (
-        <div className="mt-3 w-full">
-          <Carousel
-            setApi={setApi}
-            opts={{
-              align: "start",
-              containScroll: "trimSnaps",
-              direction: locale === "fa" ? "rtl" : "ltr",
-            }}
-            className="w-full"
-          >
-            {hasMultiple && (
-              <div className="mb-2.5 flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground">
-                  {t("staffingFallback.teacherCarouselCounter", {
-                    current: formatNumber(current, locale),
-                    total: formatNumber(freeMasters.length, locale),
-                  })}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <CarouselPrevious
-                    type="button"
-                    className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-                  />
-                  <CarouselNext
-                    type="button"
-                    className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
-                  />
-                </div>
+      <div className="w-full">
+        <Carousel
+          setApi={setApi}
+          opts={{
+            align: "start",
+            containScroll: "trimSnaps",
+            direction: locale === "fa" ? "rtl" : "ltr",
+          }}
+          className="w-full"
+        >
+          {hasMultiple && (
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground">
+                {t("staffingFallback.teacherCarouselCounter", {
+                  current: formatNumber(current, locale),
+                  total: formatNumber(freeMasters.length, locale),
+                })}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <CarouselPrevious
+                  type="button"
+                  className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
+                />
+                <CarouselNext
+                  type="button"
+                  className="static size-7 translate-x-0 translate-y-0 scale-100 rounded-lg border-border/80 bg-muted/40 opacity-100 shadow-none hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
+                />
               </div>
-            )}
+            </div>
+          )}
 
-            <CarouselContent className="-ms-3">
-              {freeMasters.map((item) => (
-                <CarouselItem
-                  key={item.teacher.id}
-                  data-testid="free-master-slide"
-                  className={cn(
-                    "ps-3",
-                    hasMultiple ? "basis-[90%] sm:basis-[85%]" : "basis-full"
-                  )}
-                >
-                  <FreeMasterCard
-                    item={item}
-                    canAssign={canAssign}
-                    isPending={isPending}
-                    isAssigning={assigningTeacherId === item.teacher.id}
-                    onAssign={handleAssign}
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
-        </div>
-      )}
+          <CarouselContent className="-ms-3">
+            {freeMasters.map((item) => (
+              <CarouselItem
+                key={item.teacher.id}
+                data-testid="free-master-slide"
+                className={cn(
+                  "ps-3",
+                  hasMultiple ? "basis-[90%] sm:basis-[85%]" : "basis-full"
+                )}
+              >
+                <FreeMasterCard
+                  item={item}
+                  canAssign={canAssign}
+                  isPending={isPending}
+                  isAssigning={assigningTeacherId === item.teacher.id}
+                  onAssign={handleAssign}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      </div>
     </section>
   )
 }

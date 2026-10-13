@@ -472,7 +472,6 @@ describe("SchedulingPlanDetailsPage", () => {
 
     const dialog = await screen.findByTestId("staffing-fallback-dialog")
     expect(dialog).toBeInTheDocument()
-    expect(within(dialog).getByText(/استاد آزاد پیدا نشد/)).toBeInTheDocument()
     expect(within(dialog).getAllByText(/دکتر بهنام/)[0]).toBeInTheDocument()
     expect(
       within(dialog).getByText("تحلیل جابه‌جایی استادان:")
