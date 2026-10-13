@@ -111,7 +111,7 @@ export function MobileBottomNavigation({
       />
       <nav
         aria-label={t("nav.mobileNavigation")}
-        className="fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] z-40 rounded-[50px] border border-border bg-card/80 shadow-lg backdrop-blur-md lg:hidden"
+        className="fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] z-40 mx-auto max-w-md rounded-[50px] border border-border bg-card/80 shadow-lg backdrop-blur-md lg:hidden"
       >
         <div className="grid h-16 auto-cols-fr grid-flow-col items-stretch px-1">
           {directItems.map((item) => {

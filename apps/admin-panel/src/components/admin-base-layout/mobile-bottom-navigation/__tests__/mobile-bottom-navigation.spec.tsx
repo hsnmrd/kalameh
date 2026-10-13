@@ -182,6 +182,14 @@ describe("MobileBottomNavigation", () => {
       "bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
     )
   })
+
+  it("constrains bottom nav to max-w-md and centers it with mx-auto to prevent stretching on tablet", () => {
+    render(<MobileBottomNavigation {...defaultProps} />)
+    const navigation = screen.getByRole("navigation", {
+      name: "ناوبری موبایل",
+    })
+    expect(navigation).toHaveClass("max-w-md", "mx-auto")
+  })
 })
 
 describe("isInnerPage", () => {
