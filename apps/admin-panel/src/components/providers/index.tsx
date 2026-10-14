@@ -17,11 +17,12 @@ export function createQueryClient() {
         staleTime: 60 * 1000,
         retry: (failureCount, error) => {
           // Never retry client errors (4xx)
+          const errorStatus = (error as unknown as { status?: unknown })?.status
           const status =
             error instanceof MicroApiError
               ? error.status
-              : typeof (error as { status?: unknown })?.status === "number"
-                ? (error as { status: number }).status
+              : typeof errorStatus === "number"
+                ? errorStatus
                 : undefined
           if (typeof status === "number" && status >= 400 && status < 500) {
             return false
