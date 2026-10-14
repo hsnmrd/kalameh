@@ -80,7 +80,7 @@ export function AdminFilterBar({
     <>
       <div
         className={cn(
-          "grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out",
+          "grid w-full max-w-full min-w-0 transition-[grid-template-rows,opacity,margin] duration-300 ease-out",
           // Mobile collapsible styling: 0fr with 0 margin when hidden, 1fr with mb-4 when revealed
           isRevealed
             ? "mb-4 grid-rows-[1fr] opacity-100"
@@ -91,11 +91,18 @@ export function AdminFilterBar({
         )}
       >
         <div
-          className={cn(isRevealed ? "overflow-visible" : "overflow-hidden")}
+          className={cn(
+            "w-full max-w-full min-w-0",
+            isRevealed ? "overflow-x-clip" : "overflow-hidden"
+          )}
         >
-          <div className="flex w-full min-w-0 items-center gap-2 pt-1.5 pb-1 sm:gap-3 sm:pt-0 sm:pb-0.5">
+          <div className="flex w-full max-w-full min-w-0 items-center gap-2 pt-1.5 pb-1 sm:gap-3 sm:pt-0 sm:pb-0.5">
             {/* Search slot — stretches with flex-1 */}
-            {search && <div className="min-w-0 flex-1">{search}</div>}
+            {search && (
+              <div className="max-w-full min-w-0 flex-1 overflow-hidden">
+                {search}
+              </div>
+            )}
 
             {/* Unified Filter Button (Desktop Modal / Mobile Drawer) */}
             {hasFilters && (

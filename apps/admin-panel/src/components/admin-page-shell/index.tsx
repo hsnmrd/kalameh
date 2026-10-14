@@ -57,7 +57,12 @@ export function AdminPageShell({
 
   return (
     <FABProvider hasBottomNav={!isInner}>
-      <div className={cn("flex w-full flex-1 flex-col", className)}>
+      <div
+        className={cn(
+          "flex w-full max-w-full min-w-0 flex-1 flex-col",
+          className
+        )}
+      >
         {breadcrumb && <div className="mb-4">{breadcrumb}</div>}
         {resolvedFilter}
         {children}
