@@ -147,6 +147,29 @@ When a list page or data grid has no data and displays the empty component (`<Em
 3. **Mobile Vertical Centering:** In mobile view (< `lg`), the empty component must be centered vertically in the viewport. Ensure the mobile list container uses `<div className="flex flex-1 flex-col lg:hidden">` and `<AdminPageShell>` / `<main>` flexes (`flex flex-1 flex-col`), allowing `<Empty variant="default">`'s `min-h-[calc(100dvh-16rem)]` to position the empty content at the exact vertical center of the screen.
 4. **Hide Mobile FAB on Empty State:** In mobile view, when there are no items in the list and the empty component is displayed, the mobile floating action button passed to `<AdminPageShell fab={...}>` MUST be hidden (`fab={isListEmpty ? null : ...}`). The FAB must ONLY show when there are items on the page.
 
+### 7. URL Query Parameters State Synchronization Standard (Filters, Search & Pagination)
+
+- All list, table, and data grid pages must keep their active state (**discrete filters, search keywords, active page, and page size**) synchronized with URL query parameters.
+- When the user refreshes the page, navigates back/forward with browser history, or bookmarks/shares a link, all active filters and active page number must be preserved.
+- **Single Source of Truth (`useUrlFilters`):** Always use `useUrlFilters` from `@/lib/hooks` rather than detached component `useState` for managing list filters:
+  ```tsx
+  const { filters, setFilter, pageIndex, pageSize, setPageIndex, setPageSize } =
+    useUrlFilters({
+      defaultValues: {
+        search: "",
+        selectedStatus: "ALL",
+        page: 1,
+        pageSize: 10,
+      },
+      debounceKeys: ["search"],
+    })
+  ```
+- **Immediate Input + Debounced URL Sync:** Text search inputs must update immediate React state on typing, while debouncing URL query parameter writes by **300ms** to prevent lag and URL pollution.
+- **Filter Change Resets Page to 1:** Modifying any filter or search value must automatically reset the page to `1`.
+- **Clean URLs (Omit Defaults):** Default values (`page=1`, empty search `""`, or fallback `"ALL"`) must be omitted from the query string to keep URLs clean.
+- **Non-Destructive Preservation:** Non-filter query parameters (such as `modal=...` used by `useModal`) must be preserved during filter updates.
+- **Controlled Pagination Synchronization:** Forward `pageIndex`, `pageSize`, `onPageIndexChange`, and `onPageSizeChange` to desktop `*Table` (`DataTable`) and `pageIndex`, `pageSize`, `onPageChange` to mobile `*List` (`useClientPagination` / `DataPagination`).
+
 ## Admin Inner Page Standard (Breadcrumb & Sub-Page Navigation)
 
 All inner pages, sub-pages, or nested resource views (e.g. `/calendar/custom`, `/classes/[id]/grades`, `/teachers/[id]/classes`) must follow this unified sub-page standard:
