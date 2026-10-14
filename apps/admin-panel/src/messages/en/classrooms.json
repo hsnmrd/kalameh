@@ -67,5 +67,10 @@
     "cancel": "Cancel",
     "deleting": "Deleting...",
     "success": "Classroom deleted successfully."
+  },
+  "validation": {
+    "nameMin": "Classroom name must be at least 2 characters.",
+    "capacityMin": "Capacity must be at least 1.",
+    "branchIdRequired": "Branch is required."
   }
 }

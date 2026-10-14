@@ -192,5 +192,11 @@
     "trigger": "Export to Excel",
     "exporting": "Generating Excel export...",
     "error": "Failed to export Excel file"
+  },
+  "validation": {
+    "firstNameMin": "First name must be at least 2 characters.",
+    "lastNameMin": "Last name must be at least 2 characters.",
+    "phoneRegex": "Phone number must be an 11-digit Iranian mobile (e.g. 09121234567).",
+    "passwordMin": "Password must be at least 6 characters."
   }
 }

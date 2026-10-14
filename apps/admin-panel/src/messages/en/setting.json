@@ -42,6 +42,11 @@
     "successUpdateSettings": "Calendar settings updated successfully.",
     "successAddOffDay": "Custom off-day added successfully.",
     "successDeleteOffDay": "Custom off-day deleted successfully.",
+    "validation": {
+      "titleMin": "Holiday title is required.",
+      "dateInvalid": "Entered date is invalid.",
+      "rangeInvalid": "Start date must be before end date."
+    },
     "selectionMode": "Selection Mode",
     "singleDay": "Single Day",
     "dateRange": "Date Range",

@@ -26,10 +26,10 @@ import {
 import { classroomsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import {
-  createCreateClassroomSchema,
   type CreateClassroomInput,
   type BranchWithStats,
 } from "@workspace/types"
+import { useCreateClassroomSchema } from "../../hooks/use-classroom-schemas"
 
 export interface CreateClassroomModalProps {
   open: boolean
@@ -45,13 +45,7 @@ export function CreateClassroomModal({
   const t = useTranslations("classrooms")
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
-
-  const classroomSchema = React.useMemo(() => {
-    return createCreateClassroomSchema({
-      nameMin: t("createModal.namePlaceholder"),
-      capacityMin: t("createModal.capacityPlaceholder"),
-    })
-  }, [t])
+  const classroomSchema = useCreateClassroomSchema()
 
   const {
     register,

@@ -15,13 +15,19 @@ export function useCreateTermSchema() {
   const t = useTranslations("terms")
   return React.useMemo(() => {
     return createCreateTermSchema({
-      operatingPhaseRequired: t("createModal.operatingPhaseRequired"),
+      titleMin: t("validation.titleMin"),
+      startDateRequired: t("validation.startDateRequired"),
+      endDateRequired: t("validation.endDateRequired"),
+      operatingPhaseRequired: t("validation.operatingPhaseRequired"),
     })
   }, [t])
 }
 
 export function useUpdateTermSchema() {
+  const t = useTranslations("terms")
   return React.useMemo(() => {
-    return createUpdateTermSchema()
-  }, [])
+    return createUpdateTermSchema({
+      titleMin: t("validation.titleMin"),
+    })
+  }, [t])
 }

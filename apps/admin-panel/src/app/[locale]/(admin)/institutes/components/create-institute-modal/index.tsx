@@ -51,9 +51,10 @@ export function CreateInstituteModal({
 }: CreateInstituteModalProps) {
   const t = useTranslations("institutes")
   const queryClient = useQueryClient()
+  const createInstituteSchema = useCreateInstituteSchema()
   const [activeTab, setActiveTab] = React.useState<InstituteFormTab>("general")
   const form = useForm<CreateInstituteInput>({
-    resolver: zodResolver(useCreateInstituteSchema()),
+    resolver: zodResolver(createInstituteSchema),
     defaultValues: DEFAULT_VALUES,
   })
   const { handleSubmit, reset, getValues, setValue, trigger } = form

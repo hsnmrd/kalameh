@@ -3,6 +3,7 @@ import { z } from "zod"
 export const createCreateClassroomSchema = (msg?: {
   nameMin?: string
   capacityMin?: string
+  branchIdRequired?: string
 }) =>
   z.object({
     name: z
@@ -15,7 +16,11 @@ export const createCreateClassroomSchema = (msg?: {
       })
       .int()
       .min(1, msg?.capacityMin ? { message: msg.capacityMin } : undefined),
-    branchId: z.string().uuid(),
+    branchId: z
+      .string()
+      .uuid(
+        msg?.branchIdRequired ? { message: msg.branchIdRequired } : undefined
+      ),
     description: z.string().trim().optional().nullable(),
     instituteId: z.string().uuid().optional(),
     isActive: z.boolean().default(true).optional(),

@@ -51,8 +51,9 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
     ],
     [t]
   )
+  const updateUserSchema = useUpdateUserSchema()
   const form = useForm<UpdateUserInput>({
-    resolver: zodResolver(useUpdateUserSchema()),
+    resolver: zodResolver(updateUserSchema),
     defaultValues: {
       avatar: null,
       avatarUrl: null,

@@ -249,5 +249,11 @@
     "status": "وضعیت ترم",
     "statusActive": "فعال",
     "statusInactive": "غیرفعال"
+  },
+  "validation": {
+    "titleMin": "عنوان ترم باید حداقل ۲ کاراکتر باشد.",
+    "startDateRequired": "تاریخ شروع ترم الزامی است.",
+    "endDateRequired": "تاریخ پایان ترم الزامی است.",
+    "operatingPhaseRequired": "انتخاب فاز تحصیلی الزامی است."
   }
 }

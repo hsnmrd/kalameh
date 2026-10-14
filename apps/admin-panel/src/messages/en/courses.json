@@ -70,5 +70,9 @@
     "trigger": "Export to Excel",
     "exporting": "Preparing Excel file...",
     "error": "Failed to export Excel file"
+  },
+  "validation": {
+    "titleMin": "Course title must be at least 2 characters.",
+    "baseFeeMin": "Base fee cannot be negative."
   }
 }

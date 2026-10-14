@@ -15,10 +15,10 @@ export function useCreateTeacherSchema() {
   return React.useMemo(
     () =>
       createCreateTeacherSchema({
-        firstNameMin: t("createModal.firstName"),
-        lastNameMin: t("createModal.lastName"),
-        phoneRegex: t("createModal.phone"),
-        passwordMin: t("createModal.password"),
+        firstNameMin: t("validation.firstNameMin"),
+        lastNameMin: t("validation.lastNameMin"),
+        phoneRegex: t("validation.phoneRegex"),
+        passwordMin: t("validation.passwordMin"),
       }),
     [t]
   )
@@ -30,9 +30,9 @@ export function useUpdateTeacherSchema() {
   return React.useMemo(
     () =>
       createUpdateTeacherSchema({
-        firstNameMin: t("createModal.firstName"),
-        lastNameMin: t("createModal.lastName"),
-        phoneRegex: t("createModal.phone"),
+        firstNameMin: t("validation.firstNameMin"),
+        lastNameMin: t("validation.lastNameMin"),
+        phoneRegex: t("validation.phoneRegex"),
       }),
     [t]
   )

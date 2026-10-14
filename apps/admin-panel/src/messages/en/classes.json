@@ -195,5 +195,12 @@
     "noResults": "No classrooms match your search.",
     "remoteClass": "Online Class / No Physical Room",
     "remoteBadge": "Online / Remote"
+  },
+  "validation": {
+    "titleMin": "Class title must be at least 2 characters.",
+    "capacityMin": "Class capacity must be at least 1.",
+    "feeMin": "Class fee cannot be negative.",
+    "termIdRequired": "Term is required.",
+    "courseIdRequired": "Course is required."
   }
 }

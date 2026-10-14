@@ -249,5 +249,11 @@
     "status": "Term Status",
     "statusActive": "Active",
     "statusInactive": "Inactive"
+  },
+  "validation": {
+    "titleMin": "Term title must be at least 2 characters.",
+    "startDateRequired": "Start date is required.",
+    "endDateRequired": "End date is required.",
+    "operatingPhaseRequired": "Operating phase is required."
   }
 }

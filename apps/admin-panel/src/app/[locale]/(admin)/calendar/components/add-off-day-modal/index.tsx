@@ -20,11 +20,9 @@ import { Input } from "@workspace/ui/components/input"
 import { DateRangePicker } from "@workspace/ui/components/date-range-picker"
 import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
-import {
-  CreateInstituteCustomOffDaySchema,
-  type CreateInstituteCustomOffDayInput,
-} from "@workspace/types"
+import { type CreateInstituteCustomOffDayInput } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
+import { useCreateInstituteCustomOffDaySchema } from "../../hooks/use-calendar-schemas"
 
 export interface AddOffDayModalProps {
   open: boolean
@@ -45,6 +43,7 @@ export function AddOffDayModal({
 }: AddOffDayModalProps) {
   const t = useTranslations("setting.offDays")
   const queryClient = useQueryClient()
+  const offDaySchema = useCreateInstituteCustomOffDaySchema()
 
   const {
     register,
@@ -54,7 +53,7 @@ export function AddOffDayModal({
     setValue,
     formState: { errors },
   } = useForm<CreateInstituteCustomOffDayInput>({
-    resolver: zodResolver(CreateInstituteCustomOffDaySchema),
+    resolver: zodResolver(offDaySchema),
     defaultValues: {
       date: defaultDate || "",
       startDate: defaultDate || "",
