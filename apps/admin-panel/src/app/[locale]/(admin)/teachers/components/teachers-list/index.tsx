@@ -51,6 +51,9 @@ export interface TeachersListProps {
   onResetPassword: (teacher: TeacherDto) => void
   onDelete: (teacher: TeacherDto) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export function TeachersList({
@@ -62,13 +65,18 @@ export function TeachersList({
   onResetPassword,
   onDelete,
   onAdd,
+  pageIndex: controlledPageIndex,
+  pageSize = 10,
+  onPageChange: controlledOnPageChange,
 }: TeachersListProps) {
   const t = useTranslations("teachers")
   const locale = useLocale()
 
   const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
     data: teachers,
-    pageSize: 10,
+    pageSize,
+    pageIndex: controlledPageIndex,
+    onPageChange: controlledOnPageChange,
   })
 
   if (isLoading) {
@@ -219,11 +227,11 @@ export function TeachersList({
         })}
       </MobileList>
 
-      {teachers.length > 10 && (
+      {teachers.length > pageSize && (
         <div className="pt-4 pb-2">
           <DataPagination
             pageIndex={pageIndex}
-            pageSize={10}
+            pageSize={pageSize}
             totalItems={teachers.length}
             onPageChange={setPageIndex}
             compact

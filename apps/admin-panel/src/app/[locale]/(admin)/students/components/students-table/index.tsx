@@ -41,6 +41,10 @@ export function StudentsTable({
   onResetPassword,
   onAvailability,
   onAdd,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: StudentsTableProps) {
   const t = useTranslations("students")
   const locale = useLocale()
@@ -314,7 +318,11 @@ export function StudentsTable({
     <DataTable
       columns={columns}
       data={students}
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
       locale={locale}
       emptyMessage={t("table.empty")}
     />

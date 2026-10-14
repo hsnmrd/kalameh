@@ -28,6 +28,10 @@ export interface TermsTableProps {
   onDelete?: (term: TermDto) => void
   onAdd?: () => void
   onBatch?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function TermsTable({
@@ -38,6 +42,10 @@ export function TermsTable({
   onDelete,
   onAdd,
   onBatch,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: TermsTableProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
@@ -231,7 +239,11 @@ export function TermsTable({
     <DataTable
       columns={columns}
       data={terms}
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
       locale={locale}
     />
   )

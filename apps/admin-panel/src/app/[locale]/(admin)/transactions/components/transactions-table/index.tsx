@@ -22,12 +22,20 @@ export interface TransactionsTableProps {
   transactions: TransactionDto[] | undefined
   isLoading: boolean
   onReview: (transaction: TransactionDto) => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function TransactionsTable({
   transactions,
   isLoading,
   onReview,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: TransactionsTableProps) {
   const t = useTranslations("transactions")
   const locale = useLocale()
@@ -155,7 +163,11 @@ export function TransactionsTable({
     <DataTable
       columns={columns}
       data={transactions}
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
       locale={locale}
     />
   )

@@ -44,6 +44,10 @@ export interface ClassesTableProps {
   onDelete?: (cls: ClassDto) => void
   onAdd?: () => void
   onScheduling?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function ClassesTable({
@@ -54,6 +58,10 @@ export function ClassesTable({
   onDelete,
   onAdd,
   onScheduling,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: ClassesTableProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -327,7 +335,11 @@ export function ClassesTable({
     <DataTable
       columns={columns}
       data={classes}
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
       locale={locale}
       getRowClassName={(row) =>
         isClassDone(row.original)

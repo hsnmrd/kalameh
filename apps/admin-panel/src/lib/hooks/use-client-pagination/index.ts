@@ -6,6 +6,8 @@ export interface UseClientPaginationOptions<T> {
   data: T[] | undefined
   pageSize?: number
   initialPage?: number
+  pageIndex?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export interface UseClientPaginationResult<T> {
@@ -21,14 +23,33 @@ export function useClientPagination<T>({
   data,
   pageSize = 10,
   initialPage = 0,
+  pageIndex: controlledPageIndex,
+  onPageChange: controlledOnPageChange,
 }: UseClientPaginationOptions<T>): UseClientPaginationResult<T> {
-  const [pageIndexState, setPageIndex] = React.useState(initialPage)
+  const [internalPageIndex, setInternalPageIndex] = React.useState(initialPage)
+  const isControlled = controlledPageIndex !== undefined
 
   const totalItems = data?.length ?? 0
   const pageCount = Math.max(1, Math.ceil(totalItems / pageSize))
 
   // Derive clamped pageIndex during render to avoid setting state in an effect
-  const pageIndex = Math.min(pageIndexState, Math.max(0, pageCount - 1))
+  const rawPageIndex = isControlled ? controlledPageIndex : internalPageIndex
+  const pageIndex = Math.min(rawPageIndex, Math.max(0, pageCount - 1))
+
+  const setPageIndex = React.useCallback<
+    React.Dispatch<React.SetStateAction<number>>
+  >(
+    (action) => {
+      const nextIndex =
+        typeof action === "function" ? action(pageIndex) : action
+      if (isControlled) {
+        controlledOnPageChange?.(nextIndex)
+      } else {
+        setInternalPageIndex(nextIndex)
+      }
+    },
+    [isControlled, controlledOnPageChange, pageIndex]
+  )
 
   const paginatedData = React.useMemo(() => {
     if (!data) return []

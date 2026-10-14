@@ -30,6 +30,10 @@ export interface UsersTableProps {
   onResetPassword: (user: AuthUser) => void
   onDelete: (user: AuthUser) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function UsersTable({
@@ -40,6 +44,10 @@ export function UsersTable({
   onResetPassword,
   onDelete,
   onAdd,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: UsersTableProps) {
   const t = useTranslations("users")
   const locale = useLocale()
@@ -228,7 +236,11 @@ export function UsersTable({
     <DataTable
       columns={columns}
       data={users}
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
       locale={locale}
       emptyMessage={t("table.empty")}
     />

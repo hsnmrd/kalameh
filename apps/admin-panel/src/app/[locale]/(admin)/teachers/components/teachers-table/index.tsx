@@ -16,6 +16,10 @@ export interface TeachersTableProps {
   onResetPassword: (teacher: TeacherDto) => void
   onDelete: (teacher: TeacherDto) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function TeachersTable({
@@ -27,6 +31,10 @@ export function TeachersTable({
   onResetPassword,
   onDelete,
   onAdd,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: TeachersTableProps) {
   const locale = useLocale()
   const columns = useTeachersTableColumns({
@@ -53,7 +61,11 @@ export function TeachersTable({
     <DataTable
       columns={columns}
       data={teachers}
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
       locale={locale}
     />
   )

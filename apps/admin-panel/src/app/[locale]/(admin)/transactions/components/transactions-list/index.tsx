@@ -27,19 +27,27 @@ export interface TransactionsListProps {
   transactions: TransactionDto[] | undefined
   isLoading: boolean
   onReview: (transaction: TransactionDto) => void
+  pageIndex?: number
+  pageSize?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export function TransactionsList({
   transactions,
   isLoading,
   onReview,
+  pageIndex: controlledPageIndex,
+  pageSize = 10,
+  onPageChange: controlledOnPageChange,
 }: TransactionsListProps) {
   const t = useTranslations("transactions")
   const locale = useLocale()
 
   const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
     data: transactions,
-    pageSize: 10,
+    pageSize,
+    pageIndex: controlledPageIndex,
+    onPageChange: controlledOnPageChange,
   })
 
   if (isLoading) {
@@ -121,11 +129,11 @@ export function TransactionsList({
         ))}
       </MobileList>
 
-      {transactions.length > 10 && (
+      {transactions.length > pageSize && (
         <div className="pt-4 pb-2">
           <DataPagination
             pageIndex={pageIndex}
-            pageSize={10}
+            pageSize={pageSize}
             totalItems={transactions.length}
             onPageChange={setPageIndex}
             compact

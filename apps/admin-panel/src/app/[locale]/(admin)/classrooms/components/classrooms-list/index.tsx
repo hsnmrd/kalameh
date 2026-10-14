@@ -40,6 +40,9 @@ export interface ClassroomsListProps {
   onEdit: (classroom: ClassroomDto) => void
   onDelete: (classroom: ClassroomDto) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export function ClassroomsList({
@@ -48,13 +51,18 @@ export function ClassroomsList({
   onEdit,
   onDelete,
   onAdd,
+  pageIndex: controlledPageIndex,
+  pageSize = 10,
+  onPageChange: controlledOnPageChange,
 }: ClassroomsListProps) {
   const t = useTranslations("classrooms")
   const locale = useLocale()
 
   const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
     data: classrooms,
-    pageSize: 10,
+    pageSize,
+    pageIndex: controlledPageIndex,
+    onPageChange: controlledOnPageChange,
   })
 
   if (isLoading) {
@@ -162,11 +170,11 @@ export function ClassroomsList({
         ))}
       </MobileList>
 
-      {classrooms.length > 10 && (
+      {classrooms.length > pageSize && (
         <div className="pt-4 pb-2">
           <DataPagination
             pageIndex={pageIndex}
-            pageSize={10}
+            pageSize={pageSize}
             totalItems={classrooms.length}
             onPageChange={setPageIndex}
             compact

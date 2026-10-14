@@ -9,7 +9,7 @@ import type { AuthUser } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { usersResource, API_BASE_URL } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions, useModal } from "@/lib/hooks"
+import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
@@ -25,8 +25,16 @@ export default function UsersPage() {
   const locale = useLocale()
   const { openModal } = useModal()
 
-  const [searchValue, setSearchValue] = React.useState("")
-  const [selectedRole, setSelectedRole] = React.useState("ALL")
+  const { filters, setFilter, pageIndex, pageSize, setPageIndex, setPageSize } =
+    useUrlFilters({
+      defaultValues: {
+        searchValue: "",
+        selectedRole: "ALL",
+        page: 1,
+        pageSize: 10,
+      },
+      debounceKeys: ["searchValue"],
+    })
   const [isExporting, setIsExporting] = React.useState(false)
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
@@ -38,12 +46,14 @@ export default function UsersPage() {
     activeInstitute?.enabledModules?.includes(APP_MODULES.USERS_STAFF)
 
   const effectiveRoleFilter =
-    selectedRole && selectedRole !== "ALL" ? selectedRole : undefined
+    filters.selectedRole && filters.selectedRole !== "ALL"
+      ? filters.selectedRole
+      : undefined
 
   const { data: users, isLoading } = useQuery({
     ...usersResource.list.toQuery({
       role: effectiveRoleFilter,
-      search: searchValue.trim() || undefined,
+      search: filters.searchValue.trim() || undefined,
       instituteId: activeInstituteId,
     }),
     enabled: Boolean(activeInstituteId && hasModule),
@@ -58,7 +68,8 @@ export default function UsersPage() {
       const baseUrl = API_BASE_URL
       const queryParams = new URLSearchParams()
       if (effectiveRoleFilter) queryParams.set("role", effectiveRoleFilter)
-      if (searchValue.trim()) queryParams.set("search", searchValue.trim())
+      if (filters.searchValue.trim())
+        queryParams.set("search", filters.searchValue.trim())
       if (activeInstituteId) queryParams.set("instituteId", activeInstituteId)
 
       const url = `${baseUrl}/users/export-excel?${queryParams.toString()}`
@@ -114,10 +125,10 @@ export default function UsersPage() {
           }
           filter={
             <UsersFilter
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-              selectedRole={selectedRole}
-              onRoleChange={setSelectedRole}
+              searchValue={filters.searchValue}
+              onSearchChange={(search) => setFilter("searchValue", search)}
+              selectedRole={filters.selectedRole}
+              onRoleChange={(role) => setFilter("selectedRole", role)}
               onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
@@ -153,6 +164,10 @@ export default function UsersPage() {
               onResetPassword={handleResetPassword}
               onDelete={handleDelete}
               onAdd={handleCreate}
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              onPageIndexChange={setPageIndex}
+              onPageSizeChange={setPageSize}
             />
           </div>
 
@@ -166,6 +181,9 @@ export default function UsersPage() {
               onResetPassword={handleResetPassword}
               onDelete={handleDelete}
               onAdd={handleCreate}
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              onPageChange={setPageIndex}
             />
           </div>
         </AdminPageShell>

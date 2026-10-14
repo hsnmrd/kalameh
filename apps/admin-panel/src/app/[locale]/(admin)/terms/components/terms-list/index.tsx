@@ -38,6 +38,9 @@ export interface TermsListProps {
   onDelete?: (term: TermDto) => void
   onAdd?: () => void
   onBatch?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export function TermsList({
@@ -48,13 +51,18 @@ export function TermsList({
   onDelete,
   onAdd,
   onBatch,
+  pageIndex: controlledPageIndex,
+  pageSize = 10,
+  onPageChange: controlledOnPageChange,
 }: TermsListProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
 
   const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
     data: terms,
-    pageSize: 10,
+    pageSize,
+    pageIndex: controlledPageIndex,
+    onPageChange: controlledOnPageChange,
   })
 
   const formatDate = (dateVal: string | Date) => {
@@ -217,11 +225,11 @@ export function TermsList({
         })}
       </MobileList>
 
-      {terms.length > 10 && (
+      {terms.length > pageSize && (
         <div className="pt-4 pb-2">
           <DataPagination
             pageIndex={pageIndex}
-            pageSize={10}
+            pageSize={pageSize}
             totalItems={terms.length}
             onPageChange={setPageIndex}
             compact

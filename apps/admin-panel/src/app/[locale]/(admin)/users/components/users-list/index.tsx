@@ -42,6 +42,9 @@ export interface UsersListProps {
   onResetPassword: (user: AuthUser) => void
   onDelete: (user: AuthUser) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export function UsersList({
@@ -52,13 +55,18 @@ export function UsersList({
   onResetPassword,
   onDelete,
   onAdd,
+  pageIndex: controlledPageIndex,
+  pageSize = 10,
+  onPageChange: controlledOnPageChange,
 }: UsersListProps) {
   const t = useTranslations("users")
   const locale = useLocale()
 
   const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
     data: users,
-    pageSize: 10,
+    pageSize,
+    pageIndex: controlledPageIndex,
+    onPageChange: controlledOnPageChange,
   })
 
   if (isLoading) {
@@ -182,11 +190,11 @@ export function UsersList({
         })}
       </MobileList>
 
-      {users.length > 10 && (
+      {users.length > pageSize && (
         <div className="pt-4 pb-2">
           <DataPagination
             pageIndex={pageIndex}
-            pageSize={10}
+            pageSize={pageSize}
             totalItems={users.length}
             onPageChange={setPageIndex}
             compact

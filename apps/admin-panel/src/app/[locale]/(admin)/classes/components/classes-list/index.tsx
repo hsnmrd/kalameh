@@ -56,6 +56,9 @@ export interface ClassesListProps {
   onDelete?: (cls: ClassDto) => void
   onAdd?: () => void
   onScheduling?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export function ClassesList({
@@ -66,6 +69,9 @@ export function ClassesList({
   onDelete,
   onAdd,
   onScheduling,
+  pageIndex: controlledPageIndex,
+  pageSize = 10,
+  onPageChange: controlledOnPageChange,
 }: ClassesListProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
@@ -73,7 +79,9 @@ export function ClassesList({
 
   const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
     data: classes,
-    pageSize: 10,
+    pageSize,
+    pageIndex: controlledPageIndex,
+    onPageChange: controlledOnPageChange,
   })
 
   if (isLoading) {
@@ -271,11 +279,11 @@ export function ClassesList({
         })}
       </MobileList>
 
-      {classes.length > 10 && (
+      {classes.length > pageSize && (
         <div className="pt-4 pb-2">
           <DataPagination
             pageIndex={pageIndex}
-            pageSize={10}
+            pageSize={pageSize}
             totalItems={classes.length}
             onPageChange={setPageIndex}
             compact

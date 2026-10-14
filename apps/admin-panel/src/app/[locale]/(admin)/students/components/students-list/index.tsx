@@ -53,6 +53,9 @@ export interface StudentsListProps {
   onResetPassword: (student: StudentDto) => void
   onAvailability?: (student: StudentDto) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export function StudentsList({
@@ -64,13 +67,18 @@ export function StudentsList({
   onResetPassword,
   onAvailability,
   onAdd,
+  pageIndex: controlledPageIndex,
+  pageSize = 10,
+  onPageChange: controlledOnPageChange,
 }: StudentsListProps) {
   const t = useTranslations("students")
   const locale = useLocale()
 
   const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
     data: students,
-    pageSize: 10,
+    pageSize,
+    pageIndex: controlledPageIndex,
+    onPageChange: controlledOnPageChange,
   })
 
   if (isLoading) {
@@ -275,11 +283,11 @@ export function StudentsList({
         })}
       </MobileList>
 
-      {students.length > 10 && (
+      {students.length > pageSize && (
         <div className="pt-4 pb-2">
           <DataPagination
             pageIndex={pageIndex}
-            pageSize={10}
+            pageSize={pageSize}
             totalItems={students.length}
             onPageChange={setPageIndex}
             compact

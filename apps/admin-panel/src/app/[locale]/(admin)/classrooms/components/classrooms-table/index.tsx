@@ -26,6 +26,10 @@ export interface ClassroomsTableProps {
   onEdit: (classroom: ClassroomDto) => void
   onDelete: (classroom: ClassroomDto) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function ClassroomsTable({
@@ -34,6 +38,10 @@ export function ClassroomsTable({
   onEdit,
   onDelete,
   onAdd,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: ClassroomsTableProps) {
   const t = useTranslations("classrooms")
   const locale = useLocale()
@@ -181,7 +189,11 @@ export function ClassroomsTable({
     <DataTable
       columns={columns}
       data={classrooms}
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
       locale={locale}
     />
   )

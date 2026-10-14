@@ -11,14 +11,13 @@ import {
 } from "@workspace/types"
 import { classesResource, termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions, useModal } from "@/lib/hooks"
+import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
 import { useRouter } from "@/i18n/routing"
-import { useSearchParams } from "next/navigation"
 import { ClassesFilter } from "./components/classes-filter"
 import { ClassesTable } from "./components/classes-table"
 import { ClassesList } from "./components/classes-list"
@@ -26,8 +25,6 @@ import { ClassesFabDrawer } from "./components/classes-fab-drawer"
 
 export default function ClassesPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const initialTermParam = searchParams?.get("termId")
   const { openModal } = useModal()
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -37,25 +34,26 @@ export default function ClassesPage() {
     isSuperAdmin ||
     activeInstitute?.enabledModules?.includes(APP_MODULES.CLASSES_COURSES)
 
-  // Track explicit user selection. If null, automatically falls back to current active term.
-  const [userSelectedTermId, setUserSelectedTermId] = React.useState<
-    string | null
-  >(
-    initialTermParam !== null && initialTermParam !== undefined
-      ? initialTermParam
-      : null
-  )
-  const [courseId, setCourseId] = React.useState("")
-  const [search, setSearch] = React.useState("")
+  const { filters, setFilter, pageIndex, pageSize, setPageIndex, setPageSize } =
+    useUrlFilters({
+      defaultValues: {
+        search: "",
+        termId: "",
+        courseId: "",
+        page: 1,
+        pageSize: 10,
+      },
+      debounceKeys: ["search"],
+    })
 
   // Reset user selection when active institute changes so the new institute's active term is used
   const prevInstituteIdRef = React.useRef(activeInstituteId)
   React.useEffect(() => {
     if (prevInstituteIdRef.current !== activeInstituteId) {
       prevInstituteIdRef.current = activeInstituteId
-      setUserSelectedTermId(null)
+      setFilter("termId", "")
     }
-  }, [activeInstituteId])
+  }, [activeInstituteId, setFilter])
 
   const { data: terms, isLoading: isLoadingTerms } = useQuery({
     ...termsResource.list.toQuery(
@@ -69,22 +67,22 @@ export default function ClassesPage() {
   }, [terms])
 
   const effectiveTermId = React.useMemo(() => {
-    if (userSelectedTermId !== null) {
-      return userSelectedTermId === "all" ? "" : userSelectedTermId
+    if (filters.termId) {
+      return filters.termId === "all" ? "" : filters.termId
     }
     return currentActiveTerm?.id ?? ""
-  }, [userSelectedTermId, currentActiveTerm])
+  }, [filters.termId, currentActiveTerm])
 
   // When no explicit term filter is set yet, wait for terms query to discover the active term
   // to avoid a wasteful initial request that fetches all classes across all terms.
-  const isWaitingForDefaultTerm = userSelectedTermId === null && isLoadingTerms
+  const isWaitingForDefaultTerm = !filters.termId && isLoadingTerms
 
   const { data: classes, isLoading: isLoadingClasses } = useQuery({
     ...classesResource.list.toQuery({
       instituteId: activeInstituteId,
       termId: effectiveTermId || undefined,
-      courseId: courseId || undefined,
-      search: search || undefined,
+      courseId: filters.courseId || undefined,
+      search: filters.search || undefined,
     }),
     enabled: Boolean(
       activeInstituteId && hasModule && !isWaitingForDefaultTerm
@@ -108,11 +106,11 @@ export default function ClassesPage() {
           filter={
             <ClassesFilter
               termId={effectiveTermId}
-              onTermChange={setUserSelectedTermId}
-              courseId={courseId}
-              onCourseChange={setCourseId}
-              search={search}
-              onSearchChange={setSearch}
+              onTermChange={(termId) => setFilter("termId", termId)}
+              courseId={filters.courseId}
+              onCourseChange={(courseId) => setFilter("courseId", courseId)}
+              search={filters.search}
+              onSearchChange={(search) => setFilter("search", search)}
               onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
@@ -139,6 +137,10 @@ export default function ClassesPage() {
               onDelete={handleDelete}
               onAdd={handleCreate}
               onScheduling={handleScheduling}
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              onPageIndexChange={setPageIndex}
+              onPageSizeChange={setPageSize}
             />
           </div>
 
@@ -152,6 +154,9 @@ export default function ClassesPage() {
               onDelete={handleDelete}
               onAdd={handleCreate}
               onScheduling={handleScheduling}
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              onPageChange={setPageIndex}
             />
           </div>
         </AdminPageShell>
