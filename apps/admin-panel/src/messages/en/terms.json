@@ -134,7 +134,7 @@
     "editConfig": "Edit Settings",
     "dateShiftHint": "You can adjust the start date of any term. The end date and all subsequent terms will be automatically recalculated and shifted.",
     "previewButton": "Preview",
-    "previewing": "Generating preview...",
+    "previewing": "Generating...",
     "previewTitle": "Proposed Terms to Create ({count} terms)",
     "carouselTitle": "Proposed Terms",
     "colNumber": "#",
