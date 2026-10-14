@@ -49,6 +49,12 @@ export class CoursesService {
             title: true,
           },
         },
+        book: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
         _count: { select: { classes: true } },
       },
       orderBy: { title: 'asc' },
@@ -75,6 +81,12 @@ export class CoursesService {
       },
       include: {
         prerequisite: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        book: {
           select: {
             id: true,
             title: true,
@@ -125,15 +137,32 @@ export class CoursesService {
       });
     }
 
+    // Verify book exists in same institute if provided
+    if (dto.bookId) {
+      await this.prisma.book.findFirstOrThrow({
+        where: {
+          id: dto.bookId,
+          instituteId,
+        },
+      });
+    }
+
     const created = await this.prisma.course.create({
       data: {
         instituteId,
         title: dto.title,
         baseFee: dto.baseFee,
         prerequisiteId: dto.prerequisiteId || null,
+        bookId: dto.bookId || null,
       },
       include: {
         prerequisite: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        book: {
           select: {
             id: true,
             title: true,
@@ -244,9 +273,16 @@ export class CoursesService {
         ...(dto.prerequisiteId !== undefined
           ? { prerequisiteId: dto.prerequisiteId || null }
           : {}),
+        ...(dto.bookId !== undefined ? { bookId: dto.bookId || null } : {}),
       },
       include: {
         prerequisite: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        book: {
           select: {
             id: true,
             title: true,

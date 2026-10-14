@@ -22,15 +22,24 @@
   "createModal": {
     "title": "تعریف سطح آموزشی جدید",
     "description": "مشخصات سطح آموزشی و دوره پیش‌نیاز آن را مشخص کنید.",
+    "modeSingle": "تعریف تکی دوره",
+    "modeFromBook": "ایجاد خودکار از روی کتاب",
     "courseTitle": "عنوان سطح (مثلاً: Top Notch 1A)",
     "titlePlaceholder": "مثلاً: Top Notch 1A",
+    "book": "کتاب مرتبط (اختیاری)",
+    "selectBook": "انتخاب کتاب",
+    "termsCount": "تعداد ترم‌های تدریس این کتاب",
+    "termsCountPlaceholder": "مثال: ۳",
+    "previewTitle": "دوره‌هایی که به صورت خودکار ایجاد خواهند شد:",
     "baseFee": "شهریه مصوب پایه",
     "feePlaceholder": "1,000,000",
     "prerequisite": "سطح پیش‌نیاز",
     "none": "بدون پیش‌نیاز (سطح مقدماتی)",
     "submit": "ثبت دوره",
+    "submitFromBook": "ایجاد همه دوره‌ها",
     "cancel": "انصراف",
-    "success": "سطح آموزشی با موفقیت ایجاد شد."
+    "success": "سطح آموزشی با موفقیت ایجاد شد.",
+    "successFromBook": "دوره‌های آموزشی بر اساس کتاب با موفقیت ایجاد شدند."
   },
   "editModal": {
     "title": "ویرایش سطح آموزشی",

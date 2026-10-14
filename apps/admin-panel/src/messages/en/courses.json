@@ -22,15 +22,24 @@
   "createModal": {
     "title": "Create Course Level",
     "description": "Enter the course details and select its prerequisite level.",
+    "modeSingle": "Single Course",
+    "modeFromBook": "Generate from Book",
     "courseTitle": "Course Title (e.g. Top Notch 1A)",
     "titlePlaceholder": "e.g. Top Notch 1A",
+    "book": "Linked Book (Optional)",
+    "selectBook": "Select Book",
+    "termsCount": "Number of Terms to Teach This Book",
+    "termsCountPlaceholder": "e.g. 3",
+    "previewTitle": "Courses that will be automatically created:",
     "baseFee": "Base Tuition Fee",
     "feePlaceholder": "1,000,000",
     "prerequisite": "Prerequisite Level",
     "none": "No Prerequisite (Entry Level)",
     "submit": "Create Course",
+    "submitFromBook": "Generate All Courses",
     "cancel": "Cancel",
-    "success": "Course level created successfully."
+    "success": "Course level created successfully.",
+    "successFromBook": "Courses generated successfully based on book."
   },
   "editModal": {
     "title": "Edit Course Level",

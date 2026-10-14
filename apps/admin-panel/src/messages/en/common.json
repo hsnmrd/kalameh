@@ -15,6 +15,7 @@
     "terms": "Terms & Cycles",
     "generatePhaseTerms": "Automatic Term Generation",
     "reviewPhaseTerms": "Review and Adjust Term Dates",
+    "books": "Books",
     "courses": "Courses Management",
     "classrooms": "Classrooms",
     "teachers": "Teachers Management",
@@ -53,6 +54,7 @@
     "classrooms": "Rooms",
     "branches": "Branches",
     "terms": "Terms",
+    "books": "Books",
     "courses": "Courses",
     "operatingPhases": "Phases",
     "offDays": "Calendar",
@@ -167,6 +169,10 @@
       "ONLINE_ROOMS": {
         "name": "Online Classrooms",
         "description": "Virtual classrooms, webinars, and live session rooms"
+      },
+      "BOOKS": {
+        "name": "Books & Materials",
+        "description": "Manage textbooks and automatically generate courses from books"
       }
     }
   },

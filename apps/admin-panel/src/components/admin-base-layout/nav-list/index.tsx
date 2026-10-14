@@ -22,6 +22,7 @@ export type NavItemKey =
   | "classrooms"
   | "branches"
   | "terms"
+  | "books"
   | "courses"
   | "teachers"
   | "students"

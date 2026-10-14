@@ -330,9 +330,69 @@ async function main() {
     console.warn("⚠️ Cleanup note:", err)
   }
 
-  // 6. Seed Courses (AME 1-1 to AME 5-5)
+  // 6. Seed Books
+  console.log("📖 Seeding Books...")
+  const booksToSeed = [
+    {
+      id: "00000000-0000-0000-0000-000000000b01",
+      title: "American English File 1",
+      author: "Christina Latham-Koenig, Clive Oxenden",
+      publisher: "Oxford University Press",
+      description: "دوره جامع آموزش زبان انگلیسی سطح مبتدی تا متوسط",
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000b02",
+      title: "American English File 2",
+      author: "Christina Latham-Koenig, Clive Oxenden",
+      publisher: "Oxford University Press",
+      description: "دوره جامع آموزش زبان انگلیسی سطح متوسط",
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000b03",
+      title: "Family and Friends 1",
+      author: "Naomi Simmons",
+      publisher: "Oxford University Press",
+      description: "آموزش زبان انگلیسی کودکان سطح ۱",
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000b04",
+      title: "Touchstone 1",
+      author: "Michael McCarthy, Jeanne McCarten",
+      publisher: "Cambridge University Press",
+      description: "آموزش مکالمه زبان انگلیسی سطح مبتدی",
+    },
+  ]
+
+  for (const b of booksToSeed) {
+    await prisma.book.upsert({
+      where: { id: b.id },
+      update: {
+        title: b.title,
+        author: b.author,
+        publisher: b.publisher,
+        description: b.description,
+        instituteId: institute.id,
+      },
+      create: {
+        id: b.id,
+        title: b.title,
+        author: b.author,
+        publisher: b.publisher,
+        description: b.description,
+        instituteId: institute.id,
+      },
+    })
+  }
+  console.log(`✅ ${booksToSeed.length} Books seeded`)
+
+  // 6.1. Seed Courses (AME 1-1 to AME 5-5)
   console.log("📚 Seeding Courses...")
-  const coursesToSeed: { id: string; title: string; baseFee: number }[] = []
+  const coursesToSeed: {
+    id: string
+    title: string
+    baseFee: number
+    bookId?: string | null
+  }[] = []
 
   for (let level = 1; level <= 5; level++) {
     const partsCount = level === 5 ? 5 : 4
@@ -340,7 +400,13 @@ async function main() {
       const id = `00000000-0000-0000-0000-000000000${level}0${part}`
       const title = `AME ${level}-${part}`
       const baseFee = 1500000 + (level - 1) * 100000
-      coursesToSeed.push({ id, title, baseFee })
+      const bookId =
+        level === 1
+          ? "00000000-0000-0000-0000-000000000b01"
+          : level === 2
+            ? "00000000-0000-0000-0000-000000000b02"
+            : null
+      coursesToSeed.push({ id, title, baseFee, bookId })
     }
   }
 
@@ -364,6 +430,7 @@ async function main() {
         baseFee: c.baseFee,
         instituteId: institute.id,
         prerequisiteId,
+        bookId: c.bookId ?? null,
       },
       create: {
         id: c.id,
@@ -371,6 +438,7 @@ async function main() {
         baseFee: c.baseFee,
         instituteId: institute.id,
         prerequisiteId,
+        bookId: c.bookId ?? null,
       },
     })
   }

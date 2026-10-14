@@ -23,6 +23,7 @@ import schedulingMessagesFa from "../messages/fa/scheduling.json"
 import operatingPhasesMessagesFa from "../messages/fa/operating-phases.json"
 import dashboardMessagesFa from "../messages/fa/dashboard.json"
 import settingMessagesFa from "../messages/fa/setting.json"
+import booksMessagesFa from "../messages/fa/books.json"
 
 const defaultMessages = {
   auth: authMessagesFa,
@@ -31,6 +32,7 @@ const defaultMessages = {
   common: commonMessagesFa,
   terms: termsMessagesFa,
   branches: branchesMessagesFa,
+  books: booksMessagesFa,
   courses: coursesMessagesFa,
   classes: classesMessagesFa,
   classrooms: classroomsMessagesFa,

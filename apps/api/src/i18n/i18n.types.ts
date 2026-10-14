@@ -75,6 +75,14 @@ export interface TranslationDictionary {
     cannotCreatePastTerm: string;
     pastMonthsNotAllowed: string;
   };
+  books: {
+    bookNotFound: string;
+    bookAlreadyExists: string;
+    cannotDeleteWithCourses: string;
+    coursesGeneratedSuccess: string;
+    partLabel: string;
+    termLabel: string;
+  };
   courses: {
     courseNotFound: string;
     courseAlreadyExists: string;

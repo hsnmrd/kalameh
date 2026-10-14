@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "../../../../../../../test/test-utils"
 import { ModulesSelector } from "../index"
-import { APP_MODULES } from "@workspace/types"
+import { APP_MODULES, ALL_APP_MODULES } from "@workspace/types"
 
 describe("ModulesSelector Component", () => {
   it("should render all plan presets and modules", () => {
@@ -84,6 +84,6 @@ describe("ModulesSelector Component", () => {
       .filter(
         (btn) => btn !== starterBtn && btn !== proBtn && btn !== enterpriseBtn
       )
-    expect(moduleButtons.length).toBe(8)
+    expect(moduleButtons.length).toBe(ALL_APP_MODULES.length)
   })
 })

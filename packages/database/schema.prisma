@@ -47,6 +47,7 @@ model Institute {
   schedulingUnresolvedItems   SchedulingUnresolvedRequirement[]
   operatingPhases             InstituteOperatingPhase[]
   customOffDays               InstituteCustomOffDay[]
+  books                       Book[]
 }
 
 model Branch {
@@ -262,11 +263,15 @@ model Course {
   classRequirements   ClassRequirement[]
   schedulingProposals SchedulingProposal[]
 
+  bookId String?
+  book   Book?   @relation(fields: [bookId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
   @@index([prerequisiteId])
+  @@index([bookId])
 }
 
 model TeacherCourseQualification {
@@ -743,4 +748,24 @@ model InstituteCustomOffDay {
   @@unique([instituteId, date])
   @@index([instituteId])
   @@index([instituteId, date])
+}
+
+model Book {
+  id          String  @id @default(uuid())
+  instituteId String
+  title       String
+  author      String?
+  publisher   String?
+  description String?
+  coverUrl    String?
+  isActive    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  courses   Course[]
+
+  @@unique([title, instituteId])
+  @@index([instituteId])
 }

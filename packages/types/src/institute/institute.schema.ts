@@ -9,6 +9,7 @@ export const APP_MODULES = {
   ATTENDANCE: "ATTENDANCE",
   SMS_NOTIFICATIONS: "SMS_NOTIFICATIONS",
   ONLINE_ROOMS: "ONLINE_ROOMS",
+  BOOKS: "BOOKS",
 } as const
 
 export type AppModule = (typeof APP_MODULES)[keyof typeof APP_MODULES]
@@ -22,12 +23,14 @@ export const ALL_APP_MODULES: readonly AppModule[] = [
   APP_MODULES.ATTENDANCE,
   APP_MODULES.SMS_NOTIFICATIONS,
   APP_MODULES.ONLINE_ROOMS,
+  APP_MODULES.BOOKS,
 ]
 
 export const DEFAULT_ENABLED_MODULES: readonly AppModule[] = [
   APP_MODULES.USERS_STAFF,
   APP_MODULES.STUDENTS,
   APP_MODULES.CLASSES_COURSES,
+  APP_MODULES.BOOKS,
 ]
 
 export const InstituteSchema = z.object({

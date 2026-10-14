@@ -16,6 +16,7 @@ import {
   Sparkles,
   Building2,
   Crown,
+  BookOpen,
 } from "lucide-react"
 import { APP_MODULES, ALL_APP_MODULES, type AppModule } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
@@ -41,6 +42,7 @@ const MODULE_ICONS: Record<
   [APP_MODULES.ATTENDANCE]: CalendarCheck,
   [APP_MODULES.SMS_NOTIFICATIONS]: MessageSquare,
   [APP_MODULES.ONLINE_ROOMS]: Video,
+  [APP_MODULES.BOOKS]: BookOpen,
 }
 
 const PRESET_STARTER: AppModule[] = [
@@ -53,6 +55,7 @@ const PRESET_PRO: AppModule[] = [
   APP_MODULES.USERS_STAFF,
   APP_MODULES.STUDENTS,
   APP_MODULES.CLASSES_COURSES,
+  APP_MODULES.BOOKS,
   APP_MODULES.GRADES_ASSESSMENTS,
   APP_MODULES.ATTENDANCE,
   APP_MODULES.SMS_NOTIFICATIONS,

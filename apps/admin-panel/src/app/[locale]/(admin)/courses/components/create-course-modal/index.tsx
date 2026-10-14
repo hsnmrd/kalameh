@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { useForm, Controller } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
@@ -15,17 +15,19 @@ import {
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { PriceInput } from "@workspace/ui/components/price-input"
-import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
-import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { coursesResource } from "@/lib/api"
+import { coursesResource, booksResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import {
   useCreateCourseSchema,
   type CreateCourseInput,
 } from "../../hooks/use-course-schemas"
+import {
+  useGenerateCoursesFromBookSchema,
+  type GenerateCoursesFromBookInput,
+} from "../../../books/hooks/use-book-schemas"
+import { SingleCourseForm } from "./single-course-form"
+import { FromBookForm } from "./from-book-form"
 
 export interface CreateCourseModalProps {
   open: boolean
@@ -36,49 +38,81 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
   const t = useTranslations("courses")
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
+
+  const [mode, setMode] = React.useState<"single" | "fromBook">("single")
+
   const createCourseSchema = useCreateCourseSchema()
+  const generateSchema = useGenerateCoursesFromBookSchema()
 
-  const queryParams = activeInstituteId
-    ? { instituteId: activeInstituteId }
-    : undefined
-
-  const {
-    data: prerequisiteOptions = [
-      { value: "none", label: t("createModal.none") },
-    ],
-  } = useQuery({
-    ...coursesResource.list.toQuery(queryParams),
+  // Courses list for prerequisites
+  const { data: allCourses = [] } = useQuery({
+    ...coursesResource.list.toQuery({ instituteId: activeInstituteId }),
     enabled: open && !!activeInstituteId,
-    select: (courses) => [
-      { value: "none", label: t("createModal.none") },
-      ...courses.map((c) => ({ value: c.id, label: c.title })),
-    ],
   })
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm<CreateCourseInput>({
+  // Books list for selection
+  const { data: allBooks = [] } = useQuery({
+    ...booksResource.list.toQuery({ instituteId: activeInstituteId }),
+    enabled: open && !!activeInstituteId,
+  })
+
+  const prerequisiteOptions = React.useMemo(
+    () => [
+      { value: "none", label: t("createModal.none") },
+      ...allCourses.map((c) => ({ value: c.id, label: c.title })),
+    ],
+    [allCourses, t]
+  )
+
+  const bookOptions = React.useMemo(
+    () => [
+      { value: "none", label: t("createModal.none") },
+      ...allBooks.map((b) => ({ value: b.id, label: b.title })),
+    ],
+    [allBooks, t]
+  )
+
+  // Form 1: Single Course Form
+  const singleForm = useForm<CreateCourseInput>({
     resolver: zodResolver(createCourseSchema),
     defaultValues: {
       title: "",
       baseFee: 1500000,
       prerequisiteId: null,
+      bookId: null,
+    },
+  })
+
+  // Form 2: From Book Form
+  const fromBookForm = useForm<GenerateCoursesFromBookInput>({
+    resolver: zodResolver(generateSchema),
+    defaultValues: {
+      bookId: "",
+      termsCount: 3,
+      baseFee: 1500000,
+      startingPrerequisiteId: null,
+      namingFormat: "PART",
     },
   })
 
   React.useEffect(() => {
     if (open) {
-      reset({
+      setMode("single")
+      singleForm.reset({
         title: "",
         baseFee: 1500000,
         prerequisiteId: null,
+        bookId: null,
+      })
+      fromBookForm.reset({
+        bookId: allBooks[0]?.id || "",
+        termsCount: 3,
+        baseFee: 1500000,
+        startingPrerequisiteId: null,
+        namingFormat: "PART",
       })
     }
-  }, [open, reset])
+  }, [open, allBooks, singleForm, fromBookForm])
 
   const createMutation = useMutation({
     ...coursesResource.create.toMutation(),
@@ -91,14 +125,50 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
     },
   })
 
-  const onSubmit = (values: CreateCourseInput) => {
+  const generateMutation = useMutation({
+    ...booksResource.generateCourses.toMutation(),
+    onSuccess: () => {
+      toast.success(t("createModal.successFromBook"))
+      queryClient.invalidateQueries({
+        queryKey: coursesResource.list.baseKey(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: booksResource.list.baseKey(),
+      })
+      onClose()
+    },
+  })
+
+  const onSingleSubmit = (values: CreateCourseInput) => {
     createMutation.mutate({
       ...values,
       prerequisiteId:
         values.prerequisiteId === "none" || !values.prerequisiteId
           ? null
           : values.prerequisiteId,
+      bookId: values.bookId === "none" || !values.bookId ? null : values.bookId,
       instituteId: activeInstituteId || undefined,
+    })
+  }
+
+  const onFromBookSubmit = (values: GenerateCoursesFromBookInput) => {
+    if (!values.bookId) {
+      toast.error(t("createModal.selectBook"))
+      return
+    }
+
+    generateMutation.mutate({
+      id: values.bookId,
+      body: {
+        ...values,
+        termsCount: Number(values.termsCount),
+        startingPrerequisiteId:
+          values.startingPrerequisiteId === "none" ||
+          !values.startingPrerequisiteId
+            ? null
+            : values.startingPrerequisiteId,
+        instituteId: activeInstituteId || undefined,
+      },
     })
   }
 
@@ -108,86 +178,114 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
     }
   }
 
+  const isPending = createMutation.isPending || generateMutation.isPending
+
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="sm:max-w-md">
+      <FormDialogContent className="sm:max-w-lg">
         <FormDialogHeader>
           <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
         </FormDialogHeader>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
-        >
-          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-            <Field data-invalid={Boolean(errors.title)}>
-              <FieldLabel>{t("createModal.courseTitle")}</FieldLabel>
-              <Input
-                {...register("title")}
-                placeholder={t("createModal.titlePlaceholder")}
-              />
-              <FieldError>{errors.title?.message}</FieldError>
-            </Field>
-
-            <Field data-invalid={Boolean(errors.baseFee)}>
-              <FieldLabel>{t("createModal.baseFee")}</FieldLabel>
-              <Controller
-                control={control}
-                name="baseFee"
-                render={({ field }) => (
-                  <PriceInput
-                    value={field.value}
-                    onValueChange={(val) => field.onChange(val ?? 0)}
-                    placeholder={t("createModal.feePlaceholder")}
-                  />
-                )}
-              />
-              <FieldError>{errors.baseFee?.message}</FieldError>
-            </Field>
-
-            <Field>
-              <FieldLabel>{t("createModal.prerequisite")}</FieldLabel>
-              <Controller
-                control={control}
-                name="prerequisiteId"
-                render={({ field }) => (
-                  <ResponsiveCombobox
-                    items={prerequisiteOptions}
-                    value={field.value || "none"}
-                    onValueChange={(val) =>
-                      field.onChange(val === "none" ? null : val)
-                    }
-                    placeholder={t("createModal.none")}
-                    drawerTitle={t("createModal.prerequisite")}
-                    className="w-full"
-                  />
-                )}
-              />
-            </Field>
+        {/* Mode Switcher Tabs */}
+        {allBooks.length > 0 && (
+          <div className="border-b border-border/60 px-4 pt-3 sm:px-6">
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1">
+              <Button
+                type="button"
+                variant={mode === "single" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setMode("single")}
+                className="h-9 rounded-lg text-xs font-semibold"
+              >
+                {t("createModal.modeSingle")}
+              </Button>
+              <Button
+                type="button"
+                variant={mode === "fromBook" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setMode("fromBook")}
+                className="h-9 rounded-lg text-xs font-semibold"
+              >
+                {t("createModal.modeFromBook")}
+              </Button>
+            </div>
           </div>
+        )}
 
-          <FormDialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="h-14 min-w-24 rounded-2xl px-6 text-base font-medium"
-            >
-              {t("createModal.cancel")}
-            </Button>
-            <Button
-              type="submit"
-              disabled={createMutation.isPending}
-              className="h-14 min-w-32 rounded-2xl bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              {createMutation.isPending && (
-                <Spinner className="me-2 size-5 text-primary-foreground" />
-              )}
-              {t("createModal.submit")}
-            </Button>
-          </FormDialogFooter>
-        </form>
+        {mode === "single" ? (
+          <form
+            onSubmit={singleForm.handleSubmit(onSingleSubmit)}
+            className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
+          >
+            <SingleCourseForm
+              register={singleForm.register}
+              control={singleForm.control}
+              errors={singleForm.formState.errors}
+              prerequisiteOptions={prerequisiteOptions}
+              bookOptions={bookOptions}
+            />
+
+            <FormDialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isPending}
+              >
+                {t("createModal.cancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {createMutation.isPending && (
+                  <Spinner className="me-2 size-5 text-primary-foreground" />
+                )}
+                {t("createModal.submit")}
+              </Button>
+            </FormDialogFooter>
+          </form>
+        ) : (
+          <form
+            onSubmit={fromBookForm.handleSubmit(onFromBookSubmit)}
+            className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
+          >
+            <FromBookForm
+              register={fromBookForm.register}
+              control={fromBookForm.control}
+              errors={fromBookForm.formState.errors}
+              books={allBooks}
+              courses={allCourses}
+              selectedBookId={fromBookForm.watch("bookId")}
+              termsCount={fromBookForm.watch("termsCount")}
+              startingPrereqId={fromBookForm.watch("startingPrerequisiteId")}
+            />
+
+            <FormDialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isPending}
+              >
+                {t("createModal.cancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {generateMutation.isPending && (
+                  <Spinner className="me-2 size-5 text-primary-foreground" />
+                )}
+                {t("createModal.submitFromBook")}
+              </Button>
+            </FormDialogFooter>
+          </form>
+        )}
       </FormDialogContent>
     </FormDialog>
   )

@@ -107,6 +107,16 @@ export const en: TranslationDictionary = {
     pastMonthsNotAllowed:
       'Cannot generate terms for past months. All months of this phase are in the past',
   },
+  books: {
+    bookNotFound: 'Requested book was not found',
+    bookAlreadyExists:
+      'A book with this title already exists in this institute',
+    cannotDeleteWithCourses:
+      'This book has associated courses and cannot be deleted',
+    coursesGeneratedSuccess: 'Courses generated successfully from book',
+    partLabel: 'Part',
+    termLabel: 'Term',
+  },
   courses: {
     courseNotFound: 'Requested course was not found',
     courseAlreadyExists:

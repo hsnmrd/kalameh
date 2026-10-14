@@ -98,6 +98,15 @@ export const fa: TranslationDictionary = {
     pastMonthsNotAllowed:
       'امکان ساخت ترم برای ماه‌های گذشته وجود ندارد. تمام ماه‌های این فاز در گذشته قرار دارند',
   },
+  books: {
+    bookNotFound: 'کتاب مورد نظر یافت نشد',
+    bookAlreadyExists: 'کتابی با این عنوان قبلاً در آموزشگاه ثبت شده است',
+    cannotDeleteWithCourses:
+      'این کتاب دارای دوره‌های وابسته است و نمی‌تواند حذف شود',
+    coursesGeneratedSuccess: 'دوره‌های کتاب با موفقیت ایجاد شدند',
+    partLabel: 'بخش',
+    termLabel: 'ترم',
+  },
   courses: {
     courseNotFound: 'سطح/دوره آموزشی مورد نظر یافت نشد',
     courseAlreadyExists: 'سطحی با این عنوان قبلاً در آموزشگاه ثبت شده است',

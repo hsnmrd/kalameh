@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { InstitutesModule } from './institutes/institutes.module';
 import { BranchesModule } from './branches/branches.module';
 import { TermsModule } from './terms/terms.module';
+import { BooksModule } from './books/books.module';
 import { CoursesModule } from './courses/courses.module';
 import { ClassesModule } from './classes/classes.module';
 import { ClassroomsModule } from './classrooms/classrooms.module';
@@ -39,6 +40,7 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
     InstitutesModule,
     BranchesModule,
     TermsModule,
+    BooksModule,
     CoursesModule,
     ClassesModule,
     ClassroomsModule,

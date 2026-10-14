@@ -63,6 +63,9 @@ function getPageTitle(
   if (pathname.startsWith("/terms")) {
     return t("nav.terms")
   }
+  if (pathname.startsWith("/books")) {
+    return t("nav.books")
+  }
   if (pathname.startsWith("/courses")) {
     return t("nav.courses")
   }
