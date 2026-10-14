@@ -6,6 +6,9 @@
   "emptyDescription": "هنوز هیچ کتابی ثبت نشده است. با افزودن کتاب، می‌توانید دوره‌ها را بر اساس آن به صورت خودکار ایجاد کنید.",
   "statusActive": "فعال",
   "statusInactive": "غیرفعال",
+  "catalogGlobal": "کاتالوگ سامانه",
+  "catalogCustom": "اختصاصی آموزشگاه",
+  "globalBookBadge": "سراسری",
   "columns": {
     "title": "عنوان کتاب",
     "author": "نویسنده",

@@ -77,4 +77,33 @@ describe("BooksTable Component", () => {
     expect(screen.getByText("Christina Latham-Koenig")).toBeInTheDocument()
     expect(screen.getByText("Oxford University Press")).toBeInTheDocument()
   })
+
+  it("should render global badge for books without instituteId", () => {
+    const globalBook: BookDto = {
+      id: "global-1",
+      instituteId: null,
+      isGlobal: true,
+      title: "English File Beginner",
+      author: null,
+      publisher: null,
+      description: null,
+      coverUrl: null,
+      isActive: true,
+      coursesCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    render(
+      <BooksTable
+        books={[globalBook]}
+        isLoading={false}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onGenerateCourses={vi.fn()}
+        onAdd={vi.fn()}
+      />
+    )
+    expect(screen.getByText("English File Beginner")).toBeInTheDocument()
+    expect(screen.getByText("سراسری")).toBeInTheDocument()
+  })
 })

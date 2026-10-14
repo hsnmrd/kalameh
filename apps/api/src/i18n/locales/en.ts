@@ -110,9 +110,11 @@ export const en: TranslationDictionary = {
   books: {
     bookNotFound: 'Requested book was not found',
     bookAlreadyExists:
-      'A book with this title already exists in this institute',
+      'A book with this title already exists in the catalog or institute',
     cannotDeleteWithCourses:
       'This book has associated courses and cannot be deleted',
+    cannotModifyGlobalBook: 'Global master catalog books cannot be modified',
+    cannotDeleteGlobalBook: 'Global master catalog books cannot be deleted',
     coursesGeneratedSuccess: 'Courses generated successfully from book',
     partLabel: 'Part',
     termLabel: 'Term',

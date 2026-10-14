@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { BooksService } from './books.service';
 import { BookCoursesService } from './book-courses.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -72,9 +76,12 @@ describe('BooksService', () => {
       const result = await service.findAll(mockAdmin);
       expect(result).toHaveLength(1);
       expect(result[0].coursesCount).toBe(3);
+      expect(result[0].isGlobal).toBe(false);
       expect(prismaService.book.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ instituteId: 'inst-1' }),
+          where: expect.objectContaining({
+            OR: [{ instituteId: null }, { instituteId: 'inst-1' }],
+          }),
         }),
       );
     });
@@ -122,10 +129,41 @@ describe('BooksService', () => {
     });
   });
 
+  describe('update', () => {
+    it('should throw ForbiddenException if trying to update a global book as admin', async () => {
+      prismaService.book.findFirstOrThrow.mockResolvedValue({
+        id: 'global-b-1',
+        instituteId: null,
+        title: 'Global Book',
+        courses: [],
+        _count: { courses: 0 },
+      });
+
+      await expect(
+        service.update('global-b-1', { title: 'New Title' }, mockAdmin),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
   describe('remove', () => {
+    it('should throw ForbiddenException if trying to delete a global book as admin', async () => {
+      prismaService.book.findFirstOrThrow.mockResolvedValue({
+        id: 'global-b-1',
+        instituteId: null,
+        title: 'Global Book',
+        courses: [],
+        _count: { courses: 0 },
+      });
+
+      await expect(service.remove('global-b-1', mockAdmin)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
     it('should throw BadRequestException if book has associated courses', async () => {
       prismaService.book.findFirstOrThrow.mockResolvedValue({
         id: 'b-1',
+        instituteId: 'inst-1',
         title: 'Book 1',
         courses: [{ id: 'c-1', title: 'Course 1', _count: { classes: 0 } }],
         _count: { courses: 1 },
@@ -139,6 +177,7 @@ describe('BooksService', () => {
     it('should delete book if no associated courses', async () => {
       prismaService.book.findFirstOrThrow.mockResolvedValue({
         id: 'b-1',
+        instituteId: 'inst-1',
         title: 'Book 1',
         courses: [],
         _count: { courses: 0 },

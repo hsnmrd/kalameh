@@ -23,11 +23,13 @@
     "build": "tsc",
     "db:generate": "dotenv -e ../../.env -e .env -c -- prisma generate --schema ./schema.prisma && tsc",
     "db:migrate:dev": "dotenv -e ../../.env -e .env -c -- prisma migrate dev --schema ./schema.prisma",
+    "db:migrate:diff": "dotenv -e ../../.env -e .env -c -- prisma migrate diff --from-config-datasource --to-schema ./schema.prisma --script",
     "db:migrate:deploy": "dotenv -e ../../.env -e .env -c -- prisma migrate deploy --schema ./schema.prisma",
     "db:migrate:status": "dotenv -e ../../.env -e .env -c -- prisma migrate status --schema ./schema.prisma",
     "db:migrate:reset": "dotenv -e ../../.env -e .env -c -- prisma migrate reset --schema ./schema.prisma",
     "db:reset": "dotenv -e ../../.env -e .env -c -- prisma migrate reset --schema ./schema.prisma",
     "db:seed": "dotenv -e ../../.env -e .env -c -- prisma db seed --schema ./schema.prisma",
+    "db:seed:books": "dotenv -e ../../.env -e .env -c -- tsx src/seed-books.ts",
     "db:seed:scheduling": "dotenv -e ../../.env -e .env -c -- tsx src/seed-scheduling-zabanland.ts",
     "db:studio": "dotenv -e ../../.env -e .env -c -- prisma studio --schema ./schema.prisma",
     "typecheck": "tsc --noEmit"

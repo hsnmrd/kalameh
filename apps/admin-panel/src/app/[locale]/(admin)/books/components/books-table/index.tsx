@@ -49,10 +49,27 @@ export function BooksTable({
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Book className="size-5" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-foreground">
-                {row.original.title}
-              </span>
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground">
+                  {row.original.title}
+                </span>
+                {row.original.isGlobal || !row.original.instituteId ? (
+                  <Badge
+                    variant="secondary"
+                    className="px-1.5 py-0 text-[10px] font-normal"
+                  >
+                    {t("globalBookBadge")}
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="px-1.5 py-0 text-[10px] font-normal"
+                  >
+                    {t("catalogCustom")}
+                  </Badge>
+                )}
+              </div>
               {row.original.description && (
                 <span className="line-clamp-1 text-xs text-muted-foreground">
                   {row.original.description}
@@ -134,26 +151,31 @@ export function BooksTable({
               </Button>
             </PermissionGuard>
 
-            <PermissionGuard permission={PERMISSIONS.MANAGE_BOOKS} mode="hide">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onEdit(row.original)}
-                className="size-8 cursor-pointer rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label={t("actions.edit")}
+            {!row.original.isGlobal && Boolean(row.original.instituteId) && (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_BOOKS}
+                mode="hide"
               >
-                <Pencil className="size-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onDelete(row.original)}
-                className="size-8 cursor-pointer rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                aria-label={t("actions.delete")}
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
-            </PermissionGuard>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onEdit(row.original)}
+                  className="size-8 cursor-pointer rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label={t("actions.edit")}
+                >
+                  <Pencil className="size-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onDelete(row.original)}
+                  className="size-8 cursor-pointer rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  aria-label={t("actions.delete")}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </PermissionGuard>
+            )}
           </div>
         ),
       },

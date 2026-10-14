@@ -6,6 +6,9 @@
   "emptyDescription": "No books have been added yet. Add books to easily generate courses automatically based on them.",
   "statusActive": "Active",
   "statusInactive": "Inactive",
+  "catalogGlobal": "System Catalog",
+  "catalogCustom": "Custom Book",
+  "globalBookBadge": "Global",
   "columns": {
     "title": "Book Title",
     "author": "Author",

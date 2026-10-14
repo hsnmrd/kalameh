@@ -137,12 +137,12 @@ export class CoursesService {
       });
     }
 
-    // Verify book exists in same institute if provided
+    // Verify book exists in global catalog or same institute if provided
     if (dto.bookId) {
       await this.prisma.book.findFirstOrThrow({
         where: {
           id: dto.bookId,
-          instituteId,
+          OR: [{ instituteId: null }, { instituteId }],
         },
       });
     }
@@ -260,6 +260,15 @@ export class CoursesService {
           currentPrereqId = parentCourse?.prerequisiteId ?? null;
         }
       }
+    }
+
+    if (dto.bookId) {
+      await this.prisma.book.findFirstOrThrow({
+        where: {
+          id: dto.bookId,
+          OR: [{ instituteId: null }, { instituteId: existing.instituteId }],
+        },
+      });
     }
 
     const updated = await this.prisma.course.update({

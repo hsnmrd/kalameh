@@ -29,7 +29,14 @@ export class BookCoursesService {
     const book = await this.prisma.book.findFirstOrThrow({
       where: {
         id,
-        ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
+        ...(currentUser.role === 'SUPER_ADMIN'
+          ? {}
+          : {
+              OR: [
+                { instituteId: null },
+                ...(instituteId ? [{ instituteId }] : []),
+              ],
+            }),
       },
     });
 

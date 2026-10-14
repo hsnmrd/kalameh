@@ -100,9 +100,14 @@ export const fa: TranslationDictionary = {
   },
   books: {
     bookNotFound: 'کتاب مورد نظر یافت نشد',
-    bookAlreadyExists: 'کتابی با این عنوان قبلاً در آموزشگاه ثبت شده است',
+    bookAlreadyExists:
+      'کتابی با این عنوان قبلاً در آموزشگاه یا کاتالوگ سراسری ثبت شده است',
     cannotDeleteWithCourses:
       'این کتاب دارای دوره‌های وابسته است و نمی‌تواند حذف شود',
+    cannotModifyGlobalBook:
+      'امکان ویرایش کتاب‌های کاتالوگ سراسری سامانه وجود ندارد',
+    cannotDeleteGlobalBook:
+      'امکان حذف کتاب‌های کاتالوگ سراسری سامانه وجود ندارد',
     coursesGeneratedSuccess: 'دوره‌های کتاب با موفقیت ایجاد شدند',
     partLabel: 'بخش',
     termLabel: 'ترم',

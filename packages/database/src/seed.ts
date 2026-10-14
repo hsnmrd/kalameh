@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs"
 import dotenv from "dotenv"
 import { prisma, Role } from "./index.js"
+import { seedBooks } from "./seed-books.js"
 
 dotenv.config({ path: "../../.env" })
 dotenv.config()
@@ -330,60 +331,15 @@ async function main() {
     console.warn("⚠️ Cleanup note:", err)
   }
 
-  // 6. Seed Books
-  console.log("📖 Seeding Books...")
-  const booksToSeed = [
-    {
-      id: "00000000-0000-0000-0000-000000000b01",
-      title: "American English File 1",
-      author: "Christina Latham-Koenig, Clive Oxenden",
-      publisher: "Oxford University Press",
-      description: "دوره جامع آموزش زبان انگلیسی سطح مبتدی تا متوسط",
-    },
-    {
-      id: "00000000-0000-0000-0000-000000000b02",
-      title: "American English File 2",
-      author: "Christina Latham-Koenig, Clive Oxenden",
-      publisher: "Oxford University Press",
-      description: "دوره جامع آموزش زبان انگلیسی سطح متوسط",
-    },
-    {
-      id: "00000000-0000-0000-0000-000000000b03",
-      title: "Family and Friends 1",
-      author: "Naomi Simmons",
-      publisher: "Oxford University Press",
-      description: "آموزش زبان انگلیسی کودکان سطح ۱",
-    },
-    {
-      id: "00000000-0000-0000-0000-000000000b04",
-      title: "Touchstone 1",
-      author: "Michael McCarthy, Jeanne McCarten",
-      publisher: "Cambridge University Press",
-      description: "آموزش مکالمه زبان انگلیسی سطح مبتدی",
-    },
-  ]
-
-  for (const b of booksToSeed) {
-    await prisma.book.upsert({
-      where: { id: b.id },
-      update: {
-        title: b.title,
-        author: b.author,
-        publisher: b.publisher,
-        description: b.description,
-        instituteId: institute.id,
-      },
-      create: {
-        id: b.id,
-        title: b.title,
-        author: b.author,
-        publisher: b.publisher,
-        description: b.description,
-        instituteId: institute.id,
-      },
-    })
-  }
-  console.log(`✅ ${booksToSeed.length} Books seeded`)
+  // 6. Seed Master Books Catalog
+  console.log("📖 Seeding Master Books Catalog...")
+  await seedBooks()
+  const aef1Book = await prisma.book.findFirst({
+    where: { title: "American English File 1", instituteId: null },
+  })
+  const aef2Book = await prisma.book.findFirst({
+    where: { title: "American English File 2", instituteId: null },
+  })
 
   // 6.1. Seed Courses (AME 1-1 to AME 5-5)
   console.log("📚 Seeding Courses...")
@@ -402,9 +358,9 @@ async function main() {
       const baseFee = 1500000 + (level - 1) * 100000
       const bookId =
         level === 1
-          ? "00000000-0000-0000-0000-000000000b01"
+          ? (aef1Book?.id ?? null)
           : level === 2
-            ? "00000000-0000-0000-0000-000000000b02"
+            ? (aef2Book?.id ?? null)
             : null
       coursesToSeed.push({ id, title, baseFee, bookId })
     }

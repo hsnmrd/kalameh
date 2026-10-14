@@ -62,8 +62,8 @@ export function BooksList({
     return (
       <Empty>
         <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <Book className="size-8 text-muted-foreground" />
+          <EmptyMedia variant="default">
+            <Book className="size-6" />
           </EmptyMedia>
           <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
           <EmptyDescription>{t("emptyDescription")}</EmptyDescription>
@@ -86,7 +86,11 @@ export function BooksList({
         <ContextMenu key={book.id}>
           <ContextMenuTrigger>
             <MobileListItem
-              onClick={() => onEdit(book)}
+              onClick={() =>
+                book.isGlobal || !book.instituteId
+                  ? onGenerateCourses(book)
+                  : onEdit(book)
+              }
               isLast={index === books.length - 1}
             >
               <MobileListItemIcon>
@@ -94,7 +98,21 @@ export function BooksList({
               </MobileListItemIcon>
 
               <MobileListItemContent
-                primary={book.title}
+                primary={
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-foreground">
+                      {book.title}
+                    </span>
+                    {book.isGlobal || !book.instituteId ? (
+                      <Badge
+                        variant="secondary"
+                        className="px-1.5 py-0 text-[10px] font-normal"
+                      >
+                        {t("globalBookBadge")}
+                      </Badge>
+                    ) : null}
+                  </div>
+                }
                 secondary={
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     {book.author && <span>{book.author}</span>}
@@ -129,19 +147,24 @@ export function BooksList({
               </ContextMenuItem>
             </PermissionGuard>
 
-            <PermissionGuard permission={PERMISSIONS.MANAGE_BOOKS} mode="hide">
-              <ContextMenuItem onClick={() => onEdit(book)}>
-                <Pencil className="me-2 size-4 text-muted-foreground" />
-                <span>{t("actions.edit")}</span>
-              </ContextMenuItem>
-              <ContextMenuItem
-                onClick={() => onDelete(book)}
-                className="text-destructive focus:text-destructive"
+            {!book.isGlobal && Boolean(book.instituteId) && (
+              <PermissionGuard
+                permission={PERMISSIONS.MANAGE_BOOKS}
+                mode="hide"
               >
-                <Trash2 className="me-2 size-4 text-destructive" />
-                <span>{t("actions.delete")}</span>
-              </ContextMenuItem>
-            </PermissionGuard>
+                <ContextMenuItem onClick={() => onEdit(book)}>
+                  <Pencil className="me-2 size-4 text-muted-foreground" />
+                  <span>{t("actions.edit")}</span>
+                </ContextMenuItem>
+                <ContextMenuItem
+                  onClick={() => onDelete(book)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="me-2 size-4 text-destructive" />
+                  <span>{t("actions.delete")}</span>
+                </ContextMenuItem>
+              </PermissionGuard>
+            )}
           </ContextMenuContent>
         </ContextMenu>
       ))}

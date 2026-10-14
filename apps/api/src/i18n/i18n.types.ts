@@ -79,6 +79,8 @@ export interface TranslationDictionary {
     bookNotFound: string;
     bookAlreadyExists: string;
     cannotDeleteWithCourses: string;
+    cannotModifyGlobalBook: string;
+    cannotDeleteGlobalBook: string;
     coursesGeneratedSuccess: string;
     partLabel: string;
     termLabel: string;

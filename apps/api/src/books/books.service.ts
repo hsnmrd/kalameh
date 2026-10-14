@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -39,27 +40,50 @@ export class BooksService {
         ? targetInstituteId
         : currentUser.instituteId;
 
+    const whereConditions: Record<string, unknown> = {
+      ...(currentUser.role === 'SUPER_ADMIN' && !targetInstituteId
+        ? {}
+        : {
+            OR: [
+              { instituteId: null },
+              ...(instituteId ? [{ instituteId }] : []),
+            ],
+          }),
+    };
+
+    if (search?.trim()) {
+      const q = search.trim();
+      whereConditions.AND = [
+        {
+          OR: [
+            { title: { contains: q, mode: 'insensitive' } },
+            { author: { contains: q, mode: 'insensitive' } },
+            { publisher: { contains: q, mode: 'insensitive' } },
+          ],
+        },
+      ];
+    }
+
     const books = await this.prisma.book.findMany({
-      where: {
-        instituteId,
-        ...(search
-          ? {
-              OR: [
-                { title: { contains: search, mode: 'insensitive' } },
-                { author: { contains: search, mode: 'insensitive' } },
-                { publisher: { contains: search, mode: 'insensitive' } },
-              ],
-            }
-          : {}),
-      },
+      where: whereConditions,
       include: {
-        _count: { select: { courses: true } },
+        _count: {
+          select: {
+            courses: {
+              where:
+                currentUser.role === 'SUPER_ADMIN' && !instituteId
+                  ? {}
+                  : { instituteId },
+            },
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ title: 'asc' }],
     });
 
     return books.map(({ _count, ...b }) => ({
       ...b,
+      isGlobal: !b.instituteId,
       coursesCount: _count.courses,
     }));
   }
@@ -75,23 +99,44 @@ export class BooksService {
     const book = await this.prisma.book.findFirstOrThrow({
       where: {
         id,
-        ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
+        ...(currentUser.role === 'SUPER_ADMIN'
+          ? {}
+          : {
+              OR: [
+                { instituteId: null },
+                ...(instituteId ? [{ instituteId }] : []),
+              ],
+            }),
       },
       include: {
         courses: {
+          where:
+            currentUser.role === 'SUPER_ADMIN' && !instituteId
+              ? {}
+              : { instituteId },
           include: {
             prerequisite: { select: { id: true, title: true } },
             _count: { select: { classes: true } },
           },
           orderBy: { title: 'asc' },
         },
-        _count: { select: { courses: true } },
+        _count: {
+          select: {
+            courses: {
+              where:
+                currentUser.role === 'SUPER_ADMIN' && !instituteId
+                  ? {}
+                  : { instituteId },
+            },
+          },
+        },
       },
     });
 
     const { _count, courses, ...data } = book;
     return {
       ...data,
+      isGlobal: !book.instituteId,
       coursesCount: _count.courses,
       courses: courses.map(({ _count: cCount, ...c }) => ({
         ...c,
@@ -112,8 +157,8 @@ export class BooksService {
 
     const existing = await this.prisma.book.findFirst({
       where: {
-        instituteId,
-        title: dto.title,
+        title: dto.title.trim(),
+        OR: [{ instituteId: null }, ...(instituteId ? [{ instituteId }] : [])],
       },
     });
 
@@ -126,7 +171,7 @@ export class BooksService {
     const created = await this.prisma.book.create({
       data: {
         instituteId,
-        title: dto.title,
+        title: dto.title.trim(),
         author: dto.author || null,
         publisher: dto.publisher || null,
         description: dto.description || null,
@@ -169,12 +214,23 @@ export class BooksService {
   ): Promise<BookDto> {
     const existing = await this.findOne(id, currentUser, locale);
 
+    if (!existing.instituteId && currentUser.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException(
+        this.i18n.t('books.cannotModifyGlobalBook', locale),
+      );
+    }
+
     if (dto.title && dto.title !== existing.title) {
       const duplicate = await this.prisma.book.findFirst({
         where: {
-          instituteId: existing.instituteId,
-          title: dto.title,
+          title: dto.title.trim(),
           id: { not: id },
+          OR: [
+            { instituteId: null },
+            ...(existing.instituteId
+              ? [{ instituteId: existing.instituteId }]
+              : []),
+          ],
         },
       });
 
@@ -188,7 +244,7 @@ export class BooksService {
     const updated = await this.prisma.book.update({
       where: { id },
       data: {
-        ...(dto.title !== undefined ? { title: dto.title } : {}),
+        ...(dto.title !== undefined ? { title: dto.title.trim() } : {}),
         ...(dto.author !== undefined ? { author: dto.author } : {}),
         ...(dto.publisher !== undefined ? { publisher: dto.publisher } : {}),
         ...(dto.description !== undefined
@@ -198,12 +254,24 @@ export class BooksService {
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
       include: {
-        _count: { select: { courses: true } },
+        _count: {
+          select: {
+            courses: {
+              where:
+                currentUser.role === 'SUPER_ADMIN' && !existing.instituteId
+                  ? {}
+                  : {
+                      instituteId:
+                        existing.instituteId ?? currentUser.instituteId,
+                    },
+            },
+          },
+        },
       },
     });
 
     await this.auditLogsService.log({
-      instituteId: existing.instituteId,
+      instituteId: existing.instituteId ?? currentUser.instituteId,
       userId: currentUser.sub,
       module: 'BOOK',
       entityId: id,
@@ -214,6 +282,7 @@ export class BooksService {
     const { _count, ...data } = updated;
     return {
       ...data,
+      isGlobal: !updated.instituteId,
       coursesCount: _count.courses,
     };
   }
@@ -224,6 +293,12 @@ export class BooksService {
     locale: SupportedLocale = 'fa',
   ): Promise<{ message: string }> {
     const existing = await this.findOne(id, currentUser, locale);
+
+    if (!existing.instituteId && currentUser.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException(
+        this.i18n.t('books.cannotDeleteGlobalBook', locale),
+      );
+    }
 
     if ((existing.coursesCount ?? 0) > 0) {
       throw new BadRequestException(
@@ -236,7 +311,7 @@ export class BooksService {
     });
 
     await this.auditLogsService.log({
-      instituteId: existing.instituteId,
+      instituteId: existing.instituteId ?? currentUser.instituteId,
       userId: currentUser.sub,
       module: 'BOOK',
       entityId: id,

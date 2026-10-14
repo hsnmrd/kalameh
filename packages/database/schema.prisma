@@ -752,7 +752,7 @@ model InstituteCustomOffDay {
 
 model Book {
   id          String  @id @default(uuid())
-  instituteId String
+  instituteId String?
   title       String
   author      String?
   publisher   String?
@@ -763,7 +763,7 @@ model Book {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  institute Institute? @relation(fields: [instituteId], references: [id], onDelete: Cascade)
   courses   Course[]
 
   @@unique([title, instituteId])
