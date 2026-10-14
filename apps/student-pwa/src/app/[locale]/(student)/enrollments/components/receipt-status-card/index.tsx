@@ -20,7 +20,6 @@ export function ReceiptStatusCard({ enrollment }: ReceiptStatusCardProps) {
   const isPendingApproval = status === ENROLLMENT_STATUSES.PENDING_APPROVAL
   const isEnrolled = status === ENROLLMENT_STATUSES.ENROLLED
   const isRejected = status === ENROLLMENT_STATUSES.REJECTED
-  const isWaitlisted = status === ENROLLMENT_STATUSES.WAITLISTED
 
   const badgeVariant = isEnrolled
     ? "border-success/25 bg-success/10 text-success"

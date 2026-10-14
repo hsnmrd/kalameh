@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  ENROLLMENT_STATUSES,
   type ClassDto,
   type JwtPayload,
   type SupportedLocale,
@@ -74,7 +75,11 @@ export class ClassQueryService {
             enrollments: {
               where: {
                 status: {
-                  in: ['PENDING_PAYMENT', 'PENDING_APPROVAL', 'ENROLLED'],
+                  in: [
+                    ENROLLMENT_STATUSES.PENDING_PAYMENT,
+                    ENROLLMENT_STATUSES.PENDING_APPROVAL,
+                    ENROLLMENT_STATUSES.ENROLLED,
+                  ],
                 },
               },
             },
@@ -171,7 +176,11 @@ export class ClassQueryService {
             enrollments: {
               where: {
                 status: {
-                  in: ['PENDING_PAYMENT', 'PENDING_APPROVAL', 'ENROLLED'],
+                  in: [
+                    ENROLLMENT_STATUSES.PENDING_PAYMENT,
+                    ENROLLMENT_STATUSES.PENDING_APPROVAL,
+                    ENROLLMENT_STATUSES.ENROLLED,
+                  ],
                 },
               },
             },
@@ -244,7 +253,11 @@ export class ClassQueryService {
             enrollments: {
               where: {
                 status: {
-                  in: ['PENDING_PAYMENT', 'PENDING_APPROVAL', 'ENROLLED'],
+                  in: [
+                    ENROLLMENT_STATUSES.PENDING_PAYMENT,
+                    ENROLLMENT_STATUSES.PENDING_APPROVAL,
+                    ENROLLMENT_STATUSES.ENROLLED,
+                  ],
                 },
               },
             },

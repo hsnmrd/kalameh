@@ -6,11 +6,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { I18nService } from '../i18n/i18n.service';
 import { RedisService } from '../common/redis/redis.service';
-import { ROLES, TRANSACTION_STATUSES, type JwtPayload } from '@workspace/types';
+import {
+  ENROLLMENT_STATUSES,
+  ROLES,
+  TRANSACTION_STATUSES,
+  type JwtPayload,
+} from '@workspace/types';
 
 describe('TransactionsService', () => {
   let service: TransactionsService;
   let prisma: any;
+  let redisService: any;
   let auditLogsService: { log: jest.Mock };
 
   const admin: JwtPayload = {
@@ -86,6 +92,7 @@ describe('TransactionsService', () => {
     }).compile();
 
     service = module.get(TransactionsService);
+    redisService = module.get(RedisService);
   });
 
   it('scopes transaction lists to the authenticated institute', async () => {
@@ -166,6 +173,37 @@ describe('TransactionsService', () => {
     );
     expect(auditLogsService.log).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'STATUS_UPDATE' }),
+    );
+  });
+
+  it('rejects transaction, updates enrollment to REJECTED, and releases class lock', async () => {
+    const classTransaction = {
+      ...transaction,
+      classId: 'class-1',
+    };
+    prisma.transaction.findFirstOrThrow.mockResolvedValue(classTransaction);
+    prisma.transaction.update.mockResolvedValue({
+      ...classTransaction,
+      status: TRANSACTION_STATUSES.REJECTED,
+    });
+
+    const result = await service.updateStatus(
+      classTransaction.id,
+      { status: TRANSACTION_STATUSES.REJECTED },
+      admin,
+    );
+
+    expect(result.status).toBe(TRANSACTION_STATUSES.REJECTED);
+    expect(prisma.enrollment.updateMany).toHaveBeenCalledWith({
+      where: {
+        studentId: classTransaction.studentId,
+        classId: classTransaction.classId,
+      },
+      data: { status: ENROLLMENT_STATUSES.REJECTED },
+    });
+    expect(redisService.releaseClassLock).toHaveBeenCalledWith(
+      classTransaction.classId,
+      classTransaction.studentId,
     );
   });
 });

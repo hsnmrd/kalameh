@@ -7,6 +7,7 @@ describe('SchedulingPlanReassignmentApplyService', () => {
     sub: '11111111-1111-4111-8111-111111111111',
     instituteId: '22222222-2222-4222-8222-222222222222',
     role: ROLES.ADMIN,
+    phone: '09121111111',
   };
 
   const createService = () => {
@@ -93,7 +94,6 @@ describe('SchedulingPlanReassignmentApplyService', () => {
       reassignments: [
         {
           proposalId: '33333333-3333-4333-8333-333333333333',
-          fromTeacherId: '55555555-5555-4555-8555-555555555555',
           toTeacherId: '66666666-6666-4666-8666-666666666666',
         },
       ],
@@ -150,7 +150,6 @@ describe('SchedulingPlanReassignmentApplyService', () => {
         reassignments: [
           {
             proposalId: '33333333-3333-4333-8333-333333333333',
-            fromTeacherId: '55555555-5555-4555-8555-555555555555',
             toTeacherId: '66666666-6666-4666-8666-666666666666',
           },
         ],

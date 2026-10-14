@@ -18,14 +18,13 @@ export default function StudentDashboardPage() {
     enrollmentsResource.my.toQuery()
   )
 
-  const activeEnrollment =
-    enrollments?.find(
-      (e) =>
-        e.status === ENROLLMENT_STATUSES.PENDING_PAYMENT ||
-        e.status === ENROLLMENT_STATUSES.PENDING_APPROVAL ||
-        e.status === ENROLLMENT_STATUSES.ENROLLED ||
-        e.status === ENROLLMENT_STATUSES.WAITLISTED
-    ) ?? enrollments?.[0]
+  const activeEnrollment = enrollments?.find(
+    (e) =>
+      e.status === ENROLLMENT_STATUSES.PENDING_PAYMENT ||
+      e.status === ENROLLMENT_STATUSES.PENDING_APPROVAL ||
+      e.status === ENROLLMENT_STATUSES.ENROLLED ||
+      e.status === ENROLLMENT_STATUSES.WAITLISTED
+  )
 
   const renderEnrollmentCard = () => {
     if (isLoading) {

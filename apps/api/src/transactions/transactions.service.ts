@@ -272,6 +272,7 @@ export class TransactionsService {
           },
           data: { status: ENROLLMENT_STATUSES.REJECTED },
         });
+        await this.redis.releaseClassLock(existing.classId, existing.studentId);
       }
     }
 

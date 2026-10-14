@@ -3,7 +3,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GradesService } from './grades.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
-import { JwtPayload } from '@workspace/types';
+import { ENROLLMENT_STATUSES, JwtPayload } from '@workspace/types';
+import { BadRequestException } from '@nestjs/common';
 
 describe('GradesService', () => {
   let service: GradesService;
@@ -55,7 +56,76 @@ describe('GradesService', () => {
     service = module.get<GradesService>(GradesService);
   });
 
+  describe('getClassStudentsAndGrades', () => {
+    it('should query enrollments excluding REJECTED status', async () => {
+      const classId = 'class-1';
+      prismaService.class.findFirstOrThrow.mockResolvedValue({
+        id: classId,
+        instituteId: 'inst-1',
+      });
+      prismaService.enrollment.findMany.mockResolvedValue([
+        {
+          id: 'enr-1',
+          studentId: 'student-1',
+          finalScore: 90,
+          isPassed: true,
+          status: ENROLLMENT_STATUSES.ENROLLED,
+          student: {
+            id: 'student-1',
+            firstName: 'Ali',
+            lastName: 'Rezaei',
+            phone: '09121111111',
+            currentAllowedCourseId: null,
+          },
+        },
+      ]);
+
+      const result = await service.getClassStudentsAndGrades(
+        classId,
+        mockAdmin,
+      );
+
+      expect(prismaService.enrollment.findMany).toHaveBeenCalledWith({
+        where: {
+          classId,
+          status: { not: ENROLLMENT_STATUSES.REJECTED },
+        },
+        include: expect.any(Object),
+        orderBy: { student: { lastName: 'asc' } },
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0].studentId).toBe('student-1');
+    });
+  });
+
   describe('submitClassGrades', () => {
+    it('should throw BadRequestException if student enrollment is REJECTED', async () => {
+      const classId = 'class-1';
+      prismaService.class.findFirstOrThrow.mockResolvedValue({
+        id: classId,
+        instituteId: 'inst-1',
+        courseId: 'course-1',
+      });
+      prismaService.course.findFirst.mockResolvedValue(null);
+      prismaService.enrollment.findUnique.mockResolvedValue({
+        id: 'enr-rejected',
+        studentId: 'student-1',
+        classId,
+        status: ENROLLMENT_STATUSES.REJECTED,
+      });
+
+      await expect(
+        service.submitClassGrades(
+          classId,
+          {
+            grades: [
+              { studentId: 'student-1', finalScore: 90, isPassed: true },
+            ],
+          },
+          mockAdmin,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
     it('should update grades and auto-upgrade student level on pass', async () => {
       const classId = 'class-1';
       const student1Id = 'student-1';

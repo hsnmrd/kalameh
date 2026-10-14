@@ -245,7 +245,7 @@ export class SchedulingPlanQueryService {
       ...classesForTerm.map((c) => c.branchId),
       ...plansForTerm
         .filter((p) => p.status === 'PUBLISHED' && p.run.branchId !== null)
-        .map((p) => p.run.branchId!),
+        .map((p) => p.run.branchId),
     ]);
     const scheduledBranches = new Set<string>(
       plansForTerm
@@ -254,7 +254,7 @@ export class SchedulingPlanQueryService {
             (p.status === 'SELECTED' || p.status === 'DRAFT') &&
             p.run.branchId !== null,
         )
-        .map((p) => p.run.branchId!),
+        .map((p) => p.run.branchId),
     );
 
     const branchScheduleStatuses = branches.map((branch) => {
