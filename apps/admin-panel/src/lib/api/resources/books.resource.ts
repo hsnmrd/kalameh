@@ -4,6 +4,7 @@ import type {
   UpdateBookInput,
   CourseDto,
   GenerateCoursesFromBookInput,
+  BatchGenerateCoursesInput,
 } from "@workspace/types"
 import { api } from "../client"
 
@@ -31,4 +32,7 @@ export const booksResource = api.resource("books", {
   >(({ id }) => `/books/${id}/generate-courses`, {
     body: ({ body }) => body,
   }),
+  batchGenerateCourses: api.post<CourseDto[], BatchGenerateCoursesInput>(
+    "/books/batch-generate-courses"
+  ),
 })

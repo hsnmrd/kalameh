@@ -259,4 +259,71 @@ describe('BooksService', () => {
       ).rejects.toThrow(ConflictException);
     });
   });
+
+  describe('generateCoursesBatch', () => {
+    it('should generate chained courses for multiple books in a batch', async () => {
+      prismaService.book.findMany.mockResolvedValue([
+        { id: 'b-1', title: 'Book 1', instituteId: 'inst-1' },
+        { id: 'b-2', title: 'Book 2', instituteId: 'inst-1' },
+      ]);
+      prismaService.course.findFirst.mockResolvedValue(null);
+
+      let callCount = 0;
+      prismaService.course.create.mockImplementation((args: any) => {
+        callCount++;
+        return {
+          id: `course-${callCount}`,
+          title: args.data.title,
+          baseFee: args.data.baseFee,
+          prerequisiteId: args.data.prerequisiteId,
+          bookId: args.data.bookId,
+          instituteId: args.data.instituteId,
+          _count: { classes: 0 },
+        };
+      });
+
+      const result = await service.generateCoursesBatch(
+        {
+          items: [
+            { bookId: 'b-1', termsCount: 2, baseFee: 1000000 },
+            { bookId: 'b-2', termsCount: 2, baseFee: 1200000 },
+          ],
+        },
+        mockAdmin,
+        'fa',
+      );
+
+      expect(result).toHaveLength(4);
+      // Book 1 courses
+      expect(result[0].title).toBe('Book 1 - 1');
+      expect(result[0].prerequisiteId).toBeNull();
+      expect(result[1].title).toBe('Book 1 - 2');
+      expect(result[1].prerequisiteId).toBe('course-1');
+
+      // Book 2 courses
+      expect(result[2].title).toBe('Book 2 - 1');
+      expect(result[2].prerequisiteId).toBeNull();
+      expect(result[3].title).toBe('Book 2 - 2');
+      expect(result[3].prerequisiteId).toBe('course-3');
+    });
+
+    it('should throw ConflictException if duplicate titles exist across batch items', async () => {
+      prismaService.book.findMany.mockResolvedValue([
+        { id: 'b-1', title: 'Book 1', instituteId: 'inst-1' },
+      ]);
+
+      await expect(
+        service.generateCoursesBatch(
+          {
+            items: [
+              { bookId: 'b-1', termsCount: 2, baseFee: 1000000 },
+              { bookId: 'b-1', termsCount: 2, baseFee: 1000000 },
+            ],
+          },
+          mockAdmin,
+          'fa',
+        ),
+      ).rejects.toThrow(ConflictException);
+    });
+  });
 });

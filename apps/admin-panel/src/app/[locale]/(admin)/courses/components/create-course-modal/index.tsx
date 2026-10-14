@@ -16,18 +16,15 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { formatNumber } from "@workspace/ui/lib/utils"
 import { coursesResource, booksResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import {
   useCreateCourseSchema,
   type CreateCourseInput,
 } from "../../hooks/use-course-schemas"
-import {
-  useGenerateCoursesFromBookSchema,
-  type GenerateCoursesFromBookInput,
-} from "../../../books/hooks/use-book-schemas"
 import { SingleCourseForm } from "./single-course-form"
-import { FromBookForm } from "./from-book-form"
+import { FromBookForm, type SelectedBookConfig } from "./from-book-form"
 
 export interface CreateCourseModalProps {
   open: boolean
@@ -41,8 +38,12 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
 
   const [mode, setMode] = React.useState<"single" | "fromBook">("single")
 
+  // Multi-book configuration state
+  const [selectedBooks, setSelectedBooks] = React.useState<
+    Record<string, SelectedBookConfig>
+  >({})
+
   const createCourseSchema = useCreateCourseSchema()
-  const generateSchema = useGenerateCoursesFromBookSchema()
 
   // Courses list for prerequisites
   const { data: allCourses = [] } = useQuery({
@@ -72,7 +73,7 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
     [allBooks, t]
   )
 
-  // Form 1: Single Course Form
+  // Single Course Form
   const singleForm = useForm<CreateCourseInput>({
     resolver: zodResolver(createCourseSchema),
     defaultValues: {
@@ -83,36 +84,18 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
     },
   })
 
-  // Form 2: From Book Form
-  const fromBookForm = useForm<GenerateCoursesFromBookInput>({
-    resolver: zodResolver(generateSchema),
-    defaultValues: {
-      bookId: "",
-      termsCount: 3,
-      baseFee: 1500000,
-      startingPrerequisiteId: null,
-      namingFormat: "PART",
-    },
-  })
-
   React.useEffect(() => {
     if (open) {
       setMode("single")
+      setSelectedBooks({})
       singleForm.reset({
         title: "",
         baseFee: 1500000,
         prerequisiteId: null,
         bookId: null,
       })
-      fromBookForm.reset({
-        bookId: allBooks[0]?.id || "",
-        termsCount: 3,
-        baseFee: 1500000,
-        startingPrerequisiteId: null,
-        namingFormat: "PART",
-      })
     }
-  }, [open, allBooks, singleForm, fromBookForm])
+  }, [open, singleForm])
 
   const createMutation = useMutation({
     ...coursesResource.create.toMutation(),
@@ -125,10 +108,14 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
     },
   })
 
-  const generateMutation = useMutation({
-    ...booksResource.generateCourses.toMutation(),
-    onSuccess: () => {
-      toast.success(t("createModal.successFromBook"))
+  const batchGenerateMutation = useMutation({
+    ...booksResource.batchGenerateCourses.toMutation(),
+    onSuccess: (data) => {
+      toast.success(
+        t("createModal.successFromBooksBatch", {
+          count: formatNumber(data.length),
+        })
+      )
       queryClient.invalidateQueries({
         queryKey: coursesResource.list.baseKey(),
       })
@@ -138,6 +125,64 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
       onClose()
     },
   })
+
+  const handleToggleBook = React.useCallback((bookId: string) => {
+    setSelectedBooks((prev) => {
+      const next = { ...prev }
+      if (next[bookId]) {
+        delete next[bookId]
+      } else {
+        next[bookId] = {
+          termsCount: 3,
+          baseFee: 1500000,
+          startingPrerequisiteId: null,
+        }
+      }
+      return next
+    })
+  }, [])
+
+  const handleUpdateBook = React.useCallback(
+    (bookId: string, patch: Partial<SelectedBookConfig>) => {
+      setSelectedBooks((prev) => {
+        if (!prev[bookId]) return prev
+        return {
+          ...prev,
+          [bookId]: { ...prev[bookId], ...patch },
+        }
+      })
+    },
+    []
+  )
+
+  const handleSelectAll = React.useCallback(() => {
+    setSelectedBooks((prev) => {
+      const next = { ...prev }
+      for (const b of allBooks) {
+        if (!next[b.id]) {
+          next[b.id] = {
+            termsCount: 3,
+            baseFee: 1500000,
+            startingPrerequisiteId: null,
+          }
+        }
+      }
+      return next
+    })
+  }, [allBooks])
+
+  const handleClearAll = React.useCallback(() => {
+    setSelectedBooks({})
+  }, [])
+
+  const totalCoursesCount = React.useMemo(() => {
+    return Object.values(selectedBooks).reduce(
+      (sum, item) => sum + (Number(item.termsCount) || 1),
+      0
+    )
+  }, [selectedBooks])
+
+  const selectedBooksCount = Object.keys(selectedBooks).length
 
   const onSingleSubmit = (values: CreateCourseInput) => {
     createMutation.mutate({
@@ -151,24 +196,24 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
     })
   }
 
-  const onFromBookSubmit = (values: GenerateCoursesFromBookInput) => {
-    if (!values.bookId) {
-      toast.error(t("createModal.selectBook"))
+  const onBatchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const items = Object.entries(selectedBooks).map(([bookId, config]) => ({
+      bookId,
+      termsCount: Number(config.termsCount) || 1,
+      baseFee: Number(config.baseFee) || 0,
+      startingPrerequisiteId: config.startingPrerequisiteId || null,
+      namingFormat: "INDEX" as const,
+    }))
+
+    if (items.length === 0) {
+      toast.error(t("createModal.noBooksSelected"))
       return
     }
 
-    generateMutation.mutate({
-      id: values.bookId,
-      body: {
-        ...values,
-        termsCount: Number(values.termsCount),
-        startingPrerequisiteId:
-          values.startingPrerequisiteId === "none" ||
-          !values.startingPrerequisiteId
-            ? null
-            : values.startingPrerequisiteId,
-        instituteId: activeInstituteId || undefined,
-      },
+    batchGenerateMutation.mutate({
+      items,
+      instituteId: activeInstituteId || undefined,
     })
   }
 
@@ -178,11 +223,11 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
     }
   }
 
-  const isPending = createMutation.isPending || generateMutation.isPending
+  const isPending = createMutation.isPending || batchGenerateMutation.isPending
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="sm:max-w-lg">
+      <FormDialogContent className="max-h-[90vh] sm:max-w-xl md:max-w-2xl">
         <FormDialogHeader>
           <FormDialogTitle>{t("createModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
@@ -250,18 +295,17 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
           </form>
         ) : (
           <form
-            onSubmit={fromBookForm.handleSubmit(onFromBookSubmit)}
+            onSubmit={onBatchSubmit}
             className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
           >
             <FromBookForm
-              register={fromBookForm.register}
-              control={fromBookForm.control}
-              errors={fromBookForm.formState.errors}
               books={allBooks}
               courses={allCourses}
-              selectedBookId={fromBookForm.watch("bookId")}
-              termsCount={fromBookForm.watch("termsCount")}
-              startingPrereqId={fromBookForm.watch("startingPrerequisiteId")}
+              selectedBooks={selectedBooks}
+              onToggleBook={handleToggleBook}
+              onUpdateBook={handleUpdateBook}
+              onSelectAll={handleSelectAll}
+              onClearAll={handleClearAll}
             />
 
             <FormDialogFooter>
@@ -275,13 +319,17 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
               </Button>
               <Button
                 type="submit"
-                disabled={isPending}
+                disabled={isPending || selectedBooksCount === 0}
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                {generateMutation.isPending && (
+                {batchGenerateMutation.isPending && (
                   <Spinner className="me-2 size-5 text-primary-foreground" />
                 )}
-                {t("createModal.submitFromBook")}
+                {totalCoursesCount > 0
+                  ? t("createModal.submitFromBooksBatch", {
+                      count: formatNumber(totalCoursesCount),
+                    })
+                  : t("createModal.submitFromBook")}
               </Button>
             </FormDialogFooter>
           </form>

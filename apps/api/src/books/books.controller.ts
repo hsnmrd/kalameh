@@ -13,6 +13,7 @@ import { BooksService } from './books.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { GenerateCoursesFromBookDto } from './dto/generate-courses.dto';
+import { BatchGenerateCoursesDto } from './dto/generate-courses-batch.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { ModulesGuard } from '../auth/guards/modules.guard';
@@ -84,6 +85,16 @@ export class BooksController {
     @CurrentLocale() locale: SupportedLocale = 'fa',
   ): Promise<{ message: string }> {
     return this.booksService.remove(id, currentUser, locale);
+  }
+
+  @Post('batch-generate-courses')
+  @RequirePermissions(PERMISSIONS.MANAGE_COURSES)
+  async batchGenerateCourses(
+    @Body() dto: BatchGenerateCoursesDto,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale = 'fa',
+  ): Promise<CourseDto[]> {
+    return this.booksService.generateCoursesBatch(dto, currentUser, locale);
   }
 
   @Post(':id/generate-courses')

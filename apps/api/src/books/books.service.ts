@@ -10,6 +10,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { GenerateCoursesFromBookDto } from './dto/generate-courses.dto';
+import { BatchGenerateCoursesDto } from './dto/generate-courses-batch.dto';
 import { BookCoursesService } from './book-courses.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import type {
@@ -330,6 +331,18 @@ export class BooksService {
   ): Promise<CourseDto[]> {
     return this.bookCoursesService.generateCourses(
       id,
+      dto,
+      currentUser,
+      locale,
+    );
+  }
+
+  async generateCoursesBatch(
+    dto: BatchGenerateCoursesDto,
+    currentUser: JwtPayload,
+    locale: SupportedLocale = 'fa',
+  ): Promise<CourseDto[]> {
+    return this.bookCoursesService.generateCoursesBatch(
       dto,
       currentUser,
       locale,
