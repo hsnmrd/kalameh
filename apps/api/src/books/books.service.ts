@@ -277,7 +277,7 @@ export class BooksService {
       module: 'BOOK',
       entityId: id,
       action: 'UPDATE',
-      metadata: dto,
+      metadata: { ...dto },
     });
 
     const { _count, ...data } = updated;
