@@ -1,5 +1,6 @@
 "use client"
 
+import { useLocale } from "next-intl"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
 import type { TeacherDto } from "@workspace/types"
@@ -27,6 +28,7 @@ export function TeachersTable({
   onDelete,
   onAdd,
 }: TeachersTableProps) {
+  const locale = useLocale()
   const columns = useTeachersTableColumns({
     onViewProfile,
     onEdit,
@@ -48,8 +50,11 @@ export function TeachersTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card">
-      <DataTable columns={columns} data={teachers} />
-    </div>
+    <DataTable
+      columns={columns}
+      data={teachers}
+      pagination={{ pageSize: 10 }}
+      locale={locale}
+    />
   )
 }

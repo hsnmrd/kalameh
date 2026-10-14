@@ -227,5 +227,12 @@ export function TermsTable({
     )
   }
 
-  return <DataTable columns={columns} data={terms} />
+  return (
+    <DataTable
+      columns={columns}
+      data={terms}
+      pagination={{ pageSize: 10 }}
+      locale={locale}
+    />
+  )
 }

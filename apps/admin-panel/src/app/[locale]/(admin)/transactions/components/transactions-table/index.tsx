@@ -151,5 +151,12 @@ export function TransactionsTable({
     )
   }
 
-  return <DataTable columns={columns} data={transactions} />
+  return (
+    <DataTable
+      columns={columns}
+      data={transactions}
+      pagination={{ pageSize: 10 }}
+      locale={locale}
+    />
+  )
 }

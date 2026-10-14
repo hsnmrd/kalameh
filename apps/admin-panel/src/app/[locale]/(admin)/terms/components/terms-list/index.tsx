@@ -9,6 +9,8 @@ import {
   MobileListItemContent,
   MobileListItemTrailing,
 } from "@workspace/ui/components/mobile-list"
+import { DataPagination } from "@workspace/ui/components/pagination"
+import { useClientPagination } from "@/lib/hooks"
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -49,6 +51,11 @@ export function TermsList({
 }: TermsListProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
+
+  const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
+    data: terms,
+    pageSize: 10,
+  })
 
   const formatDate = (dateVal: string | Date) => {
     try {
@@ -124,89 +131,104 @@ export function TermsList({
   }
 
   return (
-    <MobileList>
-      {terms.map((term, index) => {
-        const canDelete = isTermDeletable(term, terms)
+    <>
+      <MobileList>
+        {paginatedData.map((term, index) => {
+          const canDelete = isTermDeletable(term, terms)
 
-        return (
-          <ContextMenu key={term.id}>
-            <ContextMenuTrigger>
-              <MobileListItem
-                onClick={() => onView(term)}
-                isLast={index === terms.length - 1}
-              >
-                <MobileListItemIcon>
-                  <Calendar className="size-5" />
-                </MobileListItemIcon>
+          return (
+            <ContextMenu key={term.id}>
+              <ContextMenuTrigger>
+                <MobileListItem
+                  onClick={() => onView(term)}
+                  isLast={index === paginatedData.length - 1}
+                >
+                  <MobileListItemIcon>
+                    <Calendar className="size-5" />
+                  </MobileListItemIcon>
 
-                <MobileListItemContent
-                  primary={term.title}
-                  secondary={`${formatDate(term.startDate)} - ${formatDate(term.endDate)}`}
-                />
+                  <MobileListItemContent
+                    primary={term.title}
+                    secondary={`${formatDate(term.startDate)} - ${formatDate(term.endDate)}`}
+                  />
 
-                <MobileListItemTrailing>
-                  <div className="flex items-center gap-1.5">
-                    <TermStatusBadge term={term} allTerms={terms} />
-                    {onDelete && canDelete && (
-                      <PermissionGuard
-                        permission={PERMISSIONS.MANAGE_TERMS}
-                        mode="hide"
-                      >
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onDelete(term)
-                          }}
-                          className="size-8 cursor-pointer p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                          aria-label={t("deleteModal.deleteAction")}
-                          title={t("deleteModal.deleteAction")}
+                  <MobileListItemTrailing>
+                    <div className="flex items-center gap-1.5">
+                      <TermStatusBadge term={term} allTerms={terms} />
+                      {onDelete && canDelete && (
+                        <PermissionGuard
+                          permission={PERMISSIONS.MANAGE_TERMS}
+                          mode="hide"
                         >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </PermissionGuard>
-                    )}
-                  </div>
-                </MobileListItemTrailing>
-              </MobileListItem>
-            </ContextMenuTrigger>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onDelete(term)
+                            }}
+                            className="size-8 cursor-pointer p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            aria-label={t("deleteModal.deleteAction")}
+                            title={t("deleteModal.deleteAction")}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </PermissionGuard>
+                      )}
+                    </div>
+                  </MobileListItemTrailing>
+                </MobileListItem>
+              </ContextMenuTrigger>
 
-            <ContextMenuContent>
-              <ContextMenuItem onClick={() => onView(term)}>
-                <Eye className="me-2 size-4 text-muted-foreground" />
-                {t("table.view")}
-              </ContextMenuItem>
-
-              <PermissionGuard
-                permission={PERMISSIONS.MANAGE_TERMS}
-                mode="hide"
-              >
-                <ContextMenuItem onClick={() => onEdit(term)}>
-                  <Edit2 className="me-2 size-4 text-muted-foreground" />
-                  {t("table.actions")}
+              <ContextMenuContent>
+                <ContextMenuItem onClick={() => onView(term)}>
+                  <Eye className="me-2 size-4 text-muted-foreground" />
+                  {t("table.view")}
                 </ContextMenuItem>
-              </PermissionGuard>
 
-              {onDelete && canDelete && (
                 <PermissionGuard
                   permission={PERMISSIONS.MANAGE_TERMS}
                   mode="hide"
                 >
-                  <ContextMenuItem
-                    onClick={() => onDelete(term)}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="me-2 size-4 text-destructive" />
-                    {t("deleteModal.deleteAction")}
+                  <ContextMenuItem onClick={() => onEdit(term)}>
+                    <Edit2 className="me-2 size-4 text-muted-foreground" />
+                    {t("table.actions")}
                   </ContextMenuItem>
                 </PermissionGuard>
-              )}
-            </ContextMenuContent>
-          </ContextMenu>
-        )
-      })}
-    </MobileList>
+
+                {onDelete && canDelete && (
+                  <PermissionGuard
+                    permission={PERMISSIONS.MANAGE_TERMS}
+                    mode="hide"
+                  >
+                    <ContextMenuItem
+                      onClick={() => onDelete(term)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="me-2 size-4 text-destructive" />
+                      {t("deleteModal.deleteAction")}
+                    </ContextMenuItem>
+                  </PermissionGuard>
+                )}
+              </ContextMenuContent>
+            </ContextMenu>
+          )
+        })}
+      </MobileList>
+
+      {terms.length > 10 && (
+        <div className="pt-4 pb-2">
+          <DataPagination
+            pageIndex={pageIndex}
+            pageSize={10}
+            totalItems={terms.length}
+            onPageChange={setPageIndex}
+            compact
+            locale={locale}
+          />
+        </div>
+      )}
+    </>
   )
 }

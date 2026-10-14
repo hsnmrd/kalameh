@@ -225,6 +225,12 @@ export function UsersTable({
   }
 
   return (
-    <DataTable columns={columns} data={users} emptyMessage={t("table.empty")} />
+    <DataTable
+      columns={columns}
+      data={users}
+      pagination={{ pageSize: 10 }}
+      locale={locale}
+      emptyMessage={t("table.empty")}
+    />
   )
 }

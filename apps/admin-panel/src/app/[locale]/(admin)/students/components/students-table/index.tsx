@@ -314,6 +314,8 @@ export function StudentsTable({
     <DataTable
       columns={columns}
       data={students}
+      pagination={{ pageSize: 10 }}
+      locale={locale}
       emptyMessage={t("table.empty")}
     />
   )

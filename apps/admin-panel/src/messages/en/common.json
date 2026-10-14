@@ -184,5 +184,17 @@
     "updateDescription": "A new version of Kalameh Admin is available.",
     "updateButton": "Update Now",
     "onlineBack": "Internet connection restored"
+  },
+  "pagination": {
+    "page": "Page",
+    "of": "of",
+    "rowsPerPage": "Rows per page",
+    "showing": "Showing",
+    "to": "to",
+    "items": "items",
+    "previous": "Previous",
+    "next": "Next",
+    "first": "First",
+    "last": "Last"
   }
 }

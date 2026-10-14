@@ -184,5 +184,17 @@
     "updateDescription": "نسخه جدیدی از پنل مدیریت آماده بارگذاری است.",
     "updateButton": "به‌روزرسانی",
     "onlineBack": "اتصال اینترنت برقرار شد"
+  },
+  "pagination": {
+    "page": "صفحه",
+    "of": "از",
+    "rowsPerPage": "سطر در صفحه",
+    "showing": "نمایش",
+    "to": "تا",
+    "items": "مورد",
+    "previous": "قبلی",
+    "next": "بعدی",
+    "first": "ابتدا",
+    "last": "انتها"
   }
 }

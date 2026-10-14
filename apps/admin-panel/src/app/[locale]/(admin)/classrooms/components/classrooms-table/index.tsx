@@ -177,5 +177,12 @@ export function ClassroomsTable({
     )
   }
 
-  return <DataTable columns={columns} data={classrooms} />
+  return (
+    <DataTable
+      columns={columns}
+      data={classrooms}
+      pagination={{ pageSize: 10 }}
+      locale={locale}
+    />
+  )
 }

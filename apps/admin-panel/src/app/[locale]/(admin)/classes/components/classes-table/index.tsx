@@ -327,6 +327,8 @@ export function ClassesTable({
     <DataTable
       columns={columns}
       data={classes}
+      pagination={{ pageSize: 10 }}
+      locale={locale}
       getRowClassName={(row) =>
         isClassDone(row.original)
           ? "opacity-60 hover:opacity-80 transition-opacity"

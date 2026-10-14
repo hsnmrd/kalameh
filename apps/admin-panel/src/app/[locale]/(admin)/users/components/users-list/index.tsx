@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Image from "next/image"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { Users, Edit2, KeyRound, Trash2, Eye, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -12,6 +12,8 @@ import {
   MobileListItemContent,
   MobileListItemTrailing,
 } from "@workspace/ui/components/mobile-list"
+import { DataPagination } from "@workspace/ui/components/pagination"
+import { useClientPagination } from "@/lib/hooks"
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -52,6 +54,12 @@ export function UsersList({
   onAdd,
 }: UsersListProps) {
   const t = useTranslations("users")
+  const locale = useLocale()
+
+  const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
+    data: users,
+    pageSize: 10,
+  })
 
   if (isLoading) {
     return (
@@ -86,88 +94,106 @@ export function UsersList({
   }
 
   return (
-    <MobileList>
-      {users.map((user, index) => {
-        const fullName = `${user.firstName} ${user.lastName}`
-        const initials = `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`
+    <>
+      <MobileList>
+        {paginatedData.map((user, index) => {
+          const fullName = `${user.firstName} ${user.lastName}`
+          const initials = `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`
 
-        return (
-          <ContextMenu key={user.id}>
-            <ContextMenuTrigger>
-              <MobileListItem
-                onClick={() => onViewProfile(user)}
-                isLast={index === users.length - 1}
-              >
-                <MobileListItemIcon>
-                  {user.avatarUrl ? (
-                    <Image
-                      src={getAssetUrl(user.avatarUrl)}
-                      alt={fullName}
-                      width={44}
-                      height={44}
-                      className="size-11 rounded-full object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <span className="text-xs font-semibold text-foreground">
-                      {initials}
-                    </span>
-                  )}
-                </MobileListItemIcon>
-
-                <MobileListItemContent
-                  primary={fullName}
-                  secondary={
-                    <div className="flex items-center gap-1.5 font-mono text-xs">
-                      <span>{user.phone}</span>
-                      <span>•</span>
-                      <span className="font-sans text-muted-foreground">
-                        {t(`roles.${user.role}`)}
-                      </span>
-                    </div>
-                  }
-                />
-
-                <MobileListItemTrailing>
-                  <UserStatusBadge isActive={user.isActive} />
-                </MobileListItemTrailing>
-              </MobileListItem>
-            </ContextMenuTrigger>
-
-            <ContextMenuContent>
-              <PermissionGuard permission={PERMISSIONS.VIEW_USERS} mode="hide">
-                <ContextMenuItem onClick={() => onViewProfile(user)}>
-                  <Eye className="me-2 size-4 text-muted-foreground" />
-                  {t("actions.viewProfile")}
-                </ContextMenuItem>
-              </PermissionGuard>
-
-              <PermissionGuard
-                permission={PERMISSIONS.MANAGE_USERS}
-                mode="hide"
-              >
-                <ContextMenuItem onClick={() => onEdit(user)}>
-                  <Edit2 className="me-2 size-4 text-muted-foreground" />
-                  {t("actions.edit")}
-                </ContextMenuItem>
-
-                <ContextMenuItem onClick={() => onResetPassword(user)}>
-                  <KeyRound className="me-2 size-4 text-muted-foreground" />
-                  {t("actions.resetPassword")}
-                </ContextMenuItem>
-
-                <ContextMenuItem
-                  onClick={() => onDelete(user)}
-                  className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+          return (
+            <ContextMenu key={user.id}>
+              <ContextMenuTrigger>
+                <MobileListItem
+                  onClick={() => onViewProfile(user)}
+                  isLast={index === paginatedData.length - 1}
                 >
-                  <Trash2 className="me-2 size-4 text-destructive" />
-                  {t("actions.delete")}
-                </ContextMenuItem>
-              </PermissionGuard>
-            </ContextMenuContent>
-          </ContextMenu>
-        )
-      })}
-    </MobileList>
+                  <MobileListItemIcon>
+                    {user.avatarUrl ? (
+                      <Image
+                        src={getAssetUrl(user.avatarUrl)}
+                        alt={fullName}
+                        width={44}
+                        height={44}
+                        className="size-11 rounded-full object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="text-xs font-semibold text-foreground">
+                        {initials}
+                      </span>
+                    )}
+                  </MobileListItemIcon>
+
+                  <MobileListItemContent
+                    primary={fullName}
+                    secondary={
+                      <div className="flex items-center gap-1.5 font-mono text-xs">
+                        <span>{user.phone}</span>
+                        <span>•</span>
+                        <span className="font-sans text-muted-foreground">
+                          {t(`roles.${user.role}`)}
+                        </span>
+                      </div>
+                    }
+                  />
+
+                  <MobileListItemTrailing>
+                    <UserStatusBadge isActive={user.isActive} />
+                  </MobileListItemTrailing>
+                </MobileListItem>
+              </ContextMenuTrigger>
+
+              <ContextMenuContent>
+                <PermissionGuard
+                  permission={PERMISSIONS.VIEW_USERS}
+                  mode="hide"
+                >
+                  <ContextMenuItem onClick={() => onViewProfile(user)}>
+                    <Eye className="me-2 size-4 text-muted-foreground" />
+                    {t("actions.viewProfile")}
+                  </ContextMenuItem>
+                </PermissionGuard>
+
+                <PermissionGuard
+                  permission={PERMISSIONS.MANAGE_USERS}
+                  mode="hide"
+                >
+                  <ContextMenuItem onClick={() => onEdit(user)}>
+                    <Edit2 className="me-2 size-4 text-muted-foreground" />
+                    {t("actions.edit")}
+                  </ContextMenuItem>
+
+                  <ContextMenuItem onClick={() => onResetPassword(user)}>
+                    <KeyRound className="me-2 size-4 text-muted-foreground" />
+                    {t("actions.resetPassword")}
+                  </ContextMenuItem>
+
+                  <ContextMenuItem
+                    onClick={() => onDelete(user)}
+                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                  >
+                    <Trash2 className="me-2 size-4 text-destructive" />
+                    {t("actions.delete")}
+                  </ContextMenuItem>
+                </PermissionGuard>
+              </ContextMenuContent>
+            </ContextMenu>
+          )
+        })}
+      </MobileList>
+
+      {users.length > 10 && (
+        <div className="pt-4 pb-2">
+          <DataPagination
+            pageIndex={pageIndex}
+            pageSize={10}
+            totalItems={users.length}
+            onPageChange={setPageIndex}
+            compact
+            locale={locale}
+          />
+        </div>
+      )}
+    </>
   )
 }
