@@ -47,6 +47,8 @@ export const TermSchema = z.object({
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
   classesCount: z.number().optional(),
+  studentsCount: z.number().optional(),
+  studentCount: z.number().optional(),
 })
 
 export type TermDto = z.infer<typeof TermSchema>

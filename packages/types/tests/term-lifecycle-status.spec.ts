@@ -225,7 +225,7 @@ describe("Term Lifecycle Status and Deletability", () => {
       )
     })
 
-    it("returns false when term is in REGISTERING status among siblings", () => {
+    it("returns true when term is in REGISTERING status before start date and has no students yet", () => {
       const term1: TermLifecycleSubject = {
         id: "t1",
         startDate: "2026-08-01",
@@ -239,13 +239,61 @@ describe("Term Lifecycle Status and Deletability", () => {
         isActive: true,
       }
       const siblings = [term1, term2]
-      // 5 days before term1 start: term1 is REGISTERING, term2 is UPCOMING
+      // 5 days before term1 start: term1 has no students yet -> deletable
       expect(isTermDeletable(term1, siblings, new Date("2026-07-27"))).toBe(
-        false
+        true
       )
       expect(isTermDeletable(term2, siblings, new Date("2026-07-27"))).toBe(
         true
       )
+    })
+
+    it("returns false when term has students enrolled (studentsCount > 0 or hasStudents is true)", () => {
+      const termWithStudents: TermLifecycleSubject = {
+        id: "t1",
+        startDate: "2026-08-01",
+        endDate: "2026-09-15",
+        isActive: true,
+        studentsCount: 3,
+      }
+      expect(
+        isTermDeletable(termWithStudents, undefined, new Date("2026-07-27"))
+      ).toBe(false)
+
+      const termWithStudentCount: TermLifecycleSubject = {
+        id: "t2",
+        startDate: "2026-08-01",
+        endDate: "2026-09-15",
+        isActive: true,
+        studentCount: 1,
+      }
+      expect(
+        isTermDeletable(termWithStudentCount, undefined, new Date("2026-07-27"))
+      ).toBe(false)
+
+      const termWithHasStudents: TermLifecycleSubject = {
+        id: "t3",
+        startDate: "2026-08-01",
+        endDate: "2026-09-15",
+        isActive: true,
+        hasStudents: true,
+      }
+      expect(
+        isTermDeletable(termWithHasStudents, undefined, new Date("2026-07-27"))
+      ).toBe(false)
+    })
+
+    it("returns true when term explicitly has 0 students", () => {
+      const termZeroStudents: TermLifecycleSubject = {
+        id: "t1",
+        startDate: "2026-08-01",
+        endDate: "2026-09-15",
+        isActive: true,
+        studentsCount: 0,
+      }
+      expect(
+        isTermDeletable(termZeroStudents, undefined, new Date("2026-07-27"))
+      ).toBe(true)
     })
 
     it("returns false when term is inactive and in the past", () => {

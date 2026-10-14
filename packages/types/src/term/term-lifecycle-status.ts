@@ -10,6 +10,10 @@ export interface TermLifecycleSubject {
   isActive: boolean
   operatingPhaseId?: string | null
   lifecycleStatus?: TermLifecycleStatus
+  studentCount?: number
+  studentsCount?: number
+  hasStudents?: boolean
+  classesCount?: number
 }
 
 function toStartOfDayMs(date: Date | string): number {
@@ -130,13 +134,16 @@ export function calculateTermLifecycleStatus(
 
 /**
  * Checks whether a term can be deleted:
- * Deletion is accessible ONLY for "پیش‌رو" (UPCOMING) terms whose start date has not reached yet (now < startDate).
+ * A term can be deleted if its start date has not reached yet (now < startDate)
+ * and it does not have any registered/enrolled students yet.
  */
 export function isTermDeletable(
   term: TermLifecycleSubject,
   siblingTerms?: TermLifecycleSubject[],
   now: Date = new Date()
 ): boolean {
+  void siblingTerms
+
   const nowMs = toStartOfDayMs(now)
   const startMs = toStartOfDayMs(term.startDate)
 
@@ -145,19 +152,18 @@ export function isTermDeletable(
     return false
   }
 
-  // If sibling terms are provided, calculate lifecycle status: must be strictly UPCOMING
-  if (siblingTerms && siblingTerms.length > 0) {
-    const status = calculateTermLifecycleStatus(term, siblingTerms, now)
-    return status === "UPCOMING"
+  // If student count is provided and greater than 0: cannot delete
+  const studentCount = term.studentsCount ?? term.studentCount
+  if (typeof studentCount === "number" && studentCount > 0) {
+    return false
   }
 
-  // If term has lifecycleStatus already calculated on it
-  if (term.lifecycleStatus) {
-    return term.lifecycleStatus === "UPCOMING"
+  // If hasStudents flag is explicitly true: cannot delete
+  if (term.hasStudents === true) {
+    return false
   }
 
-  // Fallback when no sibling terms or lifecycleStatus provided:
-  // Must be in the future (nowMs < startMs) and active
+  // Term is upcoming or registering and does not have any students yet
   return term.isActive !== false
 }
 
