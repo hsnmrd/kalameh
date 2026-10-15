@@ -9,6 +9,7 @@ import {
   APP_MODULES,
   ROLES,
   parseStatusFilter,
+  findCurrentActiveTerm,
 } from "@workspace/types"
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -100,19 +101,34 @@ export default function StudentsPage() {
     enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
   })
 
-  const unconfirmedTerm = React.useMemo(() => {
-    return terms.find((term) => {
-      if (Boolean(term.studentSchedulesConfirmedAt)) return false
-      if (term.isActive === false) return false
-      if (
-        term.lifecycleStatus === "COMPLETED" ||
-        term.lifecycleStatus === "INACTIVE"
-      ) {
-        return false
-      }
-      return true
-    })
+  const currentActiveTerm = React.useMemo(() => {
+    return findCurrentActiveTerm(terms)
   }, [terms])
+
+  // The confirmation banner is specifically for the current active term (or nearest relevant active term).
+  // When confirmed for the current active term, it hides.
+  const unconfirmedActiveTerm = React.useMemo(() => {
+    if (currentActiveTerm) {
+      if (Boolean(currentActiveTerm.studentSchedulesConfirmedAt)) {
+        return null
+      }
+      return currentActiveTerm
+    }
+
+    return (
+      terms.find((term) => {
+        if (Boolean(term.studentSchedulesConfirmedAt)) return false
+        if (term.isActive === false) return false
+        if (
+          term.lifecycleStatus === "COMPLETED" ||
+          term.lifecycleStatus === "INACTIVE"
+        ) {
+          return false
+        }
+        return true
+      }) ?? null
+    )
+  }, [currentActiveTerm, terms])
 
   // Query students
   const { data: students, isLoading } = useQuery({
@@ -194,7 +210,8 @@ export default function StudentsPage() {
     openModal("resetPassword", { student })
   const handleConfirmStudentSchedules = (targetTermId?: string) =>
     openModal("confirmStudentSchedules", {
-      defaultTermId: targetTermId ?? unconfirmedTerm?.id,
+      defaultTermId:
+        targetTermId ?? currentActiveTerm?.id ?? unconfirmedActiveTerm?.id,
     })
 
   return (
@@ -210,7 +227,7 @@ export default function StudentsPage() {
               confirmScheduleLabel={t("confirmStudentSchedules.action")}
               onConfirmScheduleClick={
                 terms.length > 0
-                  ? () => handleConfirmStudentSchedules()
+                  ? () => handleConfirmStudentSchedules(currentActiveTerm?.id)
                   : undefined
               }
             />
@@ -271,13 +288,13 @@ export default function StudentsPage() {
             <NoOperatingPhaseAlert />
           ) : (
             <div className="flex flex-1 flex-col gap-4">
-              {!isListEmpty && totalCount > 0 && unconfirmedTerm && (
+              {!isListEmpty && totalCount > 0 && unconfirmedActiveTerm && (
                 <StudentScheduleConfirmationBanner
-                  term={unconfirmedTerm}
+                  term={unconfirmedActiveTerm}
                   studentsCount={totalCount}
                   hasStudents={totalCount > 0}
                   onConfirmClick={() =>
-                    handleConfirmStudentSchedules(unconfirmedTerm.id)
+                    handleConfirmStudentSchedules(unconfirmedActiveTerm.id)
                   }
                 />
               )}

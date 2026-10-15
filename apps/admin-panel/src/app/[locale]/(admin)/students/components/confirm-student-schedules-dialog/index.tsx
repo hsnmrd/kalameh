@@ -55,15 +55,22 @@ export function ConfirmStudentSchedulesDialog({
     passedTerms && passedTerms.length > 0 ? passedTerms : fetchedTerms
 
   const resolvedInitialTermId = React.useMemo(() => {
-    // 1. If explicit defaultTermId passed and exists in terms, use it
-    if (defaultTermId && terms.some((term) => term.id === defaultTermId)) {
-      return defaultTermId
-    }
-
-    // 2. Select current active term as default
+    // 1. Current active term has top priority as default
     const activeTerm = findCurrentActiveTerm(terms)
     if (activeTerm?.id && terms.some((term) => term.id === activeTerm.id)) {
+      if (
+        defaultTermId &&
+        defaultTermId !== activeTerm.id &&
+        terms.some((term) => term.id === defaultTermId)
+      ) {
+        return defaultTermId
+      }
       return activeTerm.id
+    }
+
+    // 2. If explicit defaultTermId passed and exists in terms, use it
+    if (defaultTermId && terms.some((term) => term.id === defaultTermId)) {
+      return defaultTermId
     }
 
     // 3. Look for unconfirmed term
@@ -81,13 +88,10 @@ export function ConfirmStudentSchedulesDialog({
   )
 
   React.useEffect(() => {
-    if (
-      resolvedInitialTermId &&
-      (!selectedTermId || !terms.some((term) => term.id === selectedTermId))
-    ) {
+    if (open && resolvedInitialTermId) {
       setSelectedTermId(resolvedInitialTermId)
     }
-  }, [resolvedInitialTermId, selectedTermId, terms])
+  }, [open, resolvedInitialTermId])
 
   const currentTerm = React.useMemo(
     () => terms.find((term) => term.id === selectedTermId),

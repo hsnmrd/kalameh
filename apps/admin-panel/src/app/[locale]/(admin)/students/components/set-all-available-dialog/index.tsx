@@ -23,7 +23,7 @@ import {
   type ComboboxOption,
 } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { studentsResource } from "@/lib/api"
+import { studentsResource, termsResource } from "@/lib/api"
 
 export interface SetAllAvailableDialogProps {
   open: boolean
@@ -79,6 +79,9 @@ export function SetAllAvailableDialog({
       )
       queryClient.invalidateQueries({
         queryKey: studentsResource.list.baseKey(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: termsResource.list.baseKey(),
       })
       queryClient.invalidateQueries({
         queryKey: studentsResource.getAvailabilities.baseKey(),
