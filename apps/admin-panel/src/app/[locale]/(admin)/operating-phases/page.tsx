@@ -19,6 +19,8 @@ import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { OperatingPhasesTable } from "./components/operating-phases-table"
 import { OperatingPhasesList } from "./components/operating-phases-list"
@@ -111,24 +113,28 @@ export default function OperatingPhasesPage() {
         >
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
-            <OperatingPhasesTable
-              phases={filteredPhases}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-            />
+            <React.Suspense fallback={<TableSkeleton rows={5} />}>
+              <OperatingPhasesTable
+                phases={filteredPhases}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+              />
+            </React.Suspense>
           </div>
 
           {/* Mobile: Flat Divider List */}
           <div className="flex flex-1 flex-col lg:hidden">
-            <OperatingPhasesList
-              phases={filteredPhases}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-            />
+            <React.Suspense fallback={<ListSkeleton rows={5} />}>
+              <OperatingPhasesList
+                phases={filteredPhases}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+              />
+            </React.Suspense>
           </div>
         </AdminPageShell>
       </PermissionGuard>

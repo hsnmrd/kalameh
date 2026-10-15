@@ -22,6 +22,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/sonner"
 import { formatNumber } from "@workspace/ui/lib/utils"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { ModuleGuard } from "@/components/module-guard"
@@ -112,9 +113,7 @@ export default function SchedulingPlanDetailsPage() {
           breadcrumb={breadcrumb}
         >
           {planQuery.isLoading ? (
-            <div className="flex min-h-64 items-center justify-center">
-              <Spinner className="size-8 text-foreground" />
-            </div>
+            <TableSkeleton rows={5} />
           ) : plan ? (
             <div className="flex flex-col gap-6">
               <PlanDetailsHeader

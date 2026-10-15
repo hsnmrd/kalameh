@@ -21,6 +21,8 @@ import { institutesResource } from "@/lib/api"
 import { useModal } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { ModalGateway } from "@/components/modal-gateway"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { InstitutesTable } from "./components/institutes-table"
 import { InstitutesList } from "./components/institutes-list"
@@ -66,53 +68,30 @@ export default function InstitutesPage() {
         )
       }
     >
-      {isLoading ? (
-        <div className="flex min-h-[300px] items-center justify-center">
-          <Spinner className="size-8 text-foreground" />
-        </div>
-      ) : institutes.length === 0 ? (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="default">
-              <Building2 className="size-6" />
-            </EmptyMedia>
-            <EmptyTitle>{t("title")}</EmptyTitle>
-            <EmptyDescription>{t("noInstitutes")}</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button
-              type="button"
-              onClick={handleCreate}
-              className="cursor-pointer gap-2"
-            >
-              <span>{t("addInstitute")}</span>
-            </Button>
-          </EmptyContent>
-        </Empty>
-      ) : (
-        <>
-          {/* Desktop: Data Table */}
-          <div className="hidden lg:block">
-            <InstitutesTable
-              institutes={institutes}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-            />
-          </div>
+      {/* Desktop: Data Table */}
+      <div className="hidden lg:block">
+        <React.Suspense fallback={<TableSkeleton rows={5} />}>
+          <InstitutesTable
+            institutes={institutes}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onAdd={handleCreate}
+          />
+        </React.Suspense>
+      </div>
 
-          {/* Mobile: Flat Divider List */}
-          <div className="lg:hidden">
-            <InstitutesList
-              institutes={institutes}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          </div>
-        </>
-      )}
+      {/* Mobile: Flat Divider List */}
+      <div className="flex flex-1 flex-col lg:hidden">
+        <React.Suspense fallback={<ListSkeleton rows={5} />}>
+          <InstitutesList
+            institutes={institutes}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </React.Suspense>
+      </div>
     </AdminPageShell>
   )
 }

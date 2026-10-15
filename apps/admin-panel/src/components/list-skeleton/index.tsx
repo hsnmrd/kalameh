@@ -14,7 +14,7 @@ export interface ListSkeletonProps {
 export function ListSkeleton({
   rows = 5,
   className,
-  showSpinner = false,
+  showSpinner = true,
 }: ListSkeletonProps) {
   return (
     <div
@@ -22,11 +22,6 @@ export function ListSkeleton({
       aria-live="polite"
       className={cn("flex flex-col divide-y divide-border/60", className)}
     >
-      {showSpinner && (
-        <div className="flex items-center justify-center py-2">
-          <Spinner className="size-4 text-muted-foreground" />
-        </div>
-      )}
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex items-center gap-3 py-3.5 sm:py-4">
           <Skeleton className="size-10 rounded-xl" />
@@ -34,7 +29,14 @@ export function ListSkeleton({
             <Skeleton className="h-4 w-36 rounded-md sm:w-48" />
             <Skeleton className="h-3 w-24 rounded-md sm:w-32" />
           </div>
-          <Skeleton className="h-5 w-12 rounded-full" />
+          {i === 0 && showSpinner ? (
+            <div className="flex items-center gap-2">
+              <Spinner className="size-4 text-muted-foreground" />
+              <Skeleton className="h-5 w-12 rounded-full" />
+            </div>
+          ) : (
+            <Skeleton className="h-5 w-12 rounded-full" />
+          )}
         </div>
       ))}
     </div>

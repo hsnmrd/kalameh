@@ -14,6 +14,8 @@ import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { UsersHeaderActions } from "./components/users-header-actions"
 import { UsersFilter } from "./components/users-filter"
@@ -156,35 +158,39 @@ export default function UsersPage() {
         >
           {/* Desktop Table View */}
           <div className="hidden lg:block">
-            <UsersTable
-              users={users}
-              isLoading={isLoading}
-              onViewProfile={handleViewProfile}
-              onEdit={handleEdit}
-              onResetPassword={handleResetPassword}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-              pageIndex={pageIndex}
-              pageSize={pageSize}
-              onPageIndexChange={setPageIndex}
-              onPageSizeChange={setPageSize}
-            />
+            <React.Suspense fallback={<TableSkeleton rows={pageSize} />}>
+              <UsersTable
+                users={users}
+                isLoading={isLoading}
+                onViewProfile={handleViewProfile}
+                onEdit={handleEdit}
+                onResetPassword={handleResetPassword}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageIndexChange={setPageIndex}
+                onPageSizeChange={setPageSize}
+              />
+            </React.Suspense>
           </div>
 
           {/* Mobile Flat List View */}
           <div className="flex flex-1 flex-col lg:hidden">
-            <UsersList
-              users={users}
-              isLoading={isLoading}
-              onViewProfile={handleViewProfile}
-              onEdit={handleEdit}
-              onResetPassword={handleResetPassword}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-              pageIndex={pageIndex}
-              pageSize={pageSize}
-              onPageChange={setPageIndex}
-            />
+            <React.Suspense fallback={<ListSkeleton rows={pageSize} />}>
+              <UsersList
+                users={users}
+                isLoading={isLoading}
+                onViewProfile={handleViewProfile}
+                onEdit={handleEdit}
+                onResetPassword={handleResetPassword}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageChange={setPageIndex}
+              />
+            </React.Suspense>
           </div>
         </AdminPageShell>
       </PermissionGuard>

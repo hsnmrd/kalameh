@@ -13,7 +13,7 @@ import {
 import { DataPagination } from "@workspace/ui/components/pagination"
 import { useClientPagination } from "@/lib/hooks"
 import { Price } from "@workspace/ui/components/price"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { ListSkeleton } from "@/components/list-skeleton"
 import {
   Empty,
   EmptyDescription,
@@ -51,11 +51,7 @@ export function TransactionsList({
   })
 
   if (isLoading) {
-    return (
-      <div className="flex h-48 items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <ListSkeleton rows={pageSize} />
   }
 
   if (!transactions?.length) {

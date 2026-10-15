@@ -18,6 +18,8 @@ import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { BranchesTable } from "./components/branches-table"
 import { BranchesList } from "./components/branches-list"
@@ -80,22 +82,26 @@ export default function BranchesPage() {
         >
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
-            <BranchesTable
-              branches={branches}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onAdd={handleCreate}
-            />
+            <React.Suspense fallback={<TableSkeleton />}>
+              <BranchesTable
+                branches={branches}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+                onAdd={handleCreate}
+              />
+            </React.Suspense>
           </div>
 
           {/* Mobile: flat divider list */}
           <div className="flex flex-1 flex-col lg:hidden">
-            <BranchesList
-              branches={branches}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onAdd={handleCreate}
-            />
+            <React.Suspense fallback={<ListSkeleton />}>
+              <BranchesList
+                branches={branches}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+                onAdd={handleCreate}
+              />
+            </React.Suspense>
           </div>
         </AdminPageShell>
       </PermissionGuard>

@@ -26,6 +26,8 @@ import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { StudentsHeaderActions } from "./components/students-header-actions"
 import { StudentScheduleConfirmationBanner } from "./components/student-schedule-confirmation-banner"
@@ -280,37 +282,41 @@ export default function StudentsPage() {
 
               {/* Desktop Table View */}
               <div className="hidden lg:block">
-                <StudentsTable
-                  students={students}
-                  isLoading={isLoading}
-                  onViewProfile={handleViewProfile}
-                  onAddNote={handleAddNote}
-                  onEdit={handleEdit}
-                  onResetPassword={handleResetPassword}
-                  onAvailability={handleAvailability}
-                  onAdd={handleCreate}
-                  pageIndex={pageIndex}
-                  pageSize={pageSize}
-                  onPageIndexChange={setPageIndex}
-                  onPageSizeChange={setPageSize}
-                />
+                <React.Suspense fallback={<TableSkeleton rows={pageSize} />}>
+                  <StudentsTable
+                    students={students}
+                    isLoading={isLoading}
+                    onViewProfile={handleViewProfile}
+                    onAddNote={handleAddNote}
+                    onEdit={handleEdit}
+                    onResetPassword={handleResetPassword}
+                    onAvailability={handleAvailability}
+                    onAdd={handleCreate}
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
+                    onPageIndexChange={setPageIndex}
+                    onPageSizeChange={setPageSize}
+                  />
+                </React.Suspense>
               </div>
 
               {/* Mobile Flat List View */}
               <div className="flex flex-1 flex-col lg:hidden">
-                <StudentsList
-                  students={students}
-                  isLoading={isLoading}
-                  onViewProfile={handleViewProfile}
-                  onAddNote={handleAddNote}
-                  onEdit={handleEdit}
-                  onResetPassword={handleResetPassword}
-                  onAvailability={handleAvailability}
-                  onAdd={handleCreate}
-                  pageIndex={pageIndex}
-                  pageSize={pageSize}
-                  onPageChange={setPageIndex}
-                />
+                <React.Suspense fallback={<ListSkeleton rows={pageSize} />}>
+                  <StudentsList
+                    students={students}
+                    isLoading={isLoading}
+                    onViewProfile={handleViewProfile}
+                    onAddNote={handleAddNote}
+                    onEdit={handleEdit}
+                    onResetPassword={handleResetPassword}
+                    onAvailability={handleAvailability}
+                    onAdd={handleCreate}
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
+                    onPageChange={setPageIndex}
+                  />
+                </React.Suspense>
               </div>
             </div>
           )}

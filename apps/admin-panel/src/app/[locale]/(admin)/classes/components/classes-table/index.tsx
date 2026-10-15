@@ -14,7 +14,7 @@ import {
 } from "lucide-react"
 import { Link } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { Badge } from "@workspace/ui/components/badge"
 import { DataTable } from "@workspace/ui/components/data-table"
 import {
@@ -270,11 +270,7 @@ export function ClassesTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={pageSize ?? 5} />
   }
 
   if (!classes || classes.length === 0) {

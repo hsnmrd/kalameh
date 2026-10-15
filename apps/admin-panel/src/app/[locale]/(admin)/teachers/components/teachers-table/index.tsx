@@ -1,7 +1,7 @@
 "use client"
 
 import { useLocale } from "next-intl"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { DataTable } from "@workspace/ui/components/data-table"
 import type { TeacherDto } from "@workspace/types"
 import { TeachersTableEmptyState } from "./empty-state"
@@ -46,11 +46,7 @@ export function TeachersTable({
   })
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner className="size-8" />
-      </div>
-    )
+    return <TableSkeleton rows={pageSize ?? 5} />
   }
 
   if (!teachers || teachers.length === 0) {

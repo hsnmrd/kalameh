@@ -8,7 +8,7 @@ import { rolePermissionsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions, useModal } from "@/lib/hooks"
 import { toast } from "@workspace/ui/components/sonner"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
@@ -204,9 +204,7 @@ export default function RolePermissionsPage() {
           }
         >
           {isLoading ? (
-            <div className="flex h-64 items-center justify-center">
-              <Spinner className="size-8 text-primary" />
-            </div>
+            <TableSkeleton rows={6} />
           ) : (
             <>
               <RolePermissionsEditor

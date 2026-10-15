@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
 import { Users, Edit2, KeyRound, Trash2, Eye, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { DataTable } from "@workspace/ui/components/data-table"
 import {
   Empty,
@@ -201,11 +201,7 @@ export function UsersTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[350px] items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={pageSize ?? 5} />
   }
 
   if (!users || users.length === 0) {

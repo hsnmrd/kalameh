@@ -8,7 +8,7 @@ import type { TransactionDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { DataTable } from "@workspace/ui/components/data-table"
 import { Price } from "@workspace/ui/components/price"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import {
   Empty,
   EmptyDescription,
@@ -138,11 +138,7 @@ export function TransactionsTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={pageSize ?? 5} />
   }
 
   if (!transactions?.length) {

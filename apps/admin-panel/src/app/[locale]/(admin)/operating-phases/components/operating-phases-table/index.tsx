@@ -6,7 +6,7 @@ import { type ColumnDef } from "@tanstack/react-table"
 import { Clock, Edit2, Trash2, AlertTriangle, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { DataTable } from "@workspace/ui/components/data-table"
 import {
   Empty,
@@ -211,11 +211,7 @@ export function OperatingPhasesTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[300px] items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={5} />
   }
 
   if (!phases || phases.length === 0) {

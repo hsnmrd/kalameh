@@ -28,7 +28,7 @@ import {
 } from "@workspace/ui/components/mobile-list"
 import { DataPagination } from "@workspace/ui/components/pagination"
 import { useClientPagination } from "@/lib/hooks"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type ClassroomDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -66,11 +66,7 @@ export function ClassroomsList({
   })
 
   if (isLoading) {
-    return (
-      <div className="flex h-48 w-full items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <ListSkeleton rows={pageSize} />
   }
 
   if (!classrooms || classrooms.length === 0) {
