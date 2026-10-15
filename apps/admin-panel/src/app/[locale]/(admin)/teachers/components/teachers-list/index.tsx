@@ -93,6 +93,23 @@ export function TeachersList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_TEACHERS}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addTeacher")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }
