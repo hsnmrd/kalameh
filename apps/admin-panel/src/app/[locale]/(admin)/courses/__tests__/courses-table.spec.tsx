@@ -42,7 +42,8 @@ describe("CoursesTable Component", () => {
     )
     expect(screen.getAllByText("Top Notch 1A").length).toBeGreaterThan(0)
     expect(screen.getByText("Top Notch 1B")).toBeInTheDocument()
-    expect(screen.getByText(/بدون پیش‌نیاز/i)).toBeInTheDocument()
+    expect(screen.getByText(/سطح پایه|Base Level/i)).toBeInTheDocument()
+    expect(screen.getByText("TN 1A")).toBeInTheDocument()
   })
 
   it("should trigger onEdit when edit button is clicked", () => {

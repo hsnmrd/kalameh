@@ -31,6 +31,7 @@ import { PERMISSIONS, type CourseDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ListSkeleton } from "@/components/list-skeleton"
 import { CoursePrerequisiteBadge } from "../course-prerequisite-badge"
+import { formatCourseShortTitle } from "@workspace/ui/lib/utils"
 
 export interface CoursesListProps {
   courses: CourseDto[] | undefined
@@ -129,8 +130,11 @@ export function CoursesList({
                       className="text-xs text-muted-foreground"
                     />
                     {course.prerequisite ? (
-                      <span className="text-xs text-muted-foreground">
-                        • {course.prerequisite.title}
+                      <span
+                        className="text-xs text-muted-foreground"
+                        title={course.prerequisite.title}
+                      >
+                        • {formatCourseShortTitle(course.prerequisite.title)}
                       </span>
                     ) : null}
                   </div>

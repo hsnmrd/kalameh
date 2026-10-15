@@ -25,7 +25,7 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@workspace/ui/components/empty"
-import { getAssetUrl } from "@workspace/ui/lib/utils"
+import { getAssetUrl, formatCourseShortTitle } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { StudentStatusBadge } from "../student-status-badge"
@@ -113,9 +113,10 @@ export function StudentsTable({
             <Badge
               variant="outline"
               className="gap-1 border-primary/30 text-primary"
+              title={course.title}
             >
               <GraduationCap className="size-3" />
-              <span>{course.title}</span>
+              <span>{formatCourseShortTitle(course.title)}</span>
             </Badge>
           ) : (
             <span className="text-xs text-muted-foreground">

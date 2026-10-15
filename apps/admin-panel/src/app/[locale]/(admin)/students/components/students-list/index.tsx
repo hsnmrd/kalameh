@@ -40,7 +40,7 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@workspace/ui/components/empty"
-import { getAssetUrl } from "@workspace/ui/lib/utils"
+import { getAssetUrl, formatCourseShortTitle } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 
@@ -206,10 +206,13 @@ export function StudentsList({
                       <Badge
                         variant="outline"
                         className="gap-1 border-primary/30 bg-primary/10 text-[11px] text-primary"
+                        title={student.currentAllowedCourse.title}
                       >
                         <GraduationCap className="size-3 text-inherit" />
                         <span className="max-w-[120px] truncate sm:max-w-none">
-                          {student.currentAllowedCourse.title}
+                          {formatCourseShortTitle(
+                            student.currentAllowedCourse.title
+                          )}
                         </span>
                       </Badge>
                     ) : (

@@ -18,7 +18,7 @@
     "title": "Course / Level Title",
     "baseFee": "Base Tuition Fee",
     "prerequisite": "Prerequisite Level",
-    "noPrerequisite": "Entry Level (No Prerequisite)",
+    "noPrerequisite": "Base Level",
     "classesCount": "Classes Count",
     "actions": "Actions",
     "empty": "No educational courses registered in this institute."
