@@ -156,16 +156,20 @@ export function TeacherProfileContent({
             />
 
             {/* Tab Contents */}
-            {activeTab === "information" && (
-              <TeacherInfoTab teacher={teacher} />
-            )}
-            {activeTab === "classes" && <TeacherClassesTab teacher={teacher} />}
-            {activeTab === "schedule" && (
-              <TeacherScheduleTab
-                teacher={teacher}
-                onManageAvailability={handleManageAvailability}
-              />
-            )}
+            <div className="min-h-[calc(100dvh-4rem)]">
+              {activeTab === "information" && (
+                <TeacherInfoTab teacher={teacher} />
+              )}
+              {activeTab === "classes" && (
+                <TeacherClassesTab teacher={teacher} />
+              )}
+              {activeTab === "schedule" && (
+                <TeacherScheduleTab
+                  teacher={teacher}
+                  onManageAvailability={handleManageAvailability}
+                />
+              )}
+            </div>
           </div>
 
           {/* Action Modals */}

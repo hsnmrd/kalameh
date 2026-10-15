@@ -165,19 +165,23 @@ export function StudentProfileContent({
             />
 
             {/* Tab Contents */}
-            {activeTab === "information" && (
-              <StudentInfoTab student={student} />
-            )}
-            {activeTab === "classes" && <StudentClassesTab student={student} />}
-            {activeTab === "schedule" && (
-              <StudentScheduleTab
-                student={student}
-                onManageAvailability={handleAvailability}
-              />
-            )}
-            {activeTab === "notes" && (
-              <StudentNotesTab student={student} onAddNote={handleAddNote} />
-            )}
+            <div className="min-h-[calc(100dvh-4rem)]">
+              {activeTab === "information" && (
+                <StudentInfoTab student={student} />
+              )}
+              {activeTab === "classes" && (
+                <StudentClassesTab student={student} />
+              )}
+              {activeTab === "schedule" && (
+                <StudentScheduleTab
+                  student={student}
+                  onManageAvailability={handleAvailability}
+                />
+              )}
+              {activeTab === "notes" && (
+                <StudentNotesTab student={student} onAddNote={handleAddNote} />
+              )}
+            </div>
           </div>
 
           {/* Action Modals */}

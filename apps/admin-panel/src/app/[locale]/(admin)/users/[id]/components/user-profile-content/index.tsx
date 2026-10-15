@@ -125,7 +125,9 @@ export function UserProfileContent({ userId }: UserProfileContentProps) {
             />
 
             {/* Tab Contents */}
-            {activeTab === "information" && <UserInfoTab user={user} />}
+            <div className="min-h-[calc(100dvh-4rem)]">
+              {activeTab === "information" && <UserInfoTab user={user} />}
+            </div>
           </div>
 
           {/* Action Modals */}
