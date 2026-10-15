@@ -14,7 +14,6 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
 import { modalRegistry } from "./modal"
-import { BooksHeaderActions } from "./components/books-header-actions"
 import { BooksFilter } from "./components/books-filter"
 import { BooksTable } from "./components/books-table"
 import { BooksList } from "./components/books-list"
@@ -53,7 +52,6 @@ export default function BooksPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_BOOKS} mode="forbidden">
         <AdminPageShell
-          actions={<BooksHeaderActions totalCount={books.length} />}
           filters={
             <BooksFilter
               search={search}
