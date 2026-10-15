@@ -35,6 +35,11 @@ export default function StudentLoginPage() {
   const queryClient = useQueryClient()
   const loginSchema = useLoginSchema()
 
+  const [submittedCredentials, setSubmittedCredentials] = React.useState({
+    phone: "",
+    password: "",
+  })
+
   const {
     register,
     handleSubmit,
@@ -44,7 +49,6 @@ export default function StudentLoginPage() {
     defaultValues: {
       phone: "",
       password: "",
-      subdomain: "",
     },
   })
 
@@ -55,8 +59,27 @@ export default function StudentLoginPage() {
   const loginMutation = useMutation({
     ...authResource.login.toMutation(),
     onSuccess: (data) => {
+      if (
+        data.requiresInstituteSelection &&
+        data.institutes &&
+        data.institutes.length > 0
+      ) {
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(
+            "pending_auth",
+            JSON.stringify({
+              phone: submittedCredentials.phone,
+              password: submittedCredentials.password,
+              institutes: data.institutes,
+            })
+          )
+        }
+        router.push("/select-institute")
+        return
+      }
+
       const isStudent =
-        data.user.role === "STUDENT" || data.user.role === "SUPER_STUDENT"
+        data.user?.role === "STUDENT" || data.user?.role === "SUPER_STUDENT"
 
       if (!isStudent) {
         logoutMutation.mutate(undefined)
@@ -80,10 +103,13 @@ export default function StudentLoginPage() {
   }, [t])
 
   const onSubmit = (formData: LoginSchemaInput) => {
+    setSubmittedCredentials({
+      phone: formData.phone,
+      password: formData.password,
+    })
     loginMutation.mutate({
       phone: formData.phone,
       password: formData.password,
-      subdomain: formData.subdomain || undefined,
     })
   }
 
@@ -186,23 +212,6 @@ export default function StudentLoginPage() {
                     {...register("password")}
                   />
                   <FieldError>{errors.password?.message}</FieldError>
-                </Field>
-              </FieldGroup>
-
-              <FieldGroup>
-                <Field data-invalid={Boolean(errors.subdomain)}>
-                  <FieldLabel htmlFor="student-subdomain">
-                    {t("subdomainLabel")}
-                  </FieldLabel>
-                  <Input
-                    id="student-subdomain"
-                    type="text"
-                    dir="ltr"
-                    variant="auth"
-                    placeholder={t("subdomainPlaceholder")}
-                    {...register("subdomain")}
-                  />
-                  <FieldError>{errors.subdomain?.message}</FieldError>
                 </Field>
               </FieldGroup>
 

@@ -65,14 +65,15 @@ export class AuthService {
     headerInstituteIdentifier?: string,
     locale: SupportedLocale = 'fa',
   ): Promise<AuthResponse> {
-    const subdomain = dto.subdomain || headerInstituteIdentifier;
+    const targetIdentifier =
+      dto.instituteId || dto.subdomain || headerInstituteIdentifier;
 
     let instituteId: string | undefined;
 
-    if (subdomain) {
+    if (targetIdentifier) {
       const institute = await this.prisma.institute.findFirstOrThrow({
         where: {
-          OR: [{ subdomain: subdomain }, { id: subdomain }],
+          OR: [{ subdomain: targetIdentifier }, { id: targetIdentifier }],
           deletedAt: null,
         },
       });
@@ -103,36 +104,72 @@ export class AuthService {
       );
     }
 
-    // If phone exists in multiple institutes and no institute was specified
-    if (users.length > 1 && !instituteId) {
-      throw new BadRequestException(
-        this.i18n.t('auth.multipleInstitutesFound', locale),
-      );
-    }
+    let user: (typeof users)[0];
 
-    const user = users[0];
+    if (!instituteId) {
+      // Find active users with active institutes matching password
+      const validUsers: typeof users = [];
+      for (const candidate of users) {
+        if (
+          candidate.isActive &&
+          candidate.institute &&
+          candidate.institute.isActive &&
+          !candidate.institute.deletedAt
+        ) {
+          const isMatch = await bcrypt.compare(
+            dto.password,
+            candidate.password,
+          );
+          if (isMatch) {
+            validUsers.push(candidate);
+          }
+        }
+      }
 
-    if (!user.isActive) {
-      throw new UnauthorizedException(
-        this.i18n.t('auth.userDeactivated', locale),
-      );
-    }
+      if (validUsers.length === 0) {
+        throw new UnauthorizedException(
+          this.i18n.t('auth.invalidCredentials', locale),
+        );
+      }
 
-    if (
-      !user.institute ||
-      !user.institute.isActive ||
-      user.institute.deletedAt
-    ) {
-      throw new UnauthorizedException(
-        this.i18n.t('auth.instituteDeactivated', locale),
-      );
-    }
+      if (validUsers.length > 1) {
+        return {
+          requiresInstituteSelection: true,
+          institutes: validUsers.map((u) => ({
+            id: u.institute.id,
+            name: u.institute.name,
+            subdomain: u.institute.subdomain,
+            logoUrl: u.institute.logoUrl,
+          })),
+        };
+      }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException(
-        this.i18n.t('auth.invalidCredentials', locale),
-      );
+      user = validUsers[0];
+    } else {
+      user = users[0];
+
+      if (!user.isActive) {
+        throw new UnauthorizedException(
+          this.i18n.t('auth.userDeactivated', locale),
+        );
+      }
+
+      if (
+        !user.institute ||
+        !user.institute.isActive ||
+        user.institute.deletedAt
+      ) {
+        throw new UnauthorizedException(
+          this.i18n.t('auth.instituteDeactivated', locale),
+        );
+      }
+
+      const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException(
+          this.i18n.t('auth.invalidCredentials', locale),
+        );
+      }
     }
 
     // Resolve effective permissions for this user's role + institute

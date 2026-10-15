@@ -81,8 +81,8 @@ describe('AuthService', () => {
       });
 
       expect(result.accessToken).toBe('mock-jwt-token');
-      expect(result.user.id).toBe('user-1');
-      expect(result.user.role).toBe('STUDENT');
+      expect(result.user?.id).toBe('user-1');
+      expect(result.user?.role).toBe('STUDENT');
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: 'user-1',
         phone: '09123456789',
@@ -90,6 +90,105 @@ describe('AuthService', () => {
         instituteId: 'inst-1',
         permissions: expect.any(Array),
       });
+    });
+
+    it('should automatically log in when user belongs to single institute without specifying subdomain', async () => {
+      const hashedPassword = await bcrypt.hash('123456', 10);
+      const mockInstitute = {
+        id: 'inst-1',
+        name: 'Tehran Institute',
+        subdomain: 'tehran',
+        isActive: true,
+      };
+      const mockUser = {
+        id: 'user-1',
+        instituteId: 'inst-1',
+        phone: '09123456789',
+        password: hashedPassword,
+        role: 'STUDENT',
+        firstName: 'Ali',
+        lastName: 'Rezaei',
+        isActive: true,
+        institute: mockInstitute,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      prismaService.user.findMany.mockResolvedValue([mockUser]);
+
+      const result = await service.login({
+        phone: '09123456789',
+        password: '123456',
+      });
+
+      expect(result.accessToken).toBe('mock-jwt-token');
+      expect(result.user?.id).toBe('user-1');
+      expect(result.requiresInstituteSelection).toBeUndefined();
+    });
+
+    it('should return requiresInstituteSelection: true with candidate institutes when user belongs to multiple institutes with same password', async () => {
+      const hashedPassword = await bcrypt.hash('123456', 10);
+      const inst1 = {
+        id: 'inst-1',
+        name: 'Tehran Institute',
+        subdomain: 'tehran',
+        isActive: true,
+        deletedAt: null,
+      };
+      const inst2 = {
+        id: 'inst-2',
+        name: 'Shiraz Institute',
+        subdomain: 'shiraz',
+        isActive: true,
+        deletedAt: null,
+      };
+      const user1 = {
+        id: 'user-1',
+        instituteId: 'inst-1',
+        phone: '09123456789',
+        password: hashedPassword,
+        role: 'STUDENT',
+        firstName: 'Ali',
+        lastName: 'Rezaei',
+        isActive: true,
+        institute: inst1,
+      };
+      const user2 = {
+        id: 'user-2',
+        instituteId: 'inst-2',
+        phone: '09123456789',
+        password: hashedPassword,
+        role: 'STUDENT',
+        firstName: 'Ali',
+        lastName: 'Rezaei',
+        isActive: true,
+        institute: inst2,
+      };
+
+      prismaService.user.findMany.mockResolvedValue([user1, user2]);
+
+      const result = await service.login({
+        phone: '09123456789',
+        password: '123456',
+      });
+
+      expect(result.requiresInstituteSelection).toBe(true);
+      expect(result.institutes).toHaveLength(2);
+      expect(result.institutes).toEqual([
+        {
+          id: 'inst-1',
+          name: 'Tehran Institute',
+          subdomain: 'tehran',
+          logoUrl: undefined,
+        },
+        {
+          id: 'inst-2',
+          name: 'Shiraz Institute',
+          subdomain: 'shiraz',
+          logoUrl: undefined,
+        },
+      ]);
+      expect(result.accessToken).toBeUndefined();
     });
 
     it('should throw localized UnauthorizedException (fa) on invalid password', async () => {

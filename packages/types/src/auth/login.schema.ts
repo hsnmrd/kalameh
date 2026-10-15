@@ -17,6 +17,7 @@ export const createLoginSchema = (msg?: {
       .string()
       .min(6, msg?.passwordMin ? { message: msg.passwordMin } : undefined),
     subdomain: z.string().trim().optional(),
+    instituteId: z.string().trim().optional(),
   })
 
 export const LoginInputSchema = createLoginSchema()
