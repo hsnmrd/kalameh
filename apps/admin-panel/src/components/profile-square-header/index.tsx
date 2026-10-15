@@ -1,0 +1,129 @@
+"use client"
+
+import * as React from "react"
+import Image from "next/image"
+import { Phone } from "lucide-react"
+import { getAssetUrl, cn } from "@workspace/ui/lib/utils"
+
+export interface ProfileSquareHeaderProps {
+  fullName: string
+  phone: string
+  avatarUrl?: string | null
+  initials?: string
+  topLeftBadge?: React.ReactNode
+  topRightBadge?: React.ReactNode
+  actions?: React.ReactNode
+  desktopSecondaryInfo?: React.ReactNode
+  className?: string
+}
+
+export function ProfileSquareHeader({
+  fullName,
+  phone,
+  avatarUrl,
+  initials = "U",
+  topLeftBadge,
+  topRightBadge,
+  actions,
+  desktopSecondaryInfo,
+  className,
+}: ProfileSquareHeaderProps) {
+  const assetSrc = avatarUrl ? getAssetUrl(avatarUrl) : null
+
+  return (
+    <div className={cn("flex flex-col gap-4", className)}>
+      {/* Mobile Square Profile Header (< lg) */}
+      <div className="relative aspect-square w-full overflow-hidden rounded-3xl border border-border/60 bg-muted/30 shadow-xs lg:hidden">
+        {/* Avatar Image or Fallback */}
+        {assetSrc ? (
+          <Image
+            src={assetSrc}
+            alt={fullName}
+            fill
+            sizes="(max-width: 1024px) 100vw, 450px"
+            className="object-cover"
+            priority
+            unoptimized
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/15 via-muted/40 to-muted/70 text-5xl font-extrabold text-primary">
+            <span>{initials}</span>
+          </div>
+        )}
+
+        {/* Top-Left Badge (role / student schedule status / teacher schedule status) */}
+        {topLeftBadge && (
+          <div className="absolute top-3.5 left-3.5 z-10 flex items-center">
+            {topLeftBadge}
+          </div>
+        )}
+
+        {/* Top-Right Badge & Quick Actions */}
+        {(topRightBadge || actions) && (
+          <div className="absolute top-3.5 right-3.5 z-10 flex items-center gap-2">
+            {topRightBadge}
+            {actions}
+          </div>
+        )}
+
+        {/* Bottom Gradient Shadow with Name & Phone */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-1/2 flex-col justify-end bg-gradient-to-t from-black/85 via-black/45 to-transparent p-4 text-white sm:p-5">
+          <h2 className="text-xl font-bold tracking-tight text-white drop-shadow-xs sm:text-2xl">
+            {fullName}
+          </h2>
+          <div className="mt-1 flex items-center gap-1.5 font-mono text-xs text-white/90 drop-shadow-xs sm:text-sm">
+            <Phone className="size-3.5 shrink-0 text-white/80" />
+            <span dir="ltr">{phone}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Profile Card Header (lg+) */}
+      <div className="hidden w-full items-center justify-between gap-6 rounded-3xl border border-border bg-card p-6 shadow-xs lg:flex">
+        <div className="flex items-center gap-5">
+          {/* Avatar */}
+          <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-muted/40 shadow-2xs">
+            {assetSrc ? (
+              <Image
+                src={assetSrc}
+                alt={fullName}
+                fill
+                sizes="96px"
+                className="object-cover"
+                unoptimized
+              />
+            ) : (
+              <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/15 via-muted/40 to-muted/70 text-2xl font-bold text-primary">
+                {initials}
+              </div>
+            )}
+          </div>
+
+          {/* Details */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                {fullName}
+              </h2>
+              {topLeftBadge}
+              {topRightBadge}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5 font-mono">
+                <Phone className="size-3.5 text-muted-foreground" />
+                <span dir="ltr">{phone}</span>
+              </div>
+              {desktopSecondaryInfo}
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Actions */}
+        {actions && (
+          <div className="flex shrink-0 items-center gap-2">{actions}</div>
+        )}
+      </div>
+    </div>
+  )
+}

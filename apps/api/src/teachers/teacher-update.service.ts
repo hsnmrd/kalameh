@@ -29,7 +29,7 @@ export class TeacherUpdateService {
     const existing = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
-        role: ROLES.TEACHER,
+        OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
         ...(currentUser.role === ROLES.SUPER_ADMIN
           ? {}
           : { instituteId: currentUser.instituteId }),

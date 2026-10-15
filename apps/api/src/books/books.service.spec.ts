@@ -332,7 +332,7 @@ describe('BooksService', () => {
           {
             items: [{ bookId: 'b-1', termsCount: 2, baseFee: 1000000 }],
           },
-          { sub: 'super', phone: '0912', role: 'SUPER_ADMIN' },
+          { sub: 'super', phone: '0912', role: 'SUPER_ADMIN' } as any,
           'fa',
         ),
       ).rejects.toThrow(BadRequestException);

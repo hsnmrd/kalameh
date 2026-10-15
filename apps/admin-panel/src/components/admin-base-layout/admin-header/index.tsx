@@ -78,14 +78,23 @@ function getPageTitle(
   if (pathname.startsWith("/classrooms")) {
     return t("nav.classrooms")
   }
+  if (/^\/teachers\/[^/]+$/.test(pathname)) {
+    return t("nav.teacherProfile")
+  }
   if (pathname.startsWith("/teachers/calendar")) {
     return t("nav.teachersCalendar")
   }
   if (pathname.startsWith("/teachers")) {
     return t("nav.teachers")
   }
+  if (/^\/students\/[^/]+$/.test(pathname)) {
+    return t("nav.studentProfile")
+  }
   if (pathname.startsWith("/students")) {
     return t("nav.students")
+  }
+  if (/^\/users\/[^/]+$/.test(pathname)) {
+    return t("nav.userProfile")
   }
   if (pathname.startsWith("/users")) {
     return t("nav.staff")

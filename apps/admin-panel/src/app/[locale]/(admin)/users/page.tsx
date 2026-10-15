@@ -10,6 +10,7 @@ import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { usersResource, API_BASE_URL } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
+import { useRouter } from "@/i18n/routing"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
@@ -23,6 +24,7 @@ import { UsersTable } from "./components/users-table"
 import { UsersList } from "./components/users-list"
 
 export default function UsersPage() {
+  const router = useRouter()
   const t = useTranslations("users")
   const locale = useLocale()
   const { openModal } = useModal()
@@ -105,7 +107,7 @@ export default function UsersPage() {
   const handleCreate = () => openModal("createUser")
   const handleImport = () => openModal("importUsers")
   const handleViewProfile = (authUser: AuthUser) =>
-    openModal("profileUser", { user: authUser })
+    router.push(`/users/${authUser.id}`)
   const handleEdit = (authUser: AuthUser) =>
     openModal("editUser", { user: authUser })
   const handleResetPassword = (authUser: AuthUser) =>

@@ -10,6 +10,7 @@ export const createCreateTeacherSchema = (msg?: {
   passwordMin?: string
 }) =>
   z.object({
+    userId: z.string().uuid().optional().nullable(),
     avatar: z.any().optional().nullable(),
     avatarUrl: z
       .preprocess(emptyToNull, z.string().trim().nullable())

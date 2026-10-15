@@ -107,7 +107,7 @@ export class ClassUpdateService {
         where: {
           id: dto.teacherId,
           instituteId: existing.instituteId,
-          role: ROLES.TEACHER,
+          OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
         },
       });
       if (teacher) {

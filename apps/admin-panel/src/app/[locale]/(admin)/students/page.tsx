@@ -22,6 +22,7 @@ import {
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
+import { useRouter } from "@/i18n/routing"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
@@ -38,6 +39,7 @@ import { StudentsList } from "./components/students-list"
 import { StudentsFabDrawer } from "./components/students-fab-drawer"
 
 export default function StudentsPage() {
+  const router = useRouter()
   const t = useTranslations("students")
   const locale = useLocale()
   const { openModal } = useModal()
@@ -183,7 +185,7 @@ export default function StudentsPage() {
   const handleEdit = (student: StudentDto) =>
     openModal("editStudent", { student })
   const handleViewProfile = (student: StudentDto) =>
-    openModal("profileStudent", { student })
+    router.push(`/students/${student.id}`)
   const handleAvailability = (student: StudentDto) =>
     openModal("availabilityStudent", { student })
   const handleAddNote = (student: StudentDto) =>

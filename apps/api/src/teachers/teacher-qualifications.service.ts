@@ -165,7 +165,7 @@ export class TeacherQualificationsService {
       where: {
         id: teacherId,
         instituteId,
-        role: ROLES.TEACHER,
+        OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
       },
       select: {
         id: true,

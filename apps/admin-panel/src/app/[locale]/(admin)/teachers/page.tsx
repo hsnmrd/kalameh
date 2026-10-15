@@ -10,6 +10,7 @@ import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { teachersResource, API_BASE_URL } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
+import { useRouter } from "@/i18n/routing"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
@@ -23,6 +24,7 @@ import { TeachersTable } from "./components/teachers-table"
 import { TeachersList } from "./components/teachers-list"
 
 export default function TeachersPage() {
+  const router = useRouter()
   const t = useTranslations("teachers")
   const locale = useLocale()
   const { openModal } = useModal()
@@ -108,7 +110,7 @@ export default function TeachersPage() {
   const handleCreate = () => openModal("createTeacher")
   const handleImport = () => openModal("importTeachers")
   const handleViewProfile = (teacher: TeacherDto) =>
-    openModal("viewProfileTeacher", { teacher })
+    router.push(`/teachers/${teacher.id}`)
   const handleManageAvailability = (teacher: TeacherDto) =>
     openModal("availabilityTeacher", { teacher })
   const handleEdit = (teacher: TeacherDto) =>

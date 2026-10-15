@@ -253,6 +253,17 @@ export class UsersService {
             baseFee: true,
           },
         },
+        studentProfile: {
+          include: {
+            notes: true,
+          },
+        },
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         createdAt: true,
         updatedAt: true,
       },
