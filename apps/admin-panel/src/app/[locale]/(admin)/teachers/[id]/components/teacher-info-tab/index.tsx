@@ -60,8 +60,10 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
             <span className="text-xs text-muted-foreground">
               {t("table.nationalCode")}
             </span>
-            <p className="mt-1 font-mono font-medium text-foreground">
-              {teacher.nationalCode || "—"}
+            <p className="mt-1 text-start font-medium text-foreground">
+              <span dir="ltr" className="inline-block">
+                {teacher.nationalCode || "—"}
+              </span>
             </p>
           </div>
 
@@ -69,8 +71,10 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
             <span className="text-xs text-muted-foreground">
               {t("createModal.phone")}
             </span>
-            <p className="mt-1 font-mono font-medium text-foreground" dir="ltr">
-              {teacher.phone}
+            <p className="mt-1 text-start font-medium text-foreground">
+              <span dir="ltr" className="inline-block">
+                {teacher.phone}
+              </span>
             </p>
           </div>
 

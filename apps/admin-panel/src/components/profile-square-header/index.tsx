@@ -70,7 +70,7 @@ export function ProfileSquareHeader({
           <h2 className="text-xl font-bold tracking-tight text-white drop-shadow-xs sm:text-2xl">
             {fullName}
           </h2>
-          <div className="mt-1 flex items-center gap-1.5 font-mono text-xs text-white/90 drop-shadow-xs sm:text-sm">
+          <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-white/90 drop-shadow-xs sm:text-sm">
             <Phone className="size-3.5 shrink-0 text-white/80" />
             <span dir="ltr">{phone}</span>
           </div>
@@ -108,7 +108,7 @@ export function ProfileSquareHeader({
             </div>
 
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1.5 font-mono">
+              <div className="flex items-center gap-1.5 font-medium">
                 <Phone className="size-3.5 text-muted-foreground" />
                 <span dir="ltr">{phone}</span>
               </div>

@@ -56,8 +56,10 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
             <span className="text-xs text-muted-foreground">
               {t("table.nationalCode")}
             </span>
-            <p className="mt-1 font-mono font-medium text-foreground">
-              {user.nationalCode || "—"}
+            <p className="mt-1 text-start font-medium text-foreground">
+              <span dir="ltr" className="inline-block">
+                {user.nationalCode || "—"}
+              </span>
             </p>
           </div>
 
@@ -99,8 +101,10 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
             <span className="text-xs text-muted-foreground">
               {t("table.phone")}
             </span>
-            <p className="mt-1 font-mono font-medium text-foreground" dir="ltr">
-              {user.phone}
+            <p className="mt-1 text-start font-medium text-foreground">
+              <span dir="ltr" className="inline-block">
+                {user.phone}
+              </span>
             </p>
           </div>
 
@@ -109,11 +113,10 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
               <span className="text-xs text-muted-foreground">
                 {locale === "fa" ? "شماره تماس اضطراری" : "Emergency Phone"}
               </span>
-              <p
-                className="mt-1 font-mono font-medium text-foreground"
-                dir="ltr"
-              >
-                {user.studentProfile.emergencyPhone}
+              <p className="mt-1 text-start font-medium text-foreground">
+                <span dir="ltr" className="inline-block">
+                  {user.studentProfile.emergencyPhone}
+                </span>
               </p>
             </div>
           )}

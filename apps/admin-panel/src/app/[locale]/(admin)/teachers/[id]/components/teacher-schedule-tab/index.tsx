@@ -315,15 +315,15 @@ export function TeacherScheduleTab({
                               )}
                             </div>
 
-                            <div
-                              className="flex items-center gap-1.5 pt-0.5 text-xs text-muted-foreground"
-                              dir="ltr"
-                            >
+                            <div className="flex items-center gap-1.5 pt-0.5 text-xs text-muted-foreground">
                               <Clock
                                 className="size-3 shrink-0 text-muted-foreground"
                                 aria-hidden
                               />
-                              <span className="font-mono font-medium text-foreground">
+                              <span
+                                dir="ltr"
+                                className="inline-block font-medium text-foreground"
+                              >
                                 {slot.startTime} - {slot.endTime}
                               </span>
                             </div>
