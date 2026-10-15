@@ -114,11 +114,7 @@ export function BooksList({
                   </div>
                 }
                 secondary={
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {book.author && <span>{book.author}</span>}
-                    {book.author && book.publisher && <span>•</span>}
-                    {book.publisher && <span>{book.publisher}</span>}
-                  </div>
+                  book.publisher ? <span>{book.publisher}</span> : undefined
                 }
               />
 
