@@ -2,17 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import {
-  Calendar,
-  GraduationCap,
-  Building2,
-  Phone,
-  UserCheck,
-  MapPin,
-  Clock,
-  CheckCircle2,
-} from "lucide-react"
-import { Badge } from "@workspace/ui/components/badge"
+import { GraduationCap, Phone, UserCheck } from "lucide-react"
 import type { StudentDto } from "@workspace/types"
 
 export interface StudentInfoTabProps {
@@ -120,37 +110,18 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
             <span className="text-xs text-muted-foreground">
               {t("table.branch")}
             </span>
-            <div className="mt-1">
-              {student.branch ? (
-                <Badge variant="outline" className="gap-1.5 text-xs">
-                  <Building2 className="size-3 text-muted-foreground" />
-                  <span>{student.branch.name}</span>
-                </Badge>
-              ) : (
-                <span className="text-sm text-muted-foreground">—</span>
-              )}
-            </div>
+            <p className="mt-1 font-medium text-foreground">
+              {student.branch?.name || "—"}
+            </p>
           </div>
 
           <div>
             <span className="text-xs text-muted-foreground">
               {t("table.currentLevel")}
             </span>
-            <div className="mt-1">
-              {student.currentAllowedCourse ? (
-                <Badge
-                  variant="outline"
-                  className="gap-1.5 text-xs font-semibold text-primary"
-                >
-                  <GraduationCap className="size-3" />
-                  <span>{student.currentAllowedCourse.title}</span>
-                </Badge>
-              ) : (
-                <span className="text-sm text-muted-foreground">
-                  {t("table.noLevel")}
-                </span>
-              )}
-            </div>
+            <p className="mt-1 font-medium text-foreground">
+              {student.currentAllowedCourse?.title || t("table.noLevel")}
+            </p>
           </div>
 
           <div>
@@ -166,28 +137,16 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
             <span className="text-xs text-muted-foreground">
               {t("actions.availability")}
             </span>
-            <div className="mt-1 flex items-center gap-1.5">
-              {student.studentProfile?.scheduleStatus === "COMPLETE" ? (
-                <Badge
-                  variant="success"
-                  className="gap-1 text-xs font-semibold"
-                >
-                  <CheckCircle2 className="size-3 text-inherit" />
-                  <span>{t("scheduleStatus.complete")}</span>
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="gap-1 text-xs">
-                  <Clock className="size-3 text-inherit" />
-                  <span>{t("scheduleStatus.incomplete")}</span>
-                </Badge>
-              )}
-            </div>
+            <p className="mt-1 font-medium text-foreground">
+              {student.studentProfile?.scheduleStatus === "COMPLETE"
+                ? t("scheduleStatus.complete")
+                : t("scheduleStatus.incomplete")}
+            </p>
           </div>
 
           <div>
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="size-3 text-muted-foreground" />
-              <span>{t("table.createdAt")}</span>
+            <span className="text-xs text-muted-foreground">
+              {t("table.createdAt")}
             </span>
             <p className="mt-1 font-medium text-foreground">
               {formattedCreatedDate}
@@ -232,9 +191,8 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
 
           {student.studentProfile?.address && (
             <div className="sm:col-span-2">
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="size-3 text-muted-foreground" />
-                <span>{t("createModal.address")}</span>
+              <span className="text-xs text-muted-foreground">
+                {t("createModal.address")}
               </span>
               <p className="mt-1 text-sm font-medium text-foreground">
                 {student.studentProfile.address}

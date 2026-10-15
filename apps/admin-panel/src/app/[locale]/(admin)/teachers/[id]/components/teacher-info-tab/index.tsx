@@ -2,15 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import {
-  Calendar,
-  GraduationCap,
-  Building2,
-  Phone,
-  UserCheck,
-  BookOpen,
-  FileText,
-} from "lucide-react"
+import { BookOpen, GraduationCap, UserCheck } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import type { TeacherDto } from "@workspace/types"
 
@@ -97,12 +89,9 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
           </div>
 
           <div>
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="size-3 text-muted-foreground" />
-              <span>
-                {t("createModal.createdAt") ||
-                  (locale === "fa" ? "تاریخ عضویت" : "Join Date")}
-              </span>
+            <span className="text-xs text-muted-foreground">
+              {t("createModal.createdAt") ||
+                (locale === "fa" ? "تاریخ عضویت" : "Join Date")}
             </span>
             <p className="mt-1 font-medium text-foreground">
               {formattedCreatedDate}
@@ -113,9 +102,8 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
         {/* Bio / Background */}
         {teacher.teacherProfile?.bio && (
           <div className="mt-4 border-t border-border/40 pt-4">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <FileText className="size-3 text-muted-foreground" />
-              <span>{t("createModal.bio")}</span>
+            <span className="text-xs text-muted-foreground">
+              {t("createModal.bio")}
             </span>
             <p className="mt-1 text-sm leading-relaxed text-foreground">
               {teacher.teacherProfile.bio}

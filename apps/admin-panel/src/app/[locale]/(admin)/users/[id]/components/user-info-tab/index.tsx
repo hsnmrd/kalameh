@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Calendar, Phone, ShieldCheck, UserCheck, MapPin } from "lucide-react"
+import { Phone, ShieldCheck, UserCheck } from "lucide-react"
 import type { AuthUser } from "@workspace/types"
 
 export interface UserInfoTabProps {
@@ -123,9 +123,8 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
 
           {user.studentProfile?.address && (
             <div className="sm:col-span-2">
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="size-3 text-muted-foreground" />
-                <span>{locale === "fa" ? "نشانی" : "Address"}</span>
+              <span className="text-xs text-muted-foreground">
+                {locale === "fa" ? "نشانی" : "Address"}
               </span>
               <p className="mt-1 text-sm font-medium text-foreground">
                 {user.studentProfile.address}
@@ -164,9 +163,8 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
           </div>
 
           <div>
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="size-3 text-muted-foreground" />
-              <span>{t("table.createdAt")}</span>
+            <span className="text-xs text-muted-foreground">
+              {t("table.createdAt")}
             </span>
             <p className="mt-1 font-medium text-foreground">
               {formattedCreatedDate}
