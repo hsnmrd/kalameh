@@ -3,13 +3,12 @@ import { render, screen } from "@/test/test-utils"
 import { ProfileSquareHeader } from "../index"
 
 describe("ProfileSquareHeader", () => {
-  it("renders full name, phone, and badges correctly in mobile and desktop layouts", () => {
+  it("renders full name, phone, and topLeftBadge correctly in mobile and desktop layouts", () => {
     render(
       <ProfileSquareHeader
         fullName="علی رضایی"
         phone="09123456789"
         topLeftBadge={<span data-testid="top-left-badge">برنامه زمانی</span>}
-        topRightBadge={<span data-testid="top-right-badge">فعال</span>}
         actions={<button type="button">عملیات</button>}
       />
     )
@@ -18,12 +17,9 @@ describe("ProfileSquareHeader", () => {
     expect(screen.getAllByText("علی رضایی").length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText("09123456789").length).toBeGreaterThanOrEqual(1)
 
-    // Badges should be rendered
+    // Badge should be rendered
     expect(
       screen.getAllByTestId("top-left-badge").length
-    ).toBeGreaterThanOrEqual(1)
-    expect(
-      screen.getAllByTestId("top-right-badge").length
     ).toBeGreaterThanOrEqual(1)
   })
 

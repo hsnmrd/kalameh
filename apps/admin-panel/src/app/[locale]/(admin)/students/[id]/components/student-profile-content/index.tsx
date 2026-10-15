@@ -14,7 +14,6 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ProfileSquareHeader } from "@/components/profile-square-header"
 import { ProfileTabs, type ProfileTabOption } from "@/components/profile-tabs"
-import { StudentStatusBadge } from "../../../components/student-status-badge"
 import { StudentScheduleStatusBadge } from "../../../components/student-schedule-status-badge"
 import { EditStudentModal } from "../../../components/edit-student-modal"
 import { StudentAvailabilityModal } from "../../../components/student-availability-modal"
@@ -122,6 +121,7 @@ export function StudentProfileContent({
     <ModuleGuard module={APP_MODULES.STUDENTS}>
       <PermissionGuard permission={PERMISSIONS.VIEW_STUDENTS} mode="forbidden">
         <AdminPageShell
+          breadcrumbClassName="hidden sm:block"
           breadcrumb={
             <AdminBreadcrumb
               backHref="/students"
@@ -134,7 +134,7 @@ export function StudentProfileContent({
           }
         >
           <div className="flex flex-col gap-5 pb-8">
-            {/* Unified Square Profile Header (Mobile: Square Image with Gradient; Desktop: Card Banner) */}
+            {/* Unified Square Profile Header (Mobile: Square Image with Gradient; Desktop: Clean Banner) */}
             <ProfileSquareHeader
               fullName={fullName}
               phone={student.phone}
@@ -146,7 +146,6 @@ export function StudentProfileContent({
                   showLabel
                 />
               }
-              topRightBadge={<StudentStatusBadge isActive={student.isActive} />}
               actions={
                 <StudentActionsMenu
                   student={student}

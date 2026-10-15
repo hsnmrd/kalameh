@@ -34,9 +34,9 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
   const teachableCourses = teacher.teacherProfile?.teachableCourses || []
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Identity & Academic Details */}
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-xs sm:p-6">
+    <div className="flex flex-col gap-8 py-2">
+      {/* Identity & Academic Details Section */}
+      <div>
         <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground sm:text-base">
           <UserCheck className="size-4 text-muted-foreground" />
           <span>
@@ -85,7 +85,7 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
 
           <div>
             <span className="text-xs text-muted-foreground">
-              {t("status.active")} / {t("status.inactive")}
+              {t("table.status")}
             </span>
             <p className="mt-1 font-medium text-foreground">
               {teacher.isActive ? t("status.active") : t("status.inactive")}
@@ -95,7 +95,10 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
           <div>
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="size-3 text-muted-foreground" />
-              <span>تاریخ عضویت</span>
+              <span>
+                {t("createModal.createdAt") ||
+                  (locale === "fa" ? "تاریخ عضویت" : "Join Date")}
+              </span>
             </span>
             <p className="mt-1 font-medium text-foreground">
               {formattedCreatedDate}
@@ -117,8 +120,8 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
         )}
       </div>
 
-      {/* Teachable Courses */}
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-xs sm:p-6">
+      {/* Teachable Courses Section */}
+      <div>
         <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground sm:text-base">
           <BookOpen className="size-4 text-muted-foreground" />
           <span>
@@ -132,7 +135,9 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
         <div className="mt-4">
           {teachableCourses.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border/80 bg-muted/20 p-6 text-center text-xs text-muted-foreground">
-              هنوز دوره‌ای برای تدریس این استاد ثبت نشده است.
+              {locale === "fa"
+                ? "هنوز دوره‌ای برای تدریس این استاد ثبت نشده است."
+                : "No teachable courses registered yet."}
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">

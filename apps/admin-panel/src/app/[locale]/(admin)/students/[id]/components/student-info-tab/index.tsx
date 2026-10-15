@@ -42,9 +42,9 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
     : null
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Identity & Personal Info */}
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-xs sm:p-6">
+    <div className="flex flex-col gap-8 py-2">
+      {/* Identity & Personal Info Section */}
+      <div>
         <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground sm:text-base">
           <UserCheck className="size-4 text-muted-foreground" />
           <span>
@@ -104,8 +104,8 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
         </div>
       </div>
 
-      {/* Academic & Branch Info */}
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-xs sm:p-6">
+      {/* Academic & Branch Info Section */}
+      <div>
         <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground sm:text-base">
           <GraduationCap className="size-4 text-muted-foreground" />
           <span>
@@ -153,6 +153,15 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
 
           <div>
             <span className="text-xs text-muted-foreground">
+              {t("table.status")}
+            </span>
+            <p className="mt-1 font-medium text-foreground">
+              {student.isActive ? t("status.active") : t("status.inactive")}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-xs text-muted-foreground">
               {t("actions.availability")}
             </span>
             <div className="mt-1 flex items-center gap-1.5">
@@ -185,8 +194,8 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
         </div>
       </div>
 
-      {/* Contact & Address */}
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-xs sm:p-6">
+      {/* Contact & Address Section */}
+      <div>
         <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground sm:text-base">
           <Phone className="size-4 text-muted-foreground" />
           <span>

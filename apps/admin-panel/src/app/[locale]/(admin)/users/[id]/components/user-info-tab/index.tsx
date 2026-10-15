@@ -32,9 +32,9 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
     : null
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Identity Information Card */}
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-xs sm:p-6">
+    <div className="flex flex-col gap-8 py-2">
+      {/* Identity Information Section */}
+      <div>
         <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground sm:text-base">
           <UserCheck className="size-4 text-muted-foreground" />
           <span>
@@ -85,8 +85,8 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
         </div>
       </div>
 
-      {/* Contact & Address Card */}
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-xs sm:p-6">
+      {/* Contact & Address Section */}
+      <div>
         <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground sm:text-base">
           <Phone className="size-4 text-muted-foreground" />
           <span>
@@ -132,8 +132,8 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
         </div>
       </div>
 
-      {/* System & Access Card */}
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-xs sm:p-6">
+      {/* System & Access Section */}
+      <div>
         <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground sm:text-base">
           <ShieldCheck className="size-4 text-muted-foreground" />
           <span>

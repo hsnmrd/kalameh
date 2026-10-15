@@ -14,7 +14,6 @@ import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ProfileSquareHeader } from "@/components/profile-square-header"
 import { ProfileTabs, type ProfileTabOption } from "@/components/profile-tabs"
-import { UserStatusBadge } from "../../../../users/components/user-status-badge"
 import { TeacherScheduleStatusBadge } from "../../../components/teacher-schedule-status-badge"
 import { EditTeacherModal } from "../../../components/edit-teacher-modal"
 import { TeacherAvailabilityModal } from "../../../components/teacher-availability-modal"
@@ -114,6 +113,7 @@ export function TeacherProfileContent({
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_TEACHERS} mode="forbidden">
         <AdminPageShell
+          breadcrumbClassName="hidden sm:block"
           breadcrumb={
             <AdminBreadcrumb
               backHref="/teachers"
@@ -126,7 +126,7 @@ export function TeacherProfileContent({
           }
         >
           <div className="flex flex-col gap-5 pb-8">
-            {/* Unified Square Profile Header (Mobile: Square Image with Gradient; Desktop: Card Banner) */}
+            {/* Unified Square Profile Header (Mobile: Square Image with Gradient; Desktop: Clean Banner) */}
             <ProfileSquareHeader
               fullName={fullName}
               phone={teacher.phone}
@@ -137,7 +137,6 @@ export function TeacherProfileContent({
                   availabilitiesCount={availabilitiesCount}
                 />
               }
-              topRightBadge={<UserStatusBadge isActive={teacher.isActive} />}
               actions={
                 <TeacherActionsMenu
                   teacher={teacher}

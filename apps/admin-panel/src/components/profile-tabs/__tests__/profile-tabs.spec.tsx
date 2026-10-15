@@ -21,7 +21,9 @@ describe("ProfileTabs", () => {
     expect(screen.getByText("5")).toBeInTheDocument()
   })
 
-  it("triggers onChange when another tab is clicked", () => {
+  it("triggers onChange and smooth scrolls when another tab is clicked", () => {
+    const scrollToMock = vi.fn()
+    window.scrollTo = scrollToMock
     const handleChange = vi.fn()
     render(
       <ProfileTabs
@@ -35,5 +37,6 @@ describe("ProfileTabs", () => {
     fireEvent.click(classesTab)
 
     expect(handleChange).toHaveBeenCalledWith("classes")
+    expect(scrollToMock).toHaveBeenCalled()
   })
 })

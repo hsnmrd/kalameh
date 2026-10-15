@@ -15,7 +15,6 @@ import { ModuleGuard } from "@/components/module-guard"
 import { ProfileSquareHeader } from "@/components/profile-square-header"
 import { ProfileTabs, type ProfileTabOption } from "@/components/profile-tabs"
 import { UserRoleBadge } from "../../../components/user-role-badge"
-import { UserStatusBadge } from "../../../components/user-status-badge"
 import { EditUserModal } from "../../../components/edit-user-modal"
 import { ResetPasswordModal } from "../../../components/reset-password-modal"
 import { DeleteUserModal } from "../../../components/delete-user-modal"
@@ -88,6 +87,7 @@ export function UserProfileContent({ userId }: UserProfileContentProps) {
     <ModuleGuard module={APP_MODULES.USERS_STAFF}>
       <PermissionGuard permission={PERMISSIONS.VIEW_USERS} mode="forbidden">
         <AdminPageShell
+          breadcrumbClassName="hidden sm:block"
           breadcrumb={
             <AdminBreadcrumb
               backHref="/users"
@@ -100,14 +100,13 @@ export function UserProfileContent({ userId }: UserProfileContentProps) {
           }
         >
           <div className="flex flex-col gap-5 pb-8">
-            {/* Unified Square Profile Header (Mobile: Square Image with Gradient; Desktop: Card Banner) */}
+            {/* Unified Square Profile Header (Mobile: Square Image with Gradient; Desktop: Clean Banner) */}
             <ProfileSquareHeader
               fullName={fullName}
               phone={user.phone}
               avatarUrl={user.avatarUrl}
               initials={initials}
               topLeftBadge={<UserRoleBadge role={user.role} />}
-              topRightBadge={<UserStatusBadge isActive={user.isActive} />}
               actions={
                 <UserActionsMenu
                   user={user}
