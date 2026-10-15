@@ -100,7 +100,11 @@ describe('MVP-013 teacher course qualifications API service', () => {
     ).resolves.toEqual([qualification]);
     expect(prisma.user.findFirstOrThrow).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: teacherId, instituteId, role: ROLES.TEACHER },
+        where: {
+          id: teacherId,
+          instituteId,
+          OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
+        },
       }),
     );
   });

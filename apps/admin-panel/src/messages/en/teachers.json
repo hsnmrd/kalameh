@@ -61,10 +61,26 @@
     "avatarPlaceholder": "Select or drag an image",
     "avatarDescription": "Supported formats: JPG, PNG, WebP (Max 5MB)",
     "removeAvatar": "Remove image",
+    "selectStaffUser": "Select from staff / administrative users",
+    "selectStaffUserPlaceholder": "Select existing user to grant teaching role (optional)...",
+    "newTeacherOption": "New teacher (not from staff)",
+    "linkedUserNotice": "This user is linked to staff account ({name} - {role}) and their administrative permissions are preserved.",
+    "passwordStaffDisabledHint": "Password cannot be changed for staff accounts here.",
     "submit": "Save Teacher",
     "cancel": "Cancel",
     "success": "Teacher added successfully",
     "error": "Failed to add teacher"
+  },
+  "roles": {
+    "STUDENT": "Student",
+    "SUPER_STUDENT": "Senior Student",
+    "CLERK": "Clerk",
+    "SUPER_CLERK": "Senior Clerk",
+    "TEACHER": "Teacher",
+    "SUPERVISOR": "Supervisor",
+    "ASSISTANT": "Assistant",
+    "ADMIN": "Institute Admin",
+    "SUPER_ADMIN": "Super Admin"
   },
   "editModal": {
     "title": "Edit Teacher",

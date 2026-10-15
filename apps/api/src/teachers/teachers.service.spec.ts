@@ -249,6 +249,49 @@ describe('TeachersService', () => {
 
       expect(prisma.user.create).not.toHaveBeenCalled();
     });
+
+    it('should attach teacherProfile to existing staff user when userId is provided', async () => {
+      const existingStaff = {
+        id: 'admin-user-id',
+        instituteId: 'inst-1',
+        firstName: 'Mohammad',
+        lastName: 'Admini',
+        phone: '09129999999',
+        role: ROLES.ADMIN,
+        teacherProfile: null,
+      };
+
+      prisma.user.findFirst.mockResolvedValue(existingStaff);
+      prisma.teacherProfile.create.mockResolvedValue({ id: 'tp-1' });
+      prisma.user.findUnique.mockResolvedValue({
+        ...existingStaff,
+        teacherProfile: {
+          id: 'tp-1',
+          availabilities: [],
+          teachableCourses: [],
+        },
+      });
+
+      const result = await service.create(mockAdmin, {
+        userId: 'admin-user-id',
+        firstName: 'Mohammad',
+        lastName: 'Admini',
+        phone: '09129999999',
+        courseIds: [],
+        degree: 'Ph.D.',
+      });
+
+      expect(prisma.teacherProfile.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            userId: 'admin-user-id',
+            degree: 'Ph.D.',
+          }),
+        }),
+      );
+      expect(prisma.user.create).not.toHaveBeenCalled();
+      expect(result.role).toBe(ROLES.ADMIN);
+    });
   });
 
   describe('findAll', () => {
@@ -276,7 +319,7 @@ describe('TeachersService', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             instituteId: 'inst-1',
-            role: ROLES.TEACHER,
+            OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
           }),
         }),
       );

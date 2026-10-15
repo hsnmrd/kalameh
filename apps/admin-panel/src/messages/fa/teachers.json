@@ -61,10 +61,26 @@
     "avatarPlaceholder": "انتخاب یا کشیدن تصویر",
     "avatarDescription": "فرمت‌های مجاز: JPG، PNG، WebP (حداکثر ۵ مگابایت)",
     "removeAvatar": "حذف تصویر",
+    "selectStaffUser": "انتخاب از کادر اداری و پرسنل",
+    "selectStaffUserPlaceholder": "انتخاب کاربر موجود جهت اعطای نقش تدریس (اختیاری)...",
+    "newTeacherOption": "استاد جدید (خارج از کادر اداری)",
+    "linkedUserNotice": "این کاربر به حساب کاربری پرسنل ({name} - {role}) متصل می‌شود و دسترسی‌های مدیریتی او حفظ می‌گردد.",
+    "passwordStaffDisabledHint": "رمز عبور برای کاربر کادر اداری تغییر نخواهد کرد.",
     "submit": "ثبت استاد",
     "cancel": "انصراف",
     "success": "استاد با موفقیت افزوده شد",
     "error": "خطا در افزودن استاد"
+  },
+  "roles": {
+    "STUDENT": "زبان‌آموز",
+    "SUPER_STUDENT": "زبان‌آموز ارشد",
+    "CLERK": "منشی",
+    "SUPER_CLERK": "منشی ارشد",
+    "TEACHER": "مدرس",
+    "SUPERVISOR": "سوپروایزر",
+    "ASSISTANT": "دستیار",
+    "ADMIN": "مدیر آموزشگاه",
+    "SUPER_ADMIN": "ادمین کل"
   },
   "editModal": {
     "title": "ویرایش استاد",

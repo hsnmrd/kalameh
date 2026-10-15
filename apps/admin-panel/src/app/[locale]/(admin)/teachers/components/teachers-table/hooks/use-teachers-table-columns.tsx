@@ -61,9 +61,19 @@ export function useTeachersTableColumns({
                 )}
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">
-                  {fullName}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-medium text-foreground">
+                    {fullName}
+                  </span>
+                  {teacher.role !== "TEACHER" && (
+                    <Badge
+                      variant="secondary"
+                      className="h-4 px-1.5 py-0 text-[10px]"
+                    >
+                      {t(`roles.${teacher.role}`)}
+                    </Badge>
+                  )}
+                </div>
                 <span className="font-mono text-xs text-muted-foreground">
                   {teacher.phone}
                 </span>
