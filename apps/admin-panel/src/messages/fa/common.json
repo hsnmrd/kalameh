@@ -241,5 +241,14 @@
     "actions": {
       "more": "عملیات بیشتر"
     }
+  },
+  "days": {
+    "SATURDAY": "شنبه",
+    "SUNDAY": "یکشنبه",
+    "MONDAY": "دوشنبه",
+    "TUESDAY": "سه‌شنبه",
+    "WEDNESDAY": "چهارشنبه",
+    "THURSDAY": "پنج‌شنبه",
+    "FRIDAY": "جمعه"
   }
 }

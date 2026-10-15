@@ -32,6 +32,17 @@
       "students": "Review students"
     }
   },
+  "preflight": {
+    "title": "Auto-Scheduling Prerequisites",
+    "noTeachers": "No teachers are registered in the institute.",
+    "noTeachersDescription": "To schedule classes automatically, you must first register teachers in the institute.",
+    "noTeacherSchedule": "No teachers have set their availability schedule.",
+    "noTeacherScheduleDescription": "To generate a valid schedule, at least one teacher must set their weekly availability hours.",
+    "noBranchClassrooms": "No classrooms are defined for the selected branch.",
+    "noBranchClassroomsDescription": "To schedule classes in this branch, you must first define physical classrooms.",
+    "manageTeachers": "Manage Teachers",
+    "manageClassrooms": "Manage Classrooms"
+  },
   "generation": {
     "title": "Create scheduling suggestions",
     "description": "Choose the scheduling scope and the class requirements the engine should include.",

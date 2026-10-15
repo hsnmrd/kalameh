@@ -39,13 +39,16 @@ import { useRouter } from "@/i18n/routing"
 import {
   branchesResource,
   classRequirementsResource,
+  classroomsResource,
   schedulingResource,
+  teachersResource,
 } from "@/lib/api"
 import { useActiveInstitute, useSchedulingRunStore } from "@/lib/stores"
 import { selectDefaultSchedulingTerm } from "../../helper/term-selection"
 import { SchedulingBranchSelection } from "../scheduling-branch-selection"
 import { SchedulingDemandView } from "../scheduling-demand-view"
 import { SchedulingFilter } from "../scheduling-filter"
+import { SchedulingPreflightAlert } from "../scheduling-preflight-alert"
 import { SchedulingStickyBar } from "../scheduling-sticky-bar"
 import { SchedulingStudentScheduleConfirmation } from "../scheduling-student-schedule-confirmation"
 import {
@@ -130,6 +133,66 @@ export function SchedulingWorkspace() {
     }
     return ""
   }, [branchSelection, activeInstituteId, initialBranchParam, activeBranches])
+
+  const teachersQuery = useQuery({
+    ...teachersResource.list.toQuery(
+      activeInstituteId ? { instituteId: activeInstituteId } : undefined
+    ),
+    enabled: Boolean(activeInstituteId),
+  })
+
+  const branchClassroomsQuery = useQuery({
+    ...classroomsResource.list.toQuery(
+      activeInstituteId && effectiveBranchId
+        ? { instituteId: activeInstituteId, branchId: effectiveBranchId }
+        : undefined
+    ),
+    enabled: Boolean(activeInstituteId && effectiveBranchId),
+  })
+
+  const isPreflightLoading =
+    teachersQuery.isLoading ||
+    (Boolean(effectiveBranchId) && branchClassroomsQuery.isLoading)
+
+  const activeTeachers = React.useMemo(
+    () => (teachersQuery.data ?? []).filter((t) => t.isActive !== false),
+    [teachersQuery.data]
+  )
+
+  const activeBranchClassrooms = React.useMemo(
+    () =>
+      (branchClassroomsQuery.data ?? []).filter((c) => c.isActive !== false),
+    [branchClassroomsQuery.data]
+  )
+
+  const hasNoTeachers = !isPreflightLoading && activeTeachers.length === 0
+
+  const hasNoTeacherSchedule =
+    !isPreflightLoading &&
+    !hasNoTeachers &&
+    !activeTeachers.some(
+      (t) => (t.teacherProfile?.availabilities?.length ?? 0) > 0
+    )
+
+  const hasNoBranchClassrooms =
+    Boolean(effectiveBranchId) &&
+    !isPreflightLoading &&
+    activeBranchClassrooms.length === 0
+
+  const preflightErrorMessage = React.useMemo(() => {
+    if (isPreflightLoading) return null
+    if (hasNoTeachers) return t("preflight.noTeachers")
+    if (hasNoTeacherSchedule) return t("preflight.noTeacherSchedule")
+    if (hasNoBranchClassrooms) return t("preflight.noBranchClassrooms")
+    return null
+  }, [
+    isPreflightLoading,
+    hasNoTeachers,
+    hasNoTeacherSchedule,
+    hasNoBranchClassrooms,
+    t,
+  ])
+
   const selectedTerm = React.useMemo(
     () => selectDefaultSchedulingTerm(termsQuery.data),
     [termsQuery.data]
@@ -354,6 +417,10 @@ export function SchedulingWorkspace() {
   )
 
   const handleGenerateSchedule = React.useCallback(() => {
+    if (preflightErrorMessage) {
+      toast.error(preflightErrorMessage)
+      return
+    }
     if (!selectedTerm || !demandData || totalClassesCount === 0) return
     if (totalUncoveredStudents > 0) {
       setShortfallDialogOpen(true)
@@ -361,6 +428,7 @@ export function SchedulingWorkspace() {
     }
     applyReviewedDemand(false)
   }, [
+    preflightErrorMessage,
     selectedTerm,
     demandData,
     totalClassesCount,
@@ -398,6 +466,8 @@ export function SchedulingWorkspace() {
             onGenerateSchedule={handleGenerateSchedule}
             isGenerating={isActionPending}
             hasClasses={totalClassesCount > 0}
+            disabled={Boolean(preflightErrorMessage)}
+            disabledReason={preflightErrorMessage ?? undefined}
           />
         }
       >
@@ -449,6 +519,11 @@ export function SchedulingWorkspace() {
           />
         ) : (
           <div className="flex flex-col gap-4">
+            <SchedulingPreflightAlert
+              hasNoTeachers={hasNoTeachers}
+              hasNoTeacherSchedule={hasNoTeacherSchedule}
+              hasNoBranchClassrooms={hasNoBranchClassrooms}
+            />
             <SchedulingStudentScheduleConfirmation term={selectedTerm} />
             <SchedulingDemandView
               termId={selectedTerm.id}
@@ -472,8 +547,10 @@ export function SchedulingWorkspace() {
             !selectedTerm ||
             !demandData ||
             isActionPending ||
-            totalClassesCount === 0
+            totalClassesCount === 0 ||
+            Boolean(preflightErrorMessage)
           }
+          disabledReason={preflightErrorMessage ?? undefined}
           isGenerating={isActionPending}
         />
       )}

@@ -8,6 +8,8 @@ import {
   studentsResource,
   schedulingResource,
   classesResource,
+  classroomsResource,
+  teachersResource,
 } from "@/lib/api"
 import type { NavItemKey } from "@/components/admin-base-layout/nav-list"
 import { useOperatingPhasesReviewStore } from "@/lib/stores"
@@ -64,6 +66,16 @@ export function useSetupFlowStatus({
 
   const { data: classes = [] } = useQuery({
     ...classesResource.list.toQuery({ instituteId: instituteId! }),
+    enabled: isEnabled,
+  })
+
+  const { data: classrooms = [] } = useQuery({
+    ...classroomsResource.list.toQuery({ instituteId: instituteId! }),
+    enabled: isEnabled,
+  })
+
+  const { data: teachers = [] } = useQuery({
+    ...teachersResource.list.toQuery({ instituteId: instituteId! }),
     enabled: isEnabled,
   })
 
@@ -143,12 +155,24 @@ export function useSetupFlowStatus({
       case 2:
         return "students"
       case 3:
-      case 4:
+      case 4: {
+        const activeClassrooms = classrooms.filter((c) => c.isActive !== false)
+        if (activeClassrooms.length === 0) {
+          return "classrooms"
+        }
+        const activeTeachers = teachers.filter((t) => t.isActive !== false)
+        const hasTeacherWithSchedule = activeTeachers.some(
+          (t) => (t.teacherProfile?.availabilities?.length ?? 0) > 0
+        )
+        if (activeTeachers.length === 0 || !hasTeacherWithSchedule) {
+          return "teachers"
+        }
         return "classes"
+      }
       default:
         return null
     }
-  }, [isEnabled, isAllCompleted, firstIncompleteIndex])
+  }, [isEnabled, isAllCompleted, firstIncompleteIndex, classrooms, teachers])
 
   return {
     isStep1Done,

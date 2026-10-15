@@ -10,6 +10,8 @@ import {
   studentsResource,
   schedulingResource,
   classesResource,
+  classroomsResource,
+  teachersResource,
 } from "@/lib/api"
 
 describe("useSetupFlowStatus", () => {
@@ -219,6 +221,32 @@ describe("useSetupFlowStatus", () => {
       classesResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
       []
     )
+    queryClient.setQueryData(
+      classroomsResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ id: "room-1", name: "Room 101", isActive: true }]
+    )
+    queryClient.setQueryData(
+      teachersResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [
+        {
+          id: "teacher-1",
+          firstName: "John",
+          lastName: "Doe",
+          isActive: true,
+          teacherProfile: {
+            availabilities: [
+              {
+                id: "av-1",
+                dayOfWeek: 0,
+                startTime: "08:00",
+                endTime: "10:00",
+              },
+            ],
+          },
+        },
+      ]
+    )
 
     const { result } = renderHook(
       () => useSetupFlowStatus({ instituteId: mockInstituteId }),
@@ -313,6 +341,32 @@ describe("useSetupFlowStatus", () => {
         { id: "class-old-3", termId: "term-past" },
       ]
     )
+    queryClient.setQueryData(
+      classroomsResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ id: "room-1", name: "Room 101", isActive: true }]
+    )
+    queryClient.setQueryData(
+      teachersResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [
+        {
+          id: "teacher-1",
+          firstName: "John",
+          lastName: "Doe",
+          isActive: true,
+          teacherProfile: {
+            availabilities: [
+              {
+                id: "av-1",
+                dayOfWeek: 0,
+                startTime: "08:00",
+                endTime: "10:00",
+              },
+            ],
+          },
+        },
+      ]
+    )
 
     const { result } = renderHook(
       () => useSetupFlowStatus({ instituteId: mockInstituteId }),
@@ -371,5 +425,154 @@ describe("useSetupFlowStatus", () => {
     expect(result.current.isStep5Done).toBe(true)
     expect(result.current.focusedKey).toBeNull()
     expect(result.current.isAllCompleted).toBe(true)
+  })
+
+  it("focuses 'classrooms' before classes when steps 1-3 are done but institute has no classrooms", () => {
+    queryClient.setQueryData(
+      operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ id: "op-1" }]
+    )
+    queryClient.setQueryData(
+      termsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [{ id: "term-1" }]
+    )
+    queryClient.setQueryData(
+      studentsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [{ id: "student-1" }]
+    )
+    queryClient.setQueryData(
+      schedulingResource.terms.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      classesResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      classroomsResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      teachersResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [
+        {
+          id: "teacher-1",
+          isActive: true,
+          teacherProfile: {
+            availabilities: [
+              {
+                id: "av-1",
+                dayOfWeek: 0,
+                startTime: "08:00",
+                endTime: "10:00",
+              },
+            ],
+          },
+        },
+      ]
+    )
+
+    const { result } = renderHook(
+      () => useSetupFlowStatus({ instituteId: mockInstituteId }),
+      { wrapper }
+    )
+
+    expect(result.current.firstIncompleteIndex).toBe(3)
+    expect(result.current.focusedKey).toBe("classrooms")
+  })
+
+  it("focuses 'teachers' before classes when steps 1-3 are done, classrooms exist, but no teachers exist", () => {
+    queryClient.setQueryData(
+      operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ id: "op-1" }]
+    )
+    queryClient.setQueryData(
+      termsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [{ id: "term-1" }]
+    )
+    queryClient.setQueryData(
+      studentsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [{ id: "student-1" }]
+    )
+    queryClient.setQueryData(
+      schedulingResource.terms.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      classesResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      classroomsResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ id: "room-1", name: "Room 101", isActive: true }]
+    )
+    queryClient.setQueryData(
+      teachersResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+
+    const { result } = renderHook(
+      () => useSetupFlowStatus({ instituteId: mockInstituteId }),
+      { wrapper }
+    )
+
+    expect(result.current.firstIncompleteIndex).toBe(3)
+    expect(result.current.focusedKey).toBe("teachers")
+  })
+
+  it("focuses 'teachers' before classes when steps 1-3 are done, classrooms exist, but no teacher has set schedule", () => {
+    queryClient.setQueryData(
+      operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ id: "op-1" }]
+    )
+    queryClient.setQueryData(
+      termsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [{ id: "term-1" }]
+    )
+    queryClient.setQueryData(
+      studentsResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [{ id: "student-1" }]
+    )
+    queryClient.setQueryData(
+      schedulingResource.terms.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      classesResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      []
+    )
+    queryClient.setQueryData(
+      classroomsResource.list.toQuery({ instituteId: mockInstituteId })
+        .queryKey,
+      [{ id: "room-1", name: "Room 101", isActive: true }]
+    )
+    queryClient.setQueryData(
+      teachersResource.list.toQuery({ instituteId: mockInstituteId }).queryKey,
+      [
+        {
+          id: "teacher-1",
+          isActive: true,
+          teacherProfile: {
+            availabilities: [],
+          },
+        },
+      ]
+    )
+
+    const { result } = renderHook(
+      () => useSetupFlowStatus({ instituteId: mockInstituteId }),
+      { wrapper }
+    )
+
+    expect(result.current.firstIncompleteIndex).toBe(3)
+    expect(result.current.focusedKey).toBe("teachers")
   })
 })

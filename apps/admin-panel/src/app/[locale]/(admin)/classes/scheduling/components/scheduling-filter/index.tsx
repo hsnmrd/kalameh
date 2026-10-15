@@ -15,6 +15,7 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
+import { toast } from "@workspace/ui/components/sonner"
 import { PermissionGuard } from "@/components/permission-guard"
 import { branchesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
@@ -31,6 +32,8 @@ export interface SchedulingFilterProps {
   onGenerateSchedule?: () => void
   isGenerating?: boolean
   hasClasses?: boolean
+  disabled?: boolean
+  disabledReason?: string
 }
 
 export function SchedulingFilter({
@@ -44,6 +47,8 @@ export function SchedulingFilter({
   onGenerateSchedule,
   isGenerating,
   hasClasses = true,
+  disabled = false,
+  disabledReason,
 }: SchedulingFilterProps) {
   const t = useTranslations("scheduling")
   const { activeInstituteId } = useActiveInstitute()
@@ -111,19 +116,34 @@ export function SchedulingFilter({
       actions={
         branchId && onGenerateSchedule ? (
           <PermissionGuard permission={PERMISSIONS.MANAGE_CLASSES} mode="hide">
-            <Button
-              type="button"
-              onClick={onGenerateSchedule}
-              disabled={!term || isGenerating || !hasClasses}
-              className="shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs"
+            <span
+              onClickCapture={
+                disabled && disabledReason
+                  ? (e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      toast.error(disabledReason)
+                    }
+                  : undefined
+              }
+              className={
+                disabled ? "inline-flex cursor-not-allowed" : undefined
+              }
             >
-              {isGenerating ? (
-                <Spinner className="size-5" />
-              ) : (
-                <CalendarPlus className="size-5" />
-              )}
-              <span>{t("demand.applyAndContinue")}</span>
-            </Button>
+              <Button
+                type="button"
+                onClick={onGenerateSchedule}
+                disabled={!term || isGenerating || !hasClasses || disabled}
+                className="shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs"
+              >
+                {isGenerating ? (
+                  <Spinner className="size-5" />
+                ) : (
+                  <CalendarPlus className="size-5" />
+                )}
+                <span>{t("demand.applyAndContinue")}</span>
+              </Button>
+            </span>
           </PermissionGuard>
         ) : undefined
       }

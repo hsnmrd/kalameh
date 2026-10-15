@@ -4,6 +4,14 @@ import { SchedulingFilter } from "../index"
 import * as stores from "@/lib/stores"
 import { branchesResource } from "@/lib/api"
 import type { SchedulingTermSummaryDto } from "@workspace/types"
+import { toast } from "@workspace/ui/components/sonner"
+
+vi.mock("@workspace/ui/components/sonner", () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
+}))
 
 vi.mock("@/lib/stores", () => ({
   useActiveInstitute: vi.fn(),
@@ -97,5 +105,29 @@ describe("SchedulingFilter Component", () => {
     expect(
       screen.getByRole("button", { name: /ثبت و ادامه/ })
     ).toBeInTheDocument()
+  })
+
+  it("disables the submit button and fires toast error on click when disabled with reason", () => {
+    const handleGenerate = vi.fn()
+    render(
+      <SchedulingFilter
+        term={mockTerm}
+        branchId="b-1"
+        onBranchChange={vi.fn()}
+        maxStudentsPerClass={14}
+        onMaxStudentsPerClassChange={vi.fn()}
+        maxAvailableRoomCapacity={20}
+        onGenerateSchedule={handleGenerate}
+        disabled={true}
+        disabledReason="خطای پیش‌نیاز"
+      />
+    )
+
+    const button = screen.getByRole("button", { name: /ثبت و ادامه/ })
+    expect(button).toBeDisabled()
+
+    fireEvent.click(button)
+    expect(handleGenerate).not.toHaveBeenCalled()
+    expect(toast.error).toHaveBeenCalledWith("خطای پیش‌نیاز")
   })
 })
