@@ -43,7 +43,7 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
             <span className="text-xs text-muted-foreground">
               {t("table.name")}
             </span>
-            <p className="mt-1 font-semibold text-foreground">
+            <p className="mt-1 font-medium text-foreground">
               {teacher.firstName} {teacher.lastName}
             </p>
           </div>

@@ -47,7 +47,7 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
             <span className="text-xs text-muted-foreground">
               {t("table.name")}
             </span>
-            <p className="mt-1 font-semibold text-foreground">
+            <p className="mt-1 font-medium text-foreground">
               {user.firstName} {user.lastName}
             </p>
           </div>
@@ -148,7 +148,7 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
             <span className="text-xs text-muted-foreground">
               {t("table.role")}
             </span>
-            <p className="mt-1 font-semibold text-foreground">
+            <p className="mt-1 font-medium text-foreground">
               {t(`roles.${user.role}`)}
             </p>
           </div>
