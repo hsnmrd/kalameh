@@ -49,7 +49,8 @@ export default function SelectInstitutePage() {
         router.replace("/login")
       }
     }
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const logoutMutation = useMutation({
     ...authResource.logout.toMutation(),

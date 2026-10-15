@@ -273,4 +273,47 @@ describe('MVP-018 SchedulingHardConstraintService', () => {
 
     expect(result.rejected[0]?.reasonCodes).toEqual(['INVALID_TEACHER']);
   });
+
+  it('accepts an active admin user with a teacherProfile as a valid teacher', () => {
+    const result = service.evaluate({
+      ...baseInput,
+      qualifications: [
+        {
+          ...baseInput.qualifications[0],
+          teacherProfile: {
+            ...baseInput.qualifications[0].teacherProfile,
+            user: {
+              ...baseInput.qualifications[0].teacherProfile.user,
+              role: 'ADMIN',
+              isActive: true,
+            },
+          },
+        },
+      ],
+    });
+
+    expect(result.rejected).toEqual([]);
+    expect(result.accepted).toHaveLength(1);
+  });
+
+  it('rejects a student user from teaching even if a qualification exists', () => {
+    const result = service.evaluate({
+      ...baseInput,
+      qualifications: [
+        {
+          ...baseInput.qualifications[0],
+          teacherProfile: {
+            ...baseInput.qualifications[0].teacherProfile,
+            user: {
+              ...baseInput.qualifications[0].teacherProfile.user,
+              role: 'STUDENT',
+              isActive: true,
+            },
+          },
+        },
+      ],
+    });
+
+    expect(result.rejected[0]?.reasonCodes).toEqual(['INVALID_TEACHER']);
+  });
 });

@@ -116,9 +116,12 @@ export class SchedulingHardConstraintService {
       }
 
       const teacher = qualification.teacherProfile.user;
+      const isTeacher =
+        teacher.role === 'TEACHER' ||
+        (teacher.role !== 'STUDENT' && Boolean(qualification.teacherProfile));
       if (
         !teacher.isActive ||
-        teacher.role !== 'TEACHER' ||
+        !isTeacher ||
         (requirement.branchId !== null &&
           teacher.branchId !== null &&
           teacher.branchId !== requirement.branchId)

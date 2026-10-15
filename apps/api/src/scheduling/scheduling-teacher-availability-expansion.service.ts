@@ -87,11 +87,13 @@ export class SchedulingTeacherAvailabilityExpansionService {
         });
       }
     }
-
     for (const { profile, courseIds } of teacherEntries.values()) {
+      const isTeacher =
+        profile.user.role === 'TEACHER' ||
+        (profile.user.role !== 'STUDENT' && Boolean(profile));
       if (
         !profile.user.isActive ||
-        profile.user.role !== 'TEACHER' ||
+        !isTeacher ||
         (input.requirement.branchId !== null &&
           profile.user.branchId !== null &&
           profile.user.branchId !== input.requirement.branchId)

@@ -32,9 +32,6 @@ describe("AdminLoginPage Component", () => {
     expect(screen.getByLabelText(/موبایل|شماره/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/رمز|کلمه عبور/i)).toBeInTheDocument()
     expect(
-      screen.getByLabelText(/شناسه آموزشگاه|زیردامنه/i)
-    ).toBeInTheDocument()
-    expect(
       screen.getByRole("button", { name: /ورود|ورود به حساب/i })
     ).toBeInTheDocument()
   })

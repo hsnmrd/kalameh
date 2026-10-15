@@ -286,10 +286,15 @@ export class SchedulingPlanValidationService {
         add('INCOMPLETE_CLASS_REQUIREMENT', proposal.id);
       }
       if (proposal.teacherId) {
+        const isTeacher =
+          proposal.teacher &&
+          (proposal.teacher.role === 'TEACHER' ||
+            (proposal.teacher.role !== 'STUDENT' &&
+              Boolean(proposal.teacher.teacherProfile)));
         if (
           !proposal.teacher ||
           !proposal.teacher.isActive ||
-          proposal.teacher.role !== 'TEACHER' ||
+          !isTeacher ||
           (proposal.branchId &&
             proposal.teacher.branchId &&
             proposal.teacher.branchId !== proposal.branchId)
