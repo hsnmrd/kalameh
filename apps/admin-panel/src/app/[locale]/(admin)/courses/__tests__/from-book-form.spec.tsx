@@ -116,4 +116,27 @@ describe("FromBookForm", () => {
       screen.queryByText("Advanced Grammar in Use")
     ).not.toBeInTheDocument()
   })
+
+  it("renders skeleton rows and does NOT show noBooksFound when isLoading is true", () => {
+    const { container } = render(
+      <FromBookForm
+        books={[]}
+        courses={[]}
+        selectedBooks={{}}
+        onToggleBook={vi.fn()}
+        onUpdateBook={vi.fn()}
+        isLoading={true}
+        pageSize={4}
+      />
+    )
+
+    // Should show skeleton container
+    expect(container.querySelector("[aria-busy='true']")).toBeInTheDocument()
+    // Skeletons should be rendered
+    const skeletons = container.querySelectorAll("[data-slot='skeleton']")
+    expect(skeletons.length).toBeGreaterThan(0)
+
+    // Should NOT show noBooksFound text while loading
+    expect(screen.queryByText("کتابی یافت نشد")).not.toBeInTheDocument()
+  })
 })

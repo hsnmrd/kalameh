@@ -29,6 +29,7 @@ import {
 } from "@workspace/ui/components/empty"
 import { PERMISSIONS, type CourseDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { CoursePrerequisiteBadge } from "../course-prerequisite-badge"
 
 export interface CoursesListProps {
@@ -50,11 +51,7 @@ export function CoursesList({
   const locale = useLocale()
 
   if (isLoading) {
-    return (
-      <div className="flex h-48 w-full items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <ListSkeleton rows={5} showSpinner />
   }
 
   if (!courses || courses.length === 0) {

@@ -9,6 +9,7 @@ import { PriceInput } from "@workspace/ui/components/price-input"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { DataPagination } from "@workspace/ui/components/pagination"
@@ -34,6 +35,7 @@ export interface FromBookFormProps {
   onSelectAll?: () => void
   onClearAll?: () => void
   pageSize?: number
+  isLoading?: boolean
 }
 
 export function FromBookForm({
@@ -45,6 +47,7 @@ export function FromBookForm({
   onSelectAll,
   onClearAll,
   pageSize = 5,
+  isLoading = false,
 }: FromBookFormProps) {
   const t = useTranslations("courses")
   const tb = useTranslations("books")
@@ -163,7 +166,26 @@ export function FromBookForm({
       </div>
 
       {/* Books List */}
-      {filteredBooks.length === 0 ? (
+      {isLoading ? (
+        <div
+          aria-busy="true"
+          aria-live="polite"
+          className="flex flex-col divide-y divide-border/60"
+        >
+          {Array.from({ length: pageSize }).map((_, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-3 py-3.5 first:pt-0 last:pb-0 sm:py-4"
+            >
+              <Skeleton className="size-5 rounded-md" />
+              <div className="flex flex-1 items-center gap-2">
+                <Skeleton className="h-5 w-44 rounded-md sm:w-60" />
+                <Skeleton className="h-5 w-14 rounded-md" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredBooks.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 p-8 text-center text-muted-foreground">
           <BookOpen className="mb-2 size-8 text-muted-foreground/60" />
           <span className="text-sm font-medium">

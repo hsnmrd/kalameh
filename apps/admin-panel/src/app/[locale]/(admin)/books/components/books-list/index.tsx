@@ -32,6 +32,7 @@ import {
   EmptyContent,
 } from "@workspace/ui/components/empty"
 import { PermissionGuard } from "@/components/permission-guard"
+import { ListSkeleton } from "@/components/list-skeleton"
 
 export interface BooksListProps {
   books: BookDto[]
@@ -67,11 +68,7 @@ export function BooksList({
   })
 
   if (isLoading) {
-    return (
-      <div className="flex h-48 w-full items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <ListSkeleton rows={pageSize ?? 5} showSpinner />
   }
 
   if (books.length === 0) {

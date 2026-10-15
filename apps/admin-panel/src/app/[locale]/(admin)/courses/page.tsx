@@ -19,6 +19,8 @@ import { CoursesTable } from "./components/courses-table"
 import { CoursesList } from "./components/courses-list"
 import { CoursesFilter } from "./components/courses-filter"
 import { CoursesFabDrawer } from "./components/courses-fab-drawer"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 
 export default function CoursesPage() {
   const t = useTranslations("courses")
@@ -140,24 +142,28 @@ export default function CoursesPage() {
         >
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
-            <CoursesTable
-              courses={courses}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onAdd={handleCreate}
-              onBatch={handleBatch}
-            />
+            <React.Suspense fallback={<TableSkeleton rows={5} />}>
+              <CoursesTable
+                courses={courses}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+                onAdd={handleCreate}
+                onBatch={handleBatch}
+              />
+            </React.Suspense>
           </div>
 
           {/* Mobile: flat divider list */}
           <div className="flex flex-1 flex-col lg:hidden">
-            <CoursesList
-              courses={courses}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onAdd={handleCreate}
-              onBatch={handleBatch}
-            />
+            <React.Suspense fallback={<ListSkeleton rows={5} showSpinner />}>
+              <CoursesList
+                courses={courses}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+                onAdd={handleCreate}
+                onBatch={handleBatch}
+              />
+            </React.Suspense>
           </div>
         </AdminPageShell>
       </PermissionGuard>

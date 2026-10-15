@@ -17,6 +17,8 @@ import { modalRegistry } from "./modal"
 import { BooksFilter } from "./components/books-filter"
 import { BooksTable } from "./components/books-table"
 import { BooksList } from "./components/books-list"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 
 export default function BooksPage() {
   const t = useTranslations("books")
@@ -87,33 +89,39 @@ export default function BooksPage() {
         >
           {/* Desktop view */}
           <div className="hidden lg:block">
-            <BooksTable
-              books={books}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onGenerateCourses={handleGenerateCourses}
-              onAdd={handleCreate}
-              pageIndex={pageIndex}
-              pageSize={pageSize}
-              onPageIndexChange={setPageIndex}
-              onPageSizeChange={setPageSize}
-            />
+            <React.Suspense fallback={<TableSkeleton rows={pageSize} />}>
+              <BooksTable
+                books={books}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onGenerateCourses={handleGenerateCourses}
+                onAdd={handleCreate}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageIndexChange={setPageIndex}
+                onPageSizeChange={setPageSize}
+              />
+            </React.Suspense>
           </div>
 
           {/* Mobile view */}
           <div className="flex flex-1 flex-col lg:hidden">
-            <BooksList
-              books={books}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onGenerateCourses={handleGenerateCourses}
-              onAdd={handleCreate}
-              pageIndex={pageIndex}
-              pageSize={pageSize}
-              onPageChange={setPageIndex}
-            />
+            <React.Suspense
+              fallback={<ListSkeleton rows={pageSize} showSpinner />}
+            >
+              <BooksList
+                books={books}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onGenerateCourses={handleGenerateCourses}
+                onAdd={handleCreate}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageChange={setPageIndex}
+              />
+            </React.Suspense>
           </div>
         </AdminPageShell>
       </PermissionGuard>

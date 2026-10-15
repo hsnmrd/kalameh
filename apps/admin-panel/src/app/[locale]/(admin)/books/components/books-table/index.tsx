@@ -19,6 +19,7 @@ import {
   EmptyContent,
 } from "@workspace/ui/components/empty"
 import { PermissionGuard } from "@/components/permission-guard"
+import { TableSkeleton } from "@/components/table-skeleton"
 
 export interface BooksTableProps {
   books: BookDto[]
@@ -204,11 +205,7 @@ export function BooksTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={pageSize ?? 5} />
   }
 
   if (books.length === 0) {

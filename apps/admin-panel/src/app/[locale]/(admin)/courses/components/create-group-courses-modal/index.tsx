@@ -37,13 +37,13 @@ export function CreateGroupCoursesModal({
   >({})
 
   // Courses list for prerequisites
-  const { data: allCourses = [] } = useQuery({
+  const { data: allCourses = [], isLoading: isLoadingCourses } = useQuery({
     ...coursesResource.list.toQuery({ instituteId: activeInstituteId }),
     enabled: open && !!activeInstituteId,
   })
 
   // Books list for selection
-  const { data: allBooks = [] } = useQuery({
+  const { data: allBooks = [], isLoading: isLoadingBooks } = useQuery({
     ...booksResource.list.toQuery({ instituteId: activeInstituteId }),
     enabled: open && !!activeInstituteId,
   })
@@ -177,6 +177,7 @@ export function CreateGroupCoursesModal({
             onUpdateBook={handleUpdateBook}
             onSelectAll={handleSelectAll}
             onClearAll={handleClearAll}
+            isLoading={isLoadingBooks || isLoadingCourses}
           />
 
           <FormDialogFooter>

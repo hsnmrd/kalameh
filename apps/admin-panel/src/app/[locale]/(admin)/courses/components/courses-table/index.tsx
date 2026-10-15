@@ -19,6 +19,7 @@ import { Price } from "@workspace/ui/components/price"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type CourseDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { CoursePrerequisiteBadge } from "../course-prerequisite-badge"
 
 export interface CoursesTableProps {
@@ -109,11 +110,7 @@ export function CoursesTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={5} />
   }
 
   if (!courses || courses.length === 0) {
