@@ -116,11 +116,16 @@ export function FromBookForm({
               size="sm"
               onClick={() => setFilterMode("all")}
               className="h-8 rounded-lg px-2.5 text-xs"
+              disabled={isLoading}
             >
               <BookOpen className="me-1 size-3.5 text-muted-foreground" />
               <span>{t("createGroupModal.filterAll")}</span>
               <span className="ms-1 font-mono text-muted-foreground">
-                ({formatNumber(books.length)})
+                {isLoading ? (
+                  <Skeleton className="inline-block h-3.5 w-4 align-middle" />
+                ) : (
+                  `(${formatNumber(books.length)})`
+                )}
               </span>
             </Button>
             <Button
@@ -129,11 +134,16 @@ export function FromBookForm({
               size="sm"
               onClick={() => setFilterMode("selected")}
               className="h-8 rounded-lg px-2.5 text-xs"
+              disabled={isLoading}
             >
               <Layers className="me-1 size-3.5 text-muted-foreground" />
               <span>{t("createGroupModal.filterSelected")}</span>
               <span className="ms-1 font-mono text-muted-foreground">
-                ({formatNumber(selectedCount)})
+                {isLoading ? (
+                  <Skeleton className="inline-block h-3.5 w-4 align-middle" />
+                ) : (
+                  `(${formatNumber(selectedCount)})`
+                )}
               </span>
             </Button>
           </div>
@@ -178,9 +188,20 @@ export function FromBookForm({
               className="flex items-center gap-3 py-3.5 first:pt-0 last:pb-0 sm:py-4"
             >
               <Skeleton className="size-5 rounded-md" />
-              <div className="flex flex-1 items-center gap-2">
-                <Skeleton className="h-5 w-44 rounded-md sm:w-60" />
-                <Skeleton className="h-5 w-14 rounded-md" />
+              <div className="flex flex-1 items-center justify-between gap-3">
+                <div className="flex flex-1 items-center gap-2">
+                  <Skeleton
+                    className={`h-5 rounded-md ${
+                      idx % 3 === 0
+                        ? "w-48 sm:w-64"
+                        : idx % 3 === 1
+                          ? "w-36 sm:w-48"
+                          : "w-40 sm:w-56"
+                    }`}
+                  />
+                  <Skeleton className="h-5 w-14 rounded-md" />
+                </div>
+                <Skeleton className="hidden h-4 w-16 rounded-md sm:inline-block" />
               </div>
             </div>
           ))}
