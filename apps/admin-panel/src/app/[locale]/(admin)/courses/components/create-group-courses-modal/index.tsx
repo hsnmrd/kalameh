@@ -141,7 +141,7 @@ export function CreateGroupCoursesModal({
     }))
 
     if (items.length === 0) {
-      toast.error(t("createModal.noBooksSelected"))
+      toast.error(t("createGroupModal.noBooksSelected"))
       return
     }
 

@@ -8,6 +8,7 @@
   "statusInactive": "Inactive",
   "catalogGlobal": "System Catalog",
   "catalogCustom": "Custom Book",
+  "globalBadge": "Global",
   "globalBookBadge": "Global",
   "columns": {
     "title": "Book Title",

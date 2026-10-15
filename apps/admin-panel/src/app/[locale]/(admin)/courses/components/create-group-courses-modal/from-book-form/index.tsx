@@ -70,7 +70,7 @@ export function FromBookForm({
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("createModal.searchBooks")}
+            placeholder={t("createGroupModal.searchBooks")}
             className="ps-11"
           />
           <Search className="pointer-events-none absolute start-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -87,7 +87,7 @@ export function FromBookForm({
               className="h-8 rounded-lg px-2.5 text-xs"
             >
               <BookOpen className="me-1 size-3.5 text-muted-foreground" />
-              <span>{t("createModal.filterAll")}</span>
+              <span>{t("createGroupModal.filterAll")}</span>
               <span className="ms-1 font-mono text-muted-foreground">
                 ({formatNumber(books.length)})
               </span>
@@ -100,7 +100,7 @@ export function FromBookForm({
               className="h-8 rounded-lg px-2.5 text-xs"
             >
               <Layers className="me-1 size-3.5 text-muted-foreground" />
-              <span>{t("createModal.filterSelected")}</span>
+              <span>{t("createGroupModal.filterSelected")}</span>
               <span className="ms-1 font-mono text-muted-foreground">
                 ({formatNumber(selectedCount)})
               </span>
@@ -116,7 +116,7 @@ export function FromBookForm({
                 onClick={onSelectAll}
                 className="h-8 rounded-lg px-2 text-xs text-muted-foreground hover:text-foreground"
               >
-                {t("createModal.selectAll")}
+                {t("createGroupModal.selectAll")}
               </Button>
             )}
             {onClearAll && selectedCount > 0 && (
@@ -127,7 +127,7 @@ export function FromBookForm({
                 onClick={onClearAll}
                 className="h-8 rounded-lg px-2 text-xs text-destructive hover:bg-destructive/10"
               >
-                {t("createModal.clearSelection")}
+                {t("createGroupModal.clearSelection")}
               </Button>
             )}
           </div>
@@ -139,7 +139,7 @@ export function FromBookForm({
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 p-8 text-center text-muted-foreground">
           <BookOpen className="mb-2 size-8 text-muted-foreground/60" />
           <span className="text-sm font-medium">
-            {t("createModal.noBooksFound")}
+            {t("createGroupModal.noBooksFound")}
           </span>
         </div>
       ) : (
@@ -210,7 +210,7 @@ export function FromBookForm({
                       {/* Counter for terms count */}
                       <Field>
                         <FieldLabel className="text-xs font-medium text-muted-foreground">
-                          {t("createModal.termsCountForBook")}
+                          {t("createGroupModal.termsCountForBook")}
                         </FieldLabel>
                         <Counter
                           min={1}
@@ -227,14 +227,14 @@ export function FromBookForm({
                       {/* Price input for base fee */}
                       <Field>
                         <FieldLabel className="text-xs font-medium text-muted-foreground">
-                          {t("createModal.feeForBook")}
+                          {t("createGroupModal.feeForBook")}
                         </FieldLabel>
                         <PriceInput
                           value={bookConfig.baseFee}
                           onValueChange={(val) =>
                             onUpdateBook(book.id, { baseFee: val ?? 0 })
                           }
-                          placeholder={t("createModal.feePlaceholder")}
+                          placeholder={t("createGroupModal.feePlaceholder")}
                         />
                       </Field>
                     </div>
@@ -242,7 +242,7 @@ export function FromBookForm({
                     {/* Live Preview for this book */}
                     <div className="flex flex-col gap-1.5 rounded-xl bg-background/60 p-2.5 text-xs">
                       <span className="font-semibold text-muted-foreground">
-                        {t("createModal.previewCourses")}
+                        {t("createGroupModal.previewCourses")}
                       </span>
                       <div className="flex flex-wrap gap-1.5">
                         {previewTitles.map((title) => (
