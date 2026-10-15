@@ -8,6 +8,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { PERMISSIONS, APP_MODULES, type StudentDto } from "@workspace/types"
 import { studentsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { useModal } from "@/lib/hooks"
 import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -37,12 +38,9 @@ export function StudentProfileContent({
   const t = useTranslations("students")
   const tCommon = useTranslations("common")
   const { activeInstituteId } = useActiveInstitute()
+  const { isModalOpen, openModal, closeModal } = useModal()
   const [activeTab, setActiveTab] =
     React.useState<StudentProfileTab>("information")
-  const [isEditOpen, setIsEditOpen] = React.useState(false)
-  const [isAvailabilityOpen, setIsAvailabilityOpen] = React.useState(false)
-  const [isAddNoteOpen, setIsAddNoteOpen] = React.useState(false)
-  const [isResetPasswordOpen, setIsResetPasswordOpen] = React.useState(false)
 
   const { data: student, isLoading } = useQuery({
     ...studentsResource.detail.toQuery(studentId),
@@ -102,19 +100,19 @@ export function StudentProfileContent({
   ]
 
   const handleEdit = () => {
-    setIsEditOpen(true)
+    openModal("editStudent")
   }
 
   const handleAvailability = () => {
-    setIsAvailabilityOpen(true)
+    openModal("availabilityStudent")
   }
 
   const handleAddNote = () => {
-    setIsAddNoteOpen(true)
+    openModal("addNote")
   }
 
   const handleResetPassword = () => {
-    setIsResetPasswordOpen(true)
+    openModal("resetPassword")
   }
 
   return (
@@ -187,27 +185,27 @@ export function StudentProfileContent({
           {/* Action Modals */}
           <EditStudentModal
             student={student}
-            open={isEditOpen}
-            onClose={() => setIsEditOpen(false)}
+            open={isModalOpen("editStudent")}
+            onClose={() => closeModal("editStudent")}
           />
 
           <StudentAvailabilityModal
             student={student}
-            open={isAvailabilityOpen}
-            onClose={() => setIsAvailabilityOpen(false)}
+            open={isModalOpen("availabilityStudent")}
+            onClose={() => closeModal("availabilityStudent")}
             instituteId={activeInstituteId || student.instituteId}
           />
 
           <AddStudentNoteModal
             student={student}
-            open={isAddNoteOpen}
-            onClose={() => setIsAddNoteOpen(false)}
+            open={isModalOpen("addNote")}
+            onClose={() => closeModal("addNote")}
           />
 
           <ResetPasswordModal
             student={student}
-            open={isResetPasswordOpen}
-            onClose={() => setIsResetPasswordOpen(false)}
+            open={isModalOpen("resetPassword")}
+            onClose={() => closeModal("resetPassword")}
           />
         </AdminPageShell>
       </PermissionGuard>

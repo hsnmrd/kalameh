@@ -231,6 +231,27 @@ describe("Student Modals", () => {
         )
       ).toBeInTheDocument()
     })
+
+    it("should format course short title in student card badge", () => {
+      const studentWithLongCourse: StudentDto = {
+        ...mockStudent,
+        currentAllowedCourse: {
+          id: "course-2",
+          title: "American English File 3 - 5",
+          baseFee: 500000,
+        },
+      }
+
+      render(
+        <AddStudentNoteModal
+          student={studentWithLongCourse}
+          open={true}
+          onClose={vi.fn()}
+        />
+      )
+
+      expect(screen.getByText("AEF 3-5")).toBeInTheDocument()
+    })
   })
 
   describe("EditStudentModal", () => {
