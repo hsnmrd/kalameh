@@ -17,7 +17,7 @@ import {
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
+import { Counter } from "@workspace/ui/components/counter"
 import { PriceInput } from "@workspace/ui/components/price-input"
 import {
   Field,
@@ -30,6 +30,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { booksResource, coursesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { CoursesPreviewCarousel } from "./courses-preview-carousel"
+import { NamingFormatCollapsible } from "./naming-format-collapsible"
 import {
   useGenerateCoursesFromBookSchema,
   type GenerateCoursesFromBookInput,
@@ -217,31 +218,33 @@ export function GenerateCoursesModal({
                 <FieldError>{errors.bookId?.message}</FieldError>
               </Field>
             ) : (
-              <div className="flex items-center gap-3 rounded-2xl border border-border/80 bg-muted/30 p-3.5">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Layers className="size-5" />
+              <div className="flex items-center gap-3 rounded-2xl border border-border/70 bg-muted/30 px-3.5 py-2.5">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Layers className="size-4 text-primary" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground">
-                    {t("generateCoursesModal.selectBook")}
-                  </span>
-                  <span className="text-base font-semibold text-foreground">
-                    {currentBook?.title}
-                  </span>
-                </div>
+                <span className="truncate text-sm font-semibold text-foreground">
+                  {currentBook?.title}
+                </span>
               </div>
             )}
 
-            {/* Terms Count & Format */}
+            {/* Terms Count & Base Fee Side by Side in Desktop Mode */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field data-invalid={Boolean(errors.termsCount)}>
                 <FieldLabel>{t("generateCoursesModal.termsCount")}</FieldLabel>
-                <Input
-                  type="number"
-                  min={1}
-                  max={20}
-                  {...register("termsCount", { valueAsNumber: true })}
-                  placeholder={t("generateCoursesModal.termsCountPlaceholder")}
+                <Controller
+                  control={control}
+                  name="termsCount"
+                  render={({ field }) => (
+                    <Counter
+                      min={1}
+                      max={20}
+                      value={field.value}
+                      onValueChange={(val) => field.onChange(val)}
+                      size="default"
+                      className="w-full"
+                    />
+                  )}
                 />
                 <FieldError>{errors.termsCount?.message}</FieldError>
                 <FieldDescription>
@@ -249,47 +252,22 @@ export function GenerateCoursesModal({
                 </FieldDescription>
               </Field>
 
-              <Field>
-                <FieldLabel>
-                  {t("generateCoursesModal.namingFormat")}
-                </FieldLabel>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <Button
-                    type="button"
-                    variant={namingFormat === "PART" ? "default" : "outline"}
-                    onClick={() => setValue("namingFormat", "PART")}
-                    className="h-14 rounded-2xl text-sm font-medium"
-                  >
-                    Part
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={namingFormat === "TERM" ? "default" : "outline"}
-                    onClick={() => setValue("namingFormat", "TERM")}
-                    className="h-14 rounded-2xl text-sm font-medium"
-                  >
-                    Term
-                  </Button>
-                </div>
+              <Field data-invalid={Boolean(errors.baseFee)}>
+                <FieldLabel>{t("generateCoursesModal.baseFee")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="baseFee"
+                  render={({ field }) => (
+                    <PriceInput
+                      value={field.value}
+                      onValueChange={(val) => field.onChange(val ?? 0)}
+                      placeholder={t("generateCoursesModal.feePlaceholder")}
+                    />
+                  )}
+                />
+                <FieldError>{errors.baseFee?.message}</FieldError>
               </Field>
             </div>
-
-            {/* Base Fee */}
-            <Field data-invalid={Boolean(errors.baseFee)}>
-              <FieldLabel>{t("generateCoursesModal.baseFee")}</FieldLabel>
-              <Controller
-                control={control}
-                name="baseFee"
-                render={({ field }) => (
-                  <PriceInput
-                    value={field.value}
-                    onValueChange={(val) => field.onChange(val ?? 0)}
-                    placeholder={t("generateCoursesModal.feePlaceholder")}
-                  />
-                )}
-              />
-              <FieldError>{errors.baseFee?.message}</FieldError>
-            </Field>
 
             {/* Starting Prerequisite */}
             <Field>
@@ -313,6 +291,12 @@ export function GenerateCoursesModal({
                 )}
               />
             </Field>
+
+            {/* Naming Format Accordion (Collapsed by Default) */}
+            <NamingFormatCollapsible
+              namingFormat={namingFormat}
+              onFormatChange={(format) => setValue("namingFormat", format)}
+            />
 
             {/* Live Preview Carousel of Generated Courses */}
             {previewItems.length > 0 && (
