@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ArrowLeft, ArrowRight, Layers } from "lucide-react"
+import { Layers } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 import type { BookDto, CourseNamingFormat } from "@workspace/types"
 import {
@@ -27,10 +27,9 @@ import {
 } from "@workspace/ui/components/field"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { Badge } from "@workspace/ui/components/badge"
 import { booksResource, coursesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { useIsRtl } from "@/i18n/routing"
+import { CoursesPreviewCarousel } from "./courses-preview-carousel"
 import {
   useGenerateCoursesFromBookSchema,
   type GenerateCoursesFromBookInput,
@@ -48,7 +47,6 @@ export function GenerateCoursesModal({
   book: initialBook,
 }: GenerateCoursesModalProps) {
   const t = useTranslations("books")
-  const isRtl = useIsRtl()
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
   const generateSchema = useGenerateCoursesFromBookSchema()
@@ -123,10 +121,7 @@ export function GenerateCoursesModal({
   const previewItems = React.useMemo(() => {
     if (!currentBook) return []
     const count = Math.min(Math.max(Number(termsCount) || 1, 1), 20)
-    const label =
-      namingFormat === "TERM"
-        ? t("generateCoursesModal.namingFormatTerm").split(" ")[0]
-        : t("generateCoursesModal.namingFormatPart").split(" ")[0]
+    const label = namingFormat === "TERM" ? "Term" : "Part"
 
     const startingCourse = allCourses.find((c) => c.id === startingPrereqId)
 
@@ -185,8 +180,6 @@ export function GenerateCoursesModal({
       onClose()
     }
   }
-
-  const ArrowIcon = isRtl ? ArrowLeft : ArrowRight
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
@@ -267,7 +260,7 @@ export function GenerateCoursesModal({
                     onClick={() => setValue("namingFormat", "PART")}
                     className="h-14 rounded-2xl text-sm font-medium"
                   >
-                    {t("generateCoursesModal.namingFormatPart").split(" ")[0]}
+                    Part
                   </Button>
                   <Button
                     type="button"
@@ -275,7 +268,7 @@ export function GenerateCoursesModal({
                     onClick={() => setValue("namingFormat", "TERM")}
                     className="h-14 rounded-2xl text-sm font-medium"
                   >
-                    {t("generateCoursesModal.namingFormatTerm").split(" ")[0]}
+                    Term
                   </Button>
                 </div>
               </Field>
@@ -321,42 +314,9 @@ export function GenerateCoursesModal({
               />
             </Field>
 
-            {/* Live Preview of Generated Courses */}
+            {/* Live Preview Carousel of Generated Courses */}
             {previewItems.length > 0 && (
-              <div className="flex flex-col gap-2 rounded-2xl border border-border/80 bg-muted/20 p-4">
-                <span className="text-xs font-semibold text-muted-foreground">
-                  {t("generateCoursesModal.previewTitle")}
-                </span>
-                <div className="flex flex-col gap-2">
-                  {previewItems.map((item, idx) => (
-                    <div
-                      key={item.title}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-background/80 px-3 py-2 text-sm shadow-xs"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="secondary"
-                          className="font-mono text-xs"
-                        >
-                          {idx + 1}
-                        </Badge>
-                        <span className="font-medium text-foreground">
-                          {item.title}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <ArrowIcon className="size-3 text-muted-foreground" />
-                        <span>
-                          {t("generateCoursesModal.prereqLabel")}{" "}
-                          <strong className="font-semibold text-foreground">
-                            {item.prerequisiteText}
-                          </strong>
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <CoursesPreviewCarousel items={previewItems} />
             )}
           </div>
 

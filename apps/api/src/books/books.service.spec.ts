@@ -242,7 +242,7 @@ describe('BooksService', () => {
       });
       prismaService.course.findFirst.mockResolvedValue({
         id: 'c-existing',
-        title: 'American English File 1 - بخش ۱',
+        title: 'American English File 1 - Part 1',
       });
 
       await expect(

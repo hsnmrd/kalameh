@@ -109,8 +109,8 @@ export const fa: TranslationDictionary = {
     cannotDeleteGlobalBook:
       'امکان حذف کتاب‌های کاتالوگ سراسری سامانه وجود ندارد',
     coursesGeneratedSuccess: 'دوره‌های کتاب با موفقیت ایجاد شدند',
-    partLabel: 'بخش',
-    termLabel: 'ترم',
+    partLabel: 'Part',
+    termLabel: 'Term',
   },
   courses: {
     courseNotFound: 'سطح/دوره آموزشی مورد نظر یافت نشد',

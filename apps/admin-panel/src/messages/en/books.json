@@ -13,6 +13,7 @@
     "title": "Book Title",
     "author": "Author",
     "publisher": "Publisher",
+    "authorPublisher": "Author / Publisher",
     "coursesCount": "Courses",
     "status": "Status",
     "actions": "Actions"
@@ -68,6 +69,7 @@
     "namingFormatPart": "Part (e.g. Part 1, Part 2)",
     "namingFormatTerm": "Term (e.g. Term 1, Term 2)",
     "previewTitle": "Preview of Courses to be Created:",
+    "courseTitleLabel": "Course Title",
     "prereqLabel": "Prerequisite:",
     "noPrereq": "None",
     "cancel": "Cancel",

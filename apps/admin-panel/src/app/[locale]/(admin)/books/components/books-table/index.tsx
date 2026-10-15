@@ -80,22 +80,33 @@ export function BooksTable({
         ),
       },
       {
-        accessorKey: "author",
-        header: t("columns.author"),
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.author || "—"}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "publisher",
-        header: t("columns.publisher"),
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.publisher || "—"}
-          </span>
-        ),
+        id: "authorPublisher",
+        accessorFn: (row) =>
+          [row.author, row.publisher].filter(Boolean).join(" "),
+        header: t("columns.authorPublisher"),
+        cell: ({ row }) => {
+          const author = row.original.author?.trim()
+          const publisher = row.original.publisher?.trim()
+
+          if (!author && !publisher) {
+            return <span className="text-sm text-muted-foreground">—</span>
+          }
+
+          return (
+            <div className="flex flex-col gap-0.5">
+              {author && (
+                <span className="text-sm font-medium text-foreground">
+                  {author}
+                </span>
+              )}
+              {publisher && (
+                <span className="text-xs text-muted-foreground">
+                  {publisher}
+                </span>
+              )}
+            </div>
+          )
+        },
       },
       {
         accessorKey: "coursesCount",

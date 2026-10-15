@@ -74,6 +74,7 @@ describe("BooksTable Component", () => {
     )
     expect(screen.getByText("American English File 1")).toBeInTheDocument()
     expect(screen.getByText("Touchstone 1")).toBeInTheDocument()
+    expect(screen.getByText("نویسنده و ناشر")).toBeInTheDocument()
     expect(screen.getByText("Christina Latham-Koenig")).toBeInTheDocument()
     expect(screen.getByText("Oxford University Press")).toBeInTheDocument()
   })
