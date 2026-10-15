@@ -12,6 +12,10 @@ import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import type { BookDto, CourseDto } from "@workspace/types"
+import {
+  BookCoursesPreviewCarousel,
+  type BookCoursePreviewItem,
+} from "./book-courses-preview-carousel"
 
 export interface SelectedBookConfig {
   termsCount: number
@@ -31,7 +35,7 @@ export interface FromBookFormProps {
 
 export function FromBookForm({
   books,
-  courses: _courses,
+  courses,
   selectedBooks,
   onToggleBook,
   onUpdateBook,
@@ -149,10 +153,21 @@ export function FromBookForm({
             const bookConfig = selectedBooks[book.id]
 
             // Generate preview for this book
-            const termsCount = bookConfig?.termsCount ?? 3
-            const previewTitles: string[] = []
+            const termsCount = Number(bookConfig?.termsCount) || 3
+            const startingPrereqTitle = bookConfig?.startingPrerequisiteId
+              ? courses.find((c) => c.id === bookConfig.startingPrerequisiteId)
+                  ?.title
+              : null
+
+            const previewItems: BookCoursePreviewItem[] = []
             for (let i = 1; i <= termsCount; i++) {
-              previewTitles.push(`${book.title} - ${i}`)
+              previewItems.push({
+                title: `${book.title} - ${i}`,
+                prerequisiteText:
+                  i === 1
+                    ? startingPrereqTitle || t("createGroupModal.noPrereq")
+                    : `${book.title} - ${i - 1}`,
+              })
             }
 
             return (
@@ -237,23 +252,8 @@ export function FromBookForm({
                       </Field>
                     </div>
 
-                    {/* Live Preview for this book */}
-                    <div className="flex flex-col gap-1.5 rounded-xl bg-background/60 p-2.5 text-xs">
-                      <span className="font-semibold text-muted-foreground">
-                        {t("createGroupModal.previewCourses")}
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {previewTitles.map((title) => (
-                          <Badge
-                            key={title}
-                            variant="outline"
-                            className="h-6 rounded-lg bg-background font-normal text-foreground"
-                          >
-                            {title}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
+                    {/* Live Preview Carousel for this book */}
+                    <BookCoursesPreviewCarousel items={previewItems} />
                   </div>
                 )}
               </div>
