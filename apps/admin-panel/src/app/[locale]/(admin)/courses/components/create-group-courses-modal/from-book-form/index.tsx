@@ -177,7 +177,7 @@ export function FromBookForm({
 
                   <label
                     htmlFor={`book-check-${book.id}`}
-                    className="flex flex-1 cursor-pointer flex-col select-none"
+                    className="flex flex-1 cursor-pointer flex-col gap-1.5 select-none"
                   >
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className="text-sm font-semibold text-foreground">
@@ -193,11 +193,9 @@ export function FromBookForm({
                         </Badge>
                       )}
                     </div>
-                    {(book.author || book.publisher) && (
+                    {book.publisher && (
                       <span className="text-xs text-muted-foreground">
-                        {[book.author, book.publisher]
-                          .filter(Boolean)
-                          .join(" • ")}
+                        {book.publisher}
                       </span>
                     )}
                   </label>
