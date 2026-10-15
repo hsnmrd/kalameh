@@ -159,7 +159,7 @@ export function CreateGroupCoursesModal({
 
   return (
     <FormDialog open={open} onOpenChange={handleOpenChange}>
-      <FormDialogContent className="max-h-[90vh] sm:max-w-xl md:max-w-2xl">
+      <FormDialogContent className="sm:max-h-[90dvh] sm:max-w-xl md:max-w-2xl">
         <FormDialogHeader>
           <FormDialogTitle>{t("createGroupModal.title")}</FormDialogTitle>
           <FormDialogCloseButton />
