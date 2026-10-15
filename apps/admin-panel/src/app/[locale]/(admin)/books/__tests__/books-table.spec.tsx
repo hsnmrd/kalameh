@@ -107,4 +107,26 @@ describe("BooksTable Component", () => {
     expect(screen.getByText("English File Beginner")).toBeInTheDocument()
     expect(screen.getByText("سراسری")).toBeInTheDocument()
   })
+
+  it("passes pagination configuration and callbacks to DataTable", () => {
+    const onPageIndexChange = vi.fn()
+    const onPageSizeChange = vi.fn()
+
+    render(
+      <BooksTable
+        books={mockBooks}
+        isLoading={false}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onGenerateCourses={vi.fn()}
+        onAdd={vi.fn()}
+        pageIndex={0}
+        pageSize={10}
+        onPageIndexChange={onPageIndexChange}
+        onPageSizeChange={onPageSizeChange}
+      />
+    )
+
+    expect(screen.getByText("American English File 1")).toBeInTheDocument()
+  })
 })

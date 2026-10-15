@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Book, Layers, Pencil, Plus, Trash2 } from "lucide-react"
 import type { BookDto } from "@workspace/types"
@@ -27,6 +27,10 @@ export interface BooksTableProps {
   onDelete: (book: BookDto) => void
   onGenerateCourses: (book: BookDto) => void
   onAdd: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function BooksTable({
@@ -36,8 +40,13 @@ export function BooksTable({
   onDelete,
   onGenerateCourses,
   onAdd,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: BooksTableProps) {
   const t = useTranslations("books")
+  const locale = useLocale()
 
   const columns = React.useMemo<ColumnDef<BookDto>[]>(
     () => [
@@ -224,5 +233,16 @@ export function BooksTable({
     )
   }
 
-  return <DataTable columns={columns} data={books} />
+  return (
+    <DataTable
+      columns={columns}
+      data={books}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
+      locale={locale}
+    />
+  )
 }

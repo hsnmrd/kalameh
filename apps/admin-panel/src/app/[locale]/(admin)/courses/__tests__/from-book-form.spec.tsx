@@ -84,4 +84,36 @@ describe("FromBookForm", () => {
     expect(firstItem?.className).not.toContain("border-primary")
     expect(firstItem?.className).not.toContain("bg-card")
   })
+
+  it("paginates books when count exceeds pageSize and supports navigation", async () => {
+    const { fireEvent } = await import("../../../../../test/test-utils")
+
+    render(
+      <FromBookForm
+        books={mockBooks}
+        courses={mockCourses}
+        selectedBooks={{}}
+        onToggleBook={vi.fn()}
+        onUpdateBook={vi.fn()}
+        pageSize={1}
+      />
+    )
+
+    // First page should show first book
+    expect(screen.getByText("Advanced Grammar in Use")).toBeInTheDocument()
+    expect(
+      screen.queryByText("English Vocabulary in Use")
+    ).not.toBeInTheDocument()
+
+    // Next page button should be present
+    const nextBtn = screen.getByRole("button", { name: "بعدی" })
+    expect(nextBtn).toBeInTheDocument()
+    fireEvent.click(nextBtn)
+
+    // Second page should now show second book
+    expect(screen.getByText("English Vocabulary in Use")).toBeInTheDocument()
+    expect(
+      screen.queryByText("Advanced Grammar in Use")
+    ).not.toBeInTheDocument()
+  })
 })

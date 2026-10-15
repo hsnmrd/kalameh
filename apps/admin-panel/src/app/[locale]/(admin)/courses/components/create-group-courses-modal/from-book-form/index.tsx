@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { Search, Globe, BookOpen, Layers } from "lucide-react"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Counter } from "@workspace/ui/components/counter"
@@ -11,6 +11,8 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { formatNumber } from "@workspace/ui/lib/utils"
+import { DataPagination } from "@workspace/ui/components/pagination"
+import { useClientPagination } from "@/lib/hooks"
 import type { BookDto, CourseDto } from "@workspace/types"
 import {
   BookCoursesPreviewCarousel,
@@ -31,6 +33,7 @@ export interface FromBookFormProps {
   onUpdateBook: (bookId: string, patch: Partial<SelectedBookConfig>) => void
   onSelectAll?: () => void
   onClearAll?: () => void
+  pageSize?: number
 }
 
 export function FromBookForm({
@@ -41,9 +44,11 @@ export function FromBookForm({
   onUpdateBook,
   onSelectAll,
   onClearAll,
+  pageSize = 5,
 }: FromBookFormProps) {
   const t = useTranslations("courses")
   const tb = useTranslations("books")
+  const locale = useLocale()
 
   const [search, setSearch] = React.useState("")
   const [filterMode, setFilterMode] = React.useState<"all" | "selected">("all")
@@ -65,6 +70,25 @@ export function FromBookForm({
       )
     })
   }, [books, search, filterMode, selectedBooks])
+
+  const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
+    data: filteredBooks,
+    pageSize,
+  })
+
+  // Reset to first page when search or filter mode changes
+  const prevSearchRef = React.useRef(search)
+  const prevFilterModeRef = React.useRef(filterMode)
+  React.useEffect(() => {
+    if (
+      prevSearchRef.current !== search ||
+      prevFilterModeRef.current !== filterMode
+    ) {
+      prevSearchRef.current = search
+      prevFilterModeRef.current = filterMode
+      setPageIndex(0)
+    }
+  }, [search, filterMode, setPageIndex])
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
@@ -147,105 +171,121 @@ export function FromBookForm({
           </span>
         </div>
       ) : (
-        <div className="flex flex-col divide-y divide-border/60">
-          {filteredBooks.map((book) => {
-            const isChecked = Boolean(selectedBooks[book.id])
-            const bookConfig = selectedBooks[book.id]
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col divide-y divide-border/60">
+            {paginatedData.map((book) => {
+              const isChecked = Boolean(selectedBooks[book.id])
+              const bookConfig = selectedBooks[book.id]
 
-            // Generate preview for this book
-            const termsCount = Number(bookConfig?.termsCount) || 3
-            const startingPrereqTitle = bookConfig?.startingPrerequisiteId
-              ? courses.find((c) => c.id === bookConfig.startingPrerequisiteId)
-                  ?.title
-              : null
+              // Generate preview for this book
+              const termsCount = Number(bookConfig?.termsCount) || 3
+              const startingPrereqTitle = bookConfig?.startingPrerequisiteId
+                ? courses.find(
+                    (c) => c.id === bookConfig.startingPrerequisiteId
+                  )?.title
+                : null
 
-            const previewItems: BookCoursePreviewItem[] = []
-            for (let i = 1; i <= termsCount; i++) {
-              previewItems.push({
-                title: `${book.title} - ${i}`,
-                prerequisiteText:
-                  i === 1
-                    ? startingPrereqTitle || t("createGroupModal.noPrereq")
-                    : `${book.title} - ${i - 1}`,
-              })
-            }
+              const previewItems: BookCoursePreviewItem[] = []
+              for (let i = 1; i <= termsCount; i++) {
+                previewItems.push({
+                  title: `${book.title} - ${i}`,
+                  prerequisiteText:
+                    i === 1
+                      ? startingPrereqTitle || t("createGroupModal.noPrereq")
+                      : `${book.title} - ${i - 1}`,
+                })
+              }
 
-            return (
-              <div
-                key={book.id}
-                className="flex flex-col py-3.5 first:pt-0 last:pb-0 sm:py-4"
-              >
-                {/* Book Header Row */}
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    checked={isChecked}
-                    onCheckedChange={() => onToggleBook(book.id)}
-                    id={`book-check-${book.id}`}
-                    aria-label={book.title}
-                  />
+              return (
+                <div
+                  key={book.id}
+                  className="flex flex-col py-3.5 first:pt-0 last:pb-0 sm:py-4"
+                >
+                  {/* Book Header Row */}
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => onToggleBook(book.id)}
+                      id={`book-check-${book.id}`}
+                      aria-label={book.title}
+                    />
 
-                  <label
-                    htmlFor={`book-check-${book.id}`}
-                    className="flex flex-1 cursor-pointer flex-wrap items-center gap-2 select-none"
-                  >
-                    <span className="text-base font-semibold text-foreground sm:text-lg">
-                      {book.title}
-                    </span>
-                    {book.isGlobal && (
-                      <Badge
-                        variant="secondary"
-                        className="h-5 gap-1 rounded-md px-1.5 text-[10px]"
-                      >
-                        <Globe className="size-2.5 text-muted-foreground" />
-                        <span>{tb("globalBadge")}</span>
-                      </Badge>
-                    )}
-                  </label>
-                </div>
-
-                {/* Expanded configuration for checked book */}
-                {isChecked && bookConfig && (
-                  <div className="mt-3.5 flex flex-col gap-3">
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {/* Counter for terms count */}
-                      <Field>
-                        <FieldLabel className="text-xs font-medium text-muted-foreground">
-                          {t("createGroupModal.termsCountForBook")}
-                        </FieldLabel>
-                        <Counter
-                          min={1}
-                          max={20}
-                          value={bookConfig.termsCount}
-                          onValueChange={(val) =>
-                            onUpdateBook(book.id, { termsCount: val })
-                          }
-                          size="default"
-                          className="w-full"
-                        />
-                      </Field>
-
-                      {/* Price input for base fee */}
-                      <Field>
-                        <FieldLabel className="text-xs font-medium text-muted-foreground">
-                          {t("createGroupModal.feeForBook")}
-                        </FieldLabel>
-                        <PriceInput
-                          value={bookConfig.baseFee}
-                          onValueChange={(val) =>
-                            onUpdateBook(book.id, { baseFee: val })
-                          }
-                          placeholder={t("createGroupModal.feePlaceholder")}
-                        />
-                      </Field>
-                    </div>
-
-                    {/* Live Preview Carousel for this book */}
-                    <BookCoursesPreviewCarousel items={previewItems} />
+                    <label
+                      htmlFor={`book-check-${book.id}`}
+                      className="flex flex-1 cursor-pointer flex-wrap items-center gap-2 select-none"
+                    >
+                      <span className="text-base font-semibold text-foreground sm:text-lg">
+                        {book.title}
+                      </span>
+                      {book.isGlobal && (
+                        <Badge
+                          variant="secondary"
+                          className="h-5 gap-1 rounded-md px-1.5 text-[10px]"
+                        >
+                          <Globe className="size-2.5 text-muted-foreground" />
+                          <span>{tb("globalBadge")}</span>
+                        </Badge>
+                      )}
+                    </label>
                   </div>
-                )}
-              </div>
-            )
-          })}
+
+                  {/* Expanded configuration for checked book */}
+                  {isChecked && bookConfig && (
+                    <div className="mt-3.5 flex flex-col gap-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {/* Counter for terms count */}
+                        <Field>
+                          <FieldLabel className="text-xs font-medium text-muted-foreground">
+                            {t("createGroupModal.termsCountForBook")}
+                          </FieldLabel>
+                          <Counter
+                            min={1}
+                            max={20}
+                            value={bookConfig.termsCount}
+                            onValueChange={(val) =>
+                              onUpdateBook(book.id, { termsCount: val })
+                            }
+                            size="default"
+                            className="w-full"
+                          />
+                        </Field>
+
+                        {/* Price input for base fee */}
+                        <Field>
+                          <FieldLabel className="text-xs font-medium text-muted-foreground">
+                            {t("createGroupModal.feeForBook")}
+                          </FieldLabel>
+                          <PriceInput
+                            value={bookConfig.baseFee}
+                            onValueChange={(val) =>
+                              onUpdateBook(book.id, { baseFee: val })
+                            }
+                            placeholder={t("createGroupModal.feePlaceholder")}
+                          />
+                        </Field>
+                      </div>
+
+                      {/* Live Preview Carousel for this book */}
+                      <BookCoursesPreviewCarousel items={previewItems} />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {filteredBooks.length > pageSize && (
+            <div className="border-t border-border/50 pt-3">
+              <DataPagination
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                totalItems={filteredBooks.length}
+                onPageChange={setPageIndex}
+                compact
+                locale={locale}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

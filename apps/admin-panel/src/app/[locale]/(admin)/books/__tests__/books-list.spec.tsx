@@ -51,4 +51,40 @@ describe("BooksList Component", () => {
 
     expect(screen.getByText("کتابی یافت نشد")).toBeInTheDocument()
   })
+
+  it("renders DataPagination when books count exceeds pageSize", () => {
+    const manyBooks: BookDto[] = Array.from({ length: 15 }, (_, i) => ({
+      id: `book-${i + 1}`,
+      instituteId: "inst-1",
+      title: `Book Title ${i + 1}`,
+      author: null,
+      publisher: `Publisher ${i + 1}`,
+      description: null,
+      coverUrl: null,
+      isActive: true,
+      coursesCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }))
+
+    render(
+      <BooksList
+        books={manyBooks}
+        isLoading={false}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onGenerateCourses={vi.fn()}
+        onAdd={vi.fn()}
+        pageSize={10}
+      />
+    )
+
+    // Should only show 10 items on page 1
+    expect(screen.getByText("Book Title 1")).toBeInTheDocument()
+    expect(screen.getByText("Book Title 10")).toBeInTheDocument()
+    expect(screen.queryByText("Book Title 11")).not.toBeInTheDocument()
+
+    // Pagination navigation button should exist
+    expect(screen.getByRole("button", { name: "بعدی" })).toBeInTheDocument()
+  })
 })

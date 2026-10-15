@@ -8,7 +8,7 @@ import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { FABSingle } from "@workspace/ui/components/fab"
 import { booksResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions, useModal } from "@/lib/hooks"
+import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
@@ -22,7 +22,16 @@ export default function BooksPage() {
   const t = useTranslations("books")
   const { openModal } = useModal()
 
-  const [search, setSearch] = React.useState("")
+  const { filters, setFilter, pageIndex, pageSize, setPageIndex, setPageSize } =
+    useUrlFilters({
+      defaultValues: {
+        search: "",
+        page: 1,
+        pageSize: 10,
+      },
+      debounceKeys: ["search"],
+    })
+
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
 
@@ -35,7 +44,7 @@ export default function BooksPage() {
   const { data: books = [], isLoading } = useQuery({
     ...booksResource.list.toQuery({
       instituteId: activeInstituteId,
-      search: search.trim() || undefined,
+      search: filters.search.trim() || undefined,
     }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
@@ -54,8 +63,8 @@ export default function BooksPage() {
         <AdminPageShell
           filters={
             <BooksFilter
-              search={search}
-              onSearchChange={setSearch}
+              search={filters.search}
+              onSearchChange={(search) => setFilter("search", search)}
               onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
@@ -85,6 +94,10 @@ export default function BooksPage() {
               onDelete={handleDelete}
               onGenerateCourses={handleGenerateCourses}
               onAdd={handleCreate}
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              onPageIndexChange={setPageIndex}
+              onPageSizeChange={setPageSize}
             />
           </div>
 
@@ -97,6 +110,9 @@ export default function BooksPage() {
               onDelete={handleDelete}
               onGenerateCourses={handleGenerateCourses}
               onAdd={handleCreate}
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              onPageChange={setPageIndex}
             />
           </div>
         </AdminPageShell>
