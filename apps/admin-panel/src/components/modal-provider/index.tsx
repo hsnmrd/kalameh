@@ -19,7 +19,7 @@ export interface ModalProviderProps {
 
 export function ModalProvider({
   children,
-  showLoadingBar = true,
+  showLoadingBar = false,
 }: ModalProviderProps) {
   const [isPending, startTransition] = React.useTransition()
   const [rawPendingModal, setRawPendingModal] = React.useState<string | null>(

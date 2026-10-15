@@ -4,7 +4,6 @@ import * as React from "react"
 import { useSearchParams } from "next/navigation"
 import { usePathname, useRouter } from "@/i18n/routing"
 import { useModalStore } from "@/lib/stores/modal"
-import { useModalTransition } from "@/components/modal-provider"
 
 export const DEFAULT_MODAL_PARAM_KEY = "modal"
 
@@ -117,15 +116,46 @@ export function useModal<TData = any>(
   const pathname = usePathname()
   const router = useRouter()
 
-  const { isPending, pendingModal, startModalTransition } = useModalTransition()
+  const isPending = false
+  const pendingModal = null
+
+  const storeActiveModals = useModalStore((state) => state.activeModals)
+  const setStoreActiveModals = useModalStore((state) => state.setActiveModals)
 
   const modalDataMap = useModalStore((state) => state.modalData)
   const setStoreModalData = useModalStore((state) => state.setModalData)
   const clearStoreModalData = useModalStore((state) => state.clearModalData)
 
-  const activeModals = React.useMemo<string[]>(() => {
+  const urlKeys = React.useMemo(() => {
     return parseModalKeys(searchParams, paramKey)
   }, [searchParams, paramKey])
+
+  const initialSyncedRef = React.useRef(false)
+
+  // Sync state when URL searchParams changes from outside (e.g. browser Back/Forward or deep link)
+  React.useEffect(() => {
+    const current = useModalStore.getState().activeModals
+    const isDifferent =
+      urlKeys.length !== current.length ||
+      urlKeys.some((k, i) => k !== current[i])
+
+    if (isDifferent) {
+      setStoreActiveModals(urlKeys)
+    }
+    initialSyncedRef.current = true
+  }, [urlKeys, setStoreActiveModals])
+
+  // Active modals: use store state for instantaneous UI updates; fallback to URL on initial render
+  const activeModals = React.useMemo<string[]>(() => {
+    if (
+      !initialSyncedRef.current &&
+      storeActiveModals.length === 0 &&
+      urlKeys.length > 0
+    ) {
+      return urlKeys
+    }
+    return storeActiveModals.length > 0 ? storeActiveModals : urlKeys
+  }, [storeActiveModals, urlKeys])
 
   const isModalOpen = React.useCallback(
     (modalKey: string) => activeModals.includes(modalKey),
@@ -155,12 +185,20 @@ export function useModal<TData = any>(
         })
       }
 
-      const currentKeys = parseModalKeys(searchParams, paramKey)
+      const storeKeys = useModalStore.getState().activeModals
+      const currentKeys =
+        storeKeys.length > 0
+          ? storeKeys
+          : parseModalKeys(searchParams, paramKey)
 
       // Move incoming keys to the top of the stack while preserving previous modals
       const nextKeys = currentKeys.filter((k) => !incomingKeys.includes(k))
       nextKeys.push(...incomingKeys)
 
+      // 1. Immediately update client state so modal opens with 0ms delay (<16ms INP)
+      useModalStore.getState().setActiveModals(nextKeys)
+
+      // 2. Synchronize URL query parameters in the background
       const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
       if (nextKeys.length > 0) {
         nextParams.set(paramKey, nextKeys.join(","))
@@ -171,28 +209,22 @@ export function useModal<TData = any>(
       const queryStr = nextParams.toString()
       const url = queryStr ? `${pathname}?${queryStr}` : pathname
 
-      const topKey = incomingKeys[incomingKeys.length - 1]
-      startModalTransition(topKey ?? null, () => {
-        if (opt?.replace) {
-          router.replace(url, { scroll: false })
-        } else {
-          router.push(url, { scroll: false })
-        }
-      })
+      if (opt?.replace) {
+        router.replace(url, { scroll: false })
+      } else {
+        router.push(url, { scroll: false })
+      }
     },
-    [
-      pathname,
-      router,
-      searchParams,
-      paramKey,
-      setStoreModalData,
-      startModalTransition,
-    ]
+    [pathname, router, searchParams, paramKey, setStoreModalData]
   )
 
   const closeModal = React.useCallback(
     (modalKeys?: string | string[], opt?: { replace?: boolean }) => {
-      const currentKeys = parseModalKeys(searchParams, paramKey)
+      const storeKeys = useModalStore.getState().activeModals
+      const currentKeys =
+        storeKeys.length > 0
+          ? [...storeKeys]
+          : parseModalKeys(searchParams, paramKey)
 
       let nextKeys: string[]
       if (!modalKeys) {
@@ -216,6 +248,10 @@ export function useModal<TData = any>(
         nextKeys = currentKeys.filter((k) => !toRemove.includes(k))
       }
 
+      // 1. Immediately update client state so modal unmounts with 0ms delay (<16ms INP)
+      useModalStore.getState().setActiveModals(nextKeys)
+
+      // 2. Synchronize URL query parameters in the background
       const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
       if (nextKeys.length > 0) {
         nextParams.set(paramKey, nextKeys.join(","))
@@ -226,53 +262,42 @@ export function useModal<TData = any>(
       const queryStr = nextParams.toString()
       const url = queryStr ? `${pathname}?${queryStr}` : pathname
 
-      startModalTransition(null, () => {
-        if (opt?.replace) {
-          router.replace(url, { scroll: false })
-        } else {
-          router.push(url, { scroll: false })
-        }
-      })
+      if (opt?.replace) {
+        router.replace(url, { scroll: false })
+      } else {
+        router.push(url, { scroll: false })
+      }
     },
-    [
-      pathname,
-      router,
-      searchParams,
-      paramKey,
-      clearStoreModalData,
-      startModalTransition,
-    ]
+    [pathname, router, searchParams, paramKey, clearStoreModalData]
   )
 
   const closeAllModals = React.useCallback(
     (opt?: { replace?: boolean }) => {
-      const currentKeys = parseModalKeys(searchParams, paramKey)
+      const storeKeys = useModalStore.getState().activeModals
+      const currentKeys =
+        storeKeys.length > 0
+          ? storeKeys
+          : parseModalKeys(searchParams, paramKey)
 
       currentKeys.forEach((key) => {
         clearStoreModalData(key)
       })
+
+      // 1. Immediately clear client state
+      useModalStore.getState().setActiveModals([])
 
       const nextParams = new URLSearchParams(searchParams?.toString() ?? "")
       nextParams.delete(paramKey)
       const queryStr = nextParams.toString()
       const url = queryStr ? `${pathname}?${queryStr}` : pathname
 
-      startModalTransition(null, () => {
-        if (opt?.replace) {
-          router.replace(url, { scroll: false })
-        } else {
-          router.push(url, { scroll: false })
-        }
-      })
+      if (opt?.replace) {
+        router.replace(url, { scroll: false })
+      } else {
+        router.push(url, { scroll: false })
+      }
     },
-    [
-      pathname,
-      router,
-      searchParams,
-      paramKey,
-      clearStoreModalData,
-      startModalTransition,
-    ]
+    [pathname, router, searchParams, paramKey, clearStoreModalData]
   )
 
   const getModalData = React.useCallback(
