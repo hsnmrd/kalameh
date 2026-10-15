@@ -32,6 +32,8 @@
     "selectedBooksCount": "{count} book(s) selected",
     "filterAll": "All Books",
     "filterSelected": "Selected",
+    "selectAll": "Select All",
+    "clearSelection": "Clear Selection",
     "termsCount": "Number of Terms to Teach This Book",
     "termsCountForBook": "Terms Count",
     "termsCountPlaceholder": "e.g. 3",

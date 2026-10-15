@@ -32,6 +32,8 @@
     "selectedBooksCount": "{count} کتاب انتخاب شده",
     "filterAll": "همه کتاب‌ها",
     "filterSelected": "انتخاب شده‌ها",
+    "selectAll": "انتخاب همه",
+    "clearSelection": "لغو انتخاب",
     "termsCount": "تعداد ترم‌های تدریس این کتاب",
     "termsCountForBook": "تعداد ترم‌ها",
     "termsCountPlaceholder": "مثال: ۳",
