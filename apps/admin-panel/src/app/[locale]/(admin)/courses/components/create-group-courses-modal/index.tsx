@@ -80,7 +80,7 @@ export function CreateGroupCoursesModal({
       } else {
         next[bookId] = {
           termsCount: 3,
-          baseFee: 1500000,
+          baseFee: undefined,
           startingPrerequisiteId: null,
         }
       }
@@ -108,7 +108,7 @@ export function CreateGroupCoursesModal({
         if (!next[b.id]) {
           next[b.id] = {
             termsCount: 3,
-            baseFee: 1500000,
+            baseFee: undefined,
             startingPrerequisiteId: null,
           }
         }

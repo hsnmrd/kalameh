@@ -63,7 +63,7 @@
     "termsCountPlaceholder": "e.g. 3",
     "termsCountHint": "How many terms or parts will this book be taught over?",
     "baseFee": "Tuition per Term",
-    "feePlaceholder": "e.g. 1,500,000",
+    "feePlaceholder": "1,500,000",
     "startingPrerequisite": "Prerequisite for First Part (Optional)",
     "none": "No prerequisite",
     "namingFormat": "Part Naming Format",

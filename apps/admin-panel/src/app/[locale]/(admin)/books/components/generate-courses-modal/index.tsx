@@ -90,7 +90,7 @@ export function GenerateCoursesModal({
     defaultValues: {
       bookId: initialBook?.id || "",
       termsCount: 3,
-      baseFee: 1500000,
+      baseFee: undefined as unknown as number,
       startingPrerequisiteId: null,
       namingFormat: "PART",
     },
@@ -106,7 +106,7 @@ export function GenerateCoursesModal({
       reset({
         bookId: initialBook?.id || (allBooks[0]?.id ?? ""),
         termsCount: 3,
-        baseFee: 1500000,
+        baseFee: undefined as unknown as number,
         startingPrerequisiteId: null,
         namingFormat: "PART",
       })

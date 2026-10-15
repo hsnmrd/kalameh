@@ -15,7 +15,7 @@ import type { BookDto, CourseDto } from "@workspace/types"
 
 export interface SelectedBookConfig {
   termsCount: number
-  baseFee: number
+  baseFee?: number | null
   startingPrerequisiteId?: string | null
 }
 
@@ -232,7 +232,7 @@ export function FromBookForm({
                         <PriceInput
                           value={bookConfig.baseFee}
                           onValueChange={(val) =>
-                            onUpdateBook(book.id, { baseFee: val ?? 0 })
+                            onUpdateBook(book.id, { baseFee: val })
                           }
                           placeholder={t("createGroupModal.feePlaceholder")}
                         />

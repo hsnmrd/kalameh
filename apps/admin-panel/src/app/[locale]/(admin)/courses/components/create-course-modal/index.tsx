@@ -68,7 +68,7 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
     resolver: zodResolver(createCourseSchema),
     defaultValues: {
       title: "",
-      baseFee: 1500000,
+      baseFee: undefined as unknown as number,
       prerequisiteId: null,
       bookId: null,
     },
@@ -78,7 +78,7 @@ export function CreateCourseModal({ open, onClose }: CreateCourseModalProps) {
     if (open) {
       form.reset({
         title: "",
-        baseFee: 1500000,
+        baseFee: undefined as unknown as number,
         prerequisiteId: null,
         bookId: null,
       })
