@@ -126,7 +126,7 @@ export function UserInfoTab({ user }: UserInfoTabProps) {
               <span className="text-xs text-muted-foreground">
                 {locale === "fa" ? "نشانی" : "Address"}
               </span>
-              <p className="mt-1 text-sm font-medium text-foreground">
+              <p className="mt-1 font-medium text-foreground">
                 {user.studentProfile.address}
               </p>
             </div>

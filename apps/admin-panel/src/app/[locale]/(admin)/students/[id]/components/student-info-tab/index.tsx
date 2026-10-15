@@ -194,7 +194,7 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
               <span className="text-xs text-muted-foreground">
                 {t("createModal.address")}
               </span>
-              <p className="mt-1 text-sm font-medium text-foreground">
+              <p className="mt-1 font-medium text-foreground">
                 {student.studentProfile.address}
               </p>
             </div>
