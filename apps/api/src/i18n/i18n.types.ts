@@ -90,6 +90,7 @@ export interface TranslationDictionary {
     courseAlreadyExists: string;
     prerequisiteNotFound: string;
     prerequisiteCycleDetected: string;
+    instituteRequired: string;
   };
   classes: {
     classNotFound: string;

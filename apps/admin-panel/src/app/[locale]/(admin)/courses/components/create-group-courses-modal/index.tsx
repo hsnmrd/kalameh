@@ -132,10 +132,14 @@ export function CreateGroupCoursesModal({
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
     const items = Object.entries(selectedBooks).map(([bookId, config]) => ({
       bookId,
-      termsCount: Number(config.termsCount) || 1,
-      baseFee: Number(config.baseFee) || 0,
+      termsCount: Math.max(
+        1,
+        Math.min(20, Math.round(Number(config.termsCount) || 1))
+      ),
+      baseFee: Math.max(0, Math.round(Number(config.baseFee) || 0)),
       startingPrerequisiteId: config.startingPrerequisiteId || null,
       namingFormat: "INDEX" as const,
     }))

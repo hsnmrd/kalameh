@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -54,10 +55,17 @@ export class BookCoursesService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<CourseDto[]> {
-    const instituteId =
+    const targetInstituteId =
       currentUser.role === 'SUPER_ADMIN' && dto.instituteId
         ? dto.instituteId
-        : currentUser.instituteId;
+        : (currentUser.instituteId ?? dto.instituteId);
+
+    if (!targetInstituteId) {
+      throw new BadRequestException(
+        this.i18n.t('courses.instituteRequired', locale),
+      );
+    }
+    const instituteId = targetInstituteId;
 
     const book = await this.prisma.book.findFirstOrThrow({
       where: {
@@ -73,13 +81,16 @@ export class BookCoursesService {
       },
     });
 
+    let startingPrereqTitle: string | null = null;
     if (dto.startingPrerequisiteId) {
-      await this.prisma.course.findFirstOrThrow({
+      const startingPrereq = await this.prisma.course.findFirstOrThrow({
         where: {
           id: dto.startingPrerequisiteId,
           instituteId,
         },
+        select: { id: true, title: true },
       });
+      startingPrereqTitle = startingPrereq.title;
     }
 
     const count = dto.termsCount;
@@ -115,38 +126,51 @@ export class BookCoursesService {
 
     const createdCourses: CourseDto[] = [];
 
-    await this.prisma.$transaction(async (tx) => {
-      let currentPrereqId: string | null = dto.startingPrerequisiteId || null;
+    await this.prisma.$transaction(
+      async (tx) => {
+        let currentPrereqId: string | null = dto.startingPrerequisiteId || null;
+        let currentPrereqTitle: string | null = startingPrereqTitle;
 
-      for (let i = 0; i < count; i++) {
-        const title = generatedTitles[i];
-        const course = await tx.course.create({
-          data: {
-            instituteId,
-            title,
-            baseFee: dto.baseFee,
-            prerequisiteId: currentPrereqId,
-            bookId: book.id,
-          },
-          include: {
-            prerequisite: {
-              select: { id: true, title: true },
+        for (let i = 0; i < count; i++) {
+          const title = generatedTitles[i];
+          const course = await tx.course.create({
+            data: {
+              instituteId,
+              title,
+              baseFee: Math.round(Number(dto.baseFee) || 0),
+              prerequisiteId: currentPrereqId,
+              bookId: book.id,
             },
-            book: {
-              select: { id: true, title: true },
+            select: {
+              id: true,
+              instituteId: true,
+              title: true,
+              baseFee: true,
+              prerequisiteId: true,
+              bookId: true,
+              createdAt: true,
+              updatedAt: true,
             },
-            _count: { select: { classes: true } },
-          },
-        });
+          });
 
-        currentPrereqId = course.id;
-        const { _count, ...courseData } = course;
-        createdCourses.push({
-          ...courseData,
-          classesCount: _count.classes,
-        });
-      }
-    });
+          createdCourses.push({
+            ...course,
+            prerequisite: currentPrereqId
+              ? { id: currentPrereqId, title: currentPrereqTitle ?? '' }
+              : null,
+            book: { id: book.id, title: book.title },
+            classesCount: 0,
+          });
+
+          currentPrereqId = course.id;
+          currentPrereqTitle = course.title;
+        }
+      },
+      {
+        maxWait: 10000,
+        timeout: 30000,
+      },
+    );
 
     this.logger.log(
       `Generated ${createdCourses.length} courses from book "${book.title}" (${book.id}) for institute ${instituteId}`,
@@ -173,10 +197,17 @@ export class BookCoursesService {
     currentUser: JwtPayload,
     locale: SupportedLocale = 'fa',
   ): Promise<CourseDto[]> {
-    const instituteId =
+    const targetInstituteId =
       currentUser.role === 'SUPER_ADMIN' && dto.instituteId
         ? dto.instituteId
-        : currentUser.instituteId;
+        : (currentUser.instituteId ?? dto.instituteId);
+
+    if (!targetInstituteId) {
+      throw new BadRequestException(
+        this.i18n.t('courses.instituteRequired', locale),
+      );
+    }
+    const instituteId = targetInstituteId;
 
     if (!dto.items || dto.items.length === 0) {
       return [];
@@ -209,19 +240,23 @@ export class BookCoursesService {
       .map((it) => it.startingPrerequisiteId)
       .filter((id): id is string => Boolean(id));
 
+    const prereqMap = new Map<string, string>();
     if (startingPrereqIds.length > 0) {
       const existingPrereqs = await this.prisma.course.findMany({
         where: {
           id: { in: startingPrereqIds },
           instituteId,
         },
-        select: { id: true },
+        select: { id: true, title: true },
       });
       const existingPrereqSet = new Set(existingPrereqs.map((p) => p.id));
       for (const id of startingPrereqIds) {
         if (!existingPrereqSet.has(id)) {
           throw new NotFoundException(`Prerequisite course not found: ${id}`);
         }
+      }
+      for (const p of existingPrereqs) {
+        prereqMap.set(p.id, p.title);
       }
     }
 
@@ -273,52 +308,67 @@ export class BookCoursesService {
 
     const createdCourses: CourseDto[] = [];
 
-    await this.prisma.$transaction(async (tx) => {
-      for (const item of dto.items) {
-        const book = booksMap.get(item.bookId)!;
-        const count = item.termsCount;
-        const namingFormat = item.namingFormat || 'INDEX';
-        let currentPrereqId: string | null =
-          item.startingPrerequisiteId || null;
+    await this.prisma.$transaction(
+      async (tx) => {
+        for (const item of dto.items) {
+          const book = booksMap.get(item.bookId)!;
+          const count = item.termsCount;
+          const namingFormat = item.namingFormat || 'INDEX';
+          let currentPrereqId: string | null =
+            item.startingPrerequisiteId || null;
+          let currentPrereqTitle: string | null = currentPrereqId
+            ? (prereqMap.get(currentPrereqId) ?? null)
+            : null;
 
-        for (let i = 1; i <= count; i++) {
-          const title = this.formatTitle(
-            book.title,
-            i,
-            namingFormat,
-            partLabel,
-            termLabel,
-            count,
-          );
+          for (let i = 1; i <= count; i++) {
+            const title = this.formatTitle(
+              book.title,
+              i,
+              namingFormat,
+              partLabel,
+              termLabel,
+              count,
+            );
 
-          const course = await tx.course.create({
-            data: {
-              instituteId,
-              title,
-              baseFee: item.baseFee,
-              prerequisiteId: currentPrereqId,
-              bookId: book.id,
-            },
-            include: {
-              prerequisite: {
-                select: { id: true, title: true },
+            const course = await tx.course.create({
+              data: {
+                instituteId,
+                title,
+                baseFee: Math.round(Number(item.baseFee) || 0),
+                prerequisiteId: currentPrereqId,
+                bookId: book.id,
               },
-              book: {
-                select: { id: true, title: true },
+              select: {
+                id: true,
+                instituteId: true,
+                title: true,
+                baseFee: true,
+                prerequisiteId: true,
+                bookId: true,
+                createdAt: true,
+                updatedAt: true,
               },
-              _count: { select: { classes: true } },
-            },
-          });
+            });
 
-          currentPrereqId = course.id;
-          const { _count, ...courseData } = course;
-          createdCourses.push({
-            ...courseData,
-            classesCount: _count.classes,
-          });
+            createdCourses.push({
+              ...course,
+              prerequisite: currentPrereqId
+                ? { id: currentPrereqId, title: currentPrereqTitle ?? '' }
+                : null,
+              book: { id: book.id, title: book.title },
+              classesCount: 0,
+            });
+
+            currentPrereqId = course.id;
+            currentPrereqTitle = course.title;
+          }
         }
-      }
-    });
+      },
+      {
+        maxWait: 10000,
+        timeout: 30000,
+      },
+    );
 
     this.logger.log(
       `Batch generated ${createdCourses.length} courses across ${dto.items.length} books for institute ${instituteId}`,

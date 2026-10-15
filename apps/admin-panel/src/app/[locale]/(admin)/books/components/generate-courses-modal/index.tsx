@@ -165,7 +165,11 @@ export function GenerateCoursesModal({
       body: {
         ...values,
         bookId: targetBookId,
-        termsCount: Number(values.termsCount),
+        termsCount: Math.max(
+          1,
+          Math.min(20, Math.round(Number(values.termsCount) || 1))
+        ),
+        baseFee: Math.max(0, Math.round(Number(values.baseFee) || 0)),
         startingPrerequisiteId:
           values.startingPrerequisiteId === "none" ||
           !values.startingPrerequisiteId

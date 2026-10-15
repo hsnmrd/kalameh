@@ -126,6 +126,7 @@ export const en: TranslationDictionary = {
     prerequisiteNotFound: 'Selected prerequisite course was not found',
     prerequisiteCycleDetected:
       'Cannot create circular dependency in prerequisite chain',
+    instituteRequired: 'Institute ID is required to create courses',
   },
   classes: {
     classNotFound: 'Requested class was not found',

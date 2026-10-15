@@ -325,5 +325,17 @@ describe('BooksService', () => {
         ),
       ).rejects.toThrow(ConflictException);
     });
+
+    it('should throw BadRequestException if instituteId is missing', async () => {
+      await expect(
+        service.generateCoursesBatch(
+          {
+            items: [{ bookId: 'b-1', termsCount: 2, baseFee: 1000000 }],
+          },
+          { sub: 'super', phone: '0912', role: 'SUPER_ADMIN' },
+          'fa',
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 });

@@ -118,6 +118,7 @@ export const fa: TranslationDictionary = {
     prerequisiteNotFound: 'سطح پیش‌نیاز انتخابی یافت نشد',
     prerequisiteCycleDetected:
       'امکان ایجاد حلقه بازگشتی در زنجیره پیش‌نیازها وجود ندارد',
+    instituteRequired: 'شناسه آموزشگاه برای ایجاد دوره‌ها الزامی است',
   },
   classes: {
     classNotFound: 'کلاس مورد نظر یافت نشد',
