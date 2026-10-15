@@ -147,7 +147,7 @@ export function FromBookForm({
           </span>
         </div>
       ) : (
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col divide-y divide-border/60">
           {filteredBooks.map((book) => {
             const isChecked = Boolean(selectedBooks[book.id])
             const bookConfig = selectedBooks[book.id]
@@ -173,52 +173,39 @@ export function FromBookForm({
             return (
               <div
                 key={book.id}
-                className={`flex flex-col rounded-2xl border transition-all ${
-                  isChecked
-                    ? "border-primary/50 bg-primary/5 shadow-2xs"
-                    : "border-border/70 bg-card hover:border-border"
-                } p-3 sm:p-4`}
+                className="flex flex-col py-3.5 first:pt-0 last:pb-0 sm:py-4"
               >
                 {/* Book Header Row */}
-                <div className="flex items-start gap-3">
-                  <div className="pt-0.5">
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={() => onToggleBook(book.id)}
-                      id={`book-check-${book.id}`}
-                      aria-label={book.title}
-                    />
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={isChecked}
+                    onCheckedChange={() => onToggleBook(book.id)}
+                    id={`book-check-${book.id}`}
+                    aria-label={book.title}
+                  />
 
                   <label
                     htmlFor={`book-check-${book.id}`}
-                    className="flex flex-1 cursor-pointer flex-col gap-1.5 select-none"
+                    className="flex flex-1 cursor-pointer flex-wrap items-center gap-2 select-none"
                   >
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-sm font-semibold text-foreground">
-                        {book.title}
-                      </span>
-                      {book.isGlobal && (
-                        <Badge
-                          variant="secondary"
-                          className="h-5 gap-1 rounded-md px-1.5 text-[10px]"
-                        >
-                          <Globe className="size-2.5 text-muted-foreground" />
-                          <span>{tb("globalBadge")}</span>
-                        </Badge>
-                      )}
-                    </div>
-                    {book.publisher && (
-                      <span className="text-xs text-muted-foreground">
-                        {book.publisher}
-                      </span>
+                    <span className="text-base font-semibold text-foreground sm:text-lg">
+                      {book.title}
+                    </span>
+                    {book.isGlobal && (
+                      <Badge
+                        variant="secondary"
+                        className="h-5 gap-1 rounded-md px-1.5 text-[10px]"
+                      >
+                        <Globe className="size-2.5 text-muted-foreground" />
+                        <span>{tb("globalBadge")}</span>
+                      </Badge>
                     )}
                   </label>
                 </div>
 
                 {/* Expanded configuration for checked book */}
                 {isChecked && bookConfig && (
-                  <div className="mt-3 flex flex-col gap-3 border-t border-border/50 pt-3">
+                  <div className="mt-3.5 flex flex-col gap-3">
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       {/* Counter for terms count */}
                       <Field>
