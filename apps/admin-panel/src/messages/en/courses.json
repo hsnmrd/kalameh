@@ -2,6 +2,10 @@
   "title": "Educational Courses & Levels",
   "subtitle": "Define course levels, base tuition fees and configure prerequisite progression chains",
   "addCourse": "Add Course Level",
+  "addSingleCourse": "Create Single Course",
+  "createGroupCourses": "Generate Group Courses",
+  "actions": "Course Actions",
+  "cancel": "Cancel",
   "searchPlaceholder": "Search courses and levels...",
   "filter": {
     "title": "Filter Courses",
@@ -54,6 +58,15 @@
     "noBooksFound": "No books found matching criteria.",
     "noBooksSelected": "Please select at least one book to generate courses.",
     "globalBadge": "Global"
+  },
+  "createGroupModal": {
+    "title": "Batch Generate Courses from Books",
+    "description": "Select books to automatically generate their corresponding courses.",
+    "submit": "Generate All Courses",
+    "submitFromBooksBatch": "Create {count} Courses",
+    "cancel": "Cancel",
+    "success": "Courses generated successfully.",
+    "successFromBooksBatch": "{count} courses created successfully."
   },
   "editModal": {
     "title": "Edit Course Level",

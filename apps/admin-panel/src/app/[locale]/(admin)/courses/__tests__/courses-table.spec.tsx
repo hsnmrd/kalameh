@@ -58,4 +58,36 @@ describe("CoursesTable Component", () => {
     fireEvent.click(editBtns[0]!)
     expect(handleEdit).toHaveBeenCalledWith(mockCourses[0])
   })
+
+  it("should render both primary group course and outline single course buttons when empty", () => {
+    const handleAdd = vi.fn()
+    const handleBatch = vi.fn()
+    render(
+      <CoursesTable
+        courses={[]}
+        isLoading={false}
+        onEdit={vi.fn()}
+        onAdd={handleAdd}
+        onBatch={handleBatch}
+      />
+    )
+
+    // Primary button: create group courses
+    const batchBtn = screen.getByRole("button", {
+      name: /ایجاد گروهی دوره‌ها|generate group courses/i,
+    })
+    expect(batchBtn).toBeInTheDocument()
+
+    // Secondary button: create single course
+    const addBtn = screen.getByRole("button", {
+      name: /تعریف تکی دوره|create single course|addCourse/i,
+    })
+    expect(addBtn).toBeInTheDocument()
+
+    fireEvent.click(batchBtn)
+    expect(handleBatch).toHaveBeenCalledTimes(1)
+
+    fireEvent.click(addBtn)
+    expect(handleAdd).toHaveBeenCalledTimes(1)
+  })
 })

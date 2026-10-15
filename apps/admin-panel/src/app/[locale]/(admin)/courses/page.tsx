@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query"
 import type { CourseDto } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { toast } from "@workspace/ui/components/sonner"
-import { FABSingle } from "@workspace/ui/components/fab"
 import { coursesResource, API_BASE_URL } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { usePermissions, useModal } from "@/lib/hooks"
@@ -19,6 +18,7 @@ import { CoursesHeaderActions } from "./components/courses-header-actions"
 import { CoursesTable } from "./components/courses-table"
 import { CoursesList } from "./components/courses-list"
 import { CoursesFilter } from "./components/courses-filter"
+import { CoursesFabDrawer } from "./components/courses-fab-drawer"
 
 export default function CoursesPage() {
   const t = useTranslations("courses")
@@ -96,6 +96,7 @@ export default function CoursesPage() {
   }
 
   const handleCreate = () => openModal("createCourse")
+  const handleBatch = () => openModal("createGroupCourses")
   const handleImport = () => openModal("importCourses")
   const handleEdit = (course: CourseDto) => openModal("editCourse", { course })
 
@@ -119,6 +120,7 @@ export default function CoursesPage() {
               onPrerequisiteChange={setSelectedPrerequisiteId}
               courses={allCourses}
               onAddClick={isListEmpty ? undefined : handleCreate}
+              onBatchClick={isListEmpty ? undefined : handleBatch}
             />
           }
           modals={
@@ -129,12 +131,10 @@ export default function CoursesPage() {
           }
           fab={
             isListEmpty ? null : (
-              <PermissionGuard
-                permission={PERMISSIONS.MANAGE_COURSES}
-                mode="hide"
-              >
-                <FABSingle onClick={handleCreate} aria-label={t("addCourse")} />
-              </PermissionGuard>
+              <CoursesFabDrawer
+                onAddClick={handleCreate}
+                onBatchClick={handleBatch}
+              />
             )
           }
         >
@@ -145,6 +145,7 @@ export default function CoursesPage() {
               isLoading={isLoading}
               onEdit={handleEdit}
               onAdd={handleCreate}
+              onBatch={handleBatch}
             />
           </div>
 
@@ -155,6 +156,7 @@ export default function CoursesPage() {
               isLoading={isLoading}
               onEdit={handleEdit}
               onAdd={handleCreate}
+              onBatch={handleBatch}
             />
           </div>
         </AdminPageShell>

@@ -1,9 +1,6 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Plus } from "lucide-react"
 import type { CourseDto } from "@workspace/types"
-import { PERMISSIONS } from "@workspace/types"
-import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   ResponsiveCombobox,
@@ -11,7 +8,7 @@ import {
 } from "@workspace/ui/components/combobox"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { AdminSearchInput } from "@/components/admin-search-input"
-import { PermissionGuard } from "@/components/permission-guard"
+import { CoursesActionButton } from "../courses-action-button"
 
 export interface CoursesFilterProps {
   search: string
@@ -20,6 +17,7 @@ export interface CoursesFilterProps {
   onPrerequisiteChange: (id: string) => void
   courses?: CourseDto[]
   onAddClick?: () => void
+  onBatchClick?: () => void
   actions?: React.ReactNode
 }
 
@@ -30,6 +28,7 @@ export function CoursesFilter({
   onPrerequisiteChange,
   courses = [],
   onAddClick,
+  onBatchClick,
   actions,
 }: CoursesFilterProps) {
   const t = useTranslations("courses")
@@ -51,20 +50,9 @@ export function CoursesFilter({
     onPrerequisiteChange("ALL")
   }, [onPrerequisiteChange])
 
-  const desktopActions =
-    actions ??
-    (onAddClick && (
-      <PermissionGuard permission={PERMISSIONS.MANAGE_COURSES} mode="hide">
-        <Button
-          type="button"
-          onClick={onAddClick}
-          className="hidden h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs lg:inline-flex"
-        >
-          <Plus className="size-5" />
-          <span>{t("addCourse")}</span>
-        </Button>
-      </PermissionGuard>
-    ))
+  const desktopActions = actions ?? (
+    <CoursesActionButton onAddClick={onAddClick} onBatchClick={onBatchClick} />
+  )
 
   return (
     <AdminFilterBar
