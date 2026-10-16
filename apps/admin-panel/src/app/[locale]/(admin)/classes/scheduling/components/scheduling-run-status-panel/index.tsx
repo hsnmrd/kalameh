@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Ban, CheckCircle2, CircleAlert, RotateCcw } from "lucide-react"
 import type { SchedulingRunDto, SchedulingRunStatus } from "@workspace/types"
@@ -12,11 +13,13 @@ import { SchedulingPlanComparison } from "../scheduling-plan-comparison"
 import { SchedulingRunProgress } from "../scheduling-run-progress"
 import { ConnectionError } from "./connection-error"
 import { FailureDetails } from "./failure-details"
+import { LongRunningAlert } from "./long-running-alert"
 
 interface SchedulingRunStatusPanelProps {
   run: SchedulingRunDto
   onReset: () => void
   onRetry?: () => void
+  longRunningThresholdMs?: number
 }
 
 const ACTIVE_STATUSES = new Set<SchedulingRunStatus>(["QUEUED", "GENERATING"])
@@ -37,6 +40,7 @@ export function SchedulingRunStatusPanel({
   run,
   onReset,
   onRetry,
+  longRunningThresholdMs = 60_000,
 }: SchedulingRunStatusPanelProps) {
   const t = useTranslations("scheduling.runStatus")
   const statusQuery = useSchedulingRunStatus(run.id)
@@ -46,6 +50,36 @@ export function SchedulingRunStatusPanel({
   const isTerminal = result?.isTerminal ?? !isActive
   const isFailed = status === "FAILED" || status === "PREFLIGHT_FAILED"
   const handleAction = isFailed ? (onRetry ?? onReset) : onReset
+
+  const startTime = React.useMemo(() => {
+    if (run.startedAt) return new Date(run.startedAt).getTime()
+    if (run.createdAt) return new Date(run.createdAt).getTime()
+    return Date.now()
+  }, [run.startedAt, run.createdAt])
+
+  const [isLongRunning, setIsLongRunning] = React.useState(() => {
+    if (!isActive) return false
+    return Date.now() - startTime >= longRunningThresholdMs
+  })
+
+  React.useEffect(() => {
+    if (!isActive) {
+      setIsLongRunning(false)
+      return
+    }
+
+    const elapsed = Date.now() - startTime
+    if (elapsed >= longRunningThresholdMs) {
+      setIsLongRunning(true)
+      return
+    }
+
+    const timer = setTimeout(() => {
+      setIsLongRunning(true)
+    }, longRunningThresholdMs - elapsed)
+
+    return () => clearTimeout(timer)
+  }, [isActive, startTime, longRunningThresholdMs])
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -97,12 +131,26 @@ export function SchedulingRunStatusPanel({
               <RotateCcw aria-hidden className="size-5" />
               <span>{isFailed ? t("retry") : t("another")}</span>
             </Button>
+          ) : isLongRunning ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onRetry ?? onReset}
+              className="hidden shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs sm:inline-flex"
+            >
+              <RotateCcw aria-hidden className="size-5" />
+              <span>{t("longRunning.restart")}</span>
+            </Button>
           ) : undefined
         }
       />
 
       {isActive && (
         <SchedulingRunProgress status={status} isFailed={isFailed} />
+      )}
+
+      {isActive && isLongRunning && (
+        <LongRunningAlert onRestart={onRetry ?? onReset} />
       )}
 
       {statusQuery.isError && (

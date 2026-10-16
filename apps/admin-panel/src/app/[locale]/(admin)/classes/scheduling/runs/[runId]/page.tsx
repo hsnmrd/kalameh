@@ -43,6 +43,9 @@ export default function SchedulingRunResultPage() {
     if (statusQuery.data) {
       return {
         id: runId,
+        termId:
+          (statusQuery.data as { termId?: string })?.termId ??
+          activeRun?.termId,
         status: statusQuery.data.status,
         updatedAt: statusQuery.data.updatedAt,
         createdAt: statusQuery.data.createdAt,
@@ -101,9 +104,24 @@ export default function SchedulingRunResultPage() {
     if (resolvedRun?.termId) {
       router.push(`/classes/scheduling/generate?termId=${resolvedRun.termId}`)
     } else {
-      router.push("/classes/scheduling")
+      router.push("/classes/scheduling/generate")
     }
   }, [clearActiveRun, resolvedRun?.termId, router])
+
+  const isLongRunning = React.useMemo(() => {
+    if (
+      !resolvedRun ||
+      !["QUEUED", "GENERATING"].includes(resolvedRun.status)
+    ) {
+      return false
+    }
+    const start = resolvedRun.startedAt
+      ? new Date(resolvedRun.startedAt).getTime()
+      : resolvedRun.createdAt
+        ? new Date(resolvedRun.createdAt).getTime()
+        : null
+    return start !== null && Date.now() - start >= 60_000
+  }, [resolvedRun])
 
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
@@ -121,11 +139,15 @@ export default function SchedulingRunResultPage() {
             />
           }
           fab={
-            isTerminal && !isCompleted ? (
+            (isTerminal && !isCompleted) || isLongRunning ? (
               <FABSingle
-                onClick={isFailed ? handleRetry : handleReset}
+                onClick={isFailed || isLongRunning ? handleRetry : handleReset}
                 aria-label={
-                  isFailed ? t("runStatus.retry") : t("runStatus.another")
+                  isFailed
+                    ? t("runStatus.retry")
+                    : isLongRunning
+                      ? t("runStatus.longRunning.restart")
+                      : t("runStatus.another")
                 }
               >
                 <RotateCcw className="size-6" aria-hidden />

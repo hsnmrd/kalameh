@@ -275,4 +275,54 @@ describe("MVP-035 scheduling run status panel", () => {
     ).toBeInTheDocument()
     expect(screen.queryByText(/Transaction API error/i)).not.toBeInTheDocument()
   })
+
+  it("renders long running alert and restart button when run has been active longer than threshold", async () => {
+    const generatingStatus: SchedulingRunStatusDto = {
+      ...completedStatus,
+      status: "GENERATING",
+      isTerminal: false,
+      result: null,
+      startedAt: new Date(Date.now() - 70_000).toISOString(),
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "generating"],
+      queryFn: async () => generatingStatus,
+    } as never)
+
+    const onRetry = vi.fn()
+    render(
+      <SchedulingRunStatusPanel
+        run={{
+          ...queuedRun,
+          status: "GENERATING",
+          startedAt: new Date(Date.now() - 70_000).toISOString(),
+        }}
+        onReset={vi.fn()}
+        onRetry={onRetry}
+        longRunningThresholdMs={60_000}
+      />
+    )
+
+    expect(
+      await screen.findByText(
+        "آیا زمان تولید طولانی شده یا مشکلی پیش آمده است؟"
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "اگر ساخت پیشنهادها بیش از حد معمول طول کشیده است، می‌توانید فرایند را از ابتدا دوباره شروع کنید."
+      )
+    ).toBeInTheDocument()
+
+    const restartBtns = screen.getAllByRole("button", {
+      name: "شروع مجدد از ابتدا",
+    })
+    expect(restartBtns.length).toBeGreaterThanOrEqual(1)
+    fireEvent.click(restartBtns[0]!)
+    expect(onRetry).toHaveBeenCalledOnce()
+  })
 })

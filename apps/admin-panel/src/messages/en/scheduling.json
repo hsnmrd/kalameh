@@ -192,6 +192,11 @@
     "refresh": "Refresh status",
     "another": "Create another run",
     "pageTitle": "Scheduling results",
+    "longRunning": {
+      "tip": "Is generation taking too long or encountering trouble?",
+      "description": "If proposal generation is taking longer than expected, you can restart the process from scratch.",
+      "restart": "Restart from scratch"
+    },
     "preflightIssues": {
       "title": "Preflight blocking issues:",
       "COURSE_WITHOUT_QUALIFIED_TEACHER": "Course \"{entity}\" does not have an active qualified teacher. Please assign course qualification to at least one teacher.",
