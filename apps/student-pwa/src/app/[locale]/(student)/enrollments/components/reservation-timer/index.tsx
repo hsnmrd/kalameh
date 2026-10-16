@@ -14,11 +14,14 @@ export function ReservationTimer({
   onExpire,
 }: ReservationTimerProps) {
   const t = useTranslations("enrollments.timer")
+  const [prevInitialSeconds, setPrevInitialSeconds] =
+    React.useState(initialSeconds)
   const [secondsLeft, setSecondsLeft] = React.useState(initialSeconds)
 
-  React.useEffect(() => {
+  if (initialSeconds !== prevInitialSeconds) {
+    setPrevInitialSeconds(initialSeconds)
     setSecondsLeft(initialSeconds)
-  }, [initialSeconds])
+  }
 
   React.useEffect(() => {
     if (secondsLeft <= 0) {
@@ -74,7 +77,10 @@ export function ReservationTimer({
         </div>
       </div>
 
-      <div className="flex items-baseline gap-1 font-mono text-xl font-extrabold tracking-wider text-foreground">
+      <div
+        dir="ltr"
+        className="flex items-baseline gap-1 font-mono text-xl font-extrabold tracking-wider text-foreground tabular-nums"
+      >
         <span>{String(minutes).padStart(2, "0")}</span>
         <span>:</span>
         <span>{String(seconds).padStart(2, "0")}</span>
