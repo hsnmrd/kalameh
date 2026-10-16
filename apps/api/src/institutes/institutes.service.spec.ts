@@ -94,23 +94,10 @@ describe('InstitutesService', () => {
       });
     });
 
-    it('should return only own institute for ADMIN', async () => {
-      prismaService.institute.findFirstOrThrow.mockResolvedValue({
-        id: 'inst-tehran',
-        name: 'Tehran Institute',
-        subdomain: 'tehran',
-        isActive: true,
-        bankCardNumber: null,
-        bankAccountName: null,
-        bankShaba: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        _count: { classes: 5, users: 20 },
-      });
-
-      const result = await service.findAll(mockInstituteAdmin);
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('inst-tehran');
+    it('should throw ForbiddenException for non-SUPER_ADMIN', async () => {
+      await expect(service.findAll(mockInstituteAdmin)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 

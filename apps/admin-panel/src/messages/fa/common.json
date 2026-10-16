@@ -23,6 +23,7 @@
     "staff": "مدیریت پرسنل",
     "rolePermissions": "نقش‌ها و دسترسی‌ها",
     "finance": "تراکنش‌های مالی",
+    "financialSettings": "تنظیمات حساب بانکی",
     "operatingPhases": "فازهای زمانی آموزشگاه",
     "offDays": "تقویم موسسه",
     "calendar": "تقویم موسسه",
@@ -67,6 +68,7 @@
     "staff": "پرسنل",
     "rolePermissions": "دسترسی‌ها",
     "finance": "امور مالی",
+    "financialSettings": "حساب بانکی",
     "menu": "منو"
   },
   "theme": {

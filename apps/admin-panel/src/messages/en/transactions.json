@@ -48,5 +48,24 @@
     "close": "Close",
     "approveSuccess": "The transaction was approved and enrollment confirmed.",
     "rejectSuccess": "The transaction was rejected and capacity released."
+  },
+  "settings": {
+    "title": "Bank Account Settings",
+    "subtitle": "Institute bank account details for receiving tuition payments and displaying in the student app",
+    "infoTitle": "Important Tuition Payment Notice",
+    "infoDescription": "These details are displayed directly to students during class registration and capacity reservation to transfer tuition fees and upload deposit receipts.",
+    "previewTitle": "Bank Card Preview",
+    "previewDescription": "Preview of how the institute's bank card appears in the student app.",
+    "bankAccountName": "Account Holder Name",
+    "bankAccountNamePlaceholder": "e.g. Kalameh Language Institute",
+    "bankCardNumber": "Bank Card Number (16 digits)",
+    "bankCardNumberPlaceholder": "6037991812345678",
+    "bankShaba": "IBAN (Sheba)",
+    "bankShabaPlaceholder": "IR120120000000001234567890",
+    "save": "Save",
+    "saving": "Saving...",
+    "saveSuccess": "Bank account details saved successfully.",
+    "copyCard": "Copy Card Number",
+    "cardCopied": "Card number copied."
   }
 }

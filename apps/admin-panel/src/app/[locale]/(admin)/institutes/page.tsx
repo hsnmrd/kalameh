@@ -16,10 +16,11 @@ import {
 } from "@workspace/ui/components/empty"
 import { FABSingle } from "@workspace/ui/components/fab"
 import type { InstituteWithStats } from "@workspace/types"
-import { parseStatusFilter } from "@workspace/types"
+import { parseStatusFilter, ROLES } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
-import { useModal } from "@/lib/hooks"
+import { useModal, usePermissions } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
+import { ForbiddenState } from "@/components/forbidden-state"
 import { ModalGateway } from "@/components/modal-gateway"
 import { TableSkeleton } from "@/components/table-skeleton"
 import { ListSkeleton } from "@/components/list-skeleton"
@@ -31,16 +32,31 @@ import { InstitutesFilter } from "./components/institutes-filter"
 export default function InstitutesPage() {
   const t = useTranslations("institutes")
   const { openModal } = useModal()
+  const { user, isLoading: isUserLoading } = usePermissions()
+  const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
 
   const [search, setSearch] = React.useState("")
   const [selectedStatus, setSelectedStatus] = React.useState("ALL")
 
-  const { data: institutes = [], isLoading } = useQuery(
-    institutesResource.list.toQuery({
+  const { data: institutes = [], isLoading } = useQuery({
+    ...institutesResource.list.toQuery({
       search: search.trim() || undefined,
       isActive: parseStatusFilter(selectedStatus),
-    })
-  )
+    }),
+    enabled: Boolean(isSuperAdmin),
+  })
+
+  if (isUserLoading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Spinner className="size-8 text-foreground" />
+      </div>
+    )
+  }
+
+  if (!isSuperAdmin) {
+    return <ForbiddenState />
+  }
 
   const isListEmpty = !isLoading && institutes.length === 0
 
