@@ -29,7 +29,10 @@ export function StudentDemandBar({
 
   return (
     <div
-      className={cn("flex items-center gap-2.5", className)}
+      className={cn(
+        "flex min-w-[180px] shrink-0 items-center gap-2.5",
+        className
+      )}
       title={t("studentsDetail", {
         continuing: formatNumber(continuing, locale),
         new: formatNumber(newStudents, locale),
@@ -53,16 +56,19 @@ export function StudentDemandBar({
         <div
           className="h-full rounded-full bg-primary transition-all duration-300"
           style={{
-            flex: bothZero ? 1 : continuing > 0 ? continuing : undefined,
-            width: !bothZero && continuing === 0 ? "8px" : undefined,
+            flex: !bothZero && continuing > 0 ? continuing : undefined,
+            width: bothZero || continuing === 0 ? "8px" : undefined,
             minWidth: "8px",
           }}
         />
+        {bothZero && (
+          <div className="h-full flex-1 rounded-full bg-muted-foreground/25" />
+        )}
         <div
           className="h-full rounded-full bg-warning transition-all duration-300"
           style={{
-            flex: bothZero ? 1 : newStudents > 0 ? newStudents : undefined,
-            width: !bothZero && newStudents === 0 ? "8px" : undefined,
+            flex: !bothZero && newStudents > 0 ? newStudents : undefined,
+            width: bothZero || newStudents === 0 ? "8px" : undefined,
             minWidth: "8px",
           }}
         />

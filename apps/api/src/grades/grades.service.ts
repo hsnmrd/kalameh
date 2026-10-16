@@ -4,10 +4,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from '../i18n/i18n.service';
 import { SubmitFinalGradesDto } from './dto/submit-grades.dto';
 import { SetStudentLevelDto } from './dto/set-student-level.dto';
-import type {
-  JwtPayload,
-  SupportedLocale,
-  ClassGradeRecordDto,
+import {
+  ENROLLMENT_STATUSES,
+  type JwtPayload,
+  type SupportedLocale,
+  type ClassGradeRecordDto,
 } from '@workspace/types';
 
 @Injectable()
@@ -33,7 +34,10 @@ export class GradesService {
     });
 
     const enrollments = await this.prisma.enrollment.findMany({
-      where: { classId },
+      where: {
+        classId,
+        status: { not: ENROLLMENT_STATUSES.REJECTED },
+      },
       include: {
         student: {
           select: {
@@ -98,7 +102,7 @@ export class GradesService {
           },
         });
 
-        if (!enrollment) {
+        if (!enrollment || enrollment.status === ENROLLMENT_STATUSES.REJECTED) {
           throw new BadRequestException(
             this.i18n.t('grades.studentNotEnrolled', locale),
           );

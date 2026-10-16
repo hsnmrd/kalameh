@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Layers,
   Building2,
+  Book,
   BookOpen,
   Calendar,
   Users,
@@ -112,6 +113,13 @@ export const PEOPLE_NAV_ITEMS: NavItem[] = [
  * Structural building blocks for courses, rooms, and campuses
  */
 export const FACILITIES_NAV_ITEMS: NavItem[] = [
+  {
+    key: "books",
+    href: "/books",
+    icon: Book,
+    permission: PERMISSIONS.VIEW_BOOKS,
+    module: APP_MODULES.CLASSES_COURSES,
+  },
   {
     key: "courses",
     href: "/courses",

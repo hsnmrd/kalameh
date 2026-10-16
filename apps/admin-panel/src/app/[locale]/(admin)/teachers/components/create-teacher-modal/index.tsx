@@ -17,7 +17,8 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { coursesResource, teachersResource } from "@/lib/api"
+import { coursesResource, teachersResource, usersResource } from "@/lib/api"
+import type { ComboboxOption } from "@workspace/ui/components/combobox"
 import {
   type CreateTeacherInput,
   useCreateTeacherSchema,
@@ -40,6 +41,7 @@ export function CreateTeacherModal({
   const schema = useCreateTeacherSchema()
   const defaults = React.useMemo(
     () => ({
+      userId: null,
       avatar: null,
       avatarUrl: null,
       firstName: "",
@@ -59,15 +61,78 @@ export function CreateTeacherModal({
     resolver: zodResolver(schema),
     defaultValues: defaults,
   })
-  const { handleSubmit, reset } = form
+  const { handleSubmit, reset, setValue, watch } = form
   const { data: courses = [], isLoading: areCoursesLoading } = useQuery({
     ...coursesResource.list.toQuery(instituteId ? { instituteId } : undefined),
     enabled: open,
   })
 
+  const { data: staffUsers = [], isLoading: areStaffLoading } = useQuery({
+    ...usersResource.list.toQuery(instituteId ? { instituteId } : undefined),
+    enabled: open,
+  })
+
+  const { data: currentTeachers = [], isLoading: areTeachersLoading } =
+    useQuery({
+      ...teachersResource.list.toQuery(
+        instituteId ? { instituteId } : undefined
+      ),
+      enabled: open,
+    })
+
+  const currentTeacherIds = React.useMemo(
+    () => new Set(currentTeachers.map((teacher) => teacher.id)),
+    [currentTeachers]
+  )
+
+  const staffOptions: ComboboxOption[] = React.useMemo(() => {
+    return staffUsers
+      .filter((user) => !currentTeacherIds.has(user.id))
+      .map((user) => ({
+        value: user.id,
+        label: `${user.firstName} ${user.lastName} (${user.phone}) - ${t(`roles.${user.role}`)}`,
+      }))
+  }, [staffUsers, currentTeacherIds, t])
+
+  const selectedUserId = watch("userId")
+  const selectedStaff = React.useMemo(
+    () => staffUsers.find((user) => user.id === selectedUserId),
+    [staffUsers, selectedUserId]
+  )
+
+  const handleSelectStaff = React.useCallback(
+    (userId: string | null) => {
+      if (!userId) {
+        setValue("userId", null)
+        setValue("firstName", "")
+        setValue("lastName", "")
+        setValue("phone", "")
+        setValue("nationalCode", "")
+        setValue("avatarUrl", null)
+        setValue("password", "")
+        return
+      }
+
+      const found = staffUsers.find((user) => user.id === userId)
+      if (found) {
+        setValue("userId", found.id, { shouldValidate: true })
+        setValue("firstName", found.firstName, { shouldValidate: true })
+        setValue("lastName", found.lastName, { shouldValidate: true })
+        setValue("phone", found.phone, { shouldValidate: true })
+        setValue("nationalCode", found.nationalCode || "", {
+          shouldValidate: true,
+        })
+        setValue("avatarUrl", found.avatarUrl || null)
+        setValue("password", "")
+      }
+    },
+    [setValue, staffUsers]
+  )
+
   React.useEffect(() => {
     if (open) reset(defaults)
   }, [open, reset, defaults])
+
   const createMutation = useMutation({
     ...teachersResource.create.toMutation(),
     onSuccess: () => {
@@ -78,8 +143,12 @@ export function CreateTeacherModal({
       onClose()
     },
   })
+
   const onSubmit = (data: CreateTeacherInput) => {
     const body = new FormData()
+    if (data.userId) {
+      body.append("userId", data.userId)
+    }
     if (data.avatar instanceof File) {
       body.append("avatar", data.avatar)
     }
@@ -132,6 +201,10 @@ export function CreateTeacherModal({
               form={form}
               courses={courses}
               areCoursesLoading={areCoursesLoading}
+              staffOptions={staffOptions}
+              selectedStaff={selectedStaff}
+              onSelectStaff={handleSelectStaff}
+              isStaffLoading={areStaffLoading || areTeachersLoading}
             />
           </div>
           <FormDialogFooter>

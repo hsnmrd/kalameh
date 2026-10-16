@@ -221,6 +221,7 @@ export function CalendarGrid({
         hasDismissedHolidays={hasDismissed}
         hasCompensatorySessions={hasCompensatory}
         hasExcessSessions={metadata.hasExcess}
+        hasExistingTerms={existingTerms.length > 0}
       />
 
       {/* Active Term Holidays List (Plain text) */}

@@ -44,7 +44,6 @@ export function GeneratePhaseTermsModal({
     setSessionsPerTerm,
     gapDays,
     setGapDays,
-    previewQuery,
     isLoadingExisting,
     handleProceedToPreview,
   } = useGeneratePhaseTerms()

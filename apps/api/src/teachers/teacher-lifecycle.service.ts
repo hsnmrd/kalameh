@@ -19,7 +19,7 @@ export class TeacherLifecycleService {
     const teacher = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
-        role: ROLES.TEACHER,
+        OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
         ...(currentUser.role === ROLES.SUPER_ADMIN
           ? {}
           : { instituteId: currentUser.instituteId }),
@@ -57,12 +57,13 @@ export class TeacherLifecycleService {
     const teacher = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
-        role: ROLES.TEACHER,
+        OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
         ...(currentUser.role === ROLES.SUPER_ADMIN
           ? {}
           : { instituteId: currentUser.instituteId }),
       },
       include: {
+        teacherProfile: true,
         _count: {
           select: { teachingClasses: true },
         },
@@ -79,6 +80,23 @@ export class TeacherLifecycleService {
         data: { isActive: false },
       });
       return { success: true, deactivated: true };
+    }
+
+    if (teacher.role !== ROLES.TEACHER) {
+      if (teacher.teacherProfile) {
+        await this.prisma.teacherProfile.delete({
+          where: { id: teacher.teacherProfile.id },
+        });
+      }
+      await this.auditLogsService.log({
+        instituteId: teacher.instituteId,
+        userId: currentUser.sub,
+        module: 'TEACHER',
+        action: 'TEACHER_PROFILE_DELETED',
+        entityId: id,
+        metadata: { phone: teacher.phone, role: teacher.role },
+      });
+      return { success: true, deleted: true };
     }
 
     await this.prisma.user.delete({

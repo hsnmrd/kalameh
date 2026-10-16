@@ -9,6 +9,7 @@
   "teachersCalendar": "All Teachers Calendar",
   "termFilter": "Filter by Term",
   "allTerms": "All Terms",
+  "activeTermBadge": "Active Term",
   "courseFilter": "Filter by Course",
   "allCourses": "All Courses",
   "searchPlaceholder": "Search",
@@ -90,6 +91,9 @@
     "schedule": "Schedule",
     "schedulePlaceholder": "Schedule",
     "selectTeacherFirst": "Please select a teacher first before configuring the class schedule.",
+    "teacherBusyWithClass": "Busy in class \"{classTitle}\" ({time})",
+    "teacherOutsideFreeTime": "Outside teacher's available hours",
+    "classroomBusyWithClass": "Occupied by class \"{classTitle}\" ({time})",
     "submit": "Save Changes",
     "cancel": "Cancel",
     "success": "Class updated successfully."
@@ -121,6 +125,9 @@
     "conflictTypeClassroom": "Classroom Conflict",
     "conflictTypeTeacher": "Teacher Schedule Conflict",
     "conflictTypeTeacherFreeTime": "Outside Teacher Available Hours",
+    "conflictClassroomMsg": "Classroom conflicts with class \"{classTitle}\"",
+    "conflictTeacherMsg": "Teacher schedule conflicts with class \"{classTitle}\"",
+    "conflictTeacherFreeTimeMsg": "Selected time is outside available hours for \"{teacherName}\"",
     "conflictClass": "Conflicting Class: \"{title}\"",
     "conflictDatesList": "{count} conflicting days",
     "showConflictDates": "Show conflicting dates",
@@ -188,5 +195,12 @@
     "noResults": "No classrooms match your search.",
     "remoteClass": "Online Class / No Physical Room",
     "remoteBadge": "Online / Remote"
+  },
+  "validation": {
+    "titleMin": "Class title must be at least 2 characters.",
+    "capacityMin": "Class capacity must be at least 1.",
+    "feeMin": "Class fee cannot be negative.",
+    "termIdRequired": "Term is required.",
+    "courseIdRequired": "Course is required."
   }
 }

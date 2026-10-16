@@ -130,6 +130,30 @@ export class StudentImportAvailabilityService {
           where: { id: { in: Array.from(profilesWithSlots) } },
           data: { scheduleStatus: 'COMPLETE' },
         });
+
+        // Reset term confirmation if no classes exist yet in the operating phase terms
+        const candidateTerms = await this.prisma.term.findMany({
+          where: {
+            instituteId,
+            operatingPhaseId: { in: activePhases.map((p) => p.id) },
+            isActive: true,
+            studentSchedulesConfirmedAt: { not: null },
+            classes: { none: {} },
+          },
+          select: { id: true },
+        });
+
+        if (candidateTerms.length > 0) {
+          await this.prisma.term.updateMany({
+            where: {
+              id: { in: candidateTerms.map((t) => t.id) },
+            },
+            data: {
+              studentSchedulesConfirmedAt: null,
+              studentSchedulesConfirmedByUserId: null,
+            },
+          });
+        }
       }
     }
   }

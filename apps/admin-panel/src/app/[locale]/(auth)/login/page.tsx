@@ -47,13 +47,44 @@ export default function AdminLoginPage() {
     defaultValues: {
       phone: "",
       password: "",
-      subdomain: "",
     },
+  })
+
+  const logoutMutation = useMutation({
+    ...authResource.logout.toMutation(),
   })
 
   const loginMutation = useMutation({
     ...authResource.login.toMutation(),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      if (
+        data.requiresInstituteSelection &&
+        data.institutes &&
+        data.institutes.length > 0
+      ) {
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(
+            "pending_auth",
+            JSON.stringify({
+              phone: variables.phone,
+              password: variables.password,
+              institutes: data.institutes,
+            })
+          )
+        }
+        router.push("/select-institute")
+        return
+      }
+
+      const isStaffOrAdmin =
+        data.user?.role !== "STUDENT" && data.user?.role !== "TEACHER"
+
+      if (!isStaffOrAdmin) {
+        logoutMutation.mutate(undefined)
+        toast.error(t("studentNotAllowed"))
+        return
+      }
+
       queryClient.setQueryData(authResource.me.toQuery().queryKey, data.user)
       toast.success(t("loginSuccess"))
       router.push("/")
@@ -64,7 +95,6 @@ export default function AdminLoginPage() {
     loginMutation.mutate({
       phone: formData.phone,
       password: formData.password,
-      subdomain: formData.subdomain || undefined,
     })
   }
 
@@ -187,21 +217,6 @@ export default function AdminLoginPage() {
                   {...register("password")}
                 />
                 <FieldError>{errors.password?.message}</FieldError>
-              </Field>
-
-              <Field data-invalid={Boolean(errors.subdomain)}>
-                <FieldLabel htmlFor="subdomain">
-                  {t("subdomainLabel")}
-                </FieldLabel>
-                <Input
-                  id="subdomain"
-                  type="text"
-                  dir="ltr"
-                  variant="auth"
-                  placeholder={t("subdomainPlaceholder")}
-                  {...register("subdomain")}
-                />
-                <FieldError>{errors.subdomain?.message}</FieldError>
               </Field>
             </FieldGroup>
 

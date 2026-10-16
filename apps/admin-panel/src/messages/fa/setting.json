@@ -42,6 +42,11 @@
     "successUpdateSettings": "تنظیمات تقویم موسسه با موفقیت به‌روز شد.",
     "successAddOffDay": "روز تعطیل با موفقیت اضافه شد.",
     "successDeleteOffDay": "روز تعطیل با موفقیت حذف شد.",
+    "validation": {
+      "titleMin": "عنوان تعطیلی الزامی است.",
+      "dateInvalid": "تاریخ وارد شده معتبر نیست.",
+      "rangeInvalid": "تاریخ شروع باید قبل از تاریخ پایان باشد."
+    },
     "selectionMode": "حالت انتخاب",
     "singleDay": "تک روز",
     "dateRange": "بازه زمانی",

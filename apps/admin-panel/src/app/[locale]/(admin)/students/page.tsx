@@ -9,6 +9,7 @@ import {
   APP_MODULES,
   ROLES,
   parseStatusFilter,
+  findCurrentActiveTerm,
 } from "@workspace/types"
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -21,11 +22,14 @@ import {
   API_BASE_URL,
 } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions, useModal } from "@/lib/hooks"
+import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
+import { useRouter } from "@/i18n/routing"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { StudentsHeaderActions } from "./components/students-header-actions"
 import { StudentScheduleConfirmationBanner } from "./components/student-schedule-confirmation-banner"
@@ -36,14 +40,23 @@ import { StudentsList } from "./components/students-list"
 import { StudentsFabDrawer } from "./components/students-fab-drawer"
 
 export default function StudentsPage() {
+  const router = useRouter()
   const t = useTranslations("students")
   const locale = useLocale()
   const { openModal } = useModal()
 
-  const [searchValue, setSearchValue] = React.useState("")
-  const [selectedCourseId, setSelectedCourseId] = React.useState("ALL")
-  const [selectedBranchId, setSelectedBranchId] = React.useState("ALL")
-  const [selectedStatus, setSelectedStatus] = React.useState("ALL")
+  const { filters, setFilter, pageIndex, pageSize, setPageIndex, setPageSize } =
+    useUrlFilters({
+      defaultValues: {
+        searchValue: "",
+        selectedCourseId: "ALL",
+        selectedBranchId: "ALL",
+        selectedStatus: "ALL",
+        page: 1,
+        pageSize: 10,
+      },
+      debounceKeys: ["searchValue"],
+    })
   const [isExporting, setIsExporting] = React.useState(false)
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
@@ -88,27 +101,48 @@ export default function StudentsPage() {
     enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
   })
 
-  const unconfirmedTerm = React.useMemo(() => {
-    return terms.find((term) => {
-      if (Boolean(term.studentSchedulesConfirmedAt)) return false
-      if (term.isActive === false) return false
-      if (
-        term.lifecycleStatus === "COMPLETED" ||
-        term.lifecycleStatus === "INACTIVE"
-      ) {
-        return false
-      }
-      return true
-    })
+  const currentActiveTerm = React.useMemo(() => {
+    return findCurrentActiveTerm(terms)
   }, [terms])
+
+  // The confirmation banner is specifically for the current active term (or nearest relevant active term).
+  // When confirmed for the current active term, it hides.
+  const unconfirmedActiveTerm = React.useMemo(() => {
+    if (currentActiveTerm) {
+      if (Boolean(currentActiveTerm.studentSchedulesConfirmedAt)) {
+        return null
+      }
+      return currentActiveTerm
+    }
+
+    return (
+      terms.find((term) => {
+        if (Boolean(term.studentSchedulesConfirmedAt)) return false
+        if (term.isActive === false) return false
+        if (
+          term.lifecycleStatus === "COMPLETED" ||
+          term.lifecycleStatus === "INACTIVE"
+        ) {
+          return false
+        }
+        return true
+      }) ?? null
+    )
+  }, [currentActiveTerm, terms])
 
   // Query students
   const { data: students, isLoading } = useQuery({
     ...studentsResource.list.toQuery({
-      search: searchValue.trim() || undefined,
-      courseId: selectedCourseId !== "ALL" ? selectedCourseId : undefined,
-      branchId: selectedBranchId !== "ALL" ? selectedBranchId : undefined,
-      isActive: parseStatusFilter(selectedStatus),
+      search: filters.searchValue.trim() || undefined,
+      courseId:
+        filters.selectedCourseId !== "ALL"
+          ? filters.selectedCourseId
+          : undefined,
+      branchId:
+        filters.selectedBranchId !== "ALL"
+          ? filters.selectedBranchId
+          : undefined,
+      isActive: parseStatusFilter(filters.selectedStatus),
       instituteId: activeInstituteId,
     }),
     enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
@@ -122,14 +156,15 @@ export default function StudentsPage() {
       setIsExporting(true)
       const baseUrl = API_BASE_URL
       const queryParams = new URLSearchParams()
-      const isActiveFilter = parseStatusFilter(selectedStatus)
+      const isActiveFilter = parseStatusFilter(filters.selectedStatus)
       if (isActiveFilter !== undefined)
         queryParams.set("isActive", String(isActiveFilter))
-      if (selectedCourseId !== "ALL")
-        queryParams.set("courseId", selectedCourseId)
-      if (selectedBranchId !== "ALL")
-        queryParams.set("branchId", selectedBranchId)
-      if (searchValue.trim()) queryParams.set("search", searchValue.trim())
+      if (filters.selectedCourseId !== "ALL")
+        queryParams.set("courseId", filters.selectedCourseId)
+      if (filters.selectedBranchId !== "ALL")
+        queryParams.set("branchId", filters.selectedBranchId)
+      if (filters.searchValue.trim())
+        queryParams.set("search", filters.searchValue.trim())
       if (activeInstituteId) queryParams.set("instituteId", activeInstituteId)
 
       const url = `${baseUrl}/students/export-excel?${queryParams.toString()}`
@@ -166,7 +201,7 @@ export default function StudentsPage() {
   const handleEdit = (student: StudentDto) =>
     openModal("editStudent", { student })
   const handleViewProfile = (student: StudentDto) =>
-    openModal("profileStudent", { student })
+    router.push(`/students/${student.id}`)
   const handleAvailability = (student: StudentDto) =>
     openModal("availabilityStudent", { student })
   const handleAddNote = (student: StudentDto) =>
@@ -175,7 +210,8 @@ export default function StudentsPage() {
     openModal("resetPassword", { student })
   const handleConfirmStudentSchedules = (targetTermId?: string) =>
     openModal("confirmStudentSchedules", {
-      defaultTermId: targetTermId ?? unconfirmedTerm?.id,
+      defaultTermId:
+        targetTermId ?? currentActiveTerm?.id ?? unconfirmedActiveTerm?.id,
     })
 
   return (
@@ -191,21 +227,25 @@ export default function StudentsPage() {
               confirmScheduleLabel={t("confirmStudentSchedules.action")}
               onConfirmScheduleClick={
                 terms.length > 0
-                  ? () => handleConfirmStudentSchedules()
+                  ? () => handleConfirmStudentSchedules(currentActiveTerm?.id)
                   : undefined
               }
             />
           }
           filter={
             <StudentsFilter
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-              selectedCourseId={selectedCourseId}
-              onCourseChange={setSelectedCourseId}
-              selectedBranchId={selectedBranchId}
-              onBranchChange={setSelectedBranchId}
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
+              searchValue={filters.searchValue}
+              onSearchChange={(search) => setFilter("searchValue", search)}
+              selectedCourseId={filters.selectedCourseId}
+              onCourseChange={(courseId) =>
+                setFilter("selectedCourseId", courseId)
+              }
+              selectedBranchId={filters.selectedBranchId}
+              onBranchChange={(branchId) =>
+                setFilter("selectedBranchId", branchId)
+              }
+              selectedStatus={filters.selectedStatus}
+              onStatusChange={(status) => setFilter("selectedStatus", status)}
               courses={courses}
               branches={branches}
               onAddClick={isListEmpty ? undefined : handleCreate}
@@ -248,43 +288,54 @@ export default function StudentsPage() {
             <NoOperatingPhaseAlert />
           ) : (
             <div className="flex flex-1 flex-col gap-4">
-              {!isListEmpty && totalCount > 0 && unconfirmedTerm && (
+              {!isListEmpty && totalCount > 0 && unconfirmedActiveTerm && (
                 <StudentScheduleConfirmationBanner
-                  term={unconfirmedTerm}
+                  term={unconfirmedActiveTerm}
                   studentsCount={totalCount}
                   hasStudents={totalCount > 0}
                   onConfirmClick={() =>
-                    handleConfirmStudentSchedules(unconfirmedTerm.id)
+                    handleConfirmStudentSchedules(unconfirmedActiveTerm.id)
                   }
                 />
               )}
 
               {/* Desktop Table View */}
               <div className="hidden lg:block">
-                <StudentsTable
-                  students={students}
-                  isLoading={isLoading}
-                  onViewProfile={handleViewProfile}
-                  onAddNote={handleAddNote}
-                  onEdit={handleEdit}
-                  onResetPassword={handleResetPassword}
-                  onAvailability={handleAvailability}
-                  onAdd={handleCreate}
-                />
+                <React.Suspense fallback={<TableSkeleton rows={pageSize} />}>
+                  <StudentsTable
+                    students={students}
+                    isLoading={isLoading}
+                    onViewProfile={handleViewProfile}
+                    onAddNote={handleAddNote}
+                    onEdit={handleEdit}
+                    onResetPassword={handleResetPassword}
+                    onAvailability={handleAvailability}
+                    onAdd={handleCreate}
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
+                    onPageIndexChange={setPageIndex}
+                    onPageSizeChange={setPageSize}
+                  />
+                </React.Suspense>
               </div>
 
               {/* Mobile Flat List View */}
               <div className="flex flex-1 flex-col lg:hidden">
-                <StudentsList
-                  students={students}
-                  isLoading={isLoading}
-                  onViewProfile={handleViewProfile}
-                  onAddNote={handleAddNote}
-                  onEdit={handleEdit}
-                  onResetPassword={handleResetPassword}
-                  onAvailability={handleAvailability}
-                  onAdd={handleCreate}
-                />
+                <React.Suspense fallback={<ListSkeleton rows={pageSize} />}>
+                  <StudentsList
+                    students={students}
+                    isLoading={isLoading}
+                    onViewProfile={handleViewProfile}
+                    onAddNote={handleAddNote}
+                    onEdit={handleEdit}
+                    onResetPassword={handleResetPassword}
+                    onAvailability={handleAvailability}
+                    onAdd={handleCreate}
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
+                    onPageChange={setPageIndex}
+                  />
+                </React.Suspense>
               </div>
             </div>
           )}

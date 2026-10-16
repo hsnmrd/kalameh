@@ -9,4 +9,8 @@ export interface StudentsTableProps {
   onResetPassword: (student: StudentDto) => void
   onAvailability?: (student: StudentDto) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }

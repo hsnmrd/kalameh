@@ -133,8 +133,8 @@ describe('SchedulingPlanTeacherCalendarService', () => {
       expect.objectContaining({
         where: expect.objectContaining({
           instituteId: ids.institute,
-          role: 'TEACHER',
           isActive: true,
+          OR: [{ role: 'TEACHER' }, { teacherProfile: { isNot: null } }],
         }),
       }),
     );

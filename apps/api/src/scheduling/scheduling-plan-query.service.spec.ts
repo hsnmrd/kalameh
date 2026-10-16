@@ -165,6 +165,15 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
           createdAt: now,
           updatedAt: now,
         }),
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+      branch: {
+        findMany: jest
+          .fn()
+          .mockResolvedValue([{ id: ids.branch, name: 'Main' }]),
+      },
+      class: {
+        findMany: jest.fn().mockResolvedValue([]),
       },
     };
     i18n = { t: jest.fn((key: string) => key) };
@@ -350,5 +359,47 @@ describe('MVP-029 SchedulingPlanQueryService', () => {
         }),
       }),
     );
+  });
+
+  it('calculates availableTimeSlots from the operating phase', async () => {
+    const basePlan = await prisma.schedulingPlan.findFirstOrThrow();
+    prisma.schedulingPlan.findFirstOrThrow.mockResolvedValueOnce({
+      ...basePlan,
+      run: {
+        ...basePlan.run,
+        term: {
+          ...basePlan.run.term,
+          operatingPhase: {
+            id: uuid(20),
+            title: 'Afternoon Phase',
+            startTime: '15:30',
+            endTime: '21:30',
+            slotDurationMinutes: 90,
+            hasBreak: false,
+            breakStartTime: null,
+            breakEndTime: null,
+            daysOfWeek: ['SATURDAY', 'MONDAY', 'WEDNESDAY'],
+          },
+        },
+      },
+    });
+
+    const result = await service.findOne(
+      admin,
+      ids.plan,
+      ids.otherInstitute,
+      'en',
+    );
+
+    expect(result.availableTimeSlots).toEqual([
+      { startTime: '15:30', endTime: '17:00' },
+      { startTime: '17:00', endTime: '18:30' },
+      { startTime: '18:30', endTime: '20:00' },
+      { startTime: '20:00', endTime: '21:30' },
+    ]);
+    expect(result.run.term.operatingPhase).toMatchObject({
+      startTime: '15:30',
+      endTime: '21:30',
+    });
   });
 });

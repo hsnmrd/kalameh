@@ -53,5 +53,8 @@
     "submit": "Save Changes",
     "cancel": "Cancel",
     "success": "Branch updated successfully."
+  },
+  "validation": {
+    "nameMin": "Branch name must be at least 2 characters."
   }
 }

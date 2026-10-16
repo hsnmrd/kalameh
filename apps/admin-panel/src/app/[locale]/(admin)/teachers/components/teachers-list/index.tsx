@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Image from "next/image"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import {
   UserCheck,
   Eye,
@@ -20,6 +20,8 @@ import {
   MobileListItemContent,
   MobileListItemTrailing,
 } from "@workspace/ui/components/mobile-list"
+import { DataPagination } from "@workspace/ui/components/pagination"
+import { useClientPagination } from "@/lib/hooks"
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -27,7 +29,7 @@ import {
   ContextMenuItem,
 } from "@workspace/ui/components/context-menu"
 import { Badge } from "@workspace/ui/components/badge"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { ListSkeleton } from "@/components/list-skeleton"
 import {
   Empty,
   EmptyHeader,
@@ -49,6 +51,9 @@ export interface TeachersListProps {
   onResetPassword: (teacher: TeacherDto) => void
   onDelete: (teacher: TeacherDto) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export function TeachersList({
@@ -60,15 +65,22 @@ export function TeachersList({
   onResetPassword,
   onDelete,
   onAdd,
+  pageIndex: controlledPageIndex,
+  pageSize = 10,
+  onPageChange: controlledOnPageChange,
 }: TeachersListProps) {
   const t = useTranslations("teachers")
+  const locale = useLocale()
+
+  const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
+    data: teachers,
+    pageSize,
+    pageIndex: controlledPageIndex,
+    onPageChange: controlledOnPageChange,
+  })
 
   if (isLoading) {
-    return (
-      <div className="flex h-48 w-full items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <ListSkeleton rows={pageSize} />
   }
 
   if (!teachers || teachers.length === 0) {
@@ -81,131 +93,165 @@ export function TeachersList({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
+        {onAdd && (
+          <EmptyContent>
+            <PermissionGuard
+              permission={PERMISSIONS.MANAGE_TEACHERS}
+              mode="hide"
+            >
+              <Button
+                type="button"
+                onClick={onAdd}
+                className="cursor-pointer gap-2"
+              >
+                <Plus className="size-5" />
+                <span>{t("addTeacher")}</span>
+              </Button>
+            </PermissionGuard>
+          </EmptyContent>
+        )}
       </Empty>
     )
   }
 
   return (
-    <MobileList>
-      {teachers.map((teacher, index) => {
-        const fullName = `${teacher.firstName} ${teacher.lastName}`
-        const initials = `${teacher.firstName?.[0] || ""}${teacher.lastName?.[0] || ""}`
-        const availCount = teacher.teacherProfile?.availabilities?.length || 0
+    <>
+      <MobileList>
+        {paginatedData.map((teacher, index) => {
+          const fullName = `${teacher.firstName} ${teacher.lastName}`
+          const initials = `${teacher.firstName?.[0] || ""}${teacher.lastName?.[0] || ""}`
+          const availCount = teacher.teacherProfile?.availabilities?.length || 0
 
-        return (
-          <ContextMenu key={teacher.id}>
-            <ContextMenuTrigger>
-              <MobileListItem
-                onClick={() => onViewProfile(teacher)}
-                isLast={index === teachers.length - 1}
-              >
-                <MobileListItemIcon>
-                  {teacher.avatarUrl ? (
-                    <Image
-                      src={getAssetUrl(teacher.avatarUrl)}
-                      alt={fullName}
-                      width={44}
-                      height={44}
-                      className="size-11 rounded-full object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <span className="text-xs font-semibold text-foreground">
-                      {initials}
-                    </span>
-                  )}
-                </MobileListItemIcon>
-
-                <MobileListItemContent
-                  primary={fullName}
-                  secondary={
-                    <div className="flex items-center gap-1.5 font-mono text-xs">
-                      <span>{teacher.phone}</span>
-                      {teacher.teacherProfile?.degree && (
-                        <>
-                          <span>•</span>
-                          <span className="font-sans text-muted-foreground">
-                            {teacher.teacherProfile.degree}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  }
-                />
-
-                <MobileListItemTrailing>
-                  <div className="flex flex-col items-end gap-1">
-                    <Badge
-                      variant={teacher.isActive ? "outline" : "secondary"}
-                      className={
-                        teacher.isActive
-                          ? "border-success/30 bg-success/10 text-[10px] text-success"
-                          : "text-[10px] text-muted-foreground"
-                      }
-                    >
-                      {teacher.isActive
-                        ? t("status.active")
-                        : t("status.inactive")}
-                    </Badge>
-                    {availCount > 0 && (
-                      <span className="text-[11px] text-muted-foreground">
-                        {t("availabilities.slotsCount", { count: availCount })}
+          return (
+            <ContextMenu key={teacher.id}>
+              <ContextMenuTrigger>
+                <MobileListItem
+                  onClick={() => onViewProfile(teacher)}
+                  isLast={index === paginatedData.length - 1}
+                >
+                  <MobileListItemIcon>
+                    {teacher.avatarUrl ? (
+                      <Image
+                        src={getAssetUrl(teacher.avatarUrl)}
+                        alt={fullName}
+                        width={44}
+                        height={44}
+                        className="size-11 rounded-full object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="text-xs font-semibold text-foreground">
+                        {initials}
                       </span>
                     )}
-                  </div>
-                </MobileListItemTrailing>
-              </MobileListItem>
-            </ContextMenuTrigger>
+                  </MobileListItemIcon>
 
-            <ContextMenuContent className="w-48">
-              <ContextMenuItem
-                onClick={() => onViewProfile(teacher)}
-                className="gap-2"
-              >
-                <Eye className="size-4 text-muted-foreground" />
-                <span>{t("actions.viewProfile")}</span>
-              </ContextMenuItem>
+                  <MobileListItemContent
+                    primary={fullName}
+                    secondary={
+                      <div className="flex items-center gap-1.5 font-mono text-xs">
+                        <span>{teacher.phone}</span>
+                        {teacher.teacherProfile?.degree && (
+                          <>
+                            <span>•</span>
+                            <span className="font-sans text-muted-foreground">
+                              {teacher.teacherProfile.degree}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    }
+                  />
 
-              <PermissionGuard
-                permission={PERMISSIONS.MANAGE_TEACHERS}
-                mode="hide"
-              >
+                  <MobileListItemTrailing>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge
+                        variant={teacher.isActive ? "outline" : "secondary"}
+                        className={
+                          teacher.isActive
+                            ? "border-success/30 bg-success/10 text-[10px] text-success"
+                            : "text-[10px] text-muted-foreground"
+                        }
+                      >
+                        {teacher.isActive
+                          ? t("status.active")
+                          : t("status.inactive")}
+                      </Badge>
+                      {availCount > 0 && (
+                        <span className="text-[11px] text-muted-foreground">
+                          {t("availabilities.slotsCount", {
+                            count: availCount,
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  </MobileListItemTrailing>
+                </MobileListItem>
+              </ContextMenuTrigger>
+
+              <ContextMenuContent className="w-48">
                 <ContextMenuItem
-                  onClick={() => onManageAvailability(teacher)}
+                  onClick={() => onViewProfile(teacher)}
                   className="gap-2"
                 >
-                  <Clock className="size-4 text-muted-foreground" />
-                  <span>{t("actions.manageAvailability")}</span>
+                  <Eye className="size-4 text-muted-foreground" />
+                  <span>{t("actions.viewProfile")}</span>
                 </ContextMenuItem>
 
-                <ContextMenuItem
-                  onClick={() => onEdit(teacher)}
-                  className="gap-2"
+                <PermissionGuard
+                  permission={PERMISSIONS.MANAGE_TEACHERS}
+                  mode="hide"
                 >
-                  <Edit className="size-4 text-muted-foreground" />
-                  <span>{t("actions.edit")}</span>
-                </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() => onManageAvailability(teacher)}
+                    className="gap-2"
+                  >
+                    <Clock className="size-4 text-muted-foreground" />
+                    <span>{t("actions.manageAvailability")}</span>
+                  </ContextMenuItem>
 
-                <ContextMenuItem
-                  onClick={() => onResetPassword(teacher)}
-                  className="gap-2"
-                >
-                  <KeyRound className="size-4 text-muted-foreground" />
-                  <span>{t("actions.resetPassword")}</span>
-                </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() => onEdit(teacher)}
+                    className="gap-2"
+                  >
+                    <Edit className="size-4 text-muted-foreground" />
+                    <span>{t("actions.edit")}</span>
+                  </ContextMenuItem>
 
-                <ContextMenuItem
-                  onClick={() => onDelete(teacher)}
-                  className="gap-2 text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                  <span>{t("actions.delete")}</span>
-                </ContextMenuItem>
-              </PermissionGuard>
-            </ContextMenuContent>
-          </ContextMenu>
-        )
-      })}
-    </MobileList>
+                  <ContextMenuItem
+                    onClick={() => onResetPassword(teacher)}
+                    className="gap-2"
+                  >
+                    <KeyRound className="size-4 text-muted-foreground" />
+                    <span>{t("actions.resetPassword")}</span>
+                  </ContextMenuItem>
+
+                  <ContextMenuItem
+                    onClick={() => onDelete(teacher)}
+                    className="gap-2 text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="size-4 text-destructive" />
+                    <span>{t("actions.delete")}</span>
+                  </ContextMenuItem>
+                </PermissionGuard>
+              </ContextMenuContent>
+            </ContextMenu>
+          )
+        })}
+      </MobileList>
+
+      {teachers.length > pageSize && (
+        <div className="pt-4 pb-2">
+          <DataPagination
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            totalItems={teachers.length}
+            onPageChange={setPageIndex}
+            compact
+            locale={locale}
+          />
+        </div>
+      )}
+    </>
   )
 }

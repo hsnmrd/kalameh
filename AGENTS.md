@@ -4,6 +4,14 @@
 - **Backend Service Separation:** Keep backend services focused on one domain responsibility. Target a maximum of 300 lines for production service files; split oversized services into injectable query, command, validation, persistence, composition, import/export, or calculation collaborators. Controllers and public service facades must remain thin, and refactors must preserve routes, DTOs, authorization, response shapes, transactions, and observable behavior. Register extracted collaborators through NestJS dependency injection and cover them with focused unit tests. Cohesive algorithm implementations may exceed the target only when splitting would obscure the algorithm; keep orchestration and I/O outside those files and document the exception beside the service.
 - **Testing:** Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
 - **Git Hooks & Quality Gate:** Prettier and ESLint are enforced by Husky (`.husky/pre-commit`) and `lint-staged` on every commit. Never bypass hooks.
+- **Parallel Worktree Execution Standard (One Worktree Per Chat / Task):**
+  - **Prompt at Chat Start:** At the beginning of any new task or chat involving codebase modifications, the AI must prompt the user for the target branch / worktree name before editing files or running task commands.
+  - **Directory Location:** All worktrees must reside in `.worktrees/<branch-name>`.
+  - **Initialization Protocol:**
+    1. Verify or create the worktree: `git worktree add -b <branch-name> .worktrees/<branch-name> <base-branch>` (or attach if the branch already exists: `git worktree add .worktrees/<branch-name> <branch-name>`).
+    2. Automatically copy the root `.env` into `.worktrees/<branch-name>/.env`.
+    3. Run `pnpm install` inside the worktree directory if dependencies are not yet linked.
+  - **Working Directory Isolation:** All file readings, edits, tests, migrations, and terminal commands for the task must strictly target the designated worktree path (`d:/projects/kalameh/.worktrees/<branch-name>`) to ensure complete isolation and prevent clobbering parallel agent sessions.
 - **Environment Configuration:** All environment variables must be managed centrally in the root `.env` and declared in `turbo.json` under `globalEnv`. Do not create disconnected per-app `.env` files.
 - **API Request Architecture (micro-rq + React Query):**
   - Always use `micro-rq` endpoint definitions via `.toQuery()` and `.toMutation()` passed directly into TanStack React Query (`useQuery`, `useMutation`).
@@ -61,7 +69,16 @@
   - Define columns using TanStack Table `ColumnDef` to ensure consistent typography, responsive design, empty states, and accessibility across all dashboards.
   - Never render raw `<table>` or custom HTML table markups in application pages.
 - **Admin List Page & Filter Standard:**
-  - Follow the unified list page standard in `apps/admin-panel/AGENTS.md`: never render in-page titles or descriptions (page title is routed via root `AdminHeader`), always provide a filter bar with at least a search input, place the desktop Add button inside `AdminFilterBar`'s `actions` slot, use `FABSingle` on mobile, and ensure form dialogs wrap inputs in a scrollable container with proper padding (`px-4 py-4 sm:px-6 sm:py-5`).
+  - Follow the unified list page standard in `apps/admin-panel/AGENTS.md`: never render in-page titles or descriptions (page title is routed via root `AdminHeader`), always provide a filter bar with at least a search input, place the desktop Add button inside `AdminFilterBar`'s `actions` slot with `hidden lg:inline-flex` (so it remains hidden on mobile and tablet screens below `lg` where FAB handles creation), use `FABSingle` on mobile/tablet (< `lg`), and ensure form dialogs wrap inputs in a scrollable container with proper padding (`px-4 py-4 sm:px-6 sm:py-5`).
+- **URL Query Parameters State Synchronization Standard (Filters, Search & Pagination):**
+  - All list, table, grid, and catalog pages across frontend applications must keep their state (**filters, search keyword, active page index, and page size**) synchronized with URL query parameters.
+  - When the user refreshes the page, navigates back/forward, or shares a link, the exact active filters, search text, and current pagination page must be preserved from the URL.
+  - **Single Source of Truth (`useUrlFilters`):** Always use the centralized `useUrlFilters` hook from `@/lib/hooks` (or appropriate app-level hook) rather than standalone, detached React state (`useState`) for list filters and pagination.
+  - **Search Input Debounce Standard:** Text search inputs must update local state immediately (zero typing lag) while debouncing URL query parameter updates by **300ms** to prevent navigation thrashing and history pollution.
+  - **Filter Change Resets Page to 1:** Whenever any discrete filter or search string changes, the active pagination `page` must automatically reset to `1`.
+  - **Clean URLs (Omit Defaults):** Default values (such as `page=1`, empty search `""`, or fallback `"ALL"` options) must be omitted from the query string to maintain clean, readable URLs.
+  - **Non-Destructive Query Parameter Preservation:** URL filter updates must preserve existing non-filter query parameters (such as `modal=...` used by `useModal`).
+  - **Controlled Pagination Synchronization:** Both desktop data tables (`DataTable`) and mobile lists (`MobileList` / `useClientPagination`) must accept and bind to the controlled pagination props (`pageIndex`, `pageSize`, `onPageIndexChange` / `onPageChange`) derived from `useUrlFilters`.
 - **Empty Component Standard (No Create in Filter, No Card Wrapper, Mobile Vertical Centering, Hide Mobile FAB):**
   - **1. Delete Create Button from Filter Section:** When a list, table, or grid has no data and displays the empty state (`<Empty />`), the primary create/add action button MUST be removed from the filter section (`onAddClick={isListEmpty ? undefined : handleCreate}`) and placed exclusively inside the empty component via `<EmptyContent>` (`<Button onClick={onAdd}><Plus className="size-4" /><span>{t("create")}</span></Button>`), wrapped in appropriate `<PermissionGuard mode="hide">`.
   - **2. No Card Wrapper Around Empty State:** Never wrap `<Empty />` inside a `<Card>`, card border, background card wrapper (`bg-card`), or table card frame. The empty component must render cleanly and natively in the page container without artificial enclosing card borders.

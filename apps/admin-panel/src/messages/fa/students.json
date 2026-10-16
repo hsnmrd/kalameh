@@ -242,5 +242,27 @@
     "trigger": "خروجی اکسل",
     "exporting": "در حال آماده‌سازی فایل اکسل...",
     "error": "خطا در دریافت خروجی اکسل"
+  },
+  "days": {
+    "SATURDAY": "شنبه",
+    "SUNDAY": "یکشنبه",
+    "MONDAY": "دوشنبه",
+    "TUESDAY": "سه‌شنبه",
+    "WEDNESDAY": "چهارشنبه",
+    "THURSDAY": "پنج‌شنبه",
+    "FRIDAY": "جمعه"
+  },
+  "availabilities": {
+    "title": "برنامه زمان‌های آزاد حضور",
+    "empty": "هیچ زمان حضوری برای این فراگیر ثبت نشده است.",
+    "setAvailability": "تنظیم زمان‌های آزاد",
+    "slotLabel": "سانس {slotNumber}",
+    "classLabel": "کلاس {slotNumber}",
+    "available": "آزاد",
+    "unavailable": "عدم حضور",
+    "slotsRatio": "{available} از {total} سانس آزاد",
+    "classesRatio": "{available} از {total} کلاس آزاد",
+    "filterAllDays": "همه روزها",
+    "phase": "فاز زمانی:"
   }
 }

@@ -1,0 +1,88 @@
+{
+  "title": "Books",
+  "addBook": "Add Book",
+  "searchPlaceholder": "Search books, authors, or publishers...",
+  "emptyTitle": "No books found",
+  "emptyDescription": "No books have been added yet. Add books to easily generate courses automatically based on them.",
+  "statusActive": "Active",
+  "statusInactive": "Inactive",
+  "catalogGlobal": "System Catalog",
+  "catalogCustom": "Custom Book",
+  "globalBadge": "Global",
+  "globalBookBadge": "Global",
+  "columns": {
+    "title": "Book Title",
+    "author": "Author",
+    "publisher": "Publisher",
+    "authorPublisher": "Author / Publisher",
+    "coursesCount": "Courses",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "generateCourses": "Generate Courses",
+    "noCourses": "No courses"
+  },
+  "createModal": {
+    "title": "Add New Book",
+    "bookTitle": "Book Title",
+    "titlePlaceholder": "e.g. American English File 1",
+    "author": "Author",
+    "authorPlaceholder": "e.g. Christina Latham-Koenig",
+    "publisher": "Publisher",
+    "publisherPlaceholder": "e.g. Oxford University Press",
+    "description": "Description",
+    "descriptionPlaceholder": "Brief overview and topics covered...",
+    "coverUrl": "Cover Image URL",
+    "coverUrlPlaceholder": "https://example.com/cover.jpg",
+    "cancel": "Cancel",
+    "submit": "Save",
+    "success": "Book created successfully"
+  },
+  "editModal": {
+    "title": "Edit Book",
+    "cancel": "Cancel",
+    "submit": "Save",
+    "success": "Changes saved successfully"
+  },
+  "deleteModal": {
+    "title": "Delete Book",
+    "description": "Are you sure you want to delete book \"{title}\"? This action cannot be undone.",
+    "cancel": "Cancel",
+    "confirm": "Delete",
+    "deleting": "Deleting...",
+    "success": "Book deleted successfully"
+  },
+  "generateCoursesModal": {
+    "title": "Generate Courses from Book",
+    "selectBook": "Select Book",
+    "selectBookPlaceholder": "Choose a book",
+    "termsCount": "Number of Terms to Teach This Book",
+    "termsCountPlaceholder": "e.g. 3",
+    "termsCountHint": "How many terms or parts will this book be taught over?",
+    "baseFee": "Tuition per Term",
+    "feePlaceholder": "1,500,000",
+    "startingPrerequisite": "Prerequisite for First Part (Optional)",
+    "none": "No prerequisite",
+    "namingFormat": "Part Naming Format",
+    "namingFormatPart": "Part (e.g. Part 1, Part 2)",
+    "namingFormatTerm": "Term (e.g. Term 1, Term 2)",
+    "previewTitle": "Preview of Courses to be Created:",
+    "courseTitleLabel": "Course Title",
+    "prereqLabel": "Prerequisite:",
+    "noPrereq": "None",
+    "cancel": "Cancel",
+    "submit": "Generate Courses",
+    "generating": "Generating courses...",
+    "success": "{count} courses were created successfully for this book"
+  },
+  "validation": {
+    "titleMin": "Book title must be at least 2 characters",
+    "termsCountMin": "At least 1 term is required",
+    "termsCountMax": "Maximum 20 terms allowed",
+    "baseFeeMin": "Tuition fee is invalid",
+    "bookRequired": "Please select a book"
+  }
+}

@@ -10,6 +10,10 @@ export interface TermLifecycleSubject {
   isActive: boolean
   operatingPhaseId?: string | null
   lifecycleStatus?: TermLifecycleStatus
+  studentCount?: number
+  studentsCount?: number
+  hasStudents?: boolean
+  classesCount?: number
 }
 
 function toStartOfDayMs(date: Date | string): number {
@@ -130,13 +134,16 @@ export function calculateTermLifecycleStatus(
 
 /**
  * Checks whether a term can be deleted:
- * Deletion is accessible ONLY for "پیش‌رو" (UPCOMING) terms whose start date has not reached yet (now < startDate).
+ * A term can be deleted if its start date has not reached yet (now < startDate)
+ * and it does not have any registered/enrolled students yet.
  */
 export function isTermDeletable(
   term: TermLifecycleSubject,
   siblingTerms?: TermLifecycleSubject[],
   now: Date = new Date()
 ): boolean {
+  void siblingTerms
+
   const nowMs = toStartOfDayMs(now)
   const startMs = toStartOfDayMs(term.startDate)
 
@@ -145,18 +152,90 @@ export function isTermDeletable(
     return false
   }
 
-  // If sibling terms are provided, calculate lifecycle status: must be strictly UPCOMING
-  if (siblingTerms && siblingTerms.length > 0) {
-    const status = calculateTermLifecycleStatus(term, siblingTerms, now)
-    return status === "UPCOMING"
+  // If student count is provided and greater than 0: cannot delete
+  const studentCount = term.studentsCount ?? term.studentCount
+  if (typeof studentCount === "number" && studentCount > 0) {
+    return false
   }
 
-  // If term has lifecycleStatus already calculated on it
-  if (term.lifecycleStatus) {
-    return term.lifecycleStatus === "UPCOMING"
+  // If hasStudents flag is explicitly true: cannot delete
+  if (term.hasStudents === true) {
+    return false
   }
 
-  // Fallback when no sibling terms or lifecycleStatus provided:
-  // Must be in the future (nowMs < startMs) and active
+  // Term is upcoming or registering and does not have any students yet
   return term.isActive !== false
+}
+
+/**
+ * Finds the currently active term for an institute from a list of terms:
+ * 1. An ongoing term (lifecycleStatus "ACTIVE" or startDate <= now <= endDate, isActive !== false).
+ *    If multiple, returns the earliest starting ongoing term.
+ * 2. An immediate registering term (lifecycleStatus "REGISTERING" or within activation window).
+ * 3. The nearest upcoming term (startDate > now, isActive !== false).
+ * 4. If all terms are completed/inactive, returns null.
+ */
+export function findCurrentActiveTerm<T extends TermLifecycleSubject>(
+  terms: T[] | undefined | null,
+  now: Date = new Date()
+): T | null {
+  if (!terms || terms.length === 0) {
+    return null
+  }
+
+  const enabledTerms = terms.filter((t) => t.isActive !== false)
+  if (enabledTerms.length === 0) {
+    return null
+  }
+
+  // 1. Look for a currently ongoing term ("ACTIVE")
+  const activeTerms = enabledTerms.filter((term) => {
+    const status =
+      term.lifecycleStatus ??
+      calculateTermLifecycleStatus(term, enabledTerms, now)
+    return status === "ACTIVE"
+  })
+
+  if (activeTerms.length > 0) {
+    return (
+      [...activeTerms].sort(
+        (a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate)
+      )[0] ?? null
+    )
+  }
+
+  // 2. Look for an immediate registering term ("REGISTERING")
+  const registeringTerms = enabledTerms.filter((term) => {
+    const status =
+      term.lifecycleStatus ??
+      calculateTermLifecycleStatus(term, enabledTerms, now)
+    return status === "REGISTERING"
+  })
+
+  if (registeringTerms.length > 0) {
+    return (
+      [...registeringTerms].sort(
+        (a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate)
+      )[0] ?? null
+    )
+  }
+
+  // 3. Look for the nearest upcoming term ("UPCOMING")
+  const upcomingTerms = enabledTerms.filter((term) => {
+    const status =
+      term.lifecycleStatus ??
+      calculateTermLifecycleStatus(term, enabledTerms, now)
+    return status === "UPCOMING"
+  })
+
+  if (upcomingTerms.length > 0) {
+    return (
+      [...upcomingTerms].sort(
+        (a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate)
+      )[0] ?? null
+    )
+  }
+
+  // 4. All terms are completed or inactive
+  return null
 }

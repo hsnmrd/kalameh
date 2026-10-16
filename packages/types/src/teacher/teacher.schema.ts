@@ -1,10 +1,11 @@
 import { z } from "zod"
+import { RoleEnum } from "../roles/index.js"
 import { TeacherProfileSchema } from "./teacher-profile.schema.js"
 
 export const TeacherDtoSchema = z.object({
   id: z.string().uuid(),
   instituteId: z.string().uuid(),
-  role: z.literal("TEACHER").default("TEACHER"),
+  role: RoleEnum.default("TEACHER"),
   firstName: z.string(),
   lastName: z.string(),
   phone: z.string(),
@@ -24,8 +25,18 @@ export const TeacherDtoSchema = z.object({
           .object({
             id: z.string().uuid(),
             title: z.string(),
+            isActive: z.boolean().optional(),
+            startDate: z.string().or(z.date()).optional(),
+            endDate: z.string().or(z.date()).optional(),
           })
           .optional(),
+        course: z
+          .object({
+            id: z.string().uuid(),
+            title: z.string(),
+          })
+          .optional(),
+        enrolledCount: z.number().optional(),
       })
     )
     .optional(),

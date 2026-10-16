@@ -27,7 +27,7 @@ export class TeacherAvailabilityService {
     const teacher = await this.prisma.user.findFirstOrThrow({
       where: {
         id: teacherId,
-        role: ROLES.TEACHER,
+        OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
         ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
       },
       include: {
@@ -97,7 +97,7 @@ export class TeacherAvailabilityService {
     const teacher = await this.prisma.user.findFirstOrThrow({
       where: {
         id: teacherId,
-        role: ROLES.TEACHER,
+        OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
         ...(currentUser.role === ROLES.SUPER_ADMIN
           ? {}
           : { instituteId: currentUser.instituteId }),

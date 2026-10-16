@@ -11,7 +11,8 @@ import {
 } from "@workspace/types"
 import { toast } from "@workspace/ui/components/sonner"
 import { formatNumber } from "@workspace/ui/lib/utils"
-import { schedulingResource } from "@/lib/api"
+import { useRouter } from "@/i18n/routing"
+import { classesResource, schedulingResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 
 interface SchedulingPlanPublicationOptions {
@@ -25,6 +26,7 @@ export function useSchedulingPlanPublication(
 ) {
   const t = useTranslations("scheduling.planPublication")
   const locale = useLocale()
+  const router = useRouter()
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
   const mutation = useMutation({
@@ -55,9 +57,15 @@ export function useSchedulingPlanPublication(
       toast.success(
         t("success", { count: formatNumber(result.proposalCount, locale) })
       )
-      await queryClient.invalidateQueries({
-        queryKey: schedulingResource.planDetail.baseKey(),
-      })
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: schedulingResource.planDetail.baseKey(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: classesResource.list.baseKey(),
+        }),
+      ])
+      router.push("/classes")
     },
     onError: (error) => {
       if (!(error instanceof MicroApiError)) return

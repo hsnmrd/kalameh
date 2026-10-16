@@ -42,7 +42,8 @@ describe("CoursesTable Component", () => {
     )
     expect(screen.getAllByText("Top Notch 1A").length).toBeGreaterThan(0)
     expect(screen.getByText("Top Notch 1B")).toBeInTheDocument()
-    expect(screen.getByText(/بدون پیش‌نیاز/i)).toBeInTheDocument()
+    expect(screen.getByText(/سطح پایه|Base Level/i)).toBeInTheDocument()
+    expect(screen.getByText("TN 1A")).toBeInTheDocument()
   })
 
   it("should trigger onEdit when edit button is clicked", () => {
@@ -57,5 +58,37 @@ describe("CoursesTable Component", () => {
     const editBtns = screen.getAllByLabelText(/عملیات|actions/i)
     fireEvent.click(editBtns[0]!)
     expect(handleEdit).toHaveBeenCalledWith(mockCourses[0])
+  })
+
+  it("should render both primary group course and outline single course buttons when empty", () => {
+    const handleAdd = vi.fn()
+    const handleBatch = vi.fn()
+    render(
+      <CoursesTable
+        courses={[]}
+        isLoading={false}
+        onEdit={vi.fn()}
+        onAdd={handleAdd}
+        onBatch={handleBatch}
+      />
+    )
+
+    // Primary button: create group courses
+    const batchBtn = screen.getByRole("button", {
+      name: /ایجاد گروهی دوره‌ها|generate group courses/i,
+    })
+    expect(batchBtn).toBeInTheDocument()
+
+    // Secondary button: create single course
+    const addBtn = screen.getByRole("button", {
+      name: /تعریف تکی دوره|create single course|addCourse/i,
+    })
+    expect(addBtn).toBeInTheDocument()
+
+    fireEvent.click(batchBtn)
+    expect(handleBatch).toHaveBeenCalledTimes(1)
+
+    fireEvent.click(addBtn)
+    expect(handleAdd).toHaveBeenCalledTimes(1)
   })
 })

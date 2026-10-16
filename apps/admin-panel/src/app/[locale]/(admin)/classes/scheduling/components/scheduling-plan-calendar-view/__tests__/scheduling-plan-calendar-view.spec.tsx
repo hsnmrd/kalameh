@@ -111,7 +111,7 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     // Even track in Row 1 has A1 (prop-1 on Sat, Mon, Wed)
     const evenCellRow1 = row1.querySelector('[data-day="EVEN"]')
-    expect(evenCellRow1).toHaveTextContent("American English File 1")
+    expect(evenCellRow1).toHaveTextContent("AEF 1")
 
     // Odd track in Row 1 has empty placeholder with low opacity
     const oddCellRow1 = row1.querySelector('[data-day="ODD"]')
@@ -123,7 +123,7 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     // Even track in Row 2 has A2 (prop-2 on Sat)
     const evenCellRow2 = row2.querySelector('[data-day="EVEN"]')
-    expect(evenCellRow2).toHaveTextContent("American English File 2")
+    expect(evenCellRow2).toHaveTextContent("AEF 2")
 
     // Odd track in Row 2 has empty placeholder with low opacity
     const oddCellRow2 = row2.querySelector('[data-day="ODD"]')
@@ -147,7 +147,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     // The class card itself should not render inline clock/timeRange since time is in the Time column
     const card = screen.getAllByRole("article")[0]
     expect(card).toBeDefined()
-    expect(card).toHaveTextContent("American English File 1")
+    expect(card).toHaveTextContent("AEF 1")
     expect(card).not.toHaveTextContent("09:00 تا 10:30")
   })
 
@@ -162,9 +162,10 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(within(card).queryByText("آنلاین")).not.toBeInTheDocument()
     expect(card.querySelector('[aria-label="حضوری"]')).not.toBeInTheDocument()
 
-    // Session title is rendered prominently with full course title
+    // Session title is rendered with short course title and full title in tooltip
+    expect(within(card).getByText("AEF 1")).toBeInTheDocument()
     expect(
-      within(card).getByText("American English File 1")
+      within(card).getByTitle("American English File 1")
     ).toBeInTheDocument()
 
     // Room icon is rendered without room name text, room name available via title
@@ -757,10 +758,6 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(content1).toHaveClass("opacity-100")
     expect(content2).toHaveClass("grid-rows-[1fr]")
     expect(content2).toHaveClass("opacity-100")
-
-    // Global expand/collapse toggle shows "بستن همه"
-    const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
-    expect(toggleAllBtn).toHaveTextContent("بستن همه")
   })
 
   it("supports defaultCollapsed={true} where time slots are initially collapsed", () => {
@@ -783,9 +780,6 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(content1).toHaveClass("opacity-0")
     expect(content2).toHaveClass("grid-rows-[0fr]")
     expect(content2).toHaveClass("opacity-0")
-
-    const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
-    expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
   })
 
   it("toggles collapse and expand on individual period hour rows", () => {
@@ -839,37 +833,6 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(
       screen.queryByTestId("slot-classes-badge-09:00-10:30")
     ).not.toBeInTheDocument()
-  })
-
-  it("expands and collapses all rows via the global expand/collapse all button", () => {
-    render(
-      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
-    )
-
-    const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
-    const content1 = screen.getByTestId("time-slot-content-09:00-10:30")
-    const content2 = screen.getByTestId("time-slot-content-16:00-17:30")
-
-    // Initially all expanded
-    expect(toggleAllBtn).toHaveTextContent("بستن همه")
-    expect(content1).toHaveClass("grid-rows-[1fr]")
-    expect(content2).toHaveClass("grid-rows-[1fr]")
-
-    // Collapse all
-    fireEvent.click(toggleAllBtn)
-
-    expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
-    expect(content1).toHaveClass("grid-rows-[0fr]")
-    expect(content2).toHaveClass("grid-rows-[0fr]")
-
-    // Expand all back
-    fireEvent.click(toggleAllBtn)
-
-    expect(toggleAllBtn).toHaveTextContent("بستن همه")
-    expect(content1).toHaveClass("grid-rows-[1fr]")
-    expect(content1).toHaveClass("opacity-100")
-    expect(content2).toHaveClass("grid-rows-[1fr]")
-    expect(content2).toHaveClass("opacity-100")
   })
 
   it("automatically expands all time slots when swap button is clicked to enter swap mode", () => {
@@ -2765,51 +2728,6 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(unrelatedCard).not.toHaveAttribute("data-same-teacher")
     expect(unrelatedCard).not.toHaveAttribute("data-same-course")
     expect(unrelatedCard.querySelector("mark")).toBeNull()
-
-    // Toggle highlight matches OFF via toolbar button
-    const toggleBtn = screen.getByTestId("toggle-highlight-matches-btn")
-    fireEvent.click(toggleBtn)
-
-    // Now same-teacher and same-course cards should lose highlight mark tags and gain grayscale
-    expect(sameTeacherCard).not.toHaveAttribute("data-same-teacher")
-    expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
-    expect(sameTeacherCard).toHaveClass("opacity-25")
-    expect(sameTeacherCard).toHaveClass("grayscale")
-    expect(sameTeacherCard.querySelector("mark")).toBeNull()
-    expect(sameCourseCard).not.toHaveAttribute("data-same-course")
-    expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
-    expect(sameCourseCard).toHaveClass("opacity-25")
-    expect(sameCourseCard).toHaveClass("grayscale")
-    expect(sameCourseCard.querySelector("mark")).toBeNull()
-    expect(missedSameCourseCard).not.toHaveAttribute("data-same-course")
-    expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
-    expect(missedSameCourseCard).toHaveClass("opacity-25")
-    expect(missedSameCourseCard).toHaveClass("grayscale")
-    expect(missedSameCourseCard.querySelector("mark")).toBeNull()
-
-    // Toggle highlight back ON
-    fireEvent.click(toggleBtn)
-    expect(sameTeacherCard).toHaveAttribute("data-same-teacher", "true")
-    expect(sameTeacherCard).not.toHaveAttribute("data-dimmed")
-    expect(sameTeacherCard).not.toHaveClass("opacity-25")
-    expect(sameTeacherCard).not.toHaveClass("grayscale")
-    expect(sameTeacherCard.querySelector("mark")).toHaveTextContent(
-      "علیرضا شمس"
-    )
-    expect(sameCourseCard).toHaveAttribute("data-same-course", "true")
-    expect(sameCourseCard).not.toHaveAttribute("data-dimmed")
-    expect(sameCourseCard).not.toHaveClass("opacity-25")
-    expect(sameCourseCard).not.toHaveClass("grayscale")
-    expect(
-      within(sameCourseCard).getByTestId("same-course-badge-prop-same-course")
-    ).toHaveTextContent("همین سطح")
-    expect(missedSameCourseCard).toHaveAttribute("data-same-course", "true")
-    expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
-    expect(missedSameCourseCard).toHaveClass("opacity-25")
-    expect(missedSameCourseCard).not.toHaveClass("grayscale")
-    expect(missedSameCourseCard.querySelector("mark")).toHaveTextContent(
-      "American English File 2"
-    )
   })
 
   it("renders cards in a responsive 2-column grid at xl screens to save vertical height", () => {
@@ -4895,6 +4813,323 @@ describe("SchedulingPlanCalendarView Component", () => {
       )
 
       toMutationSpy.mockRestore()
+    })
+
+    it("excludes other branch masters from bottom carousel and suggests them in OtherBranchesMastersSection inside StaffingFallbackDialog", async () => {
+      const branchCentralId = "branch-central-id"
+      const branchWestId = "branch-west-id"
+
+      const centralProposal: Proposal = {
+        id: "prop-central-1",
+        planId: "plan-1",
+        instituteId: "inst-1",
+        title: "AME 1-1",
+        course: { id: "c-ame-1-1", title: "AME 1-1" },
+        teacher: null,
+        teacherId: null,
+        branch: { id: branchCentralId, name: "شعبه مرکزی" },
+        classroom: { id: "cr-1", name: "Room 101", capacity: 20 },
+        capacity: 15,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:00",
+        endTime: "16:30",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      }
+
+      const branchCalendars: SchedulingTeacherCalendar[] = [
+        {
+          teacher: {
+            id: "t-local-teacher",
+            firstName: "محلی",
+            lastName: "امیری",
+            avatarUrl: null,
+            branchId: branchCentralId,
+            branch: { id: branchCentralId, name: "شعبه مرکزی" },
+          },
+          teachableCourses: [{ id: "c-ame-1-1", title: "AME 1-1" }],
+          slots: [
+            {
+              id: "s1",
+              dayOfWeek: "SATURDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchCentralId,
+              branchName: "شعبه مرکزی",
+            },
+            {
+              id: "s2",
+              dayOfWeek: "MONDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchCentralId,
+              branchName: "شعبه مرکزی",
+            },
+            {
+              id: "s3",
+              dayOfWeek: "WEDNESDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchCentralId,
+              branchName: "شعبه مرکزی",
+            },
+          ],
+        },
+        {
+          teacher: {
+            id: "t-west-teacher",
+            firstName: "الهام",
+            lastName: "جلالی",
+            avatarUrl: null,
+            branchId: branchWestId,
+            branch: { id: branchWestId, name: "شعبه غرب (سعادت‌آباد)" },
+          },
+          teachableCourses: [{ id: "c-ame-1-1", title: "AME 1-1" }],
+          slots: [
+            {
+              id: "s4",
+              dayOfWeek: "SATURDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchWestId,
+              branchName: "شعبه غرب (سعادت‌آباد)",
+            },
+            {
+              id: "s5",
+              dayOfWeek: "MONDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchWestId,
+              branchName: "شعبه غرب (سعادت‌آباد)",
+            },
+            {
+              id: "s6",
+              dayOfWeek: "WEDNESDAY",
+              startTime: "14:00",
+              endTime: "18:00",
+              status: "FREE",
+              branchId: branchWestId,
+              branchName: "شعبه غرب (سعادت‌آباد)",
+            },
+          ],
+        },
+      ]
+
+      const branchStatuses = [
+        {
+          branchId: branchWestId,
+          branchName: "شعبه غرب (سعادت‌آباد)",
+          hasDefinedSchedule: true,
+          status: "SCHEDULED" as const,
+        },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={[centralProposal]}
+          teacherCalendars={branchCalendars}
+          branchId={branchCentralId}
+          branchScheduleStatuses={branchStatuses}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      // 1. In bottom carousel: Local teacher is present and other branch teacher is NOT included
+      const carouselEven = screen.getByTestId(
+        "group-teachers-carousel-EVEN-15:00-16:30"
+      )
+      expect(carouselEven).toBeInTheDocument()
+      const toggleBtn = within(carouselEven).getByRole("button", {
+        name: /نمایش اساتید|دسترسی اساتید/,
+      })
+      fireEvent.click(toggleBtn)
+
+      expect(screen.getByText("محلی امیری")).toBeInTheDocument()
+      expect(screen.queryByText("الهام جلالی")).not.toBeInTheDocument()
+
+      // 2. Click on the masterless proposal to open StaffingFallbackDialog
+      const card = screen.getAllByTestId(
+        "calendar-class-card-prop-central-1"
+      )[0]!
+      fireEvent.click(card)
+
+      expect(screen.getByTestId("staffing-fallback-dialog")).toBeInTheDocument()
+
+      // 3. In FreeMastersSelection: local teacher is present, other branch teacher is NOT present
+      const freeMastersSection = screen.getByTestId("free-masters-selection")
+      expect(
+        within(freeMastersSection).getByTestId(
+          "free-master-item-t-local-teacher"
+        )
+      ).toBeInTheDocument()
+      expect(
+        within(freeMastersSection).queryByTestId(
+          "free-master-item-t-west-teacher"
+        )
+      ).not.toBeInTheDocument()
+
+      // 4. In OtherBranchesMastersSection: other branch teacher IS present and grouped by branch
+      const otherBranchesSection = screen.getByTestId(
+        "other-branches-masters-section"
+      )
+      expect(otherBranchesSection).toBeInTheDocument()
+      expect(
+        within(otherBranchesSection).getByTestId(
+          `other-branch-group-${branchWestId}`
+        )
+      ).toBeInTheDocument()
+      expect(
+        within(otherBranchesSection).getByTestId(
+          "free-master-item-t-west-teacher"
+        )
+      ).toBeInTheDocument()
+      expect(
+        within(otherBranchesSection).queryByTestId(
+          "free-master-item-t-local-teacher"
+        )
+      ).not.toBeInTheDocument()
+      expect(
+        within(otherBranchesSection).getByText("شعبه غرب (سعادت‌آباد)")
+      ).toBeInTheDocument()
+      expect(
+        within(otherBranchesSection).getByText("برنامه‌ریزی انجام شده")
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe("Operating phase period rows rendering even when empty", () => {
+    it("renders all operating phase periods even if only one period has proposals", () => {
+      const singleProposal = {
+        id: "prop-only-1",
+        course: { id: "c-1", title: "AME 1-1" },
+        teacher: { id: "t-1", firstName: "سارا", lastName: "احمدی" },
+        branch: { id: "b-1", name: "شعبه مرکزی" },
+        classroom: { id: "r-1", name: "کلاس ۱۰۱", capacity: 20 },
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      }
+
+      const availableTimeSlots = [
+        { startTime: "15:30", endTime: "17:00" },
+        { startTime: "17:00", endTime: "18:30" },
+        { startTime: "18:30", endTime: "20:00" },
+        { startTime: "20:00", endTime: "21:30" },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={[singleProposal as any]}
+          availableTimeSlots={availableTimeSlots}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      // All 4 slot rows must be present in the document
+      expect(
+        screen.getByTestId("time-slot-row-15:30-17:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-17:00-18:30")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-18:30-20:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-20:00-21:30")
+      ).toBeInTheDocument()
+
+      // The 15:30-17:00 slot has the proposal
+      expect(
+        screen.getByTestId("calendar-class-card-prop-only-1")
+      ).toBeInTheDocument()
+
+      // The other slots must render empty cells for both EVEN and ODD day tracks
+      expect(
+        screen.getByTestId("empty-cell-EVEN-17:00-18:30")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("empty-cell-ODD-17:00-18:30")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("empty-cell-EVEN-18:30-20:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("empty-cell-ODD-18:30-20:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("empty-cell-EVEN-20:00-21:30")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("empty-cell-ODD-20:00-21:30")
+      ).toBeInTheDocument()
+    })
+
+    it("renders all operating phase periods when operatingPhase snapshot prop is provided", () => {
+      const singleProposal = {
+        id: "prop-only-2",
+        course: { id: "c-1", title: "AME 1-1" },
+        teacher: { id: "t-1", firstName: "سارا", lastName: "احمدی" },
+        branch: { id: "b-1", name: "شعبه مرکزی" },
+        classroom: { id: "r-1", name: "کلاس ۱۰۱", capacity: 20 },
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      }
+
+      const operatingPhase = {
+        id: "phase-1",
+        title: "شیفت عصر",
+        startTime: "15:30",
+        endTime: "21:30",
+        slotDurationMinutes: 90,
+        hasBreak: false,
+        breakStartTime: null,
+        breakEndTime: null,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"] as any,
+      }
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={[singleProposal as any]}
+          operatingPhase={operatingPhase}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      expect(
+        screen.getByTestId("time-slot-row-15:30-17:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-17:00-18:30")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-18:30-20:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-20:00-21:30")
+      ).toBeInTheDocument()
     })
   })
 })

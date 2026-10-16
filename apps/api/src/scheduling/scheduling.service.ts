@@ -166,7 +166,7 @@ export class SchedulingService {
             teacherProfile: {
               user: {
                 isActive: true,
-                role: 'TEACHER',
+                OR: [{ role: 'TEACHER' }, { teacherProfile: { isNot: null } }],
               },
               availabilities: {
                 some: {
@@ -284,7 +284,7 @@ export class SchedulingService {
           where: {
             instituteId,
             isActive: true,
-            role: 'TEACHER',
+            OR: [{ role: 'TEACHER' }, { teacherProfile: { isNot: null } }],
             teacherProfile: {
               availabilities: {
                 some: {

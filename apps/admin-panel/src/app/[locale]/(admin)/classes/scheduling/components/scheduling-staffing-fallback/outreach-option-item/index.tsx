@@ -2,7 +2,8 @@
 
 import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
-import type { SchedulingTeacherOutreachOption } from "@workspace/types"
+import { PhoneCall } from "lucide-react"
+import type { SchedulingTeacherOutreachOption, WeekDay } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Carousel,
@@ -17,6 +18,7 @@ import { OutreachPeriodItem } from "../outreach-period-item"
 export interface TeacherOutreachGroup {
   teacher: SchedulingTeacherOutreachOption["teacher"]
   higherLevelCourseTitle?: string | null
+  isBankTeacher?: boolean
   options: SchedulingTeacherOutreachOption[]
 }
 
@@ -27,6 +29,11 @@ export interface OutreachOptionItemProps {
   canToggle: boolean
   isPending: ((key: string) => boolean) | boolean
   pendingAction?: "ACCEPT" | "REJECT" | null
+  currentSchedule?: {
+    daysOfWeek: WeekDay[]
+    startTime: string
+    endTime: string
+  } | null
   onToggle: (
     option: SchedulingTeacherOutreachOption,
     action: "ACCEPT" | "REJECT"
@@ -39,6 +46,7 @@ export function OutreachOptionItem({
   canToggle,
   isPending,
   pendingAction,
+  currentSchedule,
   onToggle,
 }: OutreachOptionItemProps) {
   const t = useTranslations("scheduling.planDetails")
@@ -47,10 +55,11 @@ export function OutreachOptionItem({
   const group = providedGroup ?? {
     teacher: providedOption!.teacher,
     higherLevelCourseTitle: providedOption!.higherLevelCourseTitle ?? null,
+    isBankTeacher: providedOption?.key.startsWith("bank-"),
     options: providedOption ? [providedOption] : [],
   }
 
-  const { teacher, higherLevelCourseTitle, options } = group
+  const { teacher, higherLevelCourseTitle, isBankTeacher, options } = group
   const teacherName = `${teacher.firstName} ${teacher.lastName}`.trim()
   const checkPending =
     typeof isPending === "function" ? isPending : () => isPending
@@ -71,7 +80,7 @@ export function OutreachOptionItem({
             : "border-border/60 bg-card hover:border-border hover:shadow-xs"
       )}
     >
-      {/* Teacher Header: Avatar, Name, Qualification, and Periods Count */}
+      {/* Teacher Header: Avatar, Name, Phone Link, Qualification, and Periods Count */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 pb-3.5">
         <div className="flex items-center gap-2.5">
           <div className="relative size-9 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
@@ -94,14 +103,28 @@ export function OutreachOptionItem({
             <h4 className="text-base font-bold text-foreground">
               {teacherName}
             </h4>
-            {higherLevelCourseTitle ? (
+            {teacher.phoneNumber && (
+              <a
+                href={`tel:${teacher.phoneNumber}`}
+                dir="ltr"
+                className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/50 px-2 py-0.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                <PhoneCall
+                  aria-hidden
+                  className="size-3 shrink-0 text-foreground"
+                />
+                <span>{teacher.phoneNumber}</span>
+              </a>
+            )}
+            {higherLevelCourseTitle && (
               <Badge variant="secondary" className="text-xs">
                 {t("staffingFallback.higherLevelTeacherBadge")}:{" "}
                 {higherLevelCourseTitle}
               </Badge>
-            ) : (
-              <Badge variant="outline" className="text-xs">
-                {t("staffingFallback.outreachBadge")}
+            )}
+            {isBankTeacher && (
+              <Badge variant="secondary" className="text-xs">
+                {t("staffingFallback.teacherBankBadge")}
               </Badge>
             )}
           </div>
@@ -155,6 +178,7 @@ export function OutreachOptionItem({
                   canToggle={canToggle}
                   isPending={checkPending(opt.key)}
                   pendingAction={checkPending(opt.key) ? pendingAction : null}
+                  currentSchedule={currentSchedule}
                   onToggle={onToggle}
                 />
               </CarouselItem>

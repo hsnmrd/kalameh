@@ -43,6 +43,15 @@ describe("SchedulingPlanCalendarClassCard Component", () => {
     expect(roomBadge).toHaveAttribute("title", "کلاس ۱۰۱")
   })
 
+  it("formats the course title using formatCourseShortTitle while keeping full title in tooltip", () => {
+    render(
+      <SchedulingPlanCalendarClassCard proposal={baseProposal} canEdit={true} />
+    )
+
+    expect(screen.getByText("AEF 1")).toBeInTheDocument()
+    expect(screen.getByTitle("American English File 1")).toBeInTheDocument()
+  })
+
   it("renders with orange theme and dashed border when session has no master", () => {
     const unassignedProposal: Proposal = {
       ...baseProposal,

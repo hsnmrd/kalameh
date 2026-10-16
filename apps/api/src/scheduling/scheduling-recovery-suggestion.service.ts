@@ -83,7 +83,10 @@ export class SchedulingRecoverySuggestionService {
             id: true,
             firstName: true,
             lastName: true,
+            phone: true,
             avatarUrl: true,
+            branchId: true,
+            branch: { select: { id: true, name: true } },
           },
         }),
         this.prisma.classroom.findMany({
@@ -146,7 +149,20 @@ export class SchedulingRecoverySuggestionService {
       existingClasses: [...snapshot.existingClasses, ...planClasses],
     });
     const teacherById = new Map(
-      teachers.map((teacher) => [teacher.id, teacher]),
+      teachers.map((teacher) => [
+        teacher.id,
+        {
+          id: teacher.id,
+          firstName: teacher.firstName,
+          lastName: teacher.lastName,
+          phoneNumber: teacher.phone,
+          avatarUrl: teacher.avatarUrl,
+          ...(teacher.branchId !== undefined
+            ? { branchId: teacher.branchId }
+            : {}),
+          ...(teacher.branch !== undefined ? { branch: teacher.branch } : {}),
+        },
+      ]),
     );
     const classroomById = new Map(classrooms.map((room) => [room.id, room]));
     const existingClassTitles = new Map(

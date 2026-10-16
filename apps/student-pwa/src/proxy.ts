@@ -35,7 +35,9 @@ export function proxy(request: NextRequest) {
 
   const pathWithoutLocale = pathname.replace(/^\/(en|fa)/, "") || "/"
 
-  const isAuthPage = pathWithoutLocale.startsWith("/login")
+  const isAuthPage =
+    pathWithoutLocale.startsWith("/login") ||
+    pathWithoutLocale.startsWith("/select-institute")
   const accessToken = request.cookies.get("access_token")?.value
 
   const createRedirectResponse = (url: URL, clearToken = false) => {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useLocale, useTranslations } from "next-intl"
-import { Lightbulb, SearchCheck } from "lucide-react"
+import { SearchCheck } from "lucide-react"
 import type { SchedulingPlanDetailsDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { formatNumber } from "@workspace/ui/lib/utils"
@@ -102,7 +102,7 @@ export function SchedulingUnresolvedRequirementItem({
         )}
       </div>
 
-      {visibleOptions.length > 0 ? (
+      {visibleOptions.length > 0 && (
         <div className="rounded-xl bg-muted/40 p-3.5">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="flex items-start gap-2">
@@ -132,45 +132,6 @@ export function SchedulingUnresolvedRequirementItem({
             ))}
           </ul>
         </div>
-      ) : (
-        <div className="rounded-xl border border-border/60 bg-muted/20 px-3.5 py-3">
-          <div className="flex items-start gap-2.5">
-            <Lightbulb
-              aria-hidden
-              className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-            />
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-xs font-semibold text-foreground">
-                  {t(
-                    recovery.busyTeachers.length > 0
-                      ? "recovery.teacherConflictTitle"
-                      : "recovery.noOptionTitle"
-                  )}
-                </p>
-                {recovery.busyTeachers.length > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    ·{" "}
-                    {t("recovery.teacherConflictDescriptionWithoutSuggestion")}
-                  </span>
-                )}
-              </div>
-              {recovery.busyTeachers.length > 0 && (
-                <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                  {recovery.busyTeachers.map((teacher) => (
-                    <Badge
-                      key={teacher.id}
-                      variant="outline"
-                      className="text-xs"
-                    >
-                      {teacher.firstName} {teacher.lastName}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
       )}
 
       <SchedulingTeacherReassignmentAnalysis
@@ -178,6 +139,9 @@ export function SchedulingUnresolvedRequirementItem({
         targetCourseTitle={
           requirement.classRequirement?.course.title ?? t("unknownCourse")
         }
+        planId={planId}
+        planStatus={planStatus}
+        unresolvedRequirementId={requirement.id}
       />
 
       <SchedulingStaffingFallback

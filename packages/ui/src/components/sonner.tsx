@@ -38,14 +38,43 @@ function attachDurationStyle<T extends ExternalToast>(
 
 const DEFAULT_TOAST_DURATION = 4000
 
+export const DEFAULT_TOASTER_OFFSET = {
+  top: "calc(2rem + env(safe-area-inset-top, 0px))",
+  bottom: "calc(2rem + env(safe-area-inset-bottom, 0px))",
+  left: "calc(2rem + env(safe-area-inset-left, 0px))",
+  right: "calc(2rem + env(safe-area-inset-right, 0px))",
+}
+
+export const DEFAULT_TOASTER_MOBILE_OFFSET = {
+  top: "calc(1rem + env(safe-area-inset-top, 0px))",
+  bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))",
+  left: "calc(1rem + env(safe-area-inset-left, 0px))",
+  right: "calc(1rem + env(safe-area-inset-right, 0px))",
+}
+
 export function Toaster({
   position = "bottom-center",
   toastOptions,
   dir,
   duration = DEFAULT_TOAST_DURATION,
   icons,
+  offset,
+  mobileOffset,
   ...props
 }: ToasterProps) {
+  const resolvedOffset = React.useMemo(() => {
+    if (typeof offset === "object" && offset !== null) {
+      return { ...DEFAULT_TOASTER_OFFSET, ...offset }
+    }
+    return offset ?? DEFAULT_TOASTER_OFFSET
+  }, [offset])
+
+  const resolvedMobileOffset = React.useMemo(() => {
+    if (typeof mobileOffset === "object" && mobileOffset !== null) {
+      return { ...DEFAULT_TOASTER_MOBILE_OFFSET, ...mobileOffset }
+    }
+    return mobileOffset ?? DEFAULT_TOASTER_MOBILE_OFFSET
+  }, [mobileOffset])
   const { theme = "system" } = useTheme()
   const { toasts } = useSonner()
   const toasterRef = React.useRef<HTMLElement>(null)
@@ -152,6 +181,8 @@ export function Toaster({
       position={position}
       duration={duration}
       dir={resolvedDir}
+      offset={resolvedOffset}
+      mobileOffset={resolvedMobileOffset}
       icons={{
         success: <CircleCheck className="size-4 shrink-0 text-success" />,
         error: <CircleAlert className="size-4 shrink-0 text-destructive" />,

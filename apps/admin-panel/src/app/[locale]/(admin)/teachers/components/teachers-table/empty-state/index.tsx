@@ -26,8 +26,8 @@ export function TeachersTableEmptyState({
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <UserCheck className="size-8 text-muted-foreground" />
+        <EmptyMedia variant="default">
+          <UserCheck className="size-6" />
         </EmptyMedia>
         <EmptyTitle>{t("table.empty")}</EmptyTitle>
         <EmptyDescription>{t("subtitle")}</EmptyDescription>

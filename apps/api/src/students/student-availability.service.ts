@@ -116,6 +116,31 @@ export class StudentAvailabilityService {
         data: { scheduleStatus: newScheduleStatus },
       });
 
+      // If one student changes their schedule time and classes in the term have not been created yet,
+      // reset studentSchedulesConfirmedAt so the confirmation banner shows again.
+      const unconfirmedCandidateTerms = await tx.term.findMany({
+        where: {
+          instituteId: student.instituteId,
+          operatingPhaseId: dto.operatingPhaseId,
+          isActive: true,
+          studentSchedulesConfirmedAt: { not: null },
+          classes: { none: {} },
+        },
+        select: { id: true },
+      });
+
+      if (unconfirmedCandidateTerms.length > 0) {
+        await tx.term.updateMany({
+          where: {
+            id: { in: unconfirmedCandidateTerms.map((t) => t.id) },
+          },
+          data: {
+            studentSchedulesConfirmedAt: null,
+            studentSchedulesConfirmedByUserId: null,
+          },
+        });
+      }
+
       return tx.studentAvailability.findMany({
         where: {
           studentProfileId: profile.id,
@@ -250,6 +275,30 @@ export class StudentAvailabilityService {
           },
           data: {
             scheduleStatus: 'COMPLETE',
+          },
+        });
+      }
+
+      // Reset term confirmation if no classes exist yet in the operating phase terms
+      const candidateTerms = await tx.term.findMany({
+        where: {
+          instituteId: targetInstituteId,
+          operatingPhaseId: dto.operatingPhaseId,
+          isActive: true,
+          studentSchedulesConfirmedAt: { not: null },
+          classes: { none: {} },
+        },
+        select: { id: true },
+      });
+
+      if (candidateTerms.length > 0) {
+        await tx.term.updateMany({
+          where: {
+            id: { in: candidateTerms.map((t) => t.id) },
+          },
+          data: {
+            studentSchedulesConfirmedAt: null,
+            studentSchedulesConfirmedByUserId: null,
           },
         });
       }

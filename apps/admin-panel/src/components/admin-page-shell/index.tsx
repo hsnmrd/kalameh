@@ -10,6 +10,8 @@ import { isInnerPage } from "../admin-base-layout/mobile-bottom-navigation"
 export interface AdminPageShellProps {
   /** Optional breadcrumb navigation displayed on top of the filter section (standard for inner/sub-pages) */
   breadcrumb?: React.ReactNode
+  /** Optional className for the breadcrumb wrapper container */
+  breadcrumbClassName?: string
   /** Optional back link URL displayed as an icon button in the header next to the page title */
   backHref?: string
   /** Optional accessible label for the back button */
@@ -27,6 +29,7 @@ export interface AdminPageShellProps {
 
 export function AdminPageShell({
   breadcrumb,
+  breadcrumbClassName,
   backHref,
   backLabel,
   actions,
@@ -57,8 +60,15 @@ export function AdminPageShell({
 
   return (
     <FABProvider hasBottomNav={!isInner}>
-      <div className={cn("flex w-full flex-1 flex-col", className)}>
-        {breadcrumb && <div className="mb-4">{breadcrumb}</div>}
+      <div
+        className={cn(
+          "flex w-full max-w-full min-w-0 flex-1 flex-col",
+          className
+        )}
+      >
+        {breadcrumb && (
+          <div className={cn("mb-4", breadcrumbClassName)}>{breadcrumb}</div>
+        )}
         {resolvedFilter}
         {children}
         {modals}

@@ -134,7 +134,11 @@ export class ClassCreateService {
     let resolvedTeacherName = dto.teacherName || null;
     if (dto.teacherId && !resolvedTeacherName) {
       const teacher = await this.prisma.user.findFirst({
-        where: { id: dto.teacherId, instituteId, role: ROLES.TEACHER },
+        where: {
+          id: dto.teacherId,
+          instituteId,
+          OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
+        },
       });
       if (teacher) {
         resolvedTeacherName = `${teacher.firstName} ${teacher.lastName}`;

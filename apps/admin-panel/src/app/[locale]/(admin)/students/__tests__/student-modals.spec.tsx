@@ -160,7 +160,7 @@ describe("Student Modals", () => {
       // Drawer overlay should be mounted and have blur & dimming backdrop
       const overlay = document.querySelector('[data-slot="drawer-overlay"]')
       expect(overlay).toBeInTheDocument()
-      expect(overlay).toHaveClass("backdrop-blur-sm", "bg-black/65")
+      expect(overlay).toHaveClass("backdrop-blur-xs", "bg-black/40")
 
       // Drawer content should be rendered
       expect(screen.getByText(/ویرایش مشخصات|Edit/i)).toBeInTheDocument()
@@ -230,6 +230,27 @@ describe("Student Modals", () => {
           /متن یادداشت پرونده را وارد کنید\.\.\.|Enter note content\.\.\./i
         )
       ).toBeInTheDocument()
+    })
+
+    it("should format course short title in student card badge", () => {
+      const studentWithLongCourse: StudentDto = {
+        ...mockStudent,
+        currentAllowedCourse: {
+          id: "course-2",
+          title: "American English File 3 - 5",
+          baseFee: 500000,
+        },
+      }
+
+      render(
+        <AddStudentNoteModal
+          student={studentWithLongCourse}
+          open={true}
+          onClose={vi.fn()}
+        />
+      )
+
+      expect(screen.getByText("AEF 3-5")).toBeInTheDocument()
     })
   })
 

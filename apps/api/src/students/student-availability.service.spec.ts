@@ -26,6 +26,10 @@ describe('StudentAvailabilityService', () => {
       createMany: jest.fn(),
       count: jest.fn(),
     },
+    term: {
+      findMany: jest.fn().mockResolvedValue([]),
+      updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+    },
     $transaction: jest.fn((callback) => callback(mockPrisma)),
   };
 
@@ -217,6 +221,41 @@ describe('StudentAvailabilityService', () => {
         data: { scheduleStatus: 'INCOMPLETE' },
       });
       expect(result).toEqual([]);
+    });
+
+    it('resets studentSchedulesConfirmedAt on terms if classes have not been created yet', async () => {
+      mockPrisma.user.findFirstOrThrow.mockResolvedValue({
+        id: 'student-1',
+        role: ROLES.STUDENT,
+        instituteId: 'inst-1',
+        studentProfile: { id: 'profile-1' },
+      });
+      mockPrisma.instituteOperatingPhase.findFirstOrThrow.mockResolvedValue({
+        id: 'phase-1',
+        instituteId: 'inst-1',
+      });
+      mockPrisma.studentAvailability.count.mockResolvedValue(1);
+      mockPrisma.studentAvailability.findMany.mockResolvedValue([]);
+      mockPrisma.term.findMany.mockResolvedValue([{ id: 'term-candidate-1' }]);
+
+      await service.updateAvailabilities(currentUser, 'student-1', {
+        operatingPhaseId: 'phase-1',
+        availabilities: [
+          {
+            dayOfWeek: 'SATURDAY',
+            startTime: '08:00',
+            endTime: '09:30',
+          },
+        ],
+      });
+
+      expect(mockPrisma.term.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ['term-candidate-1'] } },
+        data: {
+          studentSchedulesConfirmedAt: null,
+          studentSchedulesConfirmedByUserId: null,
+        },
+      });
     });
   });
 

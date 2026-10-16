@@ -13,6 +13,7 @@ export interface CalendarLegendProps {
   hasCompensatorySessions?: boolean
   hasDismissedHolidays?: boolean
   hasExcessSessions?: boolean
+  hasExistingTerms?: boolean
 }
 
 export function CalendarLegend({
@@ -25,6 +26,7 @@ export function CalendarLegend({
   hasCompensatorySessions = false,
   hasDismissedHolidays = false,
   hasExcessSessions = false,
+  hasExistingTerms = false,
 }: CalendarLegendProps) {
   const t = useTranslations("terms")
 
@@ -123,6 +125,16 @@ export function CalendarLegend({
         </span>
         <span>{t("batchModal.legendExamSession")}</span>
       </div>
+
+      {/* Days Occupied by Other Terms */}
+      {hasExistingTerms && (
+        <div className="flex items-center gap-2">
+          <span className="flex size-6 items-center justify-center rounded-md bg-muted/40 text-[11px] font-bold text-muted-foreground/50 line-through">
+            {locale === "fa" ? "۲۳" : "23"}
+          </span>
+          <span>{t("batchModal.legendExistingTermsOccupied")}</span>
+        </div>
+      )}
     </div>
   )
 }

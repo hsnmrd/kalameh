@@ -3,10 +3,8 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Clock } from "lucide-react"
-import { useMutation } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { classesResource } from "@/lib/api"
 import {
   FormDialog,
   FormDialogContent,
@@ -18,8 +16,11 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { TimePicker } from "@workspace/ui/components/time-picker"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
-import { WEEK_DAYS, type ClassConflictResult } from "@workspace/types"
-import { useClassScheduleState } from "../../hooks/use-class-schedule-state"
+import {
+  toDateKey,
+  useClassScheduleState,
+} from "../../hooks/use-class-schedule-state"
+import { useScheduleWizardConflicts } from "../../hooks/use-schedule-wizard-conflicts"
 import { TeacherSchedulePreview } from "../teacher-schedule-preview"
 import { SchedulePresetsBar } from "./schedule-presets-bar"
 import { ScheduleCalendarPreview } from "./schedule-calendar-preview"
@@ -33,6 +34,7 @@ export function ClassScheduleWizard({
   open,
   onClose,
   term,
+  termClasses,
   teacher,
   instituteId,
   classroomId,
@@ -46,23 +48,10 @@ export function ClassScheduleWizard({
   onConfirm,
 }: ClassScheduleWizardProps) {
   const t = useTranslations("classes.scheduleWizard")
-
-  const [conflictingDates, setConflictingDates] = React.useState<string[]>([])
-  const [conflictMessage, setConflictMessage] = React.useState<string | null>(
-    null
-  )
-  const [conflictResult, setConflictResult] =
-    React.useState<ClassConflictResult | null>(null)
-
-  const clearConflictState = React.useCallback(() => {
-    setConflictingDates([])
-    setConflictMessage(null)
-    setConflictResult(null)
+  const clearConflictRef = React.useRef<() => void>(() => {})
+  const handleClearConflict = React.useCallback(() => {
+    clearConflictRef.current()
   }, [])
-
-  const checkConflictsMutation = useMutation({
-    ...classesResource.checkConflicts.toMutation(),
-  })
 
   const {
     selectedDays,
@@ -84,51 +73,54 @@ export function ClassScheduleWizard({
     initialSessionDates,
     initialStartTime,
     initialEndTime,
-    onClearConflict: clearConflictState,
+    onClearConflict: handleClearConflict,
   })
 
-  const handleConfirm = async () => {
-    const sortedDays = WEEK_DAYS.filter((d) => selectedDays.includes(d))
-    const sortedSessionDates = Array.from(sessionDateKeys).sort()
+  const {
+    sortedDays,
+    sortedSessionDates,
+    occupiedDateReasons,
+    effectiveConflictResult,
+    effectiveConflictingDates,
+    effectiveConflictMessage,
+    clearConflictState,
+    isCheckingConflicts,
+    validateBeforeConfirm,
+  } = useScheduleWizardConflicts({
+    term,
+    termClasses,
+    teacher,
+    instituteId,
+    classroomId,
+    teacherId,
+    teacherName,
+    excludeClassId,
+    selectedDays,
+    sessionDateKeys,
+    startTime,
+    endTime,
+  })
 
-    const effectiveClassroomId =
-      classroomId === "NONE" || classroomId === "REMOTE"
-        ? null
-        : classroomId || null
+  React.useEffect(() => {
+    clearConflictRef.current = clearConflictState
+  }, [clearConflictState])
 
-    if (
-      term?.id &&
-      (effectiveClassroomId || teacherId || teacherName?.trim()) &&
-      startTime &&
-      endTime
-    ) {
-      try {
-        const result = await checkConflictsMutation.mutateAsync({
-          termId: term.id,
-          classroomId: effectiveClassroomId,
-          teacherId: teacherId || null,
-          teacherName: teacherName?.trim() || null,
-          startTime,
-          endTime,
-          daysOfWeek: sortedDays,
-          sessionDates: sortedSessionDates,
-          excludeClassId: excludeClassId || null,
-          instituteId: instituteId || term.instituteId || undefined,
-        })
-        if (result.hasConflict) {
-          setConflictingDates(result.conflictingDates)
-          const firstMsg = result.conflicts[0]?.message || t("conflictDetected")
-          setConflictMessage(firstMsg)
-          setConflictResult(result)
-          toast.error(firstMsg)
-          return
-        }
-      } catch {
+  const onCalendarDayClick = React.useCallback(
+    (clickedDate: Date) => {
+      const key = toDateKey(clickedDate)
+      if (!sessionDateKeys.has(key) && occupiedDateReasons.has(key)) {
+        toast.error(occupiedDateReasons.get(key)!)
         return
       }
-    }
+      handleDayClick(clickedDate)
+    },
+    [sessionDateKeys, occupiedDateReasons, handleDayClick]
+  )
 
-    clearConflictState()
+  const handleConfirm = async () => {
+    const isValid = await validateBeforeConfirm()
+    if (!isValid) return
+
     const dayNames = sortedDays.map((d) => t(`days.${d}` as any)).join("، ")
     let formattedSchedule = dayNames
     if (sortedDays.length > 0 && startTime && endTime) {
@@ -196,11 +188,11 @@ export function ClassScheduleWizard({
           <ScheduleCalendarPreview
             term={term}
             sessionDates={sessionDates}
-            conflictingDates={conflictingDates}
-            conflictResult={conflictResult}
-            conflictMessage={conflictMessage}
+            conflictingDates={effectiveConflictingDates}
+            conflictResult={effectiveConflictResult}
+            conflictMessage={effectiveConflictMessage}
             initialMonth={initialMonth}
-            onDayClick={handleDayClick}
+            onDayClick={onCalendarDayClick}
             isDateDisabled={isDateDisabled}
           />
         </div>
@@ -213,14 +205,10 @@ export function ClassScheduleWizard({
             type="button"
             variant="default"
             onClick={handleConfirm}
-            disabled={
-              sessionDates.length === 0 || checkConflictsMutation.isPending
-            }
+            disabled={sessionDates.length === 0 || isCheckingConflicts}
             className="gap-2"
           >
-            {checkConflictsMutation.isPending && (
-              <Spinner className="size-3.5" />
-            )}
+            {isCheckingConflicts && <Spinner className="size-3.5" />}
             <span>{t("confirm")}</span>
           </Button>
         </FormDialogFooter>

@@ -1,9 +1,10 @@
 "use client"
 
+import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import {
   FormDialog,
@@ -58,9 +59,28 @@ export function CreateTermModal({
   const startDate = useWatch({ control, name: "startDate" })
   const endDate = useWatch({ control, name: "endDate" })
   const phaseId = useWatch({ control, name: "operatingPhaseId" })
+
+  const { data: instituteTerms = [] } = useQuery({
+    ...termsResource.list.toQuery({ instituteId: activeInstituteId }),
+    enabled: Boolean(activeInstituteId && open),
+  })
+
+  const existingInstituteTerms = React.useMemo(() => {
+    const map = new Map<string, TermDto>()
+    for (const t of instituteTerms) {
+      if (t.id) map.set(t.id, t)
+    }
+    if (allTerms) {
+      for (const t of allTerms) {
+        if (t.id) map.set(t.id, t)
+      }
+    }
+    return Array.from(map.values())
+  }, [allTerms, instituteTerms])
+
   const calendar = useCreateTermCalendar({
     open,
-    allTerms,
+    allTerms: existingInstituteTerms,
     title,
     startDate,
     endDate,
@@ -86,11 +106,9 @@ export function CreateTermModal({
       return
     }
 
-    if (values.operatingPhaseId && allTerms && allTerms.length > 0) {
-      const conflict = allTerms.find(
-        (existing) =>
-          existing.operatingPhaseId === values.operatingPhaseId &&
-          hasTermDateConflict(values, existing)
+    if (existingInstituteTerms.length > 0) {
+      const conflict = existingInstituteTerms.find((existing) =>
+        hasTermDateConflict(values, existing)
       )
       if (conflict) {
         toast.error(
@@ -126,6 +144,7 @@ export function CreateTermModal({
           customOffDays={calendar.customOffDays}
           dismissedHolidays={calendar.dismissedHolidays}
           compensatorySessions={calendar.compensatorySessions}
+          existingTerms={existingInstituteTerms}
           isPending={createMutation.isPending}
           onSubmit={handleSubmit}
           onClose={handleClose}

@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from "vitest"
-import { render, screen, fireEvent } from "../../../../../test/test-utils"
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "../../../../../test/test-utils"
 import { ClassScheduleWizard } from "../components/class-schedule-wizard"
 import type { TermDto } from "@workspace/types"
 
@@ -55,7 +60,7 @@ describe("ClassScheduleWizard Component", () => {
     expect(screen.getByText(/جلسه در ترم/i)).toBeInTheDocument()
   })
 
-  it("should call onConfirm with formatted schedule when confirm button is clicked", () => {
+  it("should call onConfirm with formatted schedule when confirm button is clicked", async () => {
     const handleConfirm = vi.fn()
     const handleClose = vi.fn()
 
@@ -76,16 +81,18 @@ describe("ClassScheduleWizard Component", () => {
     })
     fireEvent.click(confirmBtn)
 
-    expect(handleConfirm).toHaveBeenCalledWith(
-      expect.objectContaining({
-        daysOfWeek: ["SATURDAY", "MONDAY"],
-        sessionDates: expect.any(Array),
-        startTime: "16:00",
-        endTime: "17:30",
-        formattedSchedule: expect.stringContaining("16:00 - 17:30"),
-      })
-    )
-    expect(handleClose).toHaveBeenCalled()
+    await waitFor(() => {
+      expect(handleConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          daysOfWeek: ["SATURDAY", "MONDAY"],
+          sessionDates: expect.any(Array),
+          startTime: "16:00",
+          endTime: "17:30",
+          formattedSchedule: expect.stringContaining("16:00 - 17:30"),
+        })
+      )
+      expect(handleClose).toHaveBeenCalled()
+    })
   })
 
   it("should focus calendar on the first session date month instead of current date", () => {
@@ -160,7 +167,7 @@ describe("ClassScheduleWizard Component", () => {
     }
   })
 
-  it("should save toggled session dates to onConfirm and preserve them when passed to initialSessionDates", () => {
+  it("should save toggled session dates to onConfirm and preserve them when passed to initialSessionDates", async () => {
     let capturedSessionDates: string[] = []
     const handleConfirm = vi.fn((data) => {
       capturedSessionDates = data.sessionDates
@@ -210,7 +217,9 @@ describe("ClassScheduleWizard Component", () => {
       name: /اعمال برنامه/i,
     })
     fireEvent.click(confirmBtn)
-    expect(handleConfirm).toHaveBeenCalled()
+    await waitFor(() => {
+      expect(handleConfirm).toHaveBeenCalled()
+    })
     expect(capturedSessionDates.length).toBeGreaterThan(0)
 
     unmount()

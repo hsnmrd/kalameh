@@ -10,6 +10,32 @@ import { DirectionProvider } from "@workspace/ui/components/direction-provider"
 import { ModalProvider } from "@/components/modal-provider"
 import { PwaProvider } from "@/components/pwa-provider"
 
+export function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000,
+        retry: (failureCount, error) => {
+          // Never retry client errors (4xx)
+          const errorStatus = (error as unknown as { status?: unknown })?.status
+          const status =
+            error instanceof MicroApiError
+              ? error.status
+              : typeof errorStatus === "number"
+                ? errorStatus
+                : undefined
+          if (typeof status === "number" && status >= 400 && status < 500) {
+            return false
+          }
+          // Only retry once for transient server (5xx) or network errors
+          return failureCount < 1
+        },
+        refetchOnWindowFocus: false,
+      },
+    },
+  })
+}
+
 export function Providers({
   children,
   direction = "rtl",
@@ -17,30 +43,7 @@ export function Providers({
   children: React.ReactNode
   direction?: "rtl" | "ltr"
 }) {
-  const [queryClient] = React.useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000,
-            retry: (failureCount, error) => {
-              // Never retry client errors (401, 403, 404)
-              if (
-                error instanceof MicroApiError &&
-                (error.status === 401 ||
-                  error.status === 403 ||
-                  error.status === 404)
-              ) {
-                return false
-              }
-              // Only retry once for transient server (5xx) or network errors
-              return failureCount < 1
-            },
-            refetchOnWindowFocus: false,
-          },
-        },
-      })
-  )
+  const [queryClient] = React.useState(() => createQueryClient())
 
   return (
     <ThemeProvider>

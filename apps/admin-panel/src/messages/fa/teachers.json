@@ -14,6 +14,10 @@
     "active": "فعال",
     "inactive": "غیرفعال"
   },
+  "scheduleStatus": {
+    "scheduled": "دارای برنامه زمانی",
+    "noSchedule": "فاقد برنامه زمانی"
+  },
   "table": {
     "name": "نام استاد",
     "phone": "شماره تماس",
@@ -22,6 +26,7 @@
     "availabilities": "زمان‌های آزاد",
     "classesCount": "کلاس‌ها",
     "status": "وضعیت",
+    "createdAt": "تاریخ عضویت",
     "actions": "عملیات",
     "empty": "هیچ استادی یافت نشد",
     "classesUnit": "کلاس",
@@ -39,6 +44,7 @@
   "createModal": {
     "title": "افزودن استاد جدید",
     "description": "مشخصات فردی و مدارک تحصیلی استاد را وارد کنید.",
+    "createdAt": "تاریخ عضویت",
     "firstName": "نام",
     "firstNamePlaceholder": "مثلاً علی",
     "lastName": "نام خانوادگی",
@@ -57,10 +63,26 @@
     "avatarPlaceholder": "انتخاب یا کشیدن تصویر",
     "avatarDescription": "فرمت‌های مجاز: JPG، PNG، WebP (حداکثر ۵ مگابایت)",
     "removeAvatar": "حذف تصویر",
+    "selectStaffUser": "انتخاب از کادر اداری و پرسنل",
+    "selectStaffUserPlaceholder": "انتخاب کاربر موجود جهت اعطای نقش تدریس (اختیاری)...",
+    "newTeacherOption": "استاد جدید (خارج از کادر اداری)",
+    "linkedUserNotice": "این کاربر به حساب کاربری پرسنل ({name} - {role}) متصل می‌شود و دسترسی‌های مدیریتی او حفظ می‌گردد.",
+    "passwordStaffDisabledHint": "رمز عبور برای کاربر کادر اداری تغییر نخواهد کرد.",
     "submit": "ثبت استاد",
     "cancel": "انصراف",
     "success": "استاد با موفقیت افزوده شد",
     "error": "خطا در افزودن استاد"
+  },
+  "roles": {
+    "STUDENT": "زبان‌آموز",
+    "SUPER_STUDENT": "زبان‌آموز ارشد",
+    "CLERK": "منشی",
+    "SUPER_CLERK": "منشی ارشد",
+    "TEACHER": "مدرس",
+    "SUPERVISOR": "سوپروایزر",
+    "ASSISTANT": "دستیار",
+    "ADMIN": "مدیر آموزشگاه",
+    "SUPER_ADMIN": "ادمین کل"
   },
   "editModal": {
     "title": "ویرایش استاد",
@@ -89,6 +111,10 @@
     "removeSlot": "حذف",
     "noSlots": "زمان آزادی برای این استاد تعریف نشده است (امکان ثبت کلاس در هر ساعتی وجود دارد).",
     "slotsCount": "{count} بازه زمانی آزاد",
+    "available": "آزاد",
+    "unavailable": "عدم حضور",
+    "classLabel": "کلاس {slotNumber}",
+    "classesRatio": "{available} از {total} کلاس آزاد",
     "phaseLabel": "فاز زمانی آموزشگاه",
     "phasePlaceholder": "انتخاب فاز زمانی...",
     "noActivePhase": "هیچ فاز زمانی فعالی برای آموزشگاه تعریف نشده است. لطفاً ابتدا در بخش فازهای عملیاتی، فاز زمانی آموزشگاه را ایجاد کنید.",
@@ -128,8 +154,14 @@
     "emptyDescription": "سطحی مطابق جستجو وجود ندارد یا هنوز سطحی برای آموزشگاه ثبت نشده است.",
     "clear": "پاک کردن همه",
     "close": "تأیید و بستن",
-    "profileTitle": "سطح‌های مجاز برای تدریس",
-    "profileEmpty": "سطح قابل تدریسی ثبت نشده؛ این استاد در زمان‌بندی خودکار پیشنهاد نمی‌شود."
+    "profileTitle": "دوره‌های مجاز برای تدریس",
+    "profileEmpty": "هنوز دوره‌ای برای تدریس این استاد ثبت نشده است.",
+    "coursesCount": "{count} دوره",
+    "authorizedBadge": "مجاز به تدریس",
+    "searchCourses": "جستجوی دوره...",
+    "noCoursesFound": "دوره‌ای مطابق با جستجو یافت نشد.",
+    "clearSearch": "پاک کردن جستجو",
+    "courseSlideCounter": "{current} از {total}"
   },
   "days": {
     "SATURDAY": "شنبه",
@@ -192,5 +224,11 @@
     "trigger": "خروجی اکسل",
     "exporting": "در حال آماده‌سازی فایل اکسل...",
     "error": "خطا در دریافت خروجی اکسل"
+  },
+  "validation": {
+    "firstNameMin": "نام باید حداقل ۲ کاراکتر باشد.",
+    "lastNameMin": "نام خانوادگی باید حداقل ۲ کاراکتر باشد.",
+    "phoneRegex": "شماره تماس باید ۱۱ رقم و با ۰۹ شروع شود (مثلاً ۰۹۱۲۳۴۵۶۷۸۹).",
+    "passwordMin": "رمز عبور باید حداقل ۶ کاراکتر باشد."
   }
 }

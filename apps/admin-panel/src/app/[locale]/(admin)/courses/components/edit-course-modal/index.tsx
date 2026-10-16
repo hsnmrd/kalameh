@@ -21,7 +21,7 @@ import { Field, FieldLabel, FieldError } from "@workspace/ui/components/field"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type { CourseDto } from "@workspace/types"
-import { coursesResource } from "@/lib/api"
+import { coursesResource, booksResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import {
   useUpdateCourseSchema,
@@ -64,6 +64,19 @@ export function EditCourseModal({
     ],
   })
 
+  const { data: allBooks = [] } = useQuery({
+    ...booksResource.list.toQuery(queryParams),
+    enabled: open && !!activeInstituteId,
+  })
+
+  const bookOptions = React.useMemo(
+    () => [
+      { value: "none", label: t("createModal.none") },
+      ...allBooks.map((b) => ({ value: b.id, label: b.title })),
+    ],
+    [allBooks, t]
+  )
+
   const {
     register,
     handleSubmit,
@@ -76,6 +89,7 @@ export function EditCourseModal({
       title: "",
       baseFee: 0,
       prerequisiteId: null,
+      bookId: null,
     },
   })
 
@@ -85,6 +99,7 @@ export function EditCourseModal({
         title: course.title,
         baseFee: course.baseFee,
         prerequisiteId: course.prerequisiteId || null,
+        bookId: course.bookId || null,
       })
     }
   }, [course, reset])
@@ -110,6 +125,8 @@ export function EditCourseModal({
           values.prerequisiteId === "none" || !values.prerequisiteId
             ? null
             : values.prerequisiteId,
+        bookId:
+          values.bookId === "none" || !values.bookId ? null : values.bookId,
       },
     })
   }
@@ -138,6 +155,28 @@ export function EditCourseModal({
               <Input {...register("title")} />
               <FieldError>{errors.title?.message}</FieldError>
             </Field>
+
+            {bookOptions.length > 1 && (
+              <Field>
+                <FieldLabel>{t("createModal.book")}</FieldLabel>
+                <Controller
+                  control={control}
+                  name="bookId"
+                  render={({ field }) => (
+                    <ResponsiveCombobox
+                      items={bookOptions}
+                      value={field.value || "none"}
+                      onValueChange={(val) =>
+                        field.onChange(val === "none" ? null : val)
+                      }
+                      placeholder={t("createModal.none")}
+                      drawerTitle={t("createModal.book")}
+                      className="w-full"
+                    />
+                  )}
+                />
+              </Field>
+            )}
 
             <Field data-invalid={Boolean(errors.baseFee)}>
               <FieldLabel>{t("editModal.baseFee")}</FieldLabel>

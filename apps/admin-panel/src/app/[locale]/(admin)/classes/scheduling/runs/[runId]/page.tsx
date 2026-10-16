@@ -43,6 +43,9 @@ export default function SchedulingRunResultPage() {
     if (statusQuery.data) {
       return {
         id: runId,
+        termId:
+          (statusQuery.data as { termId?: string })?.termId ??
+          activeRun?.termId,
         status: statusQuery.data.status,
         updatedAt: statusQuery.data.updatedAt,
         createdAt: statusQuery.data.createdAt,
@@ -68,6 +71,58 @@ export default function SchedulingRunResultPage() {
     )
   }, [resolvedRun, statusQuery.data])
 
+  const completedPlanId = React.useMemo(() => {
+    const status = statusQuery.data?.status ?? resolvedRun?.status
+    if (status !== "COMPLETED") return null
+    return (
+      statusQuery.data?.result?.recommendedPlanId ??
+      statusQuery.data?.result?.planIds?.[0] ??
+      resolvedRun?.plans?.[0]?.id ??
+      null
+    )
+  }, [statusQuery.data, resolvedRun])
+
+  React.useEffect(() => {
+    if (completedPlanId) {
+      router.replace(`/classes/scheduling/plans/${completedPlanId}`)
+    }
+  }, [completedPlanId, router])
+
+  const isCompleted = React.useMemo(() => {
+    const status = statusQuery.data?.status ?? resolvedRun?.status
+    return status === "COMPLETED"
+  }, [resolvedRun, statusQuery.data])
+
+  const isFailed = React.useMemo(() => {
+    if (!resolvedRun) return false
+    const status = statusQuery.data?.status ?? resolvedRun.status
+    return status === "FAILED" || status === "PREFLIGHT_FAILED"
+  }, [resolvedRun, statusQuery.data])
+
+  const handleRetry = React.useCallback(() => {
+    clearActiveRun()
+    if (resolvedRun?.termId) {
+      router.push(`/classes/scheduling/generate?termId=${resolvedRun.termId}`)
+    } else {
+      router.push("/classes/scheduling/generate")
+    }
+  }, [clearActiveRun, resolvedRun?.termId, router])
+
+  const isLongRunning = React.useMemo(() => {
+    if (
+      !resolvedRun ||
+      !["QUEUED", "GENERATING"].includes(resolvedRun.status)
+    ) {
+      return false
+    }
+    const start = resolvedRun.startedAt
+      ? new Date(resolvedRun.startedAt).getTime()
+      : resolvedRun.createdAt
+        ? new Date(resolvedRun.createdAt).getTime()
+        : null
+    return start !== null && Date.now() - start >= 60_000
+  }, [resolvedRun])
+
   return (
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_CLASSES} mode="forbidden">
@@ -84,18 +139,32 @@ export default function SchedulingRunResultPage() {
             />
           }
           fab={
-            isTerminal ? (
+            (isTerminal && !isCompleted) || isLongRunning ? (
               <FABSingle
-                onClick={handleReset}
-                aria-label={t("runStatus.another")}
+                onClick={isFailed || isLongRunning ? handleRetry : handleReset}
+                aria-label={
+                  isFailed
+                    ? t("runStatus.retry")
+                    : isLongRunning
+                      ? t("runStatus.longRunning.restart")
+                      : t("runStatus.another")
+                }
               >
                 <RotateCcw className="size-6" aria-hidden />
               </FABSingle>
             ) : undefined
           }
         >
-          {resolvedRun ? (
-            <SchedulingRunStatusPanel run={resolvedRun} onReset={handleReset} />
+          {isCompleted || completedPlanId ? (
+            <div className="flex min-h-64 items-center justify-center">
+              <Spinner className="size-8 text-foreground" />
+            </div>
+          ) : resolvedRun ? (
+            <SchedulingRunStatusPanel
+              run={resolvedRun}
+              onReset={handleReset}
+              onRetry={handleRetry}
+            />
           ) : statusQuery.isLoading ? (
             <div className="flex min-h-64 items-center justify-center">
               <Spinner className="size-8 text-foreground" />

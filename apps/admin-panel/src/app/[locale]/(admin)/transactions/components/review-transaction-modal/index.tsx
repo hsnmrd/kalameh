@@ -3,7 +3,7 @@
 import Image from "next/image"
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Check, X } from "lucide-react"
+import { AlertTriangle, Check, X } from "lucide-react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   PERMISSIONS,
@@ -84,6 +84,20 @@ export function ReviewTransactionModal({
         </ResponsiveDialogHeader>
 
         <div className="flex max-h-[70vh] flex-col gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+          {transaction.isDuplicateTrackingCode && (
+            <div className="flex items-start gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-warning">
+              <AlertTriangle className="size-5 shrink-0" />
+              <div className="flex flex-col gap-0.5 text-xs">
+                <span className="font-bold">{t("duplicateWarningTitle")}</span>
+                <p className="leading-relaxed text-warning/90">
+                  {t("duplicateWarningDesc", {
+                    count: transaction.duplicateCount ?? 2,
+                  })}
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted">
             <Image
               key={receiptAttempt}
@@ -136,12 +150,31 @@ export function ReviewTransactionModal({
                 {transaction.student.phone}
               </dd>
             </div>
+            {transaction.class && (
+              <div className="flex flex-col gap-1 sm:col-span-2">
+                <dt className="text-xs text-muted-foreground">{t("class")}</dt>
+                <dd className="font-semibold text-foreground">
+                  {transaction.class.title}
+                  {transaction.class.term?.title && (
+                    <span className="ms-1.5 text-xs font-normal text-muted-foreground">
+                      ({transaction.class.term.title})
+                    </span>
+                  )}
+                </dd>
+              </div>
+            )}
             <div className="flex flex-col gap-1">
               <dt className="text-xs text-muted-foreground">
                 {t("trackingCode")}
               </dt>
-              <dd className="font-mono font-medium text-foreground">
-                {transaction.trackingCode}
+              <dd className="flex items-center gap-2 font-mono font-medium text-foreground">
+                <span>{transaction.trackingCode}</span>
+                {transaction.isDuplicateTrackingCode && (
+                  <span className="inline-flex items-center gap-1 rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-semibold text-warning">
+                    <AlertTriangle className="size-3" />
+                    <span>⚠️</span>
+                  </span>
+                )}
               </dd>
             </div>
             <div className="flex flex-col gap-1">

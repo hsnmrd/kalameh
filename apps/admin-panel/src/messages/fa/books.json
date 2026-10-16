@@ -1,0 +1,88 @@
+{
+  "title": "کتاب‌ها",
+  "addBook": "افزودن کتاب",
+  "searchPlaceholder": "جستجوی کتاب، نویسنده یا ناشر...",
+  "emptyTitle": "کتابی یافت نشد",
+  "emptyDescription": "هنوز هیچ کتابی ثبت نشده است. با افزودن کتاب، می‌توانید دوره‌ها را بر اساس آن به صورت خودکار ایجاد کنید.",
+  "statusActive": "فعال",
+  "statusInactive": "غیرفعال",
+  "catalogGlobal": "کاتالوگ سامانه",
+  "catalogCustom": "اختصاصی آموزشگاه",
+  "globalBadge": "سراسری",
+  "globalBookBadge": "سراسری",
+  "columns": {
+    "title": "عنوان کتاب",
+    "author": "نویسنده",
+    "publisher": "ناشر",
+    "authorPublisher": "نویسنده و ناشر",
+    "coursesCount": "تعداد دوره‌ها",
+    "status": "وضعیت",
+    "actions": "عملیات"
+  },
+  "actions": {
+    "edit": "ویرایش",
+    "delete": "حذف",
+    "generateCourses": "ایجاد دوره‌ها",
+    "noCourses": "بدون دوره"
+  },
+  "createModal": {
+    "title": "افزودن کتاب جدید",
+    "bookTitle": "عنوان کتاب",
+    "titlePlaceholder": "مثال: American English File 1",
+    "author": "نویسنده / مولف",
+    "authorPlaceholder": "مثال: Christina Latham-Koenig",
+    "publisher": "ناشر",
+    "publisherPlaceholder": "مثال: Oxford University Press",
+    "description": "توضیحات",
+    "descriptionPlaceholder": "توضیحات مختصر درباره کتاب و سرفصل‌ها...",
+    "coverUrl": "آدرس تصویر جلد",
+    "coverUrlPlaceholder": "https://example.com/cover.jpg",
+    "cancel": "انصراف",
+    "submit": "ذخیره",
+    "success": "کتاب با موفقیت ایجاد شد"
+  },
+  "editModal": {
+    "title": "ویرایش کتاب",
+    "cancel": "انصراف",
+    "submit": "ذخیره",
+    "success": "تغییرات با موفقیت ذخیره شد"
+  },
+  "deleteModal": {
+    "title": "حذف کتاب",
+    "description": "آیا از حذف کتاب «{title}» اطمینان دارید؟ این عملیات غیرقابل بازگشت است.",
+    "cancel": "انصراف",
+    "confirm": "حذف",
+    "deleting": "در حال حذف...",
+    "success": "کتاب با موفقیت حذف گردید"
+  },
+  "generateCoursesModal": {
+    "title": "ایجاد خودکار دوره‌ها از کتاب",
+    "selectBook": "انتخاب کتاب",
+    "selectBookPlaceholder": "کتاب مورد نظر را انتخاب کنید",
+    "termsCount": "تعداد ترم‌های تدریس این کتاب",
+    "termsCountPlaceholder": "مثال: ۳",
+    "termsCountHint": "این کتاب در چند ترم / بخش تدریس می‌شود؟",
+    "baseFee": "شهریه هر ترم",
+    "feePlaceholder": "1,500,000",
+    "startingPrerequisite": "پیش‌نیاز اولین بخش (اختیاری)",
+    "none": "بدون پیش‌نیاز",
+    "namingFormat": "فرمت نام‌گذاری دوره‌ها",
+    "namingFormatPart": "Part (مثال: Part 1، Part 2)",
+    "namingFormatTerm": "Term (مثال: Term 1، Term 2)",
+    "previewTitle": "پیش‌نمایش دوره‌هایی که ایجاد خواهند شد:",
+    "courseTitleLabel": "عنوان دوره",
+    "prereqLabel": "پیش‌نیاز:",
+    "noPrereq": "بدون پیش‌نیاز",
+    "cancel": "انصراف",
+    "submit": "ایجاد دوره‌ها",
+    "generating": "در حال ایجاد دوره‌ها...",
+    "success": "{count} دوره برای این کتاب با موفقیت ایجاد شد"
+  },
+  "validation": {
+    "titleMin": "عنوان کتاب باید حداقل ۲ نویسه باشد",
+    "termsCountMin": "حداقل ۱ ترم الزامی است",
+    "termsCountMax": "حداکثر ۲۰ ترم قابل تعریف است",
+    "baseFeeMin": "شهریه معتبر نیست",
+    "bookRequired": "انتخاب کتاب الزامی است"
+  }
+}

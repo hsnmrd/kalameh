@@ -26,7 +26,9 @@ import {
   MobileListItemIcon,
   MobileListItemTrailing,
 } from "@workspace/ui/components/mobile-list"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { DataPagination } from "@workspace/ui/components/pagination"
+import { useClientPagination } from "@/lib/hooks"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type ClassroomDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -38,6 +40,9 @@ export interface ClassroomsListProps {
   onEdit: (classroom: ClassroomDto) => void
   onDelete: (classroom: ClassroomDto) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export function ClassroomsList({
@@ -46,16 +51,22 @@ export function ClassroomsList({
   onEdit,
   onDelete,
   onAdd,
+  pageIndex: controlledPageIndex,
+  pageSize = 10,
+  onPageChange: controlledOnPageChange,
 }: ClassroomsListProps) {
   const t = useTranslations("classrooms")
   const locale = useLocale()
 
+  const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
+    data: classrooms,
+    pageSize,
+    pageIndex: controlledPageIndex,
+    onPageChange: controlledOnPageChange,
+  })
+
   if (isLoading) {
-    return (
-      <div className="flex h-48 w-full items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <ListSkeleton rows={pageSize} />
   }
 
   if (!classrooms || classrooms.length === 0) {
@@ -90,67 +101,83 @@ export function ClassroomsList({
   }
 
   return (
-    <MobileList>
-      {classrooms.map((classroom, index) => (
-        <ContextMenu key={classroom.id}>
-          <ContextMenuTrigger>
-            <MobileListItem
-              onClick={() => onEdit(classroom)}
-              isLast={index === classrooms.length - 1}
-            >
-              <MobileListItemIcon>
-                <DoorOpen className="size-5" />
-              </MobileListItemIcon>
-
-              <MobileListItemContent
-                primary={classroom.name}
-                secondary={
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span className="flex min-w-0 items-center gap-1">
-                      <Building2 className="size-3 shrink-0" />
-                      <span className="truncate">
-                        {classroom.branch?.name || t("createModal.noBranch")}
-                      </span>
-                    </span>
-                    <span aria-hidden>•</span>
-                    <span className="flex shrink-0 items-center gap-1">
-                      <Users className="size-3" />
-                      <span>
-                        {formatNumber(classroom.capacity, locale)} {t("person")}
-                      </span>
-                    </span>
-                  </div>
-                }
-              />
-
-              <MobileListItemTrailing>
-                <ClassroomStatusBadge isActive={classroom.isActive} />
-              </MobileListItemTrailing>
-            </MobileListItem>
-          </ContextMenuTrigger>
-
-          <ContextMenuContent drawerTitle={t("table.actions")}>
-            <ContextMenuGroup>
-              <PermissionGuard
-                permission={PERMISSIONS.MANAGE_CLASSROOMS}
-                mode="hide"
+    <>
+      <MobileList>
+        {paginatedData.map((classroom, index) => (
+          <ContextMenu key={classroom.id}>
+            <ContextMenuTrigger>
+              <MobileListItem
+                onClick={() => onEdit(classroom)}
+                isLast={index === paginatedData.length - 1}
               >
-                <ContextMenuItem onClick={() => onEdit(classroom)}>
-                  <Edit2 />
-                  {t("editModal.title")}
-                </ContextMenuItem>
-                <ContextMenuItem
-                  variant="destructive"
-                  onClick={() => onDelete(classroom)}
+                <MobileListItemIcon>
+                  <DoorOpen className="size-5" />
+                </MobileListItemIcon>
+
+                <MobileListItemContent
+                  primary={classroom.name}
+                  secondary={
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="flex min-w-0 items-center gap-1">
+                        <Building2 className="size-3 shrink-0" />
+                        <span className="truncate">
+                          {classroom.branch?.name || t("createModal.noBranch")}
+                        </span>
+                      </span>
+                      <span aria-hidden>•</span>
+                      <span className="flex shrink-0 items-center gap-1">
+                        <Users className="size-3" />
+                        <span>
+                          {formatNumber(classroom.capacity, locale)}{" "}
+                          {t("person")}
+                        </span>
+                      </span>
+                    </div>
+                  }
+                />
+
+                <MobileListItemTrailing>
+                  <ClassroomStatusBadge isActive={classroom.isActive} />
+                </MobileListItemTrailing>
+              </MobileListItem>
+            </ContextMenuTrigger>
+
+            <ContextMenuContent drawerTitle={t("table.actions")}>
+              <ContextMenuGroup>
+                <PermissionGuard
+                  permission={PERMISSIONS.MANAGE_CLASSROOMS}
+                  mode="hide"
                 >
-                  <Trash2 />
-                  {t("deleteModal.title")}
-                </ContextMenuItem>
-              </PermissionGuard>
-            </ContextMenuGroup>
-          </ContextMenuContent>
-        </ContextMenu>
-      ))}
-    </MobileList>
+                  <ContextMenuItem onClick={() => onEdit(classroom)}>
+                    <Edit2 />
+                    {t("editModal.title")}
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    variant="destructive"
+                    onClick={() => onDelete(classroom)}
+                  >
+                    <Trash2 />
+                    {t("deleteModal.title")}
+                  </ContextMenuItem>
+                </PermissionGuard>
+              </ContextMenuGroup>
+            </ContextMenuContent>
+          </ContextMenu>
+        ))}
+      </MobileList>
+
+      {classrooms.length > pageSize && (
+        <div className="pt-4 pb-2">
+          <DataPagination
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            totalItems={classrooms.length}
+            onPageChange={setPageIndex}
+            compact
+            locale={locale}
+          />
+        </div>
+      )}
+    </>
   )
 }

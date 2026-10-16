@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs"
 import dotenv from "dotenv"
 import { prisma, Role } from "./index.js"
+import { seedBooks } from "./seed-books.js"
 
 dotenv.config({ path: "../../.env" })
 dotenv.config()
@@ -330,9 +331,24 @@ async function main() {
     console.warn("⚠️ Cleanup note:", err)
   }
 
-  // 6. Seed Courses (AME 1-1 to AME 5-5)
+  // 6. Seed Master Books Catalog
+  console.log("📖 Seeding Master Books Catalog...")
+  await seedBooks()
+  const aef1Book = await prisma.book.findFirst({
+    where: { title: "American English File 1", instituteId: null },
+  })
+  const aef2Book = await prisma.book.findFirst({
+    where: { title: "American English File 2", instituteId: null },
+  })
+
+  // 6.1. Seed Courses (AME 1-1 to AME 5-5)
   console.log("📚 Seeding Courses...")
-  const coursesToSeed: { id: string; title: string; baseFee: number }[] = []
+  const coursesToSeed: {
+    id: string
+    title: string
+    baseFee: number
+    bookId?: string | null
+  }[] = []
 
   for (let level = 1; level <= 5; level++) {
     const partsCount = level === 5 ? 5 : 4
@@ -340,7 +356,13 @@ async function main() {
       const id = `00000000-0000-0000-0000-000000000${level}0${part}`
       const title = `AME ${level}-${part}`
       const baseFee = 1500000 + (level - 1) * 100000
-      coursesToSeed.push({ id, title, baseFee })
+      const bookId =
+        level === 1
+          ? (aef1Book?.id ?? null)
+          : level === 2
+            ? (aef2Book?.id ?? null)
+            : null
+      coursesToSeed.push({ id, title, baseFee, bookId })
     }
   }
 
@@ -364,6 +386,7 @@ async function main() {
         baseFee: c.baseFee,
         instituteId: institute.id,
         prerequisiteId,
+        bookId: c.bookId ?? null,
       },
       create: {
         id: c.id,
@@ -371,6 +394,7 @@ async function main() {
         baseFee: c.baseFee,
         instituteId: institute.id,
         prerequisiteId,
+        bookId: c.bookId ?? null,
       },
     })
   }

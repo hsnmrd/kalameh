@@ -134,6 +134,7 @@ export class SchedulingPlanValidationService {
                     select: {
                       availabilities: {
                         select: {
+                          termId: true,
                           dayOfWeek: true,
                           startTime: true,
                           endTime: true,
@@ -286,10 +287,15 @@ export class SchedulingPlanValidationService {
         add('INCOMPLETE_CLASS_REQUIREMENT', proposal.id);
       }
       if (proposal.teacherId) {
+        const isTeacher =
+          proposal.teacher &&
+          (proposal.teacher.role === 'TEACHER' ||
+            (proposal.teacher.role !== 'STUDENT' &&
+              Boolean(proposal.teacher.teacherProfile)));
         if (
           !proposal.teacher ||
           !proposal.teacher.isActive ||
-          proposal.teacher.role !== 'TEACHER' ||
+          !isTeacher ||
           (proposal.branchId &&
             proposal.teacher.branchId &&
             proposal.teacher.branchId !== proposal.branchId)
@@ -329,9 +335,19 @@ export class SchedulingPlanValidationService {
         if (!qualified) {
           add('TEACHER_NOT_QUALIFIED', proposal.id, [proposal.teacherId]);
         }
+        const teacherAvailabilities =
+          proposal.teacher?.teacherProfile?.availabilities ?? [];
+        const termAvailabilities = teacherAvailabilities.filter(
+          (a) => a.termId === plan.run.termId,
+        );
+        const effectiveAvailabilities =
+          termAvailabilities.length > 0
+            ? termAvailabilities
+            : teacherAvailabilities.filter((a) => !a.termId);
+
         const uncoveredDays = proposal.daysOfWeek.filter(
           (day) =>
-            !proposal.teacher?.teacherProfile?.availabilities.some(
+            !effectiveAvailabilities.some(
               (availability) =>
                 availability.dayOfWeek === day &&
                 availability.startTime <= proposal.startTime &&

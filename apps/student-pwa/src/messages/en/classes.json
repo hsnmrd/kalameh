@@ -11,5 +11,8 @@
   "toman": "Toman",
   "capacity": "Capacity: {enrolled} of {capacity}",
   "full": "Full",
-  "enrollButton": "Select & Enroll in Class"
+  "enrollButton": "Select & Enroll in Class",
+  "waitlistButton": "Join Waitlist",
+  "waitlistSuccess": "You have been successfully added to the waitlist.",
+  "reserveSuccess": "Class capacity reserved for 30 minutes."
 }

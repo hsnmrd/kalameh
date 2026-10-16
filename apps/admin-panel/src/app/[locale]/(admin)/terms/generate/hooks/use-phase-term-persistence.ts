@@ -51,17 +51,6 @@ export function usePhaseTermPersistence({
     enabled: Boolean(activeInstituteId),
   })
 
-  const previewQuery = useQuery({
-    ...termsResource.previewPhase.toQuery({
-      operatingPhaseId: activePhaseId,
-      jalaliYear,
-      sessionsPerTerm,
-      daysPerTerm: sessionsPerTerm,
-      gapDays,
-    }),
-    enabled: false,
-  })
-
   const batchCreateMutation = useMutation({
     ...termsResource.batchCreatePhase.toMutation(),
     onSuccess: () => {
@@ -96,6 +85,7 @@ export function usePhaseTermPersistence({
           daysPerTerm: sessionsPerTerm,
           gapDays,
         }),
+        retry: false,
       })
 
       if (data && data.length > 0) {
@@ -182,7 +172,6 @@ export function usePhaseTermPersistence({
     handleSubmit,
     handleCancel,
     isLoadingExisting,
-    previewQuery,
     existingTerms,
   }
 }

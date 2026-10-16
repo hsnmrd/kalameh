@@ -42,6 +42,8 @@ describe("OperatingPhasesFilter", () => {
       name: /افزودن فاز زمانی|Add Operating Phase/i,
     })
     expect(addButton).toBeInTheDocument()
+    expect(addButton).toHaveClass("hidden")
+    expect(addButton).toHaveClass("lg:inline-flex")
 
     fireEvent.click(addButton)
     expect(handleAddClick).toHaveBeenCalledTimes(1)

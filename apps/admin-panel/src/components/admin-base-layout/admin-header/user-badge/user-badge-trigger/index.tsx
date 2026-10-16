@@ -36,11 +36,14 @@ export const UserBadgeTrigger = React.forwardRef<
   ref
 ) {
   const t = useTranslations("common")
+  const [failedImageSrc, setFailedImageSrc] = React.useState<string | null>(
+    null
+  )
 
   const title = hasActiveInstitute ? activeInstituteName : fullName
   const instituteInitial = activeInstituteName
-    ? activeInstituteName.slice(0, 2)
-    : "IN"
+    ? Array.from(activeInstituteName.trim())[0] || "I"
+    : "I"
 
   const imageSrc = hasActiveInstitute
     ? activeInstituteLogoUrl
@@ -51,6 +54,7 @@ export const UserBadgeTrigger = React.forwardRef<
       : null
 
   const fallbackInitial = hasActiveInstitute ? instituteInitial : userInitial
+  const showImage = Boolean(imageSrc && failedImageSrc !== imageSrc)
 
   return (
     <Button
@@ -76,13 +80,14 @@ export const UserBadgeTrigger = React.forwardRef<
       aria-label={t("userProfile.title")}
       {...props}
     >
-      {imageSrc ? (
+      {showImage ? (
         <Image
-          src={imageSrc}
+          src={imageSrc!}
           alt={title ?? ""}
           fill
           unoptimized
           className="size-full object-cover"
+          onError={() => setFailedImageSrc(imageSrc)}
         />
       ) : (
         <span className="text-xs font-bold">{fallbackInitial}</span>

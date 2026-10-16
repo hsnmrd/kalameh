@@ -32,10 +32,12 @@ export function PreviewFilter({
         search={
           <div
             title={t("batchModal.dateShiftHint")}
-            className="flex h-14 w-full min-w-0 items-center gap-2.5 rounded-2xl border border-border bg-card px-4 text-xs text-muted-foreground sm:text-sm"
+            className="flex h-14 w-full max-w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-2xl border border-border bg-card px-3 text-xs text-muted-foreground sm:px-4 sm:text-sm"
           >
             <Info className="size-5 shrink-0 text-muted-foreground" />
-            <p className="min-w-0 truncate">{t("batchModal.dateShiftHint")}</p>
+            <p className="min-w-0 flex-1 truncate">
+              {t("batchModal.dateShiftHint")}
+            </p>
           </div>
         }
         actions={

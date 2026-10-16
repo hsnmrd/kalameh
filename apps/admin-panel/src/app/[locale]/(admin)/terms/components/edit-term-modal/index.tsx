@@ -4,7 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import {
   FormDialog,
@@ -121,6 +121,24 @@ export function EditTermModal({
     originalStartDate,
   })
 
+  const { data: instituteTerms = [] } = useQuery({
+    ...termsResource.list.toQuery({ instituteId: activeInstituteId }),
+    enabled: Boolean(activeInstituteId && open),
+  })
+
+  const existingOtherTerms = React.useMemo(() => {
+    const map = new Map<string, TermDto>()
+    for (const t of instituteTerms) {
+      if (t.id && t.id !== term?.id) map.set(t.id, t)
+    }
+    if (allTerms) {
+      for (const t of allTerms) {
+        if (t.id && t.id !== term?.id) map.set(t.id, t)
+      }
+    }
+    return Array.from(map.values())
+  }, [allTerms, instituteTerms, term?.id])
+
   const {
     handleStartDateChange,
     handleToggleHoliday,
@@ -143,6 +161,7 @@ export function EditTermModal({
     setLocalCustomOffDays,
     compensatorySessions,
     setValue,
+    existingTerms: existingOtherTerms,
   })
   const { handleAddCompensatorySession, handleRemoveCompensatorySession } =
     useEditTermCompensatoryActions({
@@ -192,17 +211,13 @@ export function EditTermModal({
 
   const onSubmit = (values: UpdateTermInput) => {
     if (!term) return
-    const targetPhaseId = values.operatingPhaseId ?? term.operatingPhaseId
-    if (targetPhaseId && allTerms && allTerms.length > 0) {
+    if (existingOtherTerms.length > 0) {
       const candidateDates = {
         startDate: values.startDate ?? term.startDate,
         endDate: values.endDate ?? term.endDate,
       }
-      const conflict = allTerms.find(
-        (existing) =>
-          existing.id !== term.id &&
-          existing.operatingPhaseId === targetPhaseId &&
-          hasTermDateConflict(candidateDates, existing)
+      const conflict = existingOtherTerms.find((existing) =>
+        hasTermDateConflict(candidateDates, existing)
       )
       if (conflict) {
         toast.error(
@@ -248,6 +263,7 @@ export function EditTermModal({
           customOffDays={customOffDays}
           activeDismissedHolidays={activeDismissedHolidays}
           compensatorySessions={compensatorySessions}
+          existingTerms={existingOtherTerms}
           onStartDateChange={handleStartDateChange}
           onToggleHoliday={handleToggleHoliday}
           onToggleCustomOffDay={handleToggleCustomOffDay}

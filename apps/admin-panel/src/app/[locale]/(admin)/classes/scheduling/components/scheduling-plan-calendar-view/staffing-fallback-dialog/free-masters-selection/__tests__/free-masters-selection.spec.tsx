@@ -171,8 +171,9 @@ describe("FreeMastersSelection Component", () => {
       />
     )
 
-    // 1. Shows free masters section
+    // 1. Shows free masters section and horizontal carousel slides
     expect(screen.getByTestId("free-masters-selection")).toBeInTheDocument()
+    expect(screen.getAllByTestId("free-master-slide")).toHaveLength(3)
 
     // 2. Direct match teacher (Sara Mohammadi) is present, qualified, and direct match
     const saraItem = screen.getByTestId("free-master-item-t-direct")
@@ -203,8 +204,8 @@ describe("FreeMastersSelection Component", () => {
     expect(onAssignTeacher).toHaveBeenCalledWith(mockProposal, "t-melika")
   })
 
-  it("shows empty state when no teachers are free in the slot", () => {
-    render(
+  it("renders null when no teachers are free in the slot", () => {
+    const { container } = render(
       <FreeMastersSelection
         proposal={mockProposal}
         targetCourse={targetCourse}
@@ -216,8 +217,144 @@ describe("FreeMastersSelection Component", () => {
       />
     )
 
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it("enables assign button and calls onAssignMissedClassTeacher when opened for a missed class (no proposal)", async () => {
+    const onAssignMissedClassTeacher = vi.fn().mockResolvedValue(undefined)
+    const mockHiringAssignment = {
+      key: "missed-1",
+      requirementId: "req-1",
+      course: { id: targetCourse.id, title: targetCourse.title },
+      classNumber: 1,
+      deliveryMode: "IN_PERSON" as const,
+      daysOfWeek,
+      startTime,
+      endTime,
+      classroom: { id: "cr-1", name: "Room 104", capacity: 20 },
+    }
+
+    render(
+      <FreeMastersSelection
+        proposal={null}
+        hiringAssignment={mockHiringAssignment}
+        targetCourse={targetCourse}
+        daysOfWeek={daysOfWeek}
+        startTime={startTime}
+        endTime={endTime}
+        teacherCalendars={teacherCalendars}
+        allProposals={[]}
+        onAssignMissedClassTeacher={onAssignMissedClassTeacher}
+      />
+    )
+
+    const saraBtn = screen.getByTestId("assign-free-master-btn-t-direct")
+    expect(saraBtn).not.toBeDisabled()
+
+    await act(async () => {
+      fireEvent.click(saraBtn)
+    })
+
+    expect(onAssignMissedClassTeacher).toHaveBeenCalledWith(
+      mockHiringAssignment,
+      "t-direct"
+    )
+  })
+
+  it("excludes masters who belong to another branch when targetBranchId is specified", () => {
+    const mixedBranchCalendars: SchedulingTeacherCalendar[] = [
+      {
+        teacher: {
+          id: "t-local",
+          firstName: "محلی",
+          lastName: "احمدی",
+          avatarUrl: null,
+          branchId: "branch-central",
+        },
+        teachableCourses: [{ id: "c-ame-1-1", title: "AME 1-1" }],
+        slots: [
+          {
+            id: "s1",
+            dayOfWeek: "SATURDAY",
+            startTime: "14:00",
+            endTime: "18:00",
+            status: "FREE",
+            branchId: "branch-central",
+          },
+          {
+            id: "s2",
+            dayOfWeek: "MONDAY",
+            startTime: "14:00",
+            endTime: "18:00",
+            status: "FREE",
+            branchId: "branch-central",
+          },
+          {
+            id: "s3",
+            dayOfWeek: "WEDNESDAY",
+            startTime: "14:00",
+            endTime: "18:00",
+            status: "FREE",
+            branchId: "branch-central",
+          },
+        ],
+      },
+      {
+        teacher: {
+          id: "t-other-branch",
+          firstName: "الهام",
+          lastName: "جلالی",
+          avatarUrl: null,
+          branchId: "branch-west",
+        },
+        teachableCourses: [{ id: "c-ame-1-1", title: "AME 1-1" }],
+        slots: [
+          {
+            id: "s4",
+            dayOfWeek: "SATURDAY",
+            startTime: "14:00",
+            endTime: "18:00",
+            status: "FREE",
+            branchId: "branch-west",
+          },
+          {
+            id: "s5",
+            dayOfWeek: "MONDAY",
+            startTime: "14:00",
+            endTime: "18:00",
+            status: "FREE",
+            branchId: "branch-west",
+          },
+          {
+            id: "s6",
+            dayOfWeek: "WEDNESDAY",
+            startTime: "14:00",
+            endTime: "18:00",
+            status: "FREE",
+            branchId: "branch-west",
+          },
+        ],
+      },
+    ]
+
+    render(
+      <FreeMastersSelection
+        proposal={mockProposal}
+        targetCourse={targetCourse}
+        daysOfWeek={daysOfWeek}
+        startTime={startTime}
+        endTime={endTime}
+        teacherCalendars={mixedBranchCalendars}
+        allProposals={[]}
+        targetBranchId="branch-central"
+      />
+    )
+
+    // Local teacher is rendered
+    expect(screen.getByTestId("free-master-item-t-local")).toBeInTheDocument()
+    // Other branch teacher is NOT suggested in the primary FreeMastersSelection
     expect(
-      screen.getByText("staffingFallback.noFreeMastersDescription")
-    ).toBeInTheDocument()
+      screen.queryByTestId("free-master-item-t-other-branch")
+    ).not.toBeInTheDocument()
   })
 })

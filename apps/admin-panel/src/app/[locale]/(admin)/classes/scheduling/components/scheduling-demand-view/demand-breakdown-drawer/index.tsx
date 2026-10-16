@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { formatNumber } from "@workspace/ui/lib/utils"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
 import { DemandBreakdownCard } from "./demand-breakdown-card"
 import { DemandClassesEditDialog } from "./demand-classes-edit-dialog"
 import { StudentDemandBar } from "./student-demand-bar"
@@ -64,16 +64,20 @@ export function DemandBreakdownDrawer({
     <div className="w-full">
       {/* Desktop Table View */}
       <div className="hidden w-full overflow-hidden rounded-2xl border border-border bg-card lg:block">
-        <Table className="table-fixed">
+        <Table className="min-w-[860px]">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-36">{t("course")}</TableHead>
-              <TableHead className="w-36">{t("prerequisiteColumn")}</TableHead>
-              <TableHead>{t("students")}</TableHead>
-              <TableHead className="w-28">{t("classesCountColumn")}</TableHead>
-              <TableHead className="w-44">{t("coverage")}</TableHead>
-              <TableHead className="w-36">{t("statusColumn")}</TableHead>
-              <TableHead className="w-14 text-end">
+              <TableHead className="min-w-36">{t("course")}</TableHead>
+              <TableHead className="min-w-32">
+                {t("prerequisiteColumn")}
+              </TableHead>
+              <TableHead className="min-w-56">{t("students")}</TableHead>
+              <TableHead className="min-w-28">
+                {t("classesCountColumn")}
+              </TableHead>
+              <TableHead className="min-w-44">{t("coverage")}</TableHead>
+              <TableHead className="min-w-36">{t("statusColumn")}</TableHead>
+              <TableHead className="w-14 min-w-14 text-end">
                 <span className="sr-only">{t("editClasses")}</span>
               </TableHead>
             </TableRow>
@@ -90,9 +94,17 @@ export function DemandBreakdownDrawer({
                 course.eligibleStudentsCount,
                 classes.map((item) => item.capacity)
               )
+              const isNoClassesNeeded =
+                course.eligibleStudentsCount === 0 && classes.length === 0
 
               return (
-                <TableRow key={course.courseId}>
+                <TableRow
+                  key={course.courseId}
+                  className={cn(
+                    isNoClassesNeeded &&
+                      "opacity-45 transition-opacity hover:opacity-100"
+                  )}
+                >
                   <TableCell className="align-middle">
                     <span className="font-semibold text-foreground">
                       {course.courseTitle}

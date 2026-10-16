@@ -2,9 +2,14 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Clock, AlertTriangle } from "lucide-react"
+import { Clock, AlertTriangle, ChevronDown } from "lucide-react"
 import { PERMISSIONS, type TermDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@workspace/ui/components/collapsible"
 import { cn } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
 
@@ -24,6 +29,7 @@ export function StudentScheduleConfirmationBanner({
   studentsCount,
 }: StudentScheduleConfirmationBannerProps) {
   const t = useTranslations("students.confirmStudentSchedules")
+  const [isOpen, setIsOpen] = React.useState(false)
 
   if (Boolean(term.studentSchedulesConfirmedAt)) return null
   if (hasStudents === false || studentsCount === 0) return null
@@ -36,32 +42,54 @@ export function StudentScheduleConfirmationBanner({
   }
 
   return (
-    <div
+    <Collapsible
+      open={isOpen}
+      onOpenChange={setIsOpen}
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border border-warning/30 bg-warning/5 p-4 text-foreground sm:flex-row sm:items-center sm:justify-between sm:p-5",
+        "rounded-2xl border border-warning/30 bg-warning/5 p-3 text-foreground sm:p-4",
         className
       )}
     >
-      <div className="flex items-center gap-3">
-        <AlertTriangle className="size-5 shrink-0 text-warning" />
-        <p className="text-sm font-semibold text-foreground">
-          {t("bannerTitle")}
-        </p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <AlertTriangle className="size-5 shrink-0 text-warning" />
+          <CollapsibleTrigger
+            type="button"
+            className="group flex min-w-0 cursor-pointer items-center gap-1.5 text-start font-semibold text-foreground transition-colors hover:text-foreground/80"
+          >
+            <span className="truncate text-xs font-semibold sm:text-sm">
+              {t("bannerTitle")}
+            </span>
+            <ChevronDown
+              className={cn(
+                "size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:text-foreground",
+                isOpen && "rotate-180"
+              )}
+            />
+          </CollapsibleTrigger>
+        </div>
+
+        <PermissionGuard
+          permission={PERMISSIONS.APPROVE_STUDENTS_TIME}
+          mode="hide"
+        >
+          <Button
+            type="button"
+            size="sm"
+            onClick={onConfirmClick}
+            className="h-8 shrink-0 gap-1.5 px-3 text-xs font-medium"
+          >
+            <Clock className="size-3.5" />
+            <span>{t("confirm")}</span>
+          </Button>
+        </PermissionGuard>
       </div>
 
-      <PermissionGuard
-        permission={PERMISSIONS.APPROVE_STUDENTS_TIME}
-        mode="hide"
-      >
-        <Button
-          type="button"
-          onClick={onConfirmClick}
-          className="shrink-0 gap-2 font-medium"
-        >
-          <Clock className="size-4" />
-          <span>{t("button")}</span>
-        </Button>
-      </PermissionGuard>
-    </div>
+      <CollapsibleContent>
+        <div className="mt-2.5 border-t border-warning/20 pt-2.5 text-xs leading-relaxed text-muted-foreground">
+          <p>{t("bannerDescription", { termTitle: term.title })}</p>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }

@@ -32,6 +32,36 @@ type CarouselContextProps = {
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
 
+const defaultWatchDrag = (
+  emblaApi: NonNullable<CarouselApi>,
+  evt: MouseEvent | TouchEvent
+): boolean => {
+  const rootNode = emblaApi.rootNode()
+  const target = evt.target
+  const targetElement =
+    target instanceof Element
+      ? target
+      : target instanceof Node
+        ? target.parentElement
+        : null
+
+  if (targetElement && rootNode) {
+    const closestCarouselContent = targetElement.closest(
+      '[data-slot="carousel-content"]'
+    )
+    if (closestCarouselContent && closestCarouselContent !== rootNode) {
+      return false
+    }
+
+    const closestCarousel = targetElement.closest('[data-slot="carousel"]')
+    if (closestCarousel && rootNode.contains(closestCarousel)) {
+      return false
+    }
+  }
+
+  return true
+}
+
 function useCarousel() {
   const context = React.useContext(CarouselContext)
 
@@ -51,6 +81,9 @@ function Carousel({
   children,
   ...props
 }: React.ComponentProps<"div"> & CarouselProps) {
+  const parentCarousel = React.useContext(CarouselContext)
+  const isNested = parentCarousel !== null
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
   const [isRtl, setIsRtl] = React.useState(false)
 
   React.useEffect(() => {
@@ -63,6 +96,38 @@ function Carousel({
     }
   }, [])
 
+  React.useEffect(() => {
+    const node = containerRef.current
+    if (!isNested || !node) return
+
+    const stopBubbleToOuterCarousel = (evt: Event) => {
+      evt.stopPropagation()
+    }
+
+    node.addEventListener("touchcancel", stopBubbleToOuterCarousel)
+    node.addEventListener("contextmenu", stopBubbleToOuterCarousel)
+
+    return () => {
+      node.removeEventListener("touchcancel", stopBubbleToOuterCarousel)
+      node.removeEventListener("contextmenu", stopBubbleToOuterCarousel)
+    }
+  }, [isNested])
+
+  const customWatchDrag = opts?.watchDrag
+  const watchDrag = React.useMemo<
+    NonNullable<CarouselOptions>["watchDrag"]
+  >(() => {
+    if (customWatchDrag === false) {
+      return false
+    }
+    if (typeof customWatchDrag === "function") {
+      return (emblaApi, evt) =>
+        defaultWatchDrag(emblaApi, evt) &&
+        Boolean(customWatchDrag(emblaApi, evt))
+    }
+    return defaultWatchDrag
+  }, [customWatchDrag])
+
   const [carouselRef, api] = useEmblaCarousel(
     {
       ...opts,
@@ -71,6 +136,7 @@ function Carousel({
         orientation === "vertical"
           ? undefined
           : (opts?.direction ?? (isRtl ? "rtl" : "ltr")),
+      watchDrag,
     },
     plugins
   )
@@ -93,17 +159,30 @@ function Carousel({
 
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement | null
+      const closestCarousel = target?.closest?.('[data-slot="carousel"]')
+      if (
+        closestCarousel &&
+        containerRef.current &&
+        closestCarousel !== containerRef.current
+      ) {
+        return
+      }
+
       if (orientation === "vertical") {
         if (event.key === "ArrowUp") {
           event.preventDefault()
+          if (isNested) event.stopPropagation()
           scrollPrev()
         } else if (event.key === "ArrowDown") {
           event.preventDefault()
+          if (isNested) event.stopPropagation()
           scrollNext()
         }
       } else {
         if (event.key === "ArrowLeft") {
           event.preventDefault()
+          if (isNested) event.stopPropagation()
           if (isRtl) {
             scrollNext()
           } else {
@@ -111,6 +190,7 @@ function Carousel({
           }
         } else if (event.key === "ArrowRight") {
           event.preventDefault()
+          if (isNested) event.stopPropagation()
           if (isRtl) {
             scrollPrev()
           } else {
@@ -119,7 +199,7 @@ function Carousel({
         }
       }
     },
-    [scrollPrev, scrollNext, isRtl, orientation]
+    [scrollPrev, scrollNext, isRtl, orientation, isNested]
   )
 
   React.useEffect(() => {
@@ -153,6 +233,7 @@ function Carousel({
       }}
     >
       <div
+        ref={containerRef}
         onKeyDownCapture={handleKeyDown}
         className={cn("relative", className)}
         role="region"

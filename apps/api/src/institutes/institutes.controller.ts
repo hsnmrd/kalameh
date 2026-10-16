@@ -45,6 +45,11 @@ export class InstitutesController {
     return this.institutesService.findAll(currentUser, search, parsedIsActive);
   }
 
+  @Get('bank-info')
+  async getBankInfo(@CurrentUser() currentUser: JwtPayload) {
+    return this.institutesService.getBankInfo(currentUser.instituteId);
+  }
+
   @Get(':id')
   @RequirePermissions(PERMISSIONS.VIEW_INSTITUTES)
   async findOne(

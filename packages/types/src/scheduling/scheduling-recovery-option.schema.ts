@@ -5,11 +5,20 @@ import {
   SCHEDULING_TIME_REGEX,
 } from "./scheduling.constants.js"
 
-const SchedulingRecoveryTeacherSchema = z.object({
+export const SchedulingRecoveryTeacherSchema = z.object({
   id: z.string().uuid(),
   firstName: z.string(),
   lastName: z.string(),
+  phoneNumber: z.string().nullable().optional(),
   avatarUrl: z.string().nullable().optional(),
+  branchId: z.string().uuid().nullable().optional(),
+  branch: z
+    .object({
+      id: z.string().uuid(),
+      name: z.string(),
+    })
+    .nullable()
+    .optional(),
 })
 
 const SchedulingRecoveryClassroomSchema = z.object({
@@ -25,6 +34,17 @@ const SchedulingRecoveryBlockingClassSchema = z.object({
   classroom: SchedulingRecoveryClassroomSchema.nullable(),
 })
 
+export const SchedulingBranchScheduleStatusSchema = z.object({
+  branchId: z.string().uuid(),
+  branchName: z.string(),
+  hasDefinedSchedule: z.boolean(),
+  status: z.enum(["NOT_SCHEDULED", "SCHEDULED", "PUBLISHED"]),
+})
+
+export type SchedulingBranchScheduleStatus = z.infer<
+  typeof SchedulingBranchScheduleStatusSchema
+>
+
 const SchedulingTeacherCalendarSlotSchema = z.object({
   dayOfWeek: z.enum(WEEK_DAYS),
   startTime: z.string().regex(SCHEDULING_TIME_REGEX),
@@ -32,6 +52,8 @@ const SchedulingTeacherCalendarSlotSchema = z.object({
   status: z.enum(["FREE", "BUSY"]),
   title: z.string().nullable(),
   source: z.enum(["AVAILABILITY", "PLAN", "EXISTING_CLASS"]),
+  branchId: z.string().uuid().nullable().optional(),
+  branchName: z.string().nullable().optional(),
 })
 
 export const SchedulingTeacherCalendarSchema = z.object({
@@ -140,4 +162,31 @@ export type SchedulingTeacherOutreachOption = z.infer<
 >
 export type SchedulingStaffingFallback = z.infer<
   typeof SchedulingStaffingFallbackSchema
+>
+
+export const ApplyTeacherReassignmentChainInputSchema = z.object({
+  chainKey: z.string().trim().min(1),
+  unresolvedRequirementId: z.string().uuid().optional(),
+  reassignments: z
+    .array(
+      z.object({
+        proposalId: z.string().uuid(),
+        toTeacherId: z.string().uuid(),
+      })
+    )
+    .min(1),
+  targetAssignment: z
+    .object({
+      teacherId: z.string().uuid(),
+      classroomId: z.string().uuid().nullable().optional(),
+      deliveryMode: z.enum(CLASS_DELIVERY_MODES).optional(),
+      daysOfWeek: z.array(z.enum(WEEK_DAYS)).optional(),
+      startTime: z.string().regex(SCHEDULING_TIME_REGEX).optional(),
+      endTime: z.string().regex(SCHEDULING_TIME_REGEX).optional(),
+    })
+    .optional(),
+})
+
+export type ApplyTeacherReassignmentChainInput = z.infer<
+  typeof ApplyTeacherReassignmentChainInputSchema
 >

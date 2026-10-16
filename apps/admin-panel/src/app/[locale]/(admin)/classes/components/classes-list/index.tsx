@@ -20,6 +20,8 @@ import {
   MobileListItemContent,
   MobileListItemTrailing,
 } from "@workspace/ui/components/mobile-list"
+import { DataPagination } from "@workspace/ui/components/pagination"
+import { useClientPagination } from "@/lib/hooks"
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -27,7 +29,7 @@ import {
   ContextMenuItem,
 } from "@workspace/ui/components/context-menu"
 import { Badge } from "@workspace/ui/components/badge"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { ListSkeleton } from "@/components/list-skeleton"
 import {
   Empty,
   EmptyHeader,
@@ -54,6 +56,9 @@ export interface ClassesListProps {
   onDelete?: (cls: ClassDto) => void
   onAdd?: () => void
   onScheduling?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageChange?: (pageIndex: number) => void
 }
 
 export function ClassesList({
@@ -64,17 +69,23 @@ export function ClassesList({
   onDelete,
   onAdd,
   onScheduling,
+  pageIndex: controlledPageIndex,
+  pageSize = 10,
+  onPageChange: controlledOnPageChange,
 }: ClassesListProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
   const router = useRouter()
 
+  const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
+    data: classes,
+    pageSize,
+    pageIndex: controlledPageIndex,
+    onPageChange: controlledOnPageChange,
+  })
+
   if (isLoading) {
-    return (
-      <div className="flex h-48 w-full items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <ListSkeleton rows={pageSize} />
   }
 
   if (!classes || classes.length === 0) {
@@ -132,133 +143,150 @@ export function ClassesList({
   }
 
   return (
-    <MobileList>
-      {classes.map((cls, index) => {
-        const enrolled = cls.enrolledCount ?? 0
-        const cap = cls.capacity
-        const isFull = enrolled >= cap
-        const isEditDisabled = Boolean(
-          cls.term?.startDate && !isTermInActivationWindow(cls.term.startDate)
-        )
-        const isDone = isClassDone(cls)
+    <>
+      <MobileList>
+        {paginatedData.map((cls, index) => {
+          const enrolled = cls.enrolledCount ?? 0
+          const cap = cls.capacity
+          const isFull = enrolled >= cap
+          const isEditDisabled = Boolean(
+            cls.term?.startDate && !isTermInActivationWindow(cls.term.startDate)
+          )
+          const isDone = isClassDone(cls)
 
-        return (
-          <ContextMenu key={cls.id}>
-            <ContextMenuTrigger>
-              <MobileListItem
-                onClick={() => {
-                  if (onViewDetails) {
-                    onViewDetails(cls)
-                  } else if (!isEditDisabled) {
-                    onEdit(cls)
-                  }
-                }}
-                isLast={index === classes.length - 1}
-                className={cn(
-                  isDone && "opacity-60 transition-opacity hover:opacity-80"
-                )}
-              >
-                <MobileListItemIcon>
-                  <Layers className="size-5" />
-                </MobileListItemIcon>
+          return (
+            <ContextMenu key={cls.id}>
+              <ContextMenuTrigger>
+                <MobileListItem
+                  onClick={() => {
+                    if (onViewDetails) {
+                      onViewDetails(cls)
+                    } else if (!isEditDisabled) {
+                      onEdit(cls)
+                    }
+                  }}
+                  isLast={index === paginatedData.length - 1}
+                  className={cn(
+                    isDone && "opacity-60 transition-opacity hover:opacity-80"
+                  )}
+                >
+                  <MobileListItemIcon>
+                    <Layers className="size-5" />
+                  </MobileListItemIcon>
 
-                <MobileListItemContent
-                  primary={
-                    <div className="flex items-center gap-2">
-                      <span className="truncate">{cls.title}</span>
-                      {isDone && (
-                        <Badge
-                          variant="outline"
-                          className="shrink-0 border-border bg-muted/60 text-[10px] font-normal text-muted-foreground"
-                        >
-                          {t("table.ended")}
-                        </Badge>
-                      )}
-                    </div>
-                  }
-                  secondary={
-                    <div className="flex flex-col gap-0.5">
-                      <span>{cls.course?.title || cls.term?.title || "-"}</span>
-                      {cls.branch?.name && (
-                        <span className="text-[11px] text-muted-foreground/80">
-                          {cls.branch.name}
+                  <MobileListItemContent
+                    primary={
+                      <div className="flex items-center gap-2">
+                        <span className="truncate">{cls.title}</span>
+                        {isDone && (
+                          <Badge
+                            variant="outline"
+                            className="shrink-0 border-border bg-muted/60 text-[10px] font-normal text-muted-foreground"
+                          >
+                            {t("table.ended")}
+                          </Badge>
+                        )}
+                      </div>
+                    }
+                    secondary={
+                      <div className="flex flex-col gap-0.5">
+                        <span>
+                          {cls.course?.title || cls.term?.title || "-"}
                         </span>
-                      )}
-                    </div>
-                  }
-                />
+                        {cls.branch?.name && (
+                          <span className="text-[11px] text-muted-foreground/80">
+                            {cls.branch.name}
+                          </span>
+                        )}
+                      </div>
+                    }
+                  />
 
-                <MobileListItemTrailing>
-                  <Badge
-                    variant="outline"
-                    className={
-                      isFull
-                        ? "border-destructive/20 bg-destructive/10 text-destructive"
-                        : "border-border bg-muted text-muted-foreground"
+                  <MobileListItemTrailing>
+                    <Badge
+                      variant="outline"
+                      className={
+                        isFull
+                          ? "border-destructive/20 bg-destructive/10 text-destructive"
+                          : "border-border bg-muted text-muted-foreground"
+                      }
+                    >
+                      <span className="font-sans text-xs">
+                        {formatNumber(enrolled, locale)} /{" "}
+                        {formatNumber(cap, locale)}
+                      </span>
+                    </Badge>
+                  </MobileListItemTrailing>
+                </MobileListItem>
+              </ContextMenuTrigger>
+
+              <ContextMenuContent>
+                <ContextMenuItem
+                  onClick={() =>
+                    onViewDetails ? onViewDetails(cls) : onEdit(cls)
+                  }
+                >
+                  <Eye className="me-2 size-4 text-muted-foreground" />
+                  {t("table.viewDetails")}
+                </ContextMenuItem>
+
+                <PermissionGuard
+                  permission={[
+                    PERMISSIONS.VIEW_GRADES,
+                    PERMISSIONS.MANAGE_GRADES,
+                  ]}
+                  mode="hide"
+                >
+                  <ContextMenuItem
+                    onClick={() => router.push(`/classes/${cls.id}/grades`)}
+                  >
+                    <GraduationCap className="me-2 size-4 text-muted-foreground" />
+                    {t("grades")}
+                  </ContextMenuItem>
+                </PermissionGuard>
+
+                <PermissionGuard
+                  permission={PERMISSIONS.MANAGE_CLASSES}
+                  mode="hide"
+                >
+                  <ContextMenuItem
+                    disabled={isEditDisabled}
+                    onClick={() => !isEditDisabled && onEdit(cls)}
+                    title={
+                      isEditDisabled
+                        ? t("table.editDisabledOutsideActivation")
+                        : undefined
                     }
                   >
-                    <span className="font-sans text-xs">
-                      {formatNumber(enrolled, locale)} /{" "}
-                      {formatNumber(cap, locale)}
-                    </span>
-                  </Badge>
-                </MobileListItemTrailing>
-              </MobileListItem>
-            </ContextMenuTrigger>
+                    <Edit2 className="me-2 size-4 text-muted-foreground" />
+                    {t("table.actions")}
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    variant="destructive"
+                    onClick={() => onDelete?.(cls)}
+                  >
+                    <Trash2 className="me-2 size-4 text-destructive" />
+                    {t("deleteModal.title")}
+                  </ContextMenuItem>
+                </PermissionGuard>
+              </ContextMenuContent>
+            </ContextMenu>
+          )
+        })}
+      </MobileList>
 
-            <ContextMenuContent>
-              <ContextMenuItem
-                onClick={() =>
-                  onViewDetails ? onViewDetails(cls) : onEdit(cls)
-                }
-              >
-                <Eye className="me-2 size-4 text-muted-foreground" />
-                {t("table.viewDetails")}
-              </ContextMenuItem>
-
-              <PermissionGuard
-                permission={[
-                  PERMISSIONS.VIEW_GRADES,
-                  PERMISSIONS.MANAGE_GRADES,
-                ]}
-                mode="hide"
-              >
-                <ContextMenuItem
-                  onClick={() => router.push(`/classes/${cls.id}/grades`)}
-                >
-                  <GraduationCap className="me-2 size-4 text-muted-foreground" />
-                  {t("grades")}
-                </ContextMenuItem>
-              </PermissionGuard>
-
-              <PermissionGuard
-                permission={PERMISSIONS.MANAGE_CLASSES}
-                mode="hide"
-              >
-                <ContextMenuItem
-                  disabled={isEditDisabled}
-                  onClick={() => !isEditDisabled && onEdit(cls)}
-                  title={
-                    isEditDisabled
-                      ? t("table.editDisabledOutsideActivation")
-                      : undefined
-                  }
-                >
-                  <Edit2 className="me-2 size-4 text-muted-foreground" />
-                  {t("table.actions")}
-                </ContextMenuItem>
-                <ContextMenuItem
-                  variant="destructive"
-                  onClick={() => onDelete?.(cls)}
-                >
-                  <Trash2 className="me-2 size-4 text-destructive" />
-                  {t("deleteModal.title")}
-                </ContextMenuItem>
-              </PermissionGuard>
-            </ContextMenuContent>
-          </ContextMenu>
-        )
-      })}
-    </MobileList>
+      {classes.length > pageSize && (
+        <div className="pt-4 pb-2">
+          <DataPagination
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            totalItems={classes.length}
+            onPageChange={setPageIndex}
+            compact
+            locale={locale}
+          />
+        </div>
+      )}
+    </>
   )
 }

@@ -456,8 +456,8 @@ export class SchedulingPlanReviewService {
             userId: teacherId,
             user: {
               instituteId,
-              role: 'TEACHER',
               isActive: true,
+              OR: [{ role: 'TEACHER' }, { teacherProfile: { isNot: null } }],
             },
           },
         },
@@ -478,8 +478,8 @@ export class SchedulingPlanReviewService {
               userId: teacherId,
               user: {
                 instituteId,
-                role: 'TEACHER',
                 isActive: true,
+                OR: [{ role: 'TEACHER' }, { teacherProfile: { isNot: null } }],
               },
             },
           },

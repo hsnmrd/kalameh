@@ -1,0 +1,336 @@
+"use client"
+
+import * as React from "react"
+import { useTranslations, useLocale } from "next-intl"
+import { Search, Globe, BookOpen, Layers } from "lucide-react"
+import { Checkbox } from "@workspace/ui/components/checkbox"
+import { Counter } from "@workspace/ui/components/counter"
+import { PriceInput } from "@workspace/ui/components/price-input"
+import { Input } from "@workspace/ui/components/input"
+import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
+import { formatNumber } from "@workspace/ui/lib/utils"
+import { DataPagination } from "@workspace/ui/components/pagination"
+import { useClientPagination } from "@/lib/hooks"
+import type { BookDto, CourseDto } from "@workspace/types"
+import {
+  BookCoursesPreviewCarousel,
+  type BookCoursePreviewItem,
+} from "./book-courses-preview-carousel"
+
+export interface SelectedBookConfig {
+  termsCount: number
+  baseFee?: number | null
+  startingPrerequisiteId?: string | null
+}
+
+export interface FromBookFormProps {
+  books: BookDto[]
+  courses: CourseDto[]
+  selectedBooks: Record<string, SelectedBookConfig>
+  onToggleBook: (bookId: string) => void
+  onUpdateBook: (bookId: string, patch: Partial<SelectedBookConfig>) => void
+  onSelectAll?: () => void
+  onClearAll?: () => void
+  pageSize?: number
+  isLoading?: boolean
+}
+
+export function FromBookForm({
+  books,
+  courses,
+  selectedBooks,
+  onToggleBook,
+  onUpdateBook,
+  onSelectAll,
+  onClearAll,
+  pageSize = 5,
+  isLoading = false,
+}: FromBookFormProps) {
+  const t = useTranslations("courses")
+  const tb = useTranslations("books")
+  const locale = useLocale()
+
+  const [search, setSearch] = React.useState("")
+  const [filterMode, setFilterMode] = React.useState<"all" | "selected">("all")
+
+  const selectedCount = Object.keys(selectedBooks).length
+
+  // Filter books by search and filterMode
+  const filteredBooks = React.useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return books.filter((book) => {
+      if (filterMode === "selected" && !selectedBooks[book.id]) {
+        return false
+      }
+      if (!q) return true
+      return (
+        book.title.toLowerCase().includes(q) ||
+        book.author?.toLowerCase().includes(q) ||
+        book.publisher?.toLowerCase().includes(q)
+      )
+    })
+  }, [books, search, filterMode, selectedBooks])
+
+  const { pageIndex, setPageIndex, paginatedData } = useClientPagination({
+    data: filteredBooks,
+    pageSize,
+  })
+
+  // Reset to first page when search or filter mode changes
+  const prevSearchRef = React.useRef(search)
+  const prevFilterModeRef = React.useRef(filterMode)
+  React.useEffect(() => {
+    if (
+      prevSearchRef.current !== search ||
+      prevFilterModeRef.current !== filterMode
+    ) {
+      prevSearchRef.current = search
+      prevFilterModeRef.current = filterMode
+      setPageIndex(0)
+    }
+  }, [search, filterMode, setPageIndex])
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+      {/* Search & Filter Header */}
+      <div className="flex flex-col gap-2">
+        <div className="relative w-full">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("createGroupModal.searchBooks")}
+            className="ps-11"
+          />
+          <Search className="pointer-events-none absolute start-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        </div>
+
+        {/* Filter chips & bulk actions */}
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant={filterMode === "all" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setFilterMode("all")}
+              className="h-8 rounded-lg px-2.5 text-xs"
+              disabled={isLoading}
+            >
+              <BookOpen className="me-1 size-3.5 text-muted-foreground" />
+              <span>{t("createGroupModal.filterAll")}</span>
+              <span className="ms-1 font-mono text-muted-foreground">
+                {isLoading ? (
+                  <Skeleton className="inline-block h-3.5 w-4 align-middle" />
+                ) : (
+                  `(${formatNumber(books.length)})`
+                )}
+              </span>
+            </Button>
+            <Button
+              type="button"
+              variant={filterMode === "selected" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setFilterMode("selected")}
+              className="h-8 rounded-lg px-2.5 text-xs"
+              disabled={isLoading}
+            >
+              <Layers className="me-1 size-3.5 text-muted-foreground" />
+              <span>{t("createGroupModal.filterSelected")}</span>
+              <span className="ms-1 font-mono text-muted-foreground">
+                {isLoading ? (
+                  <Skeleton className="inline-block h-3.5 w-4 align-middle" />
+                ) : (
+                  `(${formatNumber(selectedCount)})`
+                )}
+              </span>
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-1">
+            {onSelectAll && filteredBooks.length > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onSelectAll}
+                className="h-8 rounded-lg px-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                {t("createGroupModal.selectAll")}
+              </Button>
+            )}
+            {onClearAll && selectedCount > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onClearAll}
+                className="h-8 rounded-lg px-2 text-xs text-destructive hover:bg-destructive/10"
+              >
+                {t("createGroupModal.clearSelection")}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Books List */}
+      {isLoading ? (
+        <div
+          aria-busy="true"
+          aria-live="polite"
+          className="flex flex-col divide-y divide-border/60"
+        >
+          {Array.from({ length: pageSize }).map((_, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-3 py-3.5 first:pt-0 last:pb-0 sm:py-4"
+            >
+              <Skeleton className="size-5 rounded-md" />
+              <div className="flex flex-1 items-center justify-between gap-3">
+                <div className="flex flex-1 items-center gap-2">
+                  <Skeleton
+                    className={`h-5 rounded-md ${
+                      idx % 3 === 0
+                        ? "w-48 sm:w-64"
+                        : idx % 3 === 1
+                          ? "w-36 sm:w-48"
+                          : "w-40 sm:w-56"
+                    }`}
+                  />
+                  <Skeleton className="h-5 w-14 rounded-md" />
+                </div>
+                <Skeleton className="hidden h-4 w-16 rounded-md sm:inline-block" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredBooks.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 p-8 text-center text-muted-foreground">
+          <BookOpen className="mb-2 size-8 text-muted-foreground/60" />
+          <span className="text-sm font-medium">
+            {t("createGroupModal.noBooksFound")}
+          </span>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col divide-y divide-border/60">
+            {paginatedData.map((book) => {
+              const isChecked = Boolean(selectedBooks[book.id])
+              const bookConfig = selectedBooks[book.id]
+
+              // Generate preview for this book
+              const termsCount = Number(bookConfig?.termsCount) || 3
+              const startingPrereqTitle = bookConfig?.startingPrerequisiteId
+                ? courses.find(
+                    (c) => c.id === bookConfig.startingPrerequisiteId
+                  )?.title
+                : null
+
+              const previewItems: BookCoursePreviewItem[] = []
+              for (let i = 1; i <= termsCount; i++) {
+                previewItems.push({
+                  title: `${book.title} - ${i}`,
+                  prerequisiteText:
+                    i === 1
+                      ? startingPrereqTitle || t("createGroupModal.noPrereq")
+                      : `${book.title} - ${i - 1}`,
+                })
+              }
+
+              return (
+                <div
+                  key={book.id}
+                  className="flex flex-col py-3.5 first:pt-0 last:pb-0 sm:py-4"
+                >
+                  {/* Book Header Row */}
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => onToggleBook(book.id)}
+                      id={`book-check-${book.id}`}
+                      aria-label={book.title}
+                    />
+
+                    <label
+                      htmlFor={`book-check-${book.id}`}
+                      className="flex flex-1 cursor-pointer flex-wrap items-center gap-2 select-none"
+                    >
+                      <span className="text-base font-semibold text-foreground sm:text-lg">
+                        {book.title}
+                      </span>
+                      {book.isGlobal && (
+                        <Badge
+                          variant="secondary"
+                          className="h-5 gap-1 rounded-md px-1.5 text-[10px]"
+                        >
+                          <Globe className="size-2.5 text-muted-foreground" />
+                          <span>{tb("globalBadge")}</span>
+                        </Badge>
+                      )}
+                    </label>
+                  </div>
+
+                  {/* Expanded configuration for checked book */}
+                  {isChecked && bookConfig && (
+                    <div className="mt-3.5 flex flex-col gap-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {/* Counter for terms count */}
+                        <Field>
+                          <FieldLabel className="text-xs font-medium text-muted-foreground">
+                            {t("createGroupModal.termsCountForBook")}
+                          </FieldLabel>
+                          <Counter
+                            min={1}
+                            max={20}
+                            value={bookConfig.termsCount}
+                            onValueChange={(val) =>
+                              onUpdateBook(book.id, { termsCount: val })
+                            }
+                            size="default"
+                            className="w-full"
+                          />
+                        </Field>
+
+                        {/* Price input for base fee */}
+                        <Field>
+                          <FieldLabel className="text-xs font-medium text-muted-foreground">
+                            {t("createGroupModal.feeForBook")}
+                          </FieldLabel>
+                          <PriceInput
+                            value={bookConfig.baseFee}
+                            onValueChange={(val) =>
+                              onUpdateBook(book.id, { baseFee: val })
+                            }
+                            placeholder={t("createGroupModal.feePlaceholder")}
+                          />
+                        </Field>
+                      </div>
+
+                      {/* Live Preview Carousel for this book */}
+                      <BookCoursesPreviewCarousel items={previewItems} />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {filteredBooks.length > pageSize && (
+            <div className="border-t border-border/50 pt-3">
+              <DataPagination
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                totalItems={filteredBooks.length}
+                onPageChange={setPageIndex}
+                compact
+                locale={locale}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

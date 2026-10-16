@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DoorOpen, Edit2, Trash2, Building2, Users, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { DataTable } from "@workspace/ui/components/data-table"
 import {
   Empty,
@@ -26,6 +26,10 @@ export interface ClassroomsTableProps {
   onEdit: (classroom: ClassroomDto) => void
   onDelete: (classroom: ClassroomDto) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function ClassroomsTable({
@@ -34,6 +38,10 @@ export function ClassroomsTable({
   onEdit,
   onDelete,
   onAdd,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: ClassroomsTableProps) {
   const t = useTranslations("classrooms")
   const locale = useLocale()
@@ -139,11 +147,7 @@ export function ClassroomsTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={pageSize ?? 5} />
   }
 
   if (!classrooms || classrooms.length === 0) {
@@ -177,5 +181,16 @@ export function ClassroomsTable({
     )
   }
 
-  return <DataTable columns={columns} data={classrooms} />
+  return (
+    <DataTable
+      columns={columns}
+      data={classrooms}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
+      locale={locale}
+    />
+  )
 }

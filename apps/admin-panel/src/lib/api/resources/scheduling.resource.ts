@@ -1,4 +1,5 @@
 import type {
+  ApplyTeacherReassignmentChainInput,
   ApplyTermDemandInput,
   ApplyTermDemandResult,
   CalculateTermDemandInput,
@@ -114,6 +115,13 @@ export const schedulingResource = api.resource("scheduling", {
     SchedulingPlanDetailsDto,
     SchedulingPlanRequest & { body: ToggleTeacherOutreachInput }
   >(({ planId }) => `/scheduling/plans/${planId}/teacher-outreach/toggle`, {
+    query: toInstituteQuery,
+    body: ({ body }) => body,
+  }),
+  applyReassignmentChain: api.post<
+    SchedulingPlanDetailsDto,
+    SchedulingPlanRequest & { body: ApplyTeacherReassignmentChainInput }
+  >(({ planId }) => `/scheduling/plans/${planId}/reassignment-chains/apply`, {
     query: toInstituteQuery,
     body: ({ body }) => body,
   }),

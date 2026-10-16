@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import {
   createCreateBranchSchema,
   createUpdateBranchSchema,
@@ -11,13 +12,19 @@ import {
 export type { CreateBranchInput, UpdateBranchInput }
 
 export function useCreateBranchSchema() {
+  const t = useTranslations("branches")
   return React.useMemo(() => {
-    return createCreateBranchSchema()
-  }, [])
+    return createCreateBranchSchema({
+      nameMin: t("validation.nameMin"),
+    })
+  }, [t])
 }
 
 export function useUpdateBranchSchema() {
+  const t = useTranslations("branches")
   return React.useMemo(() => {
-    return createUpdateBranchSchema()
-  }, [])
+    return createUpdateBranchSchema({
+      nameMin: t("validation.nameMin"),
+    })
+  }, [t])
 }

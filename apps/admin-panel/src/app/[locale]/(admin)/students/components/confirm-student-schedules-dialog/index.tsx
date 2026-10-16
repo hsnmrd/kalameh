@@ -4,18 +4,16 @@ import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import { Clock, Info } from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import type { TermDto } from "@workspace/types"
+import { findCurrentActiveTerm, type TermDto } from "@workspace/types"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle,
-} from "@workspace/ui/components/alert-dialog"
+  ResponsiveDialog,
+  ResponsiveDialogCloseButton,
+  ResponsiveDialogContent,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@workspace/ui/components/dialog"
+import { Button } from "@workspace/ui/components/button"
 import {
   ResponsiveCombobox,
   type ComboboxOption,
@@ -57,11 +55,32 @@ export function ConfirmStudentSchedulesDialog({
     passedTerms && passedTerms.length > 0 ? passedTerms : fetchedTerms
 
   const resolvedInitialTermId = React.useMemo(() => {
+    // 1. Current active term has top priority as default
+    const activeTerm = findCurrentActiveTerm(terms)
+    if (activeTerm?.id && terms.some((term) => term.id === activeTerm.id)) {
+      if (
+        defaultTermId &&
+        defaultTermId !== activeTerm.id &&
+        terms.some((term) => term.id === defaultTermId)
+      ) {
+        return defaultTermId
+      }
+      return activeTerm.id
+    }
+
+    // 2. If explicit defaultTermId passed and exists in terms, use it
     if (defaultTermId && terms.some((term) => term.id === defaultTermId)) {
       return defaultTermId
     }
+
+    // 3. Look for unconfirmed term
     const unconfirmed = terms.find((term) => !term.studentSchedulesConfirmedAt)
-    return unconfirmed?.id ?? terms[0]?.id ?? ""
+    if (unconfirmed?.id) {
+      return unconfirmed.id
+    }
+
+    // 4. Fallback to first available term
+    return terms[0]?.id ?? ""
   }, [defaultTermId, terms])
 
   const [selectedTermId, setSelectedTermId] = React.useState(
@@ -69,13 +88,10 @@ export function ConfirmStudentSchedulesDialog({
   )
 
   React.useEffect(() => {
-    if (
-      resolvedInitialTermId &&
-      (!selectedTermId || !terms.some((term) => term.id === selectedTermId))
-    ) {
+    if (open && resolvedInitialTermId) {
       setSelectedTermId(resolvedInitialTermId)
     }
-  }, [resolvedInitialTermId, selectedTermId, terms])
+  }, [open, resolvedInitialTermId])
 
   const currentTerm = React.useMemo(
     () => terms.find((term) => term.id === selectedTermId),
@@ -118,75 +134,86 @@ export function ConfirmStudentSchedulesDialog({
   }
 
   return (
-    <AlertDialog
+    <ResponsiveDialog
       open={open}
       onOpenChange={(next) => !next && !isPending && onClose()}
     >
-      <AlertDialogContent className="p-6 sm:max-w-md">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("dialogTitle")}</AlertDialogTitle>
-        </AlertDialogHeader>
+      <ResponsiveDialogContent className="overflow-hidden p-0 sm:max-w-md">
+        <ResponsiveDialogHeader className="border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
+          <ResponsiveDialogTitle>{t("dialogTitle")}</ResponsiveDialogTitle>
+          <ResponsiveDialogCloseButton />
+        </ResponsiveDialogHeader>
 
-        <div className="mt-4 flex items-start gap-4">
-          <AlertDialogMedia className="mb-0 bg-primary/10 text-primary">
-            <Clock />
-          </AlertDialogMedia>
-          <AlertDialogDescription>
-            {t("dialogDescription", {
-              termTitle: currentTerm?.title ?? "",
-            })}
-          </AlertDialogDescription>
+        <div className="space-y-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3.5 text-xs leading-relaxed text-foreground/90">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Clock className="size-4" />
+            </div>
+            <p>
+              {t("dialogDescription", {
+                termTitle: currentTerm?.title ?? "",
+              })}
+            </p>
+          </div>
+
+          {terms.length > 1 ? (
+            <Field className="space-y-1.5">
+              <FieldLabel>{t("selectTerm")}</FieldLabel>
+              <ResponsiveCombobox
+                items={termOptions}
+                value={selectedTermId}
+                onValueChange={(val) => setSelectedTermId(val || "")}
+                placeholder={t("selectTerm")}
+                drawerTitle={t("selectTerm")}
+                clearable={false}
+                disabled={isPending}
+              />
+            </Field>
+          ) : currentTerm ? (
+            <div className="rounded-xl border border-border bg-muted/30 p-3.5 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">{t("selectTerm")}</span>
+                <strong className="text-foreground">{currentTerm.title}</strong>
+              </div>
+            </div>
+          ) : null}
+
+          {isAlreadyConfirmed && currentTerm?.studentSchedulesConfirmedAt && (
+            <div className="flex items-start gap-2.5 rounded-xl border border-border/80 bg-muted/20 p-3 text-xs leading-5 text-muted-foreground">
+              <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+              <span>
+                {t("alreadyConfirmed", {
+                  date: formatDate(
+                    currentTerm.studentSchedulesConfirmedAt,
+                    locale
+                  ),
+                })}
+              </span>
+            </div>
+          )}
         </div>
 
-        {terms.length > 1 ? (
-          <Field className="mt-4">
-            <FieldLabel>{t("selectTerm")}</FieldLabel>
-            <ResponsiveCombobox
-              items={termOptions}
-              value={selectedTermId}
-              onValueChange={(val) => setSelectedTermId(val || "")}
-              placeholder={t("selectTerm")}
-              drawerTitle={t("selectTerm")}
-              clearable={false}
-              disabled={isPending}
-            />
-          </Field>
-        ) : currentTerm ? (
-          <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3.5 text-sm">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-muted-foreground">{t("selectTerm")}</span>
-              <strong className="text-foreground">{currentTerm.title}</strong>
-            </div>
-          </div>
-        ) : null}
-
-        {isAlreadyConfirmed && currentTerm?.studentSchedulesConfirmedAt && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-border/80 bg-muted/20 p-3 text-xs leading-5 text-muted-foreground">
-            <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-            <span>
-              {t("alreadyConfirmed", {
-                date: formatDate(
-                  currentTerm.studentSchedulesConfirmedAt,
-                  locale
-                ),
-              })}
-            </span>
-          </div>
-        )}
-
-        <AlertDialogFooter className="mt-6 flex-row items-center gap-3 sm:border-t sm:border-border/60 sm:pt-4">
-          <AlertDialogCancel disabled={isPending} onClick={onClose}>
+        <ResponsiveDialogFooter className="flex-row items-center gap-3 border-t border-border/60 bg-muted/20 px-4 py-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:justify-end sm:px-6 sm:py-4">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isPending}
+            onClick={onClose}
+            className="min-w-0 flex-1 sm:flex-initial"
+          >
             {t("cancel")}
-          </AlertDialogCancel>
-          <AlertDialogAction
+          </Button>
+          <Button
+            type="button"
             disabled={isPending || !selectedTermId}
             onClick={handleConfirm}
+            className="min-w-0 flex-1 sm:flex-initial"
           >
             {isPending && <Spinner data-icon="inline-start" />}
-            {t("confirm")}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            <span>{t("confirm")}</span>
+          </Button>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   )
 }

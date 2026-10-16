@@ -32,7 +32,7 @@ export function TermsActionButton({
 
   return (
     <PermissionGuard permission={PERMISSIONS.MANAGE_TERMS} mode="hide">
-      <ButtonGroup className="shadow-xs">
+      <ButtonGroup className="hidden shadow-xs lg:inline-flex">
         {/* Primary Action: Smart Term Creation (Direct Click) */}
         {onBatchClick ? (
           <Button

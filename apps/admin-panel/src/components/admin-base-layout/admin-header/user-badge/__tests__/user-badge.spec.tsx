@@ -108,9 +108,9 @@ describe("UserBadge", () => {
 
     const trigger = screen.getByRole("button", { name: "اطلاعات کاربری" })
 
-    // Header trigger shows active institute initial ("آم") without leaking
+    // Header trigger shows active institute initial ("آ") without leaking
     // app-specific props to the underlying DOM button.
-    expect(screen.getByText("آم")).toBeInTheDocument()
+    expect(screen.getByText("آ")).toBeInTheDocument()
     expect(trigger).not.toHaveAttribute("activeinstitutesubdomain")
     expect(trigger).not.toHaveAttribute("rolelabel")
 
@@ -132,6 +132,53 @@ describe("UserBadge", () => {
     fireEvent.click(screen.getByRole("button", { name: "خروج از آموزشگاه" }))
     expect(clearActiveInstitute).toHaveBeenCalledOnce()
     expect(mockPush).toHaveBeenCalledWith("/institutes")
+  })
+
+  it("falls back to first letter of institute when logo image fails to load", () => {
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstitute: {
+        id: "inst-1",
+        name: "آموزشگاه کلمه تهران",
+        subdomain: "tehran",
+        logoUrl: "/broken-logo.png",
+        phones: [],
+        enabledModules: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      activeInstituteId: "inst-1",
+      isSuperAdminManaging: true,
+      institutes: [],
+      isLoadingInstitutes: false,
+      selectInstitute: vi.fn(),
+      clearActiveInstitute: vi.fn(),
+      setActiveInstitute: vi.fn(),
+    })
+
+    render(
+      <UserBadge
+        role={ROLES.SUPER_ADMIN}
+        user={{
+          firstName: "مدیر",
+          lastName: "ارشد",
+          role: ROLES.SUPER_ADMIN,
+          isActive: true,
+        }}
+      />
+    )
+
+    // Initially image is rendered
+    const img = screen.getByRole("img", { name: "آموزشگاه کلمه تهران" })
+    expect(img).toBeInTheDocument()
+
+    // Trigger image load failure
+    fireEvent.error(img)
+
+    // Image is removed and first letter of institute is shown
+    expect(
+      screen.queryByRole("img", { name: "آموزشگاه کلمه تهران" })
+    ).not.toBeInTheDocument()
+    expect(screen.getByText("آ")).toBeInTheDocument()
   })
 
   it("shows select institute action button in popover when Super Admin has no active institute", () => {

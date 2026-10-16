@@ -25,11 +25,11 @@ import {
 } from "@workspace/ui/components/combobox"
 import { classroomsResource } from "@/lib/api"
 import {
-  createUpdateClassroomSchema,
   type UpdateClassroomInput,
   type ClassroomDto,
   type BranchWithStats,
 } from "@workspace/types"
+import { useUpdateClassroomSchema } from "../../hooks/use-classroom-schemas"
 
 export interface EditClassroomModalProps {
   classroom: ClassroomDto | null
@@ -46,13 +46,7 @@ export function EditClassroomModal({
 }: EditClassroomModalProps) {
   const t = useTranslations("classrooms")
   const queryClient = useQueryClient()
-
-  const classroomSchema = React.useMemo(() => {
-    return createUpdateClassroomSchema({
-      nameMin: t("editModal.namePlaceholder"),
-      capacityMin: t("editModal.capacityPlaceholder"),
-    })
-  }, [t])
+  const classroomSchema = useUpdateClassroomSchema()
 
   const {
     register,

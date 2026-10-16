@@ -31,3 +31,24 @@ export const Disabled: Story = {
     className: "w-[28rem]",
   },
 }
+
+export const WithCrop: Story = {
+  args: {
+    className: "w-[28rem]",
+    crop: true,
+    placeholder: "تصویر پروفایل (با قابلیت برش و بهینه‌سازی)",
+  },
+}
+
+export const WithCustomCropOptions: Story = {
+  args: {
+    className: "w-[28rem]",
+    crop: {
+      aspectRatio: 16 / 9,
+      cropShape: "rect",
+      maxWidth: 1280,
+      maxHeight: 720,
+    },
+    placeholder: "بنر دوره (نسبت ۱۶:۹)",
+  },
+}

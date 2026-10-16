@@ -14,11 +14,12 @@ import {
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
-import type {
-  TeacherDto,
-  TeacherAvailabilityInput,
-  OccupiedSlotInfo,
-  WeekDay,
+import {
+  selectCurrentOrActiveTerm,
+  type TeacherDto,
+  type TeacherAvailabilityInput,
+  type OccupiedSlotInfo,
+  type WeekDay,
 } from "@workspace/types"
 import { ResponsiveCombobox } from "@workspace/ui/components/combobox"
 import { branchesResource, teachersResource, termsResource } from "@/lib/api"
@@ -29,6 +30,7 @@ export interface TeacherAvailabilityModalProps {
   open: boolean
   onClose: () => void
   instituteId?: string
+  initialTermId?: string | null
 }
 
 export function TeacherAvailabilityModal({
@@ -36,6 +38,7 @@ export function TeacherAvailabilityModal({
   open,
   onClose,
   instituteId,
+  initialTermId,
 }: TeacherAvailabilityModalProps) {
   const t = useTranslations("teachers")
   const queryClient = useQueryClient()
@@ -68,13 +71,34 @@ export function TeacherAvailabilityModal({
   const activeTerms = React.useMemo(() => {
     const withPhase = terms.filter((term) => Boolean(term.operatingPhase))
     const active = withPhase.filter((term) => term.isActive)
-    return active.length > 0 ? active : withPhase
+    const list = active.length > 0 ? active : withPhase
+    return [...list].sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    )
   }, [terms])
+
+  const defaultTerm = React.useMemo(() => {
+    return selectCurrentOrActiveTerm(activeTerms) ?? activeTerms[0] ?? null
+  }, [activeTerms])
 
   const [selectedTermId, setSelectedTermId] = React.useState<string | null>(
     null
   )
-  const currentTermId = selectedTermId || activeTerms[0]?.id || null
+
+  React.useEffect(() => {
+    if (open) {
+      if (initialTermId) {
+        setSelectedTermId(initialTermId)
+      } else if (defaultTerm) {
+        setSelectedTermId((prev) => (prev ? prev : defaultTerm.id))
+      }
+    } else {
+      setSelectedTermId(null)
+    }
+  }, [open, initialTermId, defaultTerm])
+
+  const currentTermId = selectedTermId || defaultTerm?.id || null
 
   const { data: detailedTeacher, isLoading: isLoadingTeacher } = useQuery({
     ...teachersResource.detail.toQuery(teacher?.id || ""),

@@ -1,23 +1,121 @@
+"use client"
+
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { ArrowRightLeft, ChevronDown, ShieldCheck } from "lucide-react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { ArrowRightLeft, ChevronDown } from "lucide-react"
 import type { SchedulingTeacherReassignmentChain } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@workspace/ui/components/carousel"
+import { toast } from "@workspace/ui/components/sonner"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import { schedulingResource } from "@/lib/api/resources/scheduling.resource"
+import { useActiveInstitute } from "@/lib/stores"
+import { SchedulingStaffingSectionHeader } from "../scheduling-staffing-section-header"
+import { ReassignmentChainCard } from "./reassignment-chain-card"
 
 interface SchedulingTeacherReassignmentAnalysisProps {
+  branchNumber?: number
   chains: SchedulingTeacherReassignmentChain[]
   targetCourseTitle: string
+  planId?: string
+  planStatus?: string
+  unresolvedRequirementId?: string
+  onApplyChainSuccess?: () => void
 }
 
 export function SchedulingTeacherReassignmentAnalysis({
+  branchNumber,
   chains,
   targetCourseTitle,
+  planId,
+  planStatus,
+  unresolvedRequirementId,
+  onApplyChainSuccess,
 }: SchedulingTeacherReassignmentAnalysisProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
+  const queryClient = useQueryClient()
+  const { activeInstituteId } = useActiveInstitute()
   const [isExpanded, setIsExpanded] = React.useState(false)
+  const [applyingChainKey, setApplyingChainKey] = React.useState<string | null>(
+    null
+  )
+  const [api, setApi] = React.useState<CarouselApi>()
+  const [current, setCurrent] = React.useState(1)
+
+  React.useEffect(() => {
+    if (!api) return
+
+    setCurrent(api.selectedScrollSnap() + 1)
+
+    const onSelect = () => {
+      setCurrent(api.selectedScrollSnap() + 1)
+    }
+
+    api.on("select", onSelect)
+    return () => {
+      api.off("select", onSelect)
+    }
+  }, [api])
+
+  const canApply =
+    Boolean(planId) &&
+    (!planStatus || ["DRAFT", "SELECTED"].includes(planStatus))
+
+  const applyChainMutation = useMutation({
+    ...schedulingResource.applyReassignmentChain.toMutation(),
+    onSuccess: (updatedPlan, variables) => {
+      toast.success(t("reassignment.applyChainSuccess"))
+      queryClient.setQueryData(
+        schedulingResource.planDetail.key({
+          planId: updatedPlan.id,
+          ...(variables.instituteId
+            ? { instituteId: variables.instituteId }
+            : {}),
+        }),
+        updatedPlan
+      )
+      queryClient.invalidateQueries({
+        queryKey: schedulingResource.planDetail.baseKey(),
+      })
+      onApplyChainSuccess?.()
+    },
+    onSettled: () => {
+      setApplyingChainKey(null)
+    },
+  })
+
+  const handleApplyChain = (chain: SchedulingTeacherReassignmentChain) => {
+    if (!planId || applyChainMutation.isPending) return
+    setApplyingChainKey(chain.key)
+    applyChainMutation.mutate({
+      planId,
+      ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
+      body: {
+        chainKey: chain.key,
+        ...(unresolvedRequirementId ? { unresolvedRequirementId } : {}),
+        reassignments: chain.reassignments.map((r) => ({
+          proposalId: r.proposalId,
+          toTeacherId: r.toTeacher.id,
+        })),
+        targetAssignment: {
+          teacherId: chain.targetAssignment.teacher.id,
+          classroomId: chain.targetAssignment.classroom?.id ?? null,
+          deliveryMode: chain.targetAssignment.deliveryMode,
+          daysOfWeek: chain.targetAssignment.daysOfWeek,
+          startTime: chain.targetAssignment.startTime,
+          endTime: chain.targetAssignment.endTime,
+        },
+      },
+    })
+  }
 
   if (chains.length === 0) {
     return (
@@ -70,133 +168,59 @@ export function SchedulingTeacherReassignmentAnalysis({
     )
   }
 
+  const hasMultiple = chains.length > 1
+
   return (
     <section
       aria-label={t("reassignment.title")}
-      className="rounded-xl border border-border p-3.5"
+      className="rounded-2xl border border-border/70 bg-card p-4 shadow-2xs transition-colors sm:p-5"
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-2">
-          <ArrowRightLeft
-            aria-hidden
-            className="mt-0.5 size-4 shrink-0 text-foreground"
-          />
-          <div>
-            <h5 className="text-xs font-semibold text-foreground">
-              {t("reassignment.title")}
-            </h5>
-            <p className="mt-1 max-w-3xl text-xs leading-5 text-muted-foreground">
-              {t("reassignment.description")}
-            </p>
-          </div>
-        </div>
-        <Badge variant="success">
-          {t("reassignment.chainCount", {
+      <Carousel
+        setApi={setApi}
+        opts={{
+          align: "start",
+          containScroll: "trimSnaps",
+          direction: locale === "fa" ? "rtl" : "ltr",
+        }}
+        className="w-full"
+      >
+        <SchedulingStaffingSectionHeader
+          branchNumber={branchNumber}
+          icon={ArrowRightLeft}
+          title={t("reassignment.title")}
+          badgeLabel={t("reassignment.chainCount", {
             count: formatNumber(chains.length, locale),
           })}
-        </Badge>
-      </div>
+          badgeVariant="success"
+          total={chains.length}
+          counterText={t("staffingFallback.teacherCarouselCounter", {
+            current: formatNumber(current, locale),
+            total: formatNumber(chains.length, locale),
+          })}
+        />
 
-      <ul className="mt-3 flex flex-col gap-3">
-        {chains.map((chain) => {
-          const target = chain.targetAssignment
-          const targetTeacher = `${target.teacher.firstName} ${target.teacher.lastName}`
-          const targetDays = target.daysOfWeek
-            .map((day) => t(`weekDays.${day}`))
-            .join(t("daySeparator"))
-
-          return (
-            <li key={chain.key} className="rounded-xl bg-muted/40 p-3.5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-foreground">
-                  {t("reassignment.validatedChain")}
-                </p>
-                <Badge variant="secondary">
-                  {t("reassignment.changeCount", {
-                    count: formatNumber(chain.reassignments.length, locale),
-                  })}
-                </Badge>
-              </div>
-
-              <ol className="mt-3 flex flex-col gap-2">
-                {chain.reassignments.map((step, index) => {
-                  const fromTeacher = `${step.fromTeacher.firstName} ${step.fromTeacher.lastName}`
-                  const toTeacher = `${step.toTeacher.firstName} ${step.toTeacher.lastName}`
-                  const days = step.daysOfWeek
-                    .map((day) => t(`weekDays.${day}`))
-                    .join(t("daySeparator"))
-
-                  return (
-                    <li
-                      key={step.proposalId}
-                      className="grid grid-cols-[auto_1fr] items-start gap-2.5 rounded-lg bg-background px-3 py-2.5"
-                    >
-                      <Badge variant="outline">
-                        {formatNumber(index + 1, locale)}
-                      </Badge>
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-foreground">
-                          {t("reassignment.moveTeacher", {
-                            classTitle: step.classTitle,
-                            fromTeacher,
-                            toTeacher,
-                          })}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {days} · {step.startTime}–{step.endTime}
-                        </p>
-                      </div>
-                    </li>
-                  )
-                })}
-                <li className="grid grid-cols-[auto_1fr] items-start gap-2.5 rounded-lg bg-background px-3 py-2.5">
-                  <Badge variant="success">
-                    {formatNumber(chain.reassignments.length + 1, locale)}
-                  </Badge>
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-foreground">
-                      {t("reassignment.assignTarget", {
-                        course: targetCourseTitle,
-                        teacher: targetTeacher,
-                      })}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {targetDays} · {target.startTime}–{target.endTime}
-                      {" · "}
-                      {target.deliveryMode === "ONLINE"
-                        ? t("reassignment.online")
-                        : t("reassignment.room", {
-                            room:
-                              target.classroom?.name ??
-                              t("recovery.unknownPhysicalRoom"),
-                          })}
-                    </p>
-                  </div>
-                </li>
-              </ol>
-
-              <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                <ShieldCheck
-                  aria-hidden
-                  className="size-4 text-muted-foreground"
-                />
-                <Badge variant="outline">
-                  {t("reassignment.validation.qualification")}
-                </Badge>
-                <Badge variant="outline">
-                  {t("reassignment.validation.availability")}
-                </Badge>
-                <Badge variant="outline">
-                  {t("reassignment.validation.teacherConflicts")}
-                </Badge>
-                <Badge variant="outline">
-                  {t("reassignment.validation.room")}
-                </Badge>
-              </div>
-            </li>
-          )
-        })}
-      </ul>
+        <CarouselContent className="-ms-3 mt-3">
+          {chains.map((chain) => (
+            <CarouselItem
+              key={chain.key}
+              data-testid="reassignment-chain-slide"
+              className={cn(
+                "ps-3",
+                hasMultiple ? "basis-[90%] sm:basis-[85%]" : "basis-full"
+              )}
+            >
+              <ReassignmentChainCard
+                chain={chain}
+                targetCourseTitle={targetCourseTitle}
+                canApply={canApply}
+                isPending={applyChainMutation.isPending}
+                isApplying={applyingChainKey === chain.key}
+                onApply={handleApplyChain}
+              />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
     </section>
   )
 }

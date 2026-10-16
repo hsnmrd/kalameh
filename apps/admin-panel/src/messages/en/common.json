@@ -15,6 +15,7 @@
     "terms": "Terms & Cycles",
     "generatePhaseTerms": "Automatic Term Generation",
     "reviewPhaseTerms": "Review and Adjust Term Dates",
+    "books": "Books",
     "courses": "Courses Management",
     "classrooms": "Classrooms",
     "teachers": "Teachers Management",
@@ -41,7 +42,10 @@
     "mobileNavigation": "Mobile navigation",
     "noMoreLinks": "All available sections are already in the navigation bar.",
     "locked": "Locked module",
-    "focusHint": "Next institute setup step"
+    "focusHint": "Next institute setup step",
+    "userProfile": "Staff Profile",
+    "studentProfile": "Student Profile",
+    "teacherProfile": "Teacher Profile"
   },
   "navShort": {
     "dashboard": "Dashboard",
@@ -53,6 +57,7 @@
     "classrooms": "Rooms",
     "branches": "Branches",
     "terms": "Terms",
+    "books": "Books",
     "courses": "Courses",
     "operatingPhases": "Phases",
     "offDays": "Calendar",
@@ -71,6 +76,8 @@
   },
   "language": "Language",
   "back": "Back",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
   "settings": "Settings",
   "logout": "Sign Out",
   "filter": {
@@ -167,6 +174,10 @@
       "ONLINE_ROOMS": {
         "name": "Online Classrooms",
         "description": "Virtual classrooms, webinars, and live session rooms"
+      },
+      "BOOKS": {
+        "name": "Books & Materials",
+        "description": "Manage textbooks and automatically generate courses from books"
       }
     }
   },
@@ -184,5 +195,62 @@
     "updateDescription": "A new version of Kalameh Admin is available.",
     "updateButton": "Update Now",
     "onlineBack": "Internet connection restored"
+  },
+  "pagination": {
+    "page": "Page",
+    "of": "of",
+    "rowsPerPage": "Rows per page",
+    "showing": "Showing",
+    "to": "to",
+    "items": "items",
+    "previous": "Previous",
+    "next": "Next",
+    "first": "First",
+    "last": "Last"
+  },
+  "profile": {
+    "tabs": {
+      "information": "Information",
+      "classes": "Classes",
+      "schedule": "Schedule",
+      "notes": "Notes"
+    },
+    "classes": {
+      "active": "Active Classes",
+      "passed": "Passed Classes",
+      "noActive": "No active classes found.",
+      "noPassed": "No passed classes found.",
+      "teacher": "Teacher",
+      "course": "Course",
+      "term": "Term",
+      "schedule": "Schedule",
+      "enrolledCount": "{count} Students",
+      "score": "Final Score: {score}",
+      "passedStatus": "Passed",
+      "failedStatus": "Failed",
+      "ongoingStatus": "Ongoing"
+    },
+    "schedule": {
+      "title": "Attendance Schedule",
+      "empty": "No schedule specified yet.",
+      "editAvailability": "Set Availability"
+    },
+    "notes": {
+      "title": "Notes",
+      "empty": "No notes recorded for this student.",
+      "add": "Add Note"
+    },
+    "actions": {
+      "more": "More Actions"
+    }
+  },
+  "days": {
+    "SATURDAY": "Saturday",
+    "SUNDAY": "Sunday",
+    "MONDAY": "Monday",
+    "TUESDAY": "Tuesday",
+    "WEDNESDAY": "Wednesday",
+    "THURSDAY": "Thursday",
+    "FRIDAY": "Friday"
   }
 }

@@ -11,25 +11,25 @@ type TeacherAvailability = {
   dayOfWeek: string;
   startTime: string;
   endTime: string;
+  branchId?: string | null;
+  branch?: { id: string; name: string } | null;
+  branchName?: string | null;
 };
-
 type TeacherReference = {
   id: string;
   firstName: string;
   lastName: string;
+  phoneNumber?: string | null;
   avatarUrl?: string | null;
+  branchId?: string | null;
+  branch?: { id: string; name: string } | null;
   availabilities?: TeacherAvailability[];
   teachableCourses?: Array<{ id: string; title: string }>;
 };
-
 type TeacherQualification = {
   courseId: string;
-  teacherProfile: {
-    userId: string;
-    availabilities: TeacherAvailability[];
-  };
+  teacherProfile: { userId: string; availabilities: TeacherAvailability[] };
 };
-
 type ScheduledClass = {
   id: string;
   teacherId: string | null;
@@ -38,7 +38,6 @@ type ScheduledClass = {
   startTime: string | null;
   endTime: string | null;
 };
-
 type PlanClass = {
   id: string;
   title: string;
@@ -47,19 +46,18 @@ type PlanClass = {
   startTime: string;
   endTime: string;
 };
-
 type TimeWindow = {
   dayOfWeek: WeekDay;
   startTime: string;
   endTime: string;
+  branchId?: string | null;
+  branchName?: string | null;
 };
-
 type BusySlot = TimeWindow & {
   id: string;
   title: string | null;
   source: 'PLAN' | 'EXISTING_CLASS';
 };
-
 type BuildTeacherCalendarsInput = {
   courseId: string | null;
   additionalTeacherIds?: string[];
@@ -87,15 +85,16 @@ export class SchedulingTeacherCalendarService {
               ...(input.additionalTeacherIds ?? []),
             ]),
           );
-    teacherIds.sort((leftId, rightId) => {
-      const left = teacherById.get(leftId);
-      const right = teacherById.get(rightId);
-      return (
-        (left?.lastName ?? '').localeCompare(right?.lastName ?? '') ||
-        (left?.firstName ?? '').localeCompare(right?.firstName ?? '') ||
-        leftId.localeCompare(rightId)
-      );
-    });
+    teacherIds.sort(
+      (leftId, rightId) =>
+        (teacherById.get(leftId)?.lastName ?? '').localeCompare(
+          teacherById.get(rightId)?.lastName ?? '',
+        ) ||
+        (teacherById.get(leftId)?.firstName ?? '').localeCompare(
+          teacherById.get(rightId)?.firstName ?? '',
+        ) ||
+        leftId.localeCompare(rightId),
+    );
 
     return teacherIds.flatMap((teacherId) => {
       const teacher = teacherById.get(teacherId);
@@ -113,12 +112,20 @@ export class SchedulingTeacherCalendarService {
           status: 'BUSY' as const,
           title: slot.title,
           source: slot.source,
+          ...(slot.branchId !== undefined ? { branchId: slot.branchId } : {}),
+          ...(slot.branchName !== undefined
+            ? { branchName: slot.branchName }
+            : {}),
         })),
         ...free.map((slot) => ({
           ...slot,
           status: 'FREE' as const,
           title: null,
           source: 'AVAILABILITY' as const,
+          ...(slot.branchId !== undefined ? { branchId: slot.branchId } : {}),
+          ...(slot.branchName !== undefined
+            ? { branchName: slot.branchName }
+            : {}),
         })),
       ].sort(
         (left, right) =>
@@ -131,7 +138,13 @@ export class SchedulingTeacherCalendarService {
 
       return [
         SchedulingTeacherCalendarSchema.parse({
-          teacher,
+          teacher: {
+            ...teacher,
+            ...(teacher.branchId !== undefined
+              ? { branchId: teacher.branchId }
+              : {}),
+            ...(teacher.branch !== undefined ? { branch: teacher.branch } : {}),
+          },
           teachableCourses: teacher.teachableCourses ?? [],
           slots,
         }),
@@ -150,10 +163,20 @@ export class SchedulingTeacherCalendarService {
         : input.qualifications
             .filter(({ teacherProfile }) => teacherProfile.userId === teacherId)
             .flatMap(({ teacherProfile }) => teacherProfile.availabilities);
-    const windows = source.map((availability) => ({
-      dayOfWeek: availability.dayOfWeek as WeekDay,
-      startTime: availability.startTime,
-      endTime: availability.endTime,
+    const windows = source.map((a) => ({
+      dayOfWeek: a.dayOfWeek as WeekDay,
+      startTime: a.startTime,
+      endTime: a.endTime,
+      ...(a.branchId
+        ? { branchId: a.branchId }
+        : a.branch?.id
+          ? { branchId: a.branch.id }
+          : {}),
+      ...(a.branchName
+        ? { branchName: a.branchName }
+        : a.branch?.name
+          ? { branchName: a.branch.name }
+          : {}),
     }));
 
     return this.mergeWindows(windows);
@@ -223,6 +246,8 @@ export class SchedulingTeacherCalendarService {
           dayOfWeek: window.dayOfWeek,
           startTime: cursor,
           endTime: conflictStart,
+          branchId: window.branchId,
+          branchName: window.branchName,
         });
       }
       if (conflictEnd > cursor) cursor = conflictEnd;
@@ -233,6 +258,8 @@ export class SchedulingTeacherCalendarService {
         dayOfWeek: window.dayOfWeek,
         startTime: cursor,
         endTime: window.endTime,
+        branchId: window.branchId,
+        branchName: window.branchName,
       });
     }
 
@@ -248,6 +275,7 @@ export class SchedulingTeacherCalendarService {
         const previous = merged.at(-1);
         if (
           previous?.dayOfWeek === dayOfWeek &&
+          previous.branchId === window.branchId &&
           window.startTime <= previous.endTime
         ) {
           previous.endTime = this.maxTime(previous.endTime, window.endTime);
@@ -276,7 +304,7 @@ export class SchedulingTeacherCalendarService {
   private dayOfWeek(value: string): WeekDay | null {
     const date = new Date(`${value.slice(0, 10)}T12:00:00.000Z`);
     if (Number.isNaN(date.getTime())) return null;
-    const day = [
+    const days: readonly WeekDay[] = [
       'SUNDAY',
       'MONDAY',
       'TUESDAY',
@@ -284,15 +312,12 @@ export class SchedulingTeacherCalendarService {
       'THURSDAY',
       'FRIDAY',
       'SATURDAY',
-    ][date.getUTCDay()];
-    return day as WeekDay;
+    ];
+    return days[date.getUTCDay()] ?? null;
   }
 
-  private minTime(left: string, right: string): string {
-    return left < right ? left : right;
-  }
-
-  private maxTime(left: string, right: string): string {
-    return left > right ? left : right;
-  }
+  private minTime = (left: string, right: string) =>
+    left < right ? left : right;
+  private maxTime = (left: string, right: string) =>
+    left > right ? left : right;
 }

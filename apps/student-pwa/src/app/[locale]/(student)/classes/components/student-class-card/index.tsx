@@ -2,18 +2,26 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { User, Clock, CheckCircle2 } from "lucide-react"
+import { User, Clock, CheckCircle2, UserPlus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Price } from "@workspace/ui/components/price"
+import { Spinner } from "@workspace/ui/components/spinner"
 import type { ClassDto } from "@workspace/types"
 
 export interface StudentClassCardProps {
   cls: ClassDto
   onEnroll?: (cls: ClassDto) => void
+  onWaitlist?: (cls: ClassDto) => void
+  isPending?: boolean
 }
 
-export function StudentClassCard({ cls, onEnroll }: StudentClassCardProps) {
+export function StudentClassCard({
+  cls,
+  onEnroll,
+  onWaitlist,
+  isPending,
+}: StudentClassCardProps) {
   const t = useTranslations("classes")
   const locale = useLocale()
 
@@ -74,14 +82,36 @@ export function StudentClassCard({ cls, onEnroll }: StudentClassCardProps) {
           />
         </div>
 
-        <Button
-          onClick={() => onEnroll?.(cls)}
-          disabled={isFull}
-          className="h-10 cursor-pointer rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-2xs hover:bg-primary/90 disabled:opacity-50"
-        >
-          <CheckCircle2 className="me-1.5 size-4" />
-          <span>{t("enrollButton")}</span>
-        </Button>
+        {isFull ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onWaitlist?.(cls)}
+            disabled={isPending}
+            className="h-10 cursor-pointer rounded-xl border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
+          >
+            {isPending ? (
+              <Spinner className="me-1.5 size-4" />
+            ) : (
+              <UserPlus className="me-1.5 size-4 text-muted-foreground" />
+            )}
+            <span>{t("waitlistButton")}</span>
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            onClick={() => onEnroll?.(cls)}
+            disabled={isPending}
+            className="h-10 cursor-pointer rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-2xs hover:bg-primary/90"
+          >
+            {isPending ? (
+              <Spinner className="me-1.5 size-4" />
+            ) : (
+              <CheckCircle2 className="me-1.5 size-4" />
+            )}
+            <span>{t("enrollButton")}</span>
+          </Button>
+        )}
       </div>
     </div>
   )

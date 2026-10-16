@@ -24,20 +24,29 @@ export class TeacherQueryService {
         ? query.instituteId
         : currentUser.instituteId;
 
-    const where: Record<string, unknown> = {
-      role: ROLES.TEACHER,
+    const baseWhere: Record<string, unknown> = {
+      OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
       ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
       ...(query.isActive !== undefined ? { isActive: query.isActive } : {}),
     };
 
+    let where: Record<string, unknown> = baseWhere;
+
     if (query.search?.trim()) {
       const s = query.search.trim();
-      where.OR = [
-        { firstName: { contains: s, mode: 'insensitive' } },
-        { lastName: { contains: s, mode: 'insensitive' } },
-        { phone: { contains: s } },
-        { nationalCode: { contains: s } },
-      ];
+      where = {
+        AND: [
+          baseWhere,
+          {
+            OR: [
+              { firstName: { contains: s, mode: 'insensitive' } },
+              { lastName: { contains: s, mode: 'insensitive' } },
+              { phone: { contains: s } },
+              { nationalCode: { contains: s } },
+            ],
+          },
+        ],
+      };
     }
 
     const teachers = await this.prisma.user.findMany({
@@ -108,7 +117,7 @@ export class TeacherQueryService {
     const teacher = await this.prisma.user.findFirstOrThrow({
       where: {
         id,
-        role: ROLES.TEACHER,
+        OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
         ...(targetInstituteId ? { instituteId: targetInstituteId } : {}),
       },
       select: {
@@ -156,11 +165,24 @@ export class TeacherQueryService {
               select: {
                 id: true,
                 title: true,
+                isActive: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
+            course: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+            _count: {
+              select: {
+                enrollments: true,
               },
             },
           },
           orderBy: { createdAt: 'desc' },
-          take: 10,
         },
         _count: {
           select: {
@@ -172,10 +194,16 @@ export class TeacherQueryService {
       },
     });
 
-    const { _count, ...rest } = teacher;
+    const { _count, teachingClasses, ...rest } = teacher;
     return {
       ...rest,
       classesCount: _count.teachingClasses,
+      teachingClasses: teachingClasses.map(
+        ({ _count: classCount, ...cls }) => ({
+          ...cls,
+          enrolledCount: classCount?.enrollments ?? 0,
+        }),
+      ),
     };
   }
 
@@ -189,7 +217,7 @@ export class TeacherQueryService {
     }
 
     const where: Record<string, unknown> = {
-      role: ROLES.TEACHER,
+      OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
       ...(currentUser.role === ROLES.SUPER_ADMIN
         ? {}
         : { instituteId: currentUser.instituteId }),

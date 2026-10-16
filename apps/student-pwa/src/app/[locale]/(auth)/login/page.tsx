@@ -44,7 +44,6 @@ export default function StudentLoginPage() {
     defaultValues: {
       phone: "",
       password: "",
-      subdomain: "",
     },
   })
 
@@ -54,9 +53,28 @@ export default function StudentLoginPage() {
 
   const loginMutation = useMutation({
     ...authResource.login.toMutation(),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      if (
+        data.requiresInstituteSelection &&
+        data.institutes &&
+        data.institutes.length > 0
+      ) {
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(
+            "pending_auth",
+            JSON.stringify({
+              phone: variables.phone,
+              password: variables.password,
+              institutes: data.institutes,
+            })
+          )
+        }
+        router.push("/select-institute")
+        return
+      }
+
       const isStudent =
-        data.user.role === "STUDENT" || data.user.role === "SUPER_STUDENT"
+        data.user?.role === "STUDENT" || data.user?.role === "SUPER_STUDENT"
 
       if (!isStudent) {
         logoutMutation.mutate(undefined)
@@ -83,7 +101,6 @@ export default function StudentLoginPage() {
     loginMutation.mutate({
       phone: formData.phone,
       password: formData.password,
-      subdomain: formData.subdomain || undefined,
     })
   }
 
@@ -186,23 +203,6 @@ export default function StudentLoginPage() {
                     {...register("password")}
                   />
                   <FieldError>{errors.password?.message}</FieldError>
-                </Field>
-              </FieldGroup>
-
-              <FieldGroup>
-                <Field data-invalid={Boolean(errors.subdomain)}>
-                  <FieldLabel htmlFor="student-subdomain">
-                    {t("subdomainLabel")}
-                  </FieldLabel>
-                  <Input
-                    id="student-subdomain"
-                    type="text"
-                    dir="ltr"
-                    variant="auth"
-                    placeholder={t("subdomainPlaceholder")}
-                    {...register("subdomain")}
-                  />
-                  <FieldError>{errors.subdomain?.message}</FieldError>
                 </Field>
               </FieldGroup>
 

@@ -107,6 +107,18 @@ export const en: TranslationDictionary = {
     pastMonthsNotAllowed:
       'Cannot generate terms for past months. All months of this phase are in the past',
   },
+  books: {
+    bookNotFound: 'Requested book was not found',
+    bookAlreadyExists:
+      'A book with this title already exists in the catalog or institute',
+    cannotDeleteWithCourses:
+      'This book has associated courses and cannot be deleted',
+    cannotModifyGlobalBook: 'Global master catalog books cannot be modified',
+    cannotDeleteGlobalBook: 'Global master catalog books cannot be deleted',
+    coursesGeneratedSuccess: 'Courses generated successfully from book',
+    partLabel: 'Part',
+    termLabel: 'Term',
+  },
   courses: {
     courseNotFound: 'Requested course was not found',
     courseAlreadyExists:
@@ -114,6 +126,7 @@ export const en: TranslationDictionary = {
     prerequisiteNotFound: 'Selected prerequisite course was not found',
     prerequisiteCycleDetected:
       'Cannot create circular dependency in prerequisite chain',
+    instituteRequired: 'Institute ID is required to create courses',
   },
   classes: {
     classNotFound: 'Requested class was not found',

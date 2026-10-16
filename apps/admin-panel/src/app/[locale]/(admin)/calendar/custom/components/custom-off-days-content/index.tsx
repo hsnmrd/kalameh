@@ -15,6 +15,8 @@ import { formatDisplayDate } from "../../helper"
 import { CustomOffDaysFilter } from "../custom-off-days-filter"
 import { CustomOffDaysTable } from "../custom-off-days-table"
 import { CustomOffDaysList } from "../custom-off-days-list"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 
 import { modalRegistry } from "../../modal"
 
@@ -95,22 +97,26 @@ export function CustomOffDaysContent() {
     >
       {/* Desktop: DataTable */}
       <div className="hidden lg:block">
-        <CustomOffDaysTable
-          customOffDays={filteredOffDays}
-          isLoading={isLoading}
-          onDelete={(item) => openModal("deleteOffDay", { offDay: item })}
-          onAdd={() => openModal("addOffDay")}
-        />
+        <React.Suspense fallback={<TableSkeleton rows={5} />}>
+          <CustomOffDaysTable
+            customOffDays={filteredOffDays}
+            isLoading={isLoading}
+            onDelete={(item) => openModal("deleteOffDay", { offDay: item })}
+            onAdd={() => openModal("addOffDay")}
+          />
+        </React.Suspense>
       </div>
 
       {/* Mobile: MobileList */}
       <div className="lg:hidden">
-        <CustomOffDaysList
-          customOffDays={filteredOffDays}
-          isLoading={isLoading}
-          onDelete={(item) => openModal("deleteOffDay", { offDay: item })}
-          onAdd={() => openModal("addOffDay")}
-        />
+        <React.Suspense fallback={<ListSkeleton rows={5} />}>
+          <CustomOffDaysList
+            customOffDays={filteredOffDays}
+            isLoading={isLoading}
+            onDelete={(item) => openModal("deleteOffDay", { offDay: item })}
+            onAdd={() => openModal("addOffDay")}
+          />
+        </React.Suspense>
       </div>
     </AdminPageShell>
   )

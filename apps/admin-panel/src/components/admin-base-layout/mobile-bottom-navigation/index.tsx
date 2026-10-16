@@ -105,10 +105,13 @@ export function MobileBottomNavigation({
 
   return (
     <>
-      <span className="fixed inset-x-0 bottom-0 h-[50px] bg-gradient-to-t from-background" />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-30 h-[calc(5.5rem+env(safe-area-inset-bottom,0px))] bg-gradient-to-t from-background via-background/80 to-transparent lg:hidden"
+      />
       <nav
         aria-label={t("nav.mobileNavigation")}
-        className="fixed inset-x-4 bottom-3 z-40 rounded-[50px] border border-border bg-card/30 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] z-40 mx-auto max-w-md rounded-[50px] border border-border bg-card/80 shadow-lg backdrop-blur-md lg:hidden"
       >
         <div className="grid h-16 auto-cols-fr grid-flow-col items-stretch px-1">
           {directItems.map((item) => {
@@ -309,7 +312,7 @@ export function MobileBottomNavigation({
 
           <Separator />
 
-          <DrawerFooter className="gap-3 pt-3">
+          <DrawerFooter className="gap-3 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
             <Button
               type="button"
               variant="ghost"

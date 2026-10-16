@@ -10,6 +10,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { TeacherQualificationsService } from './teacher-qualifications.service';
+import { resolveUploadedFileUrl } from '../common/upload/multer.util';
 
 @Injectable()
 export class TeacherCreateService {
@@ -37,22 +38,54 @@ export class TeacherCreateService {
     }
 
     const avatarUrl = file
-      ? `/uploads/avatars/${file.filename}`
+      ? resolveUploadedFileUrl(file, 'avatars')
       : dto.avatarUrl;
 
-    const existing = await this.prisma.user.findUnique({
-      where: {
-        phone_instituteId: {
-          phone: dto.phone,
+    let targetUser: any = null;
+
+    if (dto.userId) {
+      const existingUser = await this.prisma.user.findFirst({
+        where: {
+          id: dto.userId,
           instituteId: targetInstituteId,
         },
-      },
-    });
+        include: {
+          teacherProfile: true,
+        },
+      });
 
-    if (existing) {
-      throw new ConflictException(
-        this.i18n.t('users.userAlreadyExists', locale),
-      );
+      if (!existingUser) {
+        throw new BadRequestException(
+          locale === 'fa'
+            ? 'کاربر انتخاب‌شده یافت نشد'
+            : 'Selected user not found',
+        );
+      }
+
+      if (existingUser.teacherProfile) {
+        throw new ConflictException(
+          locale === 'fa'
+            ? 'این کاربر از قبل به عنوان استاد دارای پروفایل تدریس است'
+            : 'User already has a teacher profile',
+        );
+      }
+
+      targetUser = existingUser;
+    } else {
+      const existing = await this.prisma.user.findUnique({
+        where: {
+          phone_instituteId: {
+            phone: dto.phone,
+            instituteId: targetInstituteId,
+          },
+        },
+      });
+
+      if (existing) {
+        throw new ConflictException(
+          this.i18n.t('users.userAlreadyExists', locale),
+        );
+      }
     }
 
     const rawPassword = dto.password || dto.phone;
@@ -135,60 +168,124 @@ export class TeacherCreateService {
           }
         : undefined;
 
-    const teacher = await this.prisma.user.create({
-      data: {
-        instituteId: targetInstituteId,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phone: dto.phone,
-        password: hashedPassword,
-        role: ROLES.TEACHER,
-        nationalCode: dto.nationalCode,
-        avatarUrl,
-        isActive: true,
-        teacherProfile: {
-          create: {
-            bio: dto.bio,
-            degree: dto.degree,
-            specialties: dto.specialties || [],
-            availabilities: availabilitiesData,
-            teachableCourses:
-              courseIds.length > 0
-                ? {
-                    create: courseIds.map((courseId) => ({
-                      instituteId: targetInstituteId,
-                      courseId,
-                    })),
-                  }
-                : undefined,
-          },
+    let teacher: any;
+
+    if (targetUser) {
+      await this.prisma.teacherProfile.create({
+        data: {
+          userId: targetUser.id,
+          bio: dto.bio,
+          degree: dto.degree,
+          specialties: dto.specialties || [],
+          availabilities: availabilitiesData,
+          teachableCourses:
+            courseIds.length > 0
+              ? {
+                  create: courseIds.map((courseId) => ({
+                    instituteId: targetInstituteId,
+                    courseId,
+                  })),
+                }
+              : undefined,
         },
-      },
-      include: {
-        teacherProfile: {
-          include: {
-            availabilities: true,
-            teachableCourses: {
-              include: { course: { select: { id: true, title: true } } },
-              orderBy: { course: { title: 'asc' } },
+      });
+
+      const userUpdates: Record<string, unknown> = {};
+      if (avatarUrl && !targetUser.avatarUrl) userUpdates.avatarUrl = avatarUrl;
+      if (dto.nationalCode && !targetUser.nationalCode) {
+        userUpdates.nationalCode = dto.nationalCode;
+      }
+      if (Object.keys(userUpdates).length > 0) {
+        await this.prisma.user.update({
+          where: { id: targetUser.id },
+          data: userUpdates,
+        });
+      }
+
+      teacher = await this.prisma.user.findUnique({
+        where: { id: targetUser.id },
+        include: {
+          teacherProfile: {
+            include: {
+              availabilities: true,
+              teachableCourses: {
+                include: { course: { select: { id: true, title: true } } },
+                orderBy: { course: { title: 'asc' } },
+              },
             },
           },
         },
-      },
-    });
+      });
 
-    await this.auditLogsService.log({
-      instituteId: targetInstituteId,
-      userId: currentUser.sub,
-      module: 'TEACHER',
-      action: 'TEACHER_CREATED',
-      entityId: teacher.id,
-      metadata: {
-        name: `${teacher.firstName} ${teacher.lastName}`,
-        phone: teacher.phone,
-        courseIds,
-      },
-    });
+      await this.auditLogsService.log({
+        instituteId: targetInstituteId,
+        userId: currentUser.sub,
+        module: 'TEACHER',
+        action: 'TEACHER_PROFILE_ACTIVATED',
+        entityId: targetUser.id,
+        metadata: {
+          name: `${teacher.firstName} ${teacher.lastName}`,
+          phone: teacher.phone,
+          role: teacher.role,
+          courseIds,
+        },
+      });
+    } else {
+      teacher = await this.prisma.user.create({
+        data: {
+          instituteId: targetInstituteId,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          phone: dto.phone,
+          password: hashedPassword,
+          role: ROLES.TEACHER,
+          nationalCode: dto.nationalCode,
+          avatarUrl,
+          isActive: true,
+          teacherProfile: {
+            create: {
+              bio: dto.bio,
+              degree: dto.degree,
+              specialties: dto.specialties || [],
+              availabilities: availabilitiesData,
+              teachableCourses:
+                courseIds.length > 0
+                  ? {
+                      create: courseIds.map((courseId) => ({
+                        instituteId: targetInstituteId,
+                        courseId,
+                      })),
+                    }
+                  : undefined,
+            },
+          },
+        },
+        include: {
+          teacherProfile: {
+            include: {
+              availabilities: true,
+              teachableCourses: {
+                include: { course: { select: { id: true, title: true } } },
+                orderBy: { course: { title: 'asc' } },
+              },
+            },
+          },
+        },
+      });
+
+      await this.auditLogsService.log({
+        instituteId: targetInstituteId,
+        userId: currentUser.sub,
+        module: 'TEACHER',
+        action: 'TEACHER_CREATED',
+        entityId: teacher.id,
+        metadata: {
+          name: `${teacher.firstName} ${teacher.lastName}`,
+          phone: teacher.phone,
+          courseIds,
+        },
+      });
+    }
 
     const { password: _password, ...safeTeacher } = teacher;
     return safeTeacher;

@@ -24,7 +24,7 @@ const defaultValues: GenerateSchedulingPlanInput = {
   termId: "",
   branchId: "",
   requirementIds: [],
-  alternativePlanCount: 3,
+  alternativePlanCount: 1,
   sourceRunId: null,
   lockedProposalIds: [],
 }

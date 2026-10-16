@@ -32,6 +32,17 @@
       "students": "بررسی فراگیران"
     }
   },
+  "preflight": {
+    "title": "پیش‌نیازهای زمان‌بندی خودکار",
+    "noTeachers": "هیچ استادی در مؤسسه ثبت نشده است.",
+    "noTeachersDescription": "برای زمان‌بندی خودکار کلاس‌ها، ابتدا باید اساتید مؤسسه را ثبت کنید.",
+    "noTeacherSchedule": "هیچ‌کدام از اساتید برنامه زمانی آزاد خود را تعیین نکرده‌اند.",
+    "noTeacherScheduleDescription": "برای زمان‌بندی معتبر، حداقل یک استاد باید ساعات حضور و دسترسی هفتگی خود را ثبت کرده باشد.",
+    "noBranchClassrooms": "هیچ کلاس درسی برای این شعبه تعریف نشده است.",
+    "noBranchClassroomsDescription": "برای زمان‌بندی کلاس‌ها در این شعبه، ابتدا باید کلاس‌های درس فیزیکی را تعریف کنید.",
+    "manageTeachers": "مدیریت اساتید",
+    "manageClassrooms": "مدیریت کلاس‌های درس"
+  },
   "generation": {
     "title": "ساخت پیشنهادهای زمان‌بندی",
     "description": "محدوده‌ی برنامه و نیازهای کلاسی موردنظر برای الگوریتم را انتخاب کنید.",
@@ -60,7 +71,14 @@
     "requirements": {
       "label": "نیازهای کلاسی",
       "description": "حداقل یک نیاز فعال را برای زمان‌بندی انتخاب کنید.",
+      "searchPlaceholder": "جست‌وجوی نیازهای کلاسی...",
       "selectAll": "انتخاب همه",
+      "deselectAll": "لغو انتخاب همه",
+      "selectionManagement": "مدیریت انتخاب‌ها",
+      "selectedCount": "{count} از {total} نیاز انتخاب شده",
+      "allSelectedStatus": "تمام نیازها انتخاب شده‌اند",
+      "noneSelectedStatus": "هیچ نیازی انتخاب نشده است",
+      "partialSelectedStatus": "بخشی از نیازها انتخاب شده‌اند",
       "clear": "پاک کردن",
       "loading": "در حال دریافت نیازهای کلاسی",
       "empty": "نیاز فعالی در این محدوده پیدا نشد",
@@ -74,6 +92,14 @@
         "IN_PERSON": "حضوری",
         "ONLINE": "آنلاین"
       },
+      "columns": {
+        "select": "انتخاب",
+        "course": "دوره آموزشی",
+        "branch": "شعبه",
+        "deliveryMode": "شیوه برگزاری",
+        "requiredClassCount": "تعداد کلاس",
+        "capacity": "ظرفیت کلاس"
+      },
       "allBranches": "همه شعبه‌ها"
     },
     "validation": {
@@ -81,7 +107,6 @@
       "branch": "یک شعبه انتخاب کنید.",
       "requirements": "حداقل یک نیاز کلاسی انتخاب کنید."
     },
-    "selectionSummary": "{count} نیاز انتخاب شده",
     "submit": "ساخت پیشنهادها",
     "submitting": "در حال شروع زمان‌بندی...",
     "instituteRequired": {
@@ -142,6 +167,7 @@
     },
     "retry": "تلاش مجدد",
     "retryGeneration": "تلاش مجدد برای ساخت برنامه",
+    "technicalError": "سامانه هنگام پردازش یا ثبت اطلاعات با خطای موقت مواجه شد. لطفاً دوباره تلاش کنید.",
     "exactError": "علت فنی: {error}",
     "notFound": {
       "title": "اجرای زمان‌بندی یافت نشد",
@@ -166,6 +192,11 @@
     "refresh": "به‌روزرسانی وضعیت",
     "another": "ساخت اجرای دیگر",
     "pageTitle": "نتیجه زمانبندی",
+    "longRunning": {
+      "tip": "آیا زمان تولید طولانی شده یا مشکلی پیش آمده است؟",
+      "description": "اگر ساخت پیشنهادها بیش از حد معمول طول کشیده است، می‌توانید فرایند را از ابتدا دوباره شروع کنید.",
+      "restart": "شروع مجدد از ابتدا"
+    },
     "preflightIssues": {
       "title": "علت توقف در پیش‌بررسی:",
       "COURSE_WITHOUT_QUALIFIED_TEACHER": "دوره «{entity}» استادی با صلاحیت تدریس فعال ندارد. لطفاً در بخش اساتید، صلاحیت تدریس این دوره را به حداقل یک استاد اختصاص دهید.",
@@ -413,6 +444,7 @@
       "selectTeacher": "انتخاب این استاد",
       "swapWithTeacher": "جابه‌جایی با این استاد",
       "switchTeacherSuccess": "استاد با موفقیت تغییر یافت.",
+      "rescheduleSuccess": "زمان کلاس با موفقیت تغییر کرد و به استاد تخصیص داده شد.",
       "swapTeacherSuccess": "اساتید دو جلسه با موفقیت جابه‌جا شدند.",
       "sessionSwapConfirmTitle": "جابه‌جایی جلسات",
       "sessionSwapConfirmDescription": "اساتید این دو جلسه برای تعیین دستی توسط سوپروایزر خالی می‌شوند و کلاس‌های درس به‌صورت خودکار تخصیص می‌یابند.",
@@ -473,6 +505,10 @@
     },
     "recovery": {
       "title": "راه‌های جای‌دادن این کلاس در برنامه",
+      "rescheduleTitle": "تغییر زمان کلاس برای استاد آزاد",
+      "suggestionsCount": "{count} بازه پیشنهادی",
+      "carouselCounter": "گزینه {current} از {total}",
+      "applyAction": "انتخاب این زمان",
       "optionCount": "نمایش {shown} از {total} گزینه",
       "statuses": {
         "AVAILABLE_NOW": "همین حالا قابل اجرا",
@@ -507,6 +543,8 @@
       "noChainDescription": "هیچ ترکیب امنی با حداکثر سه جابه‌جایی پیدا نشد. کلاس‌های قفل‌شده تغییر نمی‌کنند و تمام صلاحیت‌ها، زمان‌های حضور، تداخل‌ها و فضای فیزیکی با هم بررسی می‌شوند.",
       "showDetails": "مشاهده جزئیات",
       "hideDetails": "بستن جزئیات",
+      "applyChainButton": "اعمال جابه‌جایی",
+      "applyChainSuccess": "زنجیره جابه‌جایی استادان با موفقیت اعمال شد.",
       "validation": {
         "qualification": "صلاحیت تدریس تأیید شد",
         "availability": "استاد جایگزین در این زمان آزاد است",
@@ -515,21 +553,35 @@
       }
     },
     "staffingFallback": {
-      "title": "راه‌حل‌های تأمین استاد",
+      "title": "راه‌حل‌های تأمین استاد با افزایش زمان حضور استاد",
       "description": "سامانه دو مسیر تأمین استاد را بررسی می‌کند: افزایش زمان حضور استادان واجد شرایط یا افزودن استاد جدید برای این سطح.",
+      "branchPrefix": "راهکار {number}",
+      "orDivider": "یا",
       "freeMastersTitle": "انتخاب از اساتید آزاد در این بازه",
       "freeMastersDescription": "اساتید زیر در این بازه زمانی کلاس ندارند؛ مقایسه سطح تدریس آن‌ها با این کلاس در زیر مشخص شده است:",
       "readyToAssignCount": "{count} استاد واجد شرایط",
       "noFreeMastersTitle": "هیچ استادی در این بازه آزاد نیست",
       "noFreeMastersDescription": "در این ساعت هیچ استاد آزادی در آموزشگاه یافت نشد.",
+      "otherBranchesTitle": "اساتید آزاد سایر شعب",
+      "otherBranchesDescription": "اساتیدی که در این بازه زمانی در شعبه‌های دیگر در دسترس هستند. جهت تصمیم‌گیری، وضعیت برنامه‌ریزی هر شعبه نمایش داده شده است:",
+      "otherBranchScheduledBadge": "برنامه‌ریزی انجام شده",
+      "otherBranchNotScheduledBadge": "برنامه‌ریزی انجام نشده",
+      "otherBranchPublishedBadge": "برنامه‌ریزی نهایی شده",
+      "otherBranchSafeNotice": "برنامه‌ریزی این شعبه انجام شده و این استاد در این ساعت مازاد است.",
+      "otherBranchUnsafeNotice": "این شعبه هنوز برنامه‌ریزی نکرده و ممکن است در زمان‌بندی خود به این استاد نیاز داشته باشد.",
+      "otherBranchesCount": "{count} استاد در {branchCount} شعبه",
+      "otherBranchTeacherCount": "{count} استاد آزاد",
       "assignMaster": "انتخاب استاد",
       "assigning": "در حال انتصاب...",
       "directMatchBadge": "واجد شرایط · تطابق مستقیم",
       "higherLevelBadge": "واجد شرایط · سطح بالاتر ({course})",
       "lowerLevelBadge": "فاقد صلاحیت · سطح پایین‌تر ({course})",
       "unrelatedLevelBadge": "فاقد صلاحیت · رده آموزشی متفاوت",
+      "timeUnchangedBadge": "بدون تغییر ساعت کلاس",
+      "timeChangedBadge": "با تغییر ساعت کلاس",
+      "bankTeacherNotice": "هماهنگی با استاد جهت حضور در همین ساعت کلاس",
       "teachableCoursesLabel": "دوره‌های تدریس:",
-      "solutionsCount": "{count} زمان پیشنهادی",
+      "solutionsCount": "{count} استاد پیشنهادی",
       "carouselCounter": "گزینه {current} از {total}",
       "teacherCarouselCounter": "استاد {current} از {total}",
       "teacherPeriodsCount": "{count} بازه پیشنهادی",
@@ -924,7 +976,14 @@
     },
     "selectBranch": {
       "title": "انتخاب شعبه",
-      "description": "برای بررسی تعداد کلاس‌ها و جلسات مورد نیاز، ابتدا شعبه مورد نظر را انتخاب کنید."
+      "description": "برای بررسی تعداد کلاس‌ها و جلسات مورد نیاز، ابتدا شعبه مورد نظر را انتخاب کنید.",
+      "headerTitle": "انتخاب شعبه برای برنامه‌ریزی",
+      "subtitle": "برای بررسی تعداد کلاس‌ها و جلسات مورد نیاز، ابتدا شعبه مورد نظر را انتخاب کنید. وضعیت ثبت کلاس‌ها در ترم جاری برای هر شعبه مشخص شده است.",
+      "hasClasses": "دارای {count} کلاس ثبت‌شده در این ترم",
+      "noClasses": "بدون کلاس در این ترم (آماده برنامه‌ریزی)",
+      "selectBranchAction": "انتخاب این شعبه",
+      "classesCountLabel": "{count} کلاس کل",
+      "noAddress": "بدون نشانی ثبت‌شده"
     },
     "filters": {
       "term": "ترم",

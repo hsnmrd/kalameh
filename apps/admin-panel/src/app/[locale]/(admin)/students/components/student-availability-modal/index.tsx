@@ -25,7 +25,11 @@ import {
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
-import { operatingPhasesResource, studentsResource } from "@/lib/api"
+import {
+  operatingPhasesResource,
+  studentsResource,
+  termsResource,
+} from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { PhaseSelector } from "./phase-selector"
 import { TrackSlotRow } from "./track-slot-row"
@@ -162,6 +166,9 @@ export function StudentAvailabilityModal({
       toast.success(t("availabilityModal.saveSuccess"))
       queryClient.invalidateQueries({
         queryKey: studentsResource.list.baseKey(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: termsResource.list.baseKey(),
       })
       if (student?.id) {
         queryClient.invalidateQueries({

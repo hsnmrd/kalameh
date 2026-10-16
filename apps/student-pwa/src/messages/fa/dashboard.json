@@ -8,5 +8,11 @@
   "term": "پاییز ۱۴۰۵",
   "className": "Starter 101 - کلاس A",
   "receiptStatusDesc": "فیش واریزی شما ارسال شده و در انتظار بررسی و تأیید توسط مدیریت آموزشگاه است.",
-  "viewReceiptDetails": "مشاهده جزئیات فیش واریزی"
+  "viewReceiptDetails": "مشاهده جزئیات فیش واریزی",
+  "noEnrollmentTitle": "هنوز در کلاسی ثبت‌نام نکرده‌اید",
+  "noEnrollmentDesc": "برای شروع یادگیری، از بخش کلاس‌های مجاز دوره مورد نظر خود را انتخاب و ثبت‌نام نمایید.",
+  "selectClass": "مشاهده و انتخاب کلاس",
+  "statusEnrolled": "ثبت‌نام قطعی",
+  "statusWaitlisted": "لیست انتظار",
+  "statusRejected": "رد شده"
 }

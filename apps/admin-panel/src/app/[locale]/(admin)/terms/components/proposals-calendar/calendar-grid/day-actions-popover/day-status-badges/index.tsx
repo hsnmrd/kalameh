@@ -38,6 +38,13 @@ export function DayStatusBadges({
             })}
           </Badge>
         )}
+        {state.isOccupiedByExisting && (
+          <Badge className="bg-destructive/10 text-destructive line-through">
+            {t("batchModal.statusOccupiedByExisting", {
+              title: state.conflictingExistingTerm?.title || "",
+            })}
+          </Badge>
+        )}
         {state.isCurrentTermStart && (
           <Badge className="bg-primary/15 text-primary">
             {t("batchModal.statusTermStart")}

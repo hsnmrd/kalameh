@@ -1,3 +1,6 @@
 export * from "./client"
 export * from "./resources/auth.resource"
 export * from "./resources/classes.resource"
+export * from "./resources/enrollments.resource"
+export * from "./resources/institutes.resource"
+export * from "./resources/transactions.resource"

@@ -13,6 +13,14 @@ export const CourseSchema = z.object({
     })
     .nullable()
     .optional(),
+  bookId: z.string().uuid().nullable().optional(),
+  book: z
+    .object({
+      id: z.string().uuid(),
+      title: z.string(),
+    })
+    .nullable()
+    .optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
   classesCount: z.number().optional(),

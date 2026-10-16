@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
-import { BookOpen, Edit2, Plus } from "lucide-react"
+import { BookOpen, Edit2, Plus, Sparkles } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { DataTable } from "@workspace/ui/components/data-table"
@@ -19,6 +19,7 @@ import { Price } from "@workspace/ui/components/price"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type CourseDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { CoursePrerequisiteBadge } from "../course-prerequisite-badge"
 
 export interface CoursesTableProps {
@@ -26,6 +27,7 @@ export interface CoursesTableProps {
   isLoading: boolean
   onEdit: (course: CourseDto) => void
   onAdd?: () => void
+  onBatch?: () => void
 }
 
 export function CoursesTable({
@@ -33,6 +35,7 @@ export function CoursesTable({
   isLoading,
   onEdit,
   onAdd,
+  onBatch,
 }: CoursesTableProps) {
   const t = useTranslations("courses")
   const locale = useLocale()
@@ -107,11 +110,7 @@ export function CoursesTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={5} />
   }
 
   if (!courses || courses.length === 0) {
@@ -124,20 +123,41 @@ export function CoursesTable({
           <EmptyTitle>{t("title")}</EmptyTitle>
           <EmptyDescription>{t("table.empty")}</EmptyDescription>
         </EmptyHeader>
-        {onAdd && (
+        {(onBatch || onAdd) && (
           <EmptyContent>
             <PermissionGuard
               permission={PERMISSIONS.MANAGE_COURSES}
               mode="hide"
             >
-              <Button
-                type="button"
-                onClick={onAdd}
-                className="cursor-pointer gap-2"
-              >
-                <Plus className="size-5" />
-                <span>{t("addCourse")}</span>
-              </Button>
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+                {onBatch && (
+                  <Button
+                    type="button"
+                    onClick={onBatch}
+                    className="cursor-pointer gap-2"
+                  >
+                    <Sparkles className="size-5" />
+                    <span>{t("createGroupCourses")}</span>
+                  </Button>
+                )}
+                {onAdd && (
+                  <Button
+                    type="button"
+                    variant={onBatch ? "outline" : "default"}
+                    onClick={onAdd}
+                    className={`cursor-pointer gap-2 ${
+                      onBatch ? "size-14 shrink-0 p-0 sm:w-auto sm:px-6" : ""
+                    }`}
+                    aria-label={t("addSingleCourse")}
+                    title={t("addSingleCourse")}
+                  >
+                    <Plus className="size-5" />
+                    <span className={onBatch ? "hidden sm:inline" : ""}>
+                      {t("addSingleCourse")}
+                    </span>
+                  </Button>
+                )}
+              </div>
             </PermissionGuard>
           </EmptyContent>
         )}

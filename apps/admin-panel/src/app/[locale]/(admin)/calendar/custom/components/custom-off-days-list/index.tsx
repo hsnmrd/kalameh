@@ -18,7 +18,7 @@ import {
   ContextMenuContent,
   ContextMenuItem,
 } from "@workspace/ui/components/context-menu"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { ListSkeleton } from "@/components/list-skeleton"
 import {
   Empty,
   EmptyContent,
@@ -45,11 +45,7 @@ export function CustomOffDaysList({
   const locale = useLocale()
 
   if (isLoading) {
-    return (
-      <div className="flex h-48 w-full items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <ListSkeleton rows={5} />
   }
 
   if (!customOffDays || customOffDays.length === 0) {

@@ -1,14 +1,56 @@
 {
-  "title": "Payment & Receipts",
-  "subtitle": "Manage enrollment receipts and track payment status",
-  "statusPending": "Pending Approval",
-  "receiptNumber": "#REC-88421",
-  "className": "Starter 101 - Class A",
-  "submittedTime": "Submitted: Today at 11:30 AM",
-  "amount": "Amount: 1,500,000 Tomans",
-  "trackingCodeLabel": "Tracking Code:",
-  "trackingCodeValue": "9823104576",
-  "uploadTitle": "Upload Bank Receipt",
-  "uploadSubtitle": "Upload transfer screenshot or receipt slip for new enrollment",
-  "selectImageButton": "Select Receipt Image"
+  "title": "Enrollments & Finance",
+  "subtitle": "Track registration status, reserve class capacity, and submit bank payment receipts",
+  "activeReservationTitle": "Pending Tuition Payment",
+  "historyTitle": "Enrollment History & Receipts",
+  "status": {
+    "PENDING_PAYMENT": "Paying",
+    "PENDING_APPROVAL": "Pending Approval",
+    "ENROLLED": "Enrolled",
+    "REJECTED": "Rejected",
+    "WAITLISTED": "Waitlisted"
+  },
+  "timer": {
+    "title": "Time Remaining to Upload Receipt",
+    "expired": "The 30-minute reservation window has expired and capacity has been released.",
+    "warning": "Class capacity is locked for you for 30 minutes. Please upload your receipt before the timer expires.",
+    "seconds": "seconds",
+    "minutes": "minutes"
+  },
+  "payment": {
+    "title": "Bank Account Details",
+    "fullPaymentRule": "Payment Rule: Full tuition must be paid in a single lump sum.",
+    "tuition": "Tuition Amount:",
+    "bankCard": "Bank Card Number:",
+    "bankAccount": "Account Holder:",
+    "bankShaba": "IBAN / Shaba:",
+    "copyCard": "Copy Card Number",
+    "cardCopied": "Card number copied."
+  },
+  "upload": {
+    "title": "Upload Bank Receipt",
+    "subtitle": "Please provide the transfer receipt image and tracking code.",
+    "trackingCode": "Transaction Tracking Code",
+    "trackingCodePlaceholder": "Enter tracking code...",
+    "trackingCodeRequired": "Tracking code is required.",
+    "receiptRequired": "Receipt image is required.",
+    "selectImage": "Select Receipt Image",
+    "changeImage": "Change Image",
+    "submit": "Submit Receipt",
+    "submitting": "Submitting...",
+    "cancelReservation": "Cancel & Release Capacity",
+    "cancelSuccess": "Reservation cancelled and capacity released.",
+    "submitSuccess": "Receipt submitted successfully and is now pending approval."
+  },
+  "statusCard": {
+    "pendingApprovalNotice": "Your payment receipt has been recorded and is pending review by the institute administration.",
+    "enrolledNotice": "Your enrollment is confirmed.",
+    "rejectedNotice": "Your payment receipt was rejected and capacity has been freed. Please contact the institute office.",
+    "waitlistedNotice": "You are on the waitlist for this class. If capacity opens up, payment will be enabled.",
+    "empty": "No enrollment records or receipts found.",
+    "viewClasses": "Browse Eligible Classes",
+    "trackingCodeLabel": "Tracking Code:",
+    "amountLabel": "Amount Paid:",
+    "dateLabel": "Date:"
+  }
 }

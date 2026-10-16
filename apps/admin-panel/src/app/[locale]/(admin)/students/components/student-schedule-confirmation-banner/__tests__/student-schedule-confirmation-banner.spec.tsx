@@ -38,12 +38,30 @@ describe("StudentScheduleConfirmationBanner", () => {
     expect(screen.getByText("تأیید برنامه زمانی فراگیران")).toBeInTheDocument()
 
     const confirmBtn = screen.getByRole("button", {
-      name: /تأیید برنامه زمانی/i,
+      name: /^تأیید$/i,
     })
     expect(confirmBtn).toBeInTheDocument()
 
     fireEvent.click(confirmBtn)
     expect(onConfirmClick).toHaveBeenCalledTimes(1)
+  })
+
+  it("expands collapsible description when clicking trigger", () => {
+    render(
+      <StudentScheduleConfirmationBanner
+        term={mockUnconfirmedTerm}
+        onConfirmClick={vi.fn()}
+      />
+    )
+
+    const trigger = screen.getByRole("button", {
+      name: /تأیید برنامه زمانی فراگیران/i,
+    })
+    fireEvent.click(trigger)
+
+    expect(
+      screen.getByText(/برنامه زمانی فراگیران برای ترم/i)
+    ).toBeInTheDocument()
   })
 
   it("does not render when student schedules are already confirmed", () => {
@@ -88,7 +106,7 @@ describe("StudentScheduleConfirmationBanner", () => {
 
     expect(screen.getByText("تأیید برنامه زمانی فراگیران")).toBeInTheDocument()
     expect(
-      screen.queryByRole("button", { name: /تأیید برنامه زمانی/i })
+      screen.queryByRole("button", { name: /^تأیید$/i })
     ).not.toBeInTheDocument()
   })
 

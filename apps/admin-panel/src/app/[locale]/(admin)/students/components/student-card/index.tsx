@@ -17,7 +17,7 @@ import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { AvatarBadge } from "@workspace/ui/components/avatar"
-import { getAssetUrl } from "@workspace/ui/lib/utils"
+import { getAssetUrl, formatCourseShortTitle } from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
 
 export interface StudentCardProps {
@@ -101,9 +101,12 @@ export function StudentCard({
           <Badge
             variant="outline"
             className="gap-1 border-primary/30 bg-primary/10 text-xs text-primary"
+            title={student.currentAllowedCourse.title}
           >
             <GraduationCap className="size-3 text-inherit" />
-            <span>{student.currentAllowedCourse.title}</span>
+            <span>
+              {formatCourseShortTitle(student.currentAllowedCourse.title)}
+            </span>
           </Badge>
         ) : (
           <Badge

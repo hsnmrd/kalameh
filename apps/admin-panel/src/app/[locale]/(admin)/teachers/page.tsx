@@ -9,11 +9,14 @@ import type { TeacherDto } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { teachersResource, API_BASE_URL } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions, useModal } from "@/lib/hooks"
+import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
+import { useRouter } from "@/i18n/routing"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { TeachersHeaderActions } from "./components/teachers-header-actions"
 import { TeachersFilter } from "./components/teachers-filter"
@@ -21,12 +24,21 @@ import { TeachersTable } from "./components/teachers-table"
 import { TeachersList } from "./components/teachers-list"
 
 export default function TeachersPage() {
+  const router = useRouter()
   const t = useTranslations("teachers")
   const locale = useLocale()
   const { openModal } = useModal()
 
-  const [searchValue, setSearchValue] = React.useState("")
-  const [selectedStatus, setSelectedStatus] = React.useState("ALL")
+  const { filters, setFilter, pageIndex, pageSize, setPageIndex, setPageSize } =
+    useUrlFilters({
+      defaultValues: {
+        searchValue: "",
+        selectedStatus: "ALL",
+        page: 1,
+        pageSize: 10,
+      },
+      debounceKeys: ["searchValue"],
+    })
   const [isExporting, setIsExporting] = React.useState(false)
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
@@ -38,15 +50,15 @@ export default function TeachersPage() {
     activeInstitute?.enabledModules?.includes(APP_MODULES.CLASSES_COURSES)
 
   const isActiveFilter =
-    selectedStatus === "ACTIVE"
+    filters.selectedStatus === "ACTIVE"
       ? true
-      : selectedStatus === "INACTIVE"
+      : filters.selectedStatus === "INACTIVE"
         ? false
         : undefined
 
   const { data: teachers, isLoading } = useQuery({
     ...teachersResource.list.toQuery({
-      search: searchValue.trim() || undefined,
+      search: filters.searchValue.trim() || undefined,
       isActive: isActiveFilter,
       instituteId: activeInstituteId,
     }),
@@ -63,7 +75,8 @@ export default function TeachersPage() {
       const queryParams = new URLSearchParams()
       if (isActiveFilter !== undefined)
         queryParams.set("isActive", String(isActiveFilter))
-      if (searchValue.trim()) queryParams.set("search", searchValue.trim())
+      if (filters.searchValue.trim())
+        queryParams.set("search", filters.searchValue.trim())
       if (activeInstituteId) queryParams.set("instituteId", activeInstituteId)
 
       const url = `${baseUrl}/teachers/export-excel?${queryParams.toString()}`
@@ -97,7 +110,7 @@ export default function TeachersPage() {
   const handleCreate = () => openModal("createTeacher")
   const handleImport = () => openModal("importTeachers")
   const handleViewProfile = (teacher: TeacherDto) =>
-    openModal("viewProfileTeacher", { teacher })
+    router.push(`/teachers/${teacher.id}`)
   const handleManageAvailability = (teacher: TeacherDto) =>
     openModal("availabilityTeacher", { teacher })
   const handleEdit = (teacher: TeacherDto) =>
@@ -121,10 +134,10 @@ export default function TeachersPage() {
           }
           filter={
             <TeachersFilter
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
+              searchValue={filters.searchValue}
+              onSearchChange={(search) => setFilter("searchValue", search)}
+              selectedStatus={filters.selectedStatus}
+              onStatusChange={(status) => setFilter("selectedStatus", status)}
               onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
@@ -155,30 +168,41 @@ export default function TeachersPage() {
         >
           {/* Desktop Table View */}
           <div className="hidden lg:block">
-            <TeachersTable
-              teachers={teachers}
-              isLoading={isLoading}
-              onViewProfile={handleViewProfile}
-              onEdit={handleEdit}
-              onManageAvailability={handleManageAvailability}
-              onResetPassword={handleResetPassword}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-            />
+            <React.Suspense fallback={<TableSkeleton rows={pageSize} />}>
+              <TeachersTable
+                teachers={teachers}
+                isLoading={isLoading}
+                onViewProfile={handleViewProfile}
+                onEdit={handleEdit}
+                onManageAvailability={handleManageAvailability}
+                onResetPassword={handleResetPassword}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageIndexChange={setPageIndex}
+                onPageSizeChange={setPageSize}
+              />
+            </React.Suspense>
           </div>
 
           {/* Mobile Flat List View */}
           <div className="flex flex-1 flex-col lg:hidden">
-            <TeachersList
-              teachers={teachers}
-              isLoading={isLoading}
-              onViewProfile={handleViewProfile}
-              onEdit={handleEdit}
-              onManageAvailability={handleManageAvailability}
-              onResetPassword={handleResetPassword}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-            />
+            <React.Suspense fallback={<ListSkeleton rows={pageSize} />}>
+              <TeachersList
+                teachers={teachers}
+                isLoading={isLoading}
+                onViewProfile={handleViewProfile}
+                onEdit={handleEdit}
+                onManageAvailability={handleManageAvailability}
+                onResetPassword={handleResetPassword}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageChange={setPageIndex}
+              />
+            </React.Suspense>
           </div>
         </AdminPageShell>
       </PermissionGuard>

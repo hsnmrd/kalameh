@@ -4,22 +4,17 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@workspace/ui/components/sonner"
 import type { ClassDto } from "@workspace/types"
-import {
-  classesResource,
-  termsResource,
-  coursesResource,
-  branchesResource,
-  classroomsResource,
-  teachersResource,
-} from "@/lib/api"
+import { classesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { formatClassScheduleString } from "../helper/class-resource-conflicts"
 import {
   useUpdateClassSchema,
   type UpdateClassInput,
 } from "./use-class-schemas"
+import { useEditClassOptions } from "./use-edit-class-options"
 
 export function useEditClassForm(
   cls: ClassDto | null,
@@ -30,54 +25,7 @@ export function useEditClassForm(
   const queryClient = useQueryClient()
   const { activeInstituteId } = useActiveInstitute()
   const updateClassSchema = useUpdateClassSchema()
-
-  const queryParams = activeInstituteId
-    ? { instituteId: activeInstituteId }
-    : undefined
-
-  const { data: terms = [] } = useQuery({
-    ...termsResource.list.toQuery(queryParams),
-    enabled: open && !!activeInstituteId,
-  })
-
-  const termOptions = React.useMemo(
-    () => terms.map((tm) => ({ value: tm.id, label: tm.title })),
-    [terms]
-  )
-
-  const { data: courseOptions = [] } = useQuery({
-    ...coursesResource.list.toQuery(queryParams),
-    enabled: open && !!activeInstituteId,
-    select: (courses) => courses.map((c) => ({ value: c.id, label: c.title })),
-  })
-
-  const { data: branchOptions = [] } = useQuery({
-    ...branchesResource.list.toQuery(queryParams),
-    enabled: open && !!activeInstituteId,
-    select: (branches) => branches.map((b) => ({ value: b.id, label: b.name })),
-  })
-
-  const { data: classrooms = [] } = useQuery({
-    ...classroomsResource.list.toQuery(queryParams),
-    enabled: open && !!activeInstituteId,
-  })
-
-  const { data: teachers = [] } = useQuery({
-    ...teachersResource.list.toQuery({
-      ...(activeInstituteId ? { instituteId: activeInstituteId } : {}),
-      isActive: true,
-    }),
-    enabled: open && !!activeInstituteId,
-  })
-
-  const teacherOptions = React.useMemo(
-    () =>
-      teachers.map((tch) => ({
-        value: tch.id,
-        label: `${tch.firstName} ${tch.lastName}`,
-      })),
-    [teachers]
-  )
+  const effectiveInstituteId = activeInstituteId || cls?.instituteId || null
 
   const form = useForm<UpdateClassInput>({
     resolver: zodResolver(updateClassSchema),
@@ -102,39 +50,50 @@ export function useEditClassForm(
   const { control, reset, setValue } = form
 
   const selectedTermId = useWatch({ control, name: "termId" })
-  const selectedTerm = React.useMemo(
-    () => terms.find((tm) => tm.id === selectedTermId),
-    [terms, selectedTermId]
-  )
-
-  const selectedTeacherId = useWatch({ control, name: "teacherId" })
-  const selectedTeacher = React.useMemo(
-    () => teachers.find((tch) => tch.id === selectedTeacherId) || null,
-    [teachers, selectedTeacherId]
-  )
-
   const selectedBranchId = useWatch({ control, name: "branchId" })
-  const filteredClassrooms = React.useMemo(() => {
-    if (!selectedBranchId) return classrooms
-    return classrooms.filter(
-      (r) => !r.branchId || r.branchId === selectedBranchId
-    )
-  }, [classrooms, selectedBranchId])
-
-  const classroomOptions = React.useMemo(
-    () =>
-      filteredClassrooms.map((r) => ({
-        value: r.id,
-        label: `${r.name} (${r.capacity} ${t("editModal.capacity") || "نفر"})`,
-      })),
-    [filteredClassrooms, t]
-  )
-
   const selectedClassroomId = useWatch({ control, name: "classroomId" })
-  const selectedClassroom = React.useMemo(
-    () => classrooms.find((r) => r.id === selectedClassroomId),
-    [classrooms, selectedClassroomId]
+  const selectedTeacherId = useWatch({ control, name: "teacherId" })
+  const selectedTeacherName = useWatch({ control, name: "teacherName" })
+  const watchedDaysOfWeek = useWatch({ control, name: "daysOfWeek" })
+  const watchedSessionDates = useWatch({ control, name: "sessionDates" })
+  const watchedStartTime = useWatch({ control, name: "startTime" })
+  const watchedEndTime = useWatch({ control, name: "endTime" })
+
+  const scheduleWindow = React.useMemo(
+    () => ({
+      daysOfWeek: watchedDaysOfWeek,
+      sessionDates: watchedSessionDates,
+      startTime: watchedStartTime,
+      endTime: watchedEndTime,
+    }),
+    [watchedDaysOfWeek, watchedSessionDates, watchedStartTime, watchedEndTime]
   )
+
+  const {
+    termOptions,
+    courseOptions,
+    branchOptions,
+    classrooms,
+    teachers,
+    termClasses,
+    teacherOptions,
+    classroomOptions,
+    selectedTerm,
+    selectedTeacher,
+    selectedClassroom,
+    activeConflictResult,
+  } = useEditClassOptions({
+    cls,
+    open,
+    effectiveInstituteId,
+    selectedTermId,
+    selectedBranchId,
+    selectedClassroomId,
+    selectedTeacherId,
+    selectedTeacherName,
+    scheduleWindow,
+  })
+
   const classCapacity = useWatch({ control, name: "capacity" }) || 0
   const isCapacityExceeded = Boolean(
     selectedClassroom && classCapacity > selectedClassroom.capacity
@@ -150,9 +109,15 @@ export function useEditClassForm(
     }
   }, [selectedBranchId, selectedClassroomId, classrooms, setValue])
 
+  const tRef = React.useRef(t)
+  tRef.current = t
+
   // Populate form with class data
   React.useEffect(() => {
     if (cls) {
+      const formattedSchedule = formatClassScheduleString(cls, (day) =>
+        tRef.current(`scheduleWizard.days.${day}` as any)
+      )
       reset({
         title: cls.title,
         termId: cls.termId,
@@ -163,7 +128,7 @@ export function useEditClassForm(
         fee: cls.fee,
         teacherId: cls.teacherId || null,
         teacherName: cls.teacherName || "",
-        schedule: cls.schedule || "",
+        schedule: formattedSchedule,
         daysOfWeek: cls.daysOfWeek || [],
         sessionDates: cls.sessionDates || [],
         startTime: cls.startTime || null,
@@ -185,6 +150,13 @@ export function useEditClassForm(
 
   const onSubmit = (values: UpdateClassInput) => {
     if (!cls) return
+    if (activeConflictResult?.hasConflict) {
+      const firstMsg =
+        activeConflictResult.conflicts[0]?.message ||
+        t("scheduleWizard.conflictDetected")
+      toast.error(firstMsg)
+      return
+    }
     updateMutation.mutate({
       id: cls.id,
       body: {
@@ -204,6 +176,8 @@ export function useEditClassForm(
     teacherOptions,
     teachers,
     classroomOptions,
+    termClasses,
+    activeConflictResult,
     selectedTerm,
     selectedTeacher,
     selectedClassroom,

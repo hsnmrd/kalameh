@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { DataTable } from "@workspace/ui/components/data-table"
 import {
   Empty,
@@ -25,7 +25,7 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@workspace/ui/components/empty"
-import { getAssetUrl } from "@workspace/ui/lib/utils"
+import { getAssetUrl, formatCourseShortTitle } from "@workspace/ui/lib/utils"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { PermissionGuard } from "@/components/permission-guard"
 import { StudentStatusBadge } from "../student-status-badge"
@@ -41,6 +41,10 @@ export function StudentsTable({
   onResetPassword,
   onAvailability,
   onAdd,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: StudentsTableProps) {
   const t = useTranslations("students")
   const locale = useLocale()
@@ -109,9 +113,10 @@ export function StudentsTable({
             <Badge
               variant="outline"
               className="gap-1 border-primary/30 text-primary"
+              title={course.title}
             >
               <GraduationCap className="size-3" />
-              <span>{course.title}</span>
+              <span>{formatCourseShortTitle(course.title)}</span>
             </Badge>
           ) : (
             <span className="text-xs text-muted-foreground">
@@ -272,11 +277,7 @@ export function StudentsTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[350px] items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={pageSize ?? 5} />
   }
 
   if (!students || students.length === 0) {
@@ -314,6 +315,12 @@ export function StudentsTable({
     <DataTable
       columns={columns}
       data={students}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
+      locale={locale}
       emptyMessage={t("table.empty")}
     />
   )

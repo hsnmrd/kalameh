@@ -32,6 +32,17 @@
       "students": "Review students"
     }
   },
+  "preflight": {
+    "title": "Auto-Scheduling Prerequisites",
+    "noTeachers": "No teachers are registered in the institute.",
+    "noTeachersDescription": "To schedule classes automatically, you must first register teachers in the institute.",
+    "noTeacherSchedule": "No teachers have set their availability schedule.",
+    "noTeacherScheduleDescription": "To generate a valid schedule, at least one teacher must set their weekly availability hours.",
+    "noBranchClassrooms": "No classrooms are defined for the selected branch.",
+    "noBranchClassroomsDescription": "To schedule classes in this branch, you must first define physical classrooms.",
+    "manageTeachers": "Manage Teachers",
+    "manageClassrooms": "Manage Classrooms"
+  },
   "generation": {
     "title": "Create scheduling suggestions",
     "description": "Choose the scheduling scope and the class requirements the engine should include.",
@@ -60,7 +71,14 @@
     "requirements": {
       "label": "Class requirements",
       "description": "Select at least one active requirement to schedule.",
+      "searchPlaceholder": "Search class requirements...",
       "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "selectionManagement": "Selection Management",
+      "selectedCount": "{count} of {total} requirements selected",
+      "allSelectedStatus": "All requirements selected",
+      "noneSelectedStatus": "No requirements selected",
+      "partialSelectedStatus": "Some requirements selected",
       "clear": "Clear",
       "loading": "Loading class requirements",
       "empty": "No active requirements match this scope",
@@ -74,6 +92,14 @@
         "IN_PERSON": "In-Person",
         "ONLINE": "Online"
       },
+      "columns": {
+        "select": "Select",
+        "course": "Course",
+        "branch": "Branch",
+        "deliveryMode": "Delivery Mode",
+        "requiredClassCount": "Classes",
+        "capacity": "Class Capacity"
+      },
       "allBranches": "All Branches"
     },
     "validation": {
@@ -81,7 +107,6 @@
       "branch": "Select a branch.",
       "requirements": "Select at least one class requirement."
     },
-    "selectionSummary": "{count} requirements selected",
     "submit": "Generate suggestions",
     "submitting": "Starting generation...",
     "instituteRequired": {
@@ -142,6 +167,7 @@
     },
     "retry": "Retry",
     "retryGeneration": "Retry Generation",
+    "technicalError": "A temporary system error occurred while processing this request. Please try again.",
     "exactError": "Technical details: {error}",
     "notFound": {
       "title": "Scheduling Run Not Found",
@@ -166,6 +192,11 @@
     "refresh": "Refresh status",
     "another": "Create another run",
     "pageTitle": "Scheduling results",
+    "longRunning": {
+      "tip": "Is generation taking too long or encountering trouble?",
+      "description": "If proposal generation is taking longer than expected, you can restart the process from scratch.",
+      "restart": "Restart from scratch"
+    },
     "preflightIssues": {
       "title": "Preflight blocking issues:",
       "COURSE_WITHOUT_QUALIFIED_TEACHER": "Course \"{entity}\" does not have an active qualified teacher. Please assign course qualification to at least one teacher.",
@@ -413,6 +444,7 @@
       "selectTeacher": "Select this teacher",
       "swapWithTeacher": "Swap with this teacher",
       "switchTeacherSuccess": "Teacher updated successfully.",
+      "rescheduleSuccess": "Class rescheduled and assigned to master successfully.",
       "swapTeacherSuccess": "Teachers swapped successfully between sessions.",
       "sessionSwapConfirmTitle": "Swap Sessions",
       "sessionSwapConfirmDescription": "Teachers for these two sessions are left unassigned for manual supervisor selection, and classrooms are allocated automatically.",
@@ -473,6 +505,10 @@
     },
     "recovery": {
       "title": "Ways to place this class",
+      "rescheduleTitle": "Reschedule Class for Free Master",
+      "suggestionsCount": "{count} Suggested Periods",
+      "carouselCounter": "Option {current} of {total}",
+      "applyAction": "Select this Time",
       "optionCount": "Showing {shown} of {total} options",
       "statuses": {
         "AVAILABLE_NOW": "Available now",
@@ -507,6 +543,8 @@
       "noChainDescription": "No safe combination was found within three reassignments. Locked classes remain unchanged, and qualifications, availability, conflicts, and the physical room are validated together.",
       "showDetails": "Show details",
       "hideDetails": "Hide details",
+      "applyChainButton": "Apply Swap",
+      "applyChainSuccess": "Teacher reassignment chain applied successfully.",
       "validation": {
         "qualification": "Qualifications verified",
         "availability": "Replacement teacher is free at this time",
@@ -515,21 +553,35 @@
       }
     },
     "staffingFallback": {
-      "title": "Teacher staffing options",
+      "title": "Teacher Staffing Solutions by Increasing Teacher Availability",
       "description": "The system evaluates two staffing paths: expanding a qualified teacher’s availability or adding a new teacher for this level.",
+      "branchPrefix": "Option {number}",
+      "orDivider": "OR",
       "freeMastersTitle": "Choose from Free Masters in this Period",
       "freeMastersDescription": "The following masters have no class in this time slot; their course level comparison with this class is shown below:",
       "readyToAssignCount": "{count} qualified masters",
       "noFreeMastersTitle": "No masters are free in this time slot",
       "noFreeMastersDescription": "No free masters were found in the institute during this time slot.",
+      "otherBranchesTitle": "Free Masters from Other Branches",
+      "otherBranchesDescription": "Masters who are free during this time slot in other branches. Each branch's schedule status is displayed to assist your decision:",
+      "otherBranchScheduledBadge": "Schedule Defined",
+      "otherBranchNotScheduledBadge": "Schedule Not Defined",
+      "otherBranchPublishedBadge": "Schedule Published",
+      "otherBranchSafeNotice": "This branch has defined its schedule and this master is surplus at this time.",
+      "otherBranchUnsafeNotice": "This branch has not scheduled yet and may need this master during its own scheduling.",
+      "otherBranchesCount": "{count} masters in {branchCount} branches",
+      "otherBranchTeacherCount": "{count} free masters",
       "assignMaster": "Select Master",
       "assigning": "Assigning...",
       "directMatchBadge": "Qualified · Direct Match",
       "higherLevelBadge": "Qualified · Higher Level ({course})",
       "lowerLevelBadge": "Not Qualified · Lower Level ({course})",
       "unrelatedLevelBadge": "Not Qualified · Different Category",
+      "timeUnchangedBadge": "Without changing class time",
+      "timeChangedBadge": "With changing class time",
+      "bankTeacherNotice": "Coordinate with teacher to attend at this class time",
       "teachableCoursesLabel": "Teachable Courses:",
-      "solutionsCount": "{count} suggested options",
+      "solutionsCount": "{count} suggested teachers",
       "carouselCounter": "Option {current} of {total}",
       "teacherCarouselCounter": "Teacher {current} of {total}",
       "teacherPeriodsCount": "{count} suggested periods",
@@ -924,7 +976,14 @@
     },
     "selectBranch": {
       "title": "Select a Branch",
-      "description": "To check required classes and sessions, please select a branch first."
+      "description": "To check required classes and sessions, please select a branch first.",
+      "headerTitle": "Select Branch for Scheduling",
+      "subtitle": "To review the required number of classes and sessions, please select a branch first. The class registration status for the active term is indicated for each branch.",
+      "hasClasses": "{count} classes registered for this term",
+      "noClasses": "No classes for this term (Ready to schedule)",
+      "selectBranchAction": "Select this branch",
+      "classesCountLabel": "{count} total classes",
+      "noAddress": "No registered address"
     },
     "filters": {
       "term": "Term",

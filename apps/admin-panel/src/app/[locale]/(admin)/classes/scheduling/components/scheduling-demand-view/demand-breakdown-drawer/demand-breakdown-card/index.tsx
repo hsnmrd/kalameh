@@ -38,15 +38,18 @@ export function DemandBreakdownCard({
     item.eligibleStudentsCount,
     suggestions.map((suggestedClass) => suggestedClass.capacity)
   )
+  const isNoClassesNeeded =
+    item.eligibleStudentsCount === 0 && suggestions.length === 0
   const handleEdit = onEdit ?? onToggleExpand
 
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-2xs",
+        "flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-2xs transition-opacity",
         uncovered === 0
           ? "border-s-4 border-s-success"
-          : "border-s-4 border-s-destructive"
+          : "border-s-4 border-s-destructive",
+        isNoClassesNeeded && "opacity-45 hover:opacity-100"
       )}
     >
       <div className="flex items-start justify-between gap-3">

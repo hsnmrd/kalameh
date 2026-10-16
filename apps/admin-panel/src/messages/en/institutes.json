@@ -20,6 +20,7 @@
     "subdomain": "Subdomain",
     "status": "Status",
     "studentsCount": "Enrolled Students",
+    "phones": "Phone Numbers",
     "actions": "Actions"
   },
   "status": {
@@ -148,6 +149,10 @@
       "ONLINE_ROOMS": {
         "name": "Online Classrooms",
         "description": "Virtual classrooms, live video lectures, and webinars"
+      },
+      "BOOKS": {
+        "name": "Books Management",
+        "description": "Course books catalog and automated course curriculum generation"
       }
     }
   },

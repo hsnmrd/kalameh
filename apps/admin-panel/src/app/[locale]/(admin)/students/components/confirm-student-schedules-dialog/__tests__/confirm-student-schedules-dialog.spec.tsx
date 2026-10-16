@@ -100,4 +100,45 @@ describe("ConfirmStudentSchedulesDialog Component", () => {
       expect(mockMutationFn).toHaveBeenCalledWith("term-1", expect.anything())
     })
   })
+
+  it("selects current active term as default when defaultTermId is not provided", async () => {
+    const multiTerms: TermDto[] = [
+      {
+        ...mockTerms[0]!,
+        id: "term-completed",
+        title: "ترم گذشته",
+        lifecycleStatus: "COMPLETED",
+      },
+      {
+        ...mockTerms[0]!,
+        id: "term-active",
+        title: "ترم فعال جاری",
+        lifecycleStatus: "ACTIVE",
+      },
+      {
+        ...mockTerms[0]!,
+        id: "term-upcoming",
+        title: "ترم آینده",
+        lifecycleStatus: "UPCOMING",
+      },
+    ]
+
+    render(
+      <ConfirmStudentSchedulesDialog
+        open={true}
+        onClose={vi.fn()}
+        terms={multiTerms}
+      />
+    )
+
+    const confirmBtn = screen.getByRole("button", { name: /تأیید/i })
+    fireEvent.click(confirmBtn)
+
+    await waitFor(() => {
+      expect(mockMutationFn).toHaveBeenCalledWith(
+        "term-active",
+        expect.anything()
+      )
+    })
+  })
 })

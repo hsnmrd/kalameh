@@ -5,9 +5,12 @@ import { useTranslations } from "next-intl"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { ROLES, type Role, type AuthUser } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 import { Link, useIsRtl, usePathname } from "@/i18n/routing"
+import { useNavTransition } from "@/lib/hooks"
 import { useHeaderActions } from "../header-actions-context"
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { UserBadge } from "./user-badge"
 
 export interface AdminHeaderProps {
@@ -60,6 +63,9 @@ function getPageTitle(
   if (pathname.startsWith("/terms")) {
     return t("nav.terms")
   }
+  if (pathname.startsWith("/books")) {
+    return t("nav.books")
+  }
   if (pathname.startsWith("/courses")) {
     return t("nav.courses")
   }
@@ -72,14 +78,23 @@ function getPageTitle(
   if (pathname.startsWith("/classrooms")) {
     return t("nav.classrooms")
   }
+  if (/^\/teachers\/[^/]+$/.test(pathname)) {
+    return t("nav.teacherProfile")
+  }
   if (pathname.startsWith("/teachers/calendar")) {
     return t("nav.teachersCalendar")
   }
   if (pathname.startsWith("/teachers")) {
     return t("nav.teachers")
   }
+  if (/^\/students\/[^/]+$/.test(pathname)) {
+    return t("nav.studentProfile")
+  }
   if (pathname.startsWith("/students")) {
     return t("nav.students")
+  }
+  if (/^\/users\/[^/]+$/.test(pathname)) {
+    return t("nav.userProfile")
   }
   if (pathname.startsWith("/users")) {
     return t("nav.staff")
@@ -116,6 +131,10 @@ export function AdminHeader({
   const effectiveRole = role ?? user?.role
   const pageTitle = getPageTitle(pathname, t, effectiveRole)
   const { headerActions, backNavigation } = useHeaderActions()
+  const { navigate, isHrefPending } = useNavTransition(pathname)
+  const isBackPending = backNavigation
+    ? isHrefPending(backNavigation.backHref)
+    : false
   const isRtl = useIsRtl()
   const BackIcon = isRtl ? ArrowRight : ArrowLeft
 
@@ -147,16 +166,29 @@ export function AdminHeader({
         <div className="flex items-center gap-2 sm:gap-2.5">
           {backNavigation && (
             <Button
-              render={<Link href={backNavigation.backHref} />}
+              render={
+                <Link
+                  href={backNavigation.backHref}
+                  onClick={(e) => navigate(e, backNavigation.backHref)}
+                />
+              }
               nativeButton={false}
               variant="ghost"
               size="icon"
               data-testid="admin-header-back-btn"
-              className="size-8 cursor-pointer rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-busy={isBackPending ? "true" : undefined}
+              className={cn(
+                "size-8 cursor-pointer rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                isBackPending && "pointer-events-none opacity-80"
+              )}
               aria-label={backNavigation.backLabel ?? t("back")}
               title={backNavigation.backLabel ?? t("back")}
             >
-              <BackIcon className="size-4" />
+              {isBackPending ? (
+                <Spinner className="size-4 shrink-0 text-current" />
+              ) : (
+                <BackIcon className="size-4" />
+              )}
             </Button>
           )}
           {headerActions}
@@ -167,6 +199,14 @@ export function AdminHeader({
 
         {/* Right / End Section */}
         <div className="flex items-center gap-2.5">
+          <ThemeToggle
+            data-testid="admin-header-theme-toggle"
+            labels={{
+              light: t("theme.light"),
+              dark: t("theme.dark"),
+              system: t("theme.system"),
+            }}
+          />
           {/* User Card Info with Avatar Trigger & Popup */}
           <UserBadge user={user} role={role} onLogout={onLogout} />
         </div>

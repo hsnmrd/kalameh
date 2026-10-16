@@ -77,11 +77,6 @@ describe("MVP-035 scheduling run status panel", () => {
     ).toBeInTheDocument()
     expect(screen.getByText("تکمیل‌شده")).toBeInTheDocument()
     expect(
-      screen.getByText(
-        "تولید با موفقیت تمام شد و برنامه‌ها برای بررسی سوپروایزر آماده هستند."
-      )
-    ).toBeInTheDocument()
-    expect(
       screen.queryByText("۱ پیشنهاد زمان‌بندی ساخته شد")
     ).not.toBeInTheDocument()
     expect(screen.queryByText(/شناسه اجرا/)).not.toBeInTheDocument()
@@ -212,7 +207,7 @@ describe("MVP-035 scheduling run status panel", () => {
     ).toBeInTheDocument()
   })
 
-  it("renders retry generation button when run fails", async () => {
+  it("renders unified retry button and does not show duplicate another button when run fails", async () => {
     const failedStatus: SchedulingRunStatusDto = {
       ...completedStatus,
       status: "FAILED",
@@ -230,13 +225,104 @@ describe("MVP-035 scheduling run status panel", () => {
       queryFn: async () => failedStatus,
     } as never)
 
-    render(<SchedulingRunStatusPanel run={queuedRun} onReset={vi.fn()} />)
+    const onRetry = vi.fn()
+    render(
+      <SchedulingRunStatusPanel
+        run={queuedRun}
+        onReset={vi.fn()}
+        onRetry={onRetry}
+      />
+    )
 
+    const retryButton = await screen.findByRole("button", { name: "تلاش مجدد" })
+    expect(retryButton).toBeInTheDocument()
     expect(
-      await screen.findByRole("button", { name: "تلاش مجدد برای ساخت برنامه" })
-    ).toBeInTheDocument()
+      screen.queryByRole("button", { name: "ساخت اجرای دیگر" })
+    ).not.toBeInTheDocument()
     expect(
       screen.getByText("موتور به دلیل تداخل زمانی متوقف شد.")
     ).toBeInTheDocument()
+
+    fireEvent.click(retryButton)
+    expect(onRetry).toHaveBeenCalledOnce()
+  })
+
+  it("sanitizes raw technical database or transaction error messages", async () => {
+    const rawErrorStatus: SchedulingRunStatusDto = {
+      ...completedStatus,
+      status: "FAILED",
+      isTerminal: true,
+      result: null,
+      failureCode: "GENERATION_ENGINE_FAILED",
+      failureMessage:
+        "Transaction API error: Unable to start a transaction in the given time",
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "raw-error"],
+      queryFn: async () => rawErrorStatus,
+    } as never)
+
+    render(<SchedulingRunStatusPanel run={queuedRun} onReset={vi.fn()} />)
+
+    expect(
+      await screen.findByText(
+        "سامانه هنگام پردازش یا ثبت اطلاعات با خطای موقت مواجه شد. لطفاً دوباره تلاش کنید."
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Transaction API error/i)).not.toBeInTheDocument()
+  })
+
+  it("renders long running alert and restart button when run has been active longer than threshold", async () => {
+    const generatingStatus: SchedulingRunStatusDto = {
+      ...completedStatus,
+      status: "GENERATING",
+      isTerminal: false,
+      result: null,
+      startedAt: new Date(Date.now() - 70_000).toISOString(),
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.runStatus, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "run-status", runId, "generating"],
+      queryFn: async () => generatingStatus,
+    } as never)
+
+    const onRetry = vi.fn()
+    render(
+      <SchedulingRunStatusPanel
+        run={{
+          ...queuedRun,
+          status: "GENERATING",
+          startedAt: new Date(Date.now() - 70_000).toISOString(),
+        }}
+        onReset={vi.fn()}
+        onRetry={onRetry}
+        longRunningThresholdMs={60_000}
+      />
+    )
+
+    expect(
+      await screen.findByText(
+        "آیا زمان تولید طولانی شده یا مشکلی پیش آمده است؟"
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "اگر ساخت پیشنهادها بیش از حد معمول طول کشیده است، می‌توانید فرایند را از ابتدا دوباره شروع کنید."
+      )
+    ).toBeInTheDocument()
+
+    const restartBtns = screen.getAllByRole("button", {
+      name: "شروع مجدد از ابتدا",
+    })
+    expect(restartBtns.length).toBeGreaterThanOrEqual(1)
+    fireEvent.click(restartBtns[0]!)
+    expect(onRetry).toHaveBeenCalledOnce()
   })
 })

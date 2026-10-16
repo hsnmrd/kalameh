@@ -13,11 +13,13 @@ import {
 import { FABSingle } from "@workspace/ui/components/fab"
 import { classroomsResource, branchesResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions, useModal } from "@/lib/hooks"
+import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { ClassroomsTable } from "./components/classrooms-table"
 import { ClassroomsList } from "./components/classrooms-list"
@@ -27,9 +29,17 @@ export default function ClassroomsPage() {
   const t = useTranslations("classrooms")
   const { openModal } = useModal()
 
-  const [search, setSearch] = React.useState("")
-  const [selectedBranchId, setSelectedBranchId] = React.useState("ALL")
-  const [selectedStatus, setSelectedStatus] = React.useState("ALL")
+  const { filters, setFilter, pageIndex, pageSize, setPageIndex, setPageSize } =
+    useUrlFilters({
+      defaultValues: {
+        search: "",
+        selectedBranchId: "ALL",
+        selectedStatus: "ALL",
+        page: 1,
+        pageSize: 10,
+      },
+      debounceKeys: ["search"],
+    })
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -49,9 +59,12 @@ export default function ClassroomsPage() {
   const { data: classrooms = [], isLoading } = useQuery({
     ...classroomsResource.list.toQuery({
       instituteId: activeInstituteId,
-      branchId: selectedBranchId !== "ALL" ? selectedBranchId : undefined,
-      search: search.trim() || undefined,
-      isActive: parseStatusFilter(selectedStatus),
+      branchId:
+        filters.selectedBranchId !== "ALL"
+          ? filters.selectedBranchId
+          : undefined,
+      search: filters.search.trim() || undefined,
+      isActive: parseStatusFilter(filters.selectedStatus),
     }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
@@ -73,12 +86,14 @@ export default function ClassroomsPage() {
         <AdminPageShell
           filters={
             <ClassroomsFilter
-              search={search}
-              onSearchChange={setSearch}
-              selectedBranchId={selectedBranchId}
-              onBranchChange={setSelectedBranchId}
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
+              search={filters.search}
+              onSearchChange={(search) => setFilter("search", search)}
+              selectedBranchId={filters.selectedBranchId}
+              onBranchChange={(branchId) =>
+                setFilter("selectedBranchId", branchId)
+              }
+              selectedStatus={filters.selectedStatus}
+              onStatusChange={(status) => setFilter("selectedStatus", status)}
               branches={branches}
               onAddClick={isListEmpty ? undefined : handleCreate}
             />
@@ -106,23 +121,34 @@ export default function ClassroomsPage() {
           }
         >
           <div className="hidden lg:block">
-            <ClassroomsTable
-              classrooms={classrooms}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-            />
+            <React.Suspense fallback={<TableSkeleton rows={pageSize} />}>
+              <ClassroomsTable
+                classrooms={classrooms}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageIndexChange={setPageIndex}
+                onPageSizeChange={setPageSize}
+              />
+            </React.Suspense>
           </div>
 
           <div className="flex flex-1 flex-col lg:hidden">
-            <ClassroomsList
-              classrooms={classrooms}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-            />
+            <React.Suspense fallback={<ListSkeleton rows={pageSize} />}>
+              <ClassroomsList
+                classrooms={classrooms}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageChange={setPageIndex}
+              />
+            </React.Suspense>
           </div>
         </AdminPageShell>
       </PermissionGuard>

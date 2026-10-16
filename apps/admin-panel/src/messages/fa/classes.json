@@ -9,6 +9,7 @@
   "teachersCalendar": "تقویم همه استادان",
   "termFilter": "فیلتر بر اساس ترم",
   "allTerms": "همه ترم‌ها",
+  "activeTermBadge": "ترم فعال",
   "courseFilter": "فیلتر بر اساس سطح",
   "allCourses": "همه دوره‌ها",
   "searchPlaceholder": "جستجو",
@@ -90,6 +91,9 @@
     "schedule": "برنامه زمانی",
     "schedulePlaceholder": "برنامه زمانی",
     "selectTeacherFirst": "برای تنظیم برنامه کلاسی، ابتدا مدرس / استاد را انتخاب کنید.",
+    "teacherBusyWithClass": "مشغول در کلاس «{classTitle}» ({time})",
+    "teacherOutsideFreeTime": "خارج از ساعات آزاد تدریس استاد",
+    "classroomBusyWithClass": "اشغال توسط کلاس «{classTitle}» ({time})",
     "submit": "ذخیره تغییرات",
     "cancel": "انصراف",
     "success": "مشخصات کلاس با موفقیت به‌روزرسانی شد."
@@ -121,6 +125,9 @@
     "conflictTypeClassroom": "تداخل فضای آموزشی",
     "conflictTypeTeacher": "تداخل برنامه استاد",
     "conflictTypeTeacherFreeTime": "عدم تطابق با زمان آزاد استاد",
+    "conflictClassroomMsg": "فضای آموزشی با کلاس «{classTitle}» تداخل دارد",
+    "conflictTeacherMsg": "برنامه استاد با کلاس «{classTitle}» تداخل دارد",
+    "conflictTeacherFreeTimeMsg": "زمان انتخابی خارج از ساعات آزاد استاد «{teacherName}» است",
     "conflictClass": "کلاس متداخل: «{title}»",
     "conflictDatesList": "{count} روز تداخل",
     "showConflictDates": "مشاهده روزهای متداخل",
@@ -188,5 +195,12 @@
     "noResults": "اتاقی با این مشخصات یافت نشد.",
     "remoteClass": "کلاس آنلاین / بدون اتاق فیزیکی",
     "remoteBadge": "آنلاین / ریموت"
+  },
+  "validation": {
+    "titleMin": "عنوان کلاس باید حداقل ۲ کاراکتر باشد.",
+    "capacityMin": "ظرفیت کلاس باید حداقل ۱ نفر باشد.",
+    "feeMin": "شهریه کلاس نمی‌تواند منفی باشد.",
+    "termIdRequired": "انتخاب ترم تحصیلی الزامی است.",
+    "courseIdRequired": "انتخاب سطح آموزشی الزامی است."
   }
 }

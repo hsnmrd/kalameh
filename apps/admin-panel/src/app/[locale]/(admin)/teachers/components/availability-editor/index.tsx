@@ -8,6 +8,7 @@ import {
   EVEN_CLASS_DAYS,
   isAvailabilityCoveringSlot,
   ODD_CLASS_DAYS,
+  selectCurrentOrActiveTerm,
   subtractSlotFromAvailability,
   WEEK_DAYS,
   type PhaseGeneratedSlot,
@@ -61,8 +62,16 @@ export function AvailabilityEditor({
   const activeTerms = React.useMemo(() => {
     const withPhase = terms.filter((term) => Boolean(term.operatingPhase))
     const active = withPhase.filter((term) => term.isActive)
-    return active.length > 0 ? active : withPhase
+    const list = active.length > 0 ? active : withPhase
+    return [...list].sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    )
   }, [terms])
+
+  const defaultTerm = React.useMemo(() => {
+    return selectCurrentOrActiveTerm(activeTerms) ?? activeTerms[0] ?? null
+  }, [activeTerms])
 
   const [internalTermId, setInternalTermId] = React.useState<string | null>(
     null
@@ -74,8 +83,8 @@ export function AvailabilityEditor({
       const found = activeTerms.find((t) => t.id === currentTermId)
       if (found) return found
     }
-    return activeTerms[0] ?? null
-  }, [activeTerms, currentTermId])
+    return defaultTerm
+  }, [activeTerms, currentTermId, defaultTerm])
 
   const handleSelectTerm = React.useCallback(
     (termId: string) => {

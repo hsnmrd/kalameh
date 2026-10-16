@@ -258,11 +258,15 @@ export function Content({
           }
           teacherCalendars={plan.teacherCalendars}
           unresolvedRequirements={plan.unresolvedRequirements}
+          branchId={plan.run.branchId}
+          branchScheduleStatuses={plan.branchScheduleStatuses}
           planId={plan.id}
           planStatus={plan.status}
           stickyTop={stickyTop}
           selectedTeacherId={selectedTeacherId}
           onTeacherChange={onTeacherChange}
+          availableTimeSlots={plan.availableTimeSlots}
+          operatingPhase={plan.run.term?.operatingPhase}
         />
       </section>
     </div>

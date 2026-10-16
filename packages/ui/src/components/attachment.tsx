@@ -5,6 +5,23 @@ import Image from "next/image"
 import { Upload, X, Image as ImageIcon, AlertCircle } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
+import {
+  ImageCropperDialog,
+  type CropShape,
+  type ImageFormat,
+} from "./image-cropper"
+
+export interface AttachmentCropOptions {
+  aspectRatio?: number
+  maxWidth?: number
+  maxHeight?: number
+  quality?: number
+  format?: ImageFormat
+  cropShape?: CropShape
+  title?: string
+  confirmLabel?: string
+  cancelLabel?: string
+}
 
 export interface AttachmentProps {
   value?: File | string | null
@@ -16,6 +33,7 @@ export interface AttachmentProps {
   placeholder?: string
   description?: string
   removeLabel?: string
+  crop?: boolean | AttachmentCropOptions
 }
 
 export function Attachment({
@@ -28,12 +46,38 @@ export function Attachment({
   placeholder = "Upload an image or logo",
   description = "PNG, JPG, WEBP or SVG (Max 5MB)",
   removeLabel = "Remove",
+  crop = false,
 }: AttachmentProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [fileName, setFileName] = React.useState<string | null>(null)
   const [hasImageError, setHasImageError] = React.useState(false)
+  const [cropFile, setCropFile] = React.useState<File | null>(null)
+  const [isCropperOpen, setIsCropperOpen] = React.useState(false)
+
+  const cropOptions = React.useMemo<AttachmentCropOptions | null>(() => {
+    if (!crop) return null
+    if (typeof crop === "object") {
+      return {
+        aspectRatio: 1,
+        maxWidth: 512,
+        maxHeight: 512,
+        quality: 0.85,
+        format: "image/webp",
+        cropShape: "round",
+        ...crop,
+      }
+    }
+    return {
+      aspectRatio: 1,
+      maxWidth: 512,
+      maxHeight: 512,
+      quality: 0.85,
+      format: "image/webp",
+      cropShape: "round",
+    }
+  }, [crop])
 
   const previewSrc = React.useMemo(() => {
     if (!value) return null
@@ -79,8 +123,31 @@ export function Attachment({
       return
     }
 
+    const isImage =
+      file.type.startsWith("image/") && file.type !== "image/svg+xml"
+    if (cropOptions && isImage) {
+      setCropFile(file)
+      setIsCropperOpen(true)
+      return
+    }
+
     setFileName(file.name)
     onChange?.(file)
+  }
+
+  const handleCropComplete = (croppedFile: File) => {
+    setFileName(croppedFile.name)
+    setIsCropperOpen(false)
+    setCropFile(null)
+    onChange?.(croppedFile)
+  }
+
+  const handleCropCancel = () => {
+    setIsCropperOpen(false)
+    setCropFile(null)
+    if (inputRef.current) {
+      inputRef.current.value = ""
+    }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -235,6 +302,28 @@ export function Attachment({
           <AlertCircle className="size-3.5 shrink-0" />
           <span>{error}</span>
         </div>
+      )}
+
+      {cropOptions && (
+        <ImageCropperDialog
+          open={isCropperOpen}
+          onOpenChange={(open) => {
+            setIsCropperOpen(open)
+            if (!open) setCropFile(null)
+          }}
+          imageFile={cropFile}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspectRatio={cropOptions.aspectRatio}
+          maxWidth={cropOptions.maxWidth}
+          maxHeight={cropOptions.maxHeight}
+          quality={cropOptions.quality}
+          format={cropOptions.format}
+          cropShape={cropOptions.cropShape}
+          title={cropOptions.title}
+          confirmLabel={cropOptions.confirmLabel}
+          cancelLabel={cropOptions.cancelLabel}
+        />
       )}
     </div>
   )

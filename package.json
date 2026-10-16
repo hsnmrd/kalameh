@@ -19,6 +19,7 @@
     "db:migrate:reset": "pnpm --filter @workspace/database db:migrate:reset",
     "db:reset": "pnpm --filter @workspace/database db:reset",
     "db:seed": "pnpm --filter @workspace/database db:seed",
+    "db:seed:books": "pnpm --filter @workspace/database db:seed:books",
     "db:seed:scheduling": "pnpm --filter @workspace/database db:seed:scheduling",
     "prepare": "husky"
   },

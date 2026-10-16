@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { useTranslations } from "next-intl"
 import { Ban, CheckCircle2, CircleAlert, RotateCcw } from "lucide-react"
 import type { SchedulingRunDto, SchedulingRunStatus } from "@workspace/types"
@@ -12,10 +13,13 @@ import { SchedulingPlanComparison } from "../scheduling-plan-comparison"
 import { SchedulingRunProgress } from "../scheduling-run-progress"
 import { ConnectionError } from "./connection-error"
 import { FailureDetails } from "./failure-details"
+import { LongRunningAlert } from "./long-running-alert"
 
 interface SchedulingRunStatusPanelProps {
   run: SchedulingRunDto
   onReset: () => void
+  onRetry?: () => void
+  longRunningThresholdMs?: number
 }
 
 const ACTIVE_STATUSES = new Set<SchedulingRunStatus>(["QUEUED", "GENERATING"])
@@ -35,6 +39,8 @@ const statusVariants: Record<
 export function SchedulingRunStatusPanel({
   run,
   onReset,
+  onRetry,
+  longRunningThresholdMs = 60_000,
 }: SchedulingRunStatusPanelProps) {
   const t = useTranslations("scheduling.runStatus")
   const statusQuery = useSchedulingRunStatus(run.id)
@@ -43,6 +49,37 @@ export function SchedulingRunStatusPanel({
   const isActive = ACTIVE_STATUSES.has(status)
   const isTerminal = result?.isTerminal ?? !isActive
   const isFailed = status === "FAILED" || status === "PREFLIGHT_FAILED"
+  const handleAction = isFailed ? (onRetry ?? onReset) : onReset
+
+  const startTime = React.useMemo(() => {
+    if (run.startedAt) return new Date(run.startedAt).getTime()
+    if (run.createdAt) return new Date(run.createdAt).getTime()
+    return Date.now()
+  }, [run.startedAt, run.createdAt])
+
+  const [isLongRunning, setIsLongRunning] = React.useState(() => {
+    if (!isActive) return false
+    return Date.now() - startTime >= longRunningThresholdMs
+  })
+
+  React.useEffect(() => {
+    if (!isActive) {
+      setIsLongRunning(false)
+      return
+    }
+
+    const elapsed = Date.now() - startTime
+    if (elapsed >= longRunningThresholdMs) {
+      setIsLongRunning(true)
+      return
+    }
+
+    const timer = setTimeout(() => {
+      setIsLongRunning(true)
+    }, longRunningThresholdMs - elapsed)
+
+    return () => clearTimeout(timer)
+  }, [isActive, startTime, longRunningThresholdMs])
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -54,7 +91,7 @@ export function SchedulingRunStatusPanel({
             aria-busy={isActive || statusQuery.isFetching}
             className="flex min-h-14 w-full min-w-0 items-center justify-between gap-2 rounded-2xl border border-border bg-card px-3 py-2 sm:gap-4 sm:px-4"
           >
-            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                 {isActive ? (
                   <Spinner className="size-4.5" />
@@ -70,22 +107,16 @@ export function SchedulingRunStatusPanel({
                 )}
               </span>
 
-              <div className="flex min-w-0 flex-col justify-center">
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  <h2 className="truncate text-xs font-bold text-foreground sm:text-sm">
-                    {t(`statuses.${status}.title`)}
-                  </h2>
-                  <Badge
-                    variant={statusVariants[status]}
-                    className="h-5 shrink-0 px-2 text-[11px]"
-                  >
-                    {isActive && <Spinner data-icon="inline-start" size="sm" />}
-                    {t(`statuses.${status}.badge`)}
-                  </Badge>
-                </div>
-                <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
-                  {t(`statuses.${status}.description`)}
-                </p>
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                <h2 className="min-w-0 truncate text-xs font-bold text-foreground sm:text-sm">
+                  {t(`statuses.${status}.title`)}
+                </h2>
+                <Badge
+                  variant={statusVariants[status]}
+                  className="h-5 shrink-0 px-2 text-[11px]"
+                >
+                  {t(`statuses.${status}.badge`)}
+                </Badge>
               </div>
             </div>
           </section>
@@ -94,11 +125,21 @@ export function SchedulingRunStatusPanel({
           isTerminal ? (
             <Button
               type="button"
-              onClick={onReset}
+              onClick={handleAction}
               className="shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs"
             >
               <RotateCcw aria-hidden className="size-5" />
-              <span>{t("another")}</span>
+              <span>{isFailed ? t("retry") : t("another")}</span>
+            </Button>
+          ) : isLongRunning ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onRetry ?? onReset}
+              className="hidden shrink-0 cursor-pointer gap-2 px-5 font-semibold shadow-xs sm:inline-flex"
+            >
+              <RotateCcw aria-hidden className="size-5" />
+              <span>{t("longRunning.restart")}</span>
             </Button>
           ) : undefined
         }
@@ -106,6 +147,10 @@ export function SchedulingRunStatusPanel({
 
       {isActive && (
         <SchedulingRunProgress status={status} isFailed={isFailed} />
+      )}
+
+      {isActive && isLongRunning && (
+        <LongRunningAlert onRestart={onRetry ?? onReset} />
       )}
 
       {statusQuery.isError && (

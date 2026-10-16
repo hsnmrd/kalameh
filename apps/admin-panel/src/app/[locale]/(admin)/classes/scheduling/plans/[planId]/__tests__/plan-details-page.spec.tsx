@@ -172,7 +172,7 @@ describe("SchedulingPlanDetailsPage", () => {
     expect(await screen.findByText("جزئیات برنامه ۱")).toBeInTheDocument()
     expect(screen.getAllByText("پاییز ۱۴۰۳").length).toBeGreaterThan(0)
     expect(screen.getAllByText("مرکزی").length).toBeGreaterThan(0)
-    expect(screen.getByText("وضعیت")).toBeInTheDocument()
+    expect(screen.queryByText("وضعیت")).not.toBeInTheDocument()
     expect(document.querySelector('[title="کلاس ۱"]')).toBeInTheDocument()
     expect(screen.queryByText("هشدارهای برنامه")).not.toBeInTheDocument()
 
@@ -205,16 +205,76 @@ describe("SchedulingPlanDetailsPage", () => {
 
     render(<SchedulingPlanDetailsPage />)
 
-    const selectButton = await screen.findByRole("button", {
+    const selectButtons = await screen.findAllByRole("button", {
       name: "انتخاب این برنامه",
     })
-    fireEvent.click(selectButton)
+    expect(selectButtons.length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByTestId("plan-details-sticky-bar")).toBeInTheDocument()
+    fireEvent.click(selectButtons[0]!)
 
     await waitFor(() => expect(select).toHaveBeenCalledTimes(1))
     expect(select).toHaveBeenCalledWith(
       { planId, instituteId },
       expect.any(Object)
     )
+  })
+
+  it("redirects to /classes after validating and publishing auto-scheduled classes", async () => {
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(schedulingResource.planDetail, "toQuery").mockReturnValue({
+      queryKey: schedulingResource.planDetail.key({ planId, instituteId }),
+      queryFn: async () =>
+        createPlan(planId, 1, {
+          status: "SELECTED",
+          updatedAt: timestamp,
+        }),
+    } as never)
+    vi.spyOn(schedulingResource.validatePlan, "toMutation").mockReturnValue({
+      mutationFn: async () => ({
+        planId,
+        isValid: true,
+        validatedAt: timestamp,
+        violations: [],
+        summary: {
+          proposalCount: 1,
+          violationCount: 0,
+          invalidProposalCount: 0,
+        },
+      }),
+    })
+    const publish = vi.fn(async () => ({
+      planId,
+      runId,
+      status: "PUBLISHED" as const,
+      classIds: ["55555555-5555-4555-8555-555555555555"],
+      proposalCount: 1,
+      publishedAt: timestamp,
+    }))
+    vi.spyOn(schedulingResource.publishPlan, "toMutation").mockReturnValue({
+      mutationFn: publish,
+    })
+
+    render(<SchedulingPlanDetailsPage />)
+
+    const validateButtons = await screen.findAllByRole("button", {
+      name: "اعتبارسنجی برنامه",
+    })
+    fireEvent.click(validateButtons[0]!)
+
+    const publishButtons = await screen.findAllByRole("button", {
+      name: "انتشار برنامه",
+    })
+    fireEvent.click(publishButtons[0]!)
+
+    const confirmPublishBtn = await screen.findByRole("button", {
+      name: "انتشار و ساخت ۱ کلاس",
+    })
+    fireEvent.click(confirmPublishBtn)
+
+    await waitFor(() => expect(publish).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/classes"))
   })
 
   it("renders weekly calendar view without view mode toggle", async () => {
@@ -412,7 +472,6 @@ describe("SchedulingPlanDetailsPage", () => {
 
     const dialog = await screen.findByTestId("staffing-fallback-dialog")
     expect(dialog).toBeInTheDocument()
-    expect(within(dialog).getByText(/استاد آزاد پیدا نشد/)).toBeInTheDocument()
     expect(within(dialog).getAllByText(/دکتر بهنام/)[0]).toBeInTheDocument()
     expect(
       within(dialog).getByText("تحلیل جابه‌جایی استادان:")

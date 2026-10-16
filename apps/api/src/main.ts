@@ -10,12 +10,14 @@ import { NestFactory } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { getFallbackUploadsRoot } from './common/upload/multer.util';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
   app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
+  app.use('/uploads', express.static(getFallbackUploadsRoot()));
 
   app.enableCors({
     origin: (

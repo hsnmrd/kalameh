@@ -2,27 +2,32 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Lightbulb, SearchCheck } from "lucide-react"
+import { SearchCheck } from "lucide-react"
 import type {
   CourseLevelNode,
+  SchedulingBranchScheduleStatus,
   SchedulingPlanDetailsDto,
+  SchedulingRecoveryOption,
   SchedulingStaffingFallback as StaffingFallbackDto,
   SchedulingTeacherCalendar,
 } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import {
-  ResponsiveDialog,
-  ResponsiveDialogCloseButton,
-  ResponsiveDialogContent,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
+  FormDialog,
+  FormDialogCloseButton,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
 } from "@workspace/ui/components/dialog"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import type { NewTeacherAssignment } from "../../scheduling-new-teacher-assignment-list"
-import { SchedulingRecoveryOption } from "../../scheduling-recovery-option"
+import { RecoveryOptionsSelection } from "./recovery-options-selection"
 import { SchedulingStaffingFallback } from "../../scheduling-staffing-fallback"
+import { SchedulingStaffingOrDivider } from "../../scheduling-staffing-or-divider"
 import { SchedulingTeacherReassignmentAnalysis } from "../../scheduling-teacher-reassignment-analysis"
 import { FreeMastersSelection } from "./free-masters-selection"
+import { findFreeMastersForSlot } from "./free-masters-selection/helper/teacher-level-comparison.helper"
+import { OtherBranchesMastersSection } from "./other-branches-masters-section"
 
 type UnresolvedRequirement =
   SchedulingPlanDetailsDto["unresolvedRequirements"][number]
@@ -41,9 +46,18 @@ export interface StaffingFallbackDialogProps {
   proposal?: Proposal | null
   teacherCalendars?: SchedulingTeacherCalendar[]
   allProposals?: Proposal[]
+  branchId?: string | null
+  branchScheduleStatuses?: SchedulingBranchScheduleStatus[]
   onAssignTeacher?: (
     proposal: Proposal,
     teacherId: string
+  ) => Promise<void> | void
+  onAssignMissedClassTeacher?: (
+    assignment: NewTeacherAssignment,
+    teacherId: string
+  ) => Promise<void> | void
+  onApplyRecoveryOption?: (
+    option: SchedulingRecoveryOption
   ) => Promise<void> | void
   isAssignPending?: boolean
 }
@@ -61,7 +75,11 @@ export function StaffingFallbackDialog({
   proposal,
   teacherCalendars,
   allProposals,
+  branchId,
+  branchScheduleStatuses = [],
   onAssignTeacher,
+  onAssignMissedClassTeacher,
+  onApplyRecoveryOption,
   isAssignPending = false,
 }: StaffingFallbackDialogProps) {
   const t = useTranslations("scheduling.planDetails")
@@ -103,6 +121,7 @@ export function StaffingFallbackDialog({
         id: string
         firstName: string
         lastName: string
+        phoneNumber?: string | null
         avatarUrl?: string | null
       }
     >()
@@ -148,119 +167,180 @@ export function StaffingFallbackDialog({
     proposal?.startTime ?? hiringAssignments[0]?.startTime ?? ""
   const targetEndTime = proposal?.endTime ?? hiringAssignments[0]?.endTime ?? ""
 
+  const effectiveBranchId =
+    branchId ??
+    proposal?.branch?.id ??
+    (proposal as { branchId?: string | null } | undefined)?.branchId ??
+    null
+
+  const hasFreeMasters = React.useMemo(() => {
+    if (!targetDaysOfWeek.length || !targetStartTime || !targetEndTime) {
+      return false
+    }
+    const all = findFreeMastersForSlot({
+      targetCourse,
+      daysOfWeek: targetDaysOfWeek,
+      startTime: targetStartTime,
+      endTime: targetEndTime,
+      ignoredProposalId: proposal?.id,
+      teacherCalendars,
+      allProposals,
+      targetBranchId: effectiveBranchId,
+    })
+    return all.some((m) => !m.isOtherBranch)
+  }, [
+    targetDaysOfWeek,
+    targetStartTime,
+    targetEndTime,
+    targetCourse,
+    proposal?.id,
+    teacherCalendars,
+    allProposals,
+    effectiveBranchId,
+  ])
+
+  const hasRecoveryOptions = visibleOptions.length > 0
+  const hasReassignment = recovery.reassignmentChains.length > 0
+  const hasStaffingFallback = Boolean(
+    effectiveFallback &&
+    (effectiveFallback.availabilityOptions.length > 0 ||
+      unavailableTeachers.length > 0)
+  )
+
+  let branchCounter = 0
+  const branch1Number = hasFreeMasters ? ++branchCounter : undefined
+  const branchRecoveryNumber = hasRecoveryOptions ? ++branchCounter : undefined
+  const branch2Number = hasReassignment ? ++branchCounter : undefined
+  const branch3Number = hasStaffingFallback ? ++branchCounter : undefined
+
   return (
-    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent
+    <FormDialog open={open} onOpenChange={onOpenChange}>
+      <FormDialogContent
         data-testid="staffing-fallback-dialog"
-        className="max-w-3xl overflow-hidden p-0 sm:max-w-3xl"
+        className="sm:max-w-3xl"
       >
-        <ResponsiveDialogHeader className="flex flex-row items-center justify-between border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
-          <ResponsiveDialogTitle className="text-base font-semibold">
+        <FormDialogHeader>
+          <FormDialogTitle className="text-base font-semibold">
             {effectiveCourseTitle
               ? `${t("staffingFallback.title")} · ${effectiveCourseTitle}`
               : t("staffingFallback.title")}
-          </ResponsiveDialogTitle>
-          <ResponsiveDialogCloseButton />
-        </ResponsiveDialogHeader>
-        <div className="max-h-[80vh] space-y-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+          </FormDialogTitle>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:max-h-[80vh] sm:px-6 sm:py-5">
           {/* Option of choosing from Free Masters in this period with level comparison */}
           {targetDaysOfWeek.length > 0 && targetStartTime && targetEndTime && (
             <FreeMastersSelection
+              branchNumber={branch1Number}
               proposal={proposal ?? null}
+              hiringAssignment={hiringAssignments[0] ?? null}
               targetCourse={targetCourse}
               daysOfWeek={targetDaysOfWeek}
               startTime={targetStartTime}
               endTime={targetEndTime}
               teacherCalendars={teacherCalendars}
               allProposals={allProposals}
-              onAssignTeacher={async (prop, teacherId) => {
-                await onAssignTeacher?.(prop, teacherId)
-                onOpenChange(false)
-              }}
+              targetBranchId={effectiveBranchId}
+              onAssignTeacher={
+                onAssignTeacher
+                  ? async (prop, teacherId) => {
+                      await onAssignTeacher(prop, teacherId)
+                      onOpenChange(false)
+                    }
+                  : undefined
+              }
+              onAssignMissedClassTeacher={
+                onAssignMissedClassTeacher
+                  ? async (assignment, teacherId) => {
+                      await onAssignMissedClassTeacher(assignment, teacherId)
+                      onOpenChange(false)
+                    }
+                  : undefined
+              }
               isPending={isAssignPending}
             />
           )}
 
-          {/* Recovery Options OR Busy Teachers / No Free Teacher Callout */}
-          {visibleOptions.length > 0 ? (
-            <div className="rounded-xl bg-muted/40 p-3.5">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="flex items-start gap-2">
-                  <SearchCheck
-                    aria-hidden
-                    className="mt-0.5 size-4 shrink-0 text-foreground"
-                  />
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground">
-                      {t("recovery.title")}
-                    </p>
-                  </div>
-                </div>
-                {recovery.totalOptionCount > 0 && (
-                  <Badge variant="secondary">
-                    {t("recovery.optionCount", {
-                      total: formatNumber(recovery.totalOptionCount, locale),
-                      shown: formatNumber(visibleOptions.length, locale),
-                    })}
-                  </Badge>
-                )}
-              </div>
+          {/* Option of choosing from Free Masters in other branches grouped with schedule status */}
+          {targetDaysOfWeek.length > 0 && targetStartTime && targetEndTime && (
+            <OtherBranchesMastersSection
+              proposal={proposal ?? null}
+              hiringAssignment={hiringAssignments[0] ?? null}
+              targetCourse={targetCourse}
+              daysOfWeek={targetDaysOfWeek}
+              startTime={targetStartTime}
+              endTime={targetEndTime}
+              teacherCalendars={teacherCalendars}
+              allProposals={allProposals}
+              targetBranchId={effectiveBranchId}
+              branchScheduleStatuses={branchScheduleStatuses}
+              onAssignTeacher={
+                onAssignTeacher
+                  ? async (prop, teacherId) => {
+                      await onAssignTeacher(prop, teacherId)
+                      onOpenChange(false)
+                    }
+                  : undefined
+              }
+              onAssignMissedClassTeacher={
+                onAssignMissedClassTeacher
+                  ? async (assignment, teacherId) => {
+                      await onAssignMissedClassTeacher(assignment, teacherId)
+                      onOpenChange(false)
+                    }
+                  : undefined
+              }
+              isPending={isAssignPending}
+            />
+          )}
 
-              <ul className="mt-3 space-y-2.5">
-                {visibleOptions.map((option) => (
-                  <SchedulingRecoveryOption key={option.key} option={option} />
-                ))}
-              </ul>
-            </div>
-          ) : (
-            (recovery.busyTeachers.length > 0 || Boolean(requirement)) && (
-              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-muted/20 px-3.5 py-2.5 text-xs">
-                <div className="flex items-center gap-1.5 font-semibold text-foreground">
-                  <Lightbulb
-                    aria-hidden
-                    className="size-3.5 shrink-0 text-muted-foreground"
-                  />
-                  <span>
-                    {t(
-                      recovery.busyTeachers.length > 0
-                        ? "recovery.teacherConflictTitle"
-                        : "recovery.noOptionTitle"
-                    )}
-                  </span>
-                </div>
-                {recovery.busyTeachers.length > 0 && (
-                  <>
-                    <span className="text-muted-foreground">
-                      ({t("recovery.qualifiedTeachersConflictShort")}):
-                    </span>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {recovery.busyTeachers.map((teacher) => (
-                        <Badge
-                          key={teacher.id}
-                          variant="outline"
-                          className="text-xs font-normal"
-                        >
-                          {teacher.firstName} {teacher.lastName}
-                        </Badge>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )
+          {/* Divider between free masters and recovery options */}
+          {hasFreeMasters && hasRecoveryOptions && (
+            <SchedulingStaffingOrDivider />
+          )}
+
+          {/* Solution 2: Reschedule Class for Free Master */}
+          {hasRecoveryOptions && (
+            <RecoveryOptionsSelection
+              branchNumber={branchRecoveryNumber}
+              options={visibleOptions}
+              canApply={Boolean(onApplyRecoveryOption)}
+              isPending={isAssignPending}
+              onApply={async (option) => {
+                if (onApplyRecoveryOption) {
+                  await onApplyRecoveryOption(option)
+                  onOpenChange(false)
+                }
+              }}
+            />
+          )}
+
+          {/* Divider between recovery options and reassignment */}
+          {(hasFreeMasters || hasRecoveryOptions) && hasReassignment && (
+            <SchedulingStaffingOrDivider />
           )}
 
           {/* Teacher Reassignment Analysis */}
           {(recovery.reassignmentChains.length > 0 || Boolean(requirement)) && (
             <SchedulingTeacherReassignmentAnalysis
+              branchNumber={branch2Number}
               chains={recovery.reassignmentChains}
               targetCourseTitle={effectiveCourseTitle}
+              planId={planId}
+              planStatus={planStatus}
+              unresolvedRequirementId={effectiveUnresolvedRequirementId}
+              onApplyChainSuccess={() => onOpenChange(false)}
             />
           )}
+
+          {/* Divider between alternative options */}
+          {(hasFreeMasters || hasRecoveryOptions || hasReassignment) &&
+            hasStaffingFallback && <SchedulingStaffingOrDivider />}
 
           {/* Staffing Fallback Solutions */}
           {effectiveFallback && (
             <SchedulingStaffingFallback
+              branchNumber={branch3Number}
               fallback={effectiveFallback}
               targetCourseTitle={effectiveCourseTitle}
               hiringAssignments={hiringAssignments}
@@ -268,10 +348,19 @@ export function StaffingFallbackDialog({
               planStatus={planStatus}
               unresolvedRequirementId={effectiveUnresolvedRequirementId}
               unavailableTeachers={unavailableTeachers}
+              currentSchedule={
+                targetDaysOfWeek.length > 0 && targetStartTime && targetEndTime
+                  ? {
+                      daysOfWeek: targetDaysOfWeek,
+                      startTime: targetStartTime,
+                      endTime: targetEndTime,
+                    }
+                  : null
+              }
             />
           )}
         </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

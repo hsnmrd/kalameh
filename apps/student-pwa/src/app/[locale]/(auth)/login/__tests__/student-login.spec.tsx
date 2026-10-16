@@ -46,6 +46,9 @@ describe("StudentLoginPage Component", () => {
     expect(screen.getByLabelText(/موبایل|شماره/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/رمز|کلمه عبور/i)).toBeInTheDocument()
     expect(
+      screen.queryByLabelText(/شناسه آموزشگاه|subdomain|کد آموزشگاه/i)
+    ).not.toBeInTheDocument()
+    expect(
       screen.getByRole("button", { name: /ورود|ورود به حساب/i })
     ).toBeInTheDocument()
   })

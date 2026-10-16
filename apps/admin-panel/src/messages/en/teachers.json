@@ -14,6 +14,10 @@
     "active": "Active",
     "inactive": "Inactive"
   },
+  "scheduleStatus": {
+    "scheduled": "Schedule Set",
+    "noSchedule": "No Schedule"
+  },
   "table": {
     "name": "Teacher Name",
     "phone": "Phone",
@@ -22,6 +26,7 @@
     "availabilities": "Free Times",
     "classesCount": "Classes",
     "status": "Status",
+    "createdAt": "Join Date",
     "actions": "Actions",
     "empty": "No teachers found",
     "classesUnit": "Classes",
@@ -39,6 +44,7 @@
   "createModal": {
     "title": "Add New Teacher",
     "description": "Enter personal information and credentials for the new teacher.",
+    "createdAt": "Join Date",
     "firstName": "First Name",
     "firstNamePlaceholder": "e.g. John",
     "lastName": "Last Name",
@@ -57,10 +63,26 @@
     "avatarPlaceholder": "Select or drag an image",
     "avatarDescription": "Supported formats: JPG, PNG, WebP (Max 5MB)",
     "removeAvatar": "Remove image",
+    "selectStaffUser": "Select from staff / administrative users",
+    "selectStaffUserPlaceholder": "Select existing user to grant teaching role (optional)...",
+    "newTeacherOption": "New teacher (not from staff)",
+    "linkedUserNotice": "This user is linked to staff account ({name} - {role}) and their administrative permissions are preserved.",
+    "passwordStaffDisabledHint": "Password cannot be changed for staff accounts here.",
     "submit": "Save Teacher",
     "cancel": "Cancel",
     "success": "Teacher added successfully",
     "error": "Failed to add teacher"
+  },
+  "roles": {
+    "STUDENT": "Student",
+    "SUPER_STUDENT": "Senior Student",
+    "CLERK": "Clerk",
+    "SUPER_CLERK": "Senior Clerk",
+    "TEACHER": "Teacher",
+    "SUPERVISOR": "Supervisor",
+    "ASSISTANT": "Assistant",
+    "ADMIN": "Institute Admin",
+    "SUPER_ADMIN": "Super Admin"
   },
   "editModal": {
     "title": "Edit Teacher",
@@ -89,6 +111,10 @@
     "removeSlot": "Remove",
     "noSlots": "No availability slots defined (classes can be scheduled at any time).",
     "slotsCount": "{count} free slots",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "classLabel": "Class {slotNumber}",
+    "classesRatio": "{available} of {total} classes available",
     "phaseLabel": "Operating Phase",
     "phasePlaceholder": "Select operating phase...",
     "noActivePhase": "No active operating phase found for this institute. Please define an operating phase first.",
@@ -128,8 +154,14 @@
     "emptyDescription": "No course matches the search, or this institute has no courses yet.",
     "clear": "Clear all",
     "close": "Apply and close",
-    "profileTitle": "Qualified teaching courses",
-    "profileEmpty": "No teachable course is registered; this teacher will be excluded from automatic scheduling suggestions."
+    "profileTitle": "Teachable Courses",
+    "profileEmpty": "No teachable courses registered yet.",
+    "coursesCount": "{count} courses",
+    "authorizedBadge": "Authorized",
+    "searchCourses": "Search courses...",
+    "noCoursesFound": "No courses found matching your search.",
+    "clearSearch": "Clear search",
+    "courseSlideCounter": "{current} of {total}"
   },
   "days": {
     "SATURDAY": "Saturday",
@@ -192,5 +224,11 @@
     "trigger": "Export to Excel",
     "exporting": "Generating Excel export...",
     "error": "Failed to export Excel file"
+  },
+  "validation": {
+    "firstNameMin": "First name must be at least 2 characters.",
+    "lastNameMin": "Last name must be at least 2 characters.",
+    "phoneRegex": "Phone number must be an 11-digit Iranian mobile (e.g. 09121234567).",
+    "passwordMin": "Password must be at least 6 characters."
   }
 }

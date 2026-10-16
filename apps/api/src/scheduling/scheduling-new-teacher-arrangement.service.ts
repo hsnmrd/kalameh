@@ -157,6 +157,7 @@ export class SchedulingNewTeacherArrangementService {
               startTime: choice.slot.startTime,
               endTime: choice.slot.endTime,
               classroom,
+              branchId: choice.item.branchId ?? null,
             },
           ],
           gapMinutes + Math.max(0, slotStartMinutes - cursorMinutes),

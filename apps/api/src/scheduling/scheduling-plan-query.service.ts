@@ -1,8 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import {
+  calculatePhaseSlots,
   ROLES,
+  SchedulingEngineInputSnapshotSchema,
   SchedulingPlanDetailsSchema,
   type JwtPayload,
+  type SchedulingOperatingPhaseSnapshot,
   type SchedulingPlanDetailsDto,
   type SchedulingRecoveryAnalysis,
   type SupportedLocale,
@@ -30,10 +33,7 @@ const emptyRecovery = {
   busyTeachers: [],
   teacherCalendars: [],
   reassignmentChains: [],
-  staffingFallback: {
-    addTeacherSuggested: true,
-    availabilityOptions: [],
-  },
+  staffingFallback: { addTeacherSuggested: true, availabilityOptions: [] },
 } as const;
 
 @Injectable()
@@ -131,6 +131,19 @@ export class SchedulingPlanQueryService {
                 title: true,
                 startDate: true,
                 endDate: true,
+                operatingPhase: {
+                  select: {
+                    id: true,
+                    title: true,
+                    startTime: true,
+                    endTime: true,
+                    slotDurationMinutes: true,
+                    hasBreak: true,
+                    breakStartTime: true,
+                    breakEndTime: true,
+                    daysOfWeek: true,
+                  },
+                },
               },
             },
             branch: { select: { id: true, name: true } },
@@ -194,35 +207,142 @@ export class SchedulingPlanQueryService {
             unresolvedRequirementIds,
             unresolvedRequirements: plan.unresolvedRequirements,
           });
-    const [recoveryByRequirementId, teacherCalendars, newTeacherHiringPlan] =
-      await Promise.all([
-        recoveryPromise,
-        this.planTeacherCalendarService.build({
+    const [
+      recoveryByRequirementId,
+      teacherCalendars,
+      newTeacherHiringPlan,
+      branches,
+      plansForTerm,
+      classesForTerm,
+    ] = await Promise.all([
+      recoveryPromise,
+      this.planTeacherCalendarService.build({
+        instituteId,
+        inputSnapshot: plan.run.inputSnapshot,
+        proposals: plan.proposals,
+      }),
+      unresolvedRequirementIds.length === 0
+        ? Promise.resolve(null)
+        : this.newTeacherHiringPlanService.build({
+            instituteId,
+            inputSnapshot: plan.run.inputSnapshot,
+            settingsSnapshot: plan.run.settingsSnapshot,
+            proposals: plan.proposals,
+            unresolvedRequirements: plan.unresolvedRequirements,
+          }),
+      this.prisma.branch.findMany({
+        where: { instituteId },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.schedulingPlan.findMany({
+        where: {
           instituteId,
-          inputSnapshot: plan.run.inputSnapshot,
-          proposals: plan.proposals,
-        }),
-        unresolvedRequirementIds.length === 0
-          ? Promise.resolve(null)
-          : this.newTeacherHiringPlanService.build({
-              instituteId,
-              inputSnapshot: plan.run.inputSnapshot,
-              settingsSnapshot: plan.run.settingsSnapshot,
-              proposals: plan.proposals,
-              unresolvedRequirements: plan.unresolvedRequirements,
-            }),
-      ]);
+          run: { termId: plan.run.termId, status: 'COMPLETED' },
+          status: { in: ['PUBLISHED', 'SELECTED', 'DRAFT'] },
+        },
+        select: {
+          status: true,
+          run: { select: { branchId: true } },
+        },
+      }),
+      this.prisma.class.findMany({
+        where: { instituteId, termId: plan.run.termId },
+        select: { branchId: true },
+      }),
+    ]);
+    let operatingPhaseSnapshot: SchedulingOperatingPhaseSnapshot | null = null;
+    try {
+      const snapshot = SchedulingEngineInputSnapshotSchema.parse(
+        plan.run.inputSnapshot,
+      );
+      operatingPhaseSnapshot = snapshot.term?.operatingPhase ?? null;
+    } catch {
+      // Gracefully continue if snapshot parsing fails or is empty
+    }
+
+    const rawPhase =
+      operatingPhaseSnapshot ??
+      (plan.run.term?.operatingPhase
+        ? {
+            id: plan.run.term.operatingPhase.id,
+            title: plan.run.term.operatingPhase.title,
+            startTime: plan.run.term.operatingPhase.startTime,
+            endTime: plan.run.term.operatingPhase.endTime,
+            slotDurationMinutes:
+              plan.run.term.operatingPhase.slotDurationMinutes,
+            hasBreak: plan.run.term.operatingPhase.hasBreak,
+            breakStartTime: plan.run.term.operatingPhase.breakStartTime,
+            breakEndTime: plan.run.term.operatingPhase.breakEndTime,
+            daysOfWeek: plan.run.term.operatingPhase.daysOfWeek as any,
+          }
+        : null);
+
+    const availableTimeSlots = rawPhase
+      ? calculatePhaseSlots(
+          rawPhase.startTime,
+          rawPhase.endTime,
+          rawPhase.slotDurationMinutes,
+          {
+            hasBreak: rawPhase.hasBreak,
+            breakStartTime: rawPhase.breakStartTime,
+            breakEndTime: rawPhase.breakEndTime,
+          },
+        ).slots.map(({ startTime, endTime }) => ({ startTime, endTime }))
+      : [];
+
     const {
       inputSnapshot: _inputSnapshot,
       settingsSnapshot: _settingsSnapshot,
-      ...run
+      ...runData
     } = plan.run;
+
+    const run = {
+      ...runData,
+      term: {
+        ...runData.term,
+        operatingPhase: rawPhase,
+      },
+    };
+
+    const publishedBranches = new Set<string>([
+      ...classesForTerm.map((c) => c.branchId),
+      ...plansForTerm
+        .filter((p) => p.status === 'PUBLISHED' && p.run.branchId !== null)
+        .map((p) => p.run.branchId),
+    ]);
+    const scheduledBranches = new Set<string>(
+      plansForTerm
+        .filter(
+          (p) =>
+            (p.status === 'SELECTED' || p.status === 'DRAFT') &&
+            p.run.branchId !== null,
+        )
+        .map((p) => p.run.branchId),
+    );
+
+    const branchScheduleStatuses = branches.map((branch) => {
+      const isPublished = publishedBranches.has(branch.id);
+      const isScheduled = scheduledBranches.has(branch.id);
+      return {
+        branchId: branch.id,
+        branchName: branch.name,
+        hasDefinedSchedule: isPublished || isScheduled,
+        status: isPublished
+          ? ('PUBLISHED' as const)
+          : isScheduled
+            ? ('SCHEDULED' as const)
+            : ('NOT_SCHEDULED' as const),
+      };
+    });
 
     return SchedulingPlanDetailsSchema.parse({
       ...plan,
       run,
+      availableTimeSlots,
       teacherCalendars,
       newTeacherHiringPlan,
+      branchScheduleStatuses,
       unresolvedRequirements: plan.unresolvedRequirements.map(
         (requirement) => ({
           ...requirement,

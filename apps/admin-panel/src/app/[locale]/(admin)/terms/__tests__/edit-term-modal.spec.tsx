@@ -367,4 +367,44 @@ describe("EditTermModal Component - ProposalsCalendar Integration", () => {
       )
     }
   })
+
+  it("displays existing other terms in the calendar and shows occupied legend", () => {
+    const existingSummerTerm: TermDto = {
+      id: "term-summer",
+      instituteId: "inst-1",
+      title: "تابستان ۱۴۰۵",
+      startDate: "2026-06-22",
+      endDate: "2026-09-20",
+      isActive: false,
+      operatingPhaseId: "other-phase",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    const currentFallTerm: TermDto = {
+      id: "term-fall",
+      instituteId: "inst-1",
+      title: "پاییز ۱۴۰۵",
+      startDate: "2026-09-23",
+      endDate: "2026-12-21",
+      isActive: true,
+      operatingPhaseId: "fall-phase",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    render(
+      <EditTermModal
+        term={currentFallTerm}
+        open={true}
+        onClose={vi.fn()}
+        allTerms={[existingSummerTerm, currentFallTerm]}
+      />
+    )
+
+    // Calendar legend includes the occupied indicator
+    expect(
+      screen.getByText("ترم‌های دیگر (غیرقابل انتخاب)")
+    ).toBeInTheDocument()
+  })
 })

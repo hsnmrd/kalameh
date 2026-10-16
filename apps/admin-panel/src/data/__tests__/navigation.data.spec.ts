@@ -34,6 +34,7 @@ describe("admin navigation groups", () => {
 
   it("structures base catalog and facilities", () => {
     expect(FACILITIES_NAV_ITEMS.map((item) => item.key)).toEqual([
+      "books",
       "courses",
       "classrooms",
       "branches",

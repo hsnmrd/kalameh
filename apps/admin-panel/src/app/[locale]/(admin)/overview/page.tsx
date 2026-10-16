@@ -3,11 +3,11 @@
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import { ROLES } from "@workspace/types"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { authResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { useRouter } from "@/i18n/routing"
 import { InstituteAdminView } from "../(dashboard)/components/institute-admin-view"
+import { DashboardSkeleton } from "../(dashboard)/components/dashboard-skeleton"
 
 export default function InstituteOverviewPage() {
   const { data: user, isLoading: isUserLoading } = useQuery(
@@ -26,11 +26,7 @@ export default function InstituteOverviewPage() {
   }, [isLoading, isSuperAdmin, activeInstitute, router])
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   if (isSuperAdmin && !activeInstitute) {

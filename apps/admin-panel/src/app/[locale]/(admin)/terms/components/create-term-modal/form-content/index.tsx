@@ -17,6 +17,7 @@ import {
 } from "@workspace/types"
 import type { CreateTermInput } from "../../../hooks/use-term-schemas"
 import { PhaseSelectField } from "../../phase-select-field"
+import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
 import { ProposalsCalendar } from "../../proposals-calendar"
 import { TermCalculatorSection } from "../term-calculator-section"
 
@@ -30,6 +31,12 @@ interface FormContentProps {
   customOffDays: string[]
   dismissedHolidays: string[]
   compensatorySessions: Record<number, CompensatorySession[]>
+  existingTerms?: Array<{
+    id?: string
+    title?: string
+    startDate: string | Date
+    endDate: string | Date
+  }>
   isPending: boolean
   onSubmit: (values: CreateTermInput) => void
   onClose: () => void
@@ -53,6 +60,7 @@ export function FormContent({
   customOffDays,
   dismissedHolidays,
   compensatorySessions,
+  existingTerms,
   isPending,
   onSubmit,
   onClose,
@@ -64,6 +72,7 @@ export function FormContent({
 }: FormContentProps) {
   const t = useTranslations("terms")
   const locale = useLocale() as SupportedLocale
+  const isMobile = useIsMobile()
   const {
     register,
     handleSubmit,
@@ -160,6 +169,8 @@ export function FormContent({
               customOffDays={customOffDays}
               activeDismissedHolidays={dismissedHolidays}
               compensatorySessions={compensatorySessions}
+              existingTerms={existingTerms}
+              numberOfMonths={isMobile ? 1 : 2}
             />
           </div>
         )}

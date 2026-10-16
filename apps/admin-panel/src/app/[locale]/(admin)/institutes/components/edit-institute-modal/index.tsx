@@ -83,8 +83,9 @@ export function EditInstituteModal({
         : EMPTY_VALUES,
     [institute]
   )
+  const updateInstituteSchema = useUpdateInstituteSchema()
   const form = useForm<UpdateInstituteInput>({
-    resolver: zodResolver(useUpdateInstituteSchema()),
+    resolver: zodResolver(updateInstituteSchema),
     defaultValues: EMPTY_VALUES,
     values: formValues,
   })

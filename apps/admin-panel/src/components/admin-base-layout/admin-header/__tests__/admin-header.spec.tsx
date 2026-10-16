@@ -8,10 +8,11 @@ import {
 import { AdminHeader } from "../index"
 
 const mockPathname = vi.fn(() => "/classes/scheduling/plans/plan-1")
+const mockPush = vi.fn()
 
 vi.mock("@/i18n/routing", () => ({
   usePathname: () => mockPathname(),
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push: mockPush, replace: vi.fn() }),
   useIsRtl: () => true,
   Link: ({
     href,
@@ -60,7 +61,8 @@ describe("AdminHeader", () => {
     ).not.toBeInTheDocument()
   })
 
-  it("renders back button as icon button next to page title when backNavigation is set", () => {
+  it("renders back button as icon button next to page title and navigates via transition when clicked", () => {
+    mockPush.mockClear()
     render(
       <HeaderActionsProvider>
         <TestHeaderWithNavigation
@@ -78,6 +80,11 @@ describe("AdminHeader", () => {
       "aria-label",
       "بازگشت به تقویم آموزشی هوشمند"
     )
+
+    act(() => {
+      backBtn.click()
+    })
+    expect(mockPush).toHaveBeenCalledWith("/classes/scheduling")
   })
 
   it("renders platform dashboard title for super admin on root path", () => {
@@ -146,5 +153,20 @@ describe("AdminHeader", () => {
     expect(header).toHaveClass("border-border")
     expect(header).toHaveClass("backdrop-blur-md")
     expect(header).not.toHaveClass("-translate-y-full")
+  })
+
+  it("renders theme switcher next to profile avatar component", () => {
+    render(
+      <HeaderActionsProvider>
+        <AdminHeader />
+      </HeaderActionsProvider>
+    )
+
+    const themeToggle = screen.getByTestId("admin-header-theme-toggle")
+    expect(themeToggle).toBeInTheDocument()
+
+    const avatarBtn = screen.getByRole("button", { name: "اطلاعات کاربری" })
+    expect(avatarBtn).toBeInTheDocument()
+    expect(themeToggle.nextElementSibling).toBe(avatarBtn)
   })
 })

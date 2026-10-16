@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
 import { Building2, Edit2, MapPin, Phone, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { DataTable } from "@workspace/ui/components/data-table"
 import {
   Empty,
@@ -141,11 +141,7 @@ export function BranchesTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={5} />
   }
 
   if (!branches || branches.length === 0) {

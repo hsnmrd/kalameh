@@ -11,11 +11,13 @@ import {
 } from "@workspace/types"
 import { termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions, useModal } from "@/lib/hooks"
+import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { TermsTable } from "./components/terms-table"
 import { TermsList } from "./components/terms-list"
@@ -25,8 +27,16 @@ import { TermsFabDrawer } from "./components/terms-fab-drawer"
 export default function TermsPage() {
   const { openModal } = useModal()
 
-  const [search, setSearch] = React.useState("")
-  const [selectedStatus, setSelectedStatus] = React.useState("ALL")
+  const { filters, setFilter, pageIndex, pageSize, setPageIndex, setPageSize } =
+    useUrlFilters({
+      defaultValues: {
+        search: "",
+        selectedStatus: "ALL",
+        page: 1,
+        pageSize: 10,
+      },
+      debounceKeys: ["search"],
+    })
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
   const { user } = usePermissions()
@@ -39,9 +49,10 @@ export default function TermsPage() {
   const { data: terms = [], isLoading } = useQuery({
     ...termsResource.list.toQuery({
       instituteId: activeInstituteId,
-      search: search.trim() || undefined,
-      isActive: parseStatusFilter(selectedStatus),
-      status: selectedStatus !== "ALL" ? selectedStatus : undefined,
+      search: filters.search.trim() || undefined,
+      isActive: parseStatusFilter(filters.selectedStatus),
+      status:
+        filters.selectedStatus !== "ALL" ? filters.selectedStatus : undefined,
     }),
     enabled: Boolean(activeInstituteId && hasModule),
   })
@@ -60,10 +71,10 @@ export default function TermsPage() {
         <AdminPageShell
           filters={
             <TermsFilter
-              search={search}
-              onSearchChange={setSearch}
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
+              search={filters.search}
+              onSearchChange={(search) => setFilter("search", search)}
+              selectedStatus={filters.selectedStatus}
+              onStatusChange={(status) => setFilter("selectedStatus", status)}
               onAddClick={isListEmpty ? undefined : handleCreate}
               onBatchClick={isListEmpty ? undefined : handleBatch}
             />
@@ -87,28 +98,39 @@ export default function TermsPage() {
         >
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
-            <TermsTable
-              terms={terms}
-              isLoading={isLoading}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-              onBatch={handleBatch}
-            />
+            <React.Suspense fallback={<TableSkeleton rows={pageSize} />}>
+              <TermsTable
+                terms={terms}
+                isLoading={isLoading}
+                onView={handleView}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+                onBatch={handleBatch}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageIndexChange={setPageIndex}
+                onPageSizeChange={setPageSize}
+              />
+            </React.Suspense>
           </div>
 
           {/* Mobile: flat divider list */}
           <div className="flex flex-1 flex-col lg:hidden">
-            <TermsList
-              terms={terms}
-              isLoading={isLoading}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-              onBatch={handleBatch}
-            />
+            <React.Suspense fallback={<ListSkeleton rows={pageSize} />}>
+              <TermsList
+                terms={terms}
+                isLoading={isLoading}
+                onView={handleView}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+                onBatch={handleBatch}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageChange={setPageIndex}
+              />
+            </React.Suspense>
           </div>
         </AdminPageShell>
       </PermissionGuard>

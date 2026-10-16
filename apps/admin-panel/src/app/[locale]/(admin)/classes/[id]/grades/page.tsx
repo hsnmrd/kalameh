@@ -23,6 +23,8 @@ import { ModuleGuard } from "@/components/module-guard"
 import { ClassInfoCard } from "./components/class-info-card"
 import { GradesTable } from "./components/grades-table"
 import { GradesList } from "./components/grades-list"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 
 export default function ClassGradesPage() {
   const t = useTranslations("grades")
@@ -91,22 +93,26 @@ export default function ClassGradesPage() {
         >
           {/* Desktop: DataTable */}
           <div className="hidden lg:block">
-            <GradesTable
-              records={records}
-              isLoading={isLoading}
-              isSubmitting={submitMutation.isPending}
-              onSubmit={handleSubmit}
-            />
+            <React.Suspense fallback={<TableSkeleton rows={5} />}>
+              <GradesTable
+                records={records}
+                isLoading={isLoading}
+                isSubmitting={submitMutation.isPending}
+                onSubmit={handleSubmit}
+              />
+            </React.Suspense>
           </div>
 
           {/* Mobile: flat list */}
           <div className="lg:hidden">
-            <GradesList
-              records={records}
-              isLoading={isLoading}
-              isSubmitting={submitMutation.isPending}
-              onSubmit={handleSubmit}
-            />
+            <React.Suspense fallback={<ListSkeleton rows={5} />}>
+              <GradesList
+                records={records}
+                isLoading={isLoading}
+                isSubmitting={submitMutation.isPending}
+                onSubmit={handleSubmit}
+              />
+            </React.Suspense>
           </div>
         </AdminPageShell>
       </PermissionGuard>

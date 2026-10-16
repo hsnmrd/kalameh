@@ -11,7 +11,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@workspace/ui/components/empty"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { classesResource, teachersResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
 import { AdminBreadcrumb } from "@/components/admin-breadcrumb"
@@ -92,9 +92,7 @@ export function TeacherCalendarContent() {
       }
     >
       {isLoading ? (
-        <div className="flex min-h-64 items-center justify-center">
-          <Spinner className="size-8 text-foreground" />
-        </div>
+        <TableSkeleton rows={5} />
       ) : calendars.length === 0 ? (
         <Empty variant="compact" className="min-h-64 bg-muted/20">
           <EmptyMedia>

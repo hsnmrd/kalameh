@@ -1,12 +1,19 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../common/redis/redis.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { I18nService } from '../i18n/i18n.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { TransactionFilterDto } from './dto/transaction-filter.dto';
 import { UpdateTransactionStatusDto } from './dto/update-transaction-status.dto';
 import {
+  ENROLLMENT_STATUSES,
   ROLES,
+  TRANSACTION_STATUSES,
   type JwtPayload,
   type SupportedLocale,
   type TransactionDto,
@@ -22,12 +29,26 @@ const transactionInclude = {
       avatarUrl: true,
     },
   },
+  class: {
+    select: {
+      id: true,
+      title: true,
+      fee: true,
+      term: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
+    },
+  },
 } as const;
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
     private readonly auditLogsService: AuditLogsService,
     private readonly i18n: I18nService,
   ) {}
@@ -41,7 +62,7 @@ export class TransactionsService {
       ? filter.instituteId
       : currentUser.instituteId;
 
-    return this.prisma.transaction.findMany({
+    const transactions = await this.prisma.transaction.findMany({
       where: {
         ...(instituteId ? { instituteId } : {}),
         ...(filter.status ? { status: filter.status } : {}),
@@ -80,10 +101,29 @@ export class TransactionsService {
       include: transactionInclude,
       orderBy: { createdAt: 'desc' },
     });
+
+    const trackingCounts = await this.prisma.transaction.groupBy({
+      by: ['trackingCode'],
+      where: instituteId ? { instituteId } : {},
+      _count: { trackingCode: true },
+    });
+
+    const duplicateMap = new Map(
+      trackingCounts.map((c) => [c.trackingCode, c._count.trackingCode]),
+    );
+
+    return transactions.map((t) => {
+      const count = duplicateMap.get(t.trackingCode) ?? 1;
+      return {
+        ...t,
+        isDuplicateTrackingCode: count > 1,
+        duplicateCount: count,
+      };
+    });
   }
 
   async findOne(id: string, currentUser: JwtPayload): Promise<TransactionDto> {
-    return this.prisma.transaction.findFirstOrThrow({
+    const transaction = await this.prisma.transaction.findFirstOrThrow({
       where: {
         id,
         ...(currentUser.role === ROLES.SUPER_ADMIN
@@ -92,6 +132,19 @@ export class TransactionsService {
       },
       include: transactionInclude,
     });
+
+    const duplicateCount = await this.prisma.transaction.count({
+      where: {
+        instituteId: transaction.instituteId,
+        trackingCode: transaction.trackingCode,
+      },
+    });
+
+    return {
+      ...transaction,
+      isDuplicateTrackingCode: duplicateCount > 1,
+      duplicateCount,
+    };
   }
 
   async create(
@@ -117,10 +170,28 @@ export class TransactionsService {
       },
     });
 
+    if (dto.classId) {
+      const cls = await this.prisma.class.findFirstOrThrow({
+        where: {
+          id: dto.classId,
+          instituteId: currentUser.instituteId,
+        },
+      });
+
+      if (dto.amount !== cls.fee) {
+        throw new BadRequestException(
+          locale === 'fa'
+            ? `مبلغ پرداختی باید دقیقاً برابر با مبلغ کل شهریه کلاس (${cls.fee}) باشد.`
+            : `Payment amount must exactly match the full class tuition (${cls.fee}).`,
+        );
+      }
+    }
+
     const transaction = await this.prisma.transaction.create({
       data: {
         instituteId: currentUser.instituteId,
         studentId: currentUser.sub,
+        classId: dto.classId,
         amount: dto.amount,
         trackingCode: dto.trackingCode,
         receiptImageUrl,
@@ -128,6 +199,29 @@ export class TransactionsService {
       },
       include: transactionInclude,
     });
+
+    if (dto.classId) {
+      await this.prisma.enrollment.upsert({
+        where: {
+          studentId_classId: {
+            studentId: currentUser.sub,
+            classId: dto.classId,
+          },
+        },
+        create: {
+          studentId: currentUser.sub,
+          classId: dto.classId,
+          status: ENROLLMENT_STATUSES.PENDING_APPROVAL,
+          transactionId: transaction.id,
+        },
+        update: {
+          status: ENROLLMENT_STATUSES.PENDING_APPROVAL,
+          transactionId: transaction.id,
+        },
+      });
+
+      await this.redis.releaseClassLock(dto.classId, currentUser.sub);
+    }
 
     await this.auditLogsService.log({
       instituteId: currentUser.instituteId,
@@ -138,10 +232,15 @@ export class TransactionsService {
       metadata: {
         amount: transaction.amount,
         trackingCode: transaction.trackingCode,
+        classId: dto.classId,
       },
     });
 
-    return transaction;
+    return {
+      ...transaction,
+      isDuplicateTrackingCode: false,
+      duplicateCount: 1,
+    };
   }
 
   async updateStatus(
@@ -156,15 +255,44 @@ export class TransactionsService {
       include: transactionInclude,
     });
 
+    if (existing.classId) {
+      if (dto.status === TRANSACTION_STATUSES.APPROVED) {
+        await this.prisma.enrollment.updateMany({
+          where: {
+            studentId: existing.studentId,
+            classId: existing.classId,
+          },
+          data: { status: ENROLLMENT_STATUSES.ENROLLED },
+        });
+      } else if (dto.status === TRANSACTION_STATUSES.REJECTED) {
+        await this.prisma.enrollment.updateMany({
+          where: {
+            studentId: existing.studentId,
+            classId: existing.classId,
+          },
+          data: { status: ENROLLMENT_STATUSES.REJECTED },
+        });
+        await this.redis.releaseClassLock(existing.classId, existing.studentId);
+      }
+    }
+
     await this.auditLogsService.log({
       instituteId: existing.instituteId,
       userId: currentUser.sub,
       module: 'TRANSACTION',
       entityId: updated.id,
       action: 'STATUS_UPDATE',
-      metadata: { previousStatus: existing.status, status: updated.status },
+      metadata: {
+        previousStatus: existing.status,
+        status: updated.status,
+        classId: existing.classId,
+      },
     });
 
-    return updated;
+    return {
+      ...updated,
+      isDuplicateTrackingCode: existing.isDuplicateTrackingCode,
+      duplicateCount: existing.duplicateCount,
+    };
   }
 }

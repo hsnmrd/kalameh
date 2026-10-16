@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl"
 import { type ColumnDef } from "@tanstack/react-table"
 import { Calendar, Edit2, Trash2, Eye, Plus, Sparkles } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { DataTable } from "@workspace/ui/components/data-table"
 import {
   Empty,
@@ -28,6 +28,10 @@ export interface TermsTableProps {
   onDelete?: (term: TermDto) => void
   onAdd?: () => void
   onBatch?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function TermsTable({
@@ -38,6 +42,10 @@ export function TermsTable({
   onDelete,
   onAdd,
   onBatch,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: TermsTableProps) {
   const t = useTranslations("terms")
   const locale = useLocale()
@@ -156,6 +164,7 @@ export function TermsTable({
                     onClick={() => onDelete(row.original)}
                     className="size-8 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     aria-label={t("deleteModal.deleteAction")}
+                    title={t("deleteModal.deleteAction")}
                   >
                     <Trash2 className="size-4" />
                   </Button>
@@ -170,11 +179,7 @@ export function TermsTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 w-full items-center justify-center rounded-2xl border border-border bg-card">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={pageSize ?? 5} />
   }
 
   if (!terms || terms.length === 0) {
@@ -226,5 +231,16 @@ export function TermsTable({
     )
   }
 
-  return <DataTable columns={columns} data={terms} />
+  return (
+    <DataTable
+      columns={columns}
+      data={terms}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
+      locale={locale}
+    />
+  )
 }

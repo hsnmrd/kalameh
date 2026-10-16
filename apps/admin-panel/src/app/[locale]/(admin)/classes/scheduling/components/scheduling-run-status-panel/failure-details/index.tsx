@@ -1,10 +1,8 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { RotateCcw } from "lucide-react"
 import type { SchedulingRunDto, SchedulingRunStatusDto } from "@workspace/types"
-import { Button } from "@workspace/ui/components/button"
-import { useRouter } from "@/i18n/routing"
+import { formatSchedulingFailureMessage } from "./helper/failure-message.helper"
 
 interface SnapshotRequirement {
   courseId: string
@@ -31,34 +29,19 @@ interface FailureDetailsProps {
 
 export function FailureDetails({ run, result }: FailureDetailsProps) {
   const t = useTranslations("scheduling.runStatus")
-  const router = useRouter()
   const blockingIssues =
     result?.preflightReport?.issues.filter(
       (issue) => issue.severity === "BLOCKING"
     ) ?? []
   const requirements = getSnapshotRequirements(run.inputSnapshot)
+  const displayMessage = formatSchedulingFailureMessage(
+    result?.failureMessage,
+    t("technicalError")
+  )
 
   return (
     <div className="flex flex-col gap-3 rounded-xl bg-destructive/10 p-4 text-sm leading-6 text-destructive">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          {result?.failureMessage && (
-            <p className="font-semibold">{result.failureMessage}</p>
-          )}
-        </div>
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          onClick={() =>
-            router.push(`/classes/scheduling/generate?termId=${run.termId}`)
-          }
-          className="shrink-0"
-        >
-          <RotateCcw data-icon="inline-start" className="size-4" />
-          {t("retryGeneration")}
-        </Button>
-      </div>
+      {displayMessage && <p className="font-semibold">{displayMessage}</p>}
 
       {blockingIssues.length > 0 && (
         <div className="flex flex-col gap-2 border-t border-destructive/20 pt-3">

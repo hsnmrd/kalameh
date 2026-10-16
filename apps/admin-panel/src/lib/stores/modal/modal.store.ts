@@ -2,7 +2,9 @@ import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 
 export interface ModalStoreState {
+  activeModals: string[]
   modalData: Record<string, any>
+  setActiveModals: (keys: string[]) => void
   setModalData: <T = any>(modalKey: string, data: T) => void
   getModalData: <T = any>(modalKey: string) => T | undefined
   clearModalData: (modalKey: string) => void
@@ -12,7 +14,9 @@ export interface ModalStoreState {
 export const useModalStore = create<ModalStoreState>()(
   persist(
     (set, get) => ({
+      activeModals: [],
       modalData: {},
+      setActiveModals: (keys) => set({ activeModals: keys }),
       setModalData: (modalKey, data) =>
         set((state) => ({
           modalData: {
@@ -28,7 +32,7 @@ export const useModalStore = create<ModalStoreState>()(
           delete next[modalKey]
           return { modalData: next }
         }),
-      clearAllModalData: () => set({ modalData: {} }),
+      clearAllModalData: () => set({ modalData: {}, activeModals: [] }),
     }),
     {
       name: "kalameh_modal_state",

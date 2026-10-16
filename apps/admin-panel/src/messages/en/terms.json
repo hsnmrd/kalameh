@@ -134,7 +134,7 @@
     "editConfig": "Edit Settings",
     "dateShiftHint": "You can adjust the start date of any term. The end date and all subsequent terms will be automatically recalculated and shifted.",
     "previewButton": "Preview",
-    "previewing": "Generating preview...",
+    "previewing": "Generating...",
     "previewTitle": "Proposed Terms to Create ({count} terms)",
     "carouselTitle": "Proposed Terms",
     "colNumber": "#",
@@ -168,6 +168,7 @@
     "legendOfficialHolidays": "Official Holidays",
     "legendDismissedHolidays": "Dismissed Holidays",
     "legendCustomOffDays": "Institute Off-Days",
+    "legendExistingTermsOccupied": "Other Terms (Unavailable)",
     "legendCompensatorySession": "Compensatory Class",
     "holidayStartDateWarning": "Term start date cannot fall on an official holiday or weekend.",
     "dayActionsTitle": "Day Actions: {date}",
@@ -189,6 +190,7 @@
     "termHolidaysListTitle": "Official holidays in \"{title}\" ({count} days)",
     "statusCustomOff": "Institute Off-Day: {title}",
     "statusFriday": "Weekend (Friday)",
+    "statusOccupiedByExisting": "Occupied by: {title}",
     "statusTermSession": "Term {title} Session",
     "statusCompensatory": "Compensatory Class ({track})",
     "statusGapDay": "Inter-term Gap Day",
@@ -247,5 +249,11 @@
     "status": "Term Status",
     "statusActive": "Active",
     "statusInactive": "Inactive"
+  },
+  "validation": {
+    "titleMin": "Term title must be at least 2 characters.",
+    "startDateRequired": "Start date is required.",
+    "endDateRequired": "End date is required.",
+    "operatingPhaseRequired": "Operating phase is required."
   }
 }

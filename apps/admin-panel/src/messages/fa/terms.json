@@ -134,7 +134,7 @@
     "editConfig": "ویرایش تنظیمات",
     "dateShiftHint": "می‌توانید تاریخ شروع هر ترم را تغییر دهید. با تغییر تاریخ شروع، تاریخ پایان آن و ترم‌های پس از آن به‌صورت خودکار محاسبه و جابجا می‌شوند.",
     "previewButton": "پیش‌نمایش",
-    "previewing": "در حال تولید پیش‌نمایش...",
+    "previewing": "در حال تولید...",
     "previewTitle": "ترم‌های پیشنهادی برای ساخت ({count} ترم)",
     "carouselTitle": "ترم‌های پیشنهادی",
     "colNumber": "#",
@@ -168,6 +168,7 @@
     "legendOfficialHolidays": "تعطیلات رسمی",
     "legendDismissedHolidays": "تعطیلات لغوشده",
     "legendCustomOffDays": "تعطیلات موسسه",
+    "legendExistingTermsOccupied": "ترم‌های دیگر (غیرقابل انتخاب)",
     "legendCompensatorySession": "کلاس جبرانی",
     "holidayStartDateWarning": "تاریخ شروع ترم نمی‌تواند در روزهای تعطیل یا پایان هفته باشد.",
     "dayActionsTitle": "عملیات روز {date}",
@@ -189,6 +190,7 @@
     "termHolidaysListTitle": "علت تعطیلات رسمی «{title}» ({count} مورد)",
     "statusCustomOff": "تعطیلی موسسه: {title}",
     "statusFriday": "پایان هفته (جمعه)",
+    "statusOccupiedByExisting": "تداخل با ترم: {title}",
     "statusTermSession": "جلسه ترم {title}",
     "statusCompensatory": "کلاس جبرانی ({track})",
     "statusGapDay": "فاصله بین دو ترم",
@@ -247,5 +249,11 @@
     "status": "وضعیت ترم",
     "statusActive": "فعال",
     "statusInactive": "غیرفعال"
+  },
+  "validation": {
+    "titleMin": "عنوان ترم باید حداقل ۲ کاراکتر باشد.",
+    "startDateRequired": "تاریخ شروع ترم الزامی است.",
+    "endDateRequired": "تاریخ پایان ترم الزامی است.",
+    "operatingPhaseRequired": "انتخاب فاز تحصیلی الزامی است."
   }
 }

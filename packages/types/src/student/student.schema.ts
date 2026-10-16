@@ -30,6 +30,36 @@ export const StudentDtoSchema = z.object({
     .optional(),
   studentProfile: StudentProfileSchema.nullable().optional(),
   enrollmentsCount: z.number().optional(),
+  enrollments: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        status: z.string(),
+        finalScore: z.number().nullable().optional(),
+        isPassed: z.boolean().nullable().optional(),
+        class: z.object({
+          id: z.string().uuid(),
+          title: z.string(),
+          schedule: z.string().nullable().optional(),
+          term: z
+            .object({
+              id: z.string().uuid(),
+              title: z.string(),
+              isActive: z.boolean().optional(),
+              startDate: z.string().or(z.date()).optional(),
+              endDate: z.string().or(z.date()).optional(),
+            })
+            .optional(),
+          course: z
+            .object({
+              id: z.string().uuid(),
+              title: z.string(),
+            })
+            .optional(),
+        }),
+      })
+    )
+    .optional(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
 })

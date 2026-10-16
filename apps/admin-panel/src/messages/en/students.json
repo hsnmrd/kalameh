@@ -242,5 +242,27 @@
     "trigger": "Export to Excel",
     "exporting": "Generating Excel export...",
     "error": "Failed to export Excel file"
+  },
+  "days": {
+    "SATURDAY": "Saturday",
+    "SUNDAY": "Sunday",
+    "MONDAY": "Monday",
+    "TUESDAY": "Tuesday",
+    "WEDNESDAY": "Wednesday",
+    "THURSDAY": "Thursday",
+    "FRIDAY": "Friday"
+  },
+  "availabilities": {
+    "title": "Availability Schedule",
+    "empty": "No availability schedule has been set for this student.",
+    "setAvailability": "Set Availability",
+    "slotLabel": "Slot {slotNumber}",
+    "classLabel": "Class {slotNumber}",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "slotsRatio": "{available} of {total} slots available",
+    "classesRatio": "{available} of {total} classes available",
+    "filterAllDays": "All Days",
+    "phase": "Operating Phase:"
   }
 }

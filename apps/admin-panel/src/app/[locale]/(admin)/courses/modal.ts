@@ -9,6 +9,13 @@ export const modalRegistry: ModalRegistry = {
       ),
     { ssr: false }
   ),
+  createGroupCourses: dynamic(
+    () =>
+      import("./components/create-group-courses-modal").then(
+        (m) => m.CreateGroupCoursesModal
+      ),
+    { ssr: false }
+  ),
   editCourse: dynamic(
     () =>
       import("./components/edit-course-modal").then((m) => m.EditCourseModal),

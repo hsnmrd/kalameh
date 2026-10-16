@@ -2,13 +2,13 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Eye, ReceiptText } from "lucide-react"
+import { AlertTriangle, Eye, ReceiptText } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { TransactionDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { DataTable } from "@workspace/ui/components/data-table"
 import { Price } from "@workspace/ui/components/price"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { TableSkeleton } from "@/components/table-skeleton"
 import {
   Empty,
   EmptyDescription,
@@ -22,12 +22,20 @@ export interface TransactionsTableProps {
   transactions: TransactionDto[] | undefined
   isLoading: boolean
   onReview: (transaction: TransactionDto) => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function TransactionsTable({
   transactions,
   isLoading,
   onReview,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: TransactionsTableProps) {
   const t = useTranslations("transactions")
   const locale = useLocale()
@@ -48,12 +56,39 @@ export function TransactionsTable({
         ),
       },
       {
+        id: "class",
+        header: t("table.class"),
+        cell: ({ row }) => (
+          <div className="flex flex-col gap-0.5">
+            <span className="font-semibold text-foreground">
+              {row.original.class?.title ?? "—"}
+            </span>
+            {row.original.class?.term?.title && (
+              <span className="text-xs text-muted-foreground">
+                {row.original.class.term.title}
+              </span>
+            )}
+          </div>
+        ),
+      },
+      {
         accessorKey: "trackingCode",
         header: t("table.trackingCode"),
         cell: ({ row }) => (
-          <span className="font-mono text-sm text-foreground">
-            {row.original.trackingCode}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-sm text-foreground">
+              {row.original.trackingCode}
+            </span>
+            {row.original.isDuplicateTrackingCode && (
+              <span
+                className="inline-flex items-center gap-1 rounded-md border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-xs font-semibold text-warning"
+                title={t("table.duplicateWarning")}
+              >
+                <AlertTriangle className="size-3.5 shrink-0" />
+                <span>{t("table.duplicateWarning")}</span>
+              </span>
+            )}
+          </div>
         ),
       },
       {
@@ -103,11 +138,7 @@ export function TransactionsTable({
   )
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner className="size-8 text-foreground" />
-      </div>
-    )
+    return <TableSkeleton rows={pageSize ?? 5} />
   }
 
   if (!transactions?.length) {
@@ -124,5 +155,16 @@ export function TransactionsTable({
     )
   }
 
-  return <DataTable columns={columns} data={transactions} />
+  return (
+    <DataTable
+      columns={columns}
+      data={transactions}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
+      locale={locale}
+    />
+  )
 }

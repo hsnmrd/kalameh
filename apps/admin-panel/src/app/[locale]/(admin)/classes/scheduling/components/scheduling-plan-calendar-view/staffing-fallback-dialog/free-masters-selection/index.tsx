@@ -1,57 +1,63 @@
 "use client"
 
 import * as React from "react"
-import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  Check,
-  User,
-  UserCheck,
-  UserX,
-} from "lucide-react"
+import { UserCheck } from "lucide-react"
 import type {
   CourseLevelNode,
   SchedulingPlanDetailsDto,
   SchedulingTeacherCalendar,
   WeekDay,
 } from "@workspace/types"
-import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
-import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
 import {
-  findFreeMastersForSlot,
-  type FreeMasterItem,
-} from "./helper/teacher-level-comparison.helper"
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@workspace/ui/components/carousel"
+import { cn, formatNumber } from "@workspace/ui/lib/utils"
+import type { NewTeacherAssignment } from "../../../scheduling-new-teacher-assignment-list"
+import { SchedulingStaffingSectionHeader } from "../../../scheduling-staffing-section-header"
+import { FreeMasterCard } from "./free-master-card"
+import { findFreeMastersForSlot } from "./helper/teacher-level-comparison.helper"
 
 type Proposal = SchedulingPlanDetailsDto["proposals"][number]
 
 export interface FreeMastersSelectionProps {
+  branchNumber?: number
   proposal: Proposal | null
+  hiringAssignment?: NewTeacherAssignment | null
   targetCourse: CourseLevelNode
   daysOfWeek: WeekDay[]
   startTime: string
   endTime: string
   teacherCalendars?: SchedulingTeacherCalendar[]
   allProposals?: Proposal[]
+  targetBranchId?: string | null
   onAssignTeacher?: (
     proposal: Proposal,
+    teacherId: string
+  ) => Promise<void> | void
+  onAssignMissedClassTeacher?: (
+    assignment: NewTeacherAssignment,
     teacherId: string
   ) => Promise<void> | void
   isPending?: boolean
 }
 
 export function FreeMastersSelection({
+  branchNumber,
   proposal,
+  hiringAssignment,
   targetCourse,
   daysOfWeek,
   startTime,
   endTime,
   teacherCalendars = [],
   allProposals = [],
+  targetBranchId,
   onAssignTeacher,
+  onAssignMissedClassTeacher,
   isPending = false,
 }: FreeMastersSelectionProps) {
   const t = useTranslations("scheduling.planDetails")
@@ -59,10 +65,19 @@ export function FreeMastersSelection({
   const [assigningTeacherId, setAssigningTeacherId] = React.useState<
     string | null
   >(null)
+  const [api, setApi] = React.useState<CarouselApi>()
+  const [current, setCurrent] = React.useState(1)
+
+  const effectiveBranchId =
+    targetBranchId ??
+    proposal?.branch?.id ??
+    (proposal as { branchId?: string | null } | undefined)?.branchId ??
+    hiringAssignment?.branchId ??
+    null
 
   const freeMasters = React.useMemo(() => {
     if (!daysOfWeek.length || !startTime || !endTime) return []
-    return findFreeMastersForSlot({
+    const all = findFreeMastersForSlot({
       targetCourse,
       daysOfWeek,
       startTime,
@@ -70,7 +85,9 @@ export function FreeMastersSelection({
       ignoredProposalId: proposal?.id,
       teacherCalendars,
       allProposals,
+      targetBranchId: effectiveBranchId,
     })
+    return all.filter((m) => !m.isOtherBranch)
   }, [
     targetCourse,
     daysOfWeek,
@@ -79,215 +96,109 @@ export function FreeMastersSelection({
     proposal?.id,
     teacherCalendars,
     allProposals,
+    effectiveBranchId,
   ])
+
+  React.useEffect(() => {
+    if (!api) return
+
+    setCurrent(api.selectedScrollSnap() + 1)
+
+    const onSelect = () => {
+      setCurrent(api.selectedScrollSnap() + 1)
+    }
+
+    api.on("select", onSelect)
+    return () => {
+      api.off("select", onSelect)
+    }
+  }, [api])
 
   const qualifiedCount = React.useMemo(
     () => freeMasters.filter((m) => m.comparison.isQualified).length,
     [freeMasters]
   )
 
+  const canAssign = Boolean(
+    (proposal && onAssignTeacher) ||
+    (hiringAssignment && onAssignMissedClassTeacher)
+  )
+
   const handleAssign = async (teacherId: string) => {
-    if (!proposal || !onAssignTeacher || isPending) return
+    if (!canAssign || isPending) return
     setAssigningTeacherId(teacherId)
     try {
-      await onAssignTeacher(proposal, teacherId)
+      if (proposal && onAssignTeacher) {
+        await onAssignTeacher(proposal, teacherId)
+      } else if (hiringAssignment && onAssignMissedClassTeacher) {
+        await onAssignMissedClassTeacher(hiringAssignment, teacherId)
+      }
     } finally {
       setAssigningTeacherId(null)
     }
   }
 
+  if (freeMasters.length === 0) {
+    return null
+  }
+
+  const hasMultiple = freeMasters.length > 1
+
   return (
     <section
       data-testid="free-masters-selection"
-      className="rounded-xl border border-border/80 bg-card p-4 shadow-2xs"
+      className="rounded-2xl border border-border/70 bg-card p-4 shadow-2xs transition-colors sm:p-5"
     >
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
-        <div className="flex items-center gap-2">
-          <UserCheck aria-hidden className="size-4 shrink-0 text-primary" />
-          <div>
-            <h4 className="text-sm font-bold text-foreground">
-              {t("staffingFallback.freeMastersTitle")}
-            </h4>
-            <p className="text-xs text-muted-foreground">
-              {t("staffingFallback.freeMastersDescription")}
-            </p>
-          </div>
-        </div>
-        {qualifiedCount > 0 && (
-          <Badge
-            variant="outline"
-            className="border-primary/40 bg-primary/10 text-xs font-semibold text-primary"
-          >
-            {t("staffingFallback.readyToAssignCount", {
-              count: formatNumber(qualifiedCount, locale),
-            })}
-          </Badge>
-        )}
-      </div>
+      <Carousel
+        setApi={setApi}
+        opts={{
+          align: "start",
+          containScroll: "trimSnaps",
+          direction: locale === "fa" ? "rtl" : "ltr",
+        }}
+        className="w-full"
+      >
+        <SchedulingStaffingSectionHeader
+          branchNumber={branchNumber}
+          icon={UserCheck}
+          title={t("staffingFallback.freeMastersTitle")}
+          badgeLabel={
+            qualifiedCount > 0
+              ? t("staffingFallback.readyToAssignCount", {
+                  count: formatNumber(qualifiedCount, locale),
+                })
+              : null
+          }
+          badgeVariant="outline"
+          badgeClassName="border-primary/40 bg-primary/10 text-primary"
+          total={freeMasters.length}
+          counterText={t("staffingFallback.teacherCarouselCounter", {
+            current: formatNumber(current, locale),
+            total: formatNumber(freeMasters.length, locale),
+          })}
+        />
 
-      {/* Content */}
-      {freeMasters.length === 0 ? (
-        <div className="flex items-center gap-2 py-3 text-xs text-muted-foreground">
-          <UserX
-            aria-hidden
-            className="size-4 shrink-0 text-muted-foreground"
-          />
-          <span>{t("staffingFallback.noFreeMastersDescription")}</span>
-        </div>
-      ) : (
-        <ul className="mt-3 space-y-2.5">
+        <CarouselContent className="-ms-3 mt-3">
           {freeMasters.map((item) => (
-            <FreeMasterCard
+            <CarouselItem
               key={item.teacher.id}
-              item={item}
-              proposal={proposal}
-              isPending={isPending}
-              isAssigning={assigningTeacherId === item.teacher.id}
-              onAssign={handleAssign}
-            />
+              data-testid="free-master-slide"
+              className={cn(
+                "ps-3",
+                hasMultiple ? "basis-[90%] sm:basis-[85%]" : "basis-full"
+              )}
+            >
+              <FreeMasterCard
+                item={item}
+                canAssign={canAssign}
+                isPending={isPending}
+                isAssigning={assigningTeacherId === item.teacher.id}
+                onAssign={handleAssign}
+              />
+            </CarouselItem>
           ))}
-        </ul>
-      )}
+        </CarouselContent>
+      </Carousel>
     </section>
-  )
-}
-
-interface FreeMasterCardProps {
-  item: FreeMasterItem
-  proposal: Proposal | null
-  isPending: boolean
-  isAssigning: boolean
-  onAssign: (teacherId: string) => void
-}
-
-function FreeMasterCard({
-  item,
-  proposal,
-  isPending,
-  isAssigning,
-  onAssign,
-}: FreeMasterCardProps) {
-  const t = useTranslations("scheduling.planDetails")
-  const teacherFullName =
-    `${item.teacher.firstName} ${item.teacher.lastName}`.trim()
-  const isQualified = item.comparison.isQualified
-
-  return (
-    <li
-      data-testid={`free-master-item-${item.teacher.id}`}
-      data-qualified={isQualified ? "true" : "false"}
-      data-level-status={item.comparison.status}
-      className={cn(
-        "flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 transition-colors",
-        isQualified
-          ? "border-primary/30 bg-primary/5 hover:border-primary/50"
-          : "border-border/50 bg-muted/20 opacity-75"
-      )}
-    >
-      {/* Teacher Profile & Level Badges */}
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted ring-1 ring-border/80">
-          {item.teacher.avatarUrl ? (
-            <Image
-              src={getAssetUrl(item.teacher.avatarUrl)}
-              alt={teacherFullName}
-              width={36}
-              height={36}
-              unoptimized
-              className="size-full object-cover"
-            />
-          ) : (
-            <User aria-hidden className="size-4 text-muted-foreground" />
-          )}
-        </div>
-
-        <div className="flex min-w-0 flex-col gap-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-foreground">
-              {teacherFullName}
-            </span>
-            {/* Level Comparison Badge */}
-            {item.comparison.status === "DIRECT_MATCH" && (
-              <Badge
-                variant="outline"
-                className="gap-1 border-success/40 bg-success/10 text-xs text-success"
-              >
-                <Check aria-hidden className="size-3 text-success" />
-                <span>{t("staffingFallback.directMatchBadge")}</span>
-              </Badge>
-            )}
-            {item.comparison.status === "HIGHER_LEVEL" && (
-              <Badge
-                variant="outline"
-                className="gap-1 border-primary/40 bg-primary/10 text-xs text-primary"
-              >
-                <ArrowUpRight aria-hidden className="size-3 text-primary" />
-                <span>
-                  {t("staffingFallback.higherLevelBadge", {
-                    course: item.comparison.higherCourse.title,
-                  })}
-                </span>
-              </Badge>
-            )}
-            {item.comparison.status === "LOWER_LEVEL" && (
-              <Badge
-                variant="outline"
-                className="gap-1 border-warning/40 bg-warning/10 text-xs text-warning-foreground"
-              >
-                <ArrowDownRight
-                  aria-hidden
-                  className="size-3 text-warning-foreground"
-                />
-                <span>
-                  {t("staffingFallback.lowerLevelBadge", {
-                    course: item.comparison.lowerCourse.title,
-                  })}
-                </span>
-              </Badge>
-            )}
-            {item.comparison.status === "UNRELATED" && (
-              <Badge
-                variant="outline"
-                className="border-border/80 bg-muted/40 text-xs text-muted-foreground"
-              >
-                <span>{t("staffingFallback.unrelatedLevelBadge")}</span>
-              </Badge>
-            )}
-          </div>
-
-          {/* Teachable Courses Range */}
-          {item.courseRangeSummary && (
-            <p className="text-xs text-muted-foreground">
-              <span className="font-semibold">
-                {t("staffingFallback.teachableCoursesLabel")}{" "}
-              </span>
-              <span>{item.courseRangeSummary}</span>
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Action Button */}
-      <div className="flex shrink-0 items-center gap-2">
-        <Button
-          type="button"
-          size="sm"
-          data-testid={`assign-free-master-btn-${item.teacher.id}`}
-          disabled={!isQualified || !proposal || isPending}
-          onClick={() => onAssign(item.teacher.id)}
-          className="shrink-0 gap-1.5 font-medium"
-        >
-          {isAssigning ? (
-            <Spinner className="size-4" />
-          ) : (
-            <>
-              <Check aria-hidden className="size-3.5" />
-              <span>{t("staffingFallback.assignMaster")}</span>
-            </>
-          )}
-        </Button>
-      </div>
-    </li>
   )
 }

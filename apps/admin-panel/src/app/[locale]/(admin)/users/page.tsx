@@ -9,11 +9,14 @@ import type { AuthUser } from "@workspace/types"
 import { PERMISSIONS, APP_MODULES, ROLES } from "@workspace/types"
 import { usersResource, API_BASE_URL } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
-import { usePermissions, useModal } from "@/lib/hooks"
+import { usePermissions, useModal, useUrlFilters } from "@/lib/hooks"
+import { useRouter } from "@/i18n/routing"
 import { AdminPageShell } from "@/components/admin-page-shell"
 import { PermissionGuard } from "@/components/permission-guard"
 import { ModuleGuard } from "@/components/module-guard"
 import { ModalGateway } from "@/components/modal-gateway"
+import { TableSkeleton } from "@/components/table-skeleton"
+import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { UsersHeaderActions } from "./components/users-header-actions"
 import { UsersFilter } from "./components/users-filter"
@@ -21,12 +24,21 @@ import { UsersTable } from "./components/users-table"
 import { UsersList } from "./components/users-list"
 
 export default function UsersPage() {
+  const router = useRouter()
   const t = useTranslations("users")
   const locale = useLocale()
   const { openModal } = useModal()
 
-  const [searchValue, setSearchValue] = React.useState("")
-  const [selectedRole, setSelectedRole] = React.useState("ALL")
+  const { filters, setFilter, pageIndex, pageSize, setPageIndex, setPageSize } =
+    useUrlFilters({
+      defaultValues: {
+        searchValue: "",
+        selectedRole: "ALL",
+        page: 1,
+        pageSize: 10,
+      },
+      debounceKeys: ["searchValue"],
+    })
   const [isExporting, setIsExporting] = React.useState(false)
 
   const { activeInstitute, activeInstituteId } = useActiveInstitute()
@@ -38,12 +50,14 @@ export default function UsersPage() {
     activeInstitute?.enabledModules?.includes(APP_MODULES.USERS_STAFF)
 
   const effectiveRoleFilter =
-    selectedRole && selectedRole !== "ALL" ? selectedRole : undefined
+    filters.selectedRole && filters.selectedRole !== "ALL"
+      ? filters.selectedRole
+      : undefined
 
   const { data: users, isLoading } = useQuery({
     ...usersResource.list.toQuery({
       role: effectiveRoleFilter,
-      search: searchValue.trim() || undefined,
+      search: filters.searchValue.trim() || undefined,
       instituteId: activeInstituteId,
     }),
     enabled: Boolean(activeInstituteId && hasModule),
@@ -58,7 +72,8 @@ export default function UsersPage() {
       const baseUrl = API_BASE_URL
       const queryParams = new URLSearchParams()
       if (effectiveRoleFilter) queryParams.set("role", effectiveRoleFilter)
-      if (searchValue.trim()) queryParams.set("search", searchValue.trim())
+      if (filters.searchValue.trim())
+        queryParams.set("search", filters.searchValue.trim())
       if (activeInstituteId) queryParams.set("instituteId", activeInstituteId)
 
       const url = `${baseUrl}/users/export-excel?${queryParams.toString()}`
@@ -92,7 +107,7 @@ export default function UsersPage() {
   const handleCreate = () => openModal("createUser")
   const handleImport = () => openModal("importUsers")
   const handleViewProfile = (authUser: AuthUser) =>
-    openModal("profileUser", { user: authUser })
+    router.push(`/users/${authUser.id}`)
   const handleEdit = (authUser: AuthUser) =>
     openModal("editUser", { user: authUser })
   const handleResetPassword = (authUser: AuthUser) =>
@@ -114,10 +129,10 @@ export default function UsersPage() {
           }
           filter={
             <UsersFilter
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-              selectedRole={selectedRole}
-              onRoleChange={setSelectedRole}
+              searchValue={filters.searchValue}
+              onSearchChange={(search) => setFilter("searchValue", search)}
+              selectedRole={filters.selectedRole}
+              onRoleChange={(role) => setFilter("selectedRole", role)}
               onAddClick={isListEmpty ? undefined : handleCreate}
             />
           }
@@ -145,28 +160,39 @@ export default function UsersPage() {
         >
           {/* Desktop Table View */}
           <div className="hidden lg:block">
-            <UsersTable
-              users={users}
-              isLoading={isLoading}
-              onViewProfile={handleViewProfile}
-              onEdit={handleEdit}
-              onResetPassword={handleResetPassword}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-            />
+            <React.Suspense fallback={<TableSkeleton rows={pageSize} />}>
+              <UsersTable
+                users={users}
+                isLoading={isLoading}
+                onViewProfile={handleViewProfile}
+                onEdit={handleEdit}
+                onResetPassword={handleResetPassword}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageIndexChange={setPageIndex}
+                onPageSizeChange={setPageSize}
+              />
+            </React.Suspense>
           </div>
 
           {/* Mobile Flat List View */}
           <div className="flex flex-1 flex-col lg:hidden">
-            <UsersList
-              users={users}
-              isLoading={isLoading}
-              onViewProfile={handleViewProfile}
-              onEdit={handleEdit}
-              onResetPassword={handleResetPassword}
-              onDelete={handleDelete}
-              onAdd={handleCreate}
-            />
+            <React.Suspense fallback={<ListSkeleton rows={pageSize} />}>
+              <UsersList
+                users={users}
+                isLoading={isLoading}
+                onViewProfile={handleViewProfile}
+                onEdit={handleEdit}
+                onResetPassword={handleResetPassword}
+                onDelete={handleDelete}
+                onAdd={handleCreate}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPageChange={setPageIndex}
+              />
+            </React.Suspense>
           </div>
         </AdminPageShell>
       </PermissionGuard>

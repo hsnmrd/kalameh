@@ -10,14 +10,25 @@ import * as stores from "@/lib/stores"
 import {
   branchesResource,
   classRequirementsResource,
+  classroomsResource,
   schedulingResource,
+  teachersResource,
 } from "@/lib/api"
 import {
   APP_MODULES,
   ROLES,
   type SchedulingTermSummaryDto,
 } from "@workspace/types"
+import { toast } from "@workspace/ui/components/sonner"
 import SchedulingPage from "../page"
+
+vi.mock("@workspace/ui/components/sonner", () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+    info: vi.fn(),
+  },
+}))
 
 const mockBranches = [
   {
@@ -57,11 +68,98 @@ vi.mock("@/i18n/routing", () => ({
   ),
 }))
 
+const mockDemandReport = {
+  termId: "term-fall",
+  termTitle: "پاییز ۱۴۰۵",
+  maxStudentsPerClass: 14,
+  maxAvailableRoomCapacity: 20,
+  effectiveCapacityLimit: 14,
+  warnings: [],
+  totalEligibleStudents: 25,
+  totalContinuingStudents: 20,
+  totalNewPlacements: 5,
+  totalSuggestedClasses: 2,
+  totalPlannedCapacity: 25,
+  totalUncoveredStudents: 0,
+  courses: [
+    {
+      courseId: "11111111-1111-1111-1111-111111111111",
+      courseTitle: "انگلیسی کودکان ۱",
+      baseFee: 1500000,
+      eligibleStudentsCount: 25,
+      passedPrerequisiteCount: 20,
+      continuingStudentsCount: 20,
+      newPlacementCount: 5,
+      morningShiftCount: 5,
+      afternoonShiftCount: 15,
+      flexibleShiftCount: 5,
+      evenDaysPreferenceCount: 18,
+      oddDaysPreferenceCount: 7,
+      anyDayPreferenceCount: 0,
+      suggestedClassCount: 2,
+      suggestedClasses: [
+        { key: "class-1", capacity: 13 },
+        { key: "class-2", capacity: 12 },
+      ],
+      plannedCapacity: 25,
+      uncoveredStudentCount: 0,
+      sessionsPerWeek: 2,
+    },
+  ],
+}
+
 describe("Unified scheduling workspace", () => {
   beforeEach(() => {
     vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
       queryKey: ["branches", "list"],
       queryFn: async () => mockBranches,
+    } as never)
+    vi.spyOn(classroomsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["classrooms", "list"],
+      queryFn: async () => [
+        {
+          id: "room-1",
+          name: "کلاس ۱۰۱",
+          capacity: 20,
+          isActive: true,
+          branchId: "11111111-2222-3333-4444-555555555555",
+          instituteId: "11111111-1111-1111-1111-111111111111",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    } as never)
+    vi.spyOn(teachersResource.list, "toQuery").mockReturnValue({
+      queryKey: ["teachers", "list"],
+      queryFn: async () => [
+        {
+          id: "teacher-1",
+          firstName: "احمد",
+          lastName: "رضایی",
+          isActive: true,
+          instituteId: "11111111-1111-1111-1111-111111111111",
+          phone: "09121234567",
+          role: "TEACHER",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          teacherProfile: {
+            id: "tp-1",
+            userId: "teacher-1",
+            availabilities: [
+              {
+                id: "av-1",
+                dayOfWeek: 0,
+                startTime: "08:00",
+                endTime: "10:00",
+              },
+            ],
+            specialties: [],
+            teachableCourses: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ],
     } as never)
   })
 
@@ -183,46 +281,6 @@ describe("Unified scheduling workspace", () => {
         schedulingStatus: "READY_TO_SCHEDULE",
       },
     ]
-
-    const mockDemandReport = {
-      termId: "term-fall",
-      termTitle: "پاییز ۱۴۰۵",
-      maxStudentsPerClass: 14,
-      maxAvailableRoomCapacity: 20,
-      effectiveCapacityLimit: 14,
-      warnings: [],
-      totalEligibleStudents: 25,
-      totalContinuingStudents: 20,
-      totalNewPlacements: 5,
-      totalSuggestedClasses: 2,
-      totalPlannedCapacity: 25,
-      totalUncoveredStudents: 0,
-      courses: [
-        {
-          courseId: "11111111-1111-1111-1111-111111111111",
-          courseTitle: "انگلیسی کودکان ۱",
-          baseFee: 1500000,
-          eligibleStudentsCount: 25,
-          passedPrerequisiteCount: 20,
-          continuingStudentsCount: 20,
-          newPlacementCount: 5,
-          morningShiftCount: 5,
-          afternoonShiftCount: 15,
-          flexibleShiftCount: 5,
-          evenDaysPreferenceCount: 18,
-          oddDaysPreferenceCount: 7,
-          anyDayPreferenceCount: 0,
-          suggestedClassCount: 2,
-          suggestedClasses: [
-            { key: "class-1", capacity: 13 },
-            { key: "class-2", capacity: 12 },
-          ],
-          plannedCapacity: 25,
-          uncoveredStudentCount: 0,
-          sessionsPerWeek: 2,
-        },
-      ],
-    }
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: "inst-1",
@@ -607,5 +665,123 @@ describe("Unified scheduling workspace", () => {
     for (const btn of buttons) {
       expect(btn).toBeDisabled()
     }
+  })
+
+  it("shows error and disables submit button when selected branch has no classrooms", async () => {
+    const mockTerms: SchedulingTermSummaryDto[] = [
+      {
+        id: "term-fall",
+        title: "پاییز ۱۴۰۵",
+        startDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: true,
+        classesCount: 0,
+        requirementsCount: 1,
+        totalRequiredClasses: 2,
+        schedulingStatus: "DRAFT",
+      },
+    ]
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: "inst-1",
+      activeInstitute: {
+        id: "inst-1",
+        name: "Test Institute",
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "terms", "inst-1"],
+      queryFn: async () => mockTerms,
+    } as never)
+
+    vi.spyOn(classroomsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["classrooms", "list", "inst-1", "branch-1"],
+      queryFn: async () => [],
+    } as never)
+
+    vi.spyOn(schedulingResource.calculateDemand, "toMutation").mockReturnValue({
+      mutationFn: vi.fn().mockResolvedValue(mockDemandReport),
+    } as never)
+
+    render(<SchedulingPage />)
+
+    expect(
+      await screen.findByText("هیچ کلاس درسی برای این شعبه تعریف نشده است.")
+    ).toBeInTheDocument()
+
+    const button = screen.getAllByRole("button", { name: "ثبت و ادامه" })[0]!
+    expect(button).toBeDisabled()
+
+    fireEvent.click(button)
+    expect(toast.error).toHaveBeenCalledWith(
+      "هیچ کلاس درسی برای این شعبه تعریف نشده است."
+    )
+  })
+
+  it("shows error and disables submit button when masters have not set their schedule", async () => {
+    const mockTerms: SchedulingTermSummaryDto[] = [
+      {
+        id: "term-fall",
+        title: "پاییز ۱۴۰۵",
+        startDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: true,
+        classesCount: 0,
+        requirementsCount: 1,
+        totalRequiredClasses: 2,
+        schedulingStatus: "DRAFT",
+      },
+    ]
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: "inst-1",
+      activeInstitute: {
+        id: "inst-1",
+        name: "Test Institute",
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "terms", "inst-1"],
+      queryFn: async () => mockTerms,
+    } as never)
+
+    vi.spyOn(teachersResource.list, "toQuery").mockReturnValue({
+      queryKey: ["teachers", "list", "inst-1"],
+      queryFn: async () => [
+        {
+          id: "teacher-1",
+          firstName: "علی",
+          lastName: "محمدی",
+          isActive: true,
+          teacherProfile: {
+            availabilities: [],
+          },
+        },
+      ],
+    } as never)
+
+    vi.spyOn(schedulingResource.calculateDemand, "toMutation").mockReturnValue({
+      mutationFn: vi.fn().mockResolvedValue(mockDemandReport),
+    } as never)
+
+    render(<SchedulingPage />)
+
+    expect(
+      await screen.findByText(
+        "هیچ‌کدام از اساتید برنامه زمانی آزاد خود را تعیین نکرده‌اند."
+      )
+    ).toBeInTheDocument()
+
+    const button = screen.getAllByRole("button", { name: "ثبت و ادامه" })[0]!
+    expect(button).toBeDisabled()
+
+    fireEvent.click(button)
+    expect(toast.error).toHaveBeenCalledWith(
+      "هیچ‌کدام از اساتید برنامه زمانی آزاد خود را تعیین نکرده‌اند."
+    )
   })
 })

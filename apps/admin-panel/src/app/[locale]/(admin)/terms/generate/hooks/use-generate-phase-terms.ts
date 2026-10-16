@@ -118,7 +118,6 @@ export function useGeneratePhaseTerms() {
     handleProceedToPreview,
     handleSubmit,
     isLoadingExisting,
-    previewQuery,
     existingTerms,
   } = usePhaseTermPersistence({
     activeInstituteId,
@@ -245,7 +244,6 @@ export function useGeneratePhaseTerms() {
     phases,
     isLoadingPhases,
     phaseOptions,
-    previewQuery,
     batchCreateMutation,
     isLoadingExisting,
     observeOfficialHolidays,

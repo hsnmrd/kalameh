@@ -23,7 +23,7 @@ import {
   FieldDescription,
 } from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { getAssetUrl } from "@workspace/ui/lib/utils"
+import { getAssetUrl, formatCourseShortTitle } from "@workspace/ui/lib/utils"
 import { StudentStatusBadge } from "../student-status-badge"
 import type { StudentDto } from "@workspace/types"
 import { studentsResource } from "@/lib/api"
@@ -115,7 +115,7 @@ export function ResetPasswordModal({
                     </h3>
                     <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Phone className="size-3.5 text-muted-foreground" />
-                      <span className="font-mono">{student.phone}</span>
+                      <span>{student.phone}</span>
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -126,8 +126,11 @@ export function ResetPasswordModal({
                     >
                       <GraduationCap className="size-3" />
                       <span>
-                        {student.currentAllowedCourse?.title ||
-                          t("table.noLevel")}
+                        {student.currentAllowedCourse?.title
+                          ? formatCourseShortTitle(
+                              student.currentAllowedCourse.title
+                            )
+                          : t("table.noLevel")}
                       </span>
                     </Badge>
                   </div>

@@ -19,6 +19,10 @@ describe("StudentsActionButton Component", () => {
     })
     expect(addButton).toBeInTheDocument()
 
+    const group = screen.getByRole("group")
+    expect(group).toHaveClass("hidden")
+    expect(group).toHaveClass("lg:inline-flex")
+
     fireEvent.click(addButton)
     expect(onAddClick).toHaveBeenCalledTimes(1)
     expect(onSetAllAvailableClick).not.toHaveBeenCalled()

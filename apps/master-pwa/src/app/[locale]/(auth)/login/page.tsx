@@ -55,6 +55,10 @@ export default function MasterLoginPage() {
   const loginMutation = useMutation({
     ...authResource.login.toMutation(),
     onSuccess: (data) => {
+      if (!data.user) {
+        return
+      }
+
       const isTeacher = data.user.role === "TEACHER"
 
       if (!isTeacher) {

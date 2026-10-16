@@ -1,6 +1,7 @@
 "use client"
 
-import { Spinner } from "@workspace/ui/components/spinner"
+import { useLocale } from "next-intl"
+import { TableSkeleton } from "@/components/table-skeleton"
 import { DataTable } from "@workspace/ui/components/data-table"
 import type { TeacherDto } from "@workspace/types"
 import { TeachersTableEmptyState } from "./empty-state"
@@ -15,6 +16,10 @@ export interface TeachersTableProps {
   onResetPassword: (teacher: TeacherDto) => void
   onDelete: (teacher: TeacherDto) => void
   onAdd?: () => void
+  pageIndex?: number
+  pageSize?: number
+  onPageIndexChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export function TeachersTable({
@@ -26,7 +31,12 @@ export function TeachersTable({
   onResetPassword,
   onDelete,
   onAdd,
+  pageIndex,
+  pageSize,
+  onPageIndexChange,
+  onPageSizeChange,
 }: TeachersTableProps) {
+  const locale = useLocale()
   const columns = useTeachersTableColumns({
     onViewProfile,
     onEdit,
@@ -36,11 +46,7 @@ export function TeachersTable({
   })
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner className="size-8" />
-      </div>
-    )
+    return <TableSkeleton rows={pageSize ?? 5} />
   }
 
   if (!teachers || teachers.length === 0) {
@@ -48,8 +54,15 @@ export function TeachersTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card">
-      <DataTable columns={columns} data={teachers} />
-    </div>
+    <DataTable
+      columns={columns}
+      data={teachers}
+      pagination={{ pageSize: pageSize ?? 10 }}
+      pageIndex={pageIndex}
+      onPageIndexChange={onPageIndexChange}
+      pageSize={pageSize}
+      onPageSizeChange={onPageSizeChange}
+      locale={locale}
+    />
   )
 }
