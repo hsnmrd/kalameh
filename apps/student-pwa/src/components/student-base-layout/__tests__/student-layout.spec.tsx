@@ -37,19 +37,33 @@ vi.mock("@/i18n/routing", () => ({
 }))
 
 describe("StudentToolbar Component", () => {
-  it("should render app name, logo, theme toggle, and logout button on home page", () => {
+  it("should render institute name, logo, theme toggle, and logout button on home page", () => {
     const handleLogout = vi.fn()
 
-    render(<StudentToolbar isHomePage={true} onLogout={handleLogout} />)
+    render(
+      <StudentToolbar
+        isHomePage={true}
+        instituteName="آموزشگاه فراتاک"
+        onLogout={handleLogout}
+      />
+    )
 
-    expect(screen.getByText("کلمه")).toBeInTheDocument()
+    expect(screen.getByText("آموزشگاه فراتاک")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /خروج|logout/i })).toHaveClass(
       "size-11"
     )
-    expect(screen.getByRole("link", { name: "کلمه" })).toHaveClass("min-h-11")
+    expect(screen.getByRole("link", { name: "آموزشگاه فراتاک" })).toHaveClass(
+      "min-h-11"
+    )
     expect(
       screen.getByRole("button", { name: /toggle theme/i })
     ).toBeInTheDocument()
+  })
+
+  it("should fallback to app name on home page when institute name is not available", () => {
+    render(<StudentToolbar isHomePage={true} onLogout={vi.fn()} />)
+
+    expect(screen.getByText("کلمه")).toBeInTheDocument()
   })
 
   it("should trigger onLogout callback when logout button is clicked", () => {

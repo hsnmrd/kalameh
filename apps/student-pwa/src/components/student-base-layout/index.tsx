@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { authResource } from "@/lib/api"
 import { usePathname, useRouter } from "@/i18n/routing"
 import { StudentToolbar } from "./student-toolbar"
@@ -16,6 +16,8 @@ export function StudentBaseLayout({ children }: StudentBaseLayoutProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const isHomePage = pathname === "/dashboard" || pathname === "/"
+
+  const { data: user } = useQuery(authResource.me.toQuery())
 
   const logoutMutation = useMutation({
     ...authResource.logout.toMutation(),
@@ -34,6 +36,8 @@ export function StudentBaseLayout({ children }: StudentBaseLayoutProps) {
         {/* Top Toolbar */}
         <StudentToolbar
           isHomePage={isHomePage}
+          instituteName={user?.institute?.name}
+          instituteLogoUrl={user?.institute?.logoUrl}
           pathname={pathname}
           onLogout={handleLogout}
           isLogoutPending={logoutMutation.isPending}
