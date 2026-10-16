@@ -35,11 +35,6 @@ export default function StudentLoginPage() {
   const queryClient = useQueryClient()
   const loginSchema = useLoginSchema()
 
-  const [submittedCredentials, setSubmittedCredentials] = React.useState({
-    phone: "",
-    password: "",
-  })
-
   const {
     register,
     handleSubmit,
@@ -58,7 +53,7 @@ export default function StudentLoginPage() {
 
   const loginMutation = useMutation({
     ...authResource.login.toMutation(),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       if (
         data.requiresInstituteSelection &&
         data.institutes &&
@@ -68,8 +63,8 @@ export default function StudentLoginPage() {
           sessionStorage.setItem(
             "pending_auth",
             JSON.stringify({
-              phone: submittedCredentials.phone,
-              password: submittedCredentials.password,
+              phone: variables.phone,
+              password: variables.password,
               institutes: data.institutes,
             })
           )
@@ -103,10 +98,6 @@ export default function StudentLoginPage() {
   }, [t])
 
   const onSubmit = (formData: LoginSchemaInput) => {
-    setSubmittedCredentials({
-      phone: formData.phone,
-      password: formData.password,
-    })
     loginMutation.mutate({
       phone: formData.phone,
       password: formData.password,

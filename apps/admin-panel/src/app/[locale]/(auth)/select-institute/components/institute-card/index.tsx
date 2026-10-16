@@ -51,7 +51,7 @@ export function InstituteCard({
           <h3 className="truncate text-base font-semibold text-foreground">
             {institute.name}
           </h3>
-          <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
             {institute.subdomain}
           </p>
         </div>
