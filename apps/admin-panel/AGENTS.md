@@ -1,254 +1,64 @@
 # Admin Panel Frontend Rules (`apps/admin-panel`)
 
-- **Role:** Desktop web dashboard for Institute Admins, Clerks, and Super Admins.
-- **Multi-Language Architecture (`next-intl`):**
-  - Path-based localization (`/[locale]/...`) supporting **Persian (`/fa/...`)** and **English (`/en/...`)** (Default: `fa`).
-  - Localized direction & typography:
-    - Persian (`fa`): `dir="rtl"`, Font: **Yekan Bakh** (`--font-sans` and `--font-mono`). **NEVER use `fontMono` / `Geist Mono` in Persian (`fa`) mode.** Any code using `font-mono` must resolve to Yekan Bakh in RTL mode.
-    - English (`en`): `dir="ltr"`, Font: **Geist** (`--font-sans`), **Geist Mono** (`--font-mono`).
-  - Modular per-page message files in `messages/[locale]/` to optimize client bundle size.
-  - **Every layout that renders `<NextIntlClientProvider>` must include `common` messages** in its `messages` object alongside feature-specific message namespaces.
-- **Layout Architecture & Navigation:**
-  - All admin-panel protected pages must use `AdminBaseLayout` (`components/admin-base-layout/index.tsx`).
-  - The layout includes a static desktop sidebar (positioned dynamically on the right in RTL and left in LTR) with a language switcher, branding, and quick logout.
+- **Role:** Desktop & responsive web dashboard for Institute Admins, Clerks, and Super Admins.
+- **Implementation Skill:** For the complete unified recipe for Admin list pages, filters, URL sync, empty states, and breadcrumbs, refer to **`.agents/skills/kalameh-admin-page/SKILL.md`**.
+
+## Multi-Language Architecture (`next-intl`)
+
+- Path-based localization (`/[locale]/...`) supporting **Persian (`/fa/...`)** and **English (`/en/...`)** (Default: `fa`).
+- Localized typography:
+  - Persian (`fa`): `dir="rtl"`, Font: **Yekan Bakh** (`--font-sans` and `--font-mono`). **NEVER use `fontMono` / `Geist Mono` in Persian (`fa`) mode.** Any code using `font-mono` must resolve to Yekan Bakh in RTL mode.
+  - English (`en`): `dir="ltr"`, Font: **Geist** (`--font-sans`), **Geist Mono** (`--font-mono`).
+- **Every layout that renders `<NextIntlClientProvider>` must include `common` messages** in its `messages` object alongside feature-specific message namespaces.
+- Never hardcode static text in `placeholder="..."` attributes. Always load via `useTranslations` (`t(...)`).
+
+## Architecture & Layout Constraints
+
+- All protected pages must use `AdminBaseLayout` (`components/admin-base-layout/index.tsx`).
 - **Directory-Based Components & Single Component Per File:**
-  - Every component must live in its own directory with an `index.tsx` entrypoint (e.g. `components/admin-base-layout/index.tsx`, `components/providers/index.tsx`).
-  - **Never create multiple components in a single file.** Every sub-component (e.g. `sidebar-brand`, `nav-list`, `sidebar-footer`, `mobile-drawer`, `admin-header`) must be stored in its own dedicated directory with an `index.tsx`.
+  - Every component must live in its own directory with an `index.tsx` entrypoint (e.g. `components/admin-base-layout/index.tsx`).
+  - **Never create multiple components in a single file.** Every sub-component must be extracted into its own dedicated directory with an `index.tsx`.
+- **File Length:** Keep files under 250 lines. Decompose large tables, dialogs, and forms into dedicated subcomponents.
 - **Route Architecture & RBAC:**
   ```text
   app/[locale]/
   ├── (auth)/                     # Shared Login / Password Reset
-  │   └── login/
   ├── (super-admin)/              # 🛡️ Protected for Role: SUPER_ADMIN
-  │   ├── layout.tsx              # Uses AdminBaseLayout(role={ROLES.SUPER_ADMIN})
-  │   └── institutes/             # Institute CRUD & license management
   └── (institute)/                # 🏫 Protected for Role: INSTITUTE_ADMIN & CLERK
-      ├── layout.tsx              # Uses AdminBaseLayout(role={ROLES.INSTITUTE_ADMIN})
-      ├── courses/
-      ├── classes/
-      ├── terms/
-      └── transactions/
   ```
-- **Authentication & Route Guarding:**
-  - All pages require authentication. Unauthenticated requests to protected routes are automatically redirected to `/login` via `proxy.ts`.
-- **Micro-RQ Architecture & Modular Structure:**
-  - Separate API concerns into dedicated files under `lib/api/`:
-    - `lib/api/client.ts`: `createMicroApi` configured with `credentials: "include"` and `onError` toast handler.
-    - `lib/api/resources/*.resource.ts`: Dedicated resource definition files (e.g. `auth.resource.ts`, `users.resource.ts`).
-    - `lib/api/index.ts`: Unified barrel exports.
-- **Data Fetching Standard (Micro-RQ + React Query):**
-  - Always use `.toQuery()` and `.toMutation()` with `@tanstack/react-query` (`useQuery`, `useMutation`).
-  - **NEVER** use the `.fn()` option of micro-rq in components or event handlers.
-- **Error Handling & Feedback:**
-  - API errors are caught by `onError` in `client.ts` and shown via shadcn `toast.error` (which uses the Vazirmatn font).
-  - Do not create redundant inline error alert banners inside forms.
-- **Loading UI Standard:**
-  - Use `<Spinner />` from `@workspace/ui/components/spinner` instead of raw `lucide-react` icons.
-- **Image Standard (Next.js Image Only):**
-  - **NEVER use raw `<img>` tags.** Always import and use Next.js `<Image />` from `next/image` (with `unoptimized` for uploaded/external assets wrapped in `getAssetUrl`).
-- **Single Card Anti-Pattern:**
-  - Do not wrap pages with a `<Card>` component if the page content is already rendered within a single container.
-- **Card Action Architecture (Context Menu & Action Menu Standard):**
-  - When a card (such as InstituteCard, StudentCard, ClassCard) has multiple actions (e.g. edit, delete, ban/block), utilize the shadcn / Base UI `<ContextMenu />` and/or action menus to maintain clean and decluttered card layouts.
-  - **Do NOT duplicate actions in the context menu / dropdown menu that already exist as primary interactive buttons on the card itself** (such as the main open/manage card button).
-- **Icon Color Consistency Standard:**
-  - Icons must always match and inherit the exact semantic text color of their accompanying sibling label/text (`text-muted-foreground`, `text-foreground`, `text-destructive`). Never apply mismatched colored accent classes to icons next to neutral text.
-- **Data Tables & Lists Standard:**
-  - Always use the centralized `<DataTable />` component from `@workspace/ui/components/data-table` for displaying lists and data grids **on desktop (lg+)**.
-  - Define columns via TanStack `ColumnDef` and never use raw HTML `<table>` elements in views or components.
-  - **On mobile (< lg): use `<MobileList />` from `@workspace/ui/components/mobile-list` instead of `DataTable`.** See Mobile UX Standard below.
-- **Forms & Validation:** Always use `react-hook-form` paired with `@hookform/resolvers/zod` and shared Zod schemas from `@workspace/types`.
-- **No Vanilla JS Dialogs (`alert`, `prompt`):** NEVER use native browser `alert()` or `prompt()`. Use shadcn/Sonner `toast` for notifications.
-- **Confirmation Modals (`AlertDialog`):** For all actions asking the user to confirm (e.g. `delete-*-modal`, reset permissions, "are you sure?"), ALWAYS use `<AlertDialog />` from `@workspace/ui/components/alert-dialog`. Do NOT use `ResponsiveDialog` or `Dialog` for confirmation prompts.
-- **Input & Form Modals (`ResponsiveDialog` / `FormDialog`):** Use `ResponsiveDialog` or `FormDialog` from `@workspace/ui/components/dialog` for user inputs, form sheets, details inspectors, and wizards.
-- **Modal Header & Divider Standard (No In-Header Description & Mandatory Dividers):**
-  - Modals (`ResponsiveDialog`, `FormDialog`, `Dialog`) must **NEVER** render a description (`ResponsiveDialogDescription`, `FormDialogDescription`, `DialogDescription`) inside their header (`*Header`).
-  - Modal headers are strictly reserved for the concise title (`*Title`), status badges (if applicable), and close button (`*CloseButton`).
-  - **Always use a header divider:** All modal headers must be separated from the body by a bottom divider (`border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4`).
-  - **Always use a footer divider:** When a modal has a footer, it must be separated from the body by a top divider (`border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4`).
-  - Modal content containers must use `overflow-hidden p-0` so header and footer dividers span edge-to-edge, with the inner content wrapped in a scrollable, padded container (`overflow-y-auto px-4 py-4 sm:px-6 sm:py-5`).
-  - If descriptive guidance or context is needed, place it inside the modal body (e.g. as an informative banner, callout, or form field helper text).
-  - Confirmation dialogs (`AlertDialog`) are the only exception where `AlertDialogDescription` is used.
-- **File Length:** Keep files under 250 lines. Decompose large tables, dialogs, and forms into dedicated subcomponents.
-- **Concise Button Labels Standard (Short Titles over Verbose Phrases):**
-  - Buttons, submit actions, step transitions, and dialog triggers must **ALWAYS** use concise, succinct action titles (e.g. `ادامه` / `Continue`, `تأیید` / `Confirm`, `ذخیره` / `Save`, `انصراف` / `Cancel`, `بازگشت` / `Back`).
-  - **NEVER** use long, descriptive, or verbose phrases in button titles (e.g. avoid `ادامه و مشاهده پیش‌نمایش`, `ذخیره تغییرات و بازگشت به صفحه قبل`, `تأیید اطلاعات و رفتن به مرحله بعد`).
-  - Place descriptive context, explanations, or guidance in headers, descriptions, callouts, or form helper text — never inside the button text.
-- **Form Input & Button Height Standard (Unified 56px / h-14 & rounded-2xl):**
-  - All form controls, text inputs (`Input`), date pickers (`DatePicker`), date inputs (`DateInput`), selects (`Select`), comboboxes (`Combobox`, `ResponsiveCombobox`), password inputs (`PasswordInput`), price inputs (`PriceInput`), and buttons (`<Button />`) must strictly use the standard height of **`h-14` (56px)**, **`rounded-2xl`**, and **`text-base`** typography.
-  - `<Button />` defaults directly to **`h-14` / `rounded-2xl` (`size: "default"`)**. Do not write repetitive `h-14 rounded-2xl ...` utility classes in modal footers or forms.
-  - **NEVER use arbitrary smaller heights (such as `h-9`, `h-10`, `h-11`, `h-12`) for buttons, inputs, date pickers, or selects in forms, dialogs, modals, drawers, or sheets.**
-  - **Exception Policy (The "Small Parts"):** Smaller button sizes (`size="sm"` / `h-8`, `size="icon"`, `size="icon-sm"`, `size="icon-xs"`) are strictly restricted to:
-    1. Inline data table cell actions (e.g. edit/delete action buttons in table rows).
-    2. Internal input adornments (e.g. password eye toggle, clear buttons).
-    3. Calendar day cells and navigation arrows in date pickers.
-    4. Compact header/toolbar icons.
-  - **Rationale:** 56px (`h-14`) ensures an ergonomic, easily clickable touch target (> 48px WCAG recommendation) on mobile devices and accessible clickability on desktop, while guaranteeing perfect visual alignment across sibling form fields and action triggers.
-  - Compact heights (`h-8` / `h-9` / `h-10` / `size="sm"`) are strictly restricted to the above exceptions.
+- **Authentication & Route Guarding:** Handled via `proxy.ts`. Unauthenticated requests redirect to `/login`.
 
-## Admin List Page Layout & Filter Standard (Unified UX)
+## API & Data Fetching (micro-rq + React Query)
 
-All entity management and list pages (e.g. `courses/`, `classes/`, `terms/`, `branches/`, `operating-phases/`) must strictly adhere to this layout standard:
+- Separate API concerns under `lib/api/` (`client.ts`, `resources/*.resource.ts`, `index.ts`).
+- Always use `.toQuery()` and `.toMutation()` with `@tanstack/react-query` (`useQuery`, `useMutation`).
+- **NEVER** use the `.fn()` option of micro-rq directly in components.
+- Errors are handled centrally by `onError` in `client.ts` via shadcn `toast.error`. Never create redundant inline error alert banners inside forms.
 
-### 1. Root Header Title Routing (No In-Page Title or Description)
+## UI Primitives & Elements
 
-- **NEVER** render an in-page title (`<h1>`), subtitle, icon, or description inside list page containers.
-- The page title must **ALWAYS** be rendered dynamically in the root header (`AdminHeader`) by registering the route in `getPageTitle(pathname, t)` (`components/admin-base-layout/admin-header/index.tsx`) and mapped to `t("nav.<routeKey>")` in `messages/[locale]/common.json`.
+- **No Raw HTML Controls & No Raw <img>:** Never use `<button>`, `<input>`, `<select>`, `<table>`, or `<img>`. Use primitives from `@workspace/ui/components/*` and Next.js `<Image />`.
+- **Loading:** Always use `<Spinner />` from `@workspace/ui/components/spinner`. Never use raw icons like `Loader2`.
+- **Form Controls & Button Height (Unified 56px / h-14 & rounded-2xl):**
+  - All form controls, inputs, selects, date pickers, price inputs, and action buttons must strictly default to **`h-14` (56px)**, **`rounded-2xl`**, and **`text-base`**.
+  - Smaller sizes (`size="sm"` / `h-8`, `size="icon"`) are strictly reserved for table cell inline actions, calendar day cells, input adornments, and compact toolbar icons.
+- **Dialogs & Confirmations:**
+  - For "Are you sure?" confirmations, **ALWAYS** use `<AlertDialog />` from `@workspace/ui/components/alert-dialog`. Never use `ResponsiveDialog` or vanilla `alert()`.
+  - For form sheets, inspectors, and wizards, use `<ResponsiveDialog>` / `<FormDialog>`.
+  - **No In-Header Description:** Dialog headers are reserved for title, badges, and close button. Never render descriptions in dialog headers.
+  - **Mandatory Dividers:** Header divider (`border-b border-border/60`) and footer divider (`border-t border-border/60`). Form fields must be wrapped in a scrollable container with padding (`px-4 py-4 sm:px-6 sm:py-5`).
+- **Icons:** Must always match and inherit the exact semantic text color of their sibling label (`text-muted-foreground`, `text-foreground`, `text-destructive`).
+- **Single Card Anti-Pattern:** Do not wrap pages in a `<Card>` if the content is already in a single container.
+- **Card Actions:** Use `<ContextMenu />` and/or action dropdown menus. Do not duplicate the primary card button in the context menu.
 
-### 2. Mandatory Filter Bar & Search Input
+## Admin List & Inner Page Standards (Quick Summary)
 
-- Every list page must pass a dedicated, collocated filter component (`*Filter/index.tsx`) into the `filters` prop of `<AdminPageShell>`.
-- The filter component must use `<AdminFilterBar>` and include at least an `<AdminSearchInput>` for search filtering.
-- Additional dropdown filters (status, category, etc.) must use `<ResponsiveCombobox>` inside the `filters` prop of `<AdminFilterBar>`.
-
-### 3. Desktop Add Button Location (Inside Filter Bar Actions)
-
-- The primary "Add / Create" button on desktop must **ALWAYS** be rendered inside the `actions` prop of `<AdminFilterBar>`, wrapped in `<PermissionGuard mode="hide">`, and hidden below `lg` (`hidden lg:inline-flex` / `hidden lg:flex`).
-- Use the standard button style:
-  ```tsx
-  <Button
-    type="button"
-    onClick={onAddClick}
-    className="hidden h-14 shrink-0 cursor-pointer gap-2 rounded-2xl px-5 text-sm font-semibold shadow-xs lg:inline-flex"
-  >
-    <Plus className="size-5" />
-    <span>{t("addItem")}</span>
-  </Button>
-  ```
-- **NEVER** place this creation button in an in-page header or in the root header `actions` slot for list pages.
-
-### 4. Mobile & Tablet Floating Action Button (FAB)
-
-- On screens < `lg` (0px to 1023px, including mobile < 640px and tablet 640px to 1023px), creation is exclusively triggered via `<FABSingle>` (or `<FABMenuTrigger>`) passed to the `fab` prop of `<AdminPageShell>`, wrapped in `<PermissionGuard mode="hide">`.
-- Primary creation actions in `<AdminFilterBar>` must strictly use `hidden lg:inline-flex` (or `hidden lg:flex`) so they are never duplicated alongside the FAB on tablet screens (640px to 1023px). Non-primary secondary actions (e.g. navigation links like `teachersCalendar`) may remain visible on tablet (`sm:`).
-
-### 5. FormDialog Internal Padding Standard
-
-- When using `<FormDialog>` / `<FormDialogContent>`, the form content between `<FormDialogHeader>` and `<FormDialogFooter>` must be wrapped in a scrollable, padded container:
-  ```tsx
-  <form
-    onSubmit={handleSubmit(onSubmit)}
-    className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
-  >
-    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-      {/* Form Fields */}
-    </div>
-    <FormDialogFooter>{/* Actions */}</FormDialogFooter>
-  </form>
-  ```
-- **NEVER** omit horizontal padding (`px-4 sm:px-6`) or let input controls touch the modal borders.
-
-### 6. Empty Component Standard (No Create in Filter, No Card Wrapper, Mobile Vertical Centering, Hide Mobile FAB)
-
-When a list page or data grid has no data and displays the empty component (`<Empty />`):
-
-1. **Delete Create Button from Filter Section:** Suppress the create/add button in `<AdminFilterBar>` (`onAddClick={isListEmpty ? undefined : handleCreate}`). Place the primary creation button directly inside the empty state via `<EmptyContent>` with a standard `<Button onClick={onAdd} className="cursor-pointer gap-2"><Plus className="size-4" /><span>{t("add...")}</span></Button>`, wrapped in `<PermissionGuard mode="hide">`.
-2. **Never Use a Card Wrapper Around Empty Component:** Do NOT wrap `<Empty />` inside a `<Card>`, card border, or `bg-card` wrapper. Return `<Empty />` directly when the collection is empty.
-3. **Mobile Vertical Centering:** In mobile view (< `lg`), the empty component must be centered vertically in the viewport. Ensure the mobile list container uses `<div className="flex flex-1 flex-col lg:hidden">` and `<AdminPageShell>` / `<main>` flexes (`flex flex-1 flex-col`), allowing `<Empty variant="default">`'s `min-h-[calc(100dvh-16rem)]` to position the empty content at the exact vertical center of the screen.
-4. **Hide Mobile FAB on Empty State:** In mobile view, when there are no items in the list and the empty component is displayed, the mobile floating action button passed to `<AdminPageShell fab={...}>` MUST be hidden (`fab={isListEmpty ? null : ...}`). The FAB must ONLY show when there are items on the page.
-
-### 7. URL Query Parameters State Synchronization Standard (Filters, Search & Pagination)
-
-- All list, table, and data grid pages must keep their active state (**discrete filters, search keywords, active page, and page size**) synchronized with URL query parameters.
-- When the user refreshes the page, navigates back/forward with browser history, or bookmarks/shares a link, all active filters and active page number must be preserved.
-- **Single Source of Truth (`useUrlFilters`):** Always use `useUrlFilters` from `@/lib/hooks` rather than detached component `useState` for managing list filters:
-  ```tsx
-  const { filters, setFilter, pageIndex, pageSize, setPageIndex, setPageSize } =
-    useUrlFilters({
-      defaultValues: {
-        search: "",
-        selectedStatus: "ALL",
-        page: 1,
-        pageSize: 10,
-      },
-      debounceKeys: ["search"],
-    })
-  ```
-- **Immediate Input + Debounced URL Sync:** Text search inputs must update immediate React state on typing, while debouncing URL query parameter writes by **300ms** to prevent lag and URL pollution.
-- **Filter Change Resets Page to 1:** Modifying any filter or search value must automatically reset the page to `1`.
-- **Clean URLs (Omit Defaults):** Default values (`page=1`, empty search `""`, or fallback `"ALL"`) must be omitted from the query string to keep URLs clean.
-- **Non-Destructive Preservation:** Non-filter query parameters (such as `modal=...` used by `useModal`) must be preserved during filter updates.
-- **Controlled Pagination Synchronization:** Forward `pageIndex`, `pageSize`, `onPageIndexChange`, and `onPageSizeChange` to desktop `*Table` (`DataTable`) and `pageIndex`, `pageSize`, `onPageChange` to mobile `*List` (`useClientPagination` / `DataPagination`).
-
-## Admin Inner Page Standard (Breadcrumb & Sub-Page Navigation)
-
-All inner pages, sub-pages, or nested resource views (e.g. `/calendar/custom`, `/classes/[id]/grades`, `/teachers/[id]/classes`) must follow this unified sub-page standard:
-
-### 1. Breadcrumb Position (On Top of Filter Section)
-
-- Always render `<AdminBreadcrumb />` from `@/components/admin-breadcrumb` passed directly into the `breadcrumb` prop of `<AdminPageShell>`.
-- The breadcrumb sits directly on top of the filter bar with unified spacing (`mb-4`).
-
-### 2. Back Navigation & Trail Hierarchy
-
-- Back button is rendered as a compact icon button in `AdminHeader` next to the page title via `HeaderActionsContext` (`backNavigation`), automatically RTL/LTR-aware (`ArrowRight` for back in RTL / `ArrowLeft` in LTR).
-- Inner pages provide `backHref` (and optional `backLabel`) via `<AdminBreadcrumb backHref="..." backLabel="..." items={...} />` or directly via `<AdminPageShell backHref="..." backLabel="..." />`.
-- `AdminBreadcrumb` renders the clean hierarchical trail array `items`: `[{ label: t("parentTitle"), href: "/parent" }, { label: t("currentPageTitle") }]`.
-
-### 3. No In-Page Description or Title
-
-- Like root list pages, **NEVER** render an in-page `<h1>` or description banner. The page title is dynamically resolved and rendered in `AdminHeader` via `getPageTitle(pathname, t)` and `messages/[locale]/common.json`.
-
-### 4. Filter Bar & Search Standard
-
-- Inner pages follow the list layout standard: render `<AdminFilterBar>` with at least `<AdminSearchInput>` in the `filter` prop of `<AdminPageShell>`.
-- Primary desktop action button sits in `<AdminFilterBar actions={...}>`, and mobile action uses `<FABSingle>` passed to `AdminPageShell` `fab` prop.
-
-### 5. Mobile Bottom Navigation Bar & FAB Positioning (Inner Pages)
-
-- On mobile view (< `lg`), `<MobileBottomNavigation />` is automatically hidden on all inner pages (routes with 2+ path segments such as `/calendar/custom`, `/classes/scheduling`, `/teachers/calendar`, or whenever `backNavigation` is configured). Top-level main sections (`/calendar`, `/classes`, `/terms`, etc.) retain the bottom navigation bar.
-- On inner pages where the bottom navigation bar is hidden, `<AdminPageShell>` automatically configures `<FABProvider hasBottomNav={false}>`, which moves the mobile FAB closer to the screen bottom (`bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))]` instead of `5.5rem`), eliminating the empty bottom gap.
-
-## Mobile UX Standard
-
-All admin-panel list pages and overlays must follow these mobile-specific rules for screens **< `lg` (1024px)**:
-
-### 1. Mobile List View (no DataTable on mobile)
-
-- Each list page must have **two sibling components**: `*-table/` (desktop) and `*-list/` (mobile).
-- Page layout: `<div className="hidden lg:block"><XTable /></div>` + `<div className="lg:hidden"><XList /></div>`.
-- Mobile list uses `MobileList`, `MobileListItem`, `MobileListItemIcon`, `MobileListItemContent`, `MobileListItemTrailing` from `@workspace/ui/components/mobile-list`.
-- Items are separated by thin dividers, minimal height (~60px), no inline action buttons.
-- **Click** on item → navigate to detail or open edit modal.
-- **Long-press / right-click** → use `ContextMenu` from `@workspace/ui/components/context-menu` to show Edit, Delete, etc.
-
-### 2. FAB (Floating Action Button) replaces header Create button on mobile
-
-- `AdminPageHeader` action button is hidden on mobile (`hidden lg:flex`).
-- Every list page must render a `FABSingle` or `FABMenuTrigger` from `@workspace/ui/components/fab` in the `fab` prop of `AdminPageShell`.
-- Single-action pages → `FABSingle` with `+` icon.
-- Multi-action pages (e.g. Users with Create + Import + Export) → `FABMenuTrigger` that opens a `Drawer` (bottom sheet) with action buttons.
-- Wrap FAB in `<PermissionGuard mode="hide">` when the action requires a permission.
-
-### 3. Popover → Bottom-sheet Drawer on mobile
-
-- Use `ResponsivePopover` from `@workspace/ui/components/popover` instead of raw `Popover`.
-- On mobile it renders a `Drawer` bottom sheet; on desktop it renders the standard popover.
-
-### 4. Combobox → Bottom-sheet Drawer on mobile
-
-- Use `ResponsiveCombobox` from `@workspace/ui/components/combobox` instead of `Combobox` in any filter or form.
-- On mobile it renders a `Drawer` with search + option list; on desktop it renders the standard Base UI combobox dropdown.
-- Always pass a `drawerTitle` prop to name the option list in the Drawer.
-
-### 5. Modal → Bottom-sheet Drawer on mobile
-
-- For non-confirmation modals (forms, inspectors, wizards), use `ResponsiveDialog`, `ResponsiveDialogContent`, `ResponsiveDialogHeader`, `ResponsiveDialogFooter`, `ResponsiveDialogTitle`, `ResponsiveDialogCloseButton` from `@workspace/ui/components/dialog` instead of `Dialog`/`DialogPopup`. Never put descriptions in the header.
-- On mobile it slides up as a Drawer; on desktop it renders the standard centered dialog.
-- Form content must include `px-6 pb-6` padding when inside a `ResponsiveDialogContent`.
-- **For confirmations ("Are you sure?", delete actions), use `AlertDialog` from `@workspace/ui/components/alert-dialog` instead of `ResponsiveDialog`.**
-
-### 6. Filters → Bottom-sheet Drawer on mobile
-
-- `AdminFilterBar` automatically handles this: filters are hidden on mobile and accessible via a `SlidersHorizontal` icon button next to the search input.
-- The filter drawer title can be customized via `filterDrawerTitle` prop.
-- Always pass `filterButtonAriaLabel` translated with `useTranslations`.
-
-### 7. Term Activation Window Standard (7 Days Before / 7 Days After Start Date)
-
-- A term activates exactly 7 days before its `startDate` (`startDate - 7 days`), at which point dependent modules (classes, course scheduling, teacher assignments, student registrations) become creatable.
-- The critical activation phase covers `[startDate - 7 days, startDate + 7 days]`.
-- Frontend badges, countdowns, warnings, action locks, class creation guards, and scheduling interfaces must import and use `@workspace/types` term activation window helpers (`getTermActivationDate`, `getTermPostActivationDate`, `getTermActivationWindow`, `isTermActivated`, `isTermInActivationWindow`, `isTermPostActivationPassed`).
+- **Title Routing:** Never render an in-page title. Register route in `getPageTitle` (`AdminHeader`).
+- **URL Filters:** Always synchronize state with `useUrlFilters` (300ms search debounce, filter change resets page to 1, clean URLs).
+- **Two-Tier Views:** Desktop uses `<DataTable />` with Add button in `<AdminFilterBar actions={...} className="hidden lg:inline-flex">`. Mobile (< `lg`) uses `<MobileList />` with `<FABSingle>` in `<AdminPageShell fab={...}>`.
+- **Empty State:** Remove Add button from filter bar and place inside `<EmptyContent>`. Never wrap in `<Card>`. Center vertically on mobile. Hide mobile FAB on empty state.
+- **Breadcrumbs:** Render `<AdminBreadcrumb />` in `AdminPageShell`'s `breadcrumb` prop on top of filters. Back navigation rendered next to title in `AdminHeader`.
+- **Full Recipe:** See `.agents/skills/kalameh-admin-page/SKILL.md`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
