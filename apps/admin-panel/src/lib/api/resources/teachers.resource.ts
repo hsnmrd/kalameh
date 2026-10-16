@@ -31,13 +31,23 @@ export const teachersResource = api.resource("teachers", {
   create: api.post<TeacherDto, CreateTeacherInput>("/teachers", {
     bodyType: "form-data",
   }),
-  update: api.patch<TeacherDto, { id: string; body: UpdateTeacherInput }>(
-    ({ id }) => `/teachers/${id}`,
-    {
-      body: ({ body }) => body,
-      bodyType: "form-data",
-    }
-  ),
+  update: api.patch<
+    TeacherDto,
+    { id: string; body: UpdateTeacherInput; progressKey?: string }
+  >(({ id }) => `/teachers/${id}`, {
+    body: ({ body }) => body,
+    bodyType: "form-data",
+    headers: ({ body, progressKey }): Record<string, string> => {
+      const key =
+        progressKey ??
+        (body && (body as { avatar?: unknown }).avatar instanceof File
+          ? "teacher-avatar"
+          : undefined)
+      const h: Record<string, string> = {}
+      if (key) h["x-upload-progress-key"] = key
+      return h
+    },
+  }),
   getAvailabilities: api.get<
     TeacherAvailability[],
     { id: string; termId?: string; branchId?: string }

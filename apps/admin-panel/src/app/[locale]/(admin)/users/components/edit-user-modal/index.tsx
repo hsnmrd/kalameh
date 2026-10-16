@@ -18,7 +18,11 @@ import {
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { ROLES, type AuthUser, type Role } from "@workspace/types"
-import { usersResource } from "@/lib/api"
+import {
+  usersResource,
+  useUploadProgress,
+  resetUploadProgress,
+} from "@/lib/api"
 import {
   type UpdateUserInput,
   useUpdateUserSchema,
@@ -65,7 +69,11 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
       isActive: true,
     },
   })
-  const { handleSubmit, reset } = form
+  const {
+    handleSubmit,
+    reset,
+    formState: { dirtyFields },
+  } = form
   React.useEffect(() => {
     if (user)
       reset({
@@ -81,21 +89,53 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
   }, [user, reset])
   const updateMutation = useMutation({
     ...usersResource.update.toMutation(),
+    onMutate: () => {
+      resetUploadProgress("user-avatar")
+    },
+    onSettled: () => {
+      resetUploadProgress("user-avatar")
+    },
     onSuccess: () => {
       toast.success(t("editModal.success"))
       queryClient.invalidateQueries({ queryKey: usersResource.list.baseKey() })
       onClose()
     },
   })
+
+  const avatarProgress = useUploadProgress("user-avatar")
+  const isAvatarUploading =
+    updateMutation.isPending && form.getValues("avatar") instanceof File
   const onSubmit = (values: UpdateUserInput) => {
     if (!user) return
+
+    const patchBody: Partial<UpdateUserInput> = {}
+
+    if (values.avatar instanceof File) {
+      patchBody.avatar = values.avatar
+    } else if (
+      (dirtyFields.avatarUrl && values.avatarUrl === null) ||
+      (user.avatarUrl && values.avatarUrl === null)
+    ) {
+      patchBody.avatarUrl = null
+    }
+
+    if (dirtyFields.firstName) patchBody.firstName = values.firstName?.trim()
+    if (dirtyFields.lastName) patchBody.lastName = values.lastName?.trim()
+    if (dirtyFields.phone) patchBody.phone = values.phone?.trim()
+    if (dirtyFields.nationalCode)
+      patchBody.nationalCode = values.nationalCode?.trim() || null
+    if (dirtyFields.role) patchBody.role = values.role
+    if (dirtyFields.isActive) patchBody.isActive = values.isActive
+
+    if (Object.keys(patchBody).length === 0) {
+      onClose()
+      return
+    }
+
     updateMutation.mutate({
       id: user.id,
-      body: {
-        ...values,
-        avatar: values.avatar || undefined,
-        nationalCode: values.nationalCode || null,
-      },
+      body: patchBody,
+      progressKey: "user-avatar",
     })
   }
 
@@ -115,6 +155,7 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
               form={form}
               roleOptions={roleOptions}
               statusOptions={statusOptions}
+              uploadProgress={isAvatarUploading ? avatarProgress : undefined}
             />
           </div>
           <FormDialogFooter>

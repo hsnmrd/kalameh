@@ -472,13 +472,17 @@ export class StudentsService {
           instituteId: existing.instituteId,
         },
         data: {
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          phone: dto.phone,
-          nationalCode: dto.nationalCode,
+          ...(dto.firstName !== undefined ? { firstName: dto.firstName } : {}),
+          ...(dto.lastName !== undefined ? { lastName: dto.lastName } : {}),
+          ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
+          ...(dto.nationalCode !== undefined
+            ? { nationalCode: dto.nationalCode }
+            : {}),
           ...(avatarUrl !== undefined ? { avatarUrl } : {}),
-          isActive: dto.isActive,
-          currentAllowedCourseId: dto.currentAllowedCourseId,
+          ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+          ...(dto.currentAllowedCourseId !== undefined
+            ? { currentAllowedCourseId: dto.currentAllowedCourseId }
+            : {}),
           ...(dto.branchId !== undefined
             ? { branchId: dto.branchId || null }
             : {}),

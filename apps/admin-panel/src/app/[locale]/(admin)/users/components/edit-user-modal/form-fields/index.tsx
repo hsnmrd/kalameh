@@ -17,12 +17,14 @@ interface FormFieldsProps {
   form: UseFormReturn<UpdateUserInput>
   roleOptions: ComboboxOption[]
   statusOptions: ComboboxOption[]
+  uploadProgress?: number
 }
 
 export function FormFields({
   form,
   roleOptions,
   statusOptions,
+  uploadProgress,
 }: FormFieldsProps) {
   const t = useTranslations("users")
   const {
@@ -53,6 +55,7 @@ export function FormFields({
               description={t("createModal.avatarDescription")}
               removeLabel={t("createModal.removeAvatar")}
               crop
+              uploadProgress={uploadProgress}
             />
           )}
         />

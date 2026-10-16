@@ -409,6 +409,54 @@ describe('TeachersService', () => {
       expect(auditLogsService.log).not.toHaveBeenCalled();
     });
 
+    it('should not include avatarUrl in user.update if avatar is not provided and dto.avatarUrl is undefined', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue({
+        ...existingTeacher,
+        avatarUrl: '/uploads/avatars/existing.jpg',
+      });
+      prisma.user.update.mockResolvedValue({
+        ...existingTeacher,
+        avatarUrl: '/uploads/avatars/existing.jpg',
+        password: 'hashed-password',
+      });
+
+      await service.update(mockAdmin, 'teacher-1', {
+        firstName: 'Updated',
+      });
+
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'teacher-1', instituteId: 'inst-1' },
+        data: {
+          firstName: 'Updated',
+        },
+        include: expect.any(Object),
+      });
+    });
+
+    it('should include avatarUrl: null in user.update if dto.avatarUrl is null', async () => {
+      prisma.user.findFirstOrThrow.mockResolvedValue({
+        ...existingTeacher,
+        avatarUrl: '/uploads/avatars/existing.jpg',
+      });
+      prisma.user.update.mockResolvedValue({
+        ...existingTeacher,
+        avatarUrl: null,
+        password: 'hashed-password',
+      });
+
+      await service.update(mockAdmin, 'teacher-1', {
+        avatarUrl: null,
+      });
+
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'teacher-1', instituteId: 'inst-1' },
+        data: {
+          avatarUrl: null,
+        },
+        include: expect.any(Object),
+      });
+    });
+
     it('should replace course qualifications in the same transaction', async () => {
       const courseId = '11111111-1111-4111-8111-111111111111';
       prisma.user.findFirstOrThrow.mockResolvedValue(existingTeacher);

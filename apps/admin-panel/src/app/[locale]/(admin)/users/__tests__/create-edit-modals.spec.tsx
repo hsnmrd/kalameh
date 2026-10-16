@@ -7,6 +7,7 @@ import {
 } from "../../../../../test/test-utils"
 import { CreateUserModal } from "../components/create-user-modal"
 import { EditUserModal } from "../components/edit-user-modal"
+import { usersResource } from "@/lib/api"
 import type { AuthUser } from "@workspace/types"
 
 // Mock sonner toast
@@ -108,6 +109,100 @@ describe("CreateUserModal & EditUserModal Components", () => {
         "src",
         expect.stringContaining("test-user.jpg")
       )
+    })
+
+    it("should close without calling mutation if no fields are changed", async () => {
+      const mockMutate = vi.fn()
+      vi.spyOn(usersResource.update, "toMutation").mockReturnValue({
+        mutationFn: mockMutate,
+      } as never)
+
+      const handleClose = vi.fn()
+      render(
+        <EditUserModal user={mockUser} open={true} onClose={handleClose} />
+      )
+
+      const submitBtn = screen.getByRole("button", {
+        name: /ثبت|ذخیره|submit/i,
+      })
+      fireEvent.click(submitBtn)
+
+      await waitFor(() => {
+        expect(mockMutate).not.toHaveBeenCalled()
+        expect(handleClose).toHaveBeenCalled()
+      })
+    })
+
+    it("should only send changed fields and omit avatar/avatarUrl if unchanged", async () => {
+      const mockMutate = vi.fn()
+      vi.spyOn(usersResource.update, "toMutation").mockReturnValue({
+        mutationFn: mockMutate,
+      } as never)
+
+      const userWithAvatar: AuthUser = {
+        ...mockUser,
+        avatarUrl: "/uploads/avatars/test-user.jpg",
+      }
+
+      render(
+        <EditUserModal user={userWithAvatar} open={true} onClose={vi.fn()} />
+      )
+
+      const firstNameInput = document.querySelector(
+        'input[name="firstName"]'
+      ) as HTMLInputElement
+      fireEvent.change(firstNameInput, { target: { value: "Ali" } })
+
+      const submitBtn = screen.getByRole("button", {
+        name: /ثبت|ذخیره|submit/i,
+      })
+      fireEvent.click(submitBtn)
+
+      await waitFor(() => {
+        expect(mockMutate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: "user-1",
+            body: { firstName: "Ali" },
+          }),
+          expect.anything()
+        )
+      })
+    })
+
+    it("should send avatarUrl: null when photo is removed", async () => {
+      const mockMutate = vi.fn()
+      vi.spyOn(usersResource.update, "toMutation").mockReturnValue({
+        mutationFn: mockMutate,
+      } as never)
+
+      const userWithAvatar: AuthUser = {
+        ...mockUser,
+        avatarUrl: "/uploads/avatars/test-user.jpg",
+      }
+
+      render(
+        <EditUserModal user={userWithAvatar} open={true} onClose={vi.fn()} />
+      )
+
+      const removeBtn = screen.getByRole("button", {
+        name: /حذف تصویر|Remove photo/i,
+      })
+      fireEvent.click(removeBtn)
+
+      const submitBtn = screen.getByRole("button", {
+        name: /ثبت|ذخیره|submit/i,
+      })
+      fireEvent.click(submitBtn)
+
+      await waitFor(() => {
+        expect(mockMutate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: "user-1",
+            body: { avatarUrl: null },
+          }),
+          expect.anything()
+        )
+      })
     })
   })
 })

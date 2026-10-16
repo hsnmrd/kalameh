@@ -35,13 +35,23 @@ export const studentsResource = api.resource("students", {
   create: api.post<StudentDto, CreateStudentInput>("/students", {
     bodyType: "form-data",
   }),
-  update: api.patch<StudentDto, { id: string; body: UpdateStudentInput }>(
-    ({ id }) => `/students/${id}`,
-    {
-      body: ({ body }) => body,
-      bodyType: "form-data",
-    }
-  ),
+  update: api.patch<
+    StudentDto,
+    { id: string; body: UpdateStudentInput; progressKey?: string }
+  >(({ id }) => `/students/${id}`, {
+    body: ({ body }) => body,
+    bodyType: "form-data",
+    headers: ({ body, progressKey }): Record<string, string> => {
+      const key =
+        progressKey ??
+        (body && (body as { avatar?: unknown }).avatar instanceof File
+          ? "student-avatar"
+          : undefined)
+      const h: Record<string, string> = {}
+      if (key) h["x-upload-progress-key"] = key
+      return h
+    },
+  }),
   resetPassword: api.post<
     { message: string },
     { id: string; newPassword?: string }

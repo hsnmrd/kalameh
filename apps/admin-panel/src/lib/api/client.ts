@@ -1,5 +1,6 @@
 import { createMicroApi, MicroApiError } from "micro-rq"
 import { toast } from "@workspace/ui/components/sonner"
+import { setUploadProgress } from "./upload-progress"
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL &&
@@ -34,6 +35,69 @@ export const api = createMicroApi({
         /^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/,
         `$1${window.location.hostname}$3`
       )
+    }
+
+    const progressKey = headers.get("x-upload-progress-key")
+    if (progressKey && typeof XMLHttpRequest !== "undefined") {
+      headers.delete("x-upload-progress-key")
+      return new Promise<Response>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open(init?.method ?? "GET", String(url))
+        xhr.withCredentials = true
+
+        headers.forEach((value, key) => {
+          xhr.setRequestHeader(key, value)
+        })
+
+        if (init?.signal) {
+          if (init.signal.aborted) {
+            xhr.abort()
+            reject(new DOMException("Aborted", "AbortError"))
+            return
+          }
+          init.signal.addEventListener("abort", () => {
+            xhr.abort()
+            reject(new DOMException("Aborted", "AbortError"))
+          })
+        }
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            setUploadProgress(
+              progressKey,
+              Math.round((event.loaded / event.total) * 100)
+            )
+          }
+        }
+
+        xhr.onload = () => {
+          setUploadProgress(progressKey, 100)
+          const responseHeaders = new Headers()
+          const rawHeaders = xhr.getAllResponseHeaders()
+          if (rawHeaders) {
+            rawHeaders
+              .trim()
+              .split(/[\r\n]+/)
+              .forEach((line) => {
+                const parts = line.split(": ")
+                const key = parts.shift()
+                const value = parts.join(": ")
+                if (key) responseHeaders.set(key, value)
+              })
+          }
+
+          resolve(
+            new Response(xhr.responseText, {
+              status: xhr.status,
+              statusText: xhr.statusText,
+              headers: responseHeaders,
+            })
+          )
+        }
+
+        xhr.onerror = () => reject(new TypeError("Upload failed"))
+        xhr.send((init?.body as XMLHttpRequestBodyInit) ?? null)
+      })
     }
 
     return fetch(url, {
