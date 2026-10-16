@@ -17,7 +17,12 @@ import {
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
-import { coursesResource, teachersResource } from "@/lib/api"
+import {
+  coursesResource,
+  teachersResource,
+  useUploadProgress,
+  resetUploadProgress,
+} from "@/lib/api"
 import {
   useUpdateTeacherSchema,
   type UpdateTeacherInput,
@@ -80,6 +85,12 @@ export function EditTeacherModal({
 
   const updateMutation = useMutation({
     ...teachersResource.update.toMutation(),
+    onMutate: () => {
+      resetUploadProgress("teacher-avatar")
+    },
+    onSettled: () => {
+      resetUploadProgress("teacher-avatar")
+    },
     onSuccess: () => {
       toast.success(t("editModal.success"))
       queryClient.invalidateQueries({
@@ -88,6 +99,10 @@ export function EditTeacherModal({
       onClose()
     },
   })
+
+  const avatarProgress = useUploadProgress("teacher-avatar")
+  const isAvatarUploading =
+    updateMutation.isPending && form.getValues("avatar") instanceof File
 
   const onSubmit = (values: UpdateTeacherInput) => {
     if (!teacher) return
@@ -136,6 +151,7 @@ export function EditTeacherModal({
     updateMutation.mutate({
       id: teacher.id,
       body: patchBody,
+      progressKey: "teacher-avatar",
     })
   }
 
@@ -157,6 +173,7 @@ export function EditTeacherModal({
               courses={courses}
               areCoursesLoading={areCoursesLoading}
               statusOptions={statusOptions}
+              uploadProgress={isAvatarUploading ? avatarProgress : undefined}
             />
           </div>
 

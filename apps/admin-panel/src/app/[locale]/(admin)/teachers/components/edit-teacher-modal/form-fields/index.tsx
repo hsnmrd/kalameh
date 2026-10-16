@@ -17,6 +17,7 @@ interface FormFieldsProps {
   courses: CourseDto[]
   areCoursesLoading: boolean
   statusOptions: ComboboxOption[]
+  uploadProgress?: number
 }
 
 export function FormFields({
@@ -24,6 +25,7 @@ export function FormFields({
   courses,
   areCoursesLoading,
   statusOptions,
+  uploadProgress,
 }: FormFieldsProps) {
   const t = useTranslations("teachers")
   const {
@@ -57,6 +59,7 @@ export function FormFields({
               description={t("createModal.avatarDescription")}
               removeLabel={t("createModal.removeAvatar")}
               crop
+              uploadProgress={uploadProgress}
             />
           )}
         />

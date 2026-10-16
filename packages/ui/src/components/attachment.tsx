@@ -4,6 +4,7 @@ import * as React from "react"
 import Image from "next/image"
 import { Upload, X, Image as ImageIcon, AlertCircle } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   ImageCropperDialog,
@@ -34,6 +35,8 @@ export interface AttachmentProps {
   description?: string
   removeLabel?: string
   crop?: boolean | AttachmentCropOptions
+  uploadProgress?: number | null
+  uploadProgressLabel?: string
 }
 
 export function Attachment({
@@ -47,6 +50,8 @@ export function Attachment({
   description = "PNG, JPG, WEBP or SVG (Max 5MB)",
   removeLabel = "Remove",
   crop = false,
+  uploadProgress,
+  uploadProgressLabel,
 }: AttachmentProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = React.useState(false)
@@ -214,7 +219,7 @@ export function Attachment({
 
       {previewSrc ? (
         <div className="relative flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-3 shadow-2xs transition-all">
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/60">
               {hasImageError ? (
                 <ImageIcon className="size-6 text-muted-foreground" />
@@ -229,6 +234,11 @@ export function Attachment({
                   onError={() => setHasImageError(true)}
                 />
               )}
+              {typeof uploadProgress === "number" && uploadProgress >= 0 && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
+                  <Spinner className="size-4 text-primary" />
+                </div>
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-foreground">
@@ -237,6 +247,34 @@ export function Attachment({
               <p className="truncate text-[11px] text-muted-foreground">
                 {description}
               </p>
+              {typeof uploadProgress === "number" && uploadProgress >= 0 && (
+                <div
+                  className="mt-2 flex flex-col gap-1"
+                  role="progressbar"
+                  aria-valuenow={uploadProgress}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground">
+                    <span>
+                      {uploadProgressLabel ||
+                        (typeof document !== "undefined" &&
+                        document.documentElement.lang === "fa"
+                          ? "در حال بارگذاری..."
+                          : "Uploading...")}
+                    </span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full bg-primary transition-all duration-150 ease-out"
+                      style={{
+                        width: `${Math.min(100, Math.max(0, uploadProgress))}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -245,7 +283,10 @@ export function Attachment({
               type="button"
               variant="outline"
               size="sm"
-              disabled={disabled}
+              disabled={
+                disabled ||
+                (typeof uploadProgress === "number" && uploadProgress >= 0)
+              }
               onClick={triggerSelect}
               className="h-8 rounded-lg px-3 text-xs"
             >
@@ -256,7 +297,10 @@ export function Attachment({
               type="button"
               variant="ghost"
               size="sm"
-              disabled={disabled}
+              disabled={
+                disabled ||
+                (typeof uploadProgress === "number" && uploadProgress >= 0)
+              }
               onClick={handleRemove}
               className="size-8 rounded-lg p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               aria-label={removeLabel}

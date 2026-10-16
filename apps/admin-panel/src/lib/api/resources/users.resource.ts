@@ -24,13 +24,23 @@ export const usersResource = api.resource("users", {
   create: api.post<AuthUser, CreateUserInput>("/users", {
     bodyType: "form-data",
   }),
-  update: api.patch<AuthUser, { id: string; body: UpdateUserInput }>(
-    ({ id }) => `/users/${id}`,
-    {
-      body: ({ body }) => body,
-      bodyType: "form-data",
-    }
-  ),
+  update: api.patch<
+    AuthUser,
+    { id: string; body: UpdateUserInput; progressKey?: string }
+  >(({ id }) => `/users/${id}`, {
+    body: ({ body }) => body,
+    bodyType: "form-data",
+    headers: ({ body, progressKey }): Record<string, string> => {
+      const key =
+        progressKey ??
+        (body && (body as { avatar?: unknown }).avatar instanceof File
+          ? "user-avatar"
+          : undefined)
+      const h: Record<string, string> = {}
+      if (key) h["x-upload-progress-key"] = key
+      return h
+    },
+  }),
   resetPassword: api.post<
     { message: string },
     { id: string; newPassword?: string }

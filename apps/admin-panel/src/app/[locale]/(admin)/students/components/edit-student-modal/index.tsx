@@ -18,7 +18,13 @@ import {
 import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type { StudentDto, SupportedLocale } from "@workspace/types"
-import { coursesResource, studentsResource, branchesResource } from "@/lib/api"
+import {
+  coursesResource,
+  studentsResource,
+  branchesResource,
+  useUploadProgress,
+  resetUploadProgress,
+} from "@/lib/api"
 import {
   type UpdateStudentInput,
   useUpdateStudentSchema,
@@ -118,6 +124,12 @@ export function EditStudentModal({
 
   const updateMutation = useMutation({
     ...studentsResource.update.toMutation(),
+    onMutate: () => {
+      resetUploadProgress("student-avatar")
+    },
+    onSettled: () => {
+      resetUploadProgress("student-avatar")
+    },
     onSuccess: () => {
       toast.success(t("editModal.success"))
       queryClient.invalidateQueries({
@@ -126,6 +138,10 @@ export function EditStudentModal({
       onClose()
     },
   })
+
+  const avatarProgress = useUploadProgress("student-avatar")
+  const isAvatarUploading =
+    updateMutation.isPending && form.getValues("avatar") instanceof File
 
   const onSubmit = (values: UpdateStudentInput) => {
     if (!student) return
@@ -174,6 +190,7 @@ export function EditStudentModal({
     updateMutation.mutate({
       id: student.id,
       body: patchBody,
+      progressKey: "student-avatar",
     })
   }
 
@@ -196,6 +213,7 @@ export function EditStudentModal({
               courseOptions={courseOptions}
               statusOptions={statusOptions}
               branchOptions={branchOptions}
+              uploadProgress={isAvatarUploading ? avatarProgress : undefined}
             />
           </div>
           <FormDialogFooter>
