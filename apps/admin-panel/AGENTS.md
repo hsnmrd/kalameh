@@ -34,6 +34,8 @@
 - Always use `.toQuery()` and `.toMutation()` with `@tanstack/react-query` (`useQuery`, `useMutation`).
 - **NEVER** use the `.fn()` option of micro-rq directly in components.
 - Errors are handled centrally by `onError` in `client.ts` via shadcn `toast.error`. Never create redundant inline error alert banners inside forms.
+- **Forms & Zod Schemas (No TS2345):** Always use `react-hook-form` paired with `@hookform/resolvers/zod`. Always import `z` directly from `@workspace/types` (`import { z } from "@workspace/types"`), **NEVER** from `"zod"`, to prevent duplicate package type mismatches.
+- **Targeted Testing:** Run **ONLY** the specific test file being created or modified (`pnpm --filter admin-panel test -- <path>.spec.tsx`). Never run the entire 1,000+ test suite during iterative development.
 
 ## UI Primitives & Elements
 

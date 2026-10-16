@@ -19,7 +19,11 @@ Before reading files to modify code, editing files, or running task commands:
 
 - **SOLID & Modular Design:** Follow SOLID principles across all apps and packages.
 - **Backend Service Separation:** Keep backend services focused on one domain responsibility. Target a maximum of 300 lines for production service files; split oversized services into injectable query, command, validation, persistence, composition, import/export, or calculation collaborators. Register extracted collaborators through NestJS dependency injection and cover them with focused unit tests. Cohesive algorithm implementations may exceed the target only when splitting would obscure the algorithm; keep orchestration and I/O outside those files and document the exception beside the service.
-- **Testing:** Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
+- **Testing & Targeted Execution:**
+  - Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
+  - **NEVER run the full application test suite (1,000+ tests) during development or iterative debugging.** Run **ONLY** the specific test file being modified or authored:
+    `pnpm --filter <app> test -- <path-to-file>.spec.tsx`
+  - Only execute the full suite as a final pre-commit quality check.
 - **Git Hooks & Quality Gate:** Prettier and ESLint are enforced by Husky (`.husky/pre-commit`) and `lint-staged` on every commit. Never bypass hooks.
 - **Environment Configuration:** All environment variables must be managed centrally in the root `.env` and declared in `turbo.json` under `globalEnv`. Do not create disconnected per-app `.env` files.
 
@@ -35,6 +39,9 @@ Before reading files to modify code, editing files, or running task commands:
   - `apps/api` must issue `httpOnly` secure cookies (`access_token`) on authentication alongside returning user payloads.
 - **Shared Roles & Permissions:**
   - Roles and permissions must be defined as `const` in `@workspace/types` (`ROLES`, `PERMISSIONS`, `ROLE_PERMISSIONS`) and shared across all frontend apps and backend services.
+- **Zod Schema Import Standard (Prevent TS2345):**
+  - Always import `z` directly from `@workspace/types` (`import { z } from "@workspace/types"`), **NEVER** from `"zod"` directly in frontend apps, forms, or DTOs.
+  - This avoids duplicate monorepo package resolutions and eliminates type incompatibility errors (`TS2345`) when paired with `@hookform/resolvers/zod`.
 - **Error Handling & Notifications:**
   - Global API errors in `createMicroApi` (`onError`) must trigger the centralized shadcn `toast.error` notification.
   - Do not render duplicate inline error banner cards inside pages/forms when toast notifications handle error presentation.
