@@ -152,8 +152,14 @@
     "emptyDescription": "No course matches the search, or this institute has no courses yet.",
     "clear": "Clear all",
     "close": "Apply and close",
-    "profileTitle": "Qualified teaching courses",
-    "profileEmpty": "No teachable course is registered; this teacher will be excluded from automatic scheduling suggestions."
+    "profileTitle": "Teachable Courses",
+    "profileEmpty": "No teachable courses registered yet.",
+    "coursesCount": "{count} courses",
+    "authorizedBadge": "Authorized",
+    "searchCourses": "Search courses...",
+    "noCoursesFound": "No courses found matching your search.",
+    "clearSearch": "Clear search",
+    "courseSlideCounter": "{current} of {total}"
   },
   "days": {
     "SATURDAY": "Saturday",

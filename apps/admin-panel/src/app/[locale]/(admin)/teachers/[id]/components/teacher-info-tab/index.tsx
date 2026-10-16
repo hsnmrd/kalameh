@@ -2,9 +2,9 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { BookOpen, GraduationCap, UserCheck } from "lucide-react"
-import { Badge } from "@workspace/ui/components/badge"
+import { UserCheck } from "lucide-react"
 import type { TeacherDto } from "@workspace/types"
+import { TeachableCoursesCarousel } from "./teachable-courses-carousel"
 
 export interface TeacherInfoTabProps {
   teacher: TeacherDto
@@ -113,40 +113,7 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
       </div>
 
       {/* Teachable Courses Section */}
-      <div>
-        <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground sm:text-base">
-          <BookOpen className="size-4 text-muted-foreground" />
-          <span>
-            {locale === "fa" ? "دوره‌های مجاز برای تدریس" : "Teachable Courses"}
-          </span>
-          <Badge variant="secondary" className="ms-auto h-5 px-2 text-[11px]">
-            {teachableCourses.length} دوره
-          </Badge>
-        </h3>
-
-        <div className="mt-4">
-          {teachableCourses.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border/80 bg-muted/20 p-6 text-center text-xs text-muted-foreground">
-              {locale === "fa"
-                ? "هنوز دوره‌ای برای تدریس این استاد ثبت نشده است."
-                : "No teachable courses registered yet."}
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {teachableCourses.map((qualification) => (
-                <Badge
-                  key={qualification.id || qualification.courseId}
-                  variant="outline"
-                  className="gap-1.5 px-3 py-1.5 text-xs font-semibold text-foreground"
-                >
-                  <GraduationCap className="size-3.5 text-primary" />
-                  <span>{qualification.course?.title || "دوره آموزشی"}</span>
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <TeachableCoursesCarousel teachableCourses={teachableCourses} />
     </div>
   )
 }

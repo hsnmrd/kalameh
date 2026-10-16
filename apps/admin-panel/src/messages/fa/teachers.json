@@ -152,8 +152,14 @@
     "emptyDescription": "سطحی مطابق جستجو وجود ندارد یا هنوز سطحی برای آموزشگاه ثبت نشده است.",
     "clear": "پاک کردن همه",
     "close": "تأیید و بستن",
-    "profileTitle": "سطح‌های مجاز برای تدریس",
-    "profileEmpty": "سطح قابل تدریسی ثبت نشده؛ این استاد در زمان‌بندی خودکار پیشنهاد نمی‌شود."
+    "profileTitle": "دوره‌های مجاز برای تدریس",
+    "profileEmpty": "هنوز دوره‌ای برای تدریس این استاد ثبت نشده است.",
+    "coursesCount": "{count} دوره",
+    "authorizedBadge": "مجاز به تدریس",
+    "searchCourses": "جستجوی دوره...",
+    "noCoursesFound": "دوره‌ای مطابق با جستجو یافت نشد.",
+    "clearSearch": "پاک کردن جستجو",
+    "courseSlideCounter": "{current} از {total}"
   },
   "days": {
     "SATURDAY": "شنبه",
