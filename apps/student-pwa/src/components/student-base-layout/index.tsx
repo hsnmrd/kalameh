@@ -34,12 +34,15 @@ export function StudentBaseLayout({ children }: StudentBaseLayoutProps) {
         {/* Top Toolbar */}
         <StudentToolbar
           isHomePage={isHomePage}
+          pathname={pathname}
           onLogout={handleLogout}
           isLogoutPending={logoutMutation.isPending}
         />
 
         {/* Scrollable Page Content Area */}
-        <main className="flex-1 px-4 py-6 pb-24">{children}</main>
+        <main className="flex-1 px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+          {children}
+        </main>
 
         {/* Bottom Navigation Bar */}
         <StudentBottomNav pathname={pathname} />

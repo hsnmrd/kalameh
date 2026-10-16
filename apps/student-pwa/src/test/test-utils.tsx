@@ -5,11 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import authMessagesFa from "../messages/fa/auth.json"
 import commonMessagesFa from "../messages/fa/common.json"
 import classesMessagesFa from "../messages/fa/classes.json"
+import settingMessagesFa from "../messages/fa/setting.json"
 
 const defaultMessages = {
   auth: authMessagesFa,
   common: commonMessagesFa,
   classes: classesMessagesFa,
+  setting: settingMessagesFa,
 }
 
 interface AllTheProvidersProps {

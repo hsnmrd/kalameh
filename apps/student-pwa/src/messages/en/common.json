@@ -10,6 +10,11 @@
   "back": "Back",
   "language": "Language",
   "settings": "Settings",
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
   "en": "English",
   "fa": "فارسی",
   "loading": "Loading...",

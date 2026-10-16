@@ -31,43 +31,53 @@ export function StudentBottomNav({ pathname }: StudentBottomNavProps) {
   const t = useTranslations("common")
 
   return (
-    <nav
-      className="fixed inset-x-0 bottom-0 z-30 w-full border-t border-border/80 bg-card/95 px-4 py-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md"
-      aria-label={t("appName")}
-    >
-      <div className="mx-auto grid max-w-md grid-cols-5 items-center">
-        {STUDENT_BOTTOM_NAV.map((item) => {
-          const Icon = item.icon
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard" || pathname === "/"
-              : pathname.startsWith(item.href)
+    <>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-30 h-[calc(5.5rem+env(safe-area-inset-bottom,0px))] bg-gradient-to-t from-background via-background/80 to-transparent"
+      />
+      <nav
+        aria-label={t("appName")}
+        className="fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] z-40 mx-auto max-w-md rounded-[50px] border border-border bg-card/80 shadow-lg backdrop-blur-md"
+      >
+        <div className="grid h-16 auto-cols-fr grid-flow-col items-stretch px-1">
+          {STUDENT_BOTTOM_NAV.map((item) => {
+            const Icon = item.icon
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard" || pathname === "/"
+                : pathname.startsWith(item.href)
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex min-h-[48px] flex-col items-center justify-center gap-1 rounded-xl py-1 text-center transition-all active:scale-95",
-                isActive
-                  ? "font-semibold text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              aria-current={isActive ? "page" : undefined}
-            >
-              <Icon
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "size-5 transition-transform",
-                  isActive && "scale-110 stroke-[2.5]"
+                  "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] leading-3 font-medium transition-colors",
+                  isActive
+                    ? "font-semibold text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
-              />
-              <span className="text-[11px] font-medium tracking-tight">
-                {t(item.key)}
-              </span>
-            </Link>
-          )
-        })}
-      </div>
-    </nav>
+              >
+                <span className="relative">
+                  <Icon
+                    className={cn(
+                      "size-5 transition-transform",
+                      isActive && "stroke-[2.5]"
+                    )}
+                    aria-hidden
+                  />
+                </span>
+                <span className="max-w-full truncate">{t(item.key)}</span>
+                {isActive && (
+                  <span className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-primary" />
+                )}
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+    </>
   )
 }
