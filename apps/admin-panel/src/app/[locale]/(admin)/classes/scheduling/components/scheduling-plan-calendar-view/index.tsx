@@ -12,12 +12,14 @@ import {
   X,
 } from "lucide-react"
 import {
+  calculatePhaseSlots,
   findHigherLevelCourse,
   summarizeCourseLevelRange,
   type SchedulingBranchScheduleStatus,
   type SchedulingNewTeacherHiringAssignment,
   type SchedulingNewTeacherHiringPlan,
   type SchedulingNewTeacherHiringSlotOption,
+  type SchedulingOperatingPhaseSnapshot,
   type SchedulingPlanDetailsDto,
   type SchedulingRecoveryOption,
   type SchedulingStaffingFallback as StaffingFallbackDto,
@@ -154,6 +156,8 @@ export interface SchedulingPlanCalendarViewProps {
   stickyTop?: "page" | "dialog"
   selectedTeacherId?: string | null
   onTeacherChange?: (teacherId: string | null) => void
+  availableTimeSlots?: Array<{ startTime: string; endTime: string }>
+  operatingPhase?: SchedulingOperatingPhaseSnapshot | null
 }
 
 export function SchedulingPlanCalendarView({
@@ -176,6 +180,8 @@ export function SchedulingPlanCalendarView({
   stickyTop = "page",
   selectedTeacherId,
   onTeacherChange,
+  availableTimeSlots,
+  operatingPhase,
 }: SchedulingPlanCalendarViewProps) {
   const t = useTranslations("scheduling.planDetails")
   const locale = useLocale()
@@ -1153,6 +1159,40 @@ export function SchedulingPlanCalendarView({
 
   const timeSlots = React.useMemo<TimeSlot[]>(() => {
     const slotsMap = new Map<string, TimeSlot>()
+    if (availableTimeSlots && availableTimeSlots.length > 0) {
+      for (const slot of availableTimeSlots) {
+        const key = `${slot.startTime}-${slot.endTime}`
+        if (!slotsMap.has(key)) {
+          slotsMap.set(key, {
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            key,
+          })
+        }
+      }
+    }
+    if (operatingPhase) {
+      const calculated = calculatePhaseSlots(
+        operatingPhase.startTime,
+        operatingPhase.endTime,
+        operatingPhase.slotDurationMinutes,
+        {
+          hasBreak: operatingPhase.hasBreak,
+          breakStartTime: operatingPhase.breakStartTime,
+          breakEndTime: operatingPhase.breakEndTime,
+        }
+      )
+      for (const slot of calculated.slots) {
+        const key = `${slot.startTime}-${slot.endTime}`
+        if (!slotsMap.has(key)) {
+          slotsMap.set(key, {
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            key,
+          })
+        }
+      }
+    }
     for (const proposal of incomingProposals) {
       const key = `${proposal.startTime}-${proposal.endTime}`
       if (!slotsMap.has(key)) {
@@ -1204,7 +1244,14 @@ export function SchedulingPlanCalendarView({
         a.startTime.localeCompare(b.startTime) ||
         a.endTime.localeCompare(b.endTime)
     )
-  }, [proposals, hiringPlan, missedClassesAssignments])
+  }, [
+    availableTimeSlots,
+    operatingPhase,
+    incomingProposals,
+    proposals,
+    hiringPlan,
+    missedClassesAssignments,
+  ])
 
   const allCandidateRooms = React.useMemo(() => {
     const roomsMap = new Map<

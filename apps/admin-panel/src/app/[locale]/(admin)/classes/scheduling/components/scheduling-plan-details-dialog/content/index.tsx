@@ -265,6 +265,8 @@ export function Content({
           stickyTop={stickyTop}
           selectedTeacherId={selectedTeacherId}
           onTeacherChange={onTeacherChange}
+          availableTimeSlots={plan.availableTimeSlots}
+          operatingPhase={plan.run.term?.operatingPhase}
         />
       </section>
     </div>

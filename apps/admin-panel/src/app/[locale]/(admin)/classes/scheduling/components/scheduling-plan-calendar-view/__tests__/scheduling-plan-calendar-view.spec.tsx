@@ -5005,4 +5005,131 @@ describe("SchedulingPlanCalendarView Component", () => {
       ).toBeInTheDocument()
     })
   })
+
+  describe("Operating phase period rows rendering even when empty", () => {
+    it("renders all operating phase periods even if only one period has proposals", () => {
+      const singleProposal = {
+        id: "prop-only-1",
+        course: { id: "c-1", title: "AME 1-1" },
+        teacher: { id: "t-1", firstName: "سارا", lastName: "احمدی" },
+        branch: { id: "b-1", name: "شعبه مرکزی" },
+        classroom: { id: "r-1", name: "کلاس ۱۰۱", capacity: 20 },
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      }
+
+      const availableTimeSlots = [
+        { startTime: "15:30", endTime: "17:00" },
+        { startTime: "17:00", endTime: "18:30" },
+        { startTime: "18:30", endTime: "20:00" },
+        { startTime: "20:00", endTime: "21:30" },
+      ]
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={[singleProposal as any]}
+          availableTimeSlots={availableTimeSlots}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      // All 4 slot rows must be present in the document
+      expect(
+        screen.getByTestId("time-slot-row-15:30-17:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-17:00-18:30")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-18:30-20:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-20:00-21:30")
+      ).toBeInTheDocument()
+
+      // The 15:30-17:00 slot has the proposal
+      expect(
+        screen.getByTestId("calendar-class-card-prop-only-1")
+      ).toBeInTheDocument()
+
+      // The other slots must render empty cells for both EVEN and ODD day tracks
+      expect(
+        screen.getByTestId("empty-cell-EVEN-17:00-18:30")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("empty-cell-ODD-17:00-18:30")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("empty-cell-EVEN-18:30-20:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("empty-cell-ODD-18:30-20:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("empty-cell-EVEN-20:00-21:30")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("empty-cell-ODD-20:00-21:30")
+      ).toBeInTheDocument()
+    })
+
+    it("renders all operating phase periods when operatingPhase snapshot prop is provided", () => {
+      const singleProposal = {
+        id: "prop-only-2",
+        course: { id: "c-1", title: "AME 1-1" },
+        teacher: { id: "t-1", firstName: "سارا", lastName: "احمدی" },
+        branch: { id: "b-1", name: "شعبه مرکزی" },
+        classroom: { id: "r-1", name: "کلاس ۱۰۱", capacity: 20 },
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"],
+        startTime: "15:30",
+        endTime: "17:00",
+        deliveryMode: "IN_PERSON",
+        isLocked: false,
+        isManuallyEdited: false,
+        warnings: [],
+        scoreBreakdown: [],
+      }
+
+      const operatingPhase = {
+        id: "phase-1",
+        title: "شیفت عصر",
+        startTime: "15:30",
+        endTime: "21:30",
+        slotDurationMinutes: 90,
+        hasBreak: false,
+        breakStartTime: null,
+        breakEndTime: null,
+        daysOfWeek: ["SATURDAY", "MONDAY", "WEDNESDAY"] as any,
+      }
+
+      render(
+        <SchedulingPlanCalendarView
+          proposals={[singleProposal as any]}
+          operatingPhase={operatingPhase}
+          canEdit={true}
+          defaultCollapsed={false}
+        />
+      )
+
+      expect(
+        screen.getByTestId("time-slot-row-15:30-17:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-17:00-18:30")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-18:30-20:00")
+      ).toBeInTheDocument()
+      expect(
+        screen.getByTestId("time-slot-row-20:00-21:30")
+      ).toBeInTheDocument()
+    })
+  })
 })

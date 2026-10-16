@@ -1,8 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import {
+  calculatePhaseSlots,
   ROLES,
+  SchedulingEngineInputSnapshotSchema,
   SchedulingPlanDetailsSchema,
   type JwtPayload,
+  type SchedulingOperatingPhaseSnapshot,
   type SchedulingPlanDetailsDto,
   type SchedulingRecoveryAnalysis,
   type SupportedLocale,
@@ -128,6 +131,19 @@ export class SchedulingPlanQueryService {
                 title: true,
                 startDate: true,
                 endDate: true,
+                operatingPhase: {
+                  select: {
+                    id: true,
+                    title: true,
+                    startTime: true,
+                    endTime: true,
+                    slotDurationMinutes: true,
+                    hasBreak: true,
+                    breakStartTime: true,
+                    breakEndTime: true,
+                    daysOfWeek: true,
+                  },
+                },
               },
             },
             branch: { select: { id: true, name: true } },
@@ -235,11 +251,59 @@ export class SchedulingPlanQueryService {
         select: { branchId: true },
       }),
     ]);
+    let operatingPhaseSnapshot: SchedulingOperatingPhaseSnapshot | null = null;
+    try {
+      const snapshot = SchedulingEngineInputSnapshotSchema.parse(
+        plan.run.inputSnapshot,
+      );
+      operatingPhaseSnapshot = snapshot.term?.operatingPhase ?? null;
+    } catch {
+      // Gracefully continue if snapshot parsing fails or is empty
+    }
+
+    const rawPhase =
+      operatingPhaseSnapshot ??
+      (plan.run.term?.operatingPhase
+        ? {
+            id: plan.run.term.operatingPhase.id,
+            title: plan.run.term.operatingPhase.title,
+            startTime: plan.run.term.operatingPhase.startTime,
+            endTime: plan.run.term.operatingPhase.endTime,
+            slotDurationMinutes:
+              plan.run.term.operatingPhase.slotDurationMinutes,
+            hasBreak: plan.run.term.operatingPhase.hasBreak,
+            breakStartTime: plan.run.term.operatingPhase.breakStartTime,
+            breakEndTime: plan.run.term.operatingPhase.breakEndTime,
+            daysOfWeek: plan.run.term.operatingPhase.daysOfWeek as any,
+          }
+        : null);
+
+    const availableTimeSlots = rawPhase
+      ? calculatePhaseSlots(
+          rawPhase.startTime,
+          rawPhase.endTime,
+          rawPhase.slotDurationMinutes,
+          {
+            hasBreak: rawPhase.hasBreak,
+            breakStartTime: rawPhase.breakStartTime,
+            breakEndTime: rawPhase.breakEndTime,
+          },
+        ).slots.map(({ startTime, endTime }) => ({ startTime, endTime }))
+      : [];
+
     const {
       inputSnapshot: _inputSnapshot,
       settingsSnapshot: _settingsSnapshot,
-      ...run
+      ...runData
     } = plan.run;
+
+    const run = {
+      ...runData,
+      term: {
+        ...runData.term,
+        operatingPhase: rawPhase,
+      },
+    };
 
     const publishedBranches = new Set<string>([
       ...classesForTerm.map((c) => c.branchId),
@@ -275,6 +339,7 @@ export class SchedulingPlanQueryService {
     return SchedulingPlanDetailsSchema.parse({
       ...plan,
       run,
+      availableTimeSlots,
       teacherCalendars,
       newTeacherHiringPlan,
       branchScheduleStatuses,
