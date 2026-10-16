@@ -6,5 +6,7 @@
   },
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
-  }
+  },
+  "git.autoRepositoryDetection": true,
+  "git.repositoryScanMaxDepth": 2
 }
