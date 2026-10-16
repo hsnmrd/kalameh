@@ -33,7 +33,7 @@ export function TeacherActionsMenu({
   return (
     <div className="flex items-center gap-2">
       {/* Desktop direct action buttons */}
-      <div className="hidden lg:flex lg:items-center lg:gap-2">
+      <div className="hidden md:flex md:items-center md:gap-2">
         <PermissionGuard permission={PERMISSIONS.MANAGE_TEACHERS} mode="hide">
           <Button
             type="button"
@@ -82,7 +82,7 @@ export function TeacherActionsMenu({
       </div>
 
       {/* Mobile action dropdown trigger button on top of square image */}
-      <div className="lg:hidden">
+      <div className="md:hidden">
         <PermissionGuard permission={PERMISSIONS.MANAGE_TEACHERS} mode="hide">
           <DropdownMenu>
             <DropdownMenuTrigger

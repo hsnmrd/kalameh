@@ -32,15 +32,15 @@ export function ProfileSquareHeader({
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      {/* Mobile Square Profile Header (< lg) - Full width edge-to-edge out of container */}
-      <div className="relative -mx-4 -mt-4 aspect-square w-[calc(100%+2rem)] overflow-hidden rounded-none border-b border-border/60 bg-muted/30 shadow-none sm:mx-0 sm:mt-0 sm:w-full sm:rounded-3xl sm:border sm:shadow-xs lg:hidden">
+      {/* Mobile Square Profile Header (< md) - Full width edge-to-edge out of container */}
+      <div className="relative -mx-4 -mt-4 aspect-square max-h-[min(100vw,420px)] w-[calc(100%+2rem)] overflow-hidden rounded-none border-b border-border/60 bg-muted/30 shadow-none sm:mx-0 sm:mt-0 sm:w-full sm:rounded-3xl sm:border sm:shadow-xs md:hidden">
         {/* Avatar Image or Fallback */}
         {assetSrc ? (
           <Image
             src={assetSrc}
             alt={fullName}
             fill
-            sizes="(max-width: 1024px) 100vw, 450px"
+            sizes="(max-width: 768px) 100vw, 420px"
             className="object-cover"
             priority
             unoptimized
@@ -77,8 +77,8 @@ export function ProfileSquareHeader({
         </div>
       </div>
 
-      {/* Desktop Profile Header (lg+) - Clean, no card wrapper */}
-      <div className="hidden w-full items-center justify-between gap-6 pb-2 lg:flex">
+      {/* Desktop/Tablet Profile Header (md+) - Clean, no card wrapper */}
+      <div className="hidden w-full items-center justify-between gap-6 pb-2 md:flex">
         <div className="flex items-center gap-5">
           {/* Avatar */}
           <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-muted/40 shadow-2xs">
