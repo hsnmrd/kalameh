@@ -62,9 +62,7 @@ export class TeacherUpdateService {
 
     const avatarUrl = file
       ? resolveUploadedFileUrl(file, 'avatars')
-      : dto.avatarUrl !== undefined
-        ? dto.avatarUrl
-        : existing.avatarUrl;
+      : dto.avatarUrl;
 
     const courseIds =
       dto.courseIds === undefined
@@ -76,14 +74,14 @@ export class TeacherUpdateService {
           );
 
     const userUpdateData: Record<string, unknown> = {
-      ...(dto.firstName ? { firstName: dto.firstName } : {}),
-      ...(dto.lastName ? { lastName: dto.lastName } : {}),
-      ...(dto.phone ? { phone: dto.phone } : {}),
+      ...(dto.firstName !== undefined ? { firstName: dto.firstName } : {}),
+      ...(dto.lastName !== undefined ? { lastName: dto.lastName } : {}),
+      ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
       ...(dto.nationalCode !== undefined
         ? { nationalCode: dto.nationalCode }
         : {}),
       ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
-      avatarUrl,
+      ...(avatarUrl !== undefined ? { avatarUrl } : {}),
     };
 
     const hasProfileUpdate =

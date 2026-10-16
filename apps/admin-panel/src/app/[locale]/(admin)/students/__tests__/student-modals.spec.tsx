@@ -1,10 +1,16 @@
 import { describe, it, expect, vi } from "vitest"
-import { render, screen, fireEvent } from "../../../../../test/test-utils"
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "../../../../../test/test-utils"
 import { StudentProfileModal } from "../components/student-profile-modal"
 import { ResetPasswordModal } from "../components/reset-password-modal"
 import { CreateStudentModal } from "../components/create-student-modal"
 import { EditStudentModal } from "../components/edit-student-modal"
 import { AddStudentNoteModal } from "../components/add-student-note-modal"
+import { studentsResource } from "@/lib/api"
 import type { StudentDto } from "@workspace/types"
 
 describe("Student Modals", () => {
@@ -17,15 +23,15 @@ describe("Student Modals", () => {
     nationalCode: "0012345678",
     role: "STUDENT",
     isActive: true,
-    currentAllowedCourseId: "course-1",
+    currentAllowedCourseId: "11111111-1111-4111-8111-111111111111",
     currentAllowedCourse: {
-      id: "course-1",
+      id: "11111111-1111-4111-8111-111111111111",
       title: "Starter 101",
       baseFee: 500000,
     },
-    branchId: "branch-1",
+    branchId: "22222222-2222-4222-8222-222222222222",
     branch: {
-      id: "branch-1",
+      id: "22222222-2222-4222-8222-222222222222",
       name: "شعبه مرکزی",
     },
     studentProfile: {
@@ -281,6 +287,112 @@ describe("Student Modals", () => {
         "src",
         expect.stringContaining("test-student.jpg")
       )
+    })
+
+    it("should close without calling mutation if no fields are changed", async () => {
+      const mockMutate = vi.fn()
+      vi.spyOn(studentsResource.update, "toMutation").mockReturnValue({
+        mutationFn: mockMutate,
+      } as never)
+
+      const handleClose = vi.fn()
+      render(
+        <EditStudentModal
+          student={mockStudent}
+          open={true}
+          onClose={handleClose}
+        />
+      )
+
+      const submitBtn = screen.getByRole("button", {
+        name: /ثبت|ذخیره|submit/i,
+      })
+      fireEvent.click(submitBtn)
+
+      await waitFor(() => {
+        expect(mockMutate).not.toHaveBeenCalled()
+        expect(handleClose).toHaveBeenCalled()
+      })
+    })
+
+    it("should only send changed fields and omit avatar/avatarUrl if unchanged", async () => {
+      const mockMutate = vi.fn()
+      vi.spyOn(studentsResource.update, "toMutation").mockReturnValue({
+        mutationFn: mockMutate,
+      } as never)
+
+      const studentWithAvatar: StudentDto = {
+        ...mockStudent,
+        avatarUrl: "/uploads/avatars/test-student.jpg",
+      }
+
+      render(
+        <EditStudentModal
+          student={studentWithAvatar}
+          open={true}
+          onClose={vi.fn()}
+        />
+      )
+
+      const firstNameInput = document.querySelector(
+        'input[name="firstName"]'
+      ) as HTMLInputElement
+      fireEvent.change(firstNameInput, { target: { value: "Reza" } })
+
+      const submitBtn = screen.getByRole("button", {
+        name: /ثبت|ذخیره|submit/i,
+      })
+      fireEvent.click(submitBtn)
+
+      await waitFor(() => {
+        expect(mockMutate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: "student-1",
+            body: { firstName: "Reza" },
+          }),
+          expect.anything()
+        )
+      })
+    })
+
+    it("should send avatarUrl: null when photo is removed", async () => {
+      const mockMutate = vi.fn()
+      vi.spyOn(studentsResource.update, "toMutation").mockReturnValue({
+        mutationFn: mockMutate,
+      } as never)
+
+      const studentWithAvatar: StudentDto = {
+        ...mockStudent,
+        avatarUrl: "/uploads/avatars/test-student.jpg",
+      }
+
+      render(
+        <EditStudentModal
+          student={studentWithAvatar}
+          open={true}
+          onClose={vi.fn()}
+        />
+      )
+
+      const removeBtn = screen.getByRole("button", {
+        name: /حذف تصویر|Remove photo/i,
+      })
+      fireEvent.click(removeBtn)
+
+      const submitBtn = screen.getByRole("button", {
+        name: /ثبت|ذخیره|submit/i,
+      })
+      fireEvent.click(submitBtn)
+
+      await waitFor(() => {
+        expect(mockMutate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: "student-1",
+            body: { avatarUrl: null },
+          }),
+          expect.anything()
+        )
+      })
     })
   })
 })

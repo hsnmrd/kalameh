@@ -65,7 +65,11 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
       isActive: true,
     },
   })
-  const { handleSubmit, reset } = form
+  const {
+    handleSubmit,
+    reset,
+    formState: { dirtyFields },
+  } = form
   React.useEffect(() => {
     if (user)
       reset({
@@ -89,13 +93,34 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
   })
   const onSubmit = (values: UpdateUserInput) => {
     if (!user) return
+
+    const patchBody: Partial<UpdateUserInput> = {}
+
+    if (values.avatar instanceof File) {
+      patchBody.avatar = values.avatar
+    } else if (
+      (dirtyFields.avatarUrl && values.avatarUrl === null) ||
+      (user.avatarUrl && values.avatarUrl === null)
+    ) {
+      patchBody.avatarUrl = null
+    }
+
+    if (dirtyFields.firstName) patchBody.firstName = values.firstName?.trim()
+    if (dirtyFields.lastName) patchBody.lastName = values.lastName?.trim()
+    if (dirtyFields.phone) patchBody.phone = values.phone?.trim()
+    if (dirtyFields.nationalCode)
+      patchBody.nationalCode = values.nationalCode?.trim() || null
+    if (dirtyFields.role) patchBody.role = values.role
+    if (dirtyFields.isActive) patchBody.isActive = values.isActive
+
+    if (Object.keys(patchBody).length === 0) {
+      onClose()
+      return
+    }
+
     updateMutation.mutate({
       id: user.id,
-      body: {
-        ...values,
-        avatar: values.avatar || undefined,
-        nationalCode: values.nationalCode || null,
-      },
+      body: patchBody,
     })
   }
 

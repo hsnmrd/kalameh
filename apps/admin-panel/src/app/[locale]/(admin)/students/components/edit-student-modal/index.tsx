@@ -87,7 +87,11 @@ export function EditStudentModal({
   const form = useForm<UpdateStudentInput>({
     resolver: zodResolver(updateStudentSchema),
   })
-  const { handleSubmit, reset } = form
+  const {
+    handleSubmit,
+    reset,
+    formState: { dirtyFields },
+  } = form
 
   React.useEffect(() => {
     if (!student) return
@@ -125,22 +129,51 @@ export function EditStudentModal({
 
   const onSubmit = (values: UpdateStudentInput) => {
     if (!student) return
+
+    const patchBody: Partial<UpdateStudentInput> = {}
+
+    if (values.avatar instanceof File) {
+      patchBody.avatar = values.avatar
+    } else if (
+      (dirtyFields.avatarUrl && values.avatarUrl === null) ||
+      (student.avatarUrl && values.avatarUrl === null)
+    ) {
+      patchBody.avatarUrl = null
+    }
+
+    if (dirtyFields.firstName) patchBody.firstName = values.firstName?.trim()
+    if (dirtyFields.lastName) patchBody.lastName = values.lastName?.trim()
+    if (dirtyFields.phone) patchBody.phone = values.phone?.trim()
+    if (dirtyFields.nationalCode)
+      patchBody.nationalCode = values.nationalCode?.trim() || null
+    if (dirtyFields.fatherName)
+      patchBody.fatherName = values.fatherName?.trim() || null
+    if (dirtyFields.birthDate) patchBody.birthDate = values.birthDate || null
+    if (dirtyFields.gender) patchBody.gender = values.gender || null
+    if (dirtyFields.emergencyPhone)
+      patchBody.emergencyPhone = values.emergencyPhone?.trim() || null
+    if (dirtyFields.address) patchBody.address = values.address?.trim() || null
+    if (dirtyFields.currentAllowedCourseId) {
+      patchBody.currentAllowedCourseId =
+        values.currentAllowedCourseId === "ROOT"
+          ? null
+          : values.currentAllowedCourseId || null
+    }
+    if (dirtyFields.branchId) {
+      patchBody.branchId =
+        values.branchId === "ROOT" ? null : values.branchId || null
+    }
+    if (dirtyFields.isActive) patchBody.isActive = values.isActive
+    if (values.newNote?.trim()) patchBody.newNote = values.newNote.trim()
+
+    if (Object.keys(patchBody).length === 0) {
+      onClose()
+      return
+    }
+
     updateMutation.mutate({
       id: student.id,
-      body: {
-        ...values,
-        avatar: values.avatar || undefined,
-        nationalCode: values.nationalCode || null,
-        fatherName: values.fatherName || null,
-        birthDate: values.birthDate || null,
-        gender: values.gender || null,
-        emergencyPhone: values.emergencyPhone || null,
-        address: values.address || null,
-        currentAllowedCourseId:
-          values.currentAllowedCourseId === "ROOT"
-            ? null
-            : values.currentAllowedCourseId || null,
-      },
+      body: patchBody,
     })
   }
 

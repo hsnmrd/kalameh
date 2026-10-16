@@ -344,10 +344,10 @@ export class UsersService {
         instituteId: targetUser.instituteId,
       },
       data: {
-        ...(dto.firstName ? { firstName: dto.firstName } : {}),
-        ...(dto.lastName ? { lastName: dto.lastName } : {}),
-        ...(dto.phone ? { phone: dto.phone } : {}),
-        ...(dto.role ? { role: dto.role } : {}),
+        ...(dto.firstName !== undefined ? { firstName: dto.firstName } : {}),
+        ...(dto.lastName !== undefined ? { lastName: dto.lastName } : {}),
+        ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
+        ...(dto.role !== undefined ? { role: dto.role } : {}),
         ...(dto.nationalCode !== undefined
           ? { nationalCode: dto.nationalCode }
           : {}),

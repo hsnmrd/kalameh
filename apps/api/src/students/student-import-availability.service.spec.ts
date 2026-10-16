@@ -18,6 +18,13 @@ describe('StudentImportAvailabilityService', () => {
       studentAvailability: {
         createMany: jest.fn(),
       },
+      term: {
+        findMany: jest.fn().mockResolvedValue([]),
+        updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+      },
+      class: {
+        count: jest.fn().mockResolvedValue(0),
+      },
     };
 
     const module: TestingModule = await Test.createTestingModule({

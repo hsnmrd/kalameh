@@ -46,7 +46,11 @@ export function EditTeacherModal({
   const form = useForm<UpdateTeacherInput>({
     resolver: zodResolver(updateTeacherSchema),
   })
-  const { handleSubmit, reset } = form
+  const {
+    handleSubmit,
+    reset,
+    formState: { dirtyFields },
+  } = form
   const { data: courses = [], isLoading: areCoursesLoading } = useQuery({
     ...coursesResource.list.toQuery(
       teacher?.instituteId ? { instituteId: teacher.instituteId } : undefined
@@ -85,29 +89,53 @@ export function EditTeacherModal({
     },
   })
 
-  const onSubmit = async (data: UpdateTeacherInput) => {
+  const onSubmit = (values: UpdateTeacherInput) => {
     if (!teacher) return
 
-    const formData = new FormData()
-    if (data.avatar instanceof File) {
-      formData.append("avatar", data.avatar)
-    } else if (data.avatarUrl === null) {
-      formData.append("avatarUrl", "")
+    const patchBody: Partial<UpdateTeacherInput> = {}
+
+    if (values.avatar instanceof File) {
+      patchBody.avatar = values.avatar
+    } else if (
+      (dirtyFields.avatarUrl && values.avatarUrl === null) ||
+      (teacher.avatarUrl && values.avatarUrl === null)
+    ) {
+      patchBody.avatarUrl = null
     }
-    if (data.firstName) formData.append("firstName", data.firstName)
-    if (data.lastName) formData.append("lastName", data.lastName)
-    if (data.phone) formData.append("phone", data.phone)
-    if (data.nationalCode !== undefined)
-      formData.append("nationalCode", data.nationalCode || "")
-    if (data.degree !== undefined) formData.append("degree", data.degree || "")
-    if (data.bio !== undefined) formData.append("bio", data.bio || "")
-    if (data.isActive !== undefined)
-      formData.append("isActive", String(data.isActive))
-    formData.append("courseIds", JSON.stringify(data.courseIds ?? []))
+
+    if (dirtyFields.firstName) patchBody.firstName = values.firstName?.trim()
+    if (dirtyFields.lastName) patchBody.lastName = values.lastName?.trim()
+    if (dirtyFields.phone) patchBody.phone = values.phone?.trim()
+    if (dirtyFields.nationalCode)
+      patchBody.nationalCode = values.nationalCode?.trim() || null
+    if (dirtyFields.degree) patchBody.degree = values.degree?.trim() || null
+    if (dirtyFields.bio) patchBody.bio = values.bio?.trim() || null
+    if (dirtyFields.isActive) patchBody.isActive = values.isActive
+
+    const initialCourseIds = (
+      teacher.teacherProfile?.teachableCourses?.map((q) => q.courseId) || []
+    )
+      .slice()
+      .sort()
+    const currentCourseIds = (values.courseIds || []).slice().sort()
+    const areCoursesEqual =
+      initialCourseIds.length === currentCourseIds.length &&
+      initialCourseIds.every((id, idx) => id === currentCourseIds[idx])
+
+    if (!areCoursesEqual) {
+      patchBody.courseIds = JSON.stringify(
+        values.courseIds ?? []
+      ) as unknown as string[]
+    }
+
+    if (Object.keys(patchBody).length === 0) {
+      onClose()
+      return
+    }
 
     updateMutation.mutate({
       id: teacher.id,
-      body: formData as never,
+      body: patchBody,
     })
   }
 
