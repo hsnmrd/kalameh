@@ -26,6 +26,7 @@
     "availabilities": "Free Times",
     "classesCount": "Classes",
     "status": "Status",
+    "createdAt": "Join Date",
     "actions": "Actions",
     "empty": "No teachers found",
     "classesUnit": "Classes",
@@ -43,6 +44,7 @@
   "createModal": {
     "title": "Add New Teacher",
     "description": "Enter personal information and credentials for the new teacher.",
+    "createdAt": "Join Date",
     "firstName": "First Name",
     "firstNamePlaceholder": "e.g. John",
     "lastName": "Last Name",

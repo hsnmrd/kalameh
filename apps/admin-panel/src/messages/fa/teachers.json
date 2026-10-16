@@ -26,6 +26,7 @@
     "availabilities": "زمان‌های آزاد",
     "classesCount": "کلاس‌ها",
     "status": "وضعیت",
+    "createdAt": "تاریخ عضویت",
     "actions": "عملیات",
     "empty": "هیچ استادی یافت نشد",
     "classesUnit": "کلاس",
@@ -43,6 +44,7 @@
   "createModal": {
     "title": "افزودن استاد جدید",
     "description": "مشخصات فردی و مدارک تحصیلی استاد را وارد کنید.",
+    "createdAt": "تاریخ عضویت",
     "firstName": "نام",
     "firstNamePlaceholder": "مثلاً علی",
     "lastName": "نام خانوادگی",

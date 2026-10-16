@@ -90,8 +90,7 @@ export function TeacherInfoTab({ teacher }: TeacherInfoTabProps) {
 
           <div>
             <span className="text-xs text-muted-foreground">
-              {t("createModal.createdAt") ||
-                (locale === "fa" ? "تاریخ عضویت" : "Join Date")}
+              {t("table.createdAt")}
             </span>
             <p className="mt-1 font-medium text-foreground">
               {formattedCreatedDate}
