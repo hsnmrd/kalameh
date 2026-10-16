@@ -315,4 +315,134 @@ describe("MVP-034 scheduling generation form", () => {
     expect(checkbox).not.toBeChecked()
     expect(submitButtons[0]).toBeDisabled()
   })
+
+  it("does not render the bottom section showing number of selected items", async () => {
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["terms", "active"],
+      queryFn: async () => [
+        {
+          id: termId,
+          instituteId,
+          title: "ترم پاییز",
+          startDate: "2026-09-01",
+          endDate: "2026-12-01",
+          isActive: true,
+          studentSchedulesConfirmedAt: "2026-08-01",
+          createdAt: "2026-08-01",
+          updatedAt: "2026-08-01",
+        },
+      ],
+    } as never)
+    vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
+      queryKey: ["branches", "active"],
+      queryFn: async () => [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "شعبه ونک",
+          isActive: true,
+        },
+      ],
+    } as never)
+    vi.spyOn(classRequirementsResource.list, "toQuery").mockImplementation(
+      (params) =>
+        ({
+          queryKey: ["class-requirements", params?.termId ?? "none"],
+          queryFn: vi.fn().mockResolvedValue([buildRequirement(requirementId)]),
+        }) as never
+    )
+
+    render(<SchedulingGenerationForm onCreated={vi.fn()} />)
+
+    expect(await screen.findByLabelText("English A1")).toBeInTheDocument()
+
+    // Ensure the old bottom section summary "نیاز انتخاب شده" is NOT rendered
+    expect(screen.queryByText(/نیاز انتخاب شده$/)).not.toBeInTheDocument()
+  })
+
+  it("opens selection bottom sheet on clicking the button and allows select all and deselect all", async () => {
+    const secondReqId = "88888888-8888-4888-8888-888888888888"
+    const req1 = buildRequirement(requirementId)
+    const req2 = {
+      ...buildRequirement(secondReqId),
+      course: { id: "c-2", title: "French B1" },
+    }
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["terms", "active"],
+      queryFn: async () => [
+        {
+          id: termId,
+          instituteId,
+          title: "ترم پاییز",
+          startDate: "2026-09-01",
+          endDate: "2026-12-01",
+          isActive: true,
+          studentSchedulesConfirmedAt: "2026-08-01",
+          createdAt: "2026-08-01",
+          updatedAt: "2026-08-01",
+        },
+      ],
+    } as never)
+    vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
+      queryKey: ["branches", "active"],
+      queryFn: async () => [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "شعبه ونک",
+          isActive: true,
+        },
+      ],
+    } as never)
+    vi.spyOn(classRequirementsResource.list, "toQuery").mockImplementation(
+      (params) =>
+        ({
+          queryKey: ["class-requirements", params?.termId ?? "none"],
+          queryFn: vi.fn().mockResolvedValue([req1, req2]),
+        }) as never
+    )
+
+    render(<SchedulingGenerationForm onCreated={vi.fn()} />)
+
+    expect(await screen.findByLabelText("English A1")).toBeInTheDocument()
+
+    // Find and click the selection management button in AdminFilterBar
+    const filterBtn = screen.getByRole("button", {
+      name: /مدیریت انتخاب‌ها|فیلتر/i,
+    })
+    expect(filterBtn).toBeInTheDocument()
+    fireEvent.click(filterBtn)
+
+    // Bottom sheet dialog content should be visible
+    expect(
+      screen.getByRole("heading", { name: "مدیریت انتخاب‌ها" })
+    ).toBeInTheDocument()
+
+    const selectAllBtns = screen.getAllByRole("button", { name: /انتخاب همه/i })
+    const selectAllBtn = selectAllBtns[0]!
+    const deselectAllBtn = screen.getByRole("button", {
+      name: /لغو انتخاب همه/i,
+    })
+    const confirmBtn = screen.getByRole("button", { name: "تأیید" })
+
+    expect(selectAllBtn).toBeInTheDocument()
+    expect(deselectAllBtn).toBeInTheDocument()
+    expect(confirmBtn).toBeInTheDocument()
+
+    // Click deselect all
+    fireEvent.click(deselectAllBtn)
+    expect(screen.getByLabelText("English A1")).not.toBeChecked()
+
+    // Click select all
+    fireEvent.click(selectAllBtn)
+    expect(screen.getByLabelText("English A1")).toBeChecked()
+
+    // Close dialog
+    fireEvent.click(confirmBtn)
+  })
 })

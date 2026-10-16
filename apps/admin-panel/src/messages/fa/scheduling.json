@@ -72,6 +72,12 @@
       "label": "نیازهای کلاسی",
       "description": "حداقل یک نیاز فعال را برای زمان‌بندی انتخاب کنید.",
       "selectAll": "انتخاب همه",
+      "deselectAll": "لغو انتخاب همه",
+      "selectionManagement": "مدیریت انتخاب‌ها",
+      "selectedCount": "{count} از {total} نیاز انتخاب شده",
+      "allSelectedStatus": "تمام نیازها انتخاب شده‌اند",
+      "noneSelectedStatus": "هیچ نیازی انتخاب نشده است",
+      "partialSelectedStatus": "بخشی از نیازها انتخاب شده‌اند",
       "clear": "پاک کردن",
       "loading": "در حال دریافت نیازهای کلاسی",
       "empty": "نیاز فعالی در این محدوده پیدا نشد",
@@ -100,7 +106,6 @@
       "branch": "یک شعبه انتخاب کنید.",
       "requirements": "حداقل یک نیاز کلاسی انتخاب کنید."
     },
-    "selectionSummary": "{count} نیاز انتخاب شده",
     "submit": "ساخت پیشنهادها",
     "submitting": "در حال شروع زمان‌بندی...",
     "instituteRequired": {

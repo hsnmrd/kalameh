@@ -2,10 +2,19 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Building2, Calendar, CalendarClock, Sparkles } from "lucide-react"
+import {
+  Building2,
+  Calendar,
+  CalendarClock,
+  CheckCheck,
+  ListChecks,
+  RotateCcw,
+  Sparkles,
+} from "lucide-react"
 import { PERMISSIONS, type SchedulingRunDto } from "@workspace/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { ResponsiveDialogFooter } from "@workspace/ui/components/dialog"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { formatNumber } from "@workspace/ui/lib/utils"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
@@ -30,7 +39,9 @@ export function SchedulingGenerationForm({
 }: SchedulingGenerationFormProps) {
   const t = useTranslations("scheduling.generation")
   const tTerms = useTranslations("scheduling.termsList")
+  const tCommon = useTranslations("common")
   const locale = useLocale()
+  const [isSelectionSheetOpen, setIsSelectionSheetOpen] = React.useState(false)
   const {
     form,
     termId,
@@ -44,6 +55,21 @@ export function SchedulingGenerationForm({
     hasInstitute,
     submit,
   } = useSchedulingGenerationForm(onCreated, t("success"))
+
+  const handleSelectAll = React.useCallback(() => {
+    form.setValue(
+      "requirementIds",
+      requirements.map((r) => r.id),
+      { shouldDirty: true, shouldValidate: true }
+    )
+  }, [form, requirements])
+
+  const handleDeselectAll = React.useCallback(() => {
+    form.setValue("requirementIds", [], {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+  }, [form])
 
   const activeTerm = React.useMemo(() => {
     if (defaultTermId) {
@@ -96,6 +122,91 @@ export function SchedulingGenerationForm({
         {/* Desktop Sticky Filter Section / Header */}
         <AdminFilterBar
           autoHideOnMobile={false}
+          filterIcon={<ListChecks className="size-5 shrink-0" />}
+          filterButtonClassName="lg:hidden"
+          filterDialogTitle={t("requirements.selectionManagement")}
+          filterButtonLabel={t("requirements.selectionManagement")}
+          filterButtonAriaLabel={t("requirements.selectionManagement")}
+          activeFiltersCount={requirementIds.length}
+          dialogOpen={isSelectionSheetOpen}
+          onDialogOpenChange={setIsSelectionSheetOpen}
+          disabled={requirements.length === 0 || isRequirementsLoading}
+          filters={
+            <div className="flex flex-col gap-4">
+              {/* Status summary */}
+              <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-muted/30 p-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <ListChecks className="size-5 text-primary" />
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-foreground">
+                      {t("requirements.selectedCount", {
+                        count: formatNumber(requirementIds.length, locale),
+                        total: formatNumber(requirements.length, locale),
+                      })}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {requirementIds.length === requirements.length &&
+                      requirements.length > 0
+                        ? t("requirements.allSelectedStatus")
+                        : requirementIds.length === 0
+                          ? t("requirements.noneSelectedStatus")
+                          : t("requirements.partialSelectedStatus")}
+                    </span>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs font-bold">
+                  {formatNumber(requirementIds.length, locale)} /{" "}
+                  {formatNumber(requirements.length, locale)}
+                </Badge>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSelectAll}
+                  disabled={
+                    requirements.length === 0 ||
+                    requirementIds.length === requirements.length
+                  }
+                  className="h-14 w-full justify-between rounded-2xl px-4 text-base font-medium"
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckCheck className="size-5 text-primary" />
+                    <span>{t("requirements.selectAll")}</span>
+                  </div>
+                  <Badge variant="secondary" className="px-2 py-0.5 text-xs">
+                    {formatNumber(requirements.length, locale)}
+                  </Badge>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleDeselectAll}
+                  disabled={requirementIds.length === 0}
+                  className="h-14 w-full justify-start gap-3 rounded-2xl px-4 text-base font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <RotateCcw className="size-5" />
+                  <span>{t("requirements.deselectAll")}</span>
+                </Button>
+              </div>
+            </div>
+          }
+          filterDialogFooter={
+            <ResponsiveDialogFooter className="flex-row items-center gap-3 border-t border-border/60 bg-muted/20 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:justify-end sm:px-6 sm:py-4">
+              <Button
+                type="button"
+                className="h-14 w-full rounded-2xl text-base font-medium sm:w-auto sm:px-8"
+                onClick={() => setIsSelectionSheetOpen(false)}
+              >
+                {tCommon("confirm")}
+              </Button>
+            </ResponsiveDialogFooter>
+          }
           search={
             <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
               <div className="flex items-center gap-2.5">
@@ -204,14 +315,6 @@ export function SchedulingGenerationForm({
               requirements={requirements}
               selectedRequirementIds={requirementIds}
             />
-
-            <div className="flex items-center justify-between border-t border-border pt-4">
-              <p className="text-sm text-muted-foreground">
-                {t("selectionSummary", {
-                  count: formatNumber(requirementIds.length, locale),
-                })}
-              </p>
-            </div>
           </div>
         )}
 

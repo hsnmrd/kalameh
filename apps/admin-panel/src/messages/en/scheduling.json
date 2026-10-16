@@ -72,6 +72,12 @@
       "label": "Class requirements",
       "description": "Select at least one active requirement to schedule.",
       "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "selectionManagement": "Selection Management",
+      "selectedCount": "{count} of {total} requirements selected",
+      "allSelectedStatus": "All requirements selected",
+      "noneSelectedStatus": "No requirements selected",
+      "partialSelectedStatus": "Some requirements selected",
       "clear": "Clear",
       "loading": "Loading class requirements",
       "empty": "No active requirements match this scope",
@@ -100,7 +106,6 @@
       "branch": "Select a branch.",
       "requirements": "Select at least one class requirement."
     },
-    "selectionSummary": "{count} requirements selected",
     "submit": "Generate suggestions",
     "submitting": "Starting generation...",
     "instituteRequired": {

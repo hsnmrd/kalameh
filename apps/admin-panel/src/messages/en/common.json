@@ -76,6 +76,8 @@
   },
   "language": "Language",
   "back": "Back",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
   "settings": "Settings",
   "logout": "Sign Out",
   "filter": {

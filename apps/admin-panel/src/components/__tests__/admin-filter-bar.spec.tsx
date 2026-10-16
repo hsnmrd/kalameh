@@ -198,5 +198,38 @@ describe("Admin Filter System Components", () => {
         "pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
       )
     })
+
+    it("should render custom filterIcon and apply filterButtonClassName when provided", () => {
+      render(
+        <AdminFilterBar
+          filters={<div>Filter options</div>}
+          filterIcon={<span data-testid="custom-filter-icon">Custom Icon</span>}
+          filterButtonClassName="custom-btn-class"
+        />
+      )
+
+      expect(screen.getByTestId("custom-filter-icon")).toBeInTheDocument()
+      const filterBtn = screen.getByRole("button", { name: /فیلتر|filter/i })
+      expect(filterBtn).toHaveClass("custom-btn-class")
+    })
+
+    it("should render custom filterDialogFooter when provided", () => {
+      render(
+        <AdminFilterBar
+          filters={<div>Filter options</div>}
+          filterDialogFooter={
+            <div data-testid="custom-footer">Custom Footer</div>
+          }
+        />
+      )
+
+      const filterBtn = screen.getByRole("button", { name: /فیلتر|filter/i })
+      fireEvent.click(filterBtn)
+
+      expect(screen.getByTestId("custom-footer")).toBeInTheDocument()
+      expect(
+        screen.queryByRole("button", { name: /نمایش|show/i })
+      ).not.toBeInTheDocument()
+    })
   })
 })
