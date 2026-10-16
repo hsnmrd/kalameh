@@ -71,6 +71,7 @@
     "requirements": {
       "label": "Class requirements",
       "description": "Select at least one active requirement to schedule.",
+      "searchPlaceholder": "Search class requirements...",
       "selectAll": "Select all",
       "deselectAll": "Deselect all",
       "selectionManagement": "Selection Management",

@@ -71,6 +71,7 @@
     "requirements": {
       "label": "نیازهای کلاسی",
       "description": "حداقل یک نیاز فعال را برای زمان‌بندی انتخاب کنید.",
+      "searchPlaceholder": "جست‌وجوی نیازهای کلاسی...",
       "selectAll": "انتخاب همه",
       "deselectAll": "لغو انتخاب همه",
       "selectionManagement": "مدیریت انتخاب‌ها",

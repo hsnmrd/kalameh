@@ -362,7 +362,7 @@ describe("MVP-034 scheduling generation form", () => {
     expect(screen.queryByText(/نیاز انتخاب شده$/)).not.toBeInTheDocument()
   })
 
-  it("opens selection bottom sheet on clicking the button and allows select all and deselect all", async () => {
+  it("renders filter bar with search input and toggles selection directly on mobile button click", async () => {
     const secondReqId = "88888888-8888-4888-8888-888888888888"
     const req1 = buildRequirement(requirementId)
     const req2 = {
@@ -410,39 +410,36 @@ describe("MVP-034 scheduling generation form", () => {
     render(<SchedulingGenerationForm onCreated={vi.fn()} />)
 
     expect(await screen.findByLabelText("English A1")).toBeInTheDocument()
+    expect(screen.getByLabelText("French B1")).toBeInTheDocument()
 
-    // Find and click the selection management button in AdminFilterBar
-    const filterBtn = screen.getByRole("button", {
-      name: /مدیریت انتخاب‌ها|فیلتر/i,
+    // Scope badges are rendered
+    expect(screen.getByText("ترم پاییز")).toBeInTheDocument()
+    expect(screen.getByText("شعبه ونک")).toBeInTheDocument()
+
+    // Search input is rendered
+    const searchInput = screen.getByPlaceholderText(/جست‌وجوی نیازهای کلاسی/i)
+    expect(searchInput).toBeInTheDocument()
+
+    // Find the mobile-only selection toggle button in AdminFilterBar
+    const toggleBtn = screen.getByRole("button", {
+      name: /انتخاب همه|لغو انتخاب همه/i,
     })
-    expect(filterBtn).toBeInTheDocument()
-    fireEvent.click(filterBtn)
+    expect(toggleBtn).toBeInTheDocument()
+    expect(toggleBtn).toHaveClass("lg:hidden")
 
-    // Bottom sheet dialog content should be visible
-    expect(
-      screen.getByRole("heading", { name: "مدیریت انتخاب‌ها" })
-    ).toBeInTheDocument()
-
-    const selectAllBtns = screen.getAllByRole("button", { name: /انتخاب همه/i })
-    const selectAllBtn = selectAllBtns[0]!
-    const deselectAllBtn = screen.getByRole("button", {
-      name: /لغو انتخاب همه/i,
-    })
-    const confirmBtn = screen.getByRole("button", { name: "تأیید" })
-
-    expect(selectAllBtn).toBeInTheDocument()
-    expect(deselectAllBtn).toBeInTheDocument()
-    expect(confirmBtn).toBeInTheDocument()
-
-    // Click deselect all
-    fireEvent.click(deselectAllBtn)
+    // Initially all are selected, so clicking deselects all
+    fireEvent.click(toggleBtn)
     expect(screen.getByLabelText("English A1")).not.toBeChecked()
+    expect(screen.getByLabelText("French B1")).not.toBeChecked()
 
-    // Click select all
-    fireEvent.click(selectAllBtn)
+    // Clicking again selects all
+    fireEvent.click(toggleBtn)
     expect(screen.getByLabelText("English A1")).toBeChecked()
+    expect(screen.getByLabelText("French B1")).toBeChecked()
 
-    // Close dialog
-    fireEvent.click(confirmBtn)
+    // Test search filtering
+    fireEvent.change(searchInput, { target: { value: "French" } })
+    expect(screen.queryByLabelText("English A1")).not.toBeInTheDocument()
+    expect(screen.getByLabelText("French B1")).toBeInTheDocument()
   })
 })
