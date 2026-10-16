@@ -74,6 +74,7 @@ export function FormFields({
               placeholder={t("createModal.avatarPlaceholder")}
               description={t("createModal.avatarDescription")}
               removeLabel={t("createModal.removeAvatar")}
+              crop
             />
           )}
         />

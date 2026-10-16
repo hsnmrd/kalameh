@@ -95,6 +95,7 @@ export function GeneralFields({ form, visible }: GeneralFieldsProps) {
               placeholder={t("createModal.logoPlaceholder")}
               description={t("createModal.logoDescription")}
               removeLabel={t("createModal.removePhone")}
+              crop
             />
           )}
         />
