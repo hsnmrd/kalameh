@@ -16,7 +16,12 @@ import {
 import { PERMISSIONS, type SchedulingPlanDetailsDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { cn, formatNumber, getAssetUrl } from "@workspace/ui/lib/utils"
+import {
+  cn,
+  formatCourseShortTitle,
+  formatNumber,
+  getAssetUrl,
+} from "@workspace/ui/lib/utils"
 import { PermissionGuard } from "@/components/permission-guard"
 import { SchedulingProposalActions } from "../scheduling-proposal-actions"
 
@@ -280,6 +285,8 @@ export function SchedulingPlanCalendarClassCard({
     : proposal.classroom?.name || t("location")
 
   const maxCapacity = proposal.classroom?.capacity ?? proposal.capacity
+  const shortCourseTitle =
+    formatCourseShortTitle(proposal.course.title) || proposal.course.title
 
   const isShaking = Boolean(isSwappable && !isSwapping && !isLoading)
   const hasHighlightTag = hasSameTeacher || hasSameCourse
@@ -391,20 +398,22 @@ export function SchedulingPlanCalendarClassCard({
                 {t("calendarView.sameCourseBadge")}
               </span>
             ) : (
-              <span className="truncate">{proposal.course.title}</span>
+              <span className="truncate">{shortCourseTitle}</span>
             )}
           </h5>
-          {proposal.title && proposal.title !== proposal.course.title && (
-            <span
-              className={cn(
-                "hidden max-w-[140px] truncate rounded border px-1.5 py-0.5 text-[10px] font-semibold xl:inline-block",
-                theme.badge
-              )}
-              title={proposal.title}
-            >
-              {proposal.title}
-            </span>
-          )}
+          {proposal.title &&
+            proposal.title !== proposal.course.title &&
+            proposal.title !== shortCourseTitle && (
+              <span
+                className={cn(
+                  "hidden max-w-[140px] truncate rounded border px-1.5 py-0.5 text-[10px] font-semibold xl:inline-block",
+                  theme.badge
+                )}
+                title={proposal.title}
+              >
+                {proposal.title}
+              </span>
+            )}
         </div>
 
         {/* End (Left in RTL): Location, Status Icons & Actions */}

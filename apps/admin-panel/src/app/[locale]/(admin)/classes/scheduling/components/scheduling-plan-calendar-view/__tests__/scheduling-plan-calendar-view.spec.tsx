@@ -111,7 +111,7 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     // Even track in Row 1 has A1 (prop-1 on Sat, Mon, Wed)
     const evenCellRow1 = row1.querySelector('[data-day="EVEN"]')
-    expect(evenCellRow1).toHaveTextContent("American English File 1")
+    expect(evenCellRow1).toHaveTextContent("AEF 1")
 
     // Odd track in Row 1 has empty placeholder with low opacity
     const oddCellRow1 = row1.querySelector('[data-day="ODD"]')
@@ -123,7 +123,7 @@ describe("SchedulingPlanCalendarView Component", () => {
 
     // Even track in Row 2 has A2 (prop-2 on Sat)
     const evenCellRow2 = row2.querySelector('[data-day="EVEN"]')
-    expect(evenCellRow2).toHaveTextContent("American English File 2")
+    expect(evenCellRow2).toHaveTextContent("AEF 2")
 
     // Odd track in Row 2 has empty placeholder with low opacity
     const oddCellRow2 = row2.querySelector('[data-day="ODD"]')
@@ -147,7 +147,7 @@ describe("SchedulingPlanCalendarView Component", () => {
     // The class card itself should not render inline clock/timeRange since time is in the Time column
     const card = screen.getAllByRole("article")[0]
     expect(card).toBeDefined()
-    expect(card).toHaveTextContent("American English File 1")
+    expect(card).toHaveTextContent("AEF 1")
     expect(card).not.toHaveTextContent("09:00 تا 10:30")
   })
 
@@ -162,9 +162,10 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(within(card).queryByText("آنلاین")).not.toBeInTheDocument()
     expect(card.querySelector('[aria-label="حضوری"]')).not.toBeInTheDocument()
 
-    // Session title is rendered prominently with full course title
+    // Session title is rendered with short course title and full title in tooltip
+    expect(within(card).getByText("AEF 1")).toBeInTheDocument()
     expect(
-      within(card).getByText("American English File 1")
+      within(card).getByTitle("American English File 1")
     ).toBeInTheDocument()
 
     // Room icon is rendered without room name text, room name available via title
