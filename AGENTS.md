@@ -4,6 +4,14 @@
 - **Backend Service Separation:** Keep backend services focused on one domain responsibility. Target a maximum of 300 lines for production service files; split oversized services into injectable query, command, validation, persistence, composition, import/export, or calculation collaborators. Controllers and public service facades must remain thin, and refactors must preserve routes, DTOs, authorization, response shapes, transactions, and observable behavior. Register extracted collaborators through NestJS dependency injection and cover them with focused unit tests. Cohesive algorithm implementations may exceed the target only when splitting would obscure the algorithm; keep orchestration and I/O outside those files and document the exception beside the service.
 - **Testing:** Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
 - **Git Hooks & Quality Gate:** Prettier and ESLint are enforced by Husky (`.husky/pre-commit`) and `lint-staged` on every commit. Never bypass hooks.
+- **Parallel Worktree Execution Standard (One Worktree Per Chat / Task):**
+  - **Prompt at Chat Start:** At the beginning of any new task or chat involving codebase modifications, the AI must prompt the user for the target branch / worktree name before editing files or running task commands.
+  - **Directory Location:** All worktrees must reside in `.worktrees/<branch-name>`.
+  - **Initialization Protocol:**
+    1. Verify or create the worktree: `git worktree add -b <branch-name> .worktrees/<branch-name> <base-branch>` (or attach if the branch already exists: `git worktree add .worktrees/<branch-name> <branch-name>`).
+    2. Automatically copy the root `.env` into `.worktrees/<branch-name>/.env`.
+    3. Run `pnpm install` inside the worktree directory if dependencies are not yet linked.
+  - **Working Directory Isolation:** All file readings, edits, tests, migrations, and terminal commands for the task must strictly target the designated worktree path (`d:/projects/kalameh/.worktrees/<branch-name>`) to ensure complete isolation and prevent clobbering parallel agent sessions.
 - **Environment Configuration:** All environment variables must be managed centrally in the root `.env` and declared in `turbo.json` under `globalEnv`. Do not create disconnected per-app `.env` files.
 - **API Request Architecture (micro-rq + React Query):**
   - Always use `micro-rq` endpoint definitions via `.toQuery()` and `.toMutation()` passed directly into TanStack React Query (`useQuery`, `useMutation`).
