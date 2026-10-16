@@ -757,10 +757,6 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(content1).toHaveClass("opacity-100")
     expect(content2).toHaveClass("grid-rows-[1fr]")
     expect(content2).toHaveClass("opacity-100")
-
-    // Global expand/collapse toggle shows "بستن همه"
-    const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
-    expect(toggleAllBtn).toHaveTextContent("بستن همه")
   })
 
   it("supports defaultCollapsed={true} where time slots are initially collapsed", () => {
@@ -783,9 +779,6 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(content1).toHaveClass("opacity-0")
     expect(content2).toHaveClass("grid-rows-[0fr]")
     expect(content2).toHaveClass("opacity-0")
-
-    const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
-    expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
   })
 
   it("toggles collapse and expand on individual period hour rows", () => {
@@ -839,37 +832,6 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(
       screen.queryByTestId("slot-classes-badge-09:00-10:30")
     ).not.toBeInTheDocument()
-  })
-
-  it("expands and collapses all rows via the global expand/collapse all button", () => {
-    render(
-      <SchedulingPlanCalendarView proposals={mockProposals} canEdit={false} />
-    )
-
-    const toggleAllBtn = screen.getByTestId("toggle-collapse-all-btn")
-    const content1 = screen.getByTestId("time-slot-content-09:00-10:30")
-    const content2 = screen.getByTestId("time-slot-content-16:00-17:30")
-
-    // Initially all expanded
-    expect(toggleAllBtn).toHaveTextContent("بستن همه")
-    expect(content1).toHaveClass("grid-rows-[1fr]")
-    expect(content2).toHaveClass("grid-rows-[1fr]")
-
-    // Collapse all
-    fireEvent.click(toggleAllBtn)
-
-    expect(toggleAllBtn).toHaveTextContent("باز کردن همه")
-    expect(content1).toHaveClass("grid-rows-[0fr]")
-    expect(content2).toHaveClass("grid-rows-[0fr]")
-
-    // Expand all back
-    fireEvent.click(toggleAllBtn)
-
-    expect(toggleAllBtn).toHaveTextContent("بستن همه")
-    expect(content1).toHaveClass("grid-rows-[1fr]")
-    expect(content1).toHaveClass("opacity-100")
-    expect(content2).toHaveClass("grid-rows-[1fr]")
-    expect(content2).toHaveClass("opacity-100")
   })
 
   it("automatically expands all time slots when swap button is clicked to enter swap mode", () => {
@@ -2765,51 +2727,6 @@ describe("SchedulingPlanCalendarView Component", () => {
     expect(unrelatedCard).not.toHaveAttribute("data-same-teacher")
     expect(unrelatedCard).not.toHaveAttribute("data-same-course")
     expect(unrelatedCard.querySelector("mark")).toBeNull()
-
-    // Toggle highlight matches OFF via toolbar button
-    const toggleBtn = screen.getByTestId("toggle-highlight-matches-btn")
-    fireEvent.click(toggleBtn)
-
-    // Now same-teacher and same-course cards should lose highlight mark tags and gain grayscale
-    expect(sameTeacherCard).not.toHaveAttribute("data-same-teacher")
-    expect(sameTeacherCard).toHaveAttribute("data-dimmed", "true")
-    expect(sameTeacherCard).toHaveClass("opacity-25")
-    expect(sameTeacherCard).toHaveClass("grayscale")
-    expect(sameTeacherCard.querySelector("mark")).toBeNull()
-    expect(sameCourseCard).not.toHaveAttribute("data-same-course")
-    expect(sameCourseCard).toHaveAttribute("data-dimmed", "true")
-    expect(sameCourseCard).toHaveClass("opacity-25")
-    expect(sameCourseCard).toHaveClass("grayscale")
-    expect(sameCourseCard.querySelector("mark")).toBeNull()
-    expect(missedSameCourseCard).not.toHaveAttribute("data-same-course")
-    expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
-    expect(missedSameCourseCard).toHaveClass("opacity-25")
-    expect(missedSameCourseCard).toHaveClass("grayscale")
-    expect(missedSameCourseCard.querySelector("mark")).toBeNull()
-
-    // Toggle highlight back ON
-    fireEvent.click(toggleBtn)
-    expect(sameTeacherCard).toHaveAttribute("data-same-teacher", "true")
-    expect(sameTeacherCard).not.toHaveAttribute("data-dimmed")
-    expect(sameTeacherCard).not.toHaveClass("opacity-25")
-    expect(sameTeacherCard).not.toHaveClass("grayscale")
-    expect(sameTeacherCard.querySelector("mark")).toHaveTextContent(
-      "علیرضا شمس"
-    )
-    expect(sameCourseCard).toHaveAttribute("data-same-course", "true")
-    expect(sameCourseCard).not.toHaveAttribute("data-dimmed")
-    expect(sameCourseCard).not.toHaveClass("opacity-25")
-    expect(sameCourseCard).not.toHaveClass("grayscale")
-    expect(
-      within(sameCourseCard).getByTestId("same-course-badge-prop-same-course")
-    ).toHaveTextContent("همین سطح")
-    expect(missedSameCourseCard).toHaveAttribute("data-same-course", "true")
-    expect(missedSameCourseCard).toHaveAttribute("data-dimmed", "true")
-    expect(missedSameCourseCard).toHaveClass("opacity-25")
-    expect(missedSameCourseCard).not.toHaveClass("grayscale")
-    expect(missedSameCourseCard.querySelector("mark")).toHaveTextContent(
-      "American English File 2"
-    )
   })
 
   it("renders cards in a responsive 2-column grid at xl screens to save vertical height", () => {

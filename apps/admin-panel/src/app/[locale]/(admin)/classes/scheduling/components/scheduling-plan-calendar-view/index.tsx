@@ -6,9 +6,7 @@ import {
   CalendarRange,
   CalendarX2,
   ChevronDown,
-  ChevronsUpDown,
   Clock3,
-  Highlighter,
   Info,
   Plus,
   X,
@@ -2229,9 +2227,6 @@ export function SchedulingPlanCalendarView({
     locale,
   ])
 
-  const areAllExpanded =
-    timeSlots.length > 0 && timeSlots.every((s) => expandedSlots.has(s.key))
-
   const getFreeClassrooms = React.useCallback(
     (option: SchedulingNewTeacherHiringSlotOption) => {
       if (option.isFullyBooked) return []
@@ -2403,51 +2398,6 @@ export function SchedulingPlanCalendarView({
                 <span className="inline-block size-2 rounded-full bg-warning" />
                 <span>{t("calendarView.newTeacherBadge")}</span>
               </div>
-            )}
-            {timeSlots.length > 0 && (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="xs"
-                  data-testid="toggle-highlight-matches-btn"
-                  aria-pressed={highlightRelated}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setHighlightRelated((prev) => !prev)
-                  }}
-                  className={cn(
-                    "h-6 gap-1 rounded-lg px-2 text-xs font-medium",
-                    highlightRelated &&
-                      "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                  )}
-                >
-                  <Highlighter aria-hidden className="size-3" />
-                  <span>{t("calendarView.highlightMatches")}</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="xs"
-                  data-testid="toggle-collapse-all-btn"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    if (areAllExpanded) {
-                      handleCollapseAll()
-                    } else {
-                      handleExpandAll()
-                    }
-                  }}
-                  className="h-6 gap-1 rounded-lg px-2 text-xs font-medium"
-                >
-                  <ChevronsUpDown aria-hidden className="size-3" />
-                  <span>
-                    {areAllExpanded
-                      ? t("calendarView.collapseAll")
-                      : t("calendarView.expandAll")}
-                  </span>
-                </Button>
-              </>
             )}
           </div>
         </div>
