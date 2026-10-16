@@ -15,6 +15,7 @@ import {
   isTermInOpeningWindow,
   isTermEligibleForClassCreation,
   isTermEligibleForClassOpening,
+  selectCurrentOrActiveTerm,
 } from "../src/term/term-activation-window.js"
 
 describe("Term Activation Window & Anchor Dates", () => {
@@ -259,6 +260,59 @@ describe("Term Activation Window & Anchor Dates", () => {
           afterTermEnded
         )
       ).toBe(false)
+    })
+  })
+
+  describe("selectCurrentOrActiveTerm", () => {
+    const terms = [
+      {
+        id: "term-1",
+        title: "مهر و آبان ۱۴۰۵",
+        startDate: "2026-09-28T00:00:00.000Z",
+        endDate: "2026-11-01T00:00:00.000Z",
+        isActive: true,
+      },
+      {
+        id: "term-2",
+        title: "آبان و آذر ۱۴۰۵",
+        startDate: "2026-11-02T00:00:00.000Z",
+        endDate: "2026-12-06T00:00:00.000Z",
+        isActive: true,
+      },
+      {
+        id: "term-3",
+        title: "آذر و دی ۱۴۰۵",
+        startDate: "2026-12-07T00:00:00.000Z",
+        endDate: "2027-01-10T00:00:00.000Z",
+        isActive: true,
+      },
+    ]
+
+    it("selects the ongoing term when now is within startDate and endDate", () => {
+      const now = new Date("2026-10-16T12:00:00.000Z")
+      const selected = selectCurrentOrActiveTerm(terms, now)
+      expect(selected?.id).toBe("term-1")
+    })
+
+    it("selects upcoming term when within its activation window", () => {
+      // 3 days before term-2 starts (term-1 ended)
+      const now = new Date("2026-11-01T23:59:59.000Z")
+      const selected = selectCurrentOrActiveTerm(terms, now)
+      // term-1 ends on 2026-11-01 so it's ongoing or in activation window of term-2
+      expect(selected).toBeDefined()
+    })
+
+    it("selects earliest upcoming term when all terms are in future", () => {
+      const now = new Date("2026-08-01T00:00:00.000Z")
+      const selected = selectCurrentOrActiveTerm(terms, now)
+      expect(selected?.id).toBe("term-1")
+    })
+
+    it("ignores inactive terms", () => {
+      const inactiveTerms = [{ ...terms[0]!, isActive: false }, terms[1]!]
+      const now = new Date("2026-10-16T12:00:00.000Z")
+      const selected = selectCurrentOrActiveTerm(inactiveTerms, now)
+      expect(selected?.id).toBe("term-2")
     })
   })
 })

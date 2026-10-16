@@ -6,7 +6,9 @@ import { useQuery } from "@tanstack/react-query"
 import { Calendar, Check, Clock, Edit2, X } from "lucide-react"
 import {
   calculatePhaseSlots,
+  isAvailabilityCoveringSlot,
   isOperatingPhaseCurrent,
+  selectCurrentOrActiveTerm,
   WEEK_DAYS,
   type PhaseGeneratedSlot,
   type TeacherDto,
@@ -21,12 +23,13 @@ import {
   CarouselPrevious,
 } from "@workspace/ui/components/carousel"
 import { cn } from "@workspace/ui/lib/utils"
-import { operatingPhasesResource } from "@/lib/api"
+import { operatingPhasesResource, termsResource } from "@/lib/api"
 import { useActiveInstitute } from "@/lib/stores"
+import { TermCarousel } from "../../../components/availability-editor/term-carousel"
 
 export interface TeacherScheduleTabProps {
   teacher: TeacherDto
-  onManageAvailability: () => void
+  onManageAvailability: (termId?: string) => void
 }
 
 export function TeacherScheduleTab({
@@ -38,12 +41,53 @@ export function TeacherScheduleTab({
   const effectiveInstituteId = teacher.instituteId || activeInstituteId
   const availabilities = teacher.teacherProfile?.availabilities || []
 
+  const { data: terms = [] } = useQuery({
+    ...termsResource.list.toQuery(
+      effectiveInstituteId ? { instituteId: effectiveInstituteId } : undefined
+    ),
+    enabled: Boolean(effectiveInstituteId),
+  })
+
   const { data: phases = [] } = useQuery({
     ...operatingPhasesResource.list.toQuery(
       effectiveInstituteId ? { instituteId: effectiveInstituteId } : undefined
     ),
     enabled: Boolean(effectiveInstituteId),
   })
+
+  const activeTerms = React.useMemo(() => {
+    const withPhase = terms.filter((term) => Boolean(term.operatingPhase))
+    const active = withPhase.filter((term) => term.isActive)
+    const list = active.length > 0 ? active : withPhase
+    return [...list].sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    )
+  }, [terms])
+
+  const defaultTerm = React.useMemo(() => {
+    return selectCurrentOrActiveTerm(activeTerms) ?? activeTerms[0] ?? null
+  }, [activeTerms])
+
+  const [selectedTermId, setSelectedTermId] = React.useState<string | null>(
+    null
+  )
+
+  const currentTerm = React.useMemo(() => {
+    const id = selectedTermId || defaultTerm?.id
+    return activeTerms.find((t) => t.id === id) || defaultTerm
+  }, [selectedTermId, defaultTerm, activeTerms])
+
+  const termAvailabilities = React.useMemo(() => {
+    if (!currentTerm) return availabilities
+    const matching = availabilities.filter((a) => a.termId === currentTerm.id)
+    if (matching.length > 0) return matching
+    const hasAnyTermSpecific = availabilities.some((a) => Boolean(a.termId))
+    if (!hasAnyTermSpecific) {
+      return availabilities.filter((a) => !a.termId)
+    }
+    return []
+  }, [availabilities, currentTerm])
 
   const activePhases = React.useMemo(
     () => phases.filter((p) => p.isActive),
@@ -64,9 +108,12 @@ export function TeacherScheduleTab({
   )
 
   const currentPhase = React.useMemo(() => {
+    if (currentTerm?.operatingPhase) {
+      return currentTerm.operatingPhase
+    }
     const id = selectedPhaseId || defaultPhase?.id
     return phases.find((p) => p.id === id) || defaultPhase
-  }, [selectedPhaseId, defaultPhase, phases])
+  }, [currentTerm, selectedPhaseId, defaultPhase, phases])
 
   const standardSlots = React.useMemo<PhaseGeneratedSlot[]>(() => {
     if (currentPhase) {
@@ -85,7 +132,7 @@ export function TeacherScheduleTab({
 
     // Fallback: collect unique slots from teacher availabilities
     const uniqueMap = new Map<string, { startTime: string; endTime: string }>()
-    for (const a of availabilities) {
+    for (const a of termAvailabilities) {
       const key = `${a.startTime}-${a.endTime}`
       if (!uniqueMap.has(key)) {
         uniqueMap.set(key, { startTime: a.startTime, endTime: a.endTime })
@@ -100,22 +147,23 @@ export function TeacherScheduleTab({
       endTime: s.endTime,
       durationMinutes: 90,
     }))
-  }, [currentPhase, availabilities])
+  }, [currentPhase, termAvailabilities])
 
   const daysToShow = React.useMemo<WeekDay[]>(() => {
-    if (currentPhase?.daysOfWeek && currentPhase.daysOfWeek.length > 0) {
+    const phaseDays = currentPhase?.daysOfWeek
+    if (phaseDays && phaseDays.length > 0) {
       return (WEEK_DAYS as readonly WeekDay[]).filter((d) =>
-        currentPhase.daysOfWeek.includes(d)
+        phaseDays.includes(d)
       )
     }
     const daysWithAvailabilities = new Set(
-      availabilities.map((a) => a.dayOfWeek as WeekDay)
+      termAvailabilities.map((a) => a.dayOfWeek as WeekDay)
     )
     const filtered = (WEEK_DAYS as readonly WeekDay[]).filter((d) =>
       daysWithAvailabilities.has(d)
     )
     return filtered.length > 0 ? filtered : [...WEEK_DAYS]
-  }, [currentPhase, availabilities])
+  }, [currentPhase, termAvailabilities])
 
   const [selectedDayFilter, setSelectedDayFilter] = React.useState<
     WeekDay | "ALL"
@@ -128,14 +176,11 @@ export function TeacherScheduleTab({
 
   const getMatchedSlot = React.useCallback(
     (day: WeekDay, slot: PhaseGeneratedSlot) => {
-      return availabilities.find(
-        (a) =>
-          a.dayOfWeek === day &&
-          a.startTime === slot.startTime &&
-          a.endTime === slot.endTime
+      return termAvailabilities.find(
+        (a) => a.dayOfWeek === day && isAvailabilityCoveringSlot(a, slot)
       )
     },
-    [availabilities]
+    [termAvailabilities]
   )
 
   return (
@@ -153,13 +198,27 @@ export function TeacherScheduleTab({
           type="button"
           variant="outline"
           size="sm"
-          onClick={onManageAvailability}
+          onClick={() => onManageAvailability(currentTerm?.id)}
           className="h-9 gap-1.5 rounded-xl px-3 text-xs font-semibold"
         >
           <Edit2 className="size-3.5 text-muted-foreground" />
           <span>{t("actions.manageAvailability")}</span>
         </Button>
       </div>
+
+      {/* Term Carousel */}
+      {activeTerms.length > 0 && (
+        <TermCarousel
+          terms={activeTerms}
+          selectedTermId={currentTerm?.id || ""}
+          onSelectTerm={(id) => setSelectedTermId(id)}
+          value={availabilities.map((a) => ({
+            ...a,
+            termId: a.termId ?? null,
+            branchId: a.branchId ?? "",
+          }))}
+        />
+      )}
 
       {/* Phase Selector (when multiple active phases exist) */}
       {activePhases.length > 1 && (
@@ -209,15 +268,15 @@ export function TeacherScheduleTab({
         </div>
       )}
 
-      {/* Empty State when no availabilities exist */}
-      {availabilities.length === 0 ? (
+      {/* Empty State when no availabilities exist for this term */}
+      {termAvailabilities.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border/80 bg-muted/20 p-8 text-center text-xs text-muted-foreground">
           <p>{t("availabilities.noSlots")}</p>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={onManageAvailability}
+            onClick={() => onManageAvailability(currentTerm?.id)}
             className="mt-3 gap-1.5 rounded-xl text-xs font-semibold"
           >
             <Clock className="size-3.5 text-muted-foreground" />

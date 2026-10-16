@@ -156,3 +156,56 @@ export const getTermOpeningWindow = getTermActivationWindow
 export const isTermOpened = isTermActivated
 export const isTermInOpeningWindow = isTermInActivationWindow
 export const isTermEligibleForClassOpening = isTermEligibleForClassCreation
+
+export interface TermDateSubject {
+  id?: string
+  startDate: Date | string
+  endDate: Date | string
+  isActive?: boolean
+}
+
+/**
+ * Selects the current active term from a list of terms:
+ * 1. An ongoing active term (now >= startDate && now <= endDate).
+ * 2. Or a term currently in its activation window (startDate - 7 days to startDate + 7 days).
+ * 3. Or the earliest upcoming term (startDate > now).
+ * 4. Fallback to the first active term in chronological order.
+ */
+export function selectCurrentOrActiveTerm<T extends TermDateSubject>(
+  terms: T[] | undefined | null,
+  now: Date = new Date()
+): T | null {
+  if (!terms || terms.length === 0) return null
+  const activeTerms = terms.filter((t) => t.isActive !== false)
+  if (activeTerms.length === 0) return null
+
+  const nowMs = now.getTime()
+
+  // 1. Currently ongoing term (now between startDate and endDate)
+  const ongoing = activeTerms.find((t) => {
+    const start = toStartOfDay(t.startDate).getTime()
+    const end = toEndOfDay(t.endDate).getTime()
+    return nowMs >= start && nowMs <= end
+  })
+  if (ongoing) return ongoing
+
+  // 2. Term in activation window ([startDate - 7 days, startDate + 7 days])
+  const inWindow = activeTerms.find((t) =>
+    isTermInActivationWindow(t.startDate, now)
+  )
+  if (inWindow) return inWindow
+
+  // 3. Chronological sorting by startDate ascending
+  const sorted = [...activeTerms].sort(
+    (a, b) =>
+      toStartOfDay(a.startDate).getTime() - toStartOfDay(b.startDate).getTime()
+  )
+
+  // 4. Earliest upcoming term
+  const upcoming = sorted.find(
+    (t) => toStartOfDay(t.startDate).getTime() > nowMs
+  )
+  if (upcoming) return upcoming
+
+  return sorted[0] ?? null
+}

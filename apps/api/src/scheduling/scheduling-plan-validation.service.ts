@@ -134,6 +134,7 @@ export class SchedulingPlanValidationService {
                     select: {
                       availabilities: {
                         select: {
+                          termId: true,
                           dayOfWeek: true,
                           startTime: true,
                           endTime: true,
@@ -334,9 +335,19 @@ export class SchedulingPlanValidationService {
         if (!qualified) {
           add('TEACHER_NOT_QUALIFIED', proposal.id, [proposal.teacherId]);
         }
+        const teacherAvailabilities =
+          proposal.teacher?.teacherProfile?.availabilities ?? [];
+        const termAvailabilities = teacherAvailabilities.filter(
+          (a) => a.termId === plan.run.termId,
+        );
+        const effectiveAvailabilities =
+          termAvailabilities.length > 0
+            ? termAvailabilities
+            : teacherAvailabilities.filter((a) => !a.termId);
+
         const uncoveredDays = proposal.daysOfWeek.filter(
           (day) =>
-            !proposal.teacher?.teacherProfile?.availabilities.some(
+            !effectiveAvailabilities.some(
               (availability) =>
                 availability.dayOfWeek === day &&
                 availability.startTime <= proposal.startTime &&

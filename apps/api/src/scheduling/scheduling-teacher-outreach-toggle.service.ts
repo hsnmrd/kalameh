@@ -305,8 +305,8 @@ export class SchedulingTeacherOutreachToggleService {
       where: {
         id: input.teacherId,
         instituteId,
-        role: ROLES.TEACHER,
         isActive: true,
+        OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
       },
       select: {
         id: true,
@@ -316,12 +316,16 @@ export class SchedulingTeacherOutreachToggleService {
           select: {
             id: true,
             availabilities: {
+              where: {
+                OR: [{ termId: plan.run.termId }, { termId: null }],
+              },
               select: {
                 id: true,
                 branchId: true,
                 dayOfWeek: true,
                 startTime: true,
                 endTime: true,
+                termId: true,
               },
             },
             teachableCourses: {
@@ -402,9 +406,18 @@ export class SchedulingTeacherOutreachToggleService {
         createdQualificationId = createdQual.id;
       }
 
+      const allAvailabilities = teacher.teacherProfile!.availabilities;
+      const termAvailabilities = allAvailabilities.filter(
+        (a) => a.termId === plan.run.termId,
+      );
+      const effectiveAvailabilities =
+        termAvailabilities.length > 0
+          ? termAvailabilities
+          : allAvailabilities.filter((a) => !a.termId);
+
       const createdAvailabilityIds: string[] = [];
       for (const dayOfWeek of input.daysOfWeek) {
-        const covered = teacher.teacherProfile!.availabilities.some(
+        const covered = effectiveAvailabilities.some(
           (slot) =>
             !swappedOut?.createdAvailabilityIds.includes(slot.id) &&
             slot.branchId === requirement.branchId &&
@@ -413,15 +426,14 @@ export class SchedulingTeacherOutreachToggleService {
             slot.endTime >= input.endTime,
         );
         if (!covered) {
-          const conflictingOtherBranchSlot =
-            teacher.teacherProfile!.availabilities.find(
-              (slot) =>
-                !swappedOut?.createdAvailabilityIds.includes(slot.id) &&
-                slot.branchId !== requirement.branchId &&
-                slot.dayOfWeek === dayOfWeek &&
-                slot.startTime < input.endTime &&
-                slot.endTime > input.startTime,
-            );
+          const conflictingOtherBranchSlot = effectiveAvailabilities.find(
+            (slot) =>
+              !swappedOut?.createdAvailabilityIds.includes(slot.id) &&
+              slot.branchId !== requirement.branchId &&
+              slot.dayOfWeek === dayOfWeek &&
+              slot.startTime < input.endTime &&
+              slot.endTime > input.startTime,
+          );
           if (conflictingOtherBranchSlot) {
             throw new BadRequestException(
               'Teacher already has availability in another branch during this time period',
@@ -435,6 +447,7 @@ export class SchedulingTeacherOutreachToggleService {
               dayOfWeek,
               startTime: input.startTime,
               endTime: input.endTime,
+              termId: plan.run.termId,
             },
             select: { id: true },
           });

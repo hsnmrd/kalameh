@@ -37,8 +37,8 @@ export class SchedulingPlanTeacherCalendarService {
       this.prisma.user.findMany({
         where: {
           instituteId: input.instituteId,
-          role: ROLES.TEACHER,
           isActive: true,
+          OR: [{ role: ROLES.TEACHER }, { teacherProfile: { isNot: null } }],
         },
         select: {
           id: true,
@@ -51,8 +51,12 @@ export class SchedulingPlanTeacherCalendarService {
           teacherProfile: {
             select: {
               availabilities: {
+                where: {
+                  OR: [{ termId: snapshot.request.termId }, { termId: null }],
+                },
                 select: {
                   id: true,
+                  termId: true,
                   dayOfWeek: true,
                   startTime: true,
                   endTime: true,
@@ -84,23 +88,34 @@ export class SchedulingPlanTeacherCalendarService {
       courseId: null,
       qualifications: [],
       teachers: teachers.map(
-        ({ teacherProfile, phone, branch, ...teacher }) => ({
-          ...teacher,
-          phoneNumber: phone,
-          branchId: teacher.branchId ?? null,
-          branch: branch ?? null,
-          availabilities:
-            teacherProfile?.availabilities.map((a) => ({
+        ({ teacherProfile, phone, branch, ...teacher }) => {
+          const allAvailabilities = teacherProfile?.availabilities ?? [];
+          const termAvailabilities = allAvailabilities.filter(
+            (a) => a.termId === snapshot.request.termId,
+          );
+          const effectiveAvailabilities =
+            termAvailabilities.length > 0
+              ? termAvailabilities
+              : allAvailabilities.filter((a) => !a.termId);
+
+          return {
+            ...teacher,
+            phoneNumber: phone,
+            branchId: teacher.branchId ?? null,
+            branch: branch ?? null,
+            availabilities: effectiveAvailabilities.map((a) => ({
               id: a.id,
               dayOfWeek: a.dayOfWeek,
               startTime: a.startTime,
               endTime: a.endTime,
               branchId: a.branchId,
               branchName: a.branch?.name ?? null,
-            })) ?? [],
-          teachableCourses:
-            teacherProfile?.teachableCourses.map(({ course }) => course) ?? [],
-        }),
+            })),
+            teachableCourses:
+              teacherProfile?.teachableCourses.map(({ course }) => course) ??
+              [],
+          };
+        },
       ),
       proposals: input.proposals,
       existingClasses: snapshot.existingClasses,

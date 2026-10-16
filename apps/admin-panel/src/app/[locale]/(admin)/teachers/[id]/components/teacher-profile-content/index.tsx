@@ -38,6 +38,9 @@ export function TeacherProfileContent({
   const router = useRouter()
   const [activeTab, setActiveTab] =
     React.useState<TeacherProfileTab>("information")
+  const [selectedTermId, setSelectedTermId] = React.useState<string | null>(
+    null
+  )
   const [isEditOpen, setIsEditOpen] = React.useState(false)
   const [isAvailabilityOpen, setIsAvailabilityOpen] = React.useState(false)
   const [isResetPasswordOpen, setIsResetPasswordOpen] = React.useState(false)
@@ -97,7 +100,10 @@ export function TeacherProfileContent({
     setIsEditOpen(true)
   }
 
-  const handleManageAvailability = () => {
+  const handleManageAvailability = (termId?: string) => {
+    if (termId) {
+      setSelectedTermId(termId)
+    }
     setIsAvailabilityOpen(true)
   }
 
@@ -141,7 +147,7 @@ export function TeacherProfileContent({
                 <TeacherActionsMenu
                   teacher={teacher}
                   onEdit={handleEdit}
-                  onManageAvailability={handleManageAvailability}
+                  onManageAvailability={() => handleManageAvailability()}
                   onResetPassword={handleResetPassword}
                   onDelete={handleDelete}
                 />
@@ -184,6 +190,7 @@ export function TeacherProfileContent({
             open={isAvailabilityOpen}
             onClose={() => setIsAvailabilityOpen(false)}
             instituteId={teacher.instituteId}
+            initialTermId={selectedTermId}
           />
 
           <ResetPasswordModal
