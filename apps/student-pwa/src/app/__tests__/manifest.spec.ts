@@ -9,8 +9,8 @@ describe("PWA Manifest", () => {
     expect(config.short_name).toBe("Kalameh Student")
     expect(config.display).toBe("standalone")
     expect(config.start_url).toBe("/")
-    expect(config.theme_color).toBe("#0f172a")
-    expect(config.background_color).toBe("#0f172a")
+    expect(config.theme_color).toBe("#0077b6")
+    expect(config.background_color).toBe("#0077b6")
     expect(config.icons).toBeDefined()
     expect(config.icons?.length).toBeGreaterThanOrEqual(4)
 
