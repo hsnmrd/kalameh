@@ -15,6 +15,14 @@ const termId = "22222222-2222-4222-8222-222222222222"
 const requirementId = "33333333-3333-4333-8333-333333333333"
 const refreshedRequirementId = "77777777-7777-4777-8777-777777777777"
 
+const mockActiveInstitute = {
+  id: instituteId,
+  name: "Test Institute",
+  bankCardNumber: "6037991812345678",
+  bankAccountName: "حساب مرکزی",
+  bankShaba: "IR120170000000123456789012",
+}
+
 function buildRequirement(id: string): ClassRequirementDto {
   return {
     id,
@@ -63,6 +71,7 @@ describe("MVP-034 scheduling generation form", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: instituteId,
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
     vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
       queryKey: ["terms", "active"],
@@ -154,6 +163,7 @@ describe("MVP-034 scheduling generation form", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: instituteId,
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
     vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
       queryKey: ["terms", "active"],
@@ -212,6 +222,7 @@ describe("MVP-034 scheduling generation form", () => {
   it("disables submit button and prompts confirmation when student schedules are unconfirmed", async () => {
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: instituteId,
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
     vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
       queryKey: ["terms", "active"],
@@ -266,6 +277,7 @@ describe("MVP-034 scheduling generation form", () => {
   it("disables submit button when no requirements are selected", async () => {
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: instituteId,
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
     vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
       queryKey: ["terms", "active"],
@@ -319,6 +331,7 @@ describe("MVP-034 scheduling generation form", () => {
   it("does not render the bottom section showing number of selected items", async () => {
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: instituteId,
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
     vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
       queryKey: ["terms", "active"],
@@ -372,6 +385,7 @@ describe("MVP-034 scheduling generation form", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: instituteId,
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
     vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
       queryKey: ["terms", "active"],
@@ -441,5 +455,62 @@ describe("MVP-034 scheduling generation form", () => {
     fireEvent.change(searchInput, { target: { value: "French" } })
     expect(screen.queryByLabelText("English A1")).not.toBeInTheDocument()
     expect(screen.getByLabelText("French B1")).toBeInTheDocument()
+  })
+
+  it("disables submit button and renders finance error banner when institute lacks finance info", async () => {
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+      activeInstitute: {
+        ...mockActiveInstitute,
+        bankCardNumber: null,
+        bankAccountName: null,
+        bankShaba: null,
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+    vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["terms", "active"],
+      queryFn: async () => [
+        {
+          id: termId,
+          instituteId,
+          title: "ترم پاییز",
+          startDate: "2026-09-01",
+          endDate: "2026-12-01",
+          isActive: true,
+          studentSchedulesConfirmedAt: "2026-08-01",
+          createdAt: "2026-08-01",
+          updatedAt: "2026-08-01",
+        },
+      ],
+    } as never)
+    vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
+      queryKey: ["branches", "active"],
+      queryFn: async () => [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "شعبه ونک",
+          isActive: true,
+        },
+      ],
+    } as never)
+    vi.spyOn(classRequirementsResource.list, "toQuery").mockImplementation(
+      (params) =>
+        ({
+          queryKey: ["class-requirements", params?.termId ?? "none"],
+          queryFn: vi.fn().mockResolvedValue([buildRequirement(requirementId)]),
+        }) as never
+    )
+
+    render(<SchedulingGenerationForm onCreated={vi.fn()} />)
+
+    expect(await screen.findByLabelText("English A1")).toBeInTheDocument()
+
+    const financeAlert = await screen.findByTestId("scheduling-finance-error")
+    expect(financeAlert).toBeInTheDocument()
+
+    const submitButtons = screen.getAllByRole("button", {
+      name: "ساخت پیشنهادها",
+    })
+    expect(submitButtons[0]).toBeDisabled()
   })
 })

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
   ROLES,
+  hasInstituteFinanceInfo,
   isTermEligibleForClassCreation,
   type ClassDto,
   type JwtPayload,
@@ -56,6 +57,22 @@ export class ClassCreateService {
     if (!term) {
       throw new BadRequestException(
         this.i18n.t('classes.invalidTermOrCourse', locale),
+      );
+    }
+
+    const targetInstituteId = instituteId || term.instituteId;
+    const institute = await this.prisma.institute.findUnique({
+      where: { id: targetInstituteId },
+      select: {
+        bankCardNumber: true,
+        bankAccountName: true,
+        bankShaba: true,
+      },
+    });
+
+    if (!hasInstituteFinanceInfo(institute)) {
+      throw new BadRequestException(
+        this.i18n.t('classes.instituteFinanceRequired', locale),
       );
     }
 

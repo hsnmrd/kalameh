@@ -247,3 +247,19 @@ export const createUpdateInstituteSchema = (msg?: {
 
 export const UpdateInstituteSchema = createUpdateInstituteSchema()
 export type UpdateInstituteInput = z.infer<typeof UpdateInstituteSchema>
+
+export interface InstituteFinanceDetails {
+  bankCardNumber?: string | null
+  bankAccountName?: string | null
+  bankShaba?: string | null
+}
+
+export function hasInstituteFinanceInfo(
+  institute?: InstituteFinanceDetails | null
+): boolean {
+  if (!institute) return false
+  const hasCard = !!institute.bankCardNumber?.trim()
+  const hasAccountName = !!institute.bankAccountName?.trim()
+  const hasShaba = !!institute.bankShaba?.trim()
+  return hasCard || hasAccountName || hasShaba
+}

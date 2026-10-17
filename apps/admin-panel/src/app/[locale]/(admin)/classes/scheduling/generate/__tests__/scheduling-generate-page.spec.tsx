@@ -16,6 +16,15 @@ const { mockPush, mockBack } = vi.hoisted(() => ({
   mockBack: vi.fn(),
 }))
 
+const mockActiveInstitute = {
+  id: "inst-1",
+  name: "Test Institute",
+  enabledModules: [APP_MODULES.CLASSES_COURSES],
+  bankCardNumber: "6037991122334455",
+  bankAccountName: "آموزشگاه تست",
+  bankShaba: "IR120000000000000000000000",
+}
+
 vi.mock("next/navigation", () => ({
   useParams: () => ({}),
   useRouter: () => ({ push: mockPush, replace: vi.fn(), back: mockBack }),
@@ -40,11 +49,7 @@ describe("SchedulingGeneratePage", () => {
   it("renders breadcrumb and generation form when authorized", async () => {
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: "inst-1",
-      activeInstitute: {
-        id: "inst-1",
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
-      },
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
 
     vi.spyOn(hooks, "usePermissions").mockReturnValue({
@@ -72,9 +77,8 @@ describe("SchedulingGeneratePage", () => {
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: instituteId,
       activeInstitute: {
+        ...mockActiveInstitute,
         id: instituteId,
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
       },
     } as ReturnType<typeof stores.useActiveInstitute>)
 
@@ -191,9 +195,8 @@ describe("SchedulingGeneratePage", () => {
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: instituteId,
       activeInstitute: {
+        ...mockActiveInstitute,
         id: instituteId,
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
       },
     } as ReturnType<typeof stores.useActiveInstitute>)
 
@@ -321,5 +324,97 @@ describe("SchedulingGeneratePage", () => {
         `/classes/scheduling/plans/${planId}`
       )
     })
+  })
+
+  it("renders finance error banner and disables submit button when institute lacks finance info", async () => {
+    const termId = "22222222-2222-4222-8222-222222222222"
+    const instituteId = "11111111-1111-4111-8111-111111111111"
+    const requirementId = "33333333-3333-4333-8333-333333333333"
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: instituteId,
+      activeInstitute: {
+        id: instituteId,
+        name: "Test Institute",
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+        bankCardNumber: null,
+        bankAccountName: null,
+        bankShaba: null,
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    vi.spyOn(hooks, "usePermissions").mockReturnValue({
+      user: { role: ROLES.INSTITUTE_ADMIN },
+      hasPermission: () => true,
+      isLoading: false,
+    } as ReturnType<typeof hooks.usePermissions>)
+
+    vi.spyOn(termsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["terms", "active", "no-finance-test"],
+      queryFn: async () => [
+        {
+          id: termId,
+          instituteId,
+          title: "ترم پاییز",
+          startDate: new Date(
+            Date.now() + 2 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+          endDate: new Date(
+            Date.now() + 90 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+          isActive: true,
+          studentSchedulesConfirmedAt: new Date().toISOString(),
+          createdAt: "2026-08-01",
+          updatedAt: "2026-08-01",
+        },
+      ],
+    } as never)
+
+    vi.spyOn(branchesResource.list, "toQuery").mockReturnValue({
+      queryKey: ["branches", "active", "no-finance-test"],
+      queryFn: async () => [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "شعبه ونک",
+          isActive: true,
+        },
+      ],
+    } as never)
+
+    vi.spyOn(classRequirementsResource.list, "toQuery").mockReturnValue({
+      queryKey: ["class-requirements", termId, "no-finance-test"],
+      queryFn: async () => [
+        {
+          id: requirementId,
+          instituteId,
+          termId,
+          courseId: "44444444-4444-4444-8444-444444444444",
+          requiredClassCount: 2,
+          capacity: 14,
+          sessionDurationMinutes: 90,
+          sessionsPerWeek: 2,
+          deliveryMode: "IN_PERSON",
+          isActive: true,
+          course: {
+            id: "44444444-4444-4444-8444-444444444444",
+            title: "دوره زبان",
+          },
+          createdAt: "2026-08-01",
+          updatedAt: "2026-08-01",
+        },
+      ],
+    } as never)
+
+    render(<SchedulingGeneratePage />)
+
+    expect(await screen.findByText("ترم پاییز")).toBeInTheDocument()
+    expect(
+      await screen.findByTestId("scheduling-finance-error")
+    ).toBeInTheDocument()
+
+    const submitButtons = screen.getAllByRole("button", {
+      name: "ساخت پیشنهادها",
+    })
+    expect(submitButtons[0]).toBeDisabled()
   })
 })

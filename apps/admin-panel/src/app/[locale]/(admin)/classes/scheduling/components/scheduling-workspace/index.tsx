@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { AlertTriangle, Building2, Calendar, CalendarClock } from "lucide-react"
 import {
   calculateUncoveredStudents,
+  hasInstituteFinanceInfo,
   rebalanceClassCapacities,
   type SuggestedClassDto,
   type TermDemandReportDto,
@@ -63,7 +64,7 @@ export function SchedulingWorkspace() {
   const tCommon = useTranslations("common")
   const router = useRouter()
   const queryClient = useQueryClient()
-  const { activeInstituteId } = useActiveInstitute()
+  const { activeInstituteId, activeInstitute } = useActiveInstitute()
   const { clearActiveRun } = useSchedulingRunStore()
   const nextSuggestionKey = React.useRef(0)
   const [maxStudentsPerClass, setMaxStudentsPerClass] = React.useState(14)
@@ -179,14 +180,19 @@ export function SchedulingWorkspace() {
     !isPreflightLoading &&
     activeBranchClassrooms.length === 0
 
+  const hasNoFinanceInfo =
+    !isPreflightLoading && !hasInstituteFinanceInfo(activeInstitute)
+
   const preflightErrorMessage = React.useMemo(() => {
     if (isPreflightLoading) return null
+    if (hasNoFinanceInfo) return t("preflight.noFinanceInfo")
     if (hasNoTeachers) return t("preflight.noTeachers")
     if (hasNoTeacherSchedule) return t("preflight.noTeacherSchedule")
     if (hasNoBranchClassrooms) return t("preflight.noBranchClassrooms")
     return null
   }, [
     isPreflightLoading,
+    hasNoFinanceInfo,
     hasNoTeachers,
     hasNoTeacherSchedule,
     hasNoBranchClassrooms,
@@ -523,6 +529,7 @@ export function SchedulingWorkspace() {
               hasNoTeachers={hasNoTeachers}
               hasNoTeacherSchedule={hasNoTeacherSchedule}
               hasNoBranchClassrooms={hasNoBranchClassrooms}
+              hasNoFinanceInfo={hasNoFinanceInfo}
             />
             <SchedulingStudentScheduleConfirmation term={selectedTerm} />
             <SchedulingDemandView

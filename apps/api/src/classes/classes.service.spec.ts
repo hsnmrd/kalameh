@@ -69,6 +69,13 @@ describe('ClassesService', () => {
       classroom: {
         findFirst: jest.fn(),
       },
+      institute: {
+        findUnique: jest.fn().mockResolvedValue({
+          bankCardNumber: '6037991122334455',
+          bankAccountName: 'Institute Account',
+          bankShaba: 'IR123456789012345678901234',
+        }),
+      },
     };
 
     i18nService = {
@@ -114,6 +121,26 @@ describe('ClassesService', () => {
       };
 
       prismaService.term.findFirst.mockResolvedValue(null);
+
+      await expect(service.create(dto, mockAdmin)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException if Institute has no finance info', async () => {
+      const dto = {
+        title: 'Class 101',
+        termId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a01',
+        courseId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02',
+        capacity: 15,
+        fee: 1500000,
+      };
+
+      prismaService.institute.findUnique.mockResolvedValue({
+        bankCardNumber: null,
+        bankAccountName: null,
+        bankShaba: null,
+      });
 
       await expect(service.create(dto, mockAdmin)).rejects.toThrow(
         BadRequestException,

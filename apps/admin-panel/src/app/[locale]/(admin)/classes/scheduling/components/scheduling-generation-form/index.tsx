@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
+  AlertTriangle,
   Building2,
   Calendar,
   CalendarClock,
@@ -17,6 +18,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { AdminSearchInput } from "@/components/admin-search-input"
 import { PermissionGuard } from "@/components/permission-guard"
+import { Link } from "@/i18n/routing"
 import { useSchedulingGenerationForm } from "../../hooks/use-scheduling-generation-form"
 import { SchedulingRequirementPicker } from "../scheduling-requirement-picker"
 import { SchedulingStudentScheduleWarning } from "../scheduling-student-schedule-warning"
@@ -37,6 +39,7 @@ export function SchedulingGenerationForm({
 }: SchedulingGenerationFormProps) {
   const t = useTranslations("scheduling.generation")
   const tTerms = useTranslations("scheduling.termsList")
+  const tPreflight = useTranslations("scheduling.preflight")
   const [search, setSearch] = React.useState("")
   const {
     form,
@@ -49,6 +52,7 @@ export function SchedulingGenerationForm({
     isRequirementsLoading,
     isPending,
     hasInstitute,
+    hasNoFinanceInfo,
     submit,
   } = useSchedulingGenerationForm(onCreated, t("success"))
 
@@ -138,11 +142,38 @@ export function SchedulingGenerationForm({
     !termId ||
     requirements.length === 0 ||
     requirementIds.length === 0 ||
-    !activeTerm?.studentSchedulesConfirmedAt
+    !activeTerm?.studentSchedulesConfirmedAt ||
+    hasNoFinanceInfo
 
   return (
     <div className="flex w-full flex-col">
       <form onSubmit={submit} className="w-full">
+        {hasNoFinanceInfo && (
+          <div
+            role="alert"
+            data-testid="scheduling-finance-error"
+            className="mb-4 flex flex-col justify-between gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-foreground sm:flex-row sm:items-center"
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" />
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold text-destructive">
+                  {tPreflight("noFinanceInfo")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {tPreflight("noFinanceInfoDescription")}
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/institutes"
+              className="inline-flex h-9 shrink-0 items-center justify-center self-end rounded-xl border border-destructive/40 bg-destructive/10 px-3 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/20 sm:self-auto"
+            >
+              {tPreflight("manageInstitute")}
+            </Link>
+          </div>
+        )}
+
         {/* Scope Badges */}
         {(activeTerm || activeBranch) && (
           <div className="mb-3 flex flex-wrap items-center gap-2">

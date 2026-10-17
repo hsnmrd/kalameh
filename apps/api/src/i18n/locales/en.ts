@@ -144,6 +144,8 @@ export const en: TranslationDictionary = {
       "Selected class schedule is outside of the teacher's ({teacherName}) registered available hours",
     cannotDeleteWithEnrollments:
       'Cannot delete a class with existing enrollments',
+    instituteFinanceRequired:
+      'Institute financial information must be configured before creating a class',
   },
   classRequirements: {
     instituteRequired: 'Selecting an institute is required for this operation',
@@ -167,6 +169,8 @@ export const en: TranslationDictionary = {
       'One or more locked proposals are invalid or do not belong to the source run',
     preflightBlocked:
       'Plan generation stopped because preflight found a blocking issue',
+    instituteFinanceRequired:
+      'Institute financial information must be configured before generating or creating classes',
   },
   grades: {
     gradesSubmittedSuccess:
