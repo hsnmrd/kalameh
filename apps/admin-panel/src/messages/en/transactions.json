@@ -67,6 +67,8 @@
     "saveSuccess": "Bank account details saved successfully.",
     "copyCard": "Copy Card Number",
     "cardCopied": "Card number copied.",
+    "copyShaba": "Copy IBAN",
+    "shabaCopied": "IBAN copied.",
     "deleteBankInfo": "Delete Bank Info",
     "deleteBankInfoConfirmTitle": "Delete Bank Account Info",
     "deleteBankInfoConfirmDescription": "Are you sure you want to completely delete the bank account information? Students will no longer see these details for tuition payment.",
