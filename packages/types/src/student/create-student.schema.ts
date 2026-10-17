@@ -60,6 +60,10 @@ export const createCreateStudentSchema = (msg?: {
     branchId: z
       .preprocess(emptyToNull, z.string().uuid().nullable())
       .optional(),
+    targetTermId: z
+      .preprocess(emptyToNull, z.string().uuid().nullable())
+      .optional(),
+    inWishlist: z.boolean().optional(),
   })
 
 export const CreateStudentSchema = createCreateStudentSchema()

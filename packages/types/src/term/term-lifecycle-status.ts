@@ -100,7 +100,17 @@ export function calculateTermLifecycleStatuses(
     return ["INACTIVE"]
   }
 
-  const cfg = { ...DEFAULT_TERM_LIFECYCLE_SETTINGS, ...settings }
+  const cfg = {
+    registrationDaysBeforeStart:
+      settings?.registrationDaysBeforeStart ??
+      DEFAULT_TERM_LIFECYCLE_SETTINGS.registrationDaysBeforeStart,
+    registrationDaysAfterStart:
+      settings?.registrationDaysAfterStart ??
+      DEFAULT_TERM_LIFECYCLE_SETTINGS.registrationDaysAfterStart,
+    examDaysBeforeEnd:
+      settings?.examDaysBeforeEnd ??
+      DEFAULT_TERM_LIFECYCLE_SETTINGS.examDaysBeforeEnd,
+  }
   const nowMs = toStartOfDayMs(now)
   const startMs = toStartOfDayMs(term.startDate)
   const endMs = toEndOfDayMs(term.endDate)
@@ -425,4 +435,101 @@ export function findCurrentActiveTerm<T extends TermLifecycleSubject>(
 
   // 4. All terms are completed or inactive
   return null
+}
+
+export interface ClosestSignupTermResult<
+  T extends TermLifecycleSubject = TermLifecycleSubject,
+> {
+  term: T | null
+  isRegistrationOpen: boolean
+  daysUntilRegistration?: number
+  daysUntilEndRegistration?: number
+}
+
+/**
+ * Finds the closest term regarding student registration:
+ * 1. An active term currently open for registration ("REGISTERING").
+ * 2. If no term is registering, the nearest upcoming term that will open registration next.
+ * 3. Returns null if no active or upcoming term exists.
+ */
+export function findClosestSignupTerm<T extends TermLifecycleSubject>(
+  terms: T[] | undefined | null,
+  settings?: TermLifecycleSettings,
+  now: Date = new Date()
+): ClosestSignupTermResult<T> {
+  if (!terms || terms.length === 0) {
+    return { term: null, isRegistrationOpen: false }
+  }
+
+  const enabledTerms = terms.filter((t) => t.isActive !== false)
+  if (enabledTerms.length === 0) {
+    return { term: null, isRegistrationOpen: false }
+  }
+
+  const cfg = {
+    registrationDaysBeforeStart:
+      settings?.registrationDaysBeforeStart ??
+      DEFAULT_TERM_LIFECYCLE_SETTINGS.registrationDaysBeforeStart,
+    registrationDaysAfterStart:
+      settings?.registrationDaysAfterStart ??
+      DEFAULT_TERM_LIFECYCLE_SETTINGS.registrationDaysAfterStart,
+    examDaysBeforeEnd:
+      settings?.examDaysBeforeEnd ??
+      DEFAULT_TERM_LIFECYCLE_SETTINGS.examDaysBeforeEnd,
+  }
+  const nowMs = toStartOfDayMs(now)
+
+  // 1. Look for currently registering terms
+  const registeringTerms = enabledTerms.filter((term) =>
+    isTermRegistrationOpen(term, enabledTerms, cfg, now)
+  )
+
+  if (registeringTerms.length > 0) {
+    const selected = [...registeringTerms].sort(
+      (a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate)
+    )[0]!
+
+    const regAfterMs = cfg.registrationDaysAfterStart * ONE_DAY_MS
+    const regDeadlineMs = toEndOfDayMs(
+      new Date(toStartOfDayMs(selected.startDate) + regAfterMs)
+    )
+    const daysUntilEnd = Math.max(
+      0,
+      Math.ceil((regDeadlineMs - nowMs) / ONE_DAY_MS)
+    )
+
+    return {
+      term: selected,
+      isRegistrationOpen: true,
+      daysUntilEndRegistration: daysUntilEnd,
+    }
+  }
+
+  // 2. Look for the nearest upcoming term whose registration will open in the future
+  const upcomingTerms = enabledTerms.filter(
+    (term) => toStartOfDayMs(term.startDate) > nowMs
+  )
+
+  if (upcomingTerms.length > 0) {
+    const selected = [...upcomingTerms].sort(
+      (a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate)
+    )[0]!
+
+    const regBeforeMs = cfg.registrationDaysBeforeStart * ONE_DAY_MS
+    const startMs = toStartOfDayMs(selected.startDate)
+    const activationMs = getTermActivationDate(selected.startDate).getTime()
+    const effectiveRegStartMs = Math.min(activationMs, startMs - regBeforeMs)
+    const daysUntilReg = Math.max(
+      0,
+      Math.ceil((effectiveRegStartMs - nowMs) / ONE_DAY_MS)
+    )
+
+    return {
+      term: selected,
+      isRegistrationOpen: false,
+      daysUntilRegistration: daysUntilReg,
+    }
+  }
+
+  return { term: null, isRegistrationOpen: false }
 }

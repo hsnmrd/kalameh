@@ -8,21 +8,12 @@ import type {
   SetAllStudentsAvailableInput,
   SetAllStudentsAvailableResponse,
   ExcelImportResult,
+  StudentFilterInput,
 } from "@workspace/types"
 import { api } from "../client"
 
 export const studentsResource = api.resource("students", {
-  list: api.get<
-    StudentDto[],
-    | {
-        search?: string
-        courseId?: string
-        branchId?: string
-        isActive?: boolean
-        instituteId?: string
-      }
-    | undefined
-  >("/students", {
+  list: api.get<StudentDto[], StudentFilterInput | undefined>("/students", {
     query: (params) => params || {},
   }),
   lookup: api.get<

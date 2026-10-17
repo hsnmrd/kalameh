@@ -11,11 +11,26 @@
     "allBranches": "All Branches",
     "allStatus": "All Statuses",
     "active": "Active Only",
-    "inactive": "Suspended/Inactive Only"
+    "inactive": "Suspended/Inactive Only",
+    "wishlist": "Wishlist (Next Term)"
   },
   "status": {
     "active": "Active",
     "inactive": "Inactive"
+  },
+  "closestTerm": {
+    "registeringTitle": "Registration for {termTitle} is Open",
+    "registeringSubtitle": "New students registered now will be enrolled in {termTitle}. ({days} days remaining)",
+    "wishlistTitle": "Registration Window for Current Term Has Closed",
+    "wishlistSubtitle": "New registrations will be saved to the Wishlist and counted toward next term's class creation ({nextTermTitle}).",
+    "noTermTitle": "No Active Registration Window",
+    "noTermSubtitle": "New students will be placed in the Wishlist for upcoming term class creation.",
+    "badgeRegistering": "Open Registration",
+    "badgeWishlist": "Next Term Wishlist",
+    "viewWishlist": "Wishlist",
+    "registerAction": "Register",
+    "modalRegisteringNote": "Registration is open for \"{termTitle}\". This student will automatically be assigned to this term.",
+    "modalWishlistNote": "Registration window has passed. This student will be added to the Wishlist for next term's class scheduling."
   },
   "table": {
     "name": "Full Name",
@@ -23,6 +38,8 @@
     "fatherName": "Father's Name",
     "nationalCode": "National ID",
     "currentLevel": "Allowed Course Level",
+    "targetTerm": "Assigned Term / Status",
+    "wishlistBadge": "Wishlist",
     "noLevel": "Not Assigned (Root Level)",
     "scheduleStatus": "Availability Schedule",
     "branch": "Branch",

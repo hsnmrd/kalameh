@@ -13,6 +13,15 @@ export const StudentFilterSchema = z.object({
   courseId: z.string().uuid().optional(),
   branchId: z.string().uuid().optional(),
   isActive: StudentStatusFilterSchema,
+  inWishlist: z
+    .preprocess((v) => {
+      if (typeof v === "boolean") return v
+      if (v === "true") return true
+      if (v === "false") return false
+      return undefined
+    }, z.boolean().optional())
+    .optional(),
+  targetTermId: z.string().uuid().optional(),
   instituteId: z.string().uuid().optional(),
 })
 

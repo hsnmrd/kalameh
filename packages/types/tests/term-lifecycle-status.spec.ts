@@ -9,6 +9,7 @@ import {
   isTermInGrading,
   isTermCompleted,
   findCurrentActiveTerm,
+  findClosestSignupTerm,
   isTermDeletable,
   type TermLifecycleSubject,
 } from "../src/term/term-lifecycle-status"
@@ -551,6 +552,68 @@ describe("Term Lifecycle Status and Deletability", () => {
       }
       const result = findCurrentActiveTerm([term1], new Date("2026-05-01"))
       expect(result).toBeNull()
+    })
+  })
+
+  describe("findClosestSignupTerm", () => {
+    it("returns null when no terms provided", () => {
+      expect(findClosestSignupTerm(null)).toEqual({
+        term: null,
+        isRegistrationOpen: false,
+      })
+      expect(findClosestSignupTerm([])).toEqual({
+        term: null,
+        isRegistrationOpen: false,
+      })
+    })
+
+    it("returns active registering term with remaining days when registration is open", () => {
+      const termReg: TermLifecycleSubject = {
+        id: "t-reg",
+        startDate: "2026-10-10",
+        endDate: "2026-11-30",
+        isActive: true,
+      }
+      const termNext: TermLifecycleSubject = {
+        id: "t-next",
+        startDate: "2026-12-15",
+        endDate: "2027-02-15",
+        isActive: true,
+      }
+      // Registration open (e.g. Oct 5 is 5 days before start)
+      const res = findClosestSignupTerm(
+        [termReg, termNext],
+        undefined,
+        new Date("2026-10-05")
+      )
+      expect(res.isRegistrationOpen).toBe(true)
+      expect(res.term?.id).toBe("t-reg")
+      expect(res.daysUntilEndRegistration).toBeGreaterThan(0)
+    })
+
+    it("returns upcoming term with days until registration when registration has passed for active term", () => {
+      const termOngoing: TermLifecycleSubject = {
+        id: "t-ongoing",
+        startDate: "2026-09-01",
+        endDate: "2026-10-25",
+        isActive: true,
+      }
+      const termNext: TermLifecycleSubject = {
+        id: "t-next",
+        startDate: "2026-11-15",
+        endDate: "2026-12-30",
+        isActive: true,
+      }
+      // Oct 17: Ongoing term's registration is closed (startDate + 7d was Sep 8).
+      // Next term starts Nov 15, reg opens Nov 5.
+      const res = findClosestSignupTerm(
+        [termOngoing, termNext],
+        undefined,
+        new Date("2026-10-17")
+      )
+      expect(res.isRegistrationOpen).toBe(false)
+      expect(res.term?.id).toBe("t-next")
+      expect(res.daysUntilRegistration).toBeGreaterThan(0)
     })
   })
 })

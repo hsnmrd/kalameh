@@ -214,6 +214,84 @@ describe("Student Modals", () => {
         })
       ).toBeInTheDocument()
     })
+
+    it("should display registration notice when an active registering term is present", () => {
+      const futureDate = new Date()
+      futureDate.setDate(futureDate.getDate() + 3)
+      const endDate = new Date()
+      endDate.setDate(endDate.getDate() + 45)
+
+      const term: TermDto = {
+        id: "term-open",
+        title: "پاییز ۱۴۰۵",
+        startDate: futureDate.toISOString(),
+        endDate: endDate.toISOString(),
+        isActive: true,
+        operatingPhaseId: "phase-1",
+        operatingPhase: {
+          id: "phase-1",
+          instituteId: "inst-1",
+          title: "عادی",
+          startTime: "08:00",
+          endTime: "20:00",
+          slotDurationMinutes: 90,
+          daysOfWeek: ["SATURDAY"],
+          isActive: true,
+        },
+      }
+
+      render(
+        <CreateStudentModal
+          open={true}
+          onClose={vi.fn()}
+          instituteId="inst-1"
+          terms={[term]}
+        />
+      )
+
+      expect(
+        screen.getByText(/ثبت‌نام برای ترم «پاییز ۱۴۰۵» باز است/i)
+      ).toBeInTheDocument()
+    })
+
+    it("should display wishlist notice when registration has passed", () => {
+      const pastStart = new Date()
+      pastStart.setDate(pastStart.getDate() - 25)
+      const pastEnd = new Date()
+      pastEnd.setDate(pastEnd.getDate() + 15)
+
+      const term: TermDto = {
+        id: "term-passed",
+        title: "تابستان ۱۴۰۵",
+        startDate: pastStart.toISOString(),
+        endDate: pastEnd.toISOString(),
+        isActive: true,
+        operatingPhaseId: "phase-1",
+        operatingPhase: {
+          id: "phase-1",
+          instituteId: "inst-1",
+          title: "عادی",
+          startTime: "08:00",
+          endTime: "20:00",
+          slotDurationMinutes: 90,
+          daysOfWeek: ["SATURDAY"],
+          isActive: true,
+        },
+      }
+
+      render(
+        <CreateStudentModal
+          open={true}
+          onClose={vi.fn()}
+          instituteId="inst-1"
+          terms={[term]}
+        />
+      )
+
+      expect(
+        screen.getByText(/مهلت ثبت‌نام ترم جاری سپری شده است/i)
+      ).toBeInTheDocument()
+    })
   })
 
   describe("AddStudentNoteModal", () => {

@@ -33,6 +33,7 @@ import { ListSkeleton } from "@/components/list-skeleton"
 import { modalRegistry } from "./modal"
 import { StudentsHeaderActions } from "./components/students-header-actions"
 import { StudentScheduleConfirmationBanner } from "./components/student-schedule-confirmation-banner"
+import { ClosestTermSignupBanner } from "./components/closest-term-signup-banner"
 import { NoOperatingPhaseAlert } from "./components/no-operating-phase-alert"
 import { StudentsFilter } from "./components/students-filter"
 import { StudentsTable } from "./components/students-table"
@@ -130,6 +131,11 @@ export default function StudentsPage() {
     )
   }, [currentActiveTerm, terms])
 
+  const isWishlistFilter = filters.selectedStatus === "WISHLIST"
+  const activeStatusFilter = isWishlistFilter
+    ? undefined
+    : parseStatusFilter(filters.selectedStatus)
+
   // Query students
   const { data: students, isLoading } = useQuery({
     ...studentsResource.list.toQuery({
@@ -142,7 +148,8 @@ export default function StudentsPage() {
         filters.selectedBranchId !== "ALL"
           ? filters.selectedBranchId
           : undefined,
-      isActive: parseStatusFilter(filters.selectedStatus),
+      isActive: activeStatusFilter,
+      inWishlist: isWishlistFilter ? true : undefined,
       instituteId: activeInstituteId,
     }),
     enabled: Boolean(activeInstituteId && hasModule && !hasNoPhases),
@@ -156,9 +163,11 @@ export default function StudentsPage() {
       setIsExporting(true)
       const baseUrl = API_BASE_URL
       const queryParams = new URLSearchParams()
-      const isActiveFilter = parseStatusFilter(filters.selectedStatus)
-      if (isActiveFilter !== undefined)
-        queryParams.set("isActive", String(isActiveFilter))
+      if (isWishlistFilter) {
+        queryParams.set("inWishlist", "true")
+      } else if (activeStatusFilter !== undefined) {
+        queryParams.set("isActive", String(activeStatusFilter))
+      }
       if (filters.selectedCourseId !== "ALL")
         queryParams.set("courseId", filters.selectedCourseId)
       if (filters.selectedBranchId !== "ALL")
@@ -288,6 +297,27 @@ export default function StudentsPage() {
             <NoOperatingPhaseAlert />
           ) : (
             <div className="flex flex-1 flex-col gap-4">
+              {terms.length > 0 && (
+                <ClosestTermSignupBanner
+                  terms={terms}
+                  instituteSettings={{
+                    registrationDaysBeforeStart:
+                      activeInstitute?.termRegistrationDaysBeforeStart,
+                    registrationDaysAfterStart:
+                      activeInstitute?.termRegistrationDaysAfterStart,
+                    examDaysBeforeEnd: activeInstitute?.termExamDaysBeforeEnd,
+                  }}
+                  isWishlistActive={isWishlistFilter}
+                  onFilterWishlist={() =>
+                    setFilter(
+                      "selectedStatus",
+                      isWishlistFilter ? "ALL" : "WISHLIST"
+                    )
+                  }
+                  onAddStudent={handleCreate}
+                />
+              )}
+
               {!isListEmpty && totalCount > 0 && unconfirmedActiveTerm && (
                 <StudentScheduleConfirmationBanner
                   term={unconfirmedActiveTerm}

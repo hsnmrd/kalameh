@@ -12,6 +12,8 @@ import {
   FileText,
   Check,
   Clock,
+  Bookmark,
+  CalendarCheck,
 } from "lucide-react"
 import { PERMISSIONS, type StudentDto } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
@@ -97,25 +99,46 @@ export function StudentCard({
           </div>
         </div>
 
-        {student.currentAllowedCourse ? (
-          <Badge
-            variant="outline"
-            className="gap-1 border-primary/30 bg-primary/10 text-xs text-primary"
-            title={student.currentAllowedCourse.title}
-          >
-            <GraduationCap className="size-3 text-inherit" />
-            <span>
-              {formatCourseShortTitle(student.currentAllowedCourse.title)}
-            </span>
-          </Badge>
-        ) : (
-          <Badge
-            variant="outline"
-            className="border-muted-foreground/30 bg-muted/40 text-xs text-muted-foreground"
-          >
-            <span>{t("table.noLevel")}</span>
-          </Badge>
-        )}
+        <div className="flex flex-col items-end gap-1.5">
+          {student.studentProfile?.inWishlist && (
+            <Badge
+              variant="outline"
+              className="gap-1 border-warning/40 bg-warning/15 text-xs text-warning"
+            >
+              <Bookmark className="size-3 text-inherit" />
+              <span>{t("table.wishlistBadge")}</span>
+            </Badge>
+          )}
+          {student.studentProfile?.targetTerm && (
+            <Badge
+              variant="outline"
+              className="gap-1 border-primary/30 bg-primary/10 text-xs text-primary"
+              title={student.studentProfile.targetTerm.title}
+            >
+              <CalendarCheck className="size-3 text-inherit" />
+              <span>{student.studentProfile.targetTerm.title}</span>
+            </Badge>
+          )}
+          {student.currentAllowedCourse ? (
+            <Badge
+              variant="outline"
+              className="gap-1 border-primary/30 bg-primary/10 text-xs text-primary"
+              title={student.currentAllowedCourse.title}
+            >
+              <GraduationCap className="size-3 text-inherit" />
+              <span>
+                {formatCourseShortTitle(student.currentAllowedCourse.title)}
+              </span>
+            </Badge>
+          ) : (
+            <Badge
+              variant="outline"
+              className="border-muted-foreground/30 bg-muted/40 text-xs text-muted-foreground"
+            >
+              <span>{t("table.noLevel")}</span>
+            </Badge>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 border-t border-border/60 pt-3 text-xs text-muted-foreground">

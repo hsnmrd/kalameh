@@ -14,6 +14,7 @@ import { StudentFilterDto } from './dto/student-filter.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import {
   calculatePhaseSlots,
+  findClosestSignupTerm,
   type JwtPayload,
   type SupportedLocale,
   type StudentLookupResponse,
@@ -87,6 +88,50 @@ export class StudentsService {
       : null;
     const initialNote = dto.notes?.trim();
 
+    // Determine closest signup term or wishlist status based on term lifecycle
+    const [activeTerms, institute] = await Promise.all([
+      this.prisma.term.findMany({
+        where: { instituteId: targetInstituteId, isActive: true },
+        include: {
+          operatingPhase: true,
+        },
+      }),
+      this.prisma.institute.findUnique({
+        where: { id: targetInstituteId },
+        select: {
+          termRegistrationDaysBeforeStart: true,
+          termRegistrationDaysAfterStart: true,
+          termExamDaysBeforeEnd: true,
+        },
+      }),
+    ]);
+
+    const closestSignup = findClosestSignupTerm(
+      activeTerms,
+      {
+        registrationDaysBeforeStart: institute?.termRegistrationDaysBeforeStart,
+        registrationDaysAfterStart: institute?.termRegistrationDaysAfterStart,
+        examDaysBeforeEnd: institute?.termExamDaysBeforeEnd,
+      },
+      new Date(),
+    );
+
+    let targetTermId: string | null = null;
+    let inWishlist = false;
+
+    if (dto.targetTermId !== undefined) {
+      targetTermId = dto.targetTermId;
+      inWishlist = dto.inWishlist ?? false;
+    } else if (closestSignup.term && closestSignup.isRegistrationOpen) {
+      targetTermId = closestSignup.term.id;
+      inWishlist = false;
+    } else {
+      // Signup period has passed for active terms or no term currently registering
+      // Student is saved in wish list for next term's class creation
+      targetTermId = null;
+      inWishlist = true;
+    }
+
     const student = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
@@ -121,6 +166,8 @@ export class StudentsService {
           address: dto.address,
           schoolShift: dto.schoolShift ?? 'FLEXIBLE',
           dayPreference: dto.dayPreference ?? 'ANY',
+          targetTermId,
+          inWishlist,
         },
       });
 
@@ -185,6 +232,14 @@ export class StudentsService {
       const profileWithNotes = await tx.studentProfile.findUnique({
         where: { id: profile.id },
         include: {
+          targetTerm: {
+            select: {
+              id: true,
+              title: true,
+              startDate: true,
+              endDate: true,
+            },
+          },
           notes: {
             include: {
               createdBy: {
@@ -223,6 +278,8 @@ export class StudentsService {
         lastName: student.lastName,
         phone: student.phone,
         nationalCode: student.nationalCode,
+        targetTermId,
+        inWishlist,
       },
     });
 
@@ -272,6 +329,12 @@ export class StudentsService {
         ...(typeof filter?.isActive === 'boolean'
           ? { isActive: filter.isActive }
           : {}),
+        ...(typeof filter?.inWishlist === 'boolean'
+          ? { studentProfile: { inWishlist: filter.inWishlist } }
+          : {}),
+        ...(filter?.targetTermId
+          ? { studentProfile: { targetTermId: filter.targetTermId } }
+          : {}),
         ...(search
           ? {
               OR: [
@@ -297,6 +360,14 @@ export class StudentsService {
         },
         studentProfile: {
           include: {
+            targetTerm: {
+              select: {
+                id: true,
+                title: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
             notes: {
               include: {
                 createdBy: {
@@ -360,6 +431,14 @@ export class StudentsService {
         },
         studentProfile: {
           include: {
+            targetTerm: {
+              select: {
+                id: true,
+                title: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
             availabilities: {
               orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
             },

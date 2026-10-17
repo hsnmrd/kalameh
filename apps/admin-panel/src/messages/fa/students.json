@@ -11,11 +11,26 @@
     "allBranches": "همه شعب",
     "allStatus": "همه وضعیت‌ها",
     "active": "فقط فعال",
-    "inactive": "فقط مسدود/غیرفعال"
+    "inactive": "فقط مسدود/غیرفعال",
+    "wishlist": "لیست انتظار (ترم بعد)"
   },
   "status": {
     "active": "فعال",
     "inactive": "غیرفعال"
+  },
+  "closestTerm": {
+    "registeringTitle": "ثبت‌نام ترم {termTitle} فعال است",
+    "registeringSubtitle": "فراگیران جدیدی که اکنون ثبت‌نام شوند، در ترم {termTitle} قرار می‌گیرند. ({days} روز تا پایان مهلت ثبت‌نام)",
+    "wishlistTitle": "مهلت ثبت‌نام ترم جاری سپری شده است",
+    "wishlistSubtitle": "فراگیران جدید در «لیست انتظار» ذخیره می‌شوند تا در ایجاد کلاس‌های ترم {nextTermTitle} محاسبه گردند.",
+    "noTermTitle": "در حال حاضر ترمی در بازه ثبت‌نام قرار ندارد",
+    "noTermSubtitle": "فراگیران جدید به عنوان لیست انتظار برای ایجاد کلاس‌های ترم آینده ذخیره خواهند شد.",
+    "badgeRegistering": "ثبت‌نام فعال",
+    "badgeWishlist": "لیست انتظار ترم بعد",
+    "viewWishlist": "لیست انتظار",
+    "registerAction": "ثبت‌نام",
+    "modalRegisteringNote": "ثبت‌نام برای ترم «{termTitle}» باز است. این فراگیر به صورت خودکار در این ترم ثبت می‌شود.",
+    "modalWishlistNote": "مهلت ثبت‌نام ترم جاری سپری شده است. این فراگیر در لیست انتظار (پیش‌ثبت‌نام برای ایجاد کلاس‌های ترم بعد) ذخیره خواهد شد."
   },
   "table": {
     "name": "نام و نام خانوادگی",
@@ -23,6 +38,8 @@
     "fatherName": "نام پدر",
     "nationalCode": "کد ملی",
     "currentLevel": "سطح مجاز فعلی",
+    "targetTerm": "ترم / وضعیت ثبت‌نام",
+    "wishlistBadge": "لیست انتظار",
     "noLevel": "تعیین سطح نشده (سطح پایه)",
     "scheduleStatus": "برنامه حضور",
     "branch": "شعبه",

@@ -64,6 +64,7 @@ export function StudentsFilter({
       { value: "ALL", label: t("filter.allStatus") },
       { value: "ACTIVE", label: t("filter.active") },
       { value: "INACTIVE", label: t("filter.inactive") },
+      { value: "WISHLIST", label: t("filter.wishlist") },
     ]
   }, [t])
 

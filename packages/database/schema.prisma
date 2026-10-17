@@ -144,6 +144,10 @@ model StudentProfile {
   notes          StudentNote[]
   availabilities StudentAvailability[]
 
+  targetTermId String?
+  targetTerm   Term?   @relation("StudentTargetTerm", fields: [targetTermId], references: [id], onDelete: SetNull)
+  inWishlist   Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -151,6 +155,8 @@ model StudentProfile {
 
   @@index([schoolShift])
   @@index([dayPreference])
+  @@index([targetTermId])
+  @@index([inWishlist])
 }
 
 enum StudentScheduleStatus {
@@ -238,6 +244,7 @@ model Term {
   classRequirements     ClassRequirement[]
   schedulingRuns        SchedulingRun[]
   teacherAvailabilities TeacherAvailability[]
+  targetStudents        StudentProfile[]        @relation("StudentTargetTerm")
 
   studentSchedulesConfirmedAt       DateTime?
   studentSchedulesConfirmedByUserId String?

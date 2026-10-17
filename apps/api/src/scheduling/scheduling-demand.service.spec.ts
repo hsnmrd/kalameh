@@ -158,6 +158,49 @@ describe('Scheduling demand', () => {
     },
   );
 
+  it('includes wishlist students in next term demand calculation', async () => {
+    const prisma = createCalculationPrisma();
+    prisma.enrollment.findMany.mockResolvedValueOnce([]); // preceding
+    prisma.enrollment.findMany.mockResolvedValueOnce([]); // target
+    prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'student-wishlist',
+        currentAllowedCourseId: course.id,
+        studentProfile: { inWishlist: true, targetTermId: null },
+      },
+    ]);
+    const service = new SchedulingDemandCalculationService(prisma as never);
+
+    const result = await service.calculateDemand(currentUser, {
+      termId: 'term-1',
+      branchId: 'branch-1',
+    });
+
+    expect(result.totalEligibleStudents).toBe(1);
+    expect(result.totalSuggestedClasses).toBe(1);
+  });
+
+  it('excludes students targeted for a different term from demand calculation', async () => {
+    const prisma = createCalculationPrisma();
+    prisma.enrollment.findMany.mockResolvedValueOnce([]); // preceding
+    prisma.enrollment.findMany.mockResolvedValueOnce([]); // target
+    prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'student-other-term',
+        currentAllowedCourseId: course.id,
+        studentProfile: { inWishlist: false, targetTermId: 'term-other' },
+      },
+    ]);
+    const service = new SchedulingDemandCalculationService(prisma as never);
+
+    const result = await service.calculateDemand(currentUser, {
+      termId: 'term-1',
+      branchId: 'branch-1',
+    });
+
+    expect(result.totalEligibleStudents).toBe(0);
+  });
+
   it('rejects cross-tenant term access', async () => {
     const prisma = createCalculationPrisma();
     prisma.term.findUniqueOrThrow.mockResolvedValue({

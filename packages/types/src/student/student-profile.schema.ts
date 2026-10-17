@@ -28,6 +28,17 @@ export const StudentProfileSchema = z.object({
   dayPreference: z.enum(STUDENT_DAY_PREFERENCES).default("ANY"),
   notes: z.array(StudentNoteSchema).optional(),
   availabilities: z.array(StudentAvailabilitySchema).optional(),
+  targetTermId: z.string().uuid().nullable().optional(),
+  targetTerm: z
+    .object({
+      id: z.string().uuid(),
+      title: z.string(),
+      startDate: z.date().or(z.string()),
+      endDate: z.date().or(z.string()),
+    })
+    .nullable()
+    .optional(),
+  inWishlist: z.boolean().default(false),
   createdAt: z.date().or(z.string()).optional(),
   updatedAt: z.date().or(z.string()).optional(),
 })

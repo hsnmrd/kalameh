@@ -14,11 +14,21 @@ import {
   FormDialogCloseButton,
   FormDialogFooter,
 } from "@workspace/ui/components/dialog"
+import { CalendarCheck, Bookmark } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { type ComboboxOption } from "@workspace/ui/components/combobox"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { coursesResource, studentsResource, branchesResource } from "@/lib/api"
-import type { SupportedLocale } from "@workspace/types"
+import {
+  coursesResource,
+  studentsResource,
+  branchesResource,
+  termsResource,
+} from "@/lib/api"
+import {
+  findClosestSignupTerm,
+  type SupportedLocale,
+  type TermDto,
+} from "@workspace/types"
 import {
   useCreateStudentSchema,
   type CreateStudentInput,
@@ -31,17 +41,31 @@ export interface CreateStudentModalProps {
   open: boolean
   onClose: () => void
   instituteId?: string
+  terms?: TermDto[]
 }
 
 export function CreateStudentModal({
   open,
   onClose,
   instituteId,
+  terms: propTerms,
 }: CreateStudentModalProps) {
   const t = useTranslations("students")
   const locale = useLocale() as SupportedLocale
   const queryClient = useQueryClient()
   const createStudentSchema = useCreateStudentSchema()
+
+  // Fetch terms if not provided in props
+  const { data: fetchedTerms = [] } = useQuery({
+    ...termsResource.list.toQuery(instituteId ? { instituteId } : undefined),
+    enabled: open && !propTerms && !!instituteId,
+  })
+
+  const terms = propTerms ?? fetchedTerms
+
+  const closest = React.useMemo(() => {
+    return findClosestSignupTerm(terms)
+  }, [terms])
 
   // Fetch courses to let admin choose allowed course
   const { data: courses = [] } = useQuery({
@@ -169,6 +193,22 @@ export function CreateStudentModal({
           className="flex min-h-0 flex-1 flex-col justify-between gap-2 overflow-hidden"
         >
           <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+            {closest.term && closest.isRegistrationOpen ? (
+              <div className="flex items-center gap-2.5 rounded-xl border border-primary/30 bg-primary/5 p-3 text-xs text-foreground">
+                <CalendarCheck className="size-4 shrink-0 text-primary" />
+                <span>
+                  {t("closestTerm.modalRegisteringNote", {
+                    termTitle: closest.term.title,
+                  })}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5 rounded-xl border border-warning/30 bg-warning/5 p-3 text-xs text-foreground">
+                <Bookmark className="size-4 shrink-0 text-warning" />
+                <span>{t("closestTerm.modalWishlistNote")}</span>
+              </div>
+            )}
+
             <IdentityFields
               form={form}
               isLookingUp={isLookingUp}

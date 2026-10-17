@@ -12,6 +12,8 @@ import {
   FileText,
   Clock,
   Plus,
+  Bookmark,
+  CalendarCheck,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -149,6 +151,37 @@ export function StudentsTable({
         cell: ({ row }) => (
           <StudentStatusBadge isActive={row.original.isActive} />
         ),
+      },
+      {
+        accessorKey: "targetTerm",
+        header: t("table.targetTerm"),
+        cell: ({ row }) => {
+          const profile = row.original.studentProfile
+          if (profile?.inWishlist) {
+            return (
+              <Badge
+                variant="outline"
+                className="gap-1 border-warning/40 bg-warning/15 text-xs text-warning"
+              >
+                <Bookmark className="size-3 text-inherit" />
+                <span>{t("table.wishlistBadge")}</span>
+              </Badge>
+            )
+          }
+          if (profile?.targetTerm) {
+            return (
+              <Badge
+                variant="outline"
+                className="gap-1 border-primary/30 bg-primary/10 text-xs text-primary"
+                title={profile.targetTerm.title}
+              >
+                <CalendarCheck className="size-3 text-inherit" />
+                <span>{profile.targetTerm.title}</span>
+              </Badge>
+            )
+          }
+          return <span className="text-xs text-muted-foreground">—</span>
+        },
       },
       {
         accessorKey: "createdAt",

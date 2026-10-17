@@ -55,6 +55,12 @@ describe('StudentsService', () => {
       studentNote: {
         create: jest.fn(),
       },
+      term: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+      institute: {
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
       $transaction: jest.fn((cb) => {
         return cb(prismaService);
       }),
@@ -127,6 +133,135 @@ describe('StudentsService', () => {
       expect(result).toBeDefined();
       expect(result.id).toBe('new-student-id');
       expect(result.studentProfile?.fatherName).toBe('Reza');
+      // When no terms exist, inWishlist is true
+      expect(prismaService.studentProfile.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            inWishlist: true,
+            targetTermId: null,
+          }),
+        }),
+      );
+    });
+
+    it('should include student in active term when registration status is open', async () => {
+      prismaService.user.findUnique.mockResolvedValue(null);
+      prismaService.user.create.mockResolvedValue({
+        id: 'new-student-id-2',
+        instituteId: 'inst-1',
+        role: 'STUDENT',
+        firstName: 'Sarah',
+        lastName: 'Ahmadi',
+        phone: '09128888888',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      prismaService.studentProfile.create.mockResolvedValue({
+        id: 'profile-id-2',
+        userId: 'new-student-id-2',
+        targetTermId: 'term-active',
+        inWishlist: false,
+      });
+      prismaService.studentProfile.findUnique.mockResolvedValue({
+        id: 'profile-id-2',
+        userId: 'new-student-id-2',
+        targetTermId: 'term-active',
+        inWishlist: false,
+        notes: [],
+      });
+
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 3); // 3 days in future -> registration open
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 45);
+
+      prismaService.term.findMany.mockResolvedValue([
+        {
+          id: 'term-active',
+          title: 'Fall 2026',
+          startDate: futureDate,
+          endDate,
+          isActive: true,
+          operatingPhaseId: 'phase-1',
+        },
+      ]);
+
+      const result = await service.create(mockAdmin, {
+        firstName: 'Sarah',
+        lastName: 'Ahmadi',
+        phone: '09128888888',
+      });
+
+      expect(result).toBeDefined();
+      expect(prismaService.studentProfile.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            targetTermId: 'term-active',
+            inWishlist: false,
+          }),
+        }),
+      );
+    });
+
+    it('should place student in wishlist for next term when registration status has passed', async () => {
+      prismaService.user.findUnique.mockResolvedValue(null);
+      prismaService.user.create.mockResolvedValue({
+        id: 'new-student-id-3',
+        instituteId: 'inst-1',
+        role: 'STUDENT',
+        firstName: 'Nima',
+        lastName: 'Rad',
+        phone: '09127777777',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      prismaService.studentProfile.create.mockResolvedValue({
+        id: 'profile-id-3',
+        userId: 'new-student-id-3',
+        targetTermId: null,
+        inWishlist: true,
+      });
+      prismaService.studentProfile.findUnique.mockResolvedValue({
+        id: 'profile-id-3',
+        userId: 'new-student-id-3',
+        targetTermId: null,
+        inWishlist: true,
+        notes: [],
+      });
+
+      const pastStart = new Date();
+      pastStart.setDate(pastStart.getDate() - 20); // 20 days ago -> registration passed
+      const pastEnd = new Date();
+      pastEnd.setDate(pastEnd.getDate() + 20);
+
+      prismaService.term.findMany.mockResolvedValue([
+        {
+          id: 'term-ongoing-passed-reg',
+          title: 'Summer 2026',
+          startDate: pastStart,
+          endDate: pastEnd,
+          isActive: true,
+          operatingPhaseId: 'phase-1',
+        },
+      ]);
+
+      const result = await service.create(mockAdmin, {
+        firstName: 'Nima',
+        lastName: 'Rad',
+        phone: '09127777777',
+      });
+
+      expect(result).toBeDefined();
+      expect(prismaService.studentProfile.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            targetTermId: null,
+            inWishlist: true,
+          }),
+        }),
+      );
     });
 
     it('should throw ConflictException if phone is already registered in institute', async () => {

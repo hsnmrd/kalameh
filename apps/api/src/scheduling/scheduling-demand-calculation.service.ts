@@ -115,7 +115,12 @@ export class SchedulingDemandCalculationService {
       },
       include: {
         studentProfile: {
-          select: { schoolShift: true, dayPreference: true },
+          select: {
+            schoolShift: true,
+            dayPreference: true,
+            targetTermId: true,
+            inWishlist: true,
+          },
         },
       },
     });
@@ -198,7 +203,11 @@ export class SchedulingDemandCalculationService {
         (student) =>
           student.currentAllowedCourseId === course.id &&
           !precedingStudentIds.has(student.id) &&
-          !alreadyEnrolledByCourse.get(course.id)?.has(student.id),
+          !alreadyEnrolledByCourse.get(course.id)?.has(student.id) &&
+          (student.studentProfile?.targetTermId === term.id ||
+            student.studentProfile?.inWishlist === true ||
+            (!student.studentProfile?.targetTermId &&
+              !student.studentProfile?.inWishlist)),
       );
       const preferences: StudentPreferences[] = [
         ...continuing.values(),
