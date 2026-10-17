@@ -5,11 +5,12 @@ import {
   type JwtPayload,
   type SupportedLocale,
 } from '@workspace/types';
+import { Prisma } from '@workspace/database';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../common/redis/redis.service';
 import { ClassFilterDto } from './dto/class-filter.dto';
 
-const classInclude = {
+const classInclude = Prisma.validator<Prisma.ClassInclude>()({
   branch: {
     select: {
       id: true,
@@ -53,7 +54,7 @@ const classInclude = {
       },
     },
   },
-} as const;
+});
 
 @Injectable()
 export class ClassQueryService {
