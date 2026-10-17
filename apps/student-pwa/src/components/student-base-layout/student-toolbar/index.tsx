@@ -4,20 +4,14 @@ import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import {
-  Building2,
-  ArrowLeft,
-  ArrowRight,
-  LogOut,
-  Download,
-} from "lucide-react"
+import { Building2, ArrowLeft, ArrowRight, Download } from "lucide-react"
 import { Link, useRouter, useIsRtl, usePathname } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
 import { authResource } from "@/lib/api"
 import { usePwaContext } from "@/components/pwa-provider"
+import { StudentProfileButton } from "./student-profile-button"
 
 export interface StudentToolbarProps {
   isHomePage: boolean
@@ -26,7 +20,7 @@ export interface StudentToolbarProps {
   pathname?: string
   locale?: string
   onSwitchLanguage?: () => void
-  onLogout: () => void
+  onLogout?: () => void
   isLogoutPending?: boolean
   className?: string
 }
@@ -149,8 +143,8 @@ export function StudentToolbar({
         )}
       </div>
 
-      {/* End Section (Install App + Theme Toggle + Logout) */}
-      <div className="flex shrink-0 items-center gap-2">
+      {/* End Section (Install App + Theme Toggle + User Profile) */}
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         {isInstallable && (
           <Button
             type="button"
@@ -171,22 +165,10 @@ export function StudentToolbar({
             system: t("theme.system"),
           }}
         />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onLogout}
-          disabled={isLogoutPending}
-          className="size-11 cursor-pointer rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-destructive active:scale-95"
-          aria-label={t("logout")}
-          title={t("logout")}
-        >
-          {isLogoutPending ? (
-            <Spinner className="size-4 shrink-0 text-current" />
-          ) : (
-            <LogOut className="size-5" />
-          )}
-        </Button>
+        <StudentProfileButton
+          user={user}
+          isActive={effectivePathname.startsWith("/profile")}
+        />
       </div>
     </header>
   )

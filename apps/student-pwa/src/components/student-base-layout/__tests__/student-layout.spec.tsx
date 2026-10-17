@@ -14,46 +14,24 @@ vi.mock("@/i18n/routing", () => ({
   }),
   usePathname: () => "/dashboard",
   useIsRtl: () => true,
-  Link: ({
-    children,
-    href,
-    className,
-    "aria-label": ariaLabel,
-    "aria-current": ariaCurrent,
-  }: {
-    children: React.ReactNode
-    href: string
-    className?: string
-    "aria-label"?: string
-    "aria-current"?: string
-  }) => (
-    <a
-      href={href}
-      className={className}
-      aria-label={ariaLabel}
-      aria-current={ariaCurrent}
-    >
+  Link: ({ children, href, ...props }: React.ComponentProps<"a">) => (
+    <a href={href} {...props}>
       {children}
     </a>
   ),
 }))
 
 describe("StudentToolbar Component", () => {
-  it("should render institute name, logo, theme toggle, and logout button on home page", () => {
-    const handleLogout = vi.fn()
-
-    render(
-      <StudentToolbar
-        isHomePage={true}
-        instituteName="آموزشگاه فراتاک"
-        onLogout={handleLogout}
-      />
-    )
+  it("should render institute name, logo, theme toggle, and profile button on home page instead of logout button", () => {
+    render(<StudentToolbar isHomePage={true} instituteName="آموزشگاه فراتاک" />)
 
     expect(screen.getByText("آموزشگاه فراتاک")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /خروج|logout/i })).toHaveClass(
-      "size-11"
-    )
+    const profileBtn = screen.getByTestId("student-toolbar-profile-btn")
+    expect(profileBtn).toBeInTheDocument()
+    expect(profileBtn).toHaveAttribute("href", "/profile")
+    expect(
+      screen.queryByRole("button", { name: /خروج|logout/i })
+    ).not.toBeInTheDocument()
     expect(screen.getByRole("link", { name: "آموزشگاه فراتاک" })).toHaveClass(
       "min-h-11"
     )
@@ -63,27 +41,17 @@ describe("StudentToolbar Component", () => {
   })
 
   it("should fallback to app name on home page when institute name is not available", () => {
-    render(<StudentToolbar isHomePage={true} onLogout={vi.fn()} />)
+    render(<StudentToolbar isHomePage={true} />)
 
     expect(screen.getByText("کلمه")).toBeInTheDocument()
   })
 
-  it("should trigger onLogout callback when logout button is clicked", () => {
-    const handleLogout = vi.fn()
+  it("should navigate to /profile when profile button is present in header", () => {
+    render(<StudentToolbar isHomePage={true} locale="fa" />)
 
-    render(
-      <StudentToolbar
-        isHomePage={true}
-        locale="fa"
-        onSwitchLanguage={vi.fn()}
-        onLogout={handleLogout}
-      />
-    )
-
-    const logoutBtn = screen.getByRole("button", { name: /خروج|logout/i })
-    fireEvent.click(logoutBtn)
-
-    expect(handleLogout).toHaveBeenCalledTimes(1)
+    const profileBtn = screen.getByTestId("student-toolbar-profile-btn")
+    expect(profileBtn).toBeInTheDocument()
+    expect(profileBtn).toHaveAttribute("href", "/profile")
   })
 
   it("should render back button and page title on inner pages", () => {

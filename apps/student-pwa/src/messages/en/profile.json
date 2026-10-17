@@ -11,5 +11,21 @@
   "settings": "Settings (Theme & Language)",
   "changePassword": "Change Password",
   "languageSetting": "Display Language",
-  "logout": "Log Out of Account"
+  "logout": "Log Out of Account",
+  "personalInfo": "Personal Information",
+  "academicInfo": "Academic & Institute Information",
+  "contactInfo": "Contact & Address",
+  "name": "Full Name",
+  "nationalCode": "National Code",
+  "fatherName": "Father's Name",
+  "birthDate": "Birth Date",
+  "gender": "Gender",
+  "genderMale": "Male",
+  "genderFemale": "Female",
+  "institute": "Institute",
+  "studentRole": "Student",
+  "memberSince": "Member Since",
+  "phone": "Phone Number",
+  "emergencyPhone": "Emergency Phone",
+  "address": "Address"
 }
