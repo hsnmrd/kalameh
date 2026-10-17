@@ -9,18 +9,10 @@ export default function StudentSettingPage() {
   const t = useTranslations("setting")
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold tracking-tight text-foreground">
-          {t("title")}
-        </h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <SettingThemeCard />
-        <SettingLanguageCard />
-      </div>
+    <div className="flex flex-col gap-4">
+      <h1 className="sr-only">{t("title")}</h1>
+      <SettingThemeCard />
+      <SettingLanguageCard />
     </div>
   )
 }
