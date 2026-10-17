@@ -157,75 +157,70 @@ export default function StudentLoginPage() {
 
         {/* Main Area */}
         <main className="flex flex-1 flex-col gap-6 px-4 py-6">
-          {/* Login Form Card */}
-          <div className="flex flex-col gap-6 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs sm:p-8">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                {t("title")}
-              </h1>
-              <p className="text-[15px] text-muted-foreground">
-                {t("description")}
-              </p>
-            </div>
-
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="flex flex-col gap-5"
-            >
-              <FieldGroup>
-                <Field data-invalid={Boolean(errors.phone)}>
-                  <FieldLabel htmlFor="student-phone">
-                    {t("phoneLabel")}
-                  </FieldLabel>
-                  <Input
-                    id="student-phone"
-                    type="tel"
-                    dir="ltr"
-                    variant="auth"
-                    placeholder={t("phonePlaceholder")}
-                    autoComplete="username"
-                    {...register("phone")}
-                  />
-                  <FieldError>{errors.phone?.message}</FieldError>
-                </Field>
-              </FieldGroup>
-
-              <FieldGroup>
-                <Field data-invalid={Boolean(errors.password)}>
-                  <FieldLabel htmlFor="student-password">
-                    {t("passwordLabel")}
-                  </FieldLabel>
-                  <PasswordInput
-                    id="student-password"
-                    variant="auth"
-                    placeholder={t("passwordPlaceholder")}
-                    autoComplete="current-password"
-                    {...register("password")}
-                  />
-                  <FieldError>{errors.password?.message}</FieldError>
-                </Field>
-              </FieldGroup>
-
-              <Button
-                type="submit"
-                size="auth"
-                disabled={loginMutation.isPending}
-                className="mt-2 w-full cursor-pointer bg-primary text-primary-foreground transition-all hover:bg-primary/90"
-              >
-                {loginMutation.isPending ? (
-                  <Spinner className="size-5 text-primary-foreground" />
-                ) : (
-                  <>
-                    <span>{t("signInButton")}</span>
-                    <SubmitArrow className="size-5" />
-                  </>
-                )}
-              </Button>
-            </form>
+          <div className="flex flex-col gap-2 border-b border-border/60 pb-5">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              {t("title")}
+            </h1>
+            <p className="text-sm text-muted-foreground">{t("description")}</p>
           </div>
 
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-5"
+          >
+            <FieldGroup>
+              <Field data-invalid={Boolean(errors.phone)}>
+                <FieldLabel htmlFor="student-phone">
+                  {t("phoneLabel")}
+                </FieldLabel>
+                <Input
+                  id="student-phone"
+                  type="tel"
+                  dir="ltr"
+                  variant="auth"
+                  placeholder={t("phonePlaceholder")}
+                  autoComplete="username"
+                  {...register("phone")}
+                />
+                <FieldError>{errors.phone?.message}</FieldError>
+              </Field>
+            </FieldGroup>
+
+            <FieldGroup>
+              <Field data-invalid={Boolean(errors.password)}>
+                <FieldLabel htmlFor="student-password">
+                  {t("passwordLabel")}
+                </FieldLabel>
+                <PasswordInput
+                  id="student-password"
+                  variant="auth"
+                  placeholder={t("passwordPlaceholder")}
+                  autoComplete="current-password"
+                  {...register("password")}
+                />
+                <FieldError>{errors.password?.message}</FieldError>
+              </Field>
+            </FieldGroup>
+
+            <Button
+              type="submit"
+              size="auth"
+              disabled={loginMutation.isPending}
+              className="mt-2 w-full cursor-pointer bg-primary text-primary-foreground transition-all hover:bg-primary/90"
+            >
+              {loginMutation.isPending ? (
+                <Spinner className="size-5 text-primary-foreground" />
+              ) : (
+                <>
+                  <span>{t("signInButton")}</span>
+                  <SubmitArrow className="size-5" />
+                </>
+              )}
+            </Button>
+          </form>
+
           {/* Footer */}
-          <footer className="pt-2 text-center text-xs text-muted-foreground">
+          <footer className="mt-auto border-t border-border/40 pt-4 text-center text-xs text-muted-foreground">
             {tCommon("footer")}
           </footer>
         </main>

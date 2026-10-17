@@ -38,13 +38,13 @@ export function ActiveEnrollmentCard({
   }[badgeVariant]
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
+    <div className="flex flex-col gap-3.5 border-y border-border/60 py-5">
       {(statusText || termText) && (
         <div className="flex items-center justify-between">
           {statusText ? (
             <span
               className={cn(
-                "rounded-full border px-2.5 py-1 text-xs font-medium",
+                "rounded-full border px-2.5 py-0.5 text-xs font-medium",
                 badgeVariantClasses
               )}
             >
@@ -60,19 +60,23 @@ export function ActiveEnrollmentCard({
       )}
 
       <div>
-        <h3 className="text-lg font-semibold text-foreground">
+        <h3 className="text-base font-bold text-foreground">
           {classNameTitle}
         </h3>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          {description}
+        </p>
       </div>
 
-      <Link
-        href={actionHref}
-        className="flex items-center justify-between border-t border-border/60 pt-3 text-xs font-medium text-muted-foreground hover:text-foreground"
-      >
-        <span>{actionText || t("viewReceiptDetails")}</span>
-        <DetailArrow className="size-3.5" />
-      </Link>
+      <div className="border-t border-border/40 pt-3">
+        <Link
+          href={actionHref}
+          className="flex items-center justify-between text-xs font-semibold text-primary transition-colors hover:text-primary/80"
+        >
+          <span>{actionText || t("viewReceiptDetails")}</span>
+          <DetailArrow className="size-4" />
+        </Link>
+      </div>
     </div>
   )
 }

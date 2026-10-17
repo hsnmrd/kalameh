@@ -27,31 +27,33 @@ export function FlashcardStudyCard({
   const t = useTranslations("flashcards")
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
+    <div className="flex flex-col gap-5 border-y border-border/60 py-6">
       <div className="flex items-center justify-between">
-        <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+        <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
           {boxDueText}
         </span>
         <Sparkles className="size-4 text-warning" />
       </div>
 
-      <div className="py-4 text-center">
+      <div className="py-2 text-center">
         <span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
           {wordOfTheDayText}
         </span>
-        <h2 className="mt-1 text-2xl font-bold text-foreground">{word}</h2>
+        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground">
+          {word}
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">{phonetic}</p>
-        <p className="mt-2 text-xs text-muted-foreground italic">
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground italic">
           {definition}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 pt-2">
+      <div className="grid grid-cols-2 gap-3 border-t border-border/40 pt-4">
         <Button
           type="button"
           variant="outline"
           onClick={onReviewAgain}
-          className="cursor-pointer gap-1.5 border-border text-foreground hover:bg-muted"
+          className="h-12 cursor-pointer gap-1.5 rounded-xl border-border text-xs font-semibold text-foreground hover:bg-muted"
         >
           <RotateCw className="size-3.5" />
           <span>{t("reviewAgain")}</span>
@@ -59,7 +61,7 @@ export function FlashcardStudyCard({
         <Button
           type="button"
           onClick={onKnowThis}
-          className="cursor-pointer gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+          className="h-12 cursor-pointer gap-1.5 rounded-xl bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
         >
           <CheckCircle className="size-3.5" />
           <span>{t("knowThis")}</span>

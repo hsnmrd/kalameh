@@ -50,7 +50,7 @@ export function ReservationTimer({
 
   if (isExpired) {
     return (
-      <div className="flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-destructive">
+      <div className="flex items-center gap-3 border-y border-destructive/40 px-1 py-3.5 text-destructive">
         <AlertCircle className="size-5 shrink-0" />
         <p className="text-xs font-semibold">{t("expired")}</p>
       </div>
@@ -59,10 +59,10 @@ export function ReservationTimer({
 
   return (
     <div
-      className={`flex items-center justify-between rounded-2xl border p-4 transition-colors ${
+      className={`flex items-center justify-between border-y px-1 py-3.5 transition-colors ${
         isUrgent
-          ? "border-destructive/40 bg-destructive/10 text-destructive"
-          : "border-warning/40 bg-warning/10 text-warning"
+          ? "border-destructive/40 text-destructive"
+          : "border-warning/40 text-warning"
       }`}
     >
       <div className="flex items-center gap-2.5">

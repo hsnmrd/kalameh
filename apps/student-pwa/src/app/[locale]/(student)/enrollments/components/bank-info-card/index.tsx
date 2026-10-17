@@ -51,7 +51,7 @@ export function BankInfoCard({ bankInfo, tuition }: BankInfoCardProps) {
     : "—"
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xs">
+    <div className="flex flex-col gap-4 border-b border-border/60 pt-1 pb-5">
       <div className="flex items-center justify-between border-b border-border/60 pb-3">
         <div className="flex items-center gap-2">
           <CreditCard className="size-4.5 text-muted-foreground" />
@@ -72,34 +72,39 @@ export function BankInfoCard({ bankInfo, tuition }: BankInfoCardProps) {
         )}
       </div>
 
-      <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
-        <span className="text-[11px] text-muted-foreground">
-          {t("bankCard")}
-        </span>
-        <div className="mt-1 flex items-center justify-between">
-          <span className="font-mono text-lg font-bold tracking-widest text-foreground">
-            {formattedCard}
+      <div className="flex flex-col gap-3 py-1">
+        <div>
+          <span className="text-[11px] text-muted-foreground">
+            {t("bankCard")}
           </span>
-          {cleanCard && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleCopyCard}
-              className="h-8 gap-1.5 rounded-lg border-border px-2.5 text-xs font-semibold text-foreground hover:bg-muted"
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <span
+              dir="ltr"
+              className="text-lg font-bold tracking-widest text-foreground"
             >
-              {copied ? (
-                <Check className="size-3.5 text-success" />
-              ) : (
-                <Copy className="size-3.5 text-muted-foreground" />
-              )}
-              <span>{t("copyCard")}</span>
-            </Button>
-          )}
+              {formattedCard}
+            </span>
+            {cleanCard && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyCard}
+                className="h-8 gap-1.5 rounded-lg border-border px-2.5 text-xs font-semibold text-foreground hover:bg-muted"
+              >
+                {copied ? (
+                  <Check className="size-3.5 text-success" />
+                ) : (
+                  <Copy className="size-3.5 text-muted-foreground" />
+                )}
+                <span>{t("copyCard")}</span>
+              </Button>
+            )}
+          </div>
         </div>
 
         {cleanAccountName && (
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             <span>{t("bankAccount")}</span>{" "}
             <span className="font-semibold text-foreground">
               {cleanAccountName}
@@ -108,14 +113,16 @@ export function BankInfoCard({ bankInfo, tuition }: BankInfoCardProps) {
         )}
 
         {cleanShaba && (
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             <span>{t("bankShaba")}</span>{" "}
-            <span className="font-mono text-foreground">{cleanShaba}</span>
+            <span dir="ltr" className="font-medium text-foreground">
+              {cleanShaba}
+            </span>
           </p>
         )}
       </div>
 
-      <p className="rounded-xl bg-primary/5 p-3 text-xs leading-relaxed font-medium text-foreground/80">
+      <p className="border-t border-border/40 pt-3 text-xs leading-relaxed text-muted-foreground">
         ℹ️ {t("fullPaymentRule")}
       </p>
     </div>

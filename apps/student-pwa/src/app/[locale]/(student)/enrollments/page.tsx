@@ -103,7 +103,7 @@ export default function StudentEnrollmentsPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-12">
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 border-b border-border/60 pb-4">
         <h1 className="text-xl font-bold tracking-tight text-foreground">
           {t("title")}
         </h1>

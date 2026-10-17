@@ -27,13 +27,13 @@ export function InstituteCard({
   return (
     <Button
       type="button"
-      variant="outline"
+      variant="ghost"
       onClick={() => onSelect(institute)}
       disabled={isLoading}
-      className="flex h-auto w-full items-center justify-between gap-4 rounded-2xl border border-border/80 bg-card p-4 text-start transition-all hover:border-primary/50 hover:bg-muted/40 active:scale-[0.98]"
+      className="flex h-auto w-full items-center justify-between gap-4 rounded-none border-b border-border/60 bg-transparent px-1 py-4 text-start transition-colors last:border-b-0 hover:bg-muted/30 active:scale-[0.99]"
     >
       <div className="flex min-w-0 flex-1 items-center gap-3.5">
-        <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/80 bg-primary/10 text-primary">
+        <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-primary/10 text-primary">
           {logoSrc ? (
             <Image
               src={logoSrc}

@@ -43,7 +43,7 @@ export function ReceiptStatusCard({ enrollment }: ReceiptStatusCardProps) {
   ).format(new Date(enrollment.createdAt))
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xs">
+    <div className="flex flex-col gap-4 border-b border-border/60 pt-1 pb-5">
       <div className="flex items-center justify-between border-b border-border/60 pb-3">
         <div className="flex flex-col">
           <span className="text-xs text-muted-foreground">
@@ -59,7 +59,7 @@ export function ReceiptStatusCard({ enrollment }: ReceiptStatusCardProps) {
         </Badge>
       </div>
 
-      <p className="rounded-xl bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+      <p className="text-xs leading-relaxed text-muted-foreground">
         {noticeText}
       </p>
 
@@ -84,11 +84,11 @@ export function ReceiptStatusCard({ enrollment }: ReceiptStatusCardProps) {
         </div>
 
         {enrollment.transaction?.trackingCode && (
-          <div className="col-span-2 flex items-center justify-between rounded-xl border border-border/60 bg-muted/20 px-3 py-2">
+          <div className="col-span-2 flex items-center justify-between border-t border-border/40 pt-2">
             <span className="text-[11px] text-muted-foreground">
               {t("statusCard.trackingCodeLabel")}
             </span>
-            <span className="font-mono text-xs font-bold text-foreground">
+            <span dir="ltr" className="text-xs font-bold text-foreground">
               {enrollment.transaction.trackingCode}
             </span>
           </div>
@@ -97,7 +97,7 @@ export function ReceiptStatusCard({ enrollment }: ReceiptStatusCardProps) {
 
       {/* Receipt Image thumbnail if available */}
       {enrollment.transaction?.receiptImageUrl && (
-        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-border bg-muted">
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-border/60 bg-muted/30">
           <Image
             src={getAssetUrl(enrollment.transaction.receiptImageUrl)}
             alt="Payment receipt"

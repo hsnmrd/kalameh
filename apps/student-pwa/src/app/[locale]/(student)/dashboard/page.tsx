@@ -29,7 +29,7 @@ export default function StudentDashboardPage() {
   const renderEnrollmentCard = () => {
     if (isLoading) {
       return (
-        <div className="flex h-36 w-full items-center justify-center rounded-2xl border border-border bg-card">
+        <div className="flex h-36 w-full items-center justify-center border-y border-border/60">
           <Spinner className="size-6 text-foreground" />
         </div>
       )

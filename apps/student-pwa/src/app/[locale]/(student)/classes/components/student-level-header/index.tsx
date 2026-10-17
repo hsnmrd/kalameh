@@ -14,7 +14,7 @@ export function StudentLevelHeader({
   const t = useTranslations("classes")
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 border-b border-border/60 pb-4">
       <div>
         <h1 className="text-xl font-bold tracking-tight text-foreground">
           {t("title")}
@@ -22,12 +22,12 @@ export function StudentLevelHeader({
         <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <div className="flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/10 p-3.5">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-2xs">
-          <Award className="size-5" />
+      <div className="flex items-center gap-3 pt-1">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Award className="size-4" />
         </div>
         <div className="flex-1">
-          <span className="block text-xs font-semibold text-foreground">
+          <span className="block text-xs font-bold text-foreground">
             {allowedCourseTitle
               ? t("allowedLevel", { level: allowedCourseTitle })
               : t("noLevelAssigned")}

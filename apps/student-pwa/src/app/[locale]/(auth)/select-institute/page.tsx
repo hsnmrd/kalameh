@@ -170,17 +170,17 @@ export default function SelectInstitutePage() {
 
         {/* Main Area */}
         <main className="flex flex-1 flex-col gap-6 px-4 py-6">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <div className="flex flex-col gap-2 border-b border-border/60 pb-5">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
               {t("selectInstitute.title")}
             </h1>
-            <p className="text-[15px] text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {t("selectInstitute.description")}
             </p>
           </div>
 
           {/* List of Institutes */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col">
             {authData.institutes.map((inst) => (
               <InstituteCard
                 key={inst.id}
@@ -196,15 +196,15 @@ export default function SelectInstitutePage() {
           {/* Back button */}
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             onClick={handleBackToLogin}
-            className="mt-2 h-14 w-full rounded-2xl text-sm font-medium text-muted-foreground hover:text-foreground"
+            className="mt-2 h-14 w-full rounded-2xl border-border bg-transparent text-sm font-semibold text-foreground hover:bg-muted"
           >
             <span>{t("selectInstitute.backToLogin")}</span>
           </Button>
 
           {/* Footer */}
-          <footer className="mt-auto pt-4 text-center text-xs text-muted-foreground">
+          <footer className="mt-auto border-t border-border/40 pt-4 text-center text-xs text-muted-foreground">
             {tCommon("footer")}
           </footer>
         </main>

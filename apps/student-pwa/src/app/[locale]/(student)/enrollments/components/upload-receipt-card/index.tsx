@@ -67,7 +67,7 @@ export function UploadReceiptCard({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xs"
+      className="flex flex-col gap-4 border-b border-border/60 pt-1 pb-6"
     >
       <div className="flex flex-col gap-1 border-b border-border/60 pb-3">
         <h3 className="text-sm font-bold text-foreground">{t("title")}</h3>

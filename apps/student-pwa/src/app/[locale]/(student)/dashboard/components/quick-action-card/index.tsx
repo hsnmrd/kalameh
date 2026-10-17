@@ -24,11 +24,11 @@ export function QuickActionCard({
   return (
     <Link
       href={href}
-      className="group block flex flex-col gap-2 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs transition-all hover:border-border/80 hover:shadow-sm active:scale-[0.98]"
+      className="group flex flex-col gap-2 rounded-2xl border border-border/60 bg-transparent p-4 text-foreground transition-all hover:bg-muted/40 active:scale-[0.98]"
     >
       <div
         className={cn(
-          "flex size-9 items-center justify-center rounded-lg transition-transform group-hover:scale-105",
+          "flex size-9 items-center justify-center rounded-xl transition-transform group-hover:scale-105",
           iconBgClassName,
           iconColorClassName
         )}

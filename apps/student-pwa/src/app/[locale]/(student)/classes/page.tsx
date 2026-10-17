@@ -65,11 +65,11 @@ export default function StudentClassesPage() {
       <StudentLevelHeader allowedCourseTitle={data?.allowedCourseTitle} />
 
       {isLoading ? (
-        <div className="flex h-56 w-full items-center justify-center rounded-2xl border border-border bg-card">
+        <div className="flex h-56 w-full items-center justify-center">
           <Spinner className="size-8 text-foreground" />
         </div>
       ) : !data?.classes || data.classes.length === 0 ? (
-        <div className="flex h-56 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-6 text-center">
+        <div className="flex h-56 w-full flex-col items-center justify-center border-y border-border/60 p-6 text-center">
           <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Layers className="size-6" />
           </div>
@@ -78,7 +78,7 @@ export default function StudentClassesPage() {
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
           {data.classes.map((cls) => (
             <StudentClassCard
               key={cls.id}

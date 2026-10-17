@@ -29,7 +29,7 @@ export function StudentClassCard({
   const isFull = enrolled >= cls.capacity
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xs">
+    <div className="flex flex-col gap-4 border-b border-border/60 pt-1 pb-5">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">
           {cls.term?.title}
@@ -45,7 +45,7 @@ export function StudentClassCard({
           {isFull ? (
             t("full")
           ) : (
-            <span className="font-mono">
+            <span>
               {enrolled} / {cls.capacity}
             </span>
           )}
@@ -70,7 +70,7 @@ export function StudentClassCard({
         )}
       </div>
 
-      <div className="flex items-center justify-between border-t border-border/60 pt-3">
+      <div className="flex items-center justify-between border-t border-border/40 pt-3">
         <div>
           <span className="block text-[11px] text-muted-foreground">
             {t("tuition")}
@@ -102,7 +102,7 @@ export function StudentClassCard({
             type="button"
             onClick={() => onEnroll?.(cls)}
             disabled={isPending}
-            className="h-10 cursor-pointer rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-2xs hover:bg-primary/90"
+            className="h-10 cursor-pointer rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
           >
             {isPending ? (
               <Spinner className="me-1.5 size-4" />
