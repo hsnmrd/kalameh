@@ -261,8 +261,9 @@ describe("SetupFlow Component", () => {
     expect(screen.queryByText("گام فعلی")).not.toBeInTheDocument()
   })
 
-  it("applies desktop half width, borderless active card, and warning pending cards", () => {
+  it("renders checklist rows with desktop half width, active card, and completed line-through", () => {
     // Step 1 done, Step 2 current, Step 3 pending
+    useOperatingPhasesReviewStore.getState().markAsReviewed(mockInstituteId)
     queryClient.setQueryData(
       operatingPhasesResource.list.toQuery({ instituteId: mockInstituteId })
         .queryKey,
@@ -296,40 +297,32 @@ describe("SetupFlow Component", () => {
     const rootElement = container.firstElementChild as HTMLElement
     expect(rootElement.className).toContain("lg:w-1/2")
 
-    // 2. Active card has NO border-2 or ring-4
+    // 2. Active step has prominent card style and "گام فعلی" badge
     const currentBadge = screen.getByText("گام فعلی")
-    const activeCard = currentBadge.closest(
-      "div[class*='bg-card']"
-    ) as HTMLElement
-    expect(activeCard).toBeInTheDocument()
-    expect(activeCard.className).not.toContain("border-2")
-    expect(activeCard.className).not.toContain("ring-4")
+    const activeRow = currentBadge.closest("a") as HTMLElement
+    expect(activeRow).toBeInTheDocument()
+    expect(activeRow.className).toContain("bg-card")
+    expect(activeRow.className).toContain("border-primary/50")
 
-    // 3. Pending items have warning accents and low opacity
-    const pendingBadges = screen.getAllByText("در انتظار")
-    expect(pendingBadges.length).toBeGreaterThan(0)
-    const pendingCard = pendingBadges[0].closest(
-      "div.rounded-2xl"
-    ) as HTMLElement
-    expect(pendingCard).toBeInTheDocument()
-    expect(pendingCard.className).toContain("opacity-50")
-    expect(pendingCard.className).toContain("bg-warning/5")
-    expect(pendingCard.className).toContain("border-warning/20")
+    // 3. Completed step (Step 1) has blue-tinted row and line-through text
+    const completedText = screen.getByText("۱. تقویم و شیفت‌های آموزشی")
+    expect(completedText.className).toContain("line-through")
+    const completedRow = completedText.closest("a") as HTMLElement
+    expect(completedRow.className).toContain("bg-primary/10")
 
-    // 4. Vertical carousel arrows (Previous/Next) exist
+    // 4. Pending step (Step 3) has muted row styling
+    const pendingText = screen.getByText("۳. تعیین سطح زبان‌آموزان")
+    expect(pendingText.className).not.toContain("line-through")
+    const pendingRow = pendingText.closest("div.rounded-2xl") as HTMLElement
+    expect(pendingRow.className).toContain("bg-muted/30")
+
+    // 5. All 5 steps are rendered together in the list
+    expect(screen.getByText("۱. تقویم و شیفت‌های آموزشی")).toBeInTheDocument()
+    expect(screen.getByText("۲. ساخت ترم‌های آموزشی")).toBeInTheDocument()
+    expect(screen.getByText("۳. تعیین سطح زبان‌آموزان")).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: /previous slide/i })
+      screen.getByText("۴. برنامه‌ریزی هوشمند کلاس‌ها")
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: /next slide/i })
-    ).toBeInTheDocument()
-
-    // 5. Stack items are rendered in an iOS stack layout
-    const stackItems = container.querySelectorAll("[data-slot='carousel-item']")
-    expect(stackItems.length).toBe(5)
-    stackItems.forEach((item) => {
-      expect(item.className).toContain("origin-top")
-      expect(item.className).toContain("transition-all")
-    })
+    expect(screen.getByText("۵. انتشار کلاس‌ها و ثبت‌نام")).toBeInTheDocument()
   })
 })

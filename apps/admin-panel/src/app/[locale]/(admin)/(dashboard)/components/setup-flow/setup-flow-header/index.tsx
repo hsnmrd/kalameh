@@ -10,7 +10,11 @@ export interface SetupFlowHeaderProps {
   actions?: React.ReactNode
 }
 
-export function SetupFlowHeader({ actions }: SetupFlowHeaderProps) {
+export function SetupFlowHeader({
+  completedCount,
+  totalSteps,
+  actions,
+}: SetupFlowHeaderProps) {
   const t = useTranslations("dashboard.instituteAdmin.setupFlow")
 
   return (
@@ -24,9 +28,14 @@ export function SetupFlowHeader({ actions }: SetupFlowHeaderProps) {
         </h2>
       </div>
 
-      {actions && (
-        <div className="flex shrink-0 items-center gap-1.5">{actions}</div>
-      )}
+      <div className="flex shrink-0 items-center gap-2">
+        {completedCount !== undefined && totalSteps !== undefined && (
+          <span className="rounded-full bg-muted/60 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground tabular-nums">
+            {completedCount} / {totalSteps}
+          </span>
+        )}
+        {actions}
+      </div>
     </div>
   )
 }
