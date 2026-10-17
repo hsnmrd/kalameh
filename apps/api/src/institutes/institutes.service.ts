@@ -11,6 +11,7 @@ import { UpdateInstituteDto } from './dto/update-institute.dto';
 import { CreateInstituteCustomOffDayDto } from './dto/create-institute-custom-off-day.dto';
 import {
   calculateTermLifecycleStatuses,
+  hasInstituteFinanceInfo,
   JwtPayload,
   SupportedLocale,
 } from '@workspace/types';
@@ -258,7 +259,13 @@ export class InstitutesService {
 
     if (isChangingBankInfo) {
       const hasActiveRegistration = await this.hasActiveRegistrationTerm(id);
-      if (hasActiveRegistration) {
+      const hadExistingBankInfo = hasInstituteFinanceInfo({
+        bankAccountName: institute.bankAccountName,
+        bankCardNumber: institute.bankCardNumber,
+        bankShaba: institute.bankShaba,
+      });
+
+      if (hasActiveRegistration && hadExistingBankInfo) {
         throw new ConflictException(
           this.i18n.t(
             'institutes.cannotModifyBankInfoDuringRegistration',

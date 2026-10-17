@@ -18,6 +18,7 @@ import { toast } from "@workspace/ui/components/sonner"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   DEFAULT_ENABLED_MODULES,
+  hasInstituteFinanceInfo,
   type InstituteWithStats,
 } from "@workspace/types"
 import { institutesResource } from "@/lib/api"
@@ -131,6 +132,11 @@ export function EditInstituteModal({
       })
   }
 
+  const isRegistrationActive = Boolean(institute?.hasActiveRegistrationTerm)
+  const hasBankInfo = Boolean(institute && hasInstituteFinanceInfo(institute))
+  const isBankingLocked = isRegistrationActive && hasBankInfo
+  const isBankingInitialWithActiveTerm = isRegistrationActive && !hasBankInfo
+
   return (
     <FormDialog open={open} onOpenChange={(value) => !value && handleClose()}>
       <FormDialogContent className="sm:max-w-2xl">
@@ -151,6 +157,8 @@ export function EditInstituteModal({
             <SupplementalFields
               form={form}
               activeTab={activeTab}
+              isBankingLocked={isBankingLocked}
+              isBankingInitialWithActiveTerm={isBankingInitialWithActiveTerm}
               onAddPhone={() =>
                 setValue("phones", [...(getValues("phones") || []), ""])
               }

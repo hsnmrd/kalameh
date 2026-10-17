@@ -246,6 +246,50 @@ describe("FinancialSettingsPage", () => {
     expect(deleteButton).toBeDisabled()
   })
 
+  it("shows initial registration warning and keeps inputs enabled when term registration is active but finance info is not yet configured", () => {
+    const instituteWithActiveRegistrationNoBank = {
+      ...mockInstitute,
+      bankAccountName: null,
+      bankCardNumber: null,
+      bankShaba: null,
+      hasActiveRegistrationTerm: true,
+    }
+
+    render(
+      <FinancialSettingsForm
+        institute={instituteWithActiveRegistrationNoBank as any}
+      />,
+      {
+        messages: customMessages,
+      }
+    )
+
+    expect(
+      screen.getByTestId("registration-active-initial-warning")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        transactionsMessagesFa.settings.registrationActiveInitialWarningTitle
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByTestId("registration-active-warning")
+    ).not.toBeInTheDocument()
+
+    // Inputs should be enabled for initial submission
+    const cardInput = screen.getByPlaceholderText(
+      transactionsMessagesFa.settings.bankCardNumberPlaceholder
+    )
+    expect(cardInput).not.toBeDisabled()
+
+    // Delete button should not exist
+    expect(
+      screen.queryByRole("button", {
+        name: transactionsMessagesFa.settings.deleteBankInfo,
+      })
+    ).not.toBeInTheDocument()
+  })
+
   it("sanitizes literal null strings and displays empty placeholders", () => {
     const instituteWithNullStrings = {
       ...mockInstitute,

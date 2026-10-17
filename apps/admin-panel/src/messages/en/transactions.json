@@ -73,6 +73,8 @@
     "deleteBankInfoSuccess": "Bank account information deleted successfully.",
     "registrationActiveWarningTitle": "Term Registration In Progress",
     "registrationActiveWarningDesc": "Bank account information cannot be modified or deleted while term registration is open because students are actively enrolling and using these details.",
+    "registrationActiveInitialWarningTitle": "Attention: Term Registration In Progress",
+    "registrationActiveInitialWarningDesc": "Because registration for an active term is in progress, bank account details cannot be modified or deleted once submitted. Please ensure the entered details are accurate.",
     "delete": "Delete",
     "cancel": "Cancel",
     "validation": {

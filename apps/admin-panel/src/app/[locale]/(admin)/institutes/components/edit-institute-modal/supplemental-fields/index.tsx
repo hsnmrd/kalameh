@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { Phone, Plus, Trash2 } from "lucide-react"
+import { AlertTriangle, Phone, Plus, Trash2 } from "lucide-react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { Button } from "@workspace/ui/components/button"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
@@ -16,6 +16,8 @@ interface SupplementalFieldsProps {
   activeTab: InstituteFormTab
   onAddPhone: () => void
   onRemovePhone: (index: number) => void
+  isBankingLocked?: boolean
+  isBankingInitialWithActiveTerm?: boolean
 }
 
 export function SupplementalFields({
@@ -23,6 +25,8 @@ export function SupplementalFields({
   activeTab,
   onAddPhone,
   onRemovePhone,
+  isBankingLocked,
+  isBankingInitialWithActiveTerm,
 }: SupplementalFieldsProps) {
   const t = useTranslations("institutes")
   const {
@@ -111,9 +115,27 @@ export function SupplementalFields({
           activeTab !== "banking" && "hidden"
         )}
       >
+        {isBankingLocked && (
+          <div
+            role="alert"
+            className="flex items-start gap-2.5 rounded-xl border border-warning/40 bg-warning/10 p-3 text-xs text-warning-foreground"
+          >
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" />
+            <span>{t("editModal.bankingLockedAlert")}</span>
+          </div>
+        )}
+        {isBankingInitialWithActiveTerm && (
+          <div
+            role="alert"
+            className="flex items-start gap-2.5 rounded-xl border border-warning/40 bg-warning/10 p-3 text-xs text-warning-foreground"
+          >
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" />
+            <span>{t("editModal.bankingInitialWarningAlert")}</span>
+          </div>
+        )}
         <Field data-invalid={Boolean(errors.bankAccountName)}>
           <FieldLabel>{t("createModal.bankAccountName")}</FieldLabel>
-          <Input {...register("bankAccountName")} />
+          <Input {...register("bankAccountName")} disabled={isBankingLocked} />
           <FieldError>{errors.bankAccountName?.message}</FieldError>
         </Field>
         <Field data-invalid={Boolean(errors.bankCardNumber)}>
@@ -122,6 +144,7 @@ export function SupplementalFields({
             {...register("bankCardNumber")}
             className="font-mono text-base"
             dir="ltr"
+            disabled={isBankingLocked}
           />
           <FieldError>{errors.bankCardNumber?.message}</FieldError>
         </Field>
@@ -131,6 +154,7 @@ export function SupplementalFields({
             {...register("bankShaba")}
             className="font-mono text-base"
             dir="ltr"
+            disabled={isBankingLocked}
           />
           <FieldError>{errors.bankShaba?.message}</FieldError>
         </Field>

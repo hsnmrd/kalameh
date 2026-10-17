@@ -65,6 +65,8 @@ export function FinancialSettingsForm({
     [institute]
   )
 
+  const isLocked = isRegistrationActive && hasConfiguredFinanceInfo
+
   const schema = React.useMemo(
     () =>
       z.object({
@@ -184,7 +186,7 @@ export function FinancialSettingsForm({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Form Section */}
         <div className="flex flex-col gap-4 lg:col-span-7">
-          {isRegistrationActive && (
+          {isLocked && (
             <div
               role="alert"
               data-testid="registration-active-warning"
@@ -202,6 +204,24 @@ export function FinancialSettingsForm({
             </div>
           )}
 
+          {isRegistrationActive && !hasConfiguredFinanceInfo && (
+            <div
+              role="alert"
+              data-testid="registration-active-initial-warning"
+              className="flex items-start gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-warning-foreground"
+            >
+              <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" />
+              <div className="space-y-1 text-xs sm:text-sm">
+                <p className="font-bold text-foreground">
+                  {t("registrationActiveInitialWarningTitle")}
+                </p>
+                <p className="text-muted-foreground">
+                  {t("registrationActiveInitialWarningDesc")}
+                </p>
+              </div>
+            </div>
+          )}
+
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5"
@@ -211,7 +231,7 @@ export function FinancialSettingsForm({
               <Input
                 {...register("bankAccountName")}
                 placeholder={t("bankAccountNamePlaceholder")}
-                disabled={isRegistrationActive || isPending}
+                disabled={isLocked || isPending}
               />
               <FieldError>{errors.bankAccountName?.message}</FieldError>
             </Field>
@@ -223,7 +243,7 @@ export function FinancialSettingsForm({
                 placeholder={t("bankCardNumberPlaceholder")}
                 dir="ltr"
                 className="font-mono text-base"
-                disabled={isRegistrationActive || isPending}
+                disabled={isLocked || isPending}
               />
               <FieldError>{errors.bankCardNumber?.message}</FieldError>
             </Field>
@@ -235,7 +255,7 @@ export function FinancialSettingsForm({
                 placeholder={t("bankShabaPlaceholder")}
                 dir="ltr"
                 className="font-mono text-base"
-                disabled={isRegistrationActive || isPending}
+                disabled={isLocked || isPending}
               />
               <FieldError>{errors.bankShaba?.message}</FieldError>
             </Field>
@@ -246,7 +266,7 @@ export function FinancialSettingsForm({
                   <Button
                     type="button"
                     variant="outline"
-                    disabled={isRegistrationActive || isPending}
+                    disabled={isLocked || isPending}
                     onClick={() => setIsDeleteDialogOpen(true)}
                     className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
                   >
@@ -258,7 +278,7 @@ export function FinancialSettingsForm({
 
               <Button
                 type="submit"
-                disabled={isRegistrationActive || isPending || !isDirty}
+                disabled={isLocked || isPending || !isDirty}
                 className="min-w-32"
               >
                 {updateMutation.isPending ? (

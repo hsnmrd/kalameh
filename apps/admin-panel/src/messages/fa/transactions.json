@@ -73,6 +73,8 @@
     "deleteBankInfoSuccess": "اطلاعات حساب بانکی با موفقیت حذف شد.",
     "registrationActiveWarningTitle": "ثبت‌نام ترم در حال انجام است",
     "registrationActiveWarningDesc": "به دلیل باز بودن مهلت ثبت‌نام در ترم جاری و استفاده زبان‌آموزان از مشخصات حساب بانکی، امکان ویرایش یا حذف این اطلاعات تا پایان مهلت ثبت‌نام وجود ندارد.",
+    "registrationActiveInitialWarningTitle": "توجه: ثبت‌نام ترم در حال انجام است",
+    "registrationActiveInitialWarningDesc": "با توجه به در جریان بودن ثبت‌نام ترم فعال، اطلاعات بانکی پس از ثبت اولیه غیرقابل ویرایش و حذف خواهد بود. لطفاً در درج اطلاعات دقت نمایید.",
     "delete": "حذف",
     "cancel": "انصراف",
     "validation": {
