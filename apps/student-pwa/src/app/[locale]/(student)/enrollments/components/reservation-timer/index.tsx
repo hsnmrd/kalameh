@@ -116,16 +116,11 @@ export function ReservationTimer({
             : "border-warning/40 text-warning"
         }`}
       >
-        <div className="flex items-center gap-2.5">
-          <Clock className="size-5 shrink-0" />
-          <div className="flex flex-col">
-            <span className="text-xs font-bold text-foreground">
-              {t("title")}
-            </span>
-            <span className="text-[11px] text-muted-foreground">
-              {t("warning")}
-            </span>
-          </div>
+        <div className="flex items-center gap-2">
+          <Clock className="size-4.5 shrink-0" />
+          <span className="text-xs font-bold text-foreground">
+            {t("title")}
+          </span>
         </div>
 
         <div
