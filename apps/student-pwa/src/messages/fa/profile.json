@@ -11,5 +11,21 @@
   "settings": "تنظیمات (تم و زبان)",
   "changePassword": "تغییر رمز عبور",
   "languageSetting": "زبان سامانه",
-  "logout": "خروج از حساب کاربری"
+  "logout": "خروج از حساب کاربری",
+  "personalInfo": "مشخصات هویتی و فردی",
+  "academicInfo": "اطلاعات آموزشی و آموزشگاه",
+  "contactInfo": "اطلاعات تماس و نشانی",
+  "name": "نام و نام خانوادگی",
+  "nationalCode": "کد ملی",
+  "fatherName": "نام پدر",
+  "birthDate": "تاریخ تولد",
+  "gender": "جنسیت",
+  "genderMale": "پسر / آقا",
+  "genderFemale": "دختر / خانم",
+  "institute": "آموزشگاه",
+  "studentRole": "زبان‌آموز",
+  "memberSince": "تاریخ عضویت",
+  "phone": "شماره تماس",
+  "emergencyPhone": "شماره تماس اضطراری",
+  "address": "نشانی"
 }
