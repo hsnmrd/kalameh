@@ -6,12 +6,12 @@ import { Clock, Info } from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { findCurrentActiveTerm, type TermDto } from "@workspace/types"
 import {
-  ResponsiveDialog,
-  ResponsiveDialogCloseButton,
-  ResponsiveDialogContent,
-  ResponsiveDialogFooter,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
+  FormDialog,
+  FormDialogCloseButton,
+  FormDialogContent,
+  FormDialogFooter,
+  FormDialogHeader,
+  FormDialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -134,15 +134,15 @@ export function ConfirmStudentSchedulesDialog({
   }
 
   return (
-    <ResponsiveDialog
+    <FormDialog
       open={open}
       onOpenChange={(next) => !next && !isPending && onClose()}
     >
-      <ResponsiveDialogContent className="overflow-hidden p-0 sm:max-w-md">
-        <ResponsiveDialogHeader className="border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
-          <ResponsiveDialogTitle>{t("dialogTitle")}</ResponsiveDialogTitle>
-          <ResponsiveDialogCloseButton />
-        </ResponsiveDialogHeader>
+      <FormDialogContent className="overflow-hidden p-0 sm:max-w-md">
+        <FormDialogHeader className="border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
+          <FormDialogTitle>{t("dialogTitle")}</FormDialogTitle>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
         <div className="space-y-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
           <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3.5 text-xs leading-relaxed text-foreground/90">
@@ -193,7 +193,7 @@ export function ConfirmStudentSchedulesDialog({
           )}
         </div>
 
-        <ResponsiveDialogFooter className="flex-row items-center gap-3 border-t border-border/60 bg-muted/20 px-4 py-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:justify-end sm:px-6 sm:py-4">
+        <FormDialogFooter className="flex-row items-center gap-3 border-t border-border/60 bg-muted/20 px-4 py-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:justify-end sm:px-6 sm:py-4">
           <Button
             type="button"
             variant="outline"
@@ -212,8 +212,8 @@ export function ConfirmStudentSchedulesDialog({
             {isPending && <Spinner data-icon="inline-start" />}
             <span>{t("confirm")}</span>
           </Button>
-        </ResponsiveDialogFooter>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+        </FormDialogFooter>
+      </FormDialogContent>
+    </FormDialog>
   )
 }

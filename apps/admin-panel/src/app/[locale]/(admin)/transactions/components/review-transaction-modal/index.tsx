@@ -3,7 +3,7 @@
 import Image from "next/image"
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { AlertTriangle, Check, X } from "lucide-react"
+import { AlertTriangle, Check, X, ExternalLink } from "lucide-react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   PERMISSIONS,
@@ -13,12 +13,12 @@ import {
 } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import {
-  ResponsiveDialog,
-  ResponsiveDialogCloseButton,
-  ResponsiveDialogContent,
-  ResponsiveDialogFooter,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
+  FormDialog,
+  FormDialogCloseButton,
+  FormDialogContent,
+  FormDialogFooter,
+  FormDialogHeader,
+  FormDialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Price } from "@workspace/ui/components/price"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -76,14 +76,14 @@ export function ReviewTransactionModal({
   const pendingStatus = updateStatus.variables?.body.status
 
   return (
-    <ResponsiveDialog open onOpenChange={(open) => !open && onClose()}>
-      <ResponsiveDialogContent className="overflow-hidden p-0 sm:max-w-2xl">
-        <ResponsiveDialogHeader className="border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
-          <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
-          <ResponsiveDialogCloseButton />
-        </ResponsiveDialogHeader>
+    <FormDialog open onOpenChange={(open) => !open && onClose()}>
+      <FormDialogContent className="overflow-hidden p-0 sm:max-w-2xl">
+        <FormDialogHeader className="border-b border-border/60 px-4 py-3.5 sm:px-6 sm:py-4">
+          <FormDialogTitle>{t("title")}</FormDialogTitle>
+          <FormDialogCloseButton />
+        </FormDialogHeader>
 
-        <div className="flex max-h-[70vh] flex-col gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+        <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-4 sm:max-h-[75vh] sm:px-6 sm:py-5">
           {transaction.isDuplicateTrackingCode && (
             <div className="flex items-start gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-warning">
               <AlertTriangle className="size-5 shrink-0" />
@@ -98,7 +98,7 @@ export function ReviewTransactionModal({
             </div>
           )}
 
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted">
+          <div className="relative aspect-[4/3] min-h-[260px] w-full shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-muted sm:min-h-[360px]">
             <Image
               key={receiptAttempt}
               src={receiptSrc}
@@ -114,6 +114,18 @@ export function ReviewTransactionModal({
               onLoad={() => setReceiptState("loaded")}
               onError={() => setReceiptState("error")}
             />
+            {receiptState === "loaded" && (
+              <a
+                href={receiptUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute end-2.5 top-2.5 flex items-center gap-1.5 rounded-xl border border-border/70 bg-background/85 px-2.5 py-1 text-xs font-semibold text-foreground backdrop-blur-xs transition-colors hover:bg-background"
+                aria-label={t("viewFullImage")}
+              >
+                <ExternalLink className="size-3.5" />
+                <span className="hidden sm:inline">{t("viewFullImage")}</span>
+              </a>
+            )}
             {receiptState === "loading" && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
                 <Spinner className="size-7" />
@@ -172,7 +184,7 @@ export function ReviewTransactionModal({
                 {transaction.isDuplicateTrackingCode && (
                   <span className="inline-flex items-center gap-1 rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-semibold text-warning">
                     <AlertTriangle className="size-3" />
-                    <span>⚠️</span>
+                    <span>{t("duplicateWarningTitle")}</span>
                   </span>
                 )}
               </dd>
@@ -195,10 +207,7 @@ export function ReviewTransactionModal({
           </dl>
         </div>
 
-        <ResponsiveDialogFooter className="flex w-full shrink-0 flex-row items-center justify-end gap-2 border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4">
-          <Button type="button" variant="outline" onClick={onClose}>
-            {t("close")}
-          </Button>
+        <FormDialogFooter className="flex w-full shrink-0 flex-row items-center justify-end gap-2.5 border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4">
           <PermissionGuard
             permission={PERMISSIONS.MANAGE_TRANSACTIONS}
             mode="hide"
@@ -206,6 +215,7 @@ export function ReviewTransactionModal({
             <Button
               type="button"
               variant="destructive"
+              className="min-w-0 flex-1 sm:flex-initial"
               disabled={
                 updateStatus.isPending ||
                 receiptState !== "loaded" ||
@@ -219,10 +229,11 @@ export function ReviewTransactionModal({
               ) : (
                 <X data-icon="inline-start" />
               )}
-              {t("reject")}
+              <span>{t("reject")}</span>
             </Button>
             <Button
               type="button"
+              className="min-w-0 flex-1 sm:flex-initial"
               disabled={
                 updateStatus.isPending ||
                 receiptState !== "loaded" ||
@@ -236,11 +247,11 @@ export function ReviewTransactionModal({
               ) : (
                 <Check data-icon="inline-start" />
               )}
-              {t("approve")}
+              <span>{t("approve")}</span>
             </Button>
           </PermissionGuard>
-        </ResponsiveDialogFooter>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+        </FormDialogFooter>
+      </FormDialogContent>
+    </FormDialog>
   )
 }
