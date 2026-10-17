@@ -32,6 +32,15 @@ describe("Student Classes Components", () => {
       render(<StudentLevelHeader allowedCourseTitle={undefined} />)
       expect(screen.getByText(/سطح پایه/i)).toBeInTheDocument()
     })
+
+    it("should display description when defaultOpen is true", () => {
+      render(
+        <StudentLevelHeader allowedCourseTitle="Top Notch 1A" defaultOpen />
+      )
+      expect(
+        screen.getByText(/فقط کلاس‌های متناسب با این سطح/i)
+      ).toBeInTheDocument()
+    })
   })
 
   describe("StudentClassCard", () => {
