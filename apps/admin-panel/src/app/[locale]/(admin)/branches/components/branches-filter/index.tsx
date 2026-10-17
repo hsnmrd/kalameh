@@ -19,6 +19,7 @@ export interface BranchesFilterProps {
   onStatusChange: (status: string) => void
   onAddClick?: () => void
   actions?: React.ReactNode
+  isEmpty?: boolean
 }
 
 export function BranchesFilter({
@@ -28,6 +29,7 @@ export function BranchesFilter({
   onStatusChange,
   onAddClick,
   actions,
+  isEmpty,
 }: BranchesFilterProps) {
   const t = useTranslations("branches")
 
@@ -64,6 +66,7 @@ export function BranchesFilter({
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       isPinned={hasActiveFilter}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}

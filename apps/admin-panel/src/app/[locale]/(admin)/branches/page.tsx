@@ -59,8 +59,10 @@ export default function BranchesPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_BRANCHES} mode="forbidden">
         <AdminPageShell
+          isEmpty={isListEmpty}
           filters={
             <BranchesFilter
+              isEmpty={isListEmpty}
               search={search}
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}

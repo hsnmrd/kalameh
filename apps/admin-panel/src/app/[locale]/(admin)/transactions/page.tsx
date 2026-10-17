@@ -58,6 +58,8 @@ export default function TransactionsPage() {
     enabled: Boolean(activeInstituteId && hasModule),
   })
 
+  const isListEmpty = !isLoading && (!transactions || transactions.length === 0)
+
   const handleReview = (transaction: TransactionDto) =>
     openModal("reviewTransaction", { transaction })
 
@@ -68,8 +70,10 @@ export default function TransactionsPage() {
         mode="forbidden"
       >
         <AdminPageShell
+          isEmpty={isListEmpty}
           filters={
             <TransactionsFilter
+              isEmpty={isListEmpty}
               search={filters.search}
               onSearchChange={(search) => setFilter("search", search)}
               status={filters.status}

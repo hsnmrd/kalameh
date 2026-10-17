@@ -106,6 +106,7 @@ export default function CoursesPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_COURSES} mode="forbidden">
         <AdminPageShell
+          isEmpty={isListEmpty}
           actions={
             <CoursesHeaderActions
               totalCount={courses.length}
@@ -116,6 +117,7 @@ export default function CoursesPage() {
           }
           filters={
             <CoursesFilter
+              isEmpty={isListEmpty}
               search={search}
               onSearchChange={setSearch}
               selectedPrerequisiteId={selectedPrerequisiteId}

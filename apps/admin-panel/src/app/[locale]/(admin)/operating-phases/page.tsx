@@ -90,8 +90,10 @@ export default function OperatingPhasesPage() {
         mode="forbidden"
       >
         <AdminPageShell
+          isEmpty={isListEmpty}
           filters={
             <OperatingPhasesFilter
+              isEmpty={isListEmpty}
               search={search}
               onSearchChange={setSearch}
               selectedStatus={selectedStatus}

@@ -19,6 +19,7 @@ export interface InstitutesFilterProps {
   onStatusChange: (status: string) => void
   onAddClick?: () => void
   actions?: React.ReactNode
+  isEmpty?: boolean
 }
 
 export function InstitutesFilter({
@@ -28,6 +29,7 @@ export function InstitutesFilter({
   onStatusChange,
   onAddClick,
   actions,
+  isEmpty,
 }: InstitutesFilterProps) {
   const t = useTranslations("institutes")
 
@@ -64,6 +66,7 @@ export function InstitutesFilter({
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       isPinned={hasActiveFilter}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}

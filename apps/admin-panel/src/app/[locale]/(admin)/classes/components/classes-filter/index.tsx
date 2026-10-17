@@ -19,6 +19,7 @@ export interface ClassesFilterProps {
   onSearchChange: (search: string) => void
   onAddClick?: () => void
   actions?: React.ReactNode
+  isEmpty?: boolean
 }
 
 export function ClassesFilter({
@@ -30,6 +31,7 @@ export function ClassesFilter({
   onSearchChange,
   onAddClick,
   actions,
+  isEmpty,
 }: ClassesFilterProps) {
   const t = useTranslations("classes")
   const { activeInstituteId } = useActiveInstitute()
@@ -87,6 +89,7 @@ export function ClassesFilter({
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       isPinned={hasActiveFilter}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}

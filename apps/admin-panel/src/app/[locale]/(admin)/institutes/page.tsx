@@ -68,8 +68,10 @@ export default function InstitutesPage() {
 
   return (
     <AdminPageShell
+      isEmpty={isListEmpty}
       filters={
         <InstitutesFilter
+          isEmpty={isListEmpty}
           search={search}
           onSearchChange={setSearch}
           selectedStatus={selectedStatus}
