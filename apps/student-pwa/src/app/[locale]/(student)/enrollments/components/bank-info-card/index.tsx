@@ -2,8 +2,9 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { ArrowDown, Copy, Check } from "lucide-react"
+import { ArrowDown, Copy, Check, Info } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { Card, CardContent } from "@workspace/ui/components/card"
 import { Price } from "@workspace/ui/components/price"
 import { toast } from "@workspace/ui/components/sonner"
 import type { BankInfoDto } from "@workspace/types"
@@ -93,59 +94,76 @@ export function BankInfoCard({
         )}
       </div>
 
-      <div className="flex flex-col gap-3 py-1">
-        <div>
-          <span className="text-[11px] text-muted-foreground">
-            {t("bankCard")}
-          </span>
-          <div className="mt-1 flex flex-wrap items-center justify-between gap-2 sm:flex-nowrap">
-            <span
-              dir="ltr"
-              className="xs:text-lg font-sans text-base font-bold tracking-wider text-foreground tabular-nums sm:tracking-widest"
-            >
-              {formattedCard}
-            </span>
-            {cleanCard && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleCopyCard}
-                className="h-8 gap-1.5 rounded-lg border-border px-2.5 text-xs font-semibold text-foreground hover:bg-muted"
+      <Card className="rounded-2xl border-border/70 bg-card shadow-2xs">
+        <CardContent className="flex flex-col gap-3.5 p-4 sm:p-5">
+          <div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                {t("bankCard")}
+              </span>
+              {cleanCard && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyCard}
+                  className="h-8 gap-1.5 rounded-lg border-border px-2.5 text-xs font-semibold text-foreground hover:bg-muted"
+                >
+                  {copied ? (
+                    <Check className="size-3.5 text-success" />
+                  ) : (
+                    <Copy className="size-3.5 text-muted-foreground" />
+                  )}
+                  <span>{t("copyCard")}</span>
+                </Button>
+              )}
+            </div>
+
+            <div className="mt-1.5 flex items-center justify-start">
+              <span
+                dir="ltr"
+                className="font-sans text-base font-bold tracking-wider text-foreground tabular-nums sm:text-lg sm:tracking-widest"
               >
-                {copied ? (
-                  <Check className="size-3.5 text-success" />
-                ) : (
-                  <Copy className="size-3.5 text-muted-foreground" />
-                )}
-                <span>{t("copyCard")}</span>
-              </Button>
-            )}
+                {formattedCard}
+              </span>
+            </div>
           </div>
-        </div>
 
-        {cleanAccountName && (
-          <p className="text-xs text-muted-foreground">
-            <span>{t("bankAccount")}</span>{" "}
-            <span className="font-semibold text-foreground">
-              {cleanAccountName}
-            </span>
-          </p>
-        )}
+          {(cleanAccountName || cleanShaba) && (
+            <div className="flex flex-col gap-2 border-t border-border/60 pt-3">
+              {cleanAccountName && (
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="text-muted-foreground">
+                    {t("bankAccount")}
+                  </span>
+                  <span className="font-semibold text-foreground">
+                    {cleanAccountName}
+                  </span>
+                </div>
+              )}
 
-        {cleanShaba && (
-          <p className="text-xs text-muted-foreground">
-            <span>{t("bankShaba")}</span>{" "}
-            <span dir="ltr" className="font-medium text-foreground">
-              {cleanShaba}
-            </span>
-          </p>
-        )}
+              {cleanShaba && (
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="text-muted-foreground">
+                    {t("bankShaba")}
+                  </span>
+                  <span
+                    dir="ltr"
+                    className="font-sans font-medium text-foreground select-all"
+                  >
+                    {cleanShaba}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="flex items-start gap-2 pt-1 text-xs leading-relaxed text-muted-foreground">
+        <Info className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+        <span>{t("fullPaymentRule")}</span>
       </div>
-
-      <p className="border-t border-border/40 pt-3 text-xs leading-relaxed text-muted-foreground">
-        ℹ️ {t("fullPaymentRule")}
-      </p>
     </div>
   )
 }

@@ -64,14 +64,28 @@ describe("BankInfoCard Component", () => {
     document.body.removeChild(targetElement)
   })
 
-  it("should render bank card details and tuition amount correctly", () => {
-    render(<BankInfoCard bankInfo={mockBankInfo} tuition={1500000} />, {
-      messages: customMessages,
-    })
+  it("should render bank card details within a card and display tuition amount correctly", () => {
+    const { container } = render(
+      <BankInfoCard bankInfo={mockBankInfo} tuition={1500000} />,
+      {
+        messages: customMessages,
+      }
+    )
+
+    // Check Card wrapper
+    const cardElement = container.querySelector('[data-slot="card"]')
+    expect(cardElement).toBeInTheDocument()
 
     expect(screen.getByText("مدرسه کلمه")).toBeInTheDocument()
     expect(screen.getByText("IR120120000000001234567890")).toBeInTheDocument()
     expect(screen.getByText("1,500,000")).toBeInTheDocument()
     expect(screen.getByText("6037 9971 2345 6789")).toBeInTheDocument()
+
+    // Ensure payment rule is rendered without any emoji characters
+    const ruleElement = screen.getByText(
+      enrollmentsMessagesFa.payment.fullPaymentRule
+    )
+    expect(ruleElement).toBeInTheDocument()
+    expect(container.textContent).not.toContain("ℹ️")
   })
 })
