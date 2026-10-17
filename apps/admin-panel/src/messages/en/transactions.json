@@ -46,6 +46,7 @@
     "approve": "Approve payment",
     "reject": "Reject payment",
     "close": "Close",
+    "viewFullImage": "View full image",
     "approveSuccess": "The transaction was approved and enrollment confirmed.",
     "rejectSuccess": "The transaction was rejected and capacity released."
   },
