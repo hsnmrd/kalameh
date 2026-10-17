@@ -324,14 +324,12 @@ describe("SetupFlow Component", () => {
       screen.getByRole("button", { name: /next slide/i })
     ).toBeInTheDocument()
 
-    // 5. Carousel items occupy 80% height to leave 10% peek for prev & next
-    const carouselItems = container.querySelectorAll(
-      "[data-slot='carousel-item']"
-    )
-    expect(carouselItems.length).toBe(5)
-    carouselItems.forEach((item) => {
-      expect(item.className).toContain("basis-[80%]")
-      expect(item.className).toContain("h-[80%]")
+    // 5. Stack items are rendered in an iOS stack layout
+    const stackItems = container.querySelectorAll("[data-slot='carousel-item']")
+    expect(stackItems.length).toBe(5)
+    stackItems.forEach((item) => {
+      expect(item.className).toContain("origin-top")
+      expect(item.className).toContain("transition-all")
     })
   })
 })
