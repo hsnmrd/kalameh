@@ -61,6 +61,7 @@ export default function TermsPage() {
 
   const handleCreate = () => openModal("createTerm")
   const handleBatch = () => openModal("generatePhaseTerms")
+  const handleSettings = () => openModal("termSettingsModal")
   const handleView = (term: TermDto) => openModal("viewTerm", { term })
   const handleEdit = (term: TermDto) => openModal("editTerm", { term })
   const handleDelete = (term: TermDto) => openModal("deleteTerm", { term })
@@ -77,6 +78,7 @@ export default function TermsPage() {
               onStatusChange={(status) => setFilter("selectedStatus", status)}
               onAddClick={isListEmpty ? undefined : handleCreate}
               onBatchClick={isListEmpty ? undefined : handleBatch}
+              onSettingsClick={handleSettings}
             />
           }
           modals={

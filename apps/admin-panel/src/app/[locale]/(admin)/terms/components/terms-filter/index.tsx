@@ -16,6 +16,7 @@ export interface TermsFilterProps {
   onStatusChange: (status: string) => void
   onAddClick?: () => void
   onBatchClick?: () => void
+  onSettingsClick?: () => void
   actions?: React.ReactNode
 }
 
@@ -26,6 +27,7 @@ export function TermsFilter({
   onStatusChange,
   onAddClick,
   onBatchClick,
+  onSettingsClick,
   actions,
 }: TermsFilterProps) {
   const t = useTranslations("terms")
@@ -33,8 +35,11 @@ export function TermsFilter({
   const statusOptions: ComboboxOption[] = React.useMemo(() => {
     return [
       { value: "ALL", label: t("filter.allStatus") },
-      { value: "ACTIVE", label: t("filter.activeOnly") },
+      { value: "ONGOING", label: t("filter.ongoingOnly") },
       { value: "REGISTERING", label: t("filter.registeringOnly") },
+      { value: "CLASSES_STARTED", label: t("filter.classesStartedOnly") },
+      { value: "FINAL_EXAMS", label: t("filter.finalExamsOnly") },
+      { value: "GRADING", label: t("filter.gradingOnly") },
       { value: "UPCOMING", label: t("filter.upcomingOnly") },
       { value: "COMPLETED", label: t("filter.completedOnly") },
       { value: "INACTIVE", label: t("filter.inactiveOnly") },
@@ -50,7 +55,11 @@ export function TermsFilter({
   }, [onStatusChange])
 
   const desktopActions = actions ?? (
-    <TermsActionButton onAddClick={onAddClick} onBatchClick={onBatchClick} />
+    <TermsActionButton
+      onAddClick={onAddClick}
+      onBatchClick={onBatchClick}
+      onSettingsClick={onSettingsClick}
+    />
   )
 
   return (

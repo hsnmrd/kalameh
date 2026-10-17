@@ -14,6 +14,7 @@ import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import {
   calculateTermEndDate,
   calculateTermLifecycleStatus,
+  calculateTermLifecycleStatuses,
   isTermDeletable,
   generatePhaseTerms,
   gregorianToJalali,
@@ -65,6 +66,27 @@ export class TermsService {
         ? targetInstituteId
         : currentUser.instituteId;
 
+    const institute =
+      instituteId && this.prisma.institute?.findUnique
+        ? await this.prisma.institute.findUnique({
+            where: { id: instituteId },
+            select: {
+              termRegistrationDaysBeforeStart: true,
+              termRegistrationDaysAfterStart: true,
+              termExamDaysBeforeEnd: true,
+            },
+          })
+        : null;
+
+    const settings = institute
+      ? {
+          registrationDaysBeforeStart:
+            institute.termRegistrationDaysBeforeStart,
+          registrationDaysAfterStart: institute.termRegistrationDaysAfterStart,
+          examDaysBeforeEnd: institute.termExamDaysBeforeEnd,
+        }
+      : undefined;
+
     const terms = await this.prisma.term.findMany({
       where: {
         instituteId,
@@ -78,22 +100,93 @@ export class TermsService {
         studentSchedulesConfirmedByUser: {
           select: { id: true, firstName: true, lastName: true },
         },
+        scoresFinalizedByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
       },
       orderBy: { startDate: 'desc' },
     });
+
+    const now = new Date();
+    const endedTermIds = terms
+      .filter((t) => t.endDate < now && !t.scoresFinalizedAt)
+      .map((t) => t.id);
+
+    const unscoredCountsByTerm = new Map<string, number>();
+    if (endedTermIds.length > 0 && this.prisma.enrollment?.groupBy) {
+      const pendingEnrollments = await this.prisma.enrollment.groupBy({
+        by: ['classId'],
+        where: {
+          class: { termId: { in: endedTermIds } },
+          status: { not: 'REJECTED' },
+          finalScore: null,
+        },
+        _count: { id: true },
+      });
+      if (pendingEnrollments.length > 0 && this.prisma.class?.findMany) {
+        const classes = await this.prisma.class.findMany({
+          where: { id: { in: pendingEnrollments.map((p) => p.classId) } },
+          select: { id: true, termId: true },
+        });
+        const classTermMap = new Map(classes.map((c) => [c.id, c.termId]));
+        for (const p of pendingEnrollments) {
+          const termId = classTermMap.get(p.classId);
+          if (termId) {
+            unscoredCountsByTerm.set(
+              termId,
+              (unscoredCountsByTerm.get(termId) ?? 0) + p._count.id,
+            );
+          }
+        }
+      }
+    }
 
     const mappedTerms = terms.map(({ _count, ...term }) => ({
       ...term,
       classesCount: _count.classes,
     }));
 
-    const termsWithLifecycle = mappedTerms.map((term) => ({
-      ...term,
-      lifecycleStatus: calculateTermLifecycleStatus(term, mappedTerms),
-    }));
+    const termsWithLifecycle = mappedTerms.map((term) => {
+      const isPast = term.endDate < now;
+      const isExplicitlyFinalized = Boolean(term.scoresFinalizedAt);
+      const pendingCount = unscoredCountsByTerm.get(term.id) ?? 0;
+      const allScoresSet =
+        isExplicitlyFinalized || (isPast && pendingCount === 0);
+
+      const subject = {
+        ...term,
+        allScoresSet,
+        unscoredStudentsCount: pendingCount,
+      };
+
+      const lifecycleStatuses = calculateTermLifecycleStatuses(
+        subject,
+        mappedTerms,
+        settings,
+        now,
+      );
+      const lifecycleStatus = calculateTermLifecycleStatus(
+        subject,
+        mappedTerms,
+        settings,
+        now,
+      );
+
+      return {
+        ...term,
+        allScoresSet,
+        unscoredStudentsCount: pendingCount,
+        lifecycleStatus,
+        lifecycleStatuses,
+      };
+    });
 
     if (status && status !== 'ALL') {
-      return termsWithLifecycle.filter((t) => t.lifecycleStatus === status);
+      return termsWithLifecycle.filter(
+        (t) =>
+          t.lifecycleStatus === status ||
+          t.lifecycleStatuses?.includes(status as any),
+      );
     }
 
     return termsWithLifecycle;
@@ -118,14 +211,72 @@ export class TermsService {
         studentSchedulesConfirmedByUser: {
           select: { id: true, firstName: true, lastName: true },
         },
+        scoresFinalizedByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
       },
     });
 
+    const institute = this.prisma.institute?.findUnique
+      ? await this.prisma.institute.findUnique({
+          where: { id: term.instituteId },
+          select: {
+            termRegistrationDaysBeforeStart: true,
+            termRegistrationDaysAfterStart: true,
+            termExamDaysBeforeEnd: true,
+          },
+        })
+      : null;
+
+    const settings = institute
+      ? {
+          registrationDaysBeforeStart:
+            institute.termRegistrationDaysBeforeStart,
+          registrationDaysAfterStart: institute.termRegistrationDaysAfterStart,
+          examDaysBeforeEnd: institute.termExamDaysBeforeEnd,
+        }
+      : undefined;
+
+    const now = new Date();
+    const isPast = term.endDate < now;
+    let pendingCount = 0;
+    if (isPast && !term.scoresFinalizedAt && this.prisma.enrollment?.count) {
+      pendingCount = await this.prisma.enrollment.count({
+        where: {
+          class: { termId: term.id },
+          status: { not: 'REJECTED' },
+          finalScore: null,
+        },
+      });
+    }
+
+    const allScoresSet =
+      Boolean(term.scoresFinalizedAt) || (isPast && pendingCount === 0);
     const { _count, ...data } = term;
+    const subject = {
+      ...data,
+      classesCount: _count.classes,
+      allScoresSet,
+      unscoredStudentsCount: pendingCount,
+    };
+
     return {
       ...data,
       classesCount: _count.classes,
-      lifecycleStatus: calculateTermLifecycleStatus(data),
+      allScoresSet,
+      unscoredStudentsCount: pendingCount,
+      lifecycleStatus: calculateTermLifecycleStatus(
+        subject,
+        undefined,
+        settings,
+        now,
+      ),
+      lifecycleStatuses: calculateTermLifecycleStatuses(
+        subject,
+        undefined,
+        settings,
+        now,
+      ),
     };
   }
 
@@ -182,6 +333,75 @@ export class TermsService {
       ...data,
       classesCount: _count.classes,
       lifecycleStatus: calculateTermLifecycleStatus(data),
+      lifecycleStatuses: calculateTermLifecycleStatuses(data),
+    };
+  }
+
+  async finalizeScores(
+    id: string,
+    currentUser: JwtPayload,
+    locale: SupportedLocale = 'fa',
+  ): Promise<TermDto> {
+    void locale;
+    const instituteId =
+      currentUser.role === 'SUPER_ADMIN' ? undefined : currentUser.instituteId;
+
+    const term = await this.prisma.term.findFirstOrThrow({
+      where: {
+        id,
+        ...(instituteId ? { instituteId } : {}),
+      },
+      include: {
+        _count: { select: { classes: true } },
+        operatingPhase: this.operatingPhaseSelect,
+      },
+    });
+
+    const finalizedAt = new Date();
+    const updated = await this.prisma.term.update({
+      where: { id: term.id },
+      data: {
+        scoresFinalizedAt: finalizedAt,
+        scoresFinalizedByUserId: currentUser.sub,
+      },
+      include: {
+        _count: { select: { classes: true } },
+        operatingPhase: this.operatingPhaseSelect,
+        studentSchedulesConfirmedByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+        scoresFinalizedByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+      },
+    });
+
+    await this.auditLogsService.log({
+      instituteId: term.instituteId,
+      userId: currentUser.sub,
+      module: 'TERM',
+      entityId: term.id,
+      action: 'FINALIZE_TERM_SCORES',
+      metadata: {
+        title: term.title,
+        finalizedAt,
+      },
+    });
+
+    const { _count, ...data } = updated;
+    const subject = {
+      ...data,
+      classesCount: _count.classes,
+      allScoresSet: true,
+      scoresFinalizedAt: finalizedAt,
+    };
+
+    return {
+      ...data,
+      classesCount: _count.classes,
+      allScoresSet: true,
+      lifecycleStatus: calculateTermLifecycleStatus(subject),
+      lifecycleStatuses: calculateTermLifecycleStatuses(subject),
     };
   }
 

@@ -1,7 +1,28 @@
 import { getTermActivationDate } from "./term-activation-window.js"
 
 export type TermLifecycleStatus =
-  "ACTIVE" | "REGISTERING" | "UPCOMING" | "COMPLETED" | "INACTIVE"
+  | "ACTIVE"
+  | "ONGOING"
+  | "REGISTERING"
+  | "CLASSES_STARTED"
+  | "FINAL_EXAMS"
+  | "GRADING"
+  | "UPCOMING"
+  | "COMPLETED"
+  | "INACTIVE"
+
+export interface TermLifecycleSettings {
+  registrationDaysBeforeStart?: number
+  registrationDaysAfterStart?: number
+  examDaysBeforeEnd?: number
+}
+
+export const DEFAULT_TERM_LIFECYCLE_SETTINGS: Required<TermLifecycleSettings> =
+  {
+    registrationDaysBeforeStart: 10,
+    registrationDaysAfterStart: 7,
+    examDaysBeforeEnd: 2,
+  }
 
 export interface TermLifecycleSubject {
   id?: string
@@ -10,11 +31,17 @@ export interface TermLifecycleSubject {
   isActive: boolean
   operatingPhaseId?: string | null
   lifecycleStatus?: TermLifecycleStatus
+  lifecycleStatuses?: TermLifecycleStatus[]
   studentCount?: number
   studentsCount?: number
   hasStudents?: boolean
   classesCount?: number
+  allScoresSet?: boolean
+  scoresFinalizedAt?: Date | string | null
+  unscoredStudentsCount?: number
 }
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
 function toStartOfDayMs(date: Date | string): number {
   const d = new Date(date)
@@ -29,40 +56,90 @@ function toEndOfDayMs(date: Date | string): number {
 }
 
 /**
- * Calculates the dynamic lifecycle status of a term:
- * - INACTIVE: Term is disabled (isActive === false)
- * - COMPLETED: Term end date has passed (now > endDate)
- * - ACTIVE: Currently ongoing (startDate <= now <= endDate)
- * - REGISTERING: Upcoming immediate next term in gap between terms or within 1 week before start (activation date)
- * - UPCOMING: Future term whose registration has not yet opened
+ * Checks if a term has all student scores finalized.
  */
-export function calculateTermLifecycleStatus(
+function areScoresFinalized(term: TermLifecycleSubject): boolean {
+  if (term.scoresFinalizedAt != null) return true
+  if (term.allScoresSet === true) return true
+  if (term.allScoresSet === false) return false
+  if (typeof term.unscoredStudentsCount === "number") {
+    return term.unscoredStudentsCount === 0
+  }
+  const studentCount = term.studentsCount ?? term.studentCount
+  if (typeof studentCount === "number" && studentCount > 0) {
+    return false
+  }
+  if (term.hasStudents === true) {
+    return false
+  }
+  return true
+}
+
+/**
+ * Calculates ALL active statuses for a term simultaneously (Multiple Statuses):
+ * 1. INACTIVE: When isActive is false
+ * 2. Post-term (now > endDate):
+ *    - GRADING: When scores of students have NOT yet been completely set
+ *    - COMPLETED: When term endDate passed AND all scores are set
+ * 3. During term (startDate <= now <= endDate):
+ *    - ONGOING / ACTIVE: Main status throughout term
+ *    - CLASSES_STARTED: Within the first N days of term (default 7 days)
+ *    - REGISTERING: During late registration window (first N days of term)
+ *    - FINAL_EXAMS: During the last M days of term (default 2 days)
+ * 4. Pre-term (now < startDate):
+ *    - REGISTERING: For the immediate next term when within X days before start (default 10 days) or inside gap
+ *    - UPCOMING: For subsequent terms or when registration is not yet open
+ */
+export function calculateTermLifecycleStatuses(
   term: TermLifecycleSubject,
   siblingTerms?: TermLifecycleSubject[],
+  settings?: TermLifecycleSettings,
   now: Date = new Date()
-): TermLifecycleStatus {
+): TermLifecycleStatus[] {
   if (!term.isActive) {
-    return "INACTIVE"
+    return ["INACTIVE"]
   }
 
+  const cfg = { ...DEFAULT_TERM_LIFECYCLE_SETTINGS, ...settings }
   const nowMs = toStartOfDayMs(now)
   const startMs = toStartOfDayMs(term.startDate)
   const endMs = toEndOfDayMs(term.endDate)
-  const activationMs = getTermActivationDate(term.startDate).getTime()
+  const regBeforeMs = cfg.registrationDaysBeforeStart * ONE_DAY_MS
+  const regAfterMs = cfg.registrationDaysAfterStart * ONE_DAY_MS
+  const examBeforeMs = cfg.examDaysBeforeEnd * ONE_DAY_MS
 
+  // 1. Post-term
   if (nowMs > endMs) {
-    return "COMPLETED"
+    if (areScoresFinalized(term)) {
+      return ["COMPLETED"]
+    }
+    return ["GRADING"]
   }
 
+  // 2. During term
   if (nowMs >= startMs && nowMs <= endMs) {
-    return "ACTIVE"
+    const statuses: TermLifecycleStatus[] = ["ACTIVE", "ONGOING"]
+
+    // First N days of classes (Classes started + Late registration)
+    const commencementEndMs = toEndOfDayMs(new Date(startMs + regAfterMs))
+    if (nowMs <= commencementEndMs) {
+      statuses.push("CLASSES_STARTED")
+      statuses.push("REGISTERING")
+    }
+
+    // Final exam window (last M days)
+    const examStartMs = toStartOfDayMs(new Date(endMs - examBeforeMs))
+    if (nowMs >= examStartMs) {
+      statuses.push("FINAL_EXAMS")
+    }
+
+    return statuses
   }
 
-  // At this point, nowMs < startMs (the term is in the future).
+  // 3. Pre-term (nowMs < startMs)
   if (siblingTerms && siblingTerms.length > 0) {
     const targetPhaseId = term.operatingPhaseId ?? null
 
-    // Filter active sibling terms belonging to the same operating phase (or general)
     const activeSiblings = siblingTerms
       .filter(
         (s) =>
@@ -70,12 +147,10 @@ export function calculateTermLifecycleStatus(
       )
       .sort((a, b) => toStartOfDayMs(a.startDate) - toStartOfDayMs(b.startDate))
 
-    // Find future terms in this sequence
     const futureSiblings = activeSiblings.filter(
       (s) => toStartOfDayMs(s.startDate) > nowMs
     )
 
-    // Only the immediate next upcoming term can be in "REGISTERING" status
     const immediateNext = futureSiblings[0]
     const isImmediateNext =
       immediateNext &&
@@ -85,10 +160,9 @@ export function calculateTermLifecycleStatus(
           toStartOfDayMs(immediateNext.startDate))
 
     if (!isImmediateNext) {
-      return "UPCOMING"
+      return ["UPCOMING"]
     }
 
-    // Find the term preceding this immediate next term
     const targetIdx = activeSiblings.findIndex((s) =>
       term.id && s.id
         ? s.id === term.id
@@ -96,40 +170,153 @@ export function calculateTermLifecycleStatus(
     )
     const prevTerm = targetIdx > 0 ? activeSiblings[targetIdx - 1] : undefined
 
+    const activationMs = getTermActivationDate(term.startDate).getTime()
+    const customRegStartMs = startMs - regBeforeMs
+    const effectiveRegStartMs = Math.min(activationMs, customRegStartMs)
+
     if (prevTerm) {
       const prevEndMs = toEndOfDayMs(prevTerm.endDate)
       const gapMs = startMs - prevEndMs
-      const isNormalGap = gapMs > 0 && gapMs <= 30 * 24 * 60 * 60 * 1000
+      const isNormalGap = gapMs > 0 && gapMs <= 30 * ONE_DAY_MS
 
-      // If there is a normal inter-term gap (up to 30 days):
-      // When now is in the gap after previous term ended OR within 7 days before start (activation date): REGISTERING
-      if (isNormalGap) {
-        if (nowMs > prevEndMs || nowMs >= activationMs) {
-          return "REGISTERING"
-        }
-        return "UPCOMING"
+      if (isNormalGap && (nowMs > prevEndMs || nowMs >= effectiveRegStartMs)) {
+        return ["REGISTERING"]
       }
 
-      // If gap is longer than 30 days or non-existent:
-      // When within 7 days before start (activation date): REGISTERING
-      if (nowMs >= activationMs) {
-        return "REGISTERING"
+      if (nowMs >= effectiveRegStartMs) {
+        return ["REGISTERING"]
       }
-      return "UPCOMING"
+      return ["UPCOMING"]
     }
 
-    // If no previous term exists, apply the 7-day pre-start rule (activation date)
-    if (nowMs >= activationMs) {
-      return "REGISTERING"
+    if (nowMs >= effectiveRegStartMs) {
+      return ["REGISTERING"]
     }
-    return "UPCOMING"
+    return ["UPCOMING"]
   }
 
-  // Fallback when no sibling terms are provided
-  if (nowMs >= activationMs) {
-    return "REGISTERING"
+  // Fallback when no sibling terms are passed
+  const activationMs = getTermActivationDate(term.startDate).getTime()
+  const customRegStartMs = startMs - regBeforeMs
+  const effectiveRegStartMs = Math.min(activationMs, customRegStartMs)
+
+  if (nowMs >= effectiveRegStartMs) {
+    return ["REGISTERING"]
   }
+  return ["UPCOMING"]
+}
+
+/**
+ * Calculates the primary lifecycle status of a term (backward-compatible single status).
+ */
+export function calculateTermLifecycleStatus(
+  term: TermLifecycleSubject,
+  siblingTerms?: TermLifecycleSubject[],
+  settingsOrNow?: TermLifecycleSettings | Date,
+  maybeNow?: Date
+): TermLifecycleStatus {
+  const settings: TermLifecycleSettings | undefined =
+    settingsOrNow instanceof Date ? undefined : settingsOrNow
+  const now: Date =
+    settingsOrNow instanceof Date
+      ? settingsOrNow
+      : maybeNow instanceof Date
+        ? maybeNow
+        : new Date()
+
+  const statuses = calculateTermLifecycleStatuses(
+    term,
+    siblingTerms,
+    settings,
+    now
+  )
+
+  if (statuses.includes("INACTIVE")) return "INACTIVE"
+  if (statuses.includes("GRADING")) return "GRADING"
+  if (statuses.includes("COMPLETED")) return "COMPLETED"
+  if (statuses.includes("ACTIVE")) return "ACTIVE"
+  if (statuses.includes("REGISTERING")) return "REGISTERING"
   return "UPCOMING"
+}
+
+export function isTermRegistrationOpen(
+  term: TermLifecycleSubject,
+  siblingTerms?: TermLifecycleSubject[],
+  settings?: TermLifecycleSettings,
+  now: Date = new Date()
+): boolean {
+  const statuses = calculateTermLifecycleStatuses(
+    term,
+    siblingTerms,
+    settings,
+    now
+  )
+  return statuses.includes("REGISTERING")
+}
+
+export function isTermOngoing(
+  term: TermLifecycleSubject,
+  now: Date = new Date()
+): boolean {
+  if (!term.isActive) return false
+  const nowMs = toStartOfDayMs(now)
+  const startMs = toStartOfDayMs(term.startDate)
+  const endMs = toEndOfDayMs(term.endDate)
+  return nowMs >= startMs && nowMs <= endMs
+}
+
+export function isTermInCommencement(
+  term: TermLifecycleSubject,
+  settings?: TermLifecycleSettings,
+  now: Date = new Date()
+): boolean {
+  const statuses = calculateTermLifecycleStatuses(
+    term,
+    undefined,
+    settings,
+    now
+  )
+  return statuses.includes("CLASSES_STARTED")
+}
+
+export function isTermInFinalExams(
+  term: TermLifecycleSubject,
+  settings?: TermLifecycleSettings,
+  now: Date = new Date()
+): boolean {
+  const statuses = calculateTermLifecycleStatuses(
+    term,
+    undefined,
+    settings,
+    now
+  )
+  return statuses.includes("FINAL_EXAMS")
+}
+
+export function isTermInGrading(
+  term: TermLifecycleSubject,
+  now: Date = new Date()
+): boolean {
+  const statuses = calculateTermLifecycleStatuses(
+    term,
+    undefined,
+    undefined,
+    now
+  )
+  return statuses.includes("GRADING")
+}
+
+export function isTermCompleted(
+  term: TermLifecycleSubject,
+  now: Date = new Date()
+): boolean {
+  const statuses = calculateTermLifecycleStatuses(
+    term,
+    undefined,
+    undefined,
+    now
+  )
+  return statuses.includes("COMPLETED")
 }
 
 /**

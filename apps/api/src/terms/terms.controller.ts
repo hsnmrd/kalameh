@@ -160,4 +160,14 @@ export class TermsController {
   ) {
     return this.termsService.confirmStudentSchedules(id, currentUser, locale);
   }
+
+  @Post(':id/finalize-scores')
+  @RequirePermissions(PERMISSIONS.MANAGE_TERMS)
+  async finalizeScores(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.termsService.finalizeScores(id, currentUser, locale);
+  }
 }

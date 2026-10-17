@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest"
 import {
   calculateTermLifecycleStatus,
+  calculateTermLifecycleStatuses,
+  isTermRegistrationOpen,
+  isTermOngoing,
+  isTermInCommencement,
+  isTermInFinalExams,
+  isTermInGrading,
+  isTermCompleted,
   findCurrentActiveTerm,
   isTermDeletable,
   type TermLifecycleSubject,
@@ -167,7 +174,7 @@ describe("Term Lifecycle Status and Deletability", () => {
         )
       })
 
-      it("uses 1-week rule when no sibling terms are passed", () => {
+      it("uses registrationDaysBeforeStart rule (default 10 days) when no sibling terms are passed", () => {
         const term: TermLifecycleSubject = {
           id: "t1",
           startDate: "2026-08-01",
@@ -175,15 +182,155 @@ describe("Term Lifecycle Status and Deletability", () => {
           isActive: true,
         }
 
-        // 10 days before start
+        // 12 days before start: UPCOMING
         expect(
-          calculateTermLifecycleStatus(term, undefined, new Date("2026-07-22"))
+          calculateTermLifecycleStatus(term, undefined, new Date("2026-07-20"))
         ).toBe("UPCOMING")
 
-        // 5 days before start
+        // 10 days before start: REGISTERING
+        expect(
+          calculateTermLifecycleStatus(term, undefined, new Date("2026-07-22"))
+        ).toBe("REGISTERING")
+
+        // 5 days before start: REGISTERING
         expect(
           calculateTermLifecycleStatus(term, undefined, new Date("2026-07-27"))
         ).toBe("REGISTERING")
+
+        // With custom settings (7 days rule)
+        expect(
+          calculateTermLifecycleStatus(
+            term,
+            undefined,
+            { registrationDaysBeforeStart: 7 },
+            new Date("2026-07-22")
+          )
+        ).toBe("UPCOMING")
+      })
+    })
+
+    describe("GRADING vs COMPLETED post-term status", () => {
+      it("returns GRADING when term ended but students have pending scores", () => {
+        const term: TermLifecycleSubject = {
+          id: "t1",
+          startDate: "2026-01-01",
+          endDate: "2026-02-28",
+          isActive: true,
+          studentsCount: 15,
+          allScoresSet: false,
+        }
+        const now = new Date("2026-03-05")
+        expect(calculateTermLifecycleStatus(term, [], now)).toBe("GRADING")
+        expect(isTermInGrading(term, now)).toBe(true)
+        expect(isTermCompleted(term, now)).toBe(false)
+      })
+
+      it("returns COMPLETED when term ended and all scores are finalized", () => {
+        const term: TermLifecycleSubject = {
+          id: "t1",
+          startDate: "2026-01-01",
+          endDate: "2026-02-28",
+          isActive: true,
+          studentsCount: 15,
+          allScoresSet: true,
+          scoresFinalizedAt: new Date("2026-03-02"),
+        }
+        const now = new Date("2026-03-05")
+        expect(calculateTermLifecycleStatus(term, [], now)).toBe("COMPLETED")
+        expect(isTermInGrading(term, now)).toBe(false)
+        expect(isTermCompleted(term, now)).toBe(true)
+      })
+    })
+
+    describe("calculateTermLifecycleStatuses (Multiple Statuses & Flags)", () => {
+      const term: TermLifecycleSubject = {
+        id: "t-current",
+        startDate: "2026-05-01",
+        endDate: "2026-06-15",
+        isActive: true,
+        studentsCount: 20,
+      }
+
+      it("returns INACTIVE when term.isActive is false", () => {
+        const inactiveTerm = { ...term, isActive: false }
+        expect(calculateTermLifecycleStatuses(inactiveTerm)).toEqual([
+          "INACTIVE",
+        ])
+      })
+
+      it("returns [ACTIVE, ONGOING, CLASSES_STARTED, REGISTERING] in the first 7 days of term", () => {
+        // Day 3 of term
+        const now = new Date("2026-05-03")
+        const statuses = calculateTermLifecycleStatuses(
+          term,
+          [],
+          undefined,
+          now
+        )
+        expect(statuses).toContain("ACTIVE")
+        expect(statuses).toContain("ONGOING")
+        expect(statuses).toContain("CLASSES_STARTED")
+        expect(statuses).toContain("REGISTERING")
+        expect(isTermOngoing(term, now)).toBe(true)
+        expect(isTermInCommencement(term, undefined, now)).toBe(true)
+        expect(isTermRegistrationOpen(term, [], undefined, now)).toBe(true)
+      })
+
+      it("returns [ACTIVE, ONGOING] in the middle of term after commencement window", () => {
+        // Day 20 of term
+        const now = new Date("2026-05-20")
+        const statuses = calculateTermLifecycleStatuses(
+          term,
+          [],
+          undefined,
+          now
+        )
+        expect(statuses).toContain("ACTIVE")
+        expect(statuses).toContain("ONGOING")
+        expect(statuses).not.toContain("CLASSES_STARTED")
+        expect(statuses).not.toContain("REGISTERING")
+        expect(statuses).not.toContain("FINAL_EXAMS")
+        expect(isTermOngoing(term, now)).toBe(true)
+        expect(isTermInCommencement(term, undefined, now)).toBe(false)
+        expect(isTermRegistrationOpen(term, [], undefined, now)).toBe(false)
+      })
+
+      it("returns [ACTIVE, ONGOING, FINAL_EXAMS] in the last 2 days of term", () => {
+        // Last 2 days: 2026-06-14 and 2026-06-15
+        const now = new Date("2026-06-14")
+        const statuses = calculateTermLifecycleStatuses(
+          term,
+          [],
+          undefined,
+          now
+        )
+        expect(statuses).toContain("ACTIVE")
+        expect(statuses).toContain("ONGOING")
+        expect(statuses).toContain("FINAL_EXAMS")
+        expect(isTermInFinalExams(term, undefined, now)).toBe(true)
+      })
+
+      it("returns [GRADING] when term ended but scores not finalized", () => {
+        const now = new Date("2026-06-20")
+        const statuses = calculateTermLifecycleStatuses(
+          term,
+          [],
+          undefined,
+          now
+        )
+        expect(statuses).toEqual(["GRADING"])
+      })
+
+      it("returns [COMPLETED] when term ended and scores are finalized", () => {
+        const finalizedTerm = { ...term, allScoresSet: true }
+        const now = new Date("2026-06-20")
+        const statuses = calculateTermLifecycleStatuses(
+          finalizedTerm,
+          [],
+          undefined,
+          now
+        )
+        expect(statuses).toEqual(["COMPLETED"])
       })
     })
   })

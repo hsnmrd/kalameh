@@ -2,7 +2,11 @@ import { z } from "zod"
 
 export const TermLifecycleStatusSchema = z.enum([
   "ACTIVE",
+  "ONGOING",
   "REGISTERING",
+  "CLASSES_STARTED",
+  "FINAL_EXAMS",
+  "GRADING",
   "UPCOMING",
   "COMPLETED",
   "INACTIVE",
@@ -18,6 +22,7 @@ export const TermSchema = z.object({
   endDate: z.string().or(z.date()),
   isActive: z.boolean(),
   lifecycleStatus: TermLifecycleStatusSchema.optional(),
+  lifecycleStatuses: z.array(TermLifecycleStatusSchema).optional(),
   operatingPhaseId: z.string().uuid(),
   operatingPhase: z
     .object({
@@ -44,6 +49,18 @@ export const TermSchema = z.object({
     })
     .nullable()
     .optional(),
+  scoresFinalizedAt: z.string().or(z.date()).nullable().optional(),
+  scoresFinalizedByUserId: z.string().uuid().nullable().optional(),
+  scoresFinalizedByUser: z
+    .object({
+      id: z.string().uuid(),
+      firstName: z.string(),
+      lastName: z.string(),
+    })
+    .nullable()
+    .optional(),
+  allScoresSet: z.boolean().optional(),
+  unscoredStudentsCount: z.number().optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
   classesCount: z.number().optional(),

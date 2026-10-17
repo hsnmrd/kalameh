@@ -48,6 +48,9 @@ export const InstituteSchema = z.object({
   bankShaba: z.string().nullable().optional(),
   observeOfficialHolidays: z.boolean().default(true),
   dismissedHolidays: z.array(z.string()).default([]),
+  termRegistrationDaysBeforeStart: z.number().int().min(0).max(90).default(10),
+  termRegistrationDaysAfterStart: z.number().int().min(0).max(90).default(7),
+  termExamDaysBeforeEnd: z.number().int().min(0).max(30).default(2),
   deletedAt: z.date().or(z.string()).nullable().optional(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
@@ -242,6 +245,27 @@ export const createUpdateInstituteSchema = (msg?: {
         }
         return val
       }, z.array(z.string().trim()))
+      .optional(),
+    termRegistrationDaysBeforeStart: z
+      .preprocess((val) => {
+        if (val === undefined || val === null || val === "") return undefined
+        const num = Number(val)
+        return isNaN(num) ? val : num
+      }, z.number().int().min(0).max(90))
+      .optional(),
+    termRegistrationDaysAfterStart: z
+      .preprocess((val) => {
+        if (val === undefined || val === null || val === "") return undefined
+        const num = Number(val)
+        return isNaN(num) ? val : num
+      }, z.number().int().min(0).max(90))
+      .optional(),
+    termExamDaysBeforeEnd: z
+      .preprocess((val) => {
+        if (val === undefined || val === null || val === "") return undefined
+        const num = Number(val)
+        return isNaN(num) ? val : num
+      }, z.number().int().min(0).max(30))
       .optional(),
   })
 

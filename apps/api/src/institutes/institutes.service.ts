@@ -212,6 +212,21 @@ export class InstitutesService {
         ...(dto.dismissedHolidays !== undefined
           ? { dismissedHolidays: dto.dismissedHolidays }
           : {}),
+        ...(dto.termRegistrationDaysBeforeStart !== undefined
+          ? {
+              termRegistrationDaysBeforeStart:
+                dto.termRegistrationDaysBeforeStart,
+            }
+          : {}),
+        ...(dto.termRegistrationDaysAfterStart !== undefined
+          ? {
+              termRegistrationDaysAfterStart:
+                dto.termRegistrationDaysAfterStart,
+            }
+          : {}),
+        ...(dto.termExamDaysBeforeEnd !== undefined
+          ? { termExamDaysBeforeEnd: dto.termExamDaysBeforeEnd }
+          : {}),
       },
       include: {
         _count: {

@@ -6,13 +6,18 @@
   "generatePhaseTerms": "Auto-Generate Terms",
   "actions": "Term Actions",
   "cancel": "Cancel",
+  "settingsTooltip": "Term Lifecycle Settings",
   "searchPlaceholder": "Search academic terms...",
   "filter": {
     "title": "Filter Terms",
     "status": "Term Status",
     "allStatus": "All Statuses",
-    "activeOnly": "In Session",
+    "activeOnly": "Ongoing",
+    "ongoingOnly": "Ongoing",
     "registeringOnly": "Registering",
+    "classesStartedOnly": "Classes Started",
+    "finalExamsOnly": "Final Exams",
+    "gradingOnly": "Grading",
     "upcomingOnly": "Upcoming",
     "completedOnly": "Completed",
     "inactiveOnly": "Closed"
@@ -32,8 +37,12 @@
   },
   "status": {
     "all": "All Statuses",
-    "active": "In Session",
+    "active": "Ongoing",
+    "ongoing": "Ongoing",
     "registering": "Registering",
+    "classesStarted": "Classes Started",
+    "finalExams": "Final Exams",
+    "grading": "Grading",
     "upcoming": "Upcoming",
     "completed": "Completed",
     "inactive": "Closed"
@@ -249,6 +258,28 @@
     "status": "Term Status",
     "statusActive": "Active",
     "statusInactive": "Inactive"
+  },
+  "settingsModal": {
+    "title": "Term Lifecycle & Registration Settings",
+    "description": "Configure open/close windows for registration and final exam grace period",
+    "buttonLabel": "Term Settings",
+    "regDaysBeforeLabel": "Registration Starts Before Term (days)",
+    "regDaysBeforeHint": "Days before start date when course registration opens for students (default: 10 days).",
+    "regDaysAfterLabel": "Registration Continues After Term Start (days)",
+    "regDaysAfterHint": "Add/drop grace period for registration after classes start (default: 7 days).",
+    "examDaysBeforeLabel": "Final Exam Period Before Term End (days)",
+    "examDaysBeforeHint": "Number of days before term end designated for final exams (default: 2 days).",
+    "submit": "Save Settings",
+    "success": "Term lifecycle settings saved successfully."
+  },
+  "finalizeScoresModal": {
+    "title": "Finalize Scores & Complete Term",
+    "description": "Finalizing scores will officially seal student grades for term \"{title}\" and transition it to Completed status.",
+    "unscoredWarning": "Notice: {count} students still have unrecorded final scores. Finalizing will mark the term completed.",
+    "button": "Finalize & Complete Term",
+    "confirm": "Finalize Scores",
+    "cancel": "Cancel",
+    "success": "Term scores finalized successfully and term marked as completed."
   },
   "validation": {
     "titleMin": "Term title must be at least 2 characters.",

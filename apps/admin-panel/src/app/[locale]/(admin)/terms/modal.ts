@@ -27,4 +27,11 @@ export const modalRegistry: ModalRegistry = {
       ),
     { ssr: false }
   ),
+  termSettingsModal: dynamic(
+    () =>
+      import("./components/term-settings-modal").then(
+        (m) => m.TermSettingsModal
+      ),
+    { ssr: false }
+  ),
 }

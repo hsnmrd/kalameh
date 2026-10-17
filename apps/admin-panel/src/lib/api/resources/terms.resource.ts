@@ -57,4 +57,10 @@ export const termsResource = api.resource("terms", {
       body: () => undefined,
     }
   ),
+  finalizeScores: api.post<TermDto, string>(
+    (id) => `/terms/${id}/finalize-scores`,
+    {
+      body: () => undefined,
+    }
+  ),
 })

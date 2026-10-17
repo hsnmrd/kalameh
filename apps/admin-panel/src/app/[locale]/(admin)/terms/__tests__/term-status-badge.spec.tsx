@@ -21,12 +21,38 @@ describe("TermStatusBadge Component", () => {
 
   it("renders COMPLETED status correctly", () => {
     render(<TermStatusBadge status="COMPLETED" />)
-    expect(screen.getByText(/پایان‌یافته|completed/i)).toBeInTheDocument()
+    expect(screen.getByText(/اتمام|پایان‌یافته|completed/i)).toBeInTheDocument()
   })
 
   it("renders INACTIVE status correctly", () => {
     render(<TermStatusBadge status="INACTIVE" />)
-    expect(screen.getByText(/بسته شده|closed/i)).toBeInTheDocument()
+    expect(screen.getByText(/غیرفعال|بسته شده|closed/i)).toBeInTheDocument()
+  })
+
+  it("renders CLASSES_STARTED status correctly", () => {
+    render(<TermStatusBadge status="CLASSES_STARTED" />)
+    expect(screen.getByText(/شروع کلاس‌ها/i)).toBeInTheDocument()
+  })
+
+  it("renders FINAL_EXAMS status correctly", () => {
+    render(<TermStatusBadge status="FINAL_EXAMS" />)
+    expect(screen.getByText(/امتحانات پایان ترم/i)).toBeInTheDocument()
+  })
+
+  it("renders GRADING status correctly", () => {
+    render(<TermStatusBadge status="GRADING" />)
+    expect(screen.getByText(/در حال ثبت نمرات/i)).toBeInTheDocument()
+  })
+
+  it("renders multiple statuses when statuses array is passed", () => {
+    render(
+      <TermStatusBadge
+        statuses={["ONGOING", "CLASSES_STARTED", "REGISTERING"]}
+      />
+    )
+    expect(screen.getByText(/در حال برگزاری/i)).toBeInTheDocument()
+    expect(screen.getByText(/شروع کلاس‌ها/i)).toBeInTheDocument()
+    expect(screen.getByText(/در حال ثبت‌نام/i)).toBeInTheDocument()
   })
 
   it("computes status from term when term is passed", () => {
@@ -37,15 +63,16 @@ describe("TermStatusBadge Component", () => {
       startDate: "2020-01-01",
       endDate: "2020-02-28",
       isActive: true,
+      operatingPhaseId: "phase-1",
       createdAt: "",
       updatedAt: "",
     }
     render(<TermStatusBadge term={term} />)
-    expect(screen.getByText(/پایان‌یافته|completed/i)).toBeInTheDocument()
+    expect(screen.getByText(/اتمام|پایان‌یافته|completed/i)).toBeInTheDocument()
   })
 
   it("falls back to boolean isActive prop for backward compatibility", () => {
     render(<TermStatusBadge isActive={false} />)
-    expect(screen.getByText(/بسته شده|closed/i)).toBeInTheDocument()
+    expect(screen.getByText(/غیرفعال|بسته شده|closed/i)).toBeInTheDocument()
   })
 })

@@ -14,6 +14,18 @@
     "fa": "فارسی (RTL)",
     "en": "English (LTR)"
   },
+  "termLifecycle": {
+    "title": "Term Lifecycle & Registration Windows",
+    "description": "Configure student registration windows before and after term start, as well as final exam periods",
+    "regDaysBeforeLabel": "Registration Starts Before Term (days)",
+    "regDaysBeforeHint": "Number of days before term start when course registration opens (default: 10 days).",
+    "regDaysAfterLabel": "Registration Continues After Term Start (days)",
+    "regDaysAfterHint": "Add/drop grace period for registration after classes start (default: 7 days).",
+    "examDaysBeforeLabel": "Final Exam Period Before Term End (days)",
+    "examDaysBeforeHint": "Number of days at the end of the term considered final exam days (default: 2 days).",
+    "save": "Save Changes",
+    "success": "Term lifecycle settings saved successfully."
+  },
   "offDays": {
     "title": "Institute Off-Days & Calendar",
     "description": "Manage official holidays and the dates when the institute remains open during them",

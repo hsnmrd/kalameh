@@ -26,6 +26,10 @@ model Institute {
   observeOfficialHolidays Boolean  @default(true)
   dismissedHolidays       String[] @default([])
 
+  termRegistrationDaysBeforeStart Int @default(10)
+  termRegistrationDaysAfterStart  Int @default(7)
+  termExamDaysBeforeEnd           Int @default(2)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -119,6 +123,7 @@ model User {
   schedulingProposals           SchedulingProposal[] @relation("SchedulingProposalTeacher")
   schedulingProposalLocks       SchedulingProposal[] @relation("SchedulingProposalLocker")
   confirmedTermStudentSchedules Term[]               @relation("TermStudentSchedulesConfirmedBy")
+  finalizedTermScores           Term[]               @relation("TermScoresFinalizedBy")
 
   @@unique([phone, instituteId])
   @@index([instituteId])
@@ -238,12 +243,17 @@ model Term {
   studentSchedulesConfirmedByUserId String?
   studentSchedulesConfirmedByUser   User?     @relation("TermStudentSchedulesConfirmedBy", fields: [studentSchedulesConfirmedByUserId], references: [id], onDelete: SetNull)
 
+  scoresFinalizedAt       DateTime?
+  scoresFinalizedByUserId String?
+  scoresFinalizedByUser   User?     @relation("TermScoresFinalizedBy", fields: [scoresFinalizedByUserId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
   @@index([instituteId])
   @@index([operatingPhaseId])
   @@index([studentSchedulesConfirmedByUserId])
+  @@index([scoresFinalizedByUserId])
 }
 
 model Course {

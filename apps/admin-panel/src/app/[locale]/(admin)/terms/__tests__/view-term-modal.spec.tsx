@@ -247,4 +247,30 @@ describe("ViewTermModal Component", () => {
       window.matchMedia = originalMatchMedia
     }
   })
+
+  it("renders finalize scores button for past term in grading status", () => {
+    const gradingTerm: TermDto = {
+      ...mockTerm,
+      startDate: "2020-01-01T00:00:00.000Z",
+      endDate: "2020-03-01T00:00:00.000Z",
+      lifecycleStatus: "GRADING",
+      lifecycleStatuses: ["GRADING"],
+      unscoredStudentsCount: 3,
+    }
+
+    render(
+      <ViewTermModal
+        term={gradingTerm}
+        open={true}
+        onClose={vi.fn()}
+        allTerms={[gradingTerm]}
+      />
+    )
+
+    expect(
+      screen.getByRole("button", {
+        name: /ثبت نهایی و اتمام ترم|finalizeScoresModal\.button/i,
+      })
+    ).toBeInTheDocument()
+  })
 })
