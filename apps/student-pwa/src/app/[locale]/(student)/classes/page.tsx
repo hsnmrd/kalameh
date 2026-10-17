@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Layers } from "lucide-react"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/sonner"
-import type { ClassDto } from "@workspace/types"
+import { ENROLLMENT_STATUSES, type ClassDto } from "@workspace/types"
 import { classesResource, enrollmentsResource } from "@/lib/api"
 import { StudentLevelHeader } from "./components/student-level-header"
 import { StudentClassCard } from "./components/student-class-card"
@@ -51,11 +51,25 @@ export default function StudentClassesPage() {
   })
 
   const handleEnroll = (cls: ClassDto) => {
+    if (cls.studentEnrollmentStatus === ENROLLMENT_STATUSES.PENDING_PAYMENT) {
+      router.push(`/enrollments?classId=${cls.id}`)
+      return
+    }
+    if (cls.studentEnrollmentStatus) {
+      toast.info(t("alreadyRequested"))
+      router.push("/enrollments")
+      return
+    }
     setActiveClassId(cls.id)
     reserveMutation.mutate({ classId: cls.id })
   }
 
   const handleWaitlist = (cls: ClassDto) => {
+    if (cls.studentEnrollmentStatus) {
+      toast.info(t("alreadyRequested"))
+      router.push("/enrollments")
+      return
+    }
     setActiveClassId(cls.id)
     waitlistMutation.mutate({ classId: cls.id })
   }

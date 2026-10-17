@@ -64,5 +64,58 @@ describe("Student Classes Components", () => {
       expect(waitlistBtn).toBeInTheDocument()
       expect(waitlistBtn).not.toBeDisabled()
     })
+
+    it("should show enrolled status button when student is already enrolled", () => {
+      const enrolledClass = {
+        ...mockClass,
+        studentEnrollmentStatus: "ENROLLED" as const,
+      }
+      render(<StudentClassCard cls={enrolledClass} />)
+
+      expect(
+        screen.getByRole("button", { name: /ثبت‌نام قطعی|enrolled/i })
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole("button", { name: /انتخاب و ثبت‌نام در کلاس/i })
+      ).not.toBeInTheDocument()
+    })
+
+    it("should show pending approval status button when student submitted receipt", () => {
+      const pendingApprovalClass = {
+        ...mockClass,
+        studentEnrollmentStatus: "PENDING_APPROVAL" as const,
+      }
+      render(<StudentClassCard cls={pendingApprovalClass} />)
+
+      expect(
+        screen.getByRole("button", {
+          name: /در انتظار تأیید|pending approval/i,
+        })
+      ).toBeInTheDocument()
+    })
+
+    it("should show complete payment button when student has active reservation", () => {
+      const pendingPaymentClass = {
+        ...mockClass,
+        studentEnrollmentStatus: "PENDING_PAYMENT" as const,
+      }
+      render(<StudentClassCard cls={pendingPaymentClass} />)
+
+      expect(
+        screen.getByRole("button", { name: /تکمیل پرداخت|complete payment/i })
+      ).toBeInTheDocument()
+    })
+
+    it("should show waitlisted button when student is on waitlist", () => {
+      const waitlistedClass = {
+        ...mockClass,
+        studentEnrollmentStatus: "WAITLISTED" as const,
+      }
+      render(<StudentClassCard cls={waitlistedClass} />)
+
+      expect(
+        screen.getByRole("button", { name: /لیست انتظار|waitlisted/i })
+      ).toBeInTheDocument()
+    })
   })
 })

@@ -8,12 +8,60 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../common/redis/redis.service';
 import { ClassFilterDto } from './dto/class-filter.dto';
+
+const classInclude = {
+  branch: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  term: {
+    select: {
+      id: true,
+      title: true,
+      isActive: true,
+      startDate: true,
+      endDate: true,
+    },
+  },
+  course: {
+    select: {
+      id: true,
+      title: true,
+      baseFee: true,
+    },
+  },
+  classroom: {
+    select: {
+      id: true,
+      name: true,
+      capacity: true,
+    },
+  },
+  _count: {
+    select: {
+      enrollments: {
+        where: {
+          status: {
+            in: [
+              ENROLLMENT_STATUSES.PENDING_APPROVAL,
+              ENROLLMENT_STATUSES.ENROLLED,
+            ],
+          },
+        },
+      },
+    },
+  },
+} as const;
+
 @Injectable()
 export class ClassQueryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
   ) {}
+
   async findAll(
     currentUser: JwtPayload,
     filter?: ClassFilterDto,
@@ -40,52 +88,7 @@ export class ClassQueryService {
             }
           : {}),
       },
-      include: {
-        branch: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        term: {
-          select: {
-            id: true,
-            title: true,
-            isActive: true,
-            startDate: true,
-            endDate: true,
-          },
-        },
-        course: {
-          select: {
-            id: true,
-            title: true,
-            baseFee: true,
-          },
-        },
-        classroom: {
-          select: {
-            id: true,
-            name: true,
-            capacity: true,
-          },
-        },
-        _count: {
-          select: {
-            enrollments: {
-              where: {
-                status: {
-                  in: [
-                    ENROLLMENT_STATUSES.PENDING_PAYMENT,
-                    ENROLLMENT_STATUSES.PENDING_APPROVAL,
-                    ENROLLMENT_STATUSES.ENROLLED,
-                  ],
-                },
-              },
-            },
-          },
-        },
-      },
+      include: classInclude,
       orderBy: { createdAt: 'desc' },
     });
 
@@ -147,55 +150,58 @@ export class ClassQueryService {
           isActive: true,
         },
       },
-      include: {
-        term: {
-          select: {
-            id: true,
-            title: true,
-            isActive: true,
-            startDate: true,
-            endDate: true,
-          },
-        },
-        course: {
-          select: {
-            id: true,
-            title: true,
-            baseFee: true,
-          },
-        },
-        classroom: {
-          select: {
-            id: true,
-            name: true,
-            capacity: true,
-          },
-        },
-        _count: {
-          select: {
-            enrollments: {
-              where: {
-                status: {
-                  in: [
-                    ENROLLMENT_STATUSES.PENDING_PAYMENT,
-                    ENROLLMENT_STATUSES.PENDING_APPROVAL,
-                    ENROLLMENT_STATUSES.ENROLLED,
-                  ],
-                },
-              },
-            },
-          },
-        },
-      },
+      include: classInclude,
       orderBy: { title: 'asc' },
     });
+
+    const classIds = classes.map((cls) => cls.id);
+    const studentEnrollments =
+      classIds.length > 0
+        ? await this.prisma.enrollment.findMany({
+            where: {
+              studentId: currentUser.sub,
+              classId: { in: classIds },
+            },
+            select: {
+              classId: true,
+              status: true,
+            },
+          })
+        : [];
+
+    const enrollmentByClassId = new Map(
+      studentEnrollments.map((e) => [e.classId, e.status]),
+    );
 
     const classesWithLocks = await Promise.all(
       classes.map(async ({ _count, ...cls }) => {
         const lockCount = await this.redis.countClassLocks(cls.id);
+        let studentEnrollmentStatus = enrollmentByClassId.get(cls.id) ?? null;
+
+        // If student is marked PENDING_PAYMENT, verify if reservation lock is still active
+        if (studentEnrollmentStatus === ENROLLMENT_STATUSES.PENDING_PAYMENT) {
+          const hasLock = await this.redis.hasClassLock(
+            cls.id,
+            currentUser.sub,
+          );
+          if (!hasLock) {
+            studentEnrollmentStatus = null;
+          }
+        } else if (!studentEnrollmentStatus) {
+          // If no DB enrollment but has active Redis lock for this class
+          const hasLock = await this.redis.hasClassLock(
+            cls.id,
+            currentUser.sub,
+          );
+          if (hasLock) {
+            studentEnrollmentStatus = ENROLLMENT_STATUSES.PENDING_PAYMENT;
+          }
+        }
+
         return {
           ...cls,
           enrolledCount: _count.enrollments + lockCount,
+          studentEnrollmentStatus,
         };
       }),
     );
@@ -218,58 +224,14 @@ export class ClassQueryService {
         id,
         ...(currentUser.role === 'SUPER_ADMIN' ? {} : { instituteId }),
       },
-      include: {
-        branch: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        term: {
-          select: {
-            id: true,
-            title: true,
-            isActive: true,
-            startDate: true,
-            endDate: true,
-          },
-        },
-        course: {
-          select: {
-            id: true,
-            title: true,
-            baseFee: true,
-          },
-        },
-        classroom: {
-          select: {
-            id: true,
-            name: true,
-            capacity: true,
-          },
-        },
-        _count: {
-          select: {
-            enrollments: {
-              where: {
-                status: {
-                  in: [
-                    ENROLLMENT_STATUSES.PENDING_PAYMENT,
-                    ENROLLMENT_STATUSES.PENDING_APPROVAL,
-                    ENROLLMENT_STATUSES.ENROLLED,
-                  ],
-                },
-              },
-            },
-          },
-        },
-      },
+      include: classInclude,
     });
 
+    const lockCount = await this.redis.countClassLocks(id);
     const { _count, ...data } = cls;
     return {
       ...data,
-      enrolledCount: _count.enrollments,
+      enrolledCount: _count.enrollments + lockCount,
     };
   }
 }
