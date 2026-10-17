@@ -19,8 +19,8 @@ export function ProfileLanguageCard({
   const t = useTranslations("profile")
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+    <div className="flex flex-col gap-4 py-2">
+      <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground">
         <Languages className="size-4 text-muted-foreground" />
         <span>{t("languageSetting")}</span>
       </h3>
@@ -36,10 +36,10 @@ export function ProfileLanguageCard({
               variant={isSelected ? "default" : "outline"}
               onClick={() => onSwitchLanguage(lang.code)}
               className={cn(
-                "h-10 cursor-pointer rounded-xl text-xs font-semibold",
+                "h-12 cursor-pointer rounded-xl text-xs font-semibold",
                 isSelected
                   ? "bg-primary text-primary-foreground shadow-xs"
-                  : "border-border bg-background text-foreground hover:bg-muted"
+                  : "border-border bg-transparent text-foreground hover:bg-muted"
               )}
             >
               <span>

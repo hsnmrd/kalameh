@@ -31,7 +31,7 @@ export function ProfileSquareHeader({
   return (
     <div
       className={cn(
-        "relative aspect-square max-h-[380px] w-full overflow-hidden rounded-3xl border border-border/60 bg-muted/30 shadow-xs",
+        "relative -mx-4 -mt-5 aspect-square max-h-[380px] w-[calc(100%+2rem)] overflow-hidden border-b border-border/60 bg-muted/30 shadow-none",
         className
       )}
     >

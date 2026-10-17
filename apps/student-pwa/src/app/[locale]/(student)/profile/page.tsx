@@ -3,9 +3,9 @@
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ShieldCheck, Settings } from "lucide-react"
+import { ShieldCheck, Settings, ChevronLeft, ChevronRight } from "lucide-react"
 import { authResource } from "@/lib/api"
-import { useRouter, usePathname } from "@/i18n/routing"
+import { useRouter, usePathname, useIsRtl } from "@/i18n/routing"
 import type { SupportedLocale } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -22,6 +22,8 @@ export default function StudentProfilePage() {
   const router = useRouter()
   const pathname = usePathname()
   const queryClient = useQueryClient()
+  const isRtl = useIsRtl()
+  const ChevronIcon = isRtl ? ChevronLeft : ChevronRight
 
   const { data: user, isLoading } = useQuery(authResource.me.toQuery())
 
@@ -93,8 +95,8 @@ export default function StudentProfilePage() {
         }
       />
 
-      {/* Information Cards Stack */}
-      <div className="flex flex-col gap-4">
+      {/* Information Sections Stack (Flat UI with Dividers) */}
+      <div className="flex flex-col gap-6 pt-2">
         {/* Personal Details */}
         <ProfileInfoCard
           fullName={fullName}
@@ -126,21 +128,32 @@ export default function StudentProfilePage() {
         />
 
         {/* Settings Navigation Shortcut */}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push("/setting")}
-          className="h-14 w-full cursor-pointer justify-start gap-3 rounded-2xl border-border bg-card px-5 text-base font-medium text-foreground hover:bg-muted"
-        >
-          <Settings className="size-5 text-muted-foreground" />
-          <span>{t("settings")}</span>
-        </Button>
+        <div className="flex flex-col gap-4 py-2">
+          <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground">
+            <Settings className="size-4 text-muted-foreground" />
+            <span>{t("settings")}</span>
+          </h3>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push("/setting")}
+            className="h-14 w-full cursor-pointer justify-between rounded-2xl border-border bg-transparent px-4 text-base font-medium text-foreground hover:bg-muted"
+          >
+            <span className="flex items-center gap-2.5">
+              <Settings className="size-5 text-muted-foreground" />
+              <span>{t("settings")}</span>
+            </span>
+            <ChevronIcon className="size-4 text-muted-foreground" />
+          </Button>
+        </div>
 
         {/* Logout Option at the End of the Page */}
-        <ProfileLogoutButton
-          onLogout={() => logoutMutation.mutate()}
-          isLoggingOut={logoutMutation.isPending}
-        />
+        <div className="border-t border-border/60 pt-6">
+          <ProfileLogoutButton
+            onLogout={() => logoutMutation.mutate()}
+            isLoggingOut={logoutMutation.isPending}
+          />
+        </div>
       </div>
     </div>
   )

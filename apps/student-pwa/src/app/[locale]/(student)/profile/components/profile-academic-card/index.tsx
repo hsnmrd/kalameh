@@ -20,7 +20,7 @@ export function ProfileAcademicCard({
   const t = useTranslations("profile")
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
+    <div className="flex flex-col gap-4 py-2">
       <h3 className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-bold text-foreground">
         <GraduationCap className="size-4 text-muted-foreground" />
         <span>{t("academicInfo")}</span>
