@@ -22,5 +22,8 @@
   "statusRejected": "رد شده",
   "completePayment": "تکمیل پرداخت",
   "trackEnrollment": "پیگیری ثبت‌نام",
-  "alreadyRequested": "شما پیش از این برای این کلاس درخواست ثبت کرده‌اید."
+  "alreadyRequested": "شما پیش از این برای این کلاس درخواست ثبت کرده‌اید.",
+  "allowedLevelDesc": "فقط کلاس‌های متناسب با این سطح برای شما نمایش داده می‌شوند.",
+  "expandDetails": "مشاهده توضیحات",
+  "collapseDetails": "بستن توضیحات"
 }
