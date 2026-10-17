@@ -21,6 +21,7 @@
   },
   "payment": {
     "title": "Bank Account Details",
+    "depositAction": "Deposit",
     "fullPaymentRule": "Payment Rule: Full tuition must be paid in a single lump sum.",
     "tuition": "Tuition Amount:",
     "bankCard": "Bank Card Number:",
