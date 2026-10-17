@@ -16,6 +16,7 @@ export interface TransactionsFilterProps {
   onSearchChange: (value: string) => void
   status: TransactionStatus | "ALL"
   onStatusChange: (value: TransactionStatus | "ALL") => void
+  isEmpty?: boolean
 }
 
 export function TransactionsFilter({
@@ -23,6 +24,7 @@ export function TransactionsFilter({
   onSearchChange,
   status,
   onStatusChange,
+  isEmpty,
 }: TransactionsFilterProps) {
   const t = useTranslations("transactions")
   const statusOptions = React.useMemo<ComboboxOption[]>(
@@ -47,7 +49,7 @@ export function TransactionsFilter({
 
   return (
     <AdminFilterBar
-      autoHideOnMobile={false}
+      isEmpty={isEmpty}
       isPinned={Boolean(search.trim() || activeFiltersCount)}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={() => onStatusChange("ALL")}

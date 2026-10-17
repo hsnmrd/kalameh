@@ -63,8 +63,10 @@ export default function BooksPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_BOOKS} mode="forbidden">
         <AdminPageShell
+          isEmpty={isListEmpty}
           filters={
             <BooksFilter
+              isEmpty={isListEmpty}
               search={filters.search}
               onSearchChange={(search) => setFilter("search", search)}
               onAddClick={isListEmpty ? undefined : handleCreate}

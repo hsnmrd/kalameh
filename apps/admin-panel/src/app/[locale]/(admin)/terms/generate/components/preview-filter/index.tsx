@@ -25,7 +25,6 @@ export function PreviewFilter({
   return (
     <>
       <AdminFilterBar
-        autoHideOnMobile={false}
         onFilterClick={onEditConfig}
         filterButtonLabel={t("batchModal.editConfig")}
         filterButtonAriaLabel={t("batchModal.editConfig")}

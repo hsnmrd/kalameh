@@ -124,6 +124,7 @@ export default function TeachersPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_TEACHERS} mode="forbidden">
         <AdminPageShell
+          isEmpty={isListEmpty}
           actions={
             <TeachersHeaderActions
               totalCount={totalCount}
@@ -134,6 +135,7 @@ export default function TeachersPage() {
           }
           filter={
             <TeachersFilter
+              isEmpty={isListEmpty}
               searchValue={filters.searchValue}
               onSearchChange={(search) => setFilter("searchValue", search)}
               selectedStatus={filters.selectedStatus}

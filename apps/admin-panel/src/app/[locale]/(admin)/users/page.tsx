@@ -119,6 +119,7 @@ export default function UsersPage() {
     <ModuleGuard module={APP_MODULES.USERS_STAFF}>
       <PermissionGuard permission={PERMISSIONS.VIEW_USERS} mode="forbidden">
         <AdminPageShell
+          isEmpty={isListEmpty}
           actions={
             <UsersHeaderActions
               totalCount={totalCount}
@@ -129,6 +130,7 @@ export default function UsersPage() {
           }
           filter={
             <UsersFilter
+              isEmpty={isListEmpty}
               searchValue={filters.searchValue}
               onSearchChange={(search) => setFilter("searchValue", search)}
               selectedRole={filters.selectedRole}

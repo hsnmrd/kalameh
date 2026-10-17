@@ -15,7 +15,6 @@ import {
   ResponsiveDialogCloseButton,
 } from "@workspace/ui/components/dialog"
 import { cn, formatNumber } from "@workspace/ui/lib/utils"
-import { useMobileScrollReveal } from "@/lib/hooks"
 
 export interface AdminFilterBarProps {
   search?: React.ReactNode
@@ -34,10 +33,12 @@ export interface AdminFilterBarProps {
   onClearFilters?: () => void
   /** Custom callback when filter button is clicked (bypasses internal dialog) */
   onFilterClick?: () => void
-  /** Keep revealed on mobile (e.g. active filter or active search) */
+  /** @deprecated No longer used. Kept for backwards compatibility. */
   isPinned?: boolean
-  /** Whether auto-collapsing on mobile scroll is enabled (default: true) */
+  /** @deprecated No longer used. Auto-collapsing on mobile scroll has been removed. */
   autoHideOnMobile?: boolean
+  /** When true (e.g. list is empty), hides the filter and search bar on mobile screens (< lg) */
+  isEmpty?: boolean
   /** Actions rendered next to filter button (e.g. Add Button on desktop) */
   actions?: React.ReactNode
   /** Whether filter interactions are disabled */
@@ -67,6 +68,7 @@ export function AdminFilterBar({
   onFilterClick,
   isPinned = false,
   autoHideOnMobile = true,
+  isEmpty = false,
   actions,
   disabled = false,
   filterIcon,
@@ -93,10 +95,6 @@ export function AdminFilterBar({
   const hasFilters = Boolean(hasDialog || onFilterClick)
   const hasActiveFilters = Boolean(isPinned || activeFiltersCount > 0)
 
-  const { isRevealed } = useMobileScrollReveal({
-    pinned: hasActiveFilters || dialogOpen || !autoHideOnMobile,
-  })
-
   const resolvedDialogTitle = filterDialogTitle || t("title")
   const resolvedButtonLabel = filterButtonLabel || t("button")
   const resolvedButtonAriaLabel =
@@ -115,22 +113,13 @@ export function AdminFilterBar({
     <>
       <div
         className={cn(
-          "grid w-full max-w-full min-w-0 transition-[grid-template-rows,opacity,margin] duration-300 ease-out",
-          // Mobile collapsible styling: 0fr with 0 margin when hidden, 1fr with mb-4 when revealed
-          isRevealed
-            ? "mb-4 grid-rows-[1fr] opacity-100"
-            : "pointer-events-none mb-0 grid-rows-[0fr] opacity-0",
-          // Desktop resets: sticky under header (top-16), always 1fr with mb-6
-          "lg:pointer-events-auto lg:sticky lg:top-16 lg:z-20 lg:mb-6 lg:grid-rows-[1fr] lg:overflow-visible lg:bg-background/95 lg:py-2.5 lg:opacity-100 lg:backdrop-blur-md",
+          "mb-4 w-full max-w-full min-w-0",
+          "lg:sticky lg:top-16 lg:z-20 lg:mb-6 lg:overflow-visible lg:bg-background/95 lg:py-2.5 lg:backdrop-blur-md",
+          isEmpty && "hidden lg:block",
           className
         )}
       >
-        <div
-          className={cn(
-            "w-full max-w-full min-w-0",
-            isRevealed ? "overflow-x-clip" : "overflow-hidden"
-          )}
-        >
+        <div className="w-full max-w-full min-w-0 overflow-x-clip lg:overflow-visible">
           <div className="flex w-full max-w-full min-w-0 items-center gap-2 pt-1.5 pb-1 sm:gap-3 sm:pt-0 sm:pb-0.5">
             {/* Search slot — stretches with flex-1 */}
             {search && (

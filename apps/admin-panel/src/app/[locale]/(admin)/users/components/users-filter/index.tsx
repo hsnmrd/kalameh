@@ -19,6 +19,7 @@ export interface UsersFilterProps {
   onRoleChange: (role: string) => void
   onAddClick?: () => void
   actions?: React.ReactNode
+  isEmpty?: boolean
 }
 
 export function UsersFilter({
@@ -28,6 +29,7 @@ export function UsersFilter({
   onRoleChange,
   onAddClick,
   actions,
+  isEmpty,
 }: UsersFilterProps) {
   const t = useTranslations("users")
 
@@ -68,6 +70,7 @@ export function UsersFilter({
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       isPinned={hasActiveFilter}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}

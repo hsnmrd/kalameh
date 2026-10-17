@@ -25,6 +25,8 @@ export interface AdminPageShellProps {
   /** Floating action button — rendered after modals (fixed position, mobile-only) */
   fab?: React.ReactNode
   className?: string
+  /** Whether the list is empty (hides filter section on mobile size) */
+  isEmpty?: boolean
 }
 
 export function AdminPageShell({
@@ -39,6 +41,7 @@ export function AdminPageShell({
   modals,
   fab,
   className,
+  isEmpty = false,
 }: AdminPageShellProps) {
   const pathname = usePathname()
   const { setHeaderActions, setBackNavigation } = useHeaderActions()
@@ -69,7 +72,11 @@ export function AdminPageShell({
         {breadcrumb && (
           <div className={cn("mb-4", breadcrumbClassName)}>{breadcrumb}</div>
         )}
-        {resolvedFilter}
+        {resolvedFilter && (
+          <div className={isEmpty ? "hidden lg:contents" : "contents"}>
+            {resolvedFilter}
+          </div>
+        )}
         {children}
         {modals}
         {fab}

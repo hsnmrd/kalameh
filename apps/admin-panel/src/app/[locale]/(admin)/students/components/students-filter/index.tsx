@@ -25,6 +25,7 @@ export interface StudentsFilterProps {
   onSetAllAvailableClick?: () => void
   actions?: React.ReactNode
   disabled?: boolean
+  isEmpty?: boolean
 }
 
 export function StudentsFilter({
@@ -42,6 +43,7 @@ export function StudentsFilter({
   onSetAllAvailableClick,
   actions,
   disabled = false,
+  isEmpty,
 }: StudentsFilterProps) {
   const t = useTranslations("students")
 
@@ -93,6 +95,7 @@ export function StudentsFilter({
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       isPinned={hasActiveFilter}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}

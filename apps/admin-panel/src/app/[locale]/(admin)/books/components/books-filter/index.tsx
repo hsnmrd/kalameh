@@ -13,17 +13,20 @@ export interface BooksFilterProps {
   search: string
   onSearchChange: (search: string) => void
   onAddClick?: () => void
+  isEmpty?: boolean
 }
 
 export function BooksFilter({
   search,
   onSearchChange,
   onAddClick,
+  isEmpty,
 }: BooksFilterProps) {
   const t = useTranslations("books")
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       search={
         <AdminSearchInput
           value={search}
