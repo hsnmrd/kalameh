@@ -2,20 +2,12 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import {
-  CalendarCheck,
-  Clock,
-  Bookmark,
-  Plus,
-  ListFilter,
-  ChevronDown,
-} from "lucide-react"
+import { CalendarCheck, Clock, Bookmark, ChevronDown } from "lucide-react"
 import {
   findClosestSignupTerm,
   type TermDto,
   type TermLifecycleSettings,
 } from "@workspace/types"
-import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Collapsible,
@@ -27,9 +19,6 @@ import { cn } from "@workspace/ui/lib/utils"
 export interface ClosestTermSignupBannerProps {
   terms: TermDto[]
   instituteSettings?: TermLifecycleSettings
-  onFilterWishlist?: () => void
-  onAddStudent?: () => void
-  isWishlistActive?: boolean
   defaultOpen?: boolean
   className?: string
 }
@@ -37,9 +26,6 @@ export interface ClosestTermSignupBannerProps {
 export function ClosestTermSignupBanner({
   terms,
   instituteSettings,
-  onFilterWishlist,
-  onAddStudent,
-  isWishlistActive = false,
   defaultOpen = false,
   className,
 }: ClosestTermSignupBannerProps) {
@@ -99,32 +85,18 @@ export function ClosestTermSignupBanner({
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-            {onAddStudent && (
-              <Button
-                type="button"
-                size="sm"
-                onClick={onAddStudent}
-                className="h-8 gap-1 rounded-xl px-2.5 text-xs font-medium sm:h-9 sm:gap-1.5 sm:px-3"
-              >
-                <Plus className="size-3.5" />
-                <span>{t("registerAction")}</span>
-              </Button>
-            )}
-
-            <CollapsibleTrigger
-              type="button"
-              aria-label={isOpen ? t("collapseDetails") : t("expandDetails")}
-              className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-hidden sm:hidden"
-            >
-              <ChevronDown
-                className={cn(
-                  "size-4 transition-transform duration-250",
-                  isOpen && "rotate-180"
-                )}
-              />
-            </CollapsibleTrigger>
-          </div>
+          <CollapsibleTrigger
+            type="button"
+            aria-label={isOpen ? t("collapseDetails") : t("expandDetails")}
+            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-hidden sm:hidden"
+          >
+            <ChevronDown
+              className={cn(
+                "size-4 transition-transform duration-250",
+                isOpen && "rotate-180"
+              )}
+            />
+          </CollapsibleTrigger>
         </div>
 
         <CollapsibleContent className="sm:hidden">
@@ -182,33 +154,18 @@ export function ClosestTermSignupBanner({
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-            {onFilterWishlist && (
-              <Button
-                type="button"
-                variant={isWishlistActive ? "default" : "outline"}
-                size="sm"
-                onClick={onFilterWishlist}
-                className="h-8 gap-1 rounded-xl px-2.5 text-xs font-medium sm:h-9 sm:gap-1.5 sm:px-3"
-              >
-                <ListFilter className="size-3.5" />
-                <span>{t("viewWishlist")}</span>
-              </Button>
-            )}
-
-            <CollapsibleTrigger
-              type="button"
-              aria-label={isOpen ? t("collapseDetails") : t("expandDetails")}
-              className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-warning/15 hover:text-warning focus-visible:outline-hidden sm:hidden"
-            >
-              <ChevronDown
-                className={cn(
-                  "size-4 transition-transform duration-250",
-                  isOpen && "rotate-180"
-                )}
-              />
-            </CollapsibleTrigger>
-          </div>
+          <CollapsibleTrigger
+            type="button"
+            aria-label={isOpen ? t("collapseDetails") : t("expandDetails")}
+            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-warning/15 hover:text-warning focus-visible:outline-hidden sm:hidden"
+          >
+            <ChevronDown
+              className={cn(
+                "size-4 transition-transform duration-250",
+                isOpen && "rotate-180"
+              )}
+            />
+          </CollapsibleTrigger>
         </div>
 
         <CollapsibleContent className="sm:hidden">
@@ -251,33 +208,18 @@ export function ClosestTermSignupBanner({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          {onFilterWishlist && (
-            <Button
-              type="button"
-              variant={isWishlistActive ? "default" : "outline"}
-              size="sm"
-              onClick={onFilterWishlist}
-              className="h-8 gap-1 rounded-xl px-2.5 text-xs font-medium sm:h-9 sm:gap-1.5 sm:px-3"
-            >
-              <ListFilter className="size-3.5" />
-              <span>{t("viewWishlist")}</span>
-            </Button>
-          )}
-
-          <CollapsibleTrigger
-            type="button"
-            aria-label={isOpen ? t("collapseDetails") : t("expandDetails")}
-            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden sm:hidden"
-          >
-            <ChevronDown
-              className={cn(
-                "size-4 transition-transform duration-250",
-                isOpen && "rotate-180"
-              )}
-            />
-          </CollapsibleTrigger>
-        </div>
+        <CollapsibleTrigger
+          type="button"
+          aria-label={isOpen ? t("collapseDetails") : t("expandDetails")}
+          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden sm:hidden"
+        >
+          <ChevronDown
+            className={cn(
+              "size-4 transition-transform duration-250",
+              isOpen && "rotate-180"
+            )}
+          />
+        </CollapsibleTrigger>
       </div>
 
       <CollapsibleContent className="sm:hidden">

@@ -63,7 +63,7 @@ describe("ClosestTermSignupBanner Component", () => {
     expect(screen.getByText("ثبت‌نام فعال")).toBeInTheDocument()
   })
 
-  it("renders wishlist banner when registration has passed and calls onFilterWishlist", () => {
+  it("renders wishlist banner when registration has passed", () => {
     const pastStart = new Date()
     pastStart.setDate(pastStart.getDate() - 20) // 20 days ago (reg closed)
     const pastEnd = new Date()
@@ -112,23 +112,10 @@ describe("ClosestTermSignupBanner Component", () => {
       },
     }
 
-    const onFilterWishlist = vi.fn()
-
-    render(
-      <ClosestTermSignupBanner
-        terms={[currentTerm, nextTerm]}
-        onFilterWishlist={onFilterWishlist}
-      />
-    )
+    render(<ClosestTermSignupBanner terms={[currentTerm, nextTerm]} />)
 
     expect(screen.getByText(/مهلت ثبت‌نام سپری شده است/i)).toBeInTheDocument()
     expect(screen.getByText("لیست انتظار ترم بعد")).toBeInTheDocument()
-
-    const filterButton = screen.getByRole("button", {
-      name: /مشاهده لیست انتظار/i,
-    })
-    fireEvent.click(filterButton)
-    expect(onFilterWishlist).toHaveBeenCalledTimes(1)
   })
 
   it("starts collapsed by default on mobile and toggles accordion when chevron is clicked", () => {
@@ -146,9 +133,7 @@ describe("ClosestTermSignupBanner Component", () => {
       operatingPhaseId: "phase-1",
     }
 
-    const { container } = render(
-      <ClosestTermSignupBanner terms={[term]} onAddStudent={vi.fn()} />
-    )
+    const { container } = render(<ClosestTermSignupBanner terms={[term]} />)
 
     // Collapsible starts closed by default
     const collapsible = container.querySelector("[data-closed]")
