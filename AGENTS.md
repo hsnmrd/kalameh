@@ -5,14 +5,18 @@
 **CRITICAL PROTOCOL FOR ALL CODING TASKS:**
 Before reading files to modify code, editing files, or running task commands:
 
-1. **Prompt for Branch:** The AI assistant MUST prompt the user for the target branch / worktree name:
-   > _"Please specify the target branch / worktree name for this task so we can isolate our work in `.worktrees/<branch-name>`."_
-2. **Pull Base & Worktree Setup:** Once provided, execute:
-   - **Pull Latest Base:** Fetch and pull latest changes from the base branch (`git pull origin <base-branch>`) to guarantee the new worktree branches from the freshest upstream commit.
-   - **Create Worktree:** `git worktree add -b <branch-name> .worktrees/<branch-name> <base-branch>` (or attach if branch exists: `git worktree add .worktrees/<branch-name> <branch-name>`).
-   - **Copy Root .env:** `Copy-Item -Path "d:\projects\kalameh\.env" -Destination "d:\projects\kalameh\.worktrees\<branch-name>\.env"`
-   - **Copy Generated Prisma Types:** `Copy-Item -Recurse -Path "d:\projects\kalameh\packages\database\src\generated" -Destination "d:\projects\kalameh\.worktrees\<branch-name>\packages\database\src\generated"` (Pre-copies compiled database client to prevent red TS errors).
-3. **Strict Isolation:** All subsequent file operations, tests, database migrations, and terminal commands must strictly target `d:/projects/kalameh/.worktrees/<branch-name>`.
+1. **Prompt for Branch (Chat Initialization Only):**
+   - **Not Yet Initialized in Chat:** If a target branch / worktree has NOT been specified or initialized yet in the current chat, the AI assistant MUST prompt the user for the target branch / worktree name:
+     > _"Please specify the target branch / worktree name for this task so we can isolate our work in `.worktrees/<branch-name>`."_
+   - **Already Initialized in Chat:** When a new prompt is received within the same chat where the branch/worktree has already been established, DO NOT prompt for the branch name again. Continue working in the existing `.worktrees/<branch-name>`.
+2. **Pull Base & Worktree Setup:**
+   - **Initial Setup (when branch name is provided):**
+     - **Pull Latest Base:** Fetch and pull latest changes from the base branch (`git pull origin <base-branch>`) to guarantee the new worktree branches from the freshest upstream commit.
+     - **Create Worktree:** `git worktree add -b <branch-name> .worktrees/<branch-name> <base-branch>` (or attach if branch exists: `git worktree add .worktrees/<branch-name> <branch-name>`).
+     - **Copy Root .env:** Copy `.env` to `.worktrees/<branch-name>/.env` (`cp .env .worktrees/<branch-name>/.env` or PowerShell `Copy-Item -Path ".env" -Destination ".worktrees\<branch-name>\.env"`).
+     - **Copy Generated Prisma Types:** Copy `packages/database/src/generated` to `.worktrees/<branch-name>/packages/database/src/generated` (`cp -R packages/database/src/generated .worktrees/<branch-name>/packages/database/src/generated` or PowerShell `Copy-Item -Recurse -Path "packages\database\src\generated" -Destination ".worktrees\<branch-name>\packages\database\src\generated"`).
+   - **Mandatory Base Sync on Every New Prompt:** Because the base branch is updated frequently, at the start of every new prompt or task in an ongoing chat, the AI assistant MUST pull/merge the latest changes from the base branch into the active branch before starting any new work (`git fetch origin <base-branch> && git merge origin/<base-branch>` or `git pull origin <base-branch>`).
+3. **Strict Isolation:** All subsequent file operations, tests, database migrations, and terminal commands must strictly target `.worktrees/<branch-name>`.
 4. **Teardown on Completion:** Once the task branch is committed and merged, remove via `git worktree remove .worktrees/<branch-name> --force`.
 5. **Exemption:** Pure advisory or question-answering chats with no file modifications do not require a worktree.
 
