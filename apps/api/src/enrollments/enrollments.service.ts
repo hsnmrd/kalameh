@@ -115,6 +115,11 @@ export class EnrollmentsService {
       currentUser.sub,
     );
 
+    const isLockActive =
+      hasExistingLock ||
+      (existing?.updatedAt &&
+        Date.now() - new Date(existing.updatedAt).getTime() < 1800 * 1000);
+
     if (existing) {
       if (existing.status === ENROLLMENT_STATUSES.ENROLLED) {
         throw new BadRequestException(
@@ -132,7 +137,7 @@ export class EnrollmentsService {
       }
       if (
         existing.status === ENROLLMENT_STATUSES.PENDING_PAYMENT &&
-        hasExistingLock
+        isLockActive
       ) {
         throw new BadRequestException(
           locale === 'fa'
@@ -278,7 +283,11 @@ export class EnrollmentsService {
           dto.classId,
           currentUser.sub,
         );
-        if (hasExistingLock) {
+        const isLockActive =
+          hasExistingLock ||
+          (existing?.updatedAt &&
+            Date.now() - new Date(existing.updatedAt).getTime() < 1800 * 1000);
+        if (isLockActive) {
           throw new BadRequestException(
             locale === 'fa'
               ? 'شما پیش از این ظرفیت این کلاس را رزرو کرده‌اید.'

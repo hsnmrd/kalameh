@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@workspace/database';
 import {
   ENROLLMENT_STATUSES,
   type ClassDto,
@@ -53,7 +54,7 @@ const classInclude = {
       },
     },
   },
-} as const;
+} satisfies Prisma.ClassInclude;
 
 @Injectable()
 export class ClassQueryService {
@@ -165,18 +166,23 @@ export class ClassQueryService {
             select: {
               classId: true,
               status: true,
+              updatedAt: true,
             },
           })
         : [];
 
     const enrollmentByClassId = new Map(
-      studentEnrollments.map((e) => [e.classId, e.status]),
+      studentEnrollments.map((e) => [
+        e.classId,
+        { status: e.status, updatedAt: e.updatedAt },
+      ]),
     );
 
     const classesWithLocks = await Promise.all(
       classes.map(async ({ _count, ...cls }) => {
         const lockCount = await this.redis.countClassLocks(cls.id);
-        let studentEnrollmentStatus = enrollmentByClassId.get(cls.id) ?? null;
+        const enrollment = enrollmentByClassId.get(cls.id);
+        let studentEnrollmentStatus = enrollment?.status ?? null;
 
         // If student is marked PENDING_PAYMENT, verify if reservation lock is still active
         if (studentEnrollmentStatus === ENROLLMENT_STATUSES.PENDING_PAYMENT) {
@@ -184,7 +190,10 @@ export class ClassQueryService {
             cls.id,
             currentUser.sub,
           );
-          if (!hasLock) {
+          const isWithinWindow =
+            enrollment?.updatedAt &&
+            Date.now() - new Date(enrollment.updatedAt).getTime() < 1800 * 1000;
+          if (!hasLock && !isWithinWindow) {
             studentEnrollmentStatus = null;
           }
         } else if (!studentEnrollmentStatus) {
