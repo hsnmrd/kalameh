@@ -2,7 +2,7 @@
   "title": "Enrollments & Finance",
   "subtitle": "Track registration status, reserve class capacity, and submit bank payment receipts",
   "activeReservationTitle": "Pending Tuition Payment",
-  "historyTitle": "Enrollment History & Receipts",
+  "historyTitle": "Money Transfers",
   "status": {
     "PENDING_PAYMENT": "Paying",
     "PENDING_APPROVAL": "Pending Approval",
@@ -66,5 +66,18 @@
     "trackingCodeLabel": "Tracking Code:",
     "amountLabel": "Amount Paid:",
     "dateLabel": "Date:"
+  },
+  "viewDetails": "View Details",
+  "detailsModal": {
+    "title": "Transfer Details",
+    "class": "Course / Class",
+    "term": "Term",
+    "teacher": "Instructor",
+    "amount": "Transfer Amount",
+    "date": "Date",
+    "trackingCode": "Tracking Code",
+    "receiptImage": "Payment Receipt Image",
+    "viewFullImage": "View Full Image",
+    "noReceipt": "No receipt image uploaded for this transaction."
   }
 }

@@ -2,7 +2,7 @@
   "title": "امور مالی و ثبت‌نام",
   "subtitle": "پیگیری وضعیت ثبت‌نام، رزرو ظرفیت کلاس و ارسال فیش بانکی",
   "activeReservationTitle": "در حال پرداخت شهریه",
-  "historyTitle": "سوابق ثبت‌نام و فیش‌ها",
+  "historyTitle": "لیست واریزها",
   "status": {
     "PENDING_PAYMENT": "در حال پرداخت",
     "PENDING_APPROVAL": "در انتظار تأیید",
@@ -66,5 +66,18 @@
     "trackingCodeLabel": "کد پیگیری:",
     "amountLabel": "مبلغ پرداختی:",
     "dateLabel": "تاریخ ثبت:"
+  },
+  "viewDetails": "مشاهده جزئیات",
+  "detailsModal": {
+    "title": "جزئیات واریز",
+    "class": "کلاس آموزشی",
+    "term": "ترم تحصیلی",
+    "teacher": "استاد",
+    "amount": "مبلغ واریزی",
+    "date": "تاریخ ثبت",
+    "trackingCode": "کد پیگیری",
+    "receiptImage": "تصویر رسید واریزی",
+    "viewFullImage": "مشاهده تصویر کامل",
+    "noReceipt": "رسیدی برای این تراکنش ثبت نشده است."
   }
 }

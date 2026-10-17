@@ -16,7 +16,7 @@ import {
   EmptyTitle,
   EmptyContent,
 } from "@workspace/ui/components/empty"
-import { ENROLLMENT_STATUSES } from "@workspace/types"
+import { ENROLLMENT_STATUSES, type EnrollmentDto } from "@workspace/types"
 import {
   enrollmentsResource,
   institutesResource,
@@ -26,10 +26,13 @@ import { ReservationTimer } from "./components/reservation-timer"
 import { BankInfoCard } from "./components/bank-info-card"
 import { UploadReceiptCard } from "./components/upload-receipt-card"
 import { ReceiptStatusCard } from "./components/receipt-status-card"
+import { PaymentDetailsModal } from "./components/payment-details-modal"
 
 export default function StudentEnrollmentsPage() {
   const t = useTranslations("enrollments")
   const queryClient = useQueryClient()
+  const [selectedEnrollment, setSelectedEnrollment] =
+    React.useState<EnrollmentDto | null>(null)
 
   const {
     data: enrollments,
@@ -138,18 +141,28 @@ export default function StudentEnrollmentsPage() {
 
       {/* Other Enrollments / History */}
       {otherEnrollments.length > 0 && (
-        <div className="flex flex-col gap-4">
-          {activeReservation && (
-            <h2 className="text-sm font-bold text-foreground">
-              {t("historyTitle")}
-            </h2>
-          )}
+        <div className="flex flex-col gap-3">
+          <h2 className="text-sm font-bold text-foreground">
+            {t("historyTitle")}
+          </h2>
 
-          {otherEnrollments.map((enrollment) => (
-            <ReceiptStatusCard key={enrollment.id} enrollment={enrollment} />
-          ))}
+          <div className="flex flex-col gap-3">
+            {otherEnrollments.map((enrollment) => (
+              <ReceiptStatusCard
+                key={enrollment.id}
+                enrollment={enrollment}
+                onClick={() => setSelectedEnrollment(enrollment)}
+              />
+            ))}
+          </div>
         </div>
       )}
+
+      <PaymentDetailsModal
+        open={Boolean(selectedEnrollment)}
+        enrollment={selectedEnrollment}
+        onClose={() => setSelectedEnrollment(null)}
+      />
 
       {/* Empty State */}
       {!activeReservation && otherEnrollments.length === 0 && (
