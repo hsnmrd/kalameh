@@ -29,6 +29,8 @@
     "badgeWishlist": "Next Term Wishlist",
     "viewWishlist": "Wishlist",
     "registerAction": "Register",
+    "expandDetails": "Show details",
+    "collapseDetails": "Hide details",
     "modalRegisteringNote": "Registration is open for \"{termTitle}\". This student will automatically be assigned to this term.",
     "modalWishlistNote": "Registration window has passed. This student will be added to the Wishlist for next term's class scheduling."
   },

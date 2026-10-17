@@ -2,7 +2,14 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { CalendarCheck, Clock, Bookmark, Plus, ListFilter } from "lucide-react"
+import {
+  CalendarCheck,
+  Clock,
+  Bookmark,
+  Plus,
+  ListFilter,
+  ChevronDown,
+} from "lucide-react"
 import {
   findClosestSignupTerm,
   type TermDto,
@@ -10,6 +17,11 @@ import {
 } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@workspace/ui/components/collapsible"
 import { cn } from "@workspace/ui/lib/utils"
 
 export interface ClosestTermSignupBannerProps {
@@ -18,6 +30,7 @@ export interface ClosestTermSignupBannerProps {
   onFilterWishlist?: () => void
   onAddStudent?: () => void
   isWishlistActive?: boolean
+  defaultOpen?: boolean
   className?: string
 }
 
@@ -27,9 +40,11 @@ export function ClosestTermSignupBanner({
   onFilterWishlist,
   onAddStudent,
   isWishlistActive = false,
+  defaultOpen = false,
   className,
 }: ClosestTermSignupBannerProps) {
   const t = useTranslations("students.closestTerm")
+  const [isOpen, setIsOpen] = React.useState(defaultOpen)
 
   const closest = React.useMemo(() => {
     return findClosestSignupTerm(terms, instituteSettings)
@@ -43,133 +58,233 @@ export function ClosestTermSignupBanner({
 
   if (isRegistrationOpen && term) {
     return (
-      <div
+      <Collapsible
+        open={isOpen}
+        onOpenChange={setIsOpen}
         className={cn(
-          "flex flex-col gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-foreground shadow-xs sm:flex-row sm:items-center sm:justify-between",
+          "rounded-2xl border border-primary/30 bg-primary/5 p-3 text-foreground shadow-xs transition-all sm:p-4",
           className
         )}
       >
-        <div className="flex items-start gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <CalendarCheck className="size-5" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm font-semibold text-foreground">
-                {t("registeringTitle", { termTitle: term.title })}
-              </h3>
-              <Badge
-                variant="outline"
-                className="border-primary/40 bg-primary/10 text-xs font-medium text-primary"
-              >
-                {t("badgeRegistering")}
-              </Badge>
+        <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:items-start sm:gap-3">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-10 sm:rounded-xl">
+              <CalendarCheck className="size-4 sm:size-5" />
             </div>
-            <p className="text-xs text-muted-foreground">
+
+            <div className="flex min-w-0 flex-1 flex-col justify-center">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <CollapsibleTrigger
+                  type="button"
+                  className="group flex min-w-0 cursor-pointer items-center gap-1 text-start font-semibold text-foreground transition-colors hover:text-foreground/80 sm:pointer-events-none"
+                >
+                  <span className="truncate text-xs font-semibold text-foreground sm:text-sm">
+                    {t("registeringTitle", { termTitle: term.title })}
+                  </span>
+                </CollapsibleTrigger>
+                <Badge
+                  variant="outline"
+                  className="shrink-0 border-primary/40 bg-primary/10 px-1.5 py-0 text-[10px] font-medium text-primary sm:px-2 sm:py-0.5 sm:text-xs"
+                >
+                  {t("badgeRegistering")}
+                </Badge>
+              </div>
+
+              <p className="hidden text-xs text-muted-foreground sm:mt-1 sm:block">
+                {t("registeringSubtitle", {
+                  termTitle: term.title,
+                  days: daysUntilEndRegistration ?? 0,
+                })}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            {onAddStudent && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={onAddStudent}
+                className="h-8 gap-1 rounded-xl px-2.5 text-xs font-medium sm:h-9 sm:gap-1.5 sm:px-3"
+              >
+                <Plus className="size-3.5" />
+                <span>{t("registerAction")}</span>
+              </Button>
+            )}
+
+            <CollapsibleTrigger
+              type="button"
+              aria-label={isOpen ? t("collapseDetails") : t("expandDetails")}
+              className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-hidden sm:hidden"
+            >
+              <ChevronDown
+                className={cn(
+                  "size-4 transition-transform duration-250",
+                  isOpen && "rotate-180"
+                )}
+              />
+            </CollapsibleTrigger>
+          </div>
+        </div>
+
+        <CollapsibleContent className="sm:hidden">
+          <div className="mt-2.5 border-t border-primary/20 pt-2.5 text-xs leading-relaxed text-muted-foreground">
+            <p>
               {t("registeringSubtitle", {
                 termTitle: term.title,
                 days: daysUntilEndRegistration ?? 0,
               })}
             </p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2 self-end sm:self-center">
-          {onAddStudent && (
-            <Button
-              type="button"
-              size="sm"
-              onClick={onAddStudent}
-              className="h-9 gap-1.5 rounded-xl px-3 text-xs"
-            >
-              <Plus className="size-3.5" />
-              <span>{t("registerAction")}</span>
-            </Button>
-          )}
-        </div>
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
     )
   }
 
   if (term) {
     return (
-      <div
+      <Collapsible
+        open={isOpen}
+        onOpenChange={setIsOpen}
         className={cn(
-          "flex flex-col gap-3 rounded-2xl border border-warning/30 bg-warning/5 p-4 text-foreground shadow-xs sm:flex-row sm:items-center sm:justify-between",
+          "rounded-2xl border border-warning/30 bg-warning/5 p-3 text-foreground shadow-xs transition-all sm:p-4",
           className
         )}
       >
-        <div className="flex items-start gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-warning/15 text-warning">
-            <Clock className="size-5" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm font-semibold text-foreground">
-                {t("wishlistTitle", { nextTermTitle: term.title })}
-              </h3>
-              <Badge
-                variant="outline"
-                className="border-warning/40 bg-warning/15 text-xs font-medium text-warning"
-              >
-                <Bookmark className="me-1 size-3" />
-                {t("badgeWishlist")}
-              </Badge>
+        <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:items-start sm:gap-3">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-warning/15 text-warning sm:size-10 sm:rounded-xl">
+              <Clock className="size-4 sm:size-5" />
             </div>
-            <p className="text-xs text-muted-foreground">
-              {t("wishlistSubtitle", { nextTermTitle: term.title })}
+
+            <div className="flex min-w-0 flex-1 flex-col justify-center">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <CollapsibleTrigger
+                  type="button"
+                  className="group flex min-w-0 cursor-pointer items-center gap-1 text-start font-semibold text-foreground transition-colors hover:text-foreground/80 sm:pointer-events-none"
+                >
+                  <span className="truncate text-xs font-semibold text-foreground sm:text-sm">
+                    {t("wishlistTitle", { nextTermTitle: term.title })}
+                  </span>
+                </CollapsibleTrigger>
+                <Badge
+                  variant="outline"
+                  className="shrink-0 border-warning/40 bg-warning/15 px-1.5 py-0 text-[10px] font-medium text-warning sm:px-2 sm:py-0.5 sm:text-xs"
+                >
+                  <Bookmark className="me-1 size-2.5 sm:size-3" />
+                  {t("badgeWishlist")}
+                </Badge>
+              </div>
+
+              <p className="hidden text-xs text-muted-foreground sm:mt-1 sm:block">
+                {t("wishlistSubtitle", { nextTermTitle: term.title })}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            {onFilterWishlist && (
+              <Button
+                type="button"
+                variant={isWishlistActive ? "default" : "outline"}
+                size="sm"
+                onClick={onFilterWishlist}
+                className="h-8 gap-1 rounded-xl px-2.5 text-xs font-medium sm:h-9 sm:gap-1.5 sm:px-3"
+              >
+                <ListFilter className="size-3.5" />
+                <span>{t("viewWishlist")}</span>
+              </Button>
+            )}
+
+            <CollapsibleTrigger
+              type="button"
+              aria-label={isOpen ? t("collapseDetails") : t("expandDetails")}
+              className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-warning/15 hover:text-warning focus-visible:outline-hidden sm:hidden"
+            >
+              <ChevronDown
+                className={cn(
+                  "size-4 transition-transform duration-250",
+                  isOpen && "rotate-180"
+                )}
+              />
+            </CollapsibleTrigger>
+          </div>
+        </div>
+
+        <CollapsibleContent className="sm:hidden">
+          <div className="mt-2.5 border-t border-warning/20 pt-2.5 text-xs leading-relaxed text-muted-foreground">
+            <p>{t("wishlistSubtitle", { nextTermTitle: term.title })}</p>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    )
+  }
+
+  return (
+    <Collapsible
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className={cn(
+        "rounded-2xl border border-border/60 bg-muted/20 p-3 text-foreground shadow-xs transition-all sm:p-4",
+        className
+      )}
+    >
+      <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:items-start sm:gap-3">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground sm:size-9 sm:rounded-xl">
+            <Clock className="size-4" />
+          </div>
+
+          <div className="flex min-w-0 flex-1 flex-col justify-center">
+            <CollapsibleTrigger
+              type="button"
+              className="group flex min-w-0 cursor-pointer items-center gap-1 text-start font-semibold text-foreground transition-colors hover:text-foreground/80 sm:pointer-events-none"
+            >
+              <span className="truncate text-xs font-semibold text-foreground sm:text-sm">
+                {t("noTermTitle")}
+              </span>
+            </CollapsibleTrigger>
+
+            <p className="hidden text-xs text-muted-foreground sm:mt-1 sm:block">
+              {t("noTermSubtitle")}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-center">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {onFilterWishlist && (
             <Button
               type="button"
               variant={isWishlistActive ? "default" : "outline"}
               size="sm"
               onClick={onFilterWishlist}
-              className="h-9 gap-1.5 rounded-xl px-3 text-xs"
+              className="h-8 gap-1 rounded-xl px-2.5 text-xs font-medium sm:h-9 sm:gap-1.5 sm:px-3"
             >
               <ListFilter className="size-3.5" />
               <span>{t("viewWishlist")}</span>
             </Button>
           )}
-        </div>
-      </div>
-    )
-  }
 
-  return (
-    <div
-      className={cn(
-        "flex flex-col gap-2 rounded-2xl border border-border/60 bg-muted/20 p-4 text-foreground shadow-xs sm:flex-row sm:items-center sm:justify-between",
-        className
-      )}
-    >
-      <div className="flex items-center gap-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-          <Clock className="size-4" />
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-foreground">
-            {t("noTermTitle")}
-          </h3>
-          <p className="text-xs text-muted-foreground">{t("noTermSubtitle")}</p>
+          <CollapsibleTrigger
+            type="button"
+            aria-label={isOpen ? t("collapseDetails") : t("expandDetails")}
+            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden sm:hidden"
+          >
+            <ChevronDown
+              className={cn(
+                "size-4 transition-transform duration-250",
+                isOpen && "rotate-180"
+              )}
+            />
+          </CollapsibleTrigger>
         </div>
       </div>
-      {onFilterWishlist && (
-        <Button
-          type="button"
-          variant={isWishlistActive ? "default" : "outline"}
-          size="sm"
-          onClick={onFilterWishlist}
-          className="h-9 gap-1.5 self-end rounded-xl px-3 text-xs sm:self-center"
-        >
-          <ListFilter className="size-3.5" />
-          <span>{t("viewWishlist")}</span>
-        </Button>
-      )}
-    </div>
+
+      <CollapsibleContent className="sm:hidden">
+        <div className="mt-2.5 border-t border-border/40 pt-2.5 text-xs leading-relaxed text-muted-foreground">
+          <p>{t("noTermSubtitle")}</p>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }

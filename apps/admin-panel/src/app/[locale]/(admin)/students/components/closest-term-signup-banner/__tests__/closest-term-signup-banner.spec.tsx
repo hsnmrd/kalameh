@@ -17,6 +17,9 @@ vi.mock("next-intl", () => ({
       if (key === "badgeRegistering") return "ثبت‌نام فعال"
       if (key === "badgeWishlist") return "لیست انتظار ترم بعد"
       if (key === "viewWishlist") return "مشاهده لیست انتظار"
+      if (key === "registerAction") return "ثبت‌نام"
+      if (key === "expandDetails") return "مشاهده توضیحات"
+      if (key === "collapseDetails") return "بستن توضیحات"
       return key
     },
 }))
@@ -126,5 +129,68 @@ describe("ClosestTermSignupBanner Component", () => {
     })
     fireEvent.click(filterButton)
     expect(onFilterWishlist).toHaveBeenCalledTimes(1)
+  })
+
+  it("starts collapsed by default on mobile and toggles accordion when chevron is clicked", () => {
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 5)
+    const endDate = new Date()
+    endDate.setDate(endDate.getDate() + 45)
+
+    const term: TermDto = {
+      id: "term-collapsible",
+      title: "مهر ۱۴۰۵",
+      startDate: futureDate.toISOString(),
+      endDate: endDate.toISOString(),
+      isActive: true,
+      operatingPhaseId: "phase-1",
+    }
+
+    const { container } = render(
+      <ClosestTermSignupBanner terms={[term]} onAddStudent={vi.fn()} />
+    )
+
+    // Collapsible starts closed by default
+    const collapsible = container.querySelector("[data-closed]")
+    expect(collapsible).toBeInTheDocument()
+
+    // Toggle button exists with aria-label
+    const toggleButton = screen.getByRole("button", {
+      name: /مشاهده توضیحات/i,
+    })
+    expect(toggleButton).toBeInTheDocument()
+    expect(toggleButton).toHaveAttribute("aria-expanded", "false")
+
+    // Clicking toggle button expands accordion
+    fireEvent.click(toggleButton)
+    expect(toggleButton).toHaveAttribute("aria-expanded", "true")
+    expect(container.querySelector("[data-open]")).toBeInTheDocument()
+
+    // Clicking again collapses accordion
+    fireEvent.click(toggleButton)
+    expect(toggleButton).toHaveAttribute("aria-expanded", "false")
+    expect(container.querySelector("[data-closed]")).toBeInTheDocument()
+  })
+
+  it("supports defaultOpen prop to start expanded", () => {
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 5)
+    const endDate = new Date()
+    endDate.setDate(endDate.getDate() + 45)
+
+    const term: TermDto = {
+      id: "term-open",
+      title: "آبان ۱۴۰۵",
+      startDate: futureDate.toISOString(),
+      endDate: endDate.toISOString(),
+      isActive: true,
+      operatingPhaseId: "phase-1",
+    }
+
+    const { container } = render(
+      <ClosestTermSignupBanner terms={[term]} defaultOpen={true} />
+    )
+
+    expect(container.querySelector("[data-open]")).toBeInTheDocument()
   })
 })
