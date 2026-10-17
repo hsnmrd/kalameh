@@ -102,6 +102,7 @@ export interface TranslationDictionary {
     teacherConflict: string;
     teacherFreeTimeConflict: string;
     cannotDeleteWithEnrollments: string;
+    instituteFinanceRequired: string;
   };
   classRequirements: {
     instituteRequired: string;
@@ -117,6 +118,7 @@ export interface TranslationDictionary {
     invalidSourceRun: string;
     invalidLockedProposals: string;
     preflightBlocked: string;
+    instituteFinanceRequired: string;
   };
   grades: {
     gradesSubmittedSuccess: string;

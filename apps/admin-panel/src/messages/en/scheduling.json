@@ -40,8 +40,11 @@
     "noTeacherScheduleDescription": "To generate a valid schedule, at least one teacher must set their weekly availability hours.",
     "noBranchClassrooms": "No classrooms are defined for the selected branch.",
     "noBranchClassroomsDescription": "To schedule classes in this branch, you must first define physical classrooms.",
+    "noFinanceInfo": "Institute financial info is not registered",
+    "noFinanceInfoDescription": "Institute financial information must be configured before generating or creating classes.",
     "manageTeachers": "Manage Teachers",
-    "manageClassrooms": "Manage Classrooms"
+    "manageClassrooms": "Manage Classrooms",
+    "manageInstitute": "Manage Institute"
   },
   "generation": {
     "title": "Create scheduling suggestions",

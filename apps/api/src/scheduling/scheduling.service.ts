@@ -3,6 +3,7 @@ import { Prisma } from '@workspace/database';
 import {
   calculatePhaseSlots,
   DEFAULT_SCHEDULING_SETTINGS,
+  hasInstituteFinanceInfo,
   ROLES,
   SchedulingRunSchema,
   isTermEligibleForClassCreation,
@@ -39,7 +40,15 @@ export class SchedulingService {
     );
     const branchId = input.branchId;
 
-    const [term, branch, requirements] = await Promise.all([
+    const [institute, term, branch, requirements] = await Promise.all([
+      this.prisma.institute.findUnique({
+        where: { id: instituteId },
+        select: {
+          bankCardNumber: true,
+          bankAccountName: true,
+          bankShaba: true,
+        },
+      }),
       this.prisma.term.findFirst({
         where: { id: input.termId, instituteId },
         select: {
@@ -97,6 +106,12 @@ export class SchedulingService {
         orderBy: { id: 'asc' },
       }),
     ]);
+
+    if (!hasInstituteFinanceInfo(institute)) {
+      throw new BadRequestException(
+        this.i18n.t('scheduling.instituteFinanceRequired', locale),
+      );
+    }
 
     if (!term || !term.isActive || !branch || !branch.isActive) {
       throw new BadRequestException(

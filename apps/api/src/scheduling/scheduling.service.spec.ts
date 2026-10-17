@@ -36,6 +36,13 @@ describe('MVP-015 SchedulingService', () => {
 
   beforeEach(async () => {
     prisma = {
+      institute: {
+        findUnique: jest.fn().mockResolvedValue({
+          bankCardNumber: '6037991122334455',
+          bankAccountName: 'Institute Account',
+          bankShaba: 'IR123456789012345678901234',
+        }),
+      },
       term: { findFirst: jest.fn() },
       branch: { findFirst: jest.fn() },
       classRequirement: { findMany: jest.fn() },
@@ -178,6 +185,24 @@ describe('MVP-015 SchedulingService', () => {
     }).compile();
 
     service = module.get(SchedulingService);
+  });
+
+  it('throws BadRequestException if institute has no finance information', async () => {
+    prisma.institute.findUnique.mockResolvedValueOnce({
+      bankCardNumber: null,
+      bankAccountName: null,
+      bankShaba: null,
+    });
+
+    await expect(
+      service.generate(admin, {
+        termId: ids.term,
+        branchId: ids.branch,
+        requirementIds: [ids.requirement],
+        alternativePlanCount: 3,
+        lockedProposalIds: [],
+      }),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('creates one queued run with one pending draft and no real class', async () => {

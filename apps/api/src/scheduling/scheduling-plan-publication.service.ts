@@ -8,6 +8,7 @@ import { Prisma } from '@workspace/database';
 import {
   ROLES,
   SchedulingPlanPublicationResultSchema,
+  hasInstituteFinanceInfo,
   isTermEligibleForClassCreation,
   type JwtPayload,
   type SchedulingPlanPublicationResult,
@@ -75,6 +76,13 @@ export class SchedulingPlanPublicationService {
               run: {
                 select: {
                   termId: true,
+                  institute: {
+                    select: {
+                      bankCardNumber: true,
+                      bankAccountName: true,
+                      bankShaba: true,
+                    },
+                  },
                   term: {
                     select: {
                       startDate: true,
@@ -111,6 +119,29 @@ export class SchedulingPlanPublicationService {
               },
             },
           });
+
+          const instituteFinance =
+            plan.run?.institute ??
+            (transaction.institute
+              ? await transaction.institute.findUnique({
+                  where: { id: instituteId },
+                  select: {
+                    bankCardNumber: true,
+                    bankAccountName: true,
+                    bankShaba: true,
+                  },
+                })
+              : null);
+
+          if (!hasInstituteFinanceInfo(instituteFinance)) {
+            throw new ConflictException({
+              code: 'HARD_CONSTRAINT_PUBLISH_BLOCKED',
+              message: this.i18n.t(
+                'scheduling.instituteFinanceRequired',
+                locale,
+              ),
+            });
+          }
 
           if (
             !isTermEligibleForClassCreation(

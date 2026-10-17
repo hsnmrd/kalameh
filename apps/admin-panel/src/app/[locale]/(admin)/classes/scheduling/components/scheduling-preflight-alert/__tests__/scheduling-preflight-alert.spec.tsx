@@ -85,4 +85,23 @@ describe("SchedulingPreflightAlert", () => {
     expect(screen.getByTestId("preflight-teacher-error")).toBeInTheDocument()
     expect(screen.getByTestId("preflight-classroom-error")).toBeInTheDocument()
   })
+
+  it("renders finance error alert when institute has no finance information", () => {
+    render(
+      <SchedulingPreflightAlert
+        hasNoTeachers={false}
+        hasNoTeacherSchedule={false}
+        hasNoBranchClassrooms={false}
+        hasNoFinanceInfo={true}
+      />
+    )
+
+    expect(screen.getByTestId("preflight-finance-error")).toBeInTheDocument()
+    expect(
+      screen.getByText("اطلاعات مالی آموزشگاه ثبت نشده است")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("link", { name: "مدیریت آموزشگاه" })
+    ).toHaveAttribute("href", "/institutes")
+  })
 })

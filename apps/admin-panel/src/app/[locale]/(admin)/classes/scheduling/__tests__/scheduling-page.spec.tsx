@@ -38,6 +38,15 @@ const mockBranches = [
   },
 ]
 
+const mockActiveInstitute = {
+  id: "inst-1",
+  name: "Test Institute",
+  bankCardNumber: "6037991812345678",
+  bankAccountName: "حساب مرکزی",
+  bankShaba: "IR120170000000123456789012",
+  enabledModules: [APP_MODULES.CLASSES_COURSES],
+}
+
 const { mockPush, mockReplace } = vi.hoisted(() => ({
   mockPush: vi.fn(),
   mockReplace: vi.fn(),
@@ -233,11 +242,7 @@ describe("Unified scheduling workspace", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: "inst-1",
-      activeInstitute: {
-        id: "inst-1",
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
-      },
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
 
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
@@ -284,11 +289,7 @@ describe("Unified scheduling workspace", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: "inst-1",
-      activeInstitute: {
-        id: "inst-1",
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
-      },
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
 
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
@@ -401,11 +402,7 @@ describe("Unified scheduling workspace", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: "inst-1",
-      activeInstitute: {
-        id: "inst-1",
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
-      },
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
       queryKey: ["scheduling", "terms", "inst-1"],
@@ -467,11 +464,7 @@ describe("Unified scheduling workspace", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: "inst-1",
-      activeInstitute: {
-        id: "inst-1",
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
-      },
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
 
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
@@ -555,11 +548,7 @@ describe("Unified scheduling workspace", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: "inst-1",
-      activeInstitute: {
-        id: "inst-1",
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
-      },
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
 
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
@@ -639,11 +628,7 @@ describe("Unified scheduling workspace", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: "inst-1",
-      activeInstitute: {
-        id: "inst-1",
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
-      },
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
 
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
@@ -684,11 +669,7 @@ describe("Unified scheduling workspace", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: "inst-1",
-      activeInstitute: {
-        id: "inst-1",
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
-      },
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
 
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
@@ -737,11 +718,7 @@ describe("Unified scheduling workspace", () => {
 
     vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
       activeInstituteId: "inst-1",
-      activeInstitute: {
-        id: "inst-1",
-        name: "Test Institute",
-        enabledModules: [APP_MODULES.CLASSES_COURSES],
-      },
+      activeInstitute: mockActiveInstitute,
     } as ReturnType<typeof stores.useActiveInstitute>)
 
     vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
@@ -782,6 +759,57 @@ describe("Unified scheduling workspace", () => {
     fireEvent.click(button)
     expect(toast.error).toHaveBeenCalledWith(
       "هیچ‌کدام از اساتید برنامه زمانی آزاد خود را تعیین نکرده‌اند."
+    )
+  })
+
+  it("shows error and disables submit button when institute has no finance info", async () => {
+    const mockTerms: SchedulingTermSummaryDto[] = [
+      {
+        id: "term-fall",
+        title: "پاییز ۱۴۰۵",
+        startDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: true,
+        classesCount: 0,
+        requirementsCount: 1,
+        totalRequiredClasses: 2,
+        schedulingStatus: "DRAFT",
+      },
+    ]
+
+    vi.spyOn(stores, "useActiveInstitute").mockReturnValue({
+      activeInstituteId: "inst-1",
+      activeInstitute: {
+        id: "inst-1",
+        name: "Test Institute",
+        bankCardNumber: null,
+        bankAccountName: null,
+        bankShaba: null,
+        enabledModules: [APP_MODULES.CLASSES_COURSES],
+      },
+    } as ReturnType<typeof stores.useActiveInstitute>)
+
+    vi.spyOn(schedulingResource.terms, "toQuery").mockReturnValue({
+      queryKey: ["scheduling", "terms", "inst-1"],
+      queryFn: async () => mockTerms,
+    } as never)
+
+    vi.spyOn(schedulingResource.calculateDemand, "toMutation").mockReturnValue({
+      mutationFn: vi.fn().mockResolvedValue(mockDemandReport),
+    } as never)
+
+    render(<SchedulingPage />)
+
+    expect(
+      await screen.findByText("اطلاعات مالی آموزشگاه ثبت نشده است")
+    ).toBeInTheDocument()
+
+    const button = screen.getAllByRole("button", { name: "ثبت و ادامه" })[0]!
+    expect(button).toBeDisabled()
+
+    fireEvent.click(button)
+    expect(toast.error).toHaveBeenCalledWith(
+      "اطلاعات مالی آموزشگاه ثبت نشده است"
     )
   })
 })

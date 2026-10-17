@@ -135,6 +135,8 @@ export const fa: TranslationDictionary = {
       'زمان انتخابی کلاس خارج از ساعات آزاد اعلام‌شده برای استاد ({teacherName}) است',
     cannotDeleteWithEnrollments:
       'امکان حذف کلاسی که دارای زبان‌آموز یا ثبت‌نام است وجود ندارد',
+    instituteFinanceRequired:
+      'برای ایجاد کلاس، ابتدا باید اطلاعات مالی آموزشگاه ثبت شود',
   },
   classRequirements: {
     instituteRequired: 'انتخاب آموزشگاه برای این عملیات الزامی است',
@@ -158,6 +160,8 @@ export const fa: TranslationDictionary = {
       'یک یا چند پیشنهاد قفل‌شده معتبر یا متعلق به اجرای مبدا نیستند',
     preflightBlocked:
       'تولید برنامه به دلیل وجود مشکل مسدودکننده در پیش‌بررسی متوقف شد',
+    instituteFinanceRequired:
+      'برای ایجاد یا زمان‌بندی کلاس‌ها، ابتدا باید اطلاعات مالی آموزشگاه ثبت شود',
   },
   grades: {
     gradesSubmittedSuccess:

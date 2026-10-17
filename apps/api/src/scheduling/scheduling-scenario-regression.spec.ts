@@ -48,6 +48,13 @@ function createMockPrismaStore() {
   };
 
   const transactionClient = {
+    institute: {
+      findUnique: jest.fn().mockResolvedValue({
+        bankCardNumber: '6037991122334455',
+        bankAccountName: 'Institute Account',
+        bankShaba: 'IR123456789012345678901234',
+      }),
+    },
     schedulingPlan: {
       deleteMany: jest.fn(async ({ where }: { where: any }) => {
         let count = 0;
@@ -158,6 +165,11 @@ function createMockPrismaStore() {
           runId: found.runId,
           run: {
             termId: run?.termId,
+            institute: {
+              bankCardNumber: '6037991122334455',
+              bankAccountName: 'Institute Account',
+              bankShaba: 'IR123456789012345678901234',
+            },
             term: { startDate: run?.term?.startDate ?? new Date('2026-09-01') },
           },
           proposals: planProposals.map((p) => {

@@ -48,6 +48,13 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
 
   beforeEach(() => {
     transaction = {
+      institute: {
+        findUnique: jest.fn().mockResolvedValue({
+          bankCardNumber: '6037991122334455',
+          bankAccountName: 'Institute Account',
+          bankShaba: 'IR123456789012345678901234',
+        }),
+      },
       schedulingPlan: {
         findFirstOrThrow: jest.fn().mockResolvedValue({
           id: ids.plan,
@@ -55,6 +62,11 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
           run: {
             termId: ids.term,
             term: { startDate: new Date('2026-09-10T00:00:00.000Z') },
+            institute: {
+              bankCardNumber: '6037991122334455',
+              bankAccountName: 'Institute Account',
+              bankShaba: 'IR123456789012345678901234',
+            },
           },
           proposals: [
             {
@@ -200,6 +212,46 @@ describe('MVP-032 SchedulingPlanPublicationService', () => {
           course: { baseFee: 1_500_000 },
           teacher: { firstName: 'Sara', lastName: 'Ahmadi' },
           sessions: [{ sessionDate: new Date('2026-10-18T00:00:00Z') }],
+        },
+      ],
+    });
+
+    await expect(
+      service.publish(admin, ids.plan, undefined, 'fa', now),
+    ).rejects.toThrow(ConflictException);
+    expect(transaction.class.createMany).not.toHaveBeenCalled();
+  });
+
+  it('blocks publication when institute has no finance information', async () => {
+    transaction.institute.findUnique.mockResolvedValueOnce({
+      bankCardNumber: null,
+      bankAccountName: null,
+      bankShaba: null,
+    });
+    transaction.schedulingPlan.findFirstOrThrow.mockResolvedValueOnce({
+      id: ids.plan,
+      runId: ids.run,
+      run: {
+        termId: ids.term,
+        term: { startDate: new Date('2026-09-10T00:00:00.000Z') },
+        institute: null,
+      },
+      proposals: [
+        {
+          id: ids.proposal,
+          publishedClassId: null,
+          title: 'A2',
+          courseId: ids.course,
+          branchId: null,
+          classroomId: null,
+          teacherId: ids.teacher,
+          capacity: 12,
+          daysOfWeek: ['SUNDAY'],
+          startTime: '09:00',
+          endTime: '10:30',
+          course: { baseFee: 1_500_000 },
+          teacher: { firstName: 'Sara', lastName: 'Ahmadi' },
+          sessions: [{ sessionDate: new Date('2026-09-13T00:00:00Z') }],
         },
       ],
     });

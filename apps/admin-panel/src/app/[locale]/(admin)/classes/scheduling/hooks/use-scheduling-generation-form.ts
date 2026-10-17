@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useWatch } from "react-hook-form"
 import {
   GenerateSchedulingPlanSchema,
+  hasInstituteFinanceInfo,
   type ClassRequirementDto,
   type GenerateSchedulingPlanInput,
   type SchedulingRunDto,
@@ -33,7 +34,8 @@ export function useSchedulingGenerationForm(
   onCreated: (run: SchedulingRunDto) => void,
   successMessage: string
 ) {
-  const { activeInstituteId } = useActiveInstitute()
+  const { activeInstituteId, activeInstitute } = useActiveInstitute()
+  const hasNoFinanceInfo = !hasInstituteFinanceInfo(activeInstitute)
   const scope = activeInstituteId
     ? { instituteId: activeInstituteId, isActive: true }
     : undefined
@@ -127,7 +129,7 @@ export function useSchedulingGenerationForm(
   })
 
   const submit = form.handleSubmit(async (values) => {
-    if (!activeInstituteId) return
+    if (!activeInstituteId || hasNoFinanceInfo) return
 
     setIsPreparing(true)
     try {
@@ -169,6 +171,7 @@ export function useSchedulingGenerationForm(
     isRequirementsLoading: requirementsQuery.isLoading,
     isPending: isPreparing || generateMutation.isPending,
     hasInstitute: Boolean(activeInstituteId),
+    hasNoFinanceInfo,
     submit,
   }
 }
