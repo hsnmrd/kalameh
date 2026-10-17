@@ -31,8 +31,12 @@ export default function FinancialSettingsPage() {
         mode="forbidden"
       >
         <AdminPageShell
+          backHref="/transactions"
+          backLabel={tCommon("nav.finance")}
           breadcrumb={
             <AdminBreadcrumb
+              backHref="/transactions"
+              backLabel={tCommon("nav.finance")}
               items={[
                 { label: tCommon("nav.finance"), href: "/transactions" },
                 { label: t("title") },

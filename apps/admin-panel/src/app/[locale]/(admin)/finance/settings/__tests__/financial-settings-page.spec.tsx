@@ -4,6 +4,11 @@ import FinancialSettingsPage from "../page"
 import { FinancialSettingsForm } from "../components/financial-settings-form"
 import { FinancialPreviewCard } from "../components/financial-preview-card"
 import { APP_MODULES, PERMISSIONS } from "@workspace/types"
+import {
+  HeaderActionsProvider,
+  useHeaderActions,
+  type BackNavigationConfig,
+} from "@/components/admin-base-layout/header-actions-context"
 import transactionsMessagesFa from "@/messages/fa/transactions.json"
 import commonMessagesFa from "@/messages/fa/common.json"
 
@@ -141,6 +146,29 @@ describe("FinancialSettingsPage", () => {
         }),
         expect.anything()
       )
+    })
+  })
+
+  it("configures back navigation to /transactions in HeaderActionsContext", () => {
+    let capturedBackNav: BackNavigationConfig | null = null
+
+    function TestConsumer() {
+      const { backNavigation } = useHeaderActions()
+      capturedBackNav = backNavigation
+      return null
+    }
+
+    render(
+      <HeaderActionsProvider>
+        <FinancialSettingsPage />
+        <TestConsumer />
+      </HeaderActionsProvider>,
+      { messages: customMessages }
+    )
+
+    expect(capturedBackNav).toEqual({
+      backHref: "/transactions",
+      backLabel: commonMessagesFa.nav.finance,
     })
   })
 })
