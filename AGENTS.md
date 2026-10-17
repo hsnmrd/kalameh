@@ -22,7 +22,9 @@ Before reading files to modify code, editing files, or running task commands:
 - **Testing & Targeted Execution:**
   - Write test files for new behavior (unit tests for focused logic, integration/e2e for critical flows).
   - **NEVER run the full application test suite (1,000+ tests) during development or iterative debugging.** Run **ONLY** the specific test file being modified or authored:
-    `pnpm --filter <app> test -- <path-to-file>.spec.tsx`
+    `pnpm --filter <app> test -- <filename>.spec.tsx`
+  - **PowerShell Path Escaping:** In Windows PowerShell, Next.js App Router paths with `[locale]` or `(admin)` cause syntax errors (`admin: The term 'admin' is not recognized`). Pass **ONLY the test filename** to Vitest (e.g. `pnpm --filter admin-panel test -- scheduling-generation-form.spec.tsx`), or wrap full paths in single quotes: `'src/app/[locale]/(admin)/.../file.spec.tsx'`.
+  - **Preventing Cascade Test Mock Failures:** When introducing cross-cutting business rules (e.g. institute financial readiness, license checks, activation gates), ensure shared mock factories/fixtures provide valid baseline values by default. Test blocked/negative states explicitly in dedicated tests using mock overrides, rather than breaking the baseline mock state across the entire suite.
   - Only execute the full suite as a final pre-commit quality check.
 - **Git Hooks & Quality Gate:** Prettier and ESLint are enforced by Husky (`.husky/pre-commit`) and `lint-staged` on every commit. Never bypass hooks.
 - **Environment Configuration:** All environment variables must be managed centrally in the root `.env` and declared in `turbo.json` under `globalEnv`. Do not create disconnected per-app `.env` files.
@@ -42,6 +44,8 @@ Before reading files to modify code, editing files, or running task commands:
 - **Zod Schema Import Standard (Prevent TS2345):**
   - Always import `z` directly from `@workspace/types` (`import { z } from "@workspace/types"`), **NEVER** from `"zod"` directly in frontend apps, forms, or DTOs.
   - This avoids duplicate monorepo package resolutions and eliminates type incompatibility errors (`TS2345`) when paired with `@hookform/resolvers/zod`.
+- **Shared Package Build Requirement (`@workspace/types`):**
+  - `@workspace/types` compiles to `./dist`. Whenever adding or modifying schemas, types, or helpers in `packages/types/src/`, always run `pnpm --filter @workspace/types build` so dependent apps (`apps/api`, `apps/admin-panel`) immediately resolve the updated types without TypeScript mismatch errors.
 - **Error Handling & Notifications:**
   - Global API errors in `createMicroApi` (`onError`) must trigger the centralized shadcn `toast.error` notification.
   - Do not render duplicate inline error banner cards inside pages/forms when toast notifications handle error presentation.

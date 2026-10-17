@@ -35,7 +35,8 @@
 - **NEVER** use the `.fn()` option of micro-rq directly in components.
 - Errors are handled centrally by `onError` in `client.ts` via shadcn `toast.error`. Never create redundant inline error alert banners inside forms.
 - **Forms & Zod Schemas (No TS2345):** Always use `react-hook-form` paired with `@hookform/resolvers/zod`. Always import `z` directly from `@workspace/types` (`import { z } from "@workspace/types"`), **NEVER** from `"zod"`, to prevent duplicate package type mismatches.
-- **Targeted Testing:** Run **ONLY** the specific test file being created or modified (`pnpm --filter admin-panel test -- <path>.spec.tsx`). Never run the entire 1,000+ test suite during iterative development.
+- **Targeted Testing (PowerShell Safe):** Run **ONLY** the specific test file being created or modified by passing its filename: `pnpm --filter admin-panel test -- <filename>.spec.tsx`. Avoid unquoted App Router paths with `[locale]` or `(admin)` in PowerShell (which throws `The term 'admin' is not recognized`). Never run the entire 1,000+ test suite during iterative development.
+- **Preventing Cascade Test Mock Failures:** When introducing cross-cutting business rules (e.g. institute financial completeness, activation gates), ensure default mock fixtures supply valid baseline values so unrelated existing tests across the application do not cascade fail. Test blocked states in dedicated test cases via explicit overrides.
 
 ## UI Primitives & Elements
 
