@@ -41,4 +41,20 @@ export const institutesResource = api.resource("institutes", {
     { id: string },
     { id: string; offDayId: string }
   >(({ id, offDayId }) => `/institutes/${id}/custom-off-days/${offDayId}`),
+  updateBankInfo: api.patch<
+    InstituteWithStats,
+    {
+      id: string
+      body: {
+        bankAccountName?: string | null
+        bankCardNumber?: string | null
+        bankShaba?: string | null
+      }
+    }
+  >(({ id }) => `/institutes/${id}/bank-info`, {
+    body: ({ body }) => body,
+  }),
+  deleteBankInfo: api.delete<InstituteWithStats, string>(
+    (id) => `/institutes/${id}/bank-info`
+  ),
 })

@@ -60,14 +60,32 @@ export type Institute = z.infer<typeof InstituteSchema>
 export const InstituteWithStatsSchema = InstituteSchema.extend({
   classesCount: z.number().default(0),
   usersCount: z.number().default(0),
+  hasActiveRegistrationTerm: z.boolean().optional(),
 })
 export type InstituteWithStats = z.infer<typeof InstituteWithStatsSchema>
+
+export const sanitizeNullableBankField = (
+  val: unknown
+): string | null | undefined => {
+  if (val === undefined) return undefined
+  if (val === null) return null
+  if (typeof val === "string") {
+    const trimmed = val.trim()
+    if (!trimmed || trimmed === "null" || trimmed === "undefined") {
+      return null
+    }
+    return trimmed
+  }
+  return val as string
+}
 
 export const createCreateInstituteSchema = (msg?: {
   nameMin?: string
   subdomainMin?: string
   subdomainRegex?: string
   primaryColorRegex?: string
+  bankCardNumberRegex?: string
+  bankShabaRegex?: string
 }) =>
   z.object({
     name: z
@@ -130,9 +148,44 @@ export const createCreateInstituteSchema = (msg?: {
         return []
       }, z.array(z.string().trim()))
       .optional(),
-    bankCardNumber: z.string().trim().optional().nullable(),
-    bankAccountName: z.string().trim().optional().nullable(),
-    bankShaba: z.string().trim().optional().nullable(),
+    bankCardNumber: z.preprocess(
+      sanitizeNullableBankField,
+      z
+        .string()
+        .trim()
+        .refine(
+          (val) => {
+            const digits = val.replace(/\s+/g, "")
+            return digits.length === 0 || /^\d{16}$/.test(digits)
+          },
+          msg?.bankCardNumberRegex
+            ? { message: msg.bankCardNumberRegex }
+            : { message: "Card number must be 16 digits" }
+        )
+        .nullable()
+        .optional()
+    ),
+    bankAccountName: z.preprocess(
+      sanitizeNullableBankField,
+      z.string().trim().max(100).nullable().optional()
+    ),
+    bankShaba: z.preprocess(
+      sanitizeNullableBankField,
+      z
+        .string()
+        .trim()
+        .refine(
+          (val) => {
+            const clean = val.replace(/\s+/g, "").toUpperCase()
+            return clean.length === 0 || /^(IR)?\d{24}$/.test(clean)
+          },
+          msg?.bankShabaRegex
+            ? { message: msg.bankShabaRegex }
+            : { message: "Invalid IBAN format" }
+        )
+        .nullable()
+        .optional()
+    ),
   })
 
 export const CreateInstituteSchema = createCreateInstituteSchema()
@@ -143,6 +196,8 @@ export const createUpdateInstituteSchema = (msg?: {
   subdomainMin?: string
   subdomainRegex?: string
   primaryColorRegex?: string
+  bankCardNumberRegex?: string
+  bankShabaRegex?: string
 }) =>
   z.object({
     name: z
@@ -207,9 +262,44 @@ export const createUpdateInstituteSchema = (msg?: {
         return []
       }, z.array(z.string().trim()))
       .optional(),
-    bankCardNumber: z.string().trim().optional().nullable(),
-    bankAccountName: z.string().trim().optional().nullable(),
-    bankShaba: z.string().trim().optional().nullable(),
+    bankCardNumber: z.preprocess(
+      sanitizeNullableBankField,
+      z
+        .string()
+        .trim()
+        .refine(
+          (val) => {
+            const digits = val.replace(/\s+/g, "")
+            return digits.length === 0 || /^\d{16}$/.test(digits)
+          },
+          msg?.bankCardNumberRegex
+            ? { message: msg.bankCardNumberRegex }
+            : { message: "Card number must be 16 digits" }
+        )
+        .nullable()
+        .optional()
+    ),
+    bankAccountName: z.preprocess(
+      sanitizeNullableBankField,
+      z.string().trim().max(100).nullable().optional()
+    ),
+    bankShaba: z.preprocess(
+      sanitizeNullableBankField,
+      z
+        .string()
+        .trim()
+        .refine(
+          (val) => {
+            const clean = val.replace(/\s+/g, "").toUpperCase()
+            return clean.length === 0 || /^(IR)?\d{24}$/.test(clean)
+          },
+          msg?.bankShabaRegex
+            ? { message: msg.bankShabaRegex }
+            : { message: "Invalid IBAN format" }
+        )
+        .nullable()
+        .optional()
+    ),
     observeOfficialHolidays: z
       .preprocess((val) => {
         if (val === "true" || val === true) return true
@@ -282,8 +372,32 @@ export function hasInstituteFinanceInfo(
   institute?: InstituteFinanceDetails | null
 ): boolean {
   if (!institute) return false
-  const hasCard = !!institute.bankCardNumber?.trim()
-  const hasAccountName = !!institute.bankAccountName?.trim()
-  const hasShaba = !!institute.bankShaba?.trim()
+  const isValid = (val?: string | null) => {
+    if (!val) return false
+    const trimmed = val.trim()
+    return trimmed !== "" && trimmed !== "null" && trimmed !== "undefined"
+  }
+
+  const hasCard = isValid(institute.bankCardNumber)
+  const hasAccountName = isValid(institute.bankAccountName)
+  const hasShaba = isValid(institute.bankShaba)
+
   return hasCard || hasAccountName || hasShaba
+}
+
+export function isInstituteFinanceComplete(
+  institute?: InstituteFinanceDetails | null
+): boolean {
+  if (!institute) return false
+  const card = institute.bankCardNumber?.replace(/\s+/g, "")
+  const shaba = institute.bankShaba?.replace(/\s+/g, "").toUpperCase()
+  const name = institute.bankAccountName?.trim()
+
+  const validCard = Boolean(card && card !== "null" && /^\d{16}$/.test(card))
+  const validShaba = Boolean(
+    shaba && shaba !== "null" && /^(IR)?\d{24}$/.test(shaba)
+  )
+  const validName = Boolean(name && name !== "null" && name.length >= 2)
+
+  return validCard && validShaba && validName
 }

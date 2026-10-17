@@ -26,6 +26,7 @@ const mockInstitute = {
 }
 
 const mockMutate = vi.fn()
+const mockDeleteMutate = vi.fn()
 
 vi.mock("@/lib/stores", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>()
@@ -71,6 +72,31 @@ vi.mock("@/lib/api", async (importOriginal) => {
           mutate: mockMutate,
           isPending: false,
         })),
+      },
+      updateBankInfo: {
+        toMutation: vi.fn(() => ({
+          mutationFn: mockMutate,
+          mutate: mockMutate,
+          isPending: false,
+        })),
+      },
+      deleteBankInfo: {
+        toMutation: vi.fn(() => ({
+          mutationFn: mockDeleteMutate,
+          mutate: mockDeleteMutate,
+          isPending: false,
+        })),
+      },
+    },
+    termsResource: {
+      ...(actual.termsResource as Record<string, unknown>),
+      list: {
+        toQuery: vi.fn(() => ({
+          queryKey: ["terms", "list"],
+          queryFn: vi.fn(() => Promise.resolve([])),
+          initialData: [],
+        })),
+        baseKey: vi.fn(() => ["terms", "list"]),
       },
     },
   }
@@ -147,6 +173,96 @@ describe("FinancialSettingsPage", () => {
         expect.anything()
       )
     })
+  })
+
+  it("renders delete button, opens confirmation dialog and deletes bank info upon confirm", async () => {
+    render(<FinancialSettingsForm institute={mockInstitute as any} />, {
+      messages: customMessages,
+    })
+
+    const deleteBtn = screen.getByRole("button", {
+      name: transactionsMessagesFa.settings.deleteBankInfo,
+    })
+    expect(deleteBtn).toBeInTheDocument()
+
+    fireEvent.click(deleteBtn)
+
+    expect(
+      screen.getByText(
+        transactionsMessagesFa.settings.deleteBankInfoConfirmTitle
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        transactionsMessagesFa.settings.deleteBankInfoConfirmDescription
+      )
+    ).toBeInTheDocument()
+
+    const confirmActionBtn = screen.getByRole("button", {
+      name: transactionsMessagesFa.settings.delete,
+    })
+    fireEvent.click(confirmActionBtn)
+
+    await waitFor(() => {
+      expect(mockDeleteMutate).toHaveBeenCalledWith("inst-1", expect.anything())
+    })
+  })
+
+  it("shows warning and disables inputs/buttons when term registration is active", () => {
+    const instituteWithActiveRegistration = {
+      ...mockInstitute,
+      hasActiveRegistrationTerm: true,
+    }
+
+    render(
+      <FinancialSettingsForm
+        institute={instituteWithActiveRegistration as any}
+      />,
+      {
+        messages: customMessages,
+      }
+    )
+
+    expect(
+      screen.getByTestId("registration-active-warning")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        transactionsMessagesFa.settings.registrationActiveWarningTitle
+      )
+    ).toBeInTheDocument()
+
+    const cardInput = screen.getByDisplayValue("6037991812345678")
+    expect(cardInput).toBeDisabled()
+
+    const saveButton = screen.getByRole("button", {
+      name: transactionsMessagesFa.settings.save,
+    })
+    expect(saveButton).toBeDisabled()
+
+    const deleteButton = screen.getByRole("button", {
+      name: transactionsMessagesFa.settings.deleteBankInfo,
+    })
+    expect(deleteButton).toBeDisabled()
+  })
+
+  it("sanitizes literal null strings and displays empty placeholders", () => {
+    const instituteWithNullStrings = {
+      ...mockInstitute,
+      bankAccountName: "null",
+      bankCardNumber: "null",
+      bankShaba: "null",
+    }
+
+    render(
+      <FinancialSettingsForm institute={instituteWithNullStrings as any} />,
+      {
+        messages: customMessages,
+      }
+    )
+
+    expect(screen.queryByDisplayValue("null")).not.toBeInTheDocument()
+    expect(screen.getByText("— — — —")).toBeInTheDocument()
   })
 
   it("configures back navigation to /transactions in HeaderActionsContext", () => {

@@ -55,6 +55,8 @@ export interface TranslationDictionary {
     cannotDeleteSystemInstitute: string;
     instituteDeletedSuccess: string;
     moduleNotActive: string;
+    cannotModifyBankInfoDuringRegistration: string;
+    deleteBankInfoSuccess: string;
   };
   branches: {
     branchNotFound: string;

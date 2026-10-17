@@ -37,6 +37,9 @@ describe('InstitutesService', () => {
       branch: {
         create: jest.fn(),
       },
+      term: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
       instituteOperatingPhase: {
         createMany: jest.fn(),
       },
@@ -310,6 +313,149 @@ describe('InstitutesService', () => {
           'en',
         ),
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw ConflictException when trying to modify bank info while term registration is active', async () => {
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Tehran Institute',
+        subdomain: 'tehran',
+        bankCardNumber: '6037991122334455',
+        bankAccountName: 'Old Name',
+        bankShaba: 'IR120170000000123456789012',
+      });
+      jest.spyOn(service, 'hasActiveRegistrationTerm').mockResolvedValue(true);
+
+      await expect(
+        service.update(
+          'inst-tehran',
+          { bankCardNumber: '6037998877665544' },
+          undefined,
+          mockInstituteAdmin,
+          'en',
+        ),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should allow updating non-bank fields even if term registration is active', async () => {
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Tehran Institute',
+        subdomain: 'tehran',
+        bankCardNumber: '6037991122334455',
+        bankAccountName: 'Institute Account',
+        bankShaba: 'IR120170000000123456789012',
+      });
+      jest.spyOn(service, 'hasActiveRegistrationTerm').mockResolvedValue(true);
+      prismaService.institute.update.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Updated Name',
+        _count: { classes: 5, users: 10 },
+      });
+
+      const result = await service.update(
+        'inst-tehran',
+        { name: 'Updated Name' },
+        undefined,
+        mockInstituteAdmin,
+        'en',
+      );
+
+      expect(result.name).toBe('Updated Name');
+    });
+
+    it('should sanitize literal "null" or "undefined" strings to real null in bank fields', async () => {
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Tehran Institute',
+        subdomain: 'tehran',
+        bankCardNumber: '6037991122334455',
+        bankAccountName: 'Institute Account',
+        bankShaba: 'IR120170000000123456789012',
+      });
+      jest.spyOn(service, 'hasActiveRegistrationTerm').mockResolvedValue(false);
+      prismaService.institute.update.mockResolvedValue({
+        id: 'inst-tehran',
+        bankCardNumber: null,
+        bankAccountName: null,
+        bankShaba: null,
+        _count: { classes: 0, users: 0 },
+      });
+
+      await service.update(
+        'inst-tehran',
+        {
+          bankCardNumber: 'null',
+          bankAccountName: 'null',
+          bankShaba: 'null',
+        },
+        undefined,
+        mockInstituteAdmin,
+        'en',
+      );
+
+      expect(prismaService.institute.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            bankCardNumber: null,
+            bankAccountName: null,
+            bankShaba: null,
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('deleteBankInfo', () => {
+    it('should throw ForbiddenException if user belongs to another institute', async () => {
+      await expect(
+        service.deleteBankInfo('inst-other', mockInstituteAdmin, 'en'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw ConflictException if term registration is active', async () => {
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
+        id: 'inst-tehran',
+      });
+      jest.spyOn(service, 'hasActiveRegistrationTerm').mockResolvedValue(true);
+
+      await expect(
+        service.deleteBankInfo('inst-tehran', mockInstituteAdmin, 'en'),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should clear bank fields to null when registration is not active', async () => {
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
+        id: 'inst-tehran',
+        bankCardNumber: '6037991122334455',
+      });
+      jest.spyOn(service, 'hasActiveRegistrationTerm').mockResolvedValue(false);
+      prismaService.institute.update.mockResolvedValue({
+        id: 'inst-tehran',
+        bankCardNumber: null,
+        bankAccountName: null,
+        bankShaba: null,
+        _count: { classes: 0, users: 0 },
+      });
+
+      const result = await service.deleteBankInfo(
+        'inst-tehran',
+        mockInstituteAdmin,
+        'en',
+      );
+
+      expect(prismaService.institute.update).toHaveBeenCalledWith({
+        where: { id: 'inst-tehran' },
+        data: {
+          bankCardNumber: null,
+          bankAccountName: null,
+          bankShaba: null,
+        },
+        include: {
+          _count: { select: { classes: true, users: true } },
+        },
+      });
+      expect(result.hasActiveRegistrationTerm).toBe(false);
     });
   });
 

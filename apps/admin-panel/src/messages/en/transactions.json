@@ -66,6 +66,19 @@
     "saving": "Saving...",
     "saveSuccess": "Bank account details saved successfully.",
     "copyCard": "Copy Card Number",
-    "cardCopied": "Card number copied."
+    "cardCopied": "Card number copied.",
+    "deleteBankInfo": "Delete Bank Info",
+    "deleteBankInfoConfirmTitle": "Delete Bank Account Info",
+    "deleteBankInfoConfirmDescription": "Are you sure you want to completely delete the bank account information? Students will no longer see these details for tuition payment.",
+    "deleteBankInfoSuccess": "Bank account information deleted successfully.",
+    "registrationActiveWarningTitle": "Term Registration In Progress",
+    "registrationActiveWarningDesc": "Bank account information cannot be modified or deleted while term registration is open because students are actively enrolling and using these details.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "validation": {
+      "bankAccountNameRequired": "Account holder name is required.",
+      "bankCardNumberInvalid": "Bank card number must be exactly 16 digits.",
+      "bankShabaInvalid": "IBAN must be valid (IR followed by 24 digits)."
+    }
   }
 }

@@ -18,17 +18,36 @@ export function BankInfoCard({ bankInfo, tuition }: BankInfoCardProps) {
   const locale = useLocale()
   const [copied, setCopied] = React.useState(false)
 
+  const cleanCard =
+    bankInfo?.bankCardNumber &&
+    bankInfo.bankCardNumber !== "null" &&
+    bankInfo.bankCardNumber !== "undefined"
+      ? bankInfo.bankCardNumber
+      : ""
+  const cleanAccountName =
+    bankInfo?.bankAccountName &&
+    bankInfo.bankAccountName !== "null" &&
+    bankInfo.bankAccountName !== "undefined"
+      ? bankInfo.bankAccountName
+      : ""
+  const cleanShaba =
+    bankInfo?.bankShaba &&
+    bankInfo.bankShaba !== "null" &&
+    bankInfo.bankShaba !== "undefined"
+      ? bankInfo.bankShaba
+      : ""
+
   const handleCopyCard = () => {
-    if (!bankInfo?.bankCardNumber) return
-    navigator.clipboard.writeText(bankInfo.bankCardNumber)
+    if (!cleanCard) return
+    navigator.clipboard.writeText(cleanCard)
     setCopied(true)
     toast.success(t("cardCopied"))
     setTimeout(() => setCopied(false), 2000)
   }
 
   // Format 16-digit card into 4-digit chunks
-  const formattedCard = bankInfo?.bankCardNumber
-    ? bankInfo.bankCardNumber.replace(/(\d{4})/g, "$1 ").trim()
+  const formattedCard = cleanCard
+    ? cleanCard.replace(/(\d{4})/g, "$1 ").trim()
     : "—"
 
   return (
@@ -61,7 +80,7 @@ export function BankInfoCard({ bankInfo, tuition }: BankInfoCardProps) {
           <span className="font-mono text-lg font-bold tracking-widest text-foreground">
             {formattedCard}
           </span>
-          {bankInfo?.bankCardNumber && (
+          {cleanCard && (
             <Button
               type="button"
               variant="outline"
@@ -79,21 +98,19 @@ export function BankInfoCard({ bankInfo, tuition }: BankInfoCardProps) {
           )}
         </div>
 
-        {bankInfo?.bankAccountName && (
+        {cleanAccountName && (
           <p className="mt-2 text-xs text-muted-foreground">
             <span>{t("bankAccount")}</span>{" "}
             <span className="font-semibold text-foreground">
-              {bankInfo.bankAccountName}
+              {cleanAccountName}
             </span>
           </p>
         )}
 
-        {bankInfo?.bankShaba && (
+        {cleanShaba && (
           <p className="mt-1 text-xs text-muted-foreground">
             <span>{t("bankShaba")}</span>{" "}
-            <span className="font-mono text-foreground">
-              {bankInfo.bankShaba}
-            </span>
+            <span className="font-mono text-foreground">{cleanShaba}</span>
           </p>
         )}
       </div>
