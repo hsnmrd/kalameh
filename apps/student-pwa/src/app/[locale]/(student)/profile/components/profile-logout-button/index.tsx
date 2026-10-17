@@ -25,7 +25,7 @@ export function ProfileLogoutButton({
       variant="outline"
       onClick={onLogout}
       disabled={isLoggingOut}
-      className="h-14 w-full cursor-pointer justify-center gap-2.5 rounded-2xl border-destructive/30 bg-card text-base font-semibold text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive active:scale-95"
+      className="h-14 w-full cursor-pointer justify-center gap-2.5 rounded-2xl border border-destructive/30 bg-transparent text-base font-semibold text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive active:scale-95"
       aria-label={t("logout")}
     >
       {isLoggingOut ? (
