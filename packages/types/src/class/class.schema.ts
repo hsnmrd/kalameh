@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { EnrollmentStatusSchema } from "../enrollment/enrollment.schema.js"
 
 export const WEEK_DAYS = [
   "SATURDAY",
@@ -61,6 +62,7 @@ export const ClassSchema = z.object({
     })
     .optional(),
   enrolledCount: z.number().optional(),
+  studentEnrollmentStatus: EnrollmentStatusSchema.nullable().optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
 })

@@ -100,7 +100,7 @@ export class EnrollmentsService {
       },
     });
 
-    // Check if student already has active enrollment
+    // Check if student already has active enrollment or active reservation
     const existing = await this.prisma.enrollment.findUnique({
       where: {
         studentId_classId: {
@@ -110,23 +110,37 @@ export class EnrollmentsService {
       },
     });
 
-    if (
-      existing &&
-      (existing.status === ENROLLMENT_STATUSES.ENROLLED ||
-        existing.status === ENROLLMENT_STATUSES.PENDING_APPROVAL)
-    ) {
-      throw new BadRequestException(
-        locale === 'fa'
-          ? 'شما پیش از این در این کلاس ثبت‌نام کرده‌اید یا فیش شما در انتظار بررسی است.'
-          : 'You are already enrolled or have a pending receipt for this class.',
-      );
-    }
-
-    // Check student lock
     const hasExistingLock = await this.redis.hasClassLock(
       dto.classId,
       currentUser.sub,
     );
+
+    if (existing) {
+      if (existing.status === ENROLLMENT_STATUSES.ENROLLED) {
+        throw new BadRequestException(
+          locale === 'fa'
+            ? 'شما پیش از این در این کلاس ثبت‌نام کرده‌اید.'
+            : 'You are already enrolled in this class.',
+        );
+      }
+      if (existing.status === ENROLLMENT_STATUSES.PENDING_APPROVAL) {
+        throw new BadRequestException(
+          locale === 'fa'
+            ? 'درخواست ثبت‌نام شما برای این کلاس ارسال شده و در انتظار تأیید مدیریت است.'
+            : 'Your enrollment request is awaiting approval.',
+        );
+      }
+      if (
+        existing.status === ENROLLMENT_STATUSES.PENDING_PAYMENT &&
+        hasExistingLock
+      ) {
+        throw new BadRequestException(
+          locale === 'fa'
+            ? 'شما پیش از این برای این کلاس درخواست ثبت کرده‌اید و ظرفیت برای شما رزرو شده است.'
+            : 'You already have an active reservation for this class.',
+        );
+      }
+    }
 
     if (!hasExistingLock) {
       // Calculate capacity
@@ -227,6 +241,52 @@ export class EnrollmentsService {
     const cls = await this.prisma.class.findFirstOrThrow({
       where: { id: dto.classId, instituteId: currentUser.instituteId },
     });
+
+    const existing = await this.prisma.enrollment.findUnique({
+      where: {
+        studentId_classId: {
+          studentId: currentUser.sub,
+          classId: dto.classId,
+        },
+      },
+    });
+
+    if (existing) {
+      if (existing.status === ENROLLMENT_STATUSES.ENROLLED) {
+        throw new BadRequestException(
+          locale === 'fa'
+            ? 'شما پیش از این در این کلاس ثبت‌نام کرده‌اید.'
+            : 'You are already enrolled in this class.',
+        );
+      }
+      if (existing.status === ENROLLMENT_STATUSES.PENDING_APPROVAL) {
+        throw new BadRequestException(
+          locale === 'fa'
+            ? 'درخواست ثبت‌نام شما برای این کلاس ارسال شده و در انتظار تأیید مدیریت است.'
+            : 'Your enrollment request is awaiting approval.',
+        );
+      }
+      if (existing.status === ENROLLMENT_STATUSES.WAITLISTED) {
+        throw new BadRequestException(
+          locale === 'fa'
+            ? 'شما در حال حاضر در لیست انتظار این کلاس قرار دارید.'
+            : 'You are already on the waitlist for this class.',
+        );
+      }
+      if (existing.status === ENROLLMENT_STATUSES.PENDING_PAYMENT) {
+        const hasExistingLock = await this.redis.hasClassLock(
+          dto.classId,
+          currentUser.sub,
+        );
+        if (hasExistingLock) {
+          throw new BadRequestException(
+            locale === 'fa'
+              ? 'شما پیش از این ظرفیت این کلاس را رزرو کرده‌اید.'
+              : 'You already have a reserved spot for this class.',
+          );
+        }
+      }
+    }
 
     const enrollment = await this.prisma.enrollment.upsert({
       where: {

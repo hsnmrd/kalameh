@@ -1,5 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
-import { ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { EnrollmentsService } from './enrollments.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -112,6 +115,33 @@ describe('EnrollmentsService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
+    it('rejects reservation if student already has active reservation lock', async () => {
+      prisma.enrollment.findUnique.mockResolvedValueOnce({
+        id: 'e-1',
+        studentId: student.sub,
+        classId: 'class-1',
+        status: ENROLLMENT_STATUSES.PENDING_PAYMENT,
+      });
+      redis.hasClassLock.mockResolvedValueOnce(true);
+
+      await expect(
+        service.reserve(student, { classId: 'class-1' }, 'fa'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects reservation if student is already enrolled or pending approval', async () => {
+      prisma.enrollment.findUnique.mockResolvedValueOnce({
+        id: 'e-1',
+        studentId: student.sub,
+        classId: 'class-1',
+        status: ENROLLMENT_STATUSES.ENROLLED,
+      });
+
+      await expect(
+        service.reserve(student, { classId: 'class-1' }, 'fa'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it('rejects reservation if user is not a student', async () => {
       await expect(
         service.reserve(admin, { classId: 'class-1' }, 'fa'),
@@ -140,6 +170,7 @@ describe('EnrollmentsService', () => {
 
   describe('joinWaitlist', () => {
     it('creates a waitlisted enrollment entry', async () => {
+      prisma.enrollment.findUnique.mockResolvedValue(null);
       const mockWaitlist = {
         id: 'enrollment-1',
         studentId: 'student-1',
@@ -156,6 +187,19 @@ describe('EnrollmentsService', () => {
 
       expect(result.status).toBe(ENROLLMENT_STATUSES.WAITLISTED);
       expect(auditLogsService.log).toHaveBeenCalled();
+    });
+
+    it('rejects waitlist if student is already on waitlist or enrolled', async () => {
+      prisma.enrollment.findUnique.mockResolvedValueOnce({
+        id: 'e-1',
+        studentId: student.sub,
+        classId: 'class-1',
+        status: ENROLLMENT_STATUSES.WAITLISTED,
+      });
+
+      await expect(
+        service.joinWaitlist(student, { classId: 'class-1' }, 'fa'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

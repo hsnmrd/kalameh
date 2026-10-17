@@ -2,12 +2,13 @@
 
 import * as React from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { User, Clock, CheckCircle2, UserPlus } from "lucide-react"
+import { User, Clock, CheckCircle2, UserPlus, CreditCard } from "lucide-react"
+import { Link } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Price } from "@workspace/ui/components/price"
 import { Spinner } from "@workspace/ui/components/spinner"
-import type { ClassDto } from "@workspace/types"
+import { ENROLLMENT_STATUSES, type ClassDto } from "@workspace/types"
 
 export interface StudentClassCardProps {
   cls: ClassDto
@@ -27,6 +28,7 @@ export function StudentClassCard({
 
   const enrolled = cls.enrolledCount ?? 0
   const isFull = enrolled >= cls.capacity
+  const status = cls.studentEnrollmentStatus
 
   return (
     <div className="flex flex-col gap-4 border-b border-border/60 pt-1 pb-5">
@@ -82,7 +84,50 @@ export function StudentClassCard({
           />
         </div>
 
-        {isFull ? (
+        {status === ENROLLMENT_STATUSES.ENROLLED ? (
+          <Link href="/enrollments">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 cursor-pointer rounded-xl border-success/30 bg-success/10 px-4 text-xs font-semibold text-success hover:bg-success/20"
+            >
+              <CheckCircle2 className="me-1.5 size-4 text-success" />
+              <span>{t("statusEnrolled")}</span>
+            </Button>
+          </Link>
+        ) : status === ENROLLMENT_STATUSES.PENDING_APPROVAL ? (
+          <Link href="/enrollments">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 cursor-pointer rounded-xl border-warning/30 bg-warning/10 px-4 text-xs font-semibold text-warning hover:bg-warning/20"
+            >
+              <Clock className="me-1.5 size-4 text-warning" />
+              <span>{t("statusPendingApproval")}</span>
+            </Button>
+          </Link>
+        ) : status === ENROLLMENT_STATUSES.PENDING_PAYMENT ? (
+          <Link href={`/enrollments?classId=${cls.id}`}>
+            <Button
+              type="button"
+              className="h-10 cursor-pointer rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              <CreditCard className="me-1.5 size-4" />
+              <span>{t("completePayment")}</span>
+            </Button>
+          </Link>
+        ) : status === ENROLLMENT_STATUSES.WAITLISTED ? (
+          <Link href="/enrollments">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 cursor-pointer rounded-xl border-border px-4 text-xs font-semibold text-muted-foreground hover:bg-muted"
+            >
+              <UserPlus className="me-1.5 size-4 text-muted-foreground" />
+              <span>{t("statusWaitlisted")}</span>
+            </Button>
+          </Link>
+        ) : isFull ? (
           <Button
             type="button"
             variant="outline"

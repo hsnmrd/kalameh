@@ -17,6 +17,7 @@ describe('ClassesService', () => {
   let service: ClassesService;
   let prismaService: any;
   let i18nService: any;
+  let redisService: any;
 
   const mockAdmin: JwtPayload = {
     sub: 'admin-id',
@@ -44,6 +45,8 @@ describe('ClassesService', () => {
       },
       enrollment: {
         count: jest.fn().mockResolvedValue(0),
+        findMany: jest.fn().mockResolvedValue([]),
+        findUnique: jest.fn().mockResolvedValue(null),
       },
       user: {
         findUnique: jest.fn(),
@@ -108,6 +111,7 @@ describe('ClassesService', () => {
     }).compile();
 
     service = module.get<ClassesService>(ClassesService);
+    redisService = module.get(RedisService);
   });
 
   describe('create', () => {
@@ -625,6 +629,61 @@ describe('ClassesService', () => {
           where: { id: mockStudent.sub, instituteId: 'inst-1' },
         }),
       );
+    });
+
+    it('should include studentEnrollmentStatus when student has an existing enrollment', async () => {
+      prismaService.user.findFirst.mockResolvedValue({
+        id: mockStudent.sub,
+        currentAllowedCourseId: 'course-level-2',
+      });
+      prismaService.course.findFirst.mockResolvedValue({
+        id: 'course-level-2',
+        title: 'Top Notch 2',
+      });
+      prismaService.class.findMany.mockResolvedValue([
+        {
+          id: 'class-tn2',
+          title: 'Top Notch 2A',
+          capacity: 20,
+          fee: 1800000,
+          _count: { enrollments: 1 },
+        },
+      ]);
+      prismaService.enrollment.findMany.mockResolvedValue([
+        {
+          classId: 'class-tn2',
+          status: 'PENDING_APPROVAL',
+        },
+      ]);
+
+      const result = await service.findAvailableForStudent(mockStudent);
+      expect(result.classes[0].studentEnrollmentStatus).toBe(
+        'PENDING_APPROVAL',
+      );
+    });
+
+    it('should calculate enrolledCount by adding confirmed enrollments and redis lockCount without double counting', async () => {
+      prismaService.user.findFirst.mockResolvedValue({
+        id: mockStudent.sub,
+        currentAllowedCourseId: 'course-level-2',
+      });
+      prismaService.course.findFirst.mockResolvedValue({
+        id: 'course-level-2',
+        title: 'Top Notch 2',
+      });
+      prismaService.class.findMany.mockResolvedValue([
+        {
+          id: 'class-tn2',
+          title: 'Top Notch 2A',
+          capacity: 20,
+          fee: 1800000,
+          _count: { enrollments: 1 },
+        },
+      ]);
+      redisService.countClassLocks.mockResolvedValueOnce(1);
+
+      const result = await service.findAvailableForStudent(mockStudent);
+      expect(result.classes[0].enrolledCount).toBe(2);
     });
   });
 

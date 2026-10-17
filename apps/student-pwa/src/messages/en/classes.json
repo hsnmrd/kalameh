@@ -14,5 +14,13 @@
   "enrollButton": "Select & Enroll in Class",
   "waitlistButton": "Join Waitlist",
   "waitlistSuccess": "You have been successfully added to the waitlist.",
-  "reserveSuccess": "Class capacity reserved for 30 minutes."
+  "reserveSuccess": "Class capacity reserved for 30 minutes.",
+  "statusEnrolled": "Enrolled",
+  "statusPendingApproval": "Pending Approval",
+  "statusPendingPayment": "Pending Payment",
+  "statusWaitlisted": "Waitlisted",
+  "statusRejected": "Rejected",
+  "completePayment": "Complete Payment",
+  "trackEnrollment": "Track Enrollment",
+  "alreadyRequested": "You have already submitted a request for this class."
 }

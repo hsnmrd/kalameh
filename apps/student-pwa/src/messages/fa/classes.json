@@ -14,5 +14,13 @@
   "enrollButton": "انتخاب و ثبت‌نام در کلاس",
   "waitlistButton": "ثبت‌نام در لیست انتظار",
   "waitlistSuccess": "درخواست شما با موفقیت در لیست انتظار ثبت شد.",
-  "reserveSuccess": "ظرفیت کلاس به مدت ۳۰ دقیقه برای شما رزرو شد."
+  "reserveSuccess": "ظرفیت کلاس به مدت ۳۰ دقیقه برای شما رزرو شد.",
+  "statusEnrolled": "ثبت‌نام قطعی",
+  "statusPendingApproval": "در انتظار تأیید",
+  "statusPendingPayment": "در حال پرداخت",
+  "statusWaitlisted": "لیست انتظار",
+  "statusRejected": "رد شده",
+  "completePayment": "تکمیل پرداخت",
+  "trackEnrollment": "پیگیری ثبت‌نام",
+  "alreadyRequested": "شما پیش از این برای این کلاس درخواست ثبت کرده‌اید."
 }
