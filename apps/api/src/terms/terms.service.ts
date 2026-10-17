@@ -329,11 +329,15 @@ export class TermsService {
     });
 
     const { _count, ...data } = updated;
+    const subject = {
+      ...data,
+      classesCount: _count.classes,
+    };
     return {
       ...data,
       classesCount: _count.classes,
-      lifecycleStatus: calculateTermLifecycleStatus(data),
-      lifecycleStatuses: calculateTermLifecycleStatuses(data),
+      lifecycleStatus: calculateTermLifecycleStatus(subject),
+      lifecycleStatuses: calculateTermLifecycleStatuses(subject),
     };
   }
 
@@ -573,9 +577,15 @@ export class TermsService {
     });
 
     const { _count, ...data } = created;
+    const subject = {
+      ...data,
+      classesCount: _count.classes,
+    };
     return {
       ...data,
       classesCount: _count.classes,
+      lifecycleStatus: calculateTermLifecycleStatus(subject),
+      lifecycleStatuses: calculateTermLifecycleStatuses(subject),
     };
   }
 
@@ -688,9 +698,15 @@ export class TermsService {
     });
 
     const { _count, ...data } = updated;
+    const subject = {
+      ...data,
+      classesCount: _count.classes,
+    };
     return {
       ...data,
       classesCount: _count.classes,
+      lifecycleStatus: calculateTermLifecycleStatus(subject),
+      lifecycleStatuses: calculateTermLifecycleStatuses(subject),
     };
   }
 
