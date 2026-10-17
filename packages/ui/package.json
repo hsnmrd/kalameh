@@ -46,6 +46,8 @@
     "./globals.css": "./src/styles/globals.css",
     "./postcss.config": "./postcss.config.mjs",
     "./lib/*": "./src/lib/*.ts",
+    "./components/image-cropper": "./src/components/image-cropper/index.tsx",
+    "./components/time-picker": "./src/components/time-picker/index.tsx",
     "./components/*": "./src/components/*.tsx",
     "./hooks/*": "./src/hooks/*.ts"
   }

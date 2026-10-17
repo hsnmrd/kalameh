@@ -43,7 +43,18 @@
     "submitting": "Submitting...",
     "cancelReservation": "Cancel & Release Capacity",
     "cancelSuccess": "Reservation cancelled and capacity released.",
-    "submitSuccess": "Receipt submitted successfully and is now pending approval."
+    "submitSuccess": "Receipt submitted successfully and is now pending approval.",
+    "cropTitle": "Crop & Adjust Receipt",
+    "cropConfirm": "Confirm & Save",
+    "cropCancel": "Cancel",
+    "recrop": "Re-crop",
+    "aspectRatios": {
+      "portrait": "3:4",
+      "landscape": "4:3",
+      "wide": "16:9",
+      "square": "1:1",
+      "original": "Original"
+    }
   },
   "statusCard": {
     "pendingApprovalNotice": "Your payment receipt has been recorded and is pending review by the institute administration.",

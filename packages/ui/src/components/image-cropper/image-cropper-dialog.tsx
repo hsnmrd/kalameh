@@ -16,6 +16,7 @@ import { ImageCropperViewport } from "./image-cropper-viewport"
 import { ImageCropperControls } from "./image-cropper-controls"
 import { cropAndCompressImage } from "./crop-image-helper"
 import type {
+  AspectRatioOption,
   CropBoxDimensions,
   CropOffset,
   ImageCropperDialogProps,
@@ -29,6 +30,8 @@ export function ImageCropperDialog({
   onCropComplete,
   onCancel,
   aspectRatio = 1,
+  aspectRatioOptions,
+  allowAspectRatioSelection = false,
   maxWidth = 512,
   maxHeight = 512,
   quality = 0.85,
@@ -51,6 +54,34 @@ export function ImageCropperDialog({
     width: 280,
     height: 280,
   })
+  const [currentAspectRatio, setCurrentAspectRatio] =
+    React.useState<number>(aspectRatio)
+  const [selectedRatioId, setSelectedRatioId] = React.useState<string>(
+    String(aspectRatio)
+  )
+
+  React.useEffect(() => {
+    if (open) {
+      setCurrentAspectRatio(aspectRatio)
+      setSelectedRatioId(String(aspectRatio))
+    }
+  }, [open, aspectRatio])
+
+  const effectiveRatioOptions = React.useMemo(() => {
+    if (aspectRatioOptions && aspectRatioOptions.length > 0) {
+      return aspectRatioOptions
+    }
+    if (allowAspectRatioSelection) {
+      return [
+        { label: "۳:۴", value: 3 / 4, id: "3:4" },
+        { label: "۴:۳", value: 4 / 3, id: "4:3" },
+        { label: "۱۶:۹", value: 16 / 9, id: "16:9" },
+        { label: "۱:۱", value: 1, id: "1:1" },
+        { label: "اصلی", value: -1, id: "original" },
+      ]
+    }
+    return []
+  }, [aspectRatioOptions, allowAspectRatioSelection])
 
   // Derive source URL from imageFile or imageSrc
   const effectiveSrc = React.useMemo(() => {
@@ -108,6 +139,29 @@ export function ImageCropperDialog({
     onOpenChange(false)
   }, [onCancel, onOpenChange])
 
+  const handleSelectRatio = React.useCallback(
+    (opt: AspectRatioOption) => {
+      const id = opt.id || opt.label
+      setSelectedRatioId(id)
+
+      let nextRatio = opt.value
+      if (nextRatio <= 0 && loadedImage) {
+        const isPerpendicular = rotation % 180 !== 0
+        const w = isPerpendicular
+          ? loadedImage.naturalHeight
+          : loadedImage.naturalWidth
+        const h = isPerpendicular
+          ? loadedImage.naturalWidth
+          : loadedImage.naturalHeight
+        nextRatio = w / h
+      }
+
+      setCurrentAspectRatio(nextRatio)
+      setOffset({ x: 0, y: 0 })
+    },
+    [loadedImage, rotation]
+  )
+
   const handleConfirm = async () => {
     if (!loadedImage) return
     setIsProcessing(true)
@@ -132,7 +186,7 @@ export function ImageCropperDialog({
         rotation,
         maxWidth,
         maxHeight,
-        aspectRatio,
+        aspectRatio: currentAspectRatio,
         quality,
         format,
         fileName,
@@ -170,10 +224,35 @@ export function ImageCropperDialog({
                 onOffsetChange={setOffset}
                 onZoomChange={setZoom}
                 cropShape={cropShape}
-                aspectRatio={aspectRatio}
+                aspectRatio={currentAspectRatio}
                 cropBox={cropBox}
                 onCropBoxChange={setCropBox}
               />
+
+              {effectiveRatioOptions.length > 0 && (
+                <div className="flex items-center justify-center gap-1.5 overflow-x-auto py-1">
+                  {effectiveRatioOptions.map((opt) => {
+                    const id = opt.id || opt.label
+                    const isSelected =
+                      selectedRatioId === id ||
+                      (opt.value > 0 &&
+                        Math.abs(currentAspectRatio - opt.value) < 0.01)
+
+                    return (
+                      <Button
+                        key={opt.label}
+                        type="button"
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleSelectRatio(opt)}
+                        className="h-8 rounded-lg px-2.5 text-xs font-semibold"
+                      >
+                        {opt.label}
+                      </Button>
+                    )
+                  })}
+                </div>
+              )}
 
               <ImageCropperControls
                 zoom={zoom}

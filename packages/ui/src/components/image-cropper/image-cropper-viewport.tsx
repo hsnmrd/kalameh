@@ -51,9 +51,20 @@ export function ImageCropperViewport({
         boxW = boxH * aspectRatio
       }
 
+      // Ensure minimum dimension while strictly preserving aspect ratio
+      const minDimension = 100
+      if (boxW < minDimension) {
+        boxW = minDimension
+        boxH = boxW / aspectRatio
+      }
+      if (boxH < minDimension) {
+        boxH = minDimension
+        boxW = boxH * aspectRatio
+      }
+
       onCropBoxChange({
-        width: Math.max(160, Math.round(boxW)),
-        height: Math.max(160, Math.round(boxH)),
+        width: Math.round(boxW),
+        height: Math.round(boxH),
       })
     }
 

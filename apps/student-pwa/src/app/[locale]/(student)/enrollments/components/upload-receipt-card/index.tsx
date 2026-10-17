@@ -2,12 +2,13 @@
 
 import Image from "next/image"
 import * as React from "react"
-import { useTranslations } from "next-intl"
-import { Upload, X, Check, Ban } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
+import { Upload, X, Check, Ban, Crop } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/sonner"
+import { ImageCropperDialog } from "@workspace/ui/components/image-cropper"
 
 export interface UploadReceiptCardProps {
   classId: string
@@ -25,17 +26,45 @@ export function UploadReceiptCard({
   isCancelling,
 }: UploadReceiptCardProps) {
   const t = useTranslations("enrollments.upload")
+  const locale = useLocale()
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)
+  const [cropFile, setCropFile] = React.useState<File | null>(null)
+  const [isCropperOpen, setIsCropperOpen] = React.useState(false)
   const [trackingCode, setTrackingCode] = React.useState("")
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setSelectedFile(file)
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
+      setCropFile(file)
+      setIsCropperOpen(true)
+    }
+  }
+
+  const handleCropComplete = (croppedFile: File) => {
+    setSelectedFile(croppedFile)
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+    const url = URL.createObjectURL(croppedFile)
+    setPreviewUrl(url)
+    setIsCropperOpen(false)
+    setCropFile(null)
+  }
+
+  const handleCropCancel = () => {
+    setIsCropperOpen(false)
+    setCropFile(null)
+    if (!selectedFile && fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleRecrop = () => {
+    if (selectedFile) {
+      setCropFile(selectedFile)
+      setIsCropperOpen(true)
     }
   }
 
@@ -86,24 +115,49 @@ export function UploadReceiptCard({
 
       {/* Image Preview / Select Box */}
       {previewUrl ? (
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border bg-muted">
-          <Image
-            src={previewUrl}
-            alt="Receipt preview"
-            fill
-            className="object-contain"
-            unoptimized
-          />
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={handleClearFile}
-            className="absolute end-2.5 top-2.5 size-8 rounded-full p-0 shadow-md"
-            aria-label="Remove image"
-          >
-            <X className="size-4" />
-          </Button>
+        <div className="flex flex-col gap-2">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border bg-muted">
+            <Image
+              src={previewUrl}
+              alt="Receipt preview"
+              fill
+              className="object-contain"
+              unoptimized
+            />
+            <div className="absolute end-2.5 top-2.5 flex items-center gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRecrop}
+                className="h-8 gap-1 rounded-full border-border/80 bg-background/85 px-2.5 text-xs font-semibold backdrop-blur-xs hover:bg-background"
+                aria-label={t("recrop")}
+              >
+                <Crop className="size-3.5" />
+                <span>{t("recrop")}</span>
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={handleClearFile}
+                className="size-8 rounded-full p-0 shadow-md"
+                aria-label="Remove image"
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+          </div>
+
+          {selectedFile && (
+            <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
+              <span className="truncate">{selectedFile.name}</span>
+              <span className="shrink-0 font-medium text-foreground">
+                {(selectedFile.size / 1024).toFixed(0)}{" "}
+                {locale === "fa" ? "کیلوبایت" : "KB"}
+              </span>
+            </div>
+          )}
         </div>
       ) : (
         <div
@@ -128,6 +182,32 @@ export function UploadReceiptCard({
           </span>
         </div>
       )}
+
+      {/* Image Cropper Dialog */}
+      <ImageCropperDialog
+        open={isCropperOpen}
+        onOpenChange={setIsCropperOpen}
+        imageFile={cropFile}
+        onCropComplete={handleCropComplete}
+        onCancel={handleCropCancel}
+        cropShape="rect"
+        aspectRatio={3 / 4}
+        allowAspectRatioSelection
+        aspectRatioOptions={[
+          { label: t("aspectRatios.portrait"), value: 3 / 4, id: "3:4" },
+          { label: t("aspectRatios.landscape"), value: 4 / 3, id: "4:3" },
+          { label: t("aspectRatios.wide"), value: 16 / 9, id: "16:9" },
+          { label: t("aspectRatios.square"), value: 1, id: "1:1" },
+          { label: t("aspectRatios.original"), value: -1, id: "original" },
+        ]}
+        maxWidth={1200}
+        maxHeight={1600}
+        quality={0.82}
+        format="image/webp"
+        title={t("cropTitle")}
+        confirmLabel={t("cropConfirm")}
+        cancelLabel={t("cropCancel")}
+      />
 
       {/* Tracking Code Input */}
       <div className="flex flex-col gap-1.5">

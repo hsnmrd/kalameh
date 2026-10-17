@@ -11,8 +11,16 @@ export interface CropOffset {
   y: number
 }
 
+export interface AspectRatioOption {
+  label: string
+  value: number
+  id?: string
+}
+
 export interface ImageCropperOptions {
   aspectRatio?: number // default 1 (1:1)
+  aspectRatioOptions?: AspectRatioOption[]
+  allowAspectRatioSelection?: boolean
   maxWidth?: number // default 512
   maxHeight?: number // default 512
   quality?: number // default 0.85
