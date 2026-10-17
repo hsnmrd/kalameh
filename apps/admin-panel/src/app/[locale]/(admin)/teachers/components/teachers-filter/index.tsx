@@ -22,6 +22,7 @@ export interface TeachersFilterProps {
   onStatusChange: (value: string) => void
   onAddClick?: () => void
   actions?: React.ReactNode
+  isEmpty?: boolean
 }
 
 export function TeachersFilter({
@@ -31,6 +32,7 @@ export function TeachersFilter({
   onStatusChange,
   onAddClick,
   actions,
+  isEmpty,
 }: TeachersFilterProps) {
   const t = useTranslations("teachers")
 
@@ -76,6 +78,7 @@ export function TeachersFilter({
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       isPinned={hasActiveFilter}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}

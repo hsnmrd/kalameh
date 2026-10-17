@@ -22,6 +22,7 @@ export interface ClassroomsFilterProps {
   branches: BranchWithStats[]
   onAddClick?: () => void
   actions?: React.ReactNode
+  isEmpty?: boolean
 }
 
 export function ClassroomsFilter({
@@ -34,6 +35,7 @@ export function ClassroomsFilter({
   branches,
   onAddClick,
   actions,
+  isEmpty,
 }: ClassroomsFilterProps) {
   const t = useTranslations("classrooms")
 
@@ -83,6 +85,7 @@ export function ClassroomsFilter({
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       search={
         <AdminSearchInput
           value={search}

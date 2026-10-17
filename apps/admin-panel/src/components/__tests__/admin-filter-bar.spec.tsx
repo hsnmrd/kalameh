@@ -85,16 +85,27 @@ describe("Admin Filter System Components", () => {
       expect(screen.getByTestId("filter-slot")).toBeInTheDocument()
     })
 
-    it("should apply pinned revealed classes when isPinned is true", () => {
+    it("should render filter bar with default mobile margin and desktop sticky classes", () => {
+      const { container } = render(
+        <AdminFilterBar search={<div data-testid="search-slot">Search</div>} />
+      )
+
+      const wrapper = container.querySelector(".mb-4.w-full")
+      expect(wrapper).toBeInTheDocument()
+      expect(wrapper).toHaveClass("lg:sticky", "lg:top-16", "lg:mb-6")
+    })
+
+    it("should hide filter bar on mobile when isEmpty is true", () => {
       const { container } = render(
         <AdminFilterBar
-          isPinned={true}
+          isEmpty={true}
           search={<div data-testid="search-slot">Search</div>}
         />
       )
 
-      const wrapper = container.querySelector(".grid-rows-\\[1fr\\]")
+      const wrapper = container.querySelector(".mb-4.w-full")
       expect(wrapper).toBeInTheDocument()
+      expect(wrapper).toHaveClass("hidden", "lg:block")
     })
 
     it("should open filter dialog on clicking filter button", () => {

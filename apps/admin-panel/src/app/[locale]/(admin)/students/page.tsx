@@ -227,6 +227,7 @@ export default function StudentsPage() {
     <ModuleGuard module={APP_MODULES.STUDENTS}>
       <PermissionGuard permission={PERMISSIONS.VIEW_STUDENTS} mode="forbidden">
         <AdminPageShell
+          isEmpty={isListEmpty}
           actions={
             <StudentsHeaderActions
               totalCount={totalCount}
@@ -243,6 +244,7 @@ export default function StudentsPage() {
           }
           filter={
             <StudentsFilter
+              isEmpty={isListEmpty}
               searchValue={filters.searchValue}
               onSearchChange={(search) => setFilter("searchValue", search)}
               selectedCourseId={filters.selectedCourseId}

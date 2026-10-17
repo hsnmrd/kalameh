@@ -19,6 +19,7 @@ export interface OperatingPhasesFilterProps {
   onStatusChange: (status: string) => void
   onAddClick?: () => void
   actions?: React.ReactNode
+  isEmpty?: boolean
 }
 
 export function OperatingPhasesFilter({
@@ -28,6 +29,7 @@ export function OperatingPhasesFilter({
   onStatusChange,
   onAddClick,
   actions,
+  isEmpty,
 }: OperatingPhasesFilterProps) {
   const t = useTranslations("operating-phases")
 
@@ -66,6 +68,7 @@ export function OperatingPhasesFilter({
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       isPinned={hasActiveFilter}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}

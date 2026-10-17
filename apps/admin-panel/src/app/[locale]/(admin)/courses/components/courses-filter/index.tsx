@@ -19,6 +19,7 @@ export interface CoursesFilterProps {
   onAddClick?: () => void
   onBatchClick?: () => void
   actions?: React.ReactNode
+  isEmpty?: boolean
 }
 
 export function CoursesFilter({
@@ -30,6 +31,7 @@ export function CoursesFilter({
   onAddClick,
   onBatchClick,
   actions,
+  isEmpty,
 }: CoursesFilterProps) {
   const t = useTranslations("courses")
 
@@ -56,6 +58,7 @@ export function CoursesFilter({
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       isPinned={hasActiveFilter}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}

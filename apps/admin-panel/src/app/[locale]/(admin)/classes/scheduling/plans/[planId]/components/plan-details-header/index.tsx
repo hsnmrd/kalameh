@@ -152,7 +152,6 @@ export function PlanDetailsHeader({
     <>
       <AdminFilterBar
         className="mb-0 lg:mb-0"
-        autoHideOnMobile={false}
         activeFiltersCount={selectedTeacherId ? 1 : 0}
         isPinned={Boolean(selectedTeacherId)}
         onClearFilters={() => onTeacherChange?.(null)}

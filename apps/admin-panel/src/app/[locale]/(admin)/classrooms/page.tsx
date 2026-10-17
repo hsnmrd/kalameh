@@ -84,8 +84,10 @@ export default function ClassroomsPage() {
         mode="forbidden"
       >
         <AdminPageShell
+          isEmpty={isListEmpty}
           filters={
             <ClassroomsFilter
+              isEmpty={isListEmpty}
               search={filters.search}
               onSearchChange={(search) => setFilter("search", search)}
               selectedBranchId={filters.selectedBranchId}

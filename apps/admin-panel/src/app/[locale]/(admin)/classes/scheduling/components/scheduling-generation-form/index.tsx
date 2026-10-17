@@ -200,7 +200,6 @@ export function SchedulingGenerationForm({
 
         {/* Filter Bar with Search Input & Mobile-Only Selection Button */}
         <AdminFilterBar
-          autoHideOnMobile={false}
           isPinned={Boolean(search.trim() || requirementIds.length > 0)}
           filterIcon={filterIcon}
           filterButtonClassName="lg:hidden"

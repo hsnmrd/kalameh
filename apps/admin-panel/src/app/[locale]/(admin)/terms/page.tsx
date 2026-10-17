@@ -70,8 +70,10 @@ export default function TermsPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_TERMS} mode="forbidden">
         <AdminPageShell
+          isEmpty={isListEmpty}
           filters={
             <TermsFilter
+              isEmpty={isListEmpty}
               search={filters.search}
               onSearchChange={(search) => setFilter("search", search)}
               selectedStatus={filters.selectedStatus}

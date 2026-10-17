@@ -105,8 +105,10 @@ export default function ClassesPage() {
     <ModuleGuard module={APP_MODULES.CLASSES_COURSES}>
       <PermissionGuard permission={PERMISSIONS.VIEW_CLASSES} mode="forbidden">
         <AdminPageShell
+          isEmpty={isListEmpty}
           filter={
             <ClassesFilter
+              isEmpty={isListEmpty}
               termId={effectiveTermId}
               onTermChange={(termId) => setFilter("termId", termId)}
               courseId={filters.courseId}

@@ -18,6 +18,7 @@ export interface TermsFilterProps {
   onBatchClick?: () => void
   onSettingsClick?: () => void
   actions?: React.ReactNode
+  isEmpty?: boolean
 }
 
 export function TermsFilter({
@@ -29,6 +30,7 @@ export function TermsFilter({
   onBatchClick,
   onSettingsClick,
   actions,
+  isEmpty,
 }: TermsFilterProps) {
   const t = useTranslations("terms")
 
@@ -64,6 +66,7 @@ export function TermsFilter({
 
   return (
     <AdminFilterBar
+      isEmpty={isEmpty}
       isPinned={hasActiveFilter}
       activeFiltersCount={activeFiltersCount}
       onClearFilters={handleClearFilters}
