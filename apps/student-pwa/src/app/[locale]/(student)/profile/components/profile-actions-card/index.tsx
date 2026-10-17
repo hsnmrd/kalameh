@@ -2,8 +2,9 @@
 
 import * as React from "react"
 import { useTranslations } from "next-intl"
-import { Lock, LogOut, Settings } from "lucide-react"
+import { Lock, LogOut, Settings, Smartphone } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { usePwaContext } from "@/components/pwa-provider"
 
 export interface ProfileActionsCardProps {
   onLogout: () => void
@@ -19,12 +20,26 @@ export function ProfileActionsCard({
   onSettings,
 }: ProfileActionsCardProps) {
   const t = useTranslations("profile")
+  const commonT = useTranslations("common")
+  const { isInstallable, installApp } = usePwaContext()
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs">
       <h3 className="text-sm font-semibold text-foreground">
         {t("accountActions")}
       </h3>
+
+      {isInstallable && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => void installApp()}
+          className="w-full cursor-pointer justify-start gap-2 border-border text-foreground hover:bg-muted"
+        >
+          <Smartphone className="size-4 text-primary" />
+          <span>{commonT("pwa.install")}</span>
+        </Button>
+      )}
 
       {onSettings && (
         <Button

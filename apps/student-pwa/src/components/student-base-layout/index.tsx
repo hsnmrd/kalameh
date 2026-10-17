@@ -6,6 +6,7 @@ import { authResource } from "@/lib/api"
 import { usePathname, useRouter } from "@/i18n/routing"
 import { StudentToolbar } from "./student-toolbar"
 import { StudentBottomNav } from "./student-bottom-nav"
+import { PwaNotifier } from "@/components/pwa-notifier"
 
 export interface StudentBaseLayoutProps {
   children: React.ReactNode
@@ -50,6 +51,9 @@ export function StudentBaseLayout({ children }: StudentBaseLayoutProps) {
 
         {/* Bottom Navigation Bar */}
         <StudentBottomNav pathname={pathname} />
+
+        {/* PWA Background Notifier */}
+        <PwaNotifier />
       </div>
     </div>
   )

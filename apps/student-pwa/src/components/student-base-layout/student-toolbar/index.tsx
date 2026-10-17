@@ -4,13 +4,20 @@ import * as React from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import { Building2, ArrowLeft, ArrowRight, LogOut } from "lucide-react"
+import {
+  Building2,
+  ArrowLeft,
+  ArrowRight,
+  LogOut,
+  Download,
+} from "lucide-react"
 import { Link, useRouter, useIsRtl, usePathname } from "@/i18n/routing"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { cn, getAssetUrl } from "@workspace/ui/lib/utils"
 import { authResource } from "@/lib/api"
+import { usePwaContext } from "@/components/pwa-provider"
 
 export interface StudentToolbarProps {
   isHomePage: boolean
@@ -65,6 +72,7 @@ export function StudentToolbar({
   const effectivePathname = pathname ?? routerPathname
   const isRtl = useIsRtl()
   const BackIcon = isRtl ? ArrowRight : ArrowLeft
+  const { isInstallable, installApp } = usePwaContext()
 
   const { data: user } = useQuery(authResource.me.toQuery())
   const displayName = instituteName ?? user?.institute?.name ?? t("appName")
@@ -141,8 +149,21 @@ export function StudentToolbar({
         )}
       </div>
 
-      {/* End Section (Theme Toggle + Logout) */}
+      {/* End Section (Install App + Theme Toggle + Logout) */}
       <div className="flex shrink-0 items-center gap-2">
+        {isInstallable && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => void installApp()}
+            className="size-11 cursor-pointer rounded-xl text-primary transition-colors hover:bg-primary/10 active:scale-95"
+            aria-label={t("pwa.install")}
+            title={t("pwa.install")}
+          >
+            <Download className="size-5" />
+          </Button>
+        )}
         <ThemeToggle
           labels={{
             light: t("theme.light"),

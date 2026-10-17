@@ -30,5 +30,20 @@
     "placeholder": "انتخاب کنید...",
     "searchPlaceholder": "جستجو...",
     "emptyMessage": "موردی یافت نشد."
+  },
+  "pwa": {
+    "install": "نصب برنامه",
+    "installTitle": "نصب سامانه زبان‌آموز کلمه",
+    "installDescription": "برای دسترسی سریع‌تر، تجربه روان‌تر و کارکرد پایدار، سامانه را روی دستگاه خود نصب کنید.",
+    "installButton": "نصب روی دستگاه",
+    "installDismiss": "بعداً",
+    "installedSuccess": "برنامه با موفقیت نصب شد",
+    "offlineTitle": "عدم دسترسی به اینترنت",
+    "offlineDescription": "ارتباط با اینترنت برقرار نیست. برخی قابلیت‌ها تا زمان اتصال مجدد در دسترس نخواهند بود.",
+    "offlineRetry": "تلاش مجدد",
+    "updateAvailable": "نسخه جدید در دسترس است",
+    "updateDescription": "نسخه جدیدی از سامانه زبان‌آموز آماده بارگذاری است.",
+    "updateButton": "به‌روزرسانی",
+    "onlineBack": "اتصال اینترنت برقرار شد"
   }
 }

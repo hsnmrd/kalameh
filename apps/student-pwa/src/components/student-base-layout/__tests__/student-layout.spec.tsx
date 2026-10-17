@@ -3,6 +3,8 @@ import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent, act } from "../../../test/test-utils"
 import { StudentToolbar } from "../student-toolbar"
 import { StudentBottomNav } from "../student-bottom-nav"
+import { StudentBaseLayout } from "../index"
+import * as pwaProvider from "@/components/pwa-provider"
 
 // Mock routing
 vi.mock("@/i18n/routing", () => ({
@@ -131,6 +133,29 @@ describe("StudentToolbar Component", () => {
       "backdrop-blur-md"
     )
   })
+
+  it("should show install button when PWA is installable and invoke installApp on click", async () => {
+    const installAppMock = vi.fn().mockResolvedValue(true)
+    vi.spyOn(pwaProvider, "usePwaContext").mockReturnValue({
+      isSupported: true,
+      isInstalled: false,
+      isInstallable: true,
+      isOffline: false,
+      isUpdateAvailable: false,
+      installApp: installAppMock,
+      updateApp: vi.fn(),
+    })
+
+    render(<StudentToolbar isHomePage={true} onLogout={vi.fn()} />)
+
+    const installBtn = screen.getByRole("button", {
+      name: /نصب برنامه|install/i,
+    })
+    expect(installBtn).toBeInTheDocument()
+
+    fireEvent.click(installBtn)
+    expect(installAppMock).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe("StudentBottomNav Component", () => {
@@ -164,5 +189,18 @@ describe("StudentBottomNav Component", () => {
     const inactiveLink = screen.getByRole("link", { name: /خانه/i })
     expect(inactiveLink).not.toHaveAttribute("aria-current")
     expect(inactiveLink).toHaveClass("text-muted-foreground")
+  })
+})
+
+describe("StudentBaseLayout Component", () => {
+  it("should render children along with toolbar and navigation", () => {
+    render(
+      <StudentBaseLayout>
+        <div data-testid="page-content">Child content</div>
+      </StudentBaseLayout>
+    )
+
+    expect(screen.getByTestId("page-content")).toBeInTheDocument()
+    expect(screen.getByRole("navigation", { name: "کلمه" })).toBeInTheDocument()
   })
 })

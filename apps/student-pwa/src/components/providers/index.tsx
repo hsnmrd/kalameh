@@ -6,6 +6,7 @@ import { Toaster } from "@workspace/ui/components/sonner"
 import { ThemeProvider } from "@workspace/ui/components/theme-provider"
 
 import { MicroApiError } from "micro-rq"
+import { PwaProvider } from "@/components/pwa-provider"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = React.useState(
@@ -39,8 +40,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        {children}
-        <Toaster />
+        <PwaProvider>
+          {children}
+          <Toaster />
+        </PwaProvider>
       </QueryClientProvider>
     </ThemeProvider>
   )
