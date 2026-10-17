@@ -71,6 +71,9 @@ export const fa: TranslationDictionary = {
     cannotDeleteSystemInstitute: 'امکان حذف آموزشگاه اصلی سامانه وجود ندارد',
     instituteDeletedSuccess: 'آموزشگاه با موفقیت حذف گردید',
     moduleNotActive: 'ماژول مورد نظر در پلن اشتراک آموزشگاه شما فعال نمی‌باشد',
+    cannotModifyBankInfoDuringRegistration:
+      'امکان تغییر یا حذف اطلاعات بانکی در بازه ثبت‌نام ترم جاری وجود ندارد',
+    deleteBankInfoSuccess: 'اطلاعات حساب بانکی با موفقیت حذف شد',
   },
   branches: {
     branchNotFound: 'شعبه مورد نظر یافت نشد',

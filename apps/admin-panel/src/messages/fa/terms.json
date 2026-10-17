@@ -6,6 +6,7 @@
   "generatePhaseTerms": "ساخت خودکار ترم‌ها",
   "actions": "عملیات ترم‌ها",
   "cancel": "انصراف",
+  "settingsTooltip": "تنظیمات چرخه حیات ترم",
   "searchPlaceholder": "جستجو در ترم‌های تحصیلی...",
   "filter": {
     "title": "فیلتر ترم‌ها",

@@ -66,6 +66,19 @@
     "saving": "در حال ذخیره...",
     "saveSuccess": "اطلاعات حساب بانکی با موفقیت ذخیره شد.",
     "copyCard": "کپی شماره کارت",
-    "cardCopied": "شماره کارت کپی شد."
+    "cardCopied": "شماره کارت کپی شد.",
+    "deleteBankInfo": "حذف اطلاعات بانکی",
+    "deleteBankInfoConfirmTitle": "حذف اطلاعات حساب بانکی",
+    "deleteBankInfoConfirmDescription": "آیا از حذف کامل اطلاعات حساب بانکی آموزشگاه اطمینان دارید؟ با حذف این اطلاعات، زبان‌آموزان امکان مشاهده مشخصات واریز شهریه را نخواهند داشت.",
+    "deleteBankInfoSuccess": "اطلاعات حساب بانکی با موفقیت حذف شد.",
+    "registrationActiveWarningTitle": "ثبت‌نام ترم در حال انجام است",
+    "registrationActiveWarningDesc": "به دلیل باز بودن مهلت ثبت‌نام در ترم جاری و استفاده زبان‌آموزان از مشخصات حساب بانکی، امکان ویرایش یا حذف این اطلاعات تا پایان مهلت ثبت‌نام وجود ندارد.",
+    "delete": "حذف",
+    "cancel": "انصراف",
+    "validation": {
+      "bankAccountNameRequired": "نام صاحب حساب الزامی است.",
+      "bankCardNumberInvalid": "شماره کارت بانکی باید دقیقاً ۱۶ رقم باشد.",
+      "bankShabaInvalid": "شماره شبا باید معتبر باشد (IR به همراه ۲۴ رقم)."
+    }
   }
 }

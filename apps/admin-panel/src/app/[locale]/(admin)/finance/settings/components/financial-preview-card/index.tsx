@@ -20,15 +20,32 @@ export function FinancialPreviewCard({
   const t = useTranslations("transactions.settings")
   const [copied, setCopied] = React.useState(false)
 
+  const cleanCard =
+    bankCardNumber &&
+    bankCardNumber !== "null" &&
+    bankCardNumber !== "undefined"
+      ? bankCardNumber
+      : ""
+  const cleanName =
+    bankAccountName &&
+    bankAccountName !== "null" &&
+    bankAccountName !== "undefined"
+      ? bankAccountName
+      : ""
+  const cleanShaba =
+    bankShaba && bankShaba !== "null" && bankShaba !== "undefined"
+      ? bankShaba
+      : ""
+
   const handleCopyCard = () => {
-    if (!bankCardNumber) return
-    void navigator.clipboard.writeText(bankCardNumber)
+    if (!cleanCard) return
+    void navigator.clipboard.writeText(cleanCard)
     setCopied(true)
     toast.success(t("cardCopied"))
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const rawCard = bankCardNumber?.replace(/\s+/g, "") || ""
+  const rawCard = cleanCard.replace(/\s+/g, "")
   const formattedCard = rawCard
     ? rawCard.replace(/(\d{4})/g, "$1 ").trim()
     : "— — — —"
@@ -87,14 +104,14 @@ export function FinancialPreviewCard({
               {t("bankAccountName")}:
             </span>
             <span className="font-semibold text-foreground">
-              {bankAccountName || "—"}
+              {cleanName || "—"}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
             <span className="text-muted-foreground">{t("bankShaba")}:</span>
             <span dir="ltr" className="font-mono text-foreground">
-              {bankShaba || "—"}
+              {cleanShaba || "—"}
             </span>
           </div>
         </div>

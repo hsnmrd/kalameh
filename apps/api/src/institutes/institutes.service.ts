@@ -9,7 +9,11 @@ import { I18nService } from '../i18n/i18n.service';
 import { CreateInstituteDto } from './dto/create-institute.dto';
 import { UpdateInstituteDto } from './dto/update-institute.dto';
 import { CreateInstituteCustomOffDayDto } from './dto/create-institute-custom-off-day.dto';
-import { JwtPayload, SupportedLocale } from '@workspace/types';
+import {
+  calculateTermLifecycleStatuses,
+  JwtPayload,
+  SupportedLocale,
+} from '@workspace/types';
 import { createDefaultOperatingPhases } from './default-operating-phases';
 import { resolveUploadedFileUrl } from '../common/upload/multer.util';
 
@@ -52,6 +56,59 @@ export class InstitutesService {
     }));
   }
 
+  async hasActiveRegistrationTerm(instituteId: string): Promise<boolean> {
+    if (!this.prisma.term?.findMany) {
+      return false;
+    }
+
+    const institute = this.prisma.institute?.findUnique
+      ? await this.prisma.institute.findUnique({
+          where: { id: instituteId },
+          select: {
+            termRegistrationDaysBeforeStart: true,
+            termRegistrationDaysAfterStart: true,
+            termExamDaysBeforeEnd: true,
+          },
+        })
+      : null;
+
+    const activeTerms = await this.prisma.term.findMany({
+      where: {
+        instituteId,
+        isActive: true,
+      },
+      orderBy: { startDate: 'desc' },
+    });
+
+    if (activeTerms.length === 0) {
+      return false;
+    }
+
+    const settings = institute
+      ? {
+          registrationDaysBeforeStart:
+            institute.termRegistrationDaysBeforeStart,
+          registrationDaysAfterStart: institute.termRegistrationDaysAfterStart,
+          examDaysBeforeEnd: institute.termExamDaysBeforeEnd,
+        }
+      : undefined;
+
+    const now = new Date();
+    for (const term of activeTerms) {
+      const statuses = calculateTermLifecycleStatuses(
+        term,
+        activeTerms,
+        settings,
+        now,
+      );
+      if (statuses.includes('REGISTERING')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   async findOne(
     id: string,
     currentUser: JwtPayload,
@@ -71,12 +128,15 @@ export class InstitutesService {
         },
       });
 
+    const hasActiveRegistration = await this.hasActiveRegistrationTerm(id);
+
     return {
       ...institute,
       classesCount: _count.classes,
       usersCount: _count.users,
       coursesCount: _count.courses,
       termsCount: _count.terms,
+      hasActiveRegistrationTerm: hasActiveRegistration,
     };
   }
 
@@ -177,6 +237,46 @@ export class InstitutesService {
       }
     }
 
+    const sanitizeBankField = (val: string | null | undefined) => {
+      if (val === undefined) return undefined;
+      if (!val || val === 'null' || val === 'undefined' || val.trim() === '') {
+        return null;
+      }
+      return val.trim();
+    };
+
+    const isChangingBankInfo =
+      (dto.bankAccountName !== undefined &&
+        sanitizeBankField(dto.bankAccountName) !==
+          sanitizeBankField(institute.bankAccountName)) ||
+      (dto.bankCardNumber !== undefined &&
+        sanitizeBankField(dto.bankCardNumber) !==
+          sanitizeBankField(institute.bankCardNumber)) ||
+      (dto.bankShaba !== undefined &&
+        sanitizeBankField(dto.bankShaba) !==
+          sanitizeBankField(institute.bankShaba));
+
+    if (isChangingBankInfo) {
+      const hasActiveRegistration = await this.hasActiveRegistrationTerm(id);
+      if (hasActiveRegistration) {
+        throw new ConflictException(
+          this.i18n.t(
+            'institutes.cannotModifyBankInfoDuringRegistration',
+            locale,
+          ),
+        );
+      }
+    }
+
+    let formattedShaba =
+      dto.bankShaba !== undefined
+        ? sanitizeBankField(dto.bankShaba)
+        : undefined;
+    if (formattedShaba) {
+      const cleaned = formattedShaba.replace(/\s+/g, '').toUpperCase();
+      formattedShaba = cleaned.startsWith('IR') ? cleaned : `IR${cleaned}`;
+    }
+
     let logoUrl = dto.logoUrl;
     if (file?.filename) {
       logoUrl = resolveUploadedFileUrl(file, 'institutes');
@@ -200,12 +300,12 @@ export class InstitutesService {
           ? { phones: dto.phones.filter(Boolean) }
           : {}),
         ...(dto.bankCardNumber !== undefined
-          ? { bankCardNumber: dto.bankCardNumber }
+          ? { bankCardNumber: sanitizeBankField(dto.bankCardNumber) }
           : {}),
         ...(dto.bankAccountName !== undefined
-          ? { bankAccountName: dto.bankAccountName }
+          ? { bankAccountName: sanitizeBankField(dto.bankAccountName) }
           : {}),
-        ...(dto.bankShaba !== undefined ? { bankShaba: dto.bankShaba } : {}),
+        ...(dto.bankShaba !== undefined ? { bankShaba: formattedShaba } : {}),
         ...(dto.observeOfficialHolidays !== undefined
           ? { observeOfficialHolidays: dto.observeOfficialHolidays }
           : {}),
@@ -252,10 +352,13 @@ export class InstitutesService {
       });
     }
 
+    const hasActiveRegistration = await this.hasActiveRegistrationTerm(id);
+
     return {
       ...updated,
       classesCount: _count.classes,
       usersCount: _count.users,
+      hasActiveRegistrationTerm: hasActiveRegistration,
     };
   }
 
@@ -435,8 +538,62 @@ export class InstitutesService {
     });
   }
 
+  async deleteBankInfo(
+    id: string,
+    currentUser: JwtPayload,
+    locale: SupportedLocale = 'fa',
+  ) {
+    if (currentUser.role !== 'SUPER_ADMIN' && currentUser.instituteId !== id) {
+      throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
+    }
+
+    await this.prisma.institute.findFirstOrThrow({
+      where: { id, deletedAt: null },
+    });
+
+    const hasActiveRegistration = await this.hasActiveRegistrationTerm(id);
+    if (hasActiveRegistration) {
+      throw new ConflictException(
+        this.i18n.t(
+          'institutes.cannotModifyBankInfoDuringRegistration',
+          locale,
+        ),
+      );
+    }
+
+    const { _count, ...updated } = await this.prisma.institute.update({
+      where: { id },
+      data: {
+        bankAccountName: null,
+        bankCardNumber: null,
+        bankShaba: null,
+      },
+      include: {
+        _count: {
+          select: { classes: true, users: true },
+        },
+      },
+    });
+
+    return {
+      ...updated,
+      classesCount: _count.classes,
+      usersCount: _count.users,
+      hasActiveRegistrationTerm: false,
+    };
+  }
+
+  async updateBankInfo(
+    id: string,
+    dto: UpdateInstituteDto,
+    currentUser: JwtPayload,
+    locale: SupportedLocale = 'fa',
+  ) {
+    return this.update(id, dto, undefined, currentUser, locale);
+  }
+
   async getBankInfo(instituteId: string) {
-    return await this.prisma.institute.findFirstOrThrow({
+    const info = await this.prisma.institute.findFirstOrThrow({
       where: { id: instituteId },
       select: {
         bankCardNumber: true,
@@ -444,5 +601,14 @@ export class InstitutesService {
         bankShaba: true,
       },
     });
+
+    const sanitize = (val: string | null) =>
+      val && val !== 'null' && val !== 'undefined' ? val : null;
+
+    return {
+      bankCardNumber: sanitize(info.bankCardNumber),
+      bankAccountName: sanitize(info.bankAccountName),
+      bankShaba: sanitize(info.bankShaba),
+    };
   }
 }

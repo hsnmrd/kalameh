@@ -85,6 +85,27 @@ export class InstitutesController {
     return this.institutesService.update(id, dto, file, currentUser, locale);
   }
 
+  @Patch(':id/bank-info')
+  @RequirePermissions(PERMISSIONS.MANAGE_INSTITUTE_SETTINGS)
+  async updateBankInfo(
+    @Param('id') id: string,
+    @Body() dto: UpdateInstituteDto,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.institutesService.updateBankInfo(id, dto, currentUser, locale);
+  }
+
+  @Delete(':id/bank-info')
+  @RequirePermissions(PERMISSIONS.MANAGE_INSTITUTE_SETTINGS)
+  async deleteBankInfo(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JwtPayload,
+    @CurrentLocale() locale: SupportedLocale,
+  ) {
+    return this.institutesService.deleteBankInfo(id, currentUser, locale);
+  }
+
   @Delete(':id')
   @RequirePermissions(PERMISSIONS.MANAGE_INSTITUTES)
   async delete(

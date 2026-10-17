@@ -78,6 +78,9 @@ export const en: TranslationDictionary = {
     instituteDeletedSuccess: 'Institute deleted successfully',
     moduleNotActive:
       'This module is not active for your institute subscription plan',
+    cannotModifyBankInfoDuringRegistration:
+      'Bank details cannot be modified or deleted while term registration is active',
+    deleteBankInfoSuccess: 'Bank account details deleted successfully',
   },
   branches: {
     branchNotFound: 'Requested branch was not found',

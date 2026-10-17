@@ -76,9 +76,24 @@ export function EditInstituteModal({
             primaryColor: institute.primaryColor || "#10b981",
             address: institute.address || "",
             phones: institute.phones?.length ? institute.phones : [""],
-            bankAccountName: institute.bankAccountName || "",
-            bankCardNumber: institute.bankCardNumber || "",
-            bankShaba: institute.bankShaba || "",
+            bankAccountName:
+              institute.bankAccountName &&
+              institute.bankAccountName !== "null" &&
+              institute.bankAccountName !== "undefined"
+                ? institute.bankAccountName
+                : "",
+            bankCardNumber:
+              institute.bankCardNumber &&
+              institute.bankCardNumber !== "null" &&
+              institute.bankCardNumber !== "undefined"
+                ? institute.bankCardNumber
+                : "",
+            bankShaba:
+              institute.bankShaba &&
+              institute.bankShaba !== "null" &&
+              institute.bankShaba !== "undefined"
+                ? institute.bankShaba
+                : "",
           }
         : EMPTY_VALUES,
     [institute]
