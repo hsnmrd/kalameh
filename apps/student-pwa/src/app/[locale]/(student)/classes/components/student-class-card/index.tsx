@@ -85,55 +85,52 @@ export function StudentClassCard({
         </div>
 
         {status === ENROLLMENT_STATUSES.ENROLLED ? (
-          <Link href="/enrollments">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 cursor-pointer rounded-xl border-success/30 bg-success/10 px-4 text-xs font-semibold text-success hover:bg-success/20"
-            >
-              <CheckCircle2 className="me-1.5 size-4 text-success" />
-              <span>{t("statusEnrolled")}</span>
-            </Button>
-          </Link>
+          <Button
+            render={<Link href="/enrollments" />}
+            variant="outline"
+            size="md"
+            className="cursor-pointer border-success/30 bg-success/10 px-4 text-xs font-semibold text-success hover:bg-success/20"
+          >
+            <CheckCircle2 className="me-1.5 size-4 text-success" />
+            <span>{t("statusEnrolled")}</span>
+          </Button>
         ) : status === ENROLLMENT_STATUSES.PENDING_APPROVAL ? (
-          <Link href="/enrollments">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 cursor-pointer rounded-xl border-warning/30 bg-warning/10 px-4 text-xs font-semibold text-warning hover:bg-warning/20"
-            >
-              <Clock className="me-1.5 size-4 text-warning" />
-              <span>{t("statusPendingApproval")}</span>
-            </Button>
-          </Link>
+          <Button
+            render={<Link href="/enrollments" />}
+            variant="outline"
+            size="md"
+            className="cursor-pointer border-warning/30 bg-warning/10 px-4 text-xs font-semibold text-warning hover:bg-warning/20"
+          >
+            <Clock className="me-1.5 size-4 text-warning" />
+            <span>{t("statusPendingApproval")}</span>
+          </Button>
         ) : status === ENROLLMENT_STATUSES.PENDING_PAYMENT ? (
-          <Link href={`/enrollments?classId=${cls.id}`}>
-            <Button
-              type="button"
-              className="h-10 cursor-pointer rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
-            >
-              <CreditCard className="me-1.5 size-4" />
-              <span>{t("completePayment")}</span>
-            </Button>
-          </Link>
+          <Button
+            render={<Link href={`/enrollments?classId=${cls.id}`} />}
+            size="md"
+            className="cursor-pointer bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+          >
+            <CreditCard className="me-1.5 size-4" />
+            <span>{t("completePayment")}</span>
+          </Button>
         ) : status === ENROLLMENT_STATUSES.WAITLISTED ? (
-          <Link href="/enrollments">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 cursor-pointer rounded-xl border-border px-4 text-xs font-semibold text-muted-foreground hover:bg-muted"
-            >
-              <UserPlus className="me-1.5 size-4 text-muted-foreground" />
-              <span>{t("statusWaitlisted")}</span>
-            </Button>
-          </Link>
+          <Button
+            render={<Link href="/enrollments" />}
+            variant="outline"
+            size="md"
+            className="cursor-pointer border-border px-4 text-xs font-semibold text-muted-foreground hover:bg-muted"
+          >
+            <UserPlus className="me-1.5 size-4 text-muted-foreground" />
+            <span>{t("statusWaitlisted")}</span>
+          </Button>
         ) : isFull ? (
           <Button
             type="button"
             variant="outline"
+            size="md"
             onClick={() => onWaitlist?.(cls)}
             disabled={isPending}
-            className="h-10 cursor-pointer rounded-xl border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
+            className="cursor-pointer border-border px-4 text-xs font-semibold text-foreground hover:bg-muted"
           >
             {isPending ? (
               <Spinner className="me-1.5 size-4" />
@@ -145,9 +142,10 @@ export function StudentClassCard({
         ) : (
           <Button
             type="button"
+            size="md"
             onClick={() => onEnroll?.(cls)}
             disabled={isPending}
-            className="h-10 cursor-pointer rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+            className="cursor-pointer bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
           >
             {isPending ? (
               <Spinner className="me-1.5 size-4" />

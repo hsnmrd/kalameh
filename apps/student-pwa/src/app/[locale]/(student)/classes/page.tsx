@@ -18,7 +18,17 @@ export default function StudentClassesPage() {
   const queryClient = useQueryClient()
   const [activeClassId, setActiveClassId] = React.useState<string | null>(null)
 
-  const { data, isLoading } = useQuery(classesResource.available.toQuery())
+  const { data, isLoading } = useQuery({
+    ...classesResource.available.toQuery(),
+    staleTime: 0,
+    refetchOnMount: "always",
+  })
+
+  const { data: myEnrollments } = useQuery({
+    ...enrollmentsResource.my.toQuery(),
+    staleTime: 0,
+    refetchOnMount: "always",
+  })
 
   const reserveMutation = useMutation({
     ...enrollmentsResource.reserve.toMutation(),
@@ -93,18 +103,30 @@ export default function StudentClassesPage() {
         </div>
       ) : (
         <div className="flex flex-col">
-          {data.classes.map((cls) => (
-            <StudentClassCard
-              key={cls.id}
-              cls={cls}
-              onEnroll={handleEnroll}
-              onWaitlist={handleWaitlist}
-              isPending={
-                activeClassId === cls.id &&
-                (reserveMutation.isPending || waitlistMutation.isPending)
-              }
-            />
-          ))}
+          {data.classes.map((cls) => {
+            const myEnrollment = myEnrollments?.find(
+              (e) => e.classId === cls.id
+            )
+            const effectiveStatus =
+              myEnrollment?.status ?? cls.studentEnrollmentStatus ?? null
+            const effectiveCls: ClassDto = {
+              ...cls,
+              studentEnrollmentStatus: effectiveStatus,
+            }
+
+            return (
+              <StudentClassCard
+                key={cls.id}
+                cls={effectiveCls}
+                onEnroll={handleEnroll}
+                onWaitlist={handleWaitlist}
+                isPending={
+                  activeClassId === cls.id &&
+                  (reserveMutation.isPending || waitlistMutation.isPending)
+                }
+              />
+            )
+          })}
         </div>
       )}
     </div>

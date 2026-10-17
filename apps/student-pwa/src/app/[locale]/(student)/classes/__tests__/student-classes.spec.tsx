@@ -82,7 +82,7 @@ describe("Student Classes Components", () => {
       render(<StudentClassCard cls={enrolledClass} />)
 
       expect(
-        screen.getByRole("button", { name: /ثبت‌نام قطعی|enrolled/i })
+        screen.getByRole("link", { name: /ثبت‌نام قطعی|enrolled/i })
       ).toBeInTheDocument()
       expect(
         screen.queryByRole("button", { name: /انتخاب و ثبت‌نام در کلاس/i })
@@ -97,7 +97,7 @@ describe("Student Classes Components", () => {
       render(<StudentClassCard cls={pendingApprovalClass} />)
 
       expect(
-        screen.getByRole("button", {
+        screen.getByRole("link", {
           name: /در انتظار تأیید|pending approval/i,
         })
       ).toBeInTheDocument()
@@ -111,7 +111,7 @@ describe("Student Classes Components", () => {
       render(<StudentClassCard cls={pendingPaymentClass} />)
 
       expect(
-        screen.getByRole("button", { name: /تکمیل پرداخت|complete payment/i })
+        screen.getByRole("link", { name: /تکمیل پرداخت|complete payment/i })
       ).toBeInTheDocument()
     })
 
@@ -123,7 +123,7 @@ describe("Student Classes Components", () => {
       render(<StudentClassCard cls={waitlistedClass} />)
 
       expect(
-        screen.getByRole("button", { name: /لیست انتظار|waitlisted/i })
+        screen.getByRole("link", { name: /لیست انتظار|waitlisted/i })
       ).toBeInTheDocument()
     })
   })

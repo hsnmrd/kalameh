@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui/components/empty"
 import { ENROLLMENT_STATUSES } from "@workspace/types"
 import {
+  classesResource,
   enrollmentsResource,
   institutesResource,
   transactionsResource,
@@ -46,6 +47,9 @@ export default function StudentEnrollmentsPage() {
       void queryClient.invalidateQueries({
         queryKey: enrollmentsResource.my.baseKey(),
       })
+      void queryClient.invalidateQueries({
+        queryKey: classesResource.available.baseKey(),
+      })
     },
   })
 
@@ -55,6 +59,9 @@ export default function StudentEnrollmentsPage() {
       toast.success(t("upload.cancelSuccess"))
       void queryClient.invalidateQueries({
         queryKey: enrollmentsResource.my.baseKey(),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: classesResource.available.baseKey(),
       })
     },
   })
