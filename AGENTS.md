@@ -7,10 +7,13 @@ Before reading files to modify code, editing files, or running task commands:
 
 1. **Prompt for Branch:** The AI assistant MUST prompt the user for the target branch / worktree name:
    > _"Please specify the target branch / worktree name for this task so we can isolate our work in `.worktrees/<branch-name>`."_
-2. **Worktree Setup:** Once provided, verify or create the worktree:
-   `git worktree add -b <branch-name> .worktrees/<branch-name> <base-branch>` (or attach existing). Copy root `.env` to `.worktrees/<branch-name>/.env` and run `pnpm install`.
+2. **Pull Base & Worktree Setup:** Once provided, execute:
+   - **Pull Latest Base:** Fetch and pull latest changes from the base branch (`git pull origin <base-branch>`) to guarantee the new worktree branches from the freshest upstream commit.
+   - **Create Worktree:** `git worktree add -b <branch-name> .worktrees/<branch-name> <base-branch>` (or attach if branch exists: `git worktree add .worktrees/<branch-name> <branch-name>`).
+   - **Copy Root .env:** `Copy-Item -Path "d:\projects\kalameh\.env" -Destination "d:\projects\kalameh\.worktrees\<branch-name>\.env"`
+   - **Copy Generated Prisma Types:** `Copy-Item -Recurse -Path "d:\projects\kalameh\packages\database\src\generated" -Destination "d:\projects\kalameh\.worktrees\<branch-name>\packages\database\src\generated"` (Pre-copies compiled database client to prevent red TS errors).
 3. **Strict Isolation:** All subsequent file operations, tests, database migrations, and terminal commands must strictly target `d:/projects/kalameh/.worktrees/<branch-name>`.
-4. **Reference Runbook:** See skill `.agents/skills/kalameh-worktree/SKILL.md` for full commands and teardown steps.
+4. **Teardown on Completion:** Once the task branch is committed and merged, remove via `git worktree remove .worktrees/<branch-name> --force`.
 5. **Exemption:** Pure advisory or question-answering chats with no file modifications do not require a worktree.
 
 ---
@@ -111,8 +114,7 @@ Before reading files to modify code, editing files, or running task commands:
 
 For deeper app-specific constraints and procedural blueprints, refer to:
 
-- **Worktree Runbook:** `.agents/skills/kalameh-worktree/SKILL.md`
-- **Admin Page & Filter Pattern:** `.agents/skills/kalameh-admin-page/SKILL.md`
+- **Admin Page Blueprint (New Full Pages Only):** `.agents/skills/kalameh-admin-page/SKILL.md`
 - **Code Scaffolding & Turbo Generator:** `.agents/skills/kalameh-turbo-generator/SKILL.md`
 - **Database & Migrations Rules:** `packages/database/AGENTS.md`
 - **Backend API Rules:** `apps/api/AGENTS.md`
