@@ -22,33 +22,7 @@ export class InstitutesService {
 
   async findAll(currentUser: JwtPayload, search?: string, isActive?: boolean) {
     if (currentUser.role !== 'SUPER_ADMIN') {
-      const { _count, ...institute } =
-        await this.prisma.institute.findFirstOrThrow({
-          where: {
-            id: currentUser.instituteId,
-            deletedAt: null,
-            ...(search
-              ? {
-                  OR: [
-                    { name: { contains: search, mode: 'insensitive' } },
-                    { subdomain: { contains: search, mode: 'insensitive' } },
-                  ],
-                }
-              : {}),
-            ...(isActive !== undefined ? { isActive } : {}),
-          },
-          include: {
-            _count: { select: { classes: true, users: true } },
-          },
-        });
-
-      return [
-        {
-          ...institute,
-          classesCount: _count.classes,
-          usersCount: _count.users,
-        },
-      ];
+      throw new ForbiddenException(this.i18n.t('common.forbidden', 'fa'));
     }
 
     const institutes = await this.prisma.institute.findMany({
@@ -315,7 +289,7 @@ export class InstitutesService {
       throw new ForbiddenException(this.i18n.t('common.forbidden', locale));
     }
 
-    return this.prisma.instituteCustomOffDay.findMany({
+    return await this.prisma.instituteCustomOffDay.findMany({
       where: { instituteId },
       orderBy: { date: 'asc' },
     });
@@ -447,7 +421,7 @@ export class InstitutesService {
   }
 
   async getBankInfo(instituteId: string) {
-    return this.prisma.institute.findFirstOrThrow({
+    return await this.prisma.institute.findFirstOrThrow({
       where: { id: instituteId },
       select: {
         bankCardNumber: true,

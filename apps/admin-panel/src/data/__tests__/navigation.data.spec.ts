@@ -42,7 +42,10 @@ describe("admin navigation groups", () => {
   })
 
   it("preserves finance and administration groups", () => {
-    expect(FINANCE_NAV_ITEMS.map((item) => item.key)).toEqual(["finance"])
+    expect(FINANCE_NAV_ITEMS.map((item) => item.key)).toEqual([
+      "finance",
+      "financialSettings",
+    ])
     expect(ADMINISTRATION_NAV_ITEMS.map((item) => item.key)).toEqual([
       "staff",
       "rolePermissions",

@@ -162,6 +162,13 @@ export const FINANCE_NAV_ITEMS: NavItem[] = [
     permission: PERMISSIONS.VIEW_TRANSACTIONS,
     module: APP_MODULES.FINANCE,
   },
+  {
+    key: "financialSettings",
+    href: "/finance/settings",
+    icon: Landmark,
+    permission: PERMISSIONS.MANAGE_INSTITUTE_SETTINGS,
+    module: APP_MODULES.FINANCE,
+  },
 ]
 
 /**

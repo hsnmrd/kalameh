@@ -29,6 +29,7 @@ export type NavItemKey =
   | "staff"
   | "rolePermissions"
   | "finance"
+  | "financialSettings"
   | "operatingPhases"
   | "offDays"
   | "calendar"

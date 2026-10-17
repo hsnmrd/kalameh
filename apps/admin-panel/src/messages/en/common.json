@@ -23,6 +23,7 @@
     "staff": "Staff Management",
     "rolePermissions": "Roles & Permissions",
     "finance": "Financial Transactions",
+    "financialSettings": "Bank Account Settings",
     "operatingPhases": "Operating Phases",
     "offDays": "Institute Calendar",
     "calendar": "Institute Calendar",
@@ -67,6 +68,7 @@
     "staff": "Staff",
     "rolePermissions": "Permissions",
     "finance": "Finance",
+    "financialSettings": "Bank Account",
     "menu": "Menu"
   },
   "theme": {

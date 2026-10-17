@@ -102,6 +102,9 @@ function getPageTitle(
   if (pathname.startsWith("/role-permissions")) {
     return t("nav.rolePermissions")
   }
+  if (pathname.startsWith("/finance/settings")) {
+    return t("nav.financialSettings")
+  }
   if (pathname.startsWith("/transactions")) {
     return t("nav.finance")
   }
