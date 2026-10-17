@@ -337,6 +337,50 @@ describe('InstitutesService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
+    it('should allow setting initial bank info when none was set even if term registration is active', async () => {
+      prismaService.institute.findFirstOrThrow.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Tehran Institute',
+        subdomain: 'tehran',
+        bankCardNumber: null,
+        bankAccountName: null,
+        bankShaba: null,
+      });
+      jest.spyOn(service, 'hasActiveRegistrationTerm').mockResolvedValue(true);
+      prismaService.institute.update.mockResolvedValue({
+        id: 'inst-tehran',
+        name: 'Tehran Institute',
+        bankCardNumber: '6037998877665544',
+        bankAccountName: 'New Account',
+        bankShaba: 'IR120170000000123456789012',
+        _count: { classes: 0, users: 1 },
+      });
+
+      const result = await service.update(
+        'inst-tehran',
+        {
+          bankCardNumber: '6037998877665544',
+          bankAccountName: 'New Account',
+          bankShaba: 'IR120170000000123456789012',
+        },
+        undefined,
+        mockInstituteAdmin,
+        'en',
+      );
+
+      expect(result.id).toBe('inst-tehran');
+      expect(prismaService.institute.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'inst-tehran' },
+          data: expect.objectContaining({
+            bankCardNumber: '6037998877665544',
+            bankAccountName: 'New Account',
+            bankShaba: 'IR120170000000123456789012',
+          }),
+        }),
+      );
+    });
+
     it('should allow updating non-bank fields even if term registration is active', async () => {
       prismaService.institute.findFirstOrThrow.mockResolvedValue({
         id: 'inst-tehran',

@@ -90,7 +90,9 @@
     "submitting": "Saving Changes...",
     "success": "Institute details updated successfully.",
     "statusLabel": "Institute Operational Status",
-    "statusActiveHint": "When inactive or suspended, users belonging to this institute will not be able to log in."
+    "statusActiveHint": "When inactive or suspended, users belonging to this institute will not be able to log in.",
+    "bankingLockedAlert": "Bank details cannot be edited while term registration is in progress.",
+    "bankingInitialWarningAlert": "Attention: Term registration is in progress. Bank details cannot be edited once submitted."
   },
   "deleteModal": {
     "title": "Delete Institute",
