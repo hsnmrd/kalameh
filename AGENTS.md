@@ -29,6 +29,7 @@ Before reading files to modify code, editing files, or running task commands:
   - **PowerShell Path Escaping:** In Windows PowerShell, Next.js App Router paths with `[locale]` or `(admin)` cause syntax errors (`admin: The term 'admin' is not recognized`). Pass **ONLY the test filename** to Vitest (e.g. `pnpm --filter admin-panel test -- scheduling-generation-form.spec.tsx`), or wrap full paths in single quotes: `'src/app/[locale]/(admin)/.../file.spec.tsx'`.
   - **Preventing Cascade Test Mock Failures:** When introducing cross-cutting business rules (e.g. institute financial readiness, license checks, activation gates), ensure shared mock factories/fixtures provide valid baseline values by default. Test blocked/negative states explicitly in dedicated tests using mock overrides, rather than breaking the baseline mock state across the entire suite.
   - Only execute the full suite as a final pre-commit quality check.
+- **Commit on Task Completion:** Always commit all changes when a task is done. Ensure clear, conventional commit messages (e.g., `feat:`, `fix:`, `docs:`, `refactor:`) are used, and never declare a task finished while leaving uncommitted changes in the working tree.
 - **Git Hooks & Quality Gate:** Prettier and ESLint are enforced by Husky (`.husky/pre-commit`) and `lint-staged` on every commit. Never bypass hooks.
 - **Environment Configuration:** All environment variables must be managed centrally in the root `.env` and declared in `turbo.json` under `globalEnv`. Do not create disconnected per-app `.env` files.
 
