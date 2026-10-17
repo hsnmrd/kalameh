@@ -116,6 +116,7 @@ For deeper app-specific constraints and procedural blueprints, refer to:
 
 - **Admin Page Blueprint (New Full Pages Only):** `.agents/skills/kalameh-admin-page/SKILL.md`
 - **Code Scaffolding & Turbo Generator:** `.agents/skills/kalameh-turbo-generator/SKILL.md`
+- **Skills Frontmatter Standard:** All `SKILL.md` files under `.agents/skills/` must strictly enclose their YAML frontmatter with opening and closing `---` delimiters and format descriptions using `description: >-` block scalar folding.
 - **Database & Migrations Rules:** `packages/database/AGENTS.md`
 - **Backend API Rules:** `apps/api/AGENTS.md`
 - **Admin Dashboard Rules:** `apps/admin-panel/AGENTS.md`

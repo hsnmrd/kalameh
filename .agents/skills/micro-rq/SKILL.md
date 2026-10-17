@@ -1,6 +1,9 @@
 ---
 name: micro-rq
-description: Use when working in a project that uses micro-rq to define REST resources, configure API clients, handle auth/token refresh, or pass generated query and mutation configs to TanStack Query.
+description: >-
+  Use when working in a project that uses micro-rq to define REST resources,
+  configure API clients, handle auth/token refresh, or pass generated query and
+  mutation configs to TanStack Query.
 ---
 
 # micro-rq

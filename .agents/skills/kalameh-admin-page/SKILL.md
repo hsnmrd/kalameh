@@ -1,6 +1,10 @@
 ---
 name: kalameh-admin-page
-description: Use this skill ONLY when explicitly scaffolding or architecting a brand new CRUD admin entity page with data table, filter bar, and mobile list from scratch in apps/admin-panel. Do NOT use for general bug fixes, styling adjustments, or edits to existing pages.
+description: >-
+  Use this skill ONLY when explicitly scaffolding or architecting a brand new
+  CRUD admin entity page with data table, filter bar, and mobile list from
+  scratch in apps/admin-panel. Do NOT use for general bug fixes, styling
+  adjustments, or edits to existing pages.
 ---
 
 # Kalameh Admin Page Implementation Guide

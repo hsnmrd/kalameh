@@ -1,6 +1,11 @@
 ---
 name: kalameh-turbo-generator
-description: Use this skill when working in the Kalameh monorepo and the user wants to scaffold, extend, or follow the existing Turbo generator structure for apps/web features, pages, components, modals, hooks, helpers, mock data, feature route groups, directory-only segments, or generator rollback behavior.
+description: >-
+  Use this skill when working in the Kalameh monorepo and the user wants to
+  scaffold, extend, or follow the existing Turbo generator structure for
+  apps/web features, pages, components, modals, hooks, helpers, mock data,
+  feature route groups, directory-only segments, or generator rollback
+  behavior.
 ---
 
 # Kalameh Turbo Generator
