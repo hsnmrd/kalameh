@@ -15,10 +15,13 @@
     "expired": "The 30-minute reservation window has expired and capacity has been released.",
     "warning": "Class capacity is locked for you for 30 minutes. Please upload your receipt before the timer expires.",
     "seconds": "seconds",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "stickyTimerLabel": "Payment Window",
+    "stickyTuitionLabel": "Tuition"
   },
   "payment": {
     "title": "Bank Account Details",
+    "depositAction": "Deposit",
     "fullPaymentRule": "Payment Rule: Full tuition must be paid in a single lump sum.",
     "tuition": "Tuition Amount:",
     "bankCard": "Bank Card Number:",

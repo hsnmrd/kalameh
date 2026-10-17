@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { CreditCard, Copy, Check } from "lucide-react"
+import { ArrowDown, Copy, Check } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Price } from "@workspace/ui/components/price"
 import { toast } from "@workspace/ui/components/sonner"
@@ -11,12 +11,28 @@ import type { BankInfoDto } from "@workspace/types"
 export interface BankInfoCardProps {
   bankInfo?: BankInfoDto | null
   tuition?: number
+  onScrollToPayment?: () => void
 }
 
-export function BankInfoCard({ bankInfo, tuition }: BankInfoCardProps) {
+export function BankInfoCard({
+  bankInfo,
+  tuition,
+  onScrollToPayment,
+}: BankInfoCardProps) {
   const t = useTranslations("enrollments.payment")
   const locale = useLocale()
   const [copied, setCopied] = React.useState(false)
+
+  const handleScrollToPayment = () => {
+    if (onScrollToPayment) {
+      onScrollToPayment()
+      return
+    }
+    const section = document.getElementById("upload-receipt-section")
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }
 
   const cleanCard =
     bankInfo?.bankCardNumber &&
@@ -53,10 +69,15 @@ export function BankInfoCard({ bankInfo, tuition }: BankInfoCardProps) {
   return (
     <div className="flex flex-col gap-4 border-b border-border/60 pt-1 pb-5">
       <div className="flex items-center justify-between border-b border-border/60 pb-3">
-        <div className="flex items-center gap-2">
-          <CreditCard className="size-4.5 text-muted-foreground" />
-          <h3 className="text-sm font-bold text-foreground">{t("title")}</h3>
-        </div>
+        <Button
+          type="button"
+          size="sm"
+          onClick={handleScrollToPayment}
+          className="h-8 gap-1.5 rounded-xl px-3 text-xs font-bold"
+        >
+          <span>{t("depositAction")}</span>
+          <ArrowDown className="size-3.5" />
+        </Button>
 
         {tuition !== undefined && (
           <div className="flex items-center gap-1.5">
