@@ -114,6 +114,7 @@ export default function StudentEnrollmentsPage() {
             initialSeconds={
               activeReservation.remainingReservationSeconds ?? 1800
             }
+            tuition={activeReservation.class.fee}
             onExpire={() => {
               void refetchEnrollments()
             }}

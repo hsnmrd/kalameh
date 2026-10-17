@@ -85,4 +85,14 @@ describe("ReservationTimer Component", () => {
 
     expect(onExpire).toHaveBeenCalled()
   })
+
+  it("should integrate ReservationStickyBar and pass down tuition and time", () => {
+    render(<ReservationTimer initialSeconds={1465} tuition={1200000} />, {
+      messages: customMessages,
+    })
+
+    const stickyBar = screen.getByTestId("reservation-sticky-bar")
+    expect(stickyBar).toBeInTheDocument()
+    expect(screen.getByText("1,200,000")).toBeInTheDocument()
+  })
 })
