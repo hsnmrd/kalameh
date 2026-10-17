@@ -276,11 +276,12 @@ describe("Term Lifecycle Status and Deletability", () => {
         expect(isTermRegistrationOpen(term, [], undefined, now)).toBe(true)
       })
 
-      it("returns [ACTIVE, ONGOING] in the middle of term after commencement window", () => {
-        // Day 20 of term
+      it("returns [ACTIVE, ONGOING] in the middle of term after commencement window when classes exist", () => {
+        // Day 20 of term with existing classes
         const now = new Date("2026-05-20")
+        const termWithClasses = { ...term, classesCount: 3 }
         const statuses = calculateTermLifecycleStatuses(
-          term,
+          termWithClasses,
           [],
           undefined,
           now
@@ -290,9 +291,54 @@ describe("Term Lifecycle Status and Deletability", () => {
         expect(statuses).not.toContain("CLASSES_STARTED")
         expect(statuses).not.toContain("REGISTERING")
         expect(statuses).not.toContain("FINAL_EXAMS")
-        expect(isTermOngoing(term, now)).toBe(true)
-        expect(isTermInCommencement(term, undefined, now)).toBe(false)
-        expect(isTermRegistrationOpen(term, [], undefined, now)).toBe(false)
+        expect(isTermOngoing(termWithClasses, now)).toBe(true)
+        expect(isTermInCommencement(termWithClasses, undefined, now)).toBe(
+          false
+        )
+        expect(
+          isTermRegistrationOpen(termWithClasses, [], undefined, now)
+        ).toBe(false)
+      })
+
+      it("retains REGISTERING status when term start date and registration window passed but term has NO classes (classesCount: 0)", () => {
+        // Day 20 of term (registration time passed, start date passed) but NO classes in term
+        const now = new Date("2026-05-20")
+        const termNoClasses = { ...term, classesCount: 0 }
+        const statuses = calculateTermLifecycleStatuses(
+          termNoClasses,
+          [],
+          undefined,
+          now
+        )
+        expect(statuses).toContain("ACTIVE")
+        expect(statuses).toContain("ONGOING")
+        expect(statuses).toContain("REGISTERING")
+        expect(statuses).not.toContain("CLASSES_STARTED")
+        expect(isTermOngoing(termNoClasses, now)).toBe(true)
+        expect(isTermInCommencement(termNoClasses, undefined, now)).toBe(false)
+        expect(isTermRegistrationOpen(termNoClasses, [], undefined, now)).toBe(
+          true
+        )
+      })
+
+      it("does NOT contain CLASSES_STARTED during commencement window when term has NO classes yet (classesCount: 0)", () => {
+        // Day 3 of term with NO classes
+        const now = new Date("2026-05-03")
+        const termNoClasses = { ...term, classesCount: 0 }
+        const statuses = calculateTermLifecycleStatuses(
+          termNoClasses,
+          [],
+          undefined,
+          now
+        )
+        expect(statuses).toContain("ACTIVE")
+        expect(statuses).toContain("ONGOING")
+        expect(statuses).toContain("REGISTERING")
+        expect(statuses).not.toContain("CLASSES_STARTED")
+        expect(isTermInCommencement(termNoClasses, undefined, now)).toBe(false)
+        expect(isTermRegistrationOpen(termNoClasses, [], undefined, now)).toBe(
+          true
+        )
       })
 
       it("returns [ACTIVE, ONGOING, FINAL_EXAMS] in the last 2 days of term", () => {

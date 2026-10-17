@@ -120,16 +120,25 @@ export function calculateTermLifecycleStatuses(
   if (nowMs >= startMs && nowMs <= endMs) {
     const statuses: TermLifecycleStatus[] = ["ACTIVE", "ONGOING"]
 
-    // First N days of classes (Classes started + Late registration)
+    const hasNoClasses = term.classesCount === 0
     const commencementEndMs = toEndOfDayMs(new Date(startMs + regAfterMs))
-    if (nowMs <= commencementEndMs) {
+
+    // Classes started: only if classes exist in the term and within commencement window
+    if (nowMs <= commencementEndMs && !hasNoClasses) {
       statuses.push("CLASSES_STARTED")
+    }
+
+    // Registration window:
+    // 1. Within the first N days of classes (Classes started + Late registration)
+    // 2. OR if start date / registering time has passed but there are NO classes in the term yet (classesCount === 0),
+    //    the term continues to contain signup status (REGISTERING) so students can still sign up and be contained in the term!
+    if (nowMs <= commencementEndMs || hasNoClasses) {
       statuses.push("REGISTERING")
     }
 
-    // Final exam window (last M days)
+    // Final exam window (last M days) - only if classes exist in the term
     const examStartMs = toStartOfDayMs(new Date(endMs - examBeforeMs))
-    if (nowMs >= examStartMs) {
+    if (nowMs >= examStartMs && !hasNoClasses) {
       statuses.push("FINAL_EXAMS")
     }
 

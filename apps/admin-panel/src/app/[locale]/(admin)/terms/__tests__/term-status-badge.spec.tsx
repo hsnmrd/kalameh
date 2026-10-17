@@ -75,4 +75,21 @@ describe("TermStatusBadge Component", () => {
     render(<TermStatusBadge isActive={false} />)
     expect(screen.getByText(/غیرفعال|بسته شده|closed/i)).toBeInTheDocument()
   })
+
+  it("renders both ongoing and registering badges when term start date passed but classesCount is 0", () => {
+    const term: TermDto = {
+      id: "term-2",
+      instituteId: "inst-1",
+      title: "ترم بدون کلاس",
+      startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      isActive: true,
+      classesCount: 0,
+      createdAt: "",
+      updatedAt: "",
+    }
+    render(<TermStatusBadge term={term} />)
+    expect(screen.getByText(/در حال برگزاری/i)).toBeInTheDocument()
+    expect(screen.getByText(/در حال ثبت‌نام/i)).toBeInTheDocument()
+  })
 })
