@@ -77,10 +77,10 @@ export function BankInfoCard({ bankInfo, tuition }: BankInfoCardProps) {
           <span className="text-[11px] text-muted-foreground">
             {t("bankCard")}
           </span>
-          <div className="mt-1 flex items-center justify-between gap-2">
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2 sm:flex-nowrap">
             <span
               dir="ltr"
-              className="text-lg font-bold tracking-widest text-foreground"
+              className="xs:text-lg font-sans text-base font-bold tracking-wider text-foreground tabular-nums sm:tracking-widest"
             >
               {formattedCard}
             </span>

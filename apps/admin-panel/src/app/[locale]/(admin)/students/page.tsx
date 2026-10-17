@@ -307,14 +307,6 @@ export default function StudentsPage() {
                       activeInstitute?.termRegistrationDaysAfterStart,
                     examDaysBeforeEnd: activeInstitute?.termExamDaysBeforeEnd,
                   }}
-                  isWishlistActive={isWishlistFilter}
-                  onFilterWishlist={() =>
-                    setFilter(
-                      "selectedStatus",
-                      isWishlistFilter ? "ALL" : "WISHLIST"
-                    )
-                  }
-                  onAddStudent={handleCreate}
                 />
               )}
 
