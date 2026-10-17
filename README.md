@@ -21,6 +21,7 @@ Multi-tenant Language Learning & Institute Management SaaS Platform.
 | PRD / Module                             | Description                                                                                                                                                                                                                                               | Status                      | Reference                                                            |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------- |
 | **PRD_00_base (Foundation & Auth Base)** | Multi-Tenant Architecture, Shared Zod Types, Design System (`packages/ui`), NestJS Auth & RBAC, HttpOnly Cookie Authentication, Collocated Sibling Component Architecture, and End-to-End Internationalization (`Accept-Language` header + Backend i18n). | ✅ **Completed & Verified** | [`docs/implements/PRD_00_base.md`](./docs/implements/PRD_00_base.md) |
+| **Academic Terms & Dynamic Lifecycles**  | Multi-status dynamic lifecycle state engine for terms, institute-level window customizations (registration, exam periods), event-driven grading status, and score finalization.                                                                           | ✅ **Completed & Verified** | [Term Lifecycle Engine](#-academic-term-lifecycle--dynamic-statuses) |
 
 ### Key Implemented Capabilities:
 
@@ -32,6 +33,67 @@ Multi-tenant Language Learning & Institute Management SaaS Platform.
 - [x] **Admin Dashboard (`apps/admin-panel`):** Role-tailored dashboard (`SUPER_ADMIN` vs `INSTITUTE_ADMIN`), split 50/50 desktop login, accessible language switcher, and sidebar navigation with user badge.
 - [x] **Student PWA (`apps/student-pwa`):** Mobile-first UI frame (`max-w-[480px]`), touch-optimized login, classes, enrollments, flashcards, and profile views.
 - [x] **Collocated Sibling Architecture:** Named route folders with collocated `components/` and `hooks/`, and App Router grouping `({page})` for root index pages.
+- [x] **Academic Term Lifecycle Engine:** Multi-status simultaneous evaluation (`UPCOMING`, `REGISTERING`, `CLASSES_STARTED`, `ONGOING`, `FINAL_EXAMS`, `GRADING`, `COMPLETED`, `INACTIVE`), configurable institute registration/exam day parameters, and event-driven score finalization.
+
+---
+
+## 📅 Academic Term Lifecycle & Dynamic Statuses
+
+Academic terms feature a multi-status dynamic lifecycle engine. Rather than relying on a single binary or static state, terms dynamically evaluate multiple statuses simultaneously based on date windows, relative sibling term positions, student score entry completion, and institute settings.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> UPCOMING: Not in window / Non-adjacent
+    UPCOMING --> REGISTERING: Window opens
+    REGISTERING --> CLASSES_STARTED: Start Date reached
+    CLASSES_STARTED --> ONGOING: Commencement complete
+    ONGOING --> FINAL_EXAMS: Exam period
+    FINAL_EXAMS --> GRADING: End Date & scores pending
+    GRADING --> COMPLETED: Scores recorded / sealed
+    COMPLETED --> [*]
+```
+
+### 1. The 8 Lifecycle Statuses
+
+| Status                | Persian Label        | Description & Calculation Rules                                                                                                                                                                                         |
+| :-------------------- | :------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`UPCOMING`**        | `پیش‌رو`             | A future term that is either outside its registration window or is not the immediate subsequent term following the currently active term.                                                                               |
+| **`REGISTERING`**     | `در حال ثبت‌نام`     | The immediate next term whose registration window is open: spans `[startDate - regDaysBefore, startDate + regDaysAfter]`.                                                                                               |
+| **`CLASSES_STARTED`** | `شروع کلاس‌ها`       | The initial commencement window (first 7 days) following `startDate`. Co-exists simultaneously with `REGISTERING` and `ONGOING`.                                                                                        |
+| **`ONGOING`**         | `در حال برگزاری`     | Active instructional period (`startDate <= now <= endDate`).                                                                                                                                                            |
+| **`FINAL_EXAMS`**     | `امتحانات پایان ترم` | The final examination period during the last `examDaysBeforeEnd` days prior to `endDate`.                                                                                                                               |
+| **`GRADING`**         | `در حال ثبت نمرات`   | **Event-driven status:** Activates when `now > endDate` while any student enrollment lacks a final grade (`finalScore === null`) and scores have not been explicitly sealed. The term does **not** close automatically. |
+| **`COMPLETED`**       | `اتمام`              | Term has ended (`now > endDate`) AND all student scores are entered or explicitly sealed via `finalizeScores`.                                                                                                          |
+| **`INACTIVE`**        | `غیرفعال`            | Explicitly archived or deactivated term (`isActive: false`).                                                                                                                                                            |
+
+### 2. Institute Timing Window Settings
+
+Each institute can customize its lifecycle timing parameters directly from **Settings (`/setting`)** or from the **Terms Management page** via the settings modal:
+
+- **`termRegistrationDaysBeforeStart`** (Default: `10` days): Number of days before `startDate` that registration opens for the immediate next term.
+- **`termRegistrationDaysAfterStart`** (Default: `7` days): Add/drop grace period during which registration remains open after classes begin.
+- **`termExamDaysBeforeEnd`** (Default: `2` days): Days before `endDate` designated for final examinations.
+
+### 3. Event-Driven Score Finalization Flow
+
+1. When a term passes its `endDate`, the backend checks enrollments across all classes in that term.
+2. If any student has `finalScore: null`, the term enters **`GRADING`** (`در حال ثبت نمرات`) and reports `unscoredStudentsCount`.
+3. Authorized institute administrators (`PERMISSIONS.MANAGE_TERMS`) can review the term in **View Term Modal**, which warns of unscored students and provides the **Finalize Scores (`ثبت نهایی و اتمام ترم`)** action.
+4. Finalizing triggers `POST /terms/:id/finalize-scores`, recording `scoresFinalizedAt` and `scoresFinalizedByUserId`, sealing the grade records and transitioning the term to **`COMPLETED`**.
+
+### 4. Shared Utilities & Multi-Badge UI
+
+- **Shared Engine (`@workspace/types`):**
+  - `calculateTermLifecycleStatuses(term, siblings, settings, now)`: Computes an array of all active statuses.
+  - `calculateTermLifecycleStatus(term, siblings, settings, now)`: Computes the primary status for backward-compatible consumers.
+  - Helper predicates: `isTermRegistrationOpen`, `isTermOngoing`, `isTermInCommencement`, `isTermInFinalExams`, `isTermInGrading`, `isTermCompleted`.
+- **Admin Panel UI (`apps/admin-panel`):**
+  - `<TermStatusBadge />`: Renders multiple badges side-by-side with semantic color schemes (Ongoing: success, Registering: primary, Classes Started: sky, Final Exams: amber, Grading: orange, Upcoming: warning, Completed: muted, Inactive: destructive).
+  - `<TermsFilter />`: Filters term tables and mobile lists by any lifecycle status.
+  - `<TermSettingsModal />`: Quick settings modal triggered from the terms page toolbar.
+  - `<SettingTermLifecycleCard />`: Dedicated configuration card in the institute settings view (`/setting`).
+  - `<FinalizeScoresModal />`: Accessible `<AlertDialog>` confirmation dialog with unscored-student counter.
 
 ---
 
